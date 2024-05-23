@@ -97,7 +97,7 @@ class AuditoriaProcesoController extends Controller
 
     public function altaProceso(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         $categorias = $this->cargarCategorias();
 
 
@@ -109,7 +109,7 @@ class AuditoriaProcesoController extends Controller
         
         return view('aseguramientoCalidad.altaProceso', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
-            'activePage' => $activePage]));
+            'pageSlug' => $pageSlug]));
     }
 
     public function obtenerItemId(Request $request) 
@@ -139,7 +139,7 @@ class AuditoriaProcesoController extends Controller
     public function auditoriaProceso(Request $request)
     {
         
-        $activePage ='';
+        $pageSlug ='';
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
@@ -219,7 +219,7 @@ class AuditoriaProcesoController extends Controller
         
         return view('aseguramientoCalidad.auditoriaProceso', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
-            'activePage' => $activePage,
+            'pageSlug' => $pageSlug,
             'data' => $data, 
             'nombresPlanta1' => $nombresPlanta1, 
             'nombresPlanta2' => $nombresPlanta2, 
@@ -293,7 +293,7 @@ class AuditoriaProcesoController extends Controller
 
     public function formAltaProceso(Request $request) 
     {
-        $activePage ='';
+        $pageSlug ='';
 
         $data = [
             'area' => $request->area,
@@ -305,12 +305,12 @@ class AuditoriaProcesoController extends Controller
             'cliente' => $request->cliente,
         ];
         //dd($data, $request->all());
-        return redirect()->route('aseguramientoCalidad.auditoriaProceso', $data)->with('cambio-estatus', 'Iniciando en modulo: '. $data['modulo'])->with('activePage', $activePage);
+        return redirect()->route('aseguramientoCalidad.auditoriaProceso', $data)->with('cambio-estatus', 'Iniciando en modulo: '. $data['modulo'])->with('pageSlug', $pageSlug);
     }
 
     public function formRegistroAuditoriaProceso(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
 
         $fechaHoraActual = now();
         
@@ -413,12 +413,12 @@ class AuditoriaProcesoController extends Controller
 
         
 
-        return back()->with('success', 'Datos guardados correctamente.')->with('activePage', $activePage);
+        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
     
     public function formUpdateDeleteProceso(Request $request){
-        $activePage ='';
+        $pageSlug ='';
         $action = $request->input('action');
 
         $id = $request->input('id');
@@ -432,22 +432,22 @@ class AuditoriaProcesoController extends Controller
             $actualizarRegistro->save();
 
             //dd($request->all(), $actualizarRegistro, $id);
-            return back()->with('sobre-escribir', 'Registro actualizado correctamente.')->with('activePage', $activePage);
+            return back()->with('sobre-escribir', 'Registro actualizado correctamente.')->with('pageSlug', $pageSlug);
 
             // Lógica para actualizar el registro
         } elseif ($action == 'delete'){
             // Lógica para eliminar el registro
             AseguramientoCalidad::where('id', $id)->delete();
-            return back()->with('error', 'Registro eliminado.')->with('activePage', $activePage);
+            return back()->with('error', 'Registro eliminado.')->with('pageSlug', $pageSlug);
         }
 
         //dd($request->all(), $request->input('descripcion_parte1'), $id);
-        return back()->with('cambio-estatus', 'Datos guardados correctamente.')->with('activePage', $activePage);
+        return back()->with('cambio-estatus', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
     public function formFinalizarProceso(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         // Obtener el ID seleccionado desde el formulario
         $area = $request->input('area');
         $modulo = $request->input('modulo');
@@ -465,12 +465,12 @@ class AuditoriaProcesoController extends Controller
         ->update(['observacion' => $observacion, 'estatus' => $estatus]);
         
 
-        return back()->with('success', 'Finalizacion aplicada correctamente.')->with('activePage', $activePage);
+        return back()->with('success', 'Finalizacion aplicada correctamente.')->with('pageSlug', $pageSlug);
     }
 
     public function cambiarEstadoInicioParo(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         $id = $request->idCambio;
         //dd($id);
         $registro = AseguramientoCalidad::find($id);
@@ -486,7 +486,7 @@ class AuditoriaProcesoController extends Controller
 
         $registro->save();
 
-        return back()->with('success', 'Fin de Paro Aplicado.')->with('activePage', $activePage);
+        return back()->with('success', 'Fin de Paro Aplicado.')->with('pageSlug', $pageSlug);
     }
 
 }

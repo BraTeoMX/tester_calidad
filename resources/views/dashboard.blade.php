@@ -6,7 +6,7 @@
         <div class="col-lg-6 col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
-                     <h3 class="card-title"><i class="tim-icons icon-send text-success"></i>Auditoria AQL por dia</h3>
+                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Auditoria AQL por dia</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -46,7 +46,7 @@
         <div class="col-lg-6 col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
-                <h3 class="card-title"><i class="tim-icons icon-bell-55 text-primary"></i> Auditoria  de Procesos</h3>
+                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Auditoria de Procesos</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -175,11 +175,11 @@
         </div>
     </div>
     <div class="row">
-    <div class="col-lg-6 col-md-12">
+    <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title">Clientes</h4>
-                    <p class="card-category d-inline"> 23/05/2004</p>
+                    <h4 class="card-title"> <i class="tim-icons icon-shape-star text-primary"></i> Clientes</h4>
+                    <p class="card-category d-inline"> Dia actual</p>
 
                 </div>
                 <div class="card-body">
@@ -212,37 +212,18 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-6 col-md-12">
+        <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title">Responsables</h4>
-                    {{--<p class="card-category d-inline"> 23/05/2004</p> --}}
-
+                    <h4 class="card-title"><i class="tim-icons icon-app text-success"></i> Responsables AQL</h4>
+                    <p class="card-category d-inline"> Dia actual</p>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table tablesorter" id="">
-                            <thead class="text-primary">
-                                <tr>
-                                    <th>
-                                        Modulo
-                                    </th>
-                                    <th>
-                                        Error AQL
-                                    </th>
-                                    <th>
-                                        Error Procesos
-                                    </th>
-                                    <th class="text-center">
-                                        Error General
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                            <thead class=" text-primary">
                                 <tr>
                                     <th>Gerentes Produccion (AQL)</th>
-                                    <th>Cantidad de Módulos</th>
-                                    <th>Numero de Operarios</th>
                                     <th>Cantidad Paro</th>
                                     <th>Minutos Paro</th>
                                     <th>Promedio Minutos Paro</th>
@@ -254,7 +235,79 @@
                                 @foreach ($dataGerentesAQLGeneral as $item)
                                     <tr>
                                         <td>{{ $item['team_leader'] }}</td>
-                                        <td>{{ $item['modulos_unicos'] }}</td>
+                                        <td>{{ $item['conteoMinutos'] }}</td>
+                                        <td>{{ $item['sumaMinutos'] }}</td>
+                                        <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                        <td>{{ $item['conteParoModular'] }}</td>
+                                        <td>{{ number_format($item['porcentaje_error_aql'], 2) }}%</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card ">
+                <div class="card-header">
+                    <h4 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Responsables PROCESO</h4>
+                    <p class="card-category d-inline"> Dia actual</p>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table tablesorter" id="">
+                            <thead class=" text-primary">
+                                <tr>
+                                    <th>Gerentes Produccion (Proceso)</th>
+                                    <th>Cantidad Paro</th>
+                                    <th>Minutos Paro</th>
+                                    <th>Promedio Minutos Paro</th>
+                                    <th>% Error Proceso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($dataGerentesProcesoGeneral as $item)
+                                    <tr>
+                                        <td>{{ $item['team_leader'] }}</td>
+                                        <td>{{ $item['conteoMinutos'] }}</td>
+                                        <td>{{ $item['sumaMinutos'] }}</td>
+                                        <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                        <td>{{ number_format($item['porcentaje_error_proceso'], 2) }}%</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 col-md-12">
+            <div class="card ">
+                <div class="card-header card-header-success card-header-icon">
+                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table tablesorter" id="">
+                            <thead class=" text-primary">
+                                <tr>
+                                    <th>Modulo (AQL)</th>
+                                    <th>Numero de Operarios</th>
+                                    <th>Cantidad Paro</th>
+                                    <th>Minutos Paro</th>
+                                    <th>Promedio Minutos Paro</th>
+                                    <th>Cantidad Paro Modular</th>
+                                    <th>% Error AQL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($dataModuloAQLGeneral as $item)
+                                    <tr>
+                                        <td>{{ $item['modulo'] }}</td>
                                         <td>{{ $item['conteoOperario'] }}</td>
                                         <td>{{ $item['conteoMinutos'] }}</td>
                                         <td>{{ $item['sumaMinutos'] }}</td>
@@ -266,6 +319,42 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-12">
+            <div class="card ">
+                <div class="card-header card-header-success card-header-icon">
+                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table tablesorter" id="">
+                            <thead class=" text-primary">
+                                <tr>
+                                    <th>Modulo (Proceso)</th>
+                                    <th>Numero de Operarios</th>
+                                    <th>Numero de Utility</th>
+                                    <th>Cantidad Paro</th>
+                                    <th>Minutos Paro</th>
+                                    <th>Promedio Minutos Paro</th>
+                                    <th>% Error Proceso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($dataModuloProcesoGeneral as $item)
+                                    <tr>
+                                        <td>{{ $item['modulo'] }}</td>
+                                        <td>{{ $item['conteoOperario'] }}</td>
+                                        <td>{{ $item['conteoUtility'] }}</td>
+                                        <td>{{ $item['conteoMinutos'] }}</td>
+                                        <td>{{ $item['sumaMinutos'] }}</td>
+                                        <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                        <td>{{ number_format($item['porcentaje_error_proceso'], 2) }}%</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                 </div>
             </div>
         </div>

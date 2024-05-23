@@ -86,7 +86,7 @@ class AuditoriaCorteController extends Controller
 
     public function inicioAuditoriaCorte()
     {
-        $activePage ='';
+        $pageSlug ='';
         $categorias = $this->cargarCategorias();
 
 
@@ -94,12 +94,12 @@ class AuditoriaCorteController extends Controller
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
 
-        return view('auditoriaCorte.inicioAuditoriaCorte', array_merge($categorias, ['mesesEnEspanol' => $mesesEnEspanol, 'activePage' => $activePage]));
+        return view('auditoriaCorte.inicioAuditoriaCorte', array_merge($categorias, ['mesesEnEspanol' => $mesesEnEspanol, 'pageSlug' => $pageSlug]));
     }
 
     public function auditoriaCorte($id, $orden)
     {
-        $activePage ='';
+        $pageSlug ='';
         $categorias = $this->cargarCategorias();
         $auditorDato = Auth::user()->name;
         //dd($userName);
@@ -142,7 +142,7 @@ class AuditoriaCorteController extends Controller
         $mostrarFinalizarFinal = $auditoriaFinal ? session('estatus_checked_AuditoriaFinal') : false;
         return view('auditoriaCorte.auditoriaCorte', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
-            'activePage' => $activePage, 
+            'pageSlug' => $pageSlug, 
             'datoAX' => $datoAX, 
             'auditoriaMarcada' => $auditoriaMarcada,
             'auditoriaTendido' => $auditoriaTendido,
@@ -161,7 +161,7 @@ class AuditoriaCorteController extends Controller
 
     public function altaAuditoriaCorte($orden)
     {
-        $activePage ='';
+        $pageSlug ='';
         $categorias = $this->cargarCategorias();
         $auditorDato = Auth::user()->name;
         //dd($userName);
@@ -196,7 +196,7 @@ class AuditoriaCorteController extends Controller
         $mostrarFinalizarFinal = $auditoriaFinal ? session('estatus_checked_AuditoriaFinal') : false;
         return view('auditoriaCorte.altaAuditoriaCorte', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
-            'activePage' => $activePage, 
+            'pageSlug' => $pageSlug, 
             'datoAX' => $datoAX, 
             'auditoriaMarcada' => $auditoriaMarcada,
             'auditoriaTendido' => $auditoriaTendido,
@@ -217,7 +217,7 @@ class AuditoriaCorteController extends Controller
     
     public function formEncabezadoAuditoriaCorte(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         // Validar los datos del formulario si es necesario
         // Validar los datos del formulario si es necesario
         // Obtener el ID seleccionado desde el formulario
@@ -327,12 +327,12 @@ class AuditoriaCorteController extends Controller
         }
         //dd($idEvento1);
 
-        return redirect()->route('auditoriaCorte.auditoriaCorte', ['id' => $idEvento1, 'orden' => $orden])->with('success', 'Datos guardados correctamente.')->with('activePage', $activePage);
+        return redirect()->route('auditoriaCorte.auditoriaCorte', ['id' => $idEvento1, 'orden' => $orden])->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
     public function agregarEventoCorte(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         $orden_id = $request->input('orden_id'); 
         $cliente_id = $request->input('cliente_id'); 
 
@@ -398,12 +398,12 @@ class AuditoriaCorteController extends Controller
 
 
         // Redireccionar a la página anterior
-        return redirect()->route('auditoriaCorte.inicioAuditoriaCorte', )->with('success', '  Evento agregado correctamente.')->with('activePage', $activePage);
+        return redirect()->route('auditoriaCorte.inicioAuditoriaCorte', )->with('success', '  Evento agregado correctamente.')->with('pageSlug', $pageSlug);
     }
 
     public function formRechazoCorte(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         // Obtener el ID seleccionado desde el formulario
         $idSeleccionado = $request->input('id');
         
@@ -414,12 +414,12 @@ class AuditoriaCorteController extends Controller
         $datoAX->save();
         
 
-        return redirect()->route('auditoriaCorte.inicioAuditoriaCorte', )->with('error', 'Rechazo guardado correctamente.')->with('activePage', $activePage);
+        return redirect()->route('auditoriaCorte.inicioAuditoriaCorte', )->with('error', 'Rechazo guardado correctamente.')->with('pageSlug', $pageSlug);
     }
 
     public function formAprobarCorte(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
 
         // Obtener el ID seleccionado desde el formulario
         $idSeleccionado = $request->input('id');
@@ -431,14 +431,14 @@ class AuditoriaCorteController extends Controller
         $datoAX->save();
         
 
-        return redirect()->route('auditoriaCorte.inicioAuditoriaCorte', )->with('success', 'Aprobado guardado correctamente.')->with('activePage', $activePage);
+        return redirect()->route('auditoriaCorte.inicioAuditoriaCorte', )->with('success', 'Aprobado guardado correctamente.')->with('pageSlug', $pageSlug);
     }
 
     
 
     public function formAuditoriaMarcada(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         // Validar los datos del formulario si es necesario
         // Obtener el ID seleccionado desde el formulario
         $idSeleccionado = $request->input('id');
@@ -463,7 +463,7 @@ class AuditoriaCorteController extends Controller
             $encabezadoAuditoriaCorteEstatus->estatus = 'estatusAuditoriaTendido';
             // Asegúrate de llamar a save() en la variable actualizada
             $encabezadoAuditoriaCorteEstatus->save();
-            return back()->with('cambio-estatus', 'Se Cambio a estatus: AUDITORIA DE TENDIDO.')->with('activePage', $activePage);
+            return back()->with('cambio-estatus', 'Se Cambio a estatus: AUDITORIA DE TENDIDO.')->with('pageSlug', $pageSlug);
         }
 
         $allChecked = trim($request->input('yarda_orden_estatus')) === "1";
@@ -519,12 +519,12 @@ class AuditoriaCorteController extends Controller
             return back()->with('sobre-escribir', 'Actualilzacion realizada con exito');
         }
 
-        return back()->with('success', 'Datos guardados correctamente.')->with('activePage', $activePage);
+        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
     public function formAuditoriaTendido(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         // Validar los datos del formulario si es necesario
         // Obtener el ID seleccionado desde el formulario
         $idSeleccionado = $request->input('id');
@@ -549,7 +549,7 @@ class AuditoriaCorteController extends Controller
             $encabezadoAuditoriaCorteEstatus->estatus = 'estatusLectra';
             // Asegúrate de llamar a save() en la variable actualizada
             $encabezadoAuditoriaCorteEstatus->save();
-            return back()->with('cambio-estatus', 'Se Cambio a estatus: LECTRA.')->with('activePage', $activePage);
+            return back()->with('cambio-estatus', 'Se Cambio a estatus: LECTRA.')->with('pageSlug', $pageSlug);
         }
 
         $allChecked = trim($request->input('informacion_trazo_estatus')) === "1" &&
@@ -606,12 +606,12 @@ class AuditoriaCorteController extends Controller
         }
        // dd($existeOrden->nombre2);
 
-        return back()->with('success', 'Datos guardados correctamente.')->with('activePage', $activePage);
+        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
     public function formLectra(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         //dd($request->all());
         // Validar los datos del formulario si es necesario
         // Obtener el ID seleccionado desde el formulario
@@ -632,7 +632,7 @@ class AuditoriaCorteController extends Controller
             $encabezadoAuditoriaCorteEstatus->estatus = 'estatusAuditoriaBulto';
             // Asegúrate de llamar a save() en la variable actualizada
             $encabezadoAuditoriaCorteEstatus->save();
-            return back()->with('cambio-estatus', 'Se Cambio a estatus: AUDITORIA EN BULTOS.')->with('activePage', $activePage);
+            return back()->with('cambio-estatus', 'Se Cambio a estatus: AUDITORIA EN BULTOS.')->with('pageSlug', $pageSlug);
         }
 
         $allChecked = trim($request->input('pieza_contrapatron_estatus')) === "1";
@@ -682,12 +682,12 @@ class AuditoriaCorteController extends Controller
             return back()->with('sobre-escribir', 'Actualilzacion realizada con exito');
         }
 
-        return back()->with('success', 'Datos guardados correctamente.')->with('activePage', $activePage);
+        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
     public function formAuditoriaBulto(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         // Validar los datos del formulario si es necesario
         // Obtener el ID seleccionado desde el formulario
         $idSeleccionado = $request->input('id');
@@ -708,7 +708,7 @@ class AuditoriaCorteController extends Controller
             $encabezadoAuditoriaCorteEstatus->estatus = 'estatusAuditoriaFinal';
             // Asegúrate de llamar a save() en la variable actualizada
             $encabezadoAuditoriaCorteEstatus->save();
-            return back()->with('cambio-estatus', 'Se Cambio a estatus: AUDITORIA FINAL.')->with('activePage', $activePage);
+            return back()->with('cambio-estatus', 'Se Cambio a estatus: AUDITORIA FINAL.')->with('pageSlug', $pageSlug);
         }
 
         // Verificar si todos los checkboxes tienen el valor deseado
@@ -740,12 +740,12 @@ class AuditoriaCorteController extends Controller
             return back()->with('sobre-escribir', 'Actualilzacion realizada con exito');
         }
 
-        return back()->with('success', 'Datos guardados correctamente.')->with('activePage', $activePage);
+        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
     public function formAuditoriaFinal(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         // Validar los datos del formulario si es necesario
         // Obtener el ID seleccionado desde el formulario
         $idSeleccionado = $request->input('id');
@@ -770,7 +770,7 @@ class AuditoriaCorteController extends Controller
             $encabezadoAuditoriaCorteEstatus->estatus = 'fin';
             // Asegúrate de llamar a save() en la variable actualizada
             $encabezadoAuditoriaCorteEstatus->save();
-            return back()->with('cambio-estatus', 'Fin 👋.')->with('activePage', $activePage);
+            return back()->with('cambio-estatus', 'Fin 👋.')->with('pageSlug', $pageSlug);
         }
 
         
@@ -792,7 +792,7 @@ class AuditoriaCorteController extends Controller
             return back()->with('sobre-escribir', 'Actualilzacion realizada con exito');
         }
 
-        return back()->with('success', 'Datos guardados correctamente.')->with('activePage', $activePage);
+        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
 }

@@ -7,8 +7,8 @@ class viewlistaFormularios extends Controller
 {
     public function listaFormularios()
     {
-        $activePage ='';
-        return view('listaFormularios', compact('activePage'));
+        $pageSlug ='';
+        return view('listaFormularios', compact('pageSlug'));
     }
 
 

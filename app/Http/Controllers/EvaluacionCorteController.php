@@ -94,7 +94,7 @@ class EvaluacionCorteController extends Controller
 
     public function inicioEvaluacionCorte()
     {
-        $activePage ='';
+        $pageSlug ='';
         $categorias = $this->cargarCategorias();
 
 
@@ -102,12 +102,12 @@ class EvaluacionCorteController extends Controller
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
 
-        return view('evaluacionCorte.inicioEvaluacionCorte', array_merge($categorias, ['mesesEnEspanol' => $mesesEnEspanol, 'activePage' => $activePage]));
+        return view('evaluacionCorte.inicioEvaluacionCorte', array_merge($categorias, ['mesesEnEspanol' => $mesesEnEspanol, 'pageSlug' => $pageSlug]));
     }
 
     public function evaluaciondeCorte($ordenId, $eventoId)
     {
-        $activePage ='';
+        $pageSlug ='';
         $categorias = $this->cargarCategorias();
         $auditorDato = Auth::user()->name;
         //dd($userName);
@@ -127,7 +127,7 @@ class EvaluacionCorteController extends Controller
         
         return view('evaluacionCorte.evaluaciondeCorte', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
-            'activePage' => $activePage, 
+            'pageSlug' => $pageSlug, 
             'registroEvaluacionCorte' => $registroEvaluacionCorte,
             'encabezadoAuditoriaCorte' => $encabezadoAuditoriaCorte,
             'auditorDato' => $auditorDato]));
@@ -154,7 +154,7 @@ class EvaluacionCorteController extends Controller
 
     public function formAltaEvaluacionCortes(Request $request) 
     {
-        $activePage ='';
+        $pageSlug ='';
         // Validar los datos del formulario si es necesario
         // Obtener el ID seleccionado desde el formulario
         $ordenId = $request->input('orden');
@@ -163,12 +163,12 @@ class EvaluacionCorteController extends Controller
         //dd($ordenId, $eventoId, $estilo);
         
 
-        return redirect()->route('evaluacionCorte.evaluaciondeCorte', ['orden' => $ordenId, 'evento' => $eventoId])->with('success', 'Datos guardados correctamente.')->with('activePage', $activePage);
+        return redirect()->route('evaluacionCorte.evaluaciondeCorte', ['orden' => $ordenId, 'evento' => $eventoId])->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
     public function formRegistro(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         // Obtener el ID seleccionado desde el formulario
         $ordenId = $request->input('orden');
         $eventoId = $request->input('evento');
@@ -194,11 +194,11 @@ class EvaluacionCorteController extends Controller
         
         $evaluacionCorte->save();
 
-        return back()->with('success', 'Datos guardados correctamente.')->with('activePage', $activePage);
+        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
     public function formActualizacionEliminacionEvaluacionCorte($id, Request $request){
-        $activePage ='';
+        $pageSlug ='';
         $action = $request->input('action');
         //$id = $request->input('id');
         //dd($request->all());
@@ -212,22 +212,22 @@ class EvaluacionCorteController extends Controller
             $actualizarRegistro->save();
 
             //dd($request->all(), $actualizarRegistro, $id);
-            return back()->with('sobre-escribir', 'Registro actualizado correctamente.')->with('activePage', $activePage);
+            return back()->with('sobre-escribir', 'Registro actualizado correctamente.')->with('pageSlug', $pageSlug);
 
             // Lógica para actualizar el registro
         } elseif ($action == 'delete'){
             // Lógica para eliminar el registro
             EvaluacionCorte::where('id', $id)->delete();
-            return back()->with('error', 'Registro eliminado.')->with('activePage', $activePage);
+            return back()->with('error', 'Registro eliminado.')->with('pageSlug', $pageSlug);
         }
 
         //dd($request->all(), $request->input('descripcion_parte1'), $id);
-        return back()->with('cambio-estatus', 'Datos guardados correctamente.')->with('activePage', $activePage);
+        return back()->with('cambio-estatus', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
     public function formFinalizarEventoCorte(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         // Obtener el ID seleccionado desde el formulario
         $ordenId = $request->input('orden');
         $eventoId = $request->input('evento');
@@ -241,7 +241,7 @@ class EvaluacionCorteController extends Controller
         $evaluacionCorte->save();
         //dd($evaluacionCorte, $ordenId, $eventoId);
 
-        return back()->with('success', 'Datos guardados correctamente.')->with('activePage', $activePage);
+        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
 }

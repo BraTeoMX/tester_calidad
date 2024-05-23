@@ -89,7 +89,7 @@ class AuditoriaAQLController extends Controller
 
     public function altaAQL(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         $categorias = $this->cargarCategorias();
 
 
@@ -101,7 +101,7 @@ class AuditoriaAQLController extends Controller
         
         return view('auditoriaAQL.altaAQL', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
-            'activePage' => $activePage]));
+            'pageSlug' => $pageSlug]));
     }
 
     public function obtenerItemId(Request $request)
@@ -116,7 +116,7 @@ class AuditoriaAQLController extends Controller
     public function auditoriaAQL(Request $request)
     {
         
-        $activePage ='';
+        $pageSlug ='';
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
@@ -258,7 +258,7 @@ class AuditoriaAQLController extends Controller
         //dd($nombreProcesoToAQL, $utilityPlanta2, $utilityPlanta1, $nombreProcesoToAQLPlanta1, $nombreProcesoToAQLPlanta2);
         return view('auditoriaAQL.auditoriaAQL', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
-            'activePage' => $activePage,
+            'pageSlug' => $pageSlug,
             'datoBultos' => $datoBultos, 
             'datoUnicoOP' => $datoUnicoOP, 
             'data' => $data, 
@@ -286,7 +286,7 @@ class AuditoriaAQLController extends Controller
 
     public function formAltaProcesoAQL(Request $request) 
     {
-        $activePage ='';
+        $pageSlug ='';
 
         $data = [
             'area' => $request->area,
@@ -299,12 +299,12 @@ class AuditoriaAQLController extends Controller
             'team_leader' => $request->team_leader,
         ];
         //dd($data);
-        return redirect()->route('auditoriaAQL.auditoriaAQL', $data)->with('cambio-estatus', 'Iniciando en modulo: '. $data['modulo'])->with('activePage', $activePage);
+        return redirect()->route('auditoriaAQL.auditoriaAQL', $data)->with('cambio-estatus', 'Iniciando en modulo: '. $data['modulo'])->with('pageSlug', $pageSlug);
     }
 
     public function formRegistroAuditoriaProcesoAQL(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
 
         $fechaHoraActual= now(); 
 
@@ -391,12 +391,12 @@ class AuditoriaAQLController extends Controller
         }
 
 
-        return back()->with('success', 'Datos guardados correctamente.')->with('activePage', $activePage);
+        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
     
     public function formUpdateDeleteProceso(Request $request){
-        $activePage ='';
+        $pageSlug ='';
         $action = $request->input('action');
 
         $id = $request->input('id');
@@ -409,22 +409,22 @@ class AuditoriaAQLController extends Controller
             $actualizarRegistro->save();
 
             //dd($request->all(), $actualizarRegistro, $id);
-            return back()->with('sobre-escribir', 'Registro actualizado correctamente.')->with('activePage', $activePage);
+            return back()->with('sobre-escribir', 'Registro actualizado correctamente.')->with('pageSlug', $pageSlug);
 
             // Lógica para actualizar el registro
         } elseif ($action == 'delete'){
             // Lógica para eliminar el registro
             AuditoriaAQL::where('id', $id)->delete();
-            return back()->with('error', 'Registro eliminado.')->with('activePage', $activePage);
+            return back()->with('error', 'Registro eliminado.')->with('pageSlug', $pageSlug);
         }
 
         //dd($request->all(), $request->input('descripcion_parte1'), $id);
-        return back()->with('cambio-estatus', 'Datos guardados correctamente.')->with('activePage', $activePage);
+        return back()->with('cambio-estatus', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
     public function formFinalizarProceso(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         // Obtener el ID seleccionado desde el formulario
         $area = $request->input('area');
         $modulo = $request->input('modulo');
@@ -442,12 +442,12 @@ class AuditoriaAQLController extends Controller
         ->update(['observacion' => $observacion, 'estatus' => $estatus]);
         
 
-        return back()->with('success', 'Finalizacion aplicada correctamente.')->with('activePage', $activePage);
+        return back()->with('success', 'Finalizacion aplicada correctamente.')->with('pageSlug', $pageSlug);
     }
 
     public function cambiarEstadoInicioParoAQL(Request $request)
     {
-        $activePage ='';
+        $pageSlug ='';
         $id = $request->idCambio;
         
         $registro = AuditoriaAQL::find($id);
@@ -532,7 +532,7 @@ class AuditoriaAQLController extends Controller
             $registro->save();
         }
 
-        return back()->with('success', 'Fin de Paro Aplicado.')->with('activePage', $activePage);
+        return back()->with('success', 'Fin de Paro Aplicado.')->with('pageSlug', $pageSlug);
     }
 
 }
