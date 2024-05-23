@@ -507,7 +507,7 @@
                                             <div class="row"> 
                                                 <label for="nombre" class="col-sm-6 col-form-label">NOMBRE(S) TENDEDOR(RES)</label>
                                                 <div class="col-sm-6">
-                                                    <select class="form-control-dark" name="nombre[]" id="nombre" multiple>
+                                                    <select class="form-control" name="nombre[]" id="nombre" multiple>
                                                         <option value="">Selecciona una opción</option>
                                                         @foreach ($CategoriaTecnico as $nombre)
                                                             <option value="{{ $nombre->nombre }}" {{ isset($auditoriaTendido) && in_array(trim($nombre->nombre), explode(',', trim($auditoriaTendido->nombre))) ? 'selected' : '' }}>
@@ -527,7 +527,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="mesa" class="col-sm-6 col-form-label">MESA</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <select name="mesa" id="mesa" class="form-control-dark" title="Por favor, selecciona una opción" required>
+                                                <select name="mesa" id="mesa" class="form-control" title="Por favor, selecciona una opción" required>
                                                     <option value="">Selecciona una opción</option>
                                                     <option value="1 : Mesa" {{ isset($auditoriaTendido) && $auditoriaTendido->mesa == '1 : Mesa' ? 'selected' : '' }}>1 : Manual</option>
                                                     <option value="2 : Brio" {{ isset($auditoriaTendido) && $auditoriaTendido->mesa == '2 : Brio' ? 'selected' : '' }}>2 : Brio</option>
@@ -2354,9 +2354,7 @@
                 margin-right: 10px;
             }
 
-            .form-control option {
-                color: #0a0a0a; /* Color de texto blanco */
-            }
+            
         </style>
         <!-- Script para abrir el acordeón correspondiente -->
         <script>
@@ -2431,7 +2429,6 @@
     </script>
 
     <script>
-        $.fn.select2.defaults.set("theme", "dark");
         $('#defecto_material').select2({
                 placeholder: 'Seleccione una o varias opciones',
                 allowClear: true,

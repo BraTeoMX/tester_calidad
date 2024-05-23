@@ -1862,7 +1862,7 @@ pre code {
 .form-control:focus {
   color: rgba(255, 255, 255, 0.8);
   background-color: #ffffff;
-  border-color: rgba(50, 151, 211, 0.25);
+  border-color: #3297d340;
   outline: 0;
   box-shadow: none, none;
 }
@@ -1881,6 +1881,44 @@ pre code {
 select.form-control:focus::-ms-value {
   color: rgba(255, 255, 255, 0.8);
   background-color: transparent;
+}
+/* Estilo para las opciones del select */
+select.form-control option {
+  background-color: #1a1a2e; /* Color de fondo aproximado del tema */
+  color: #ffffff; /* Color del texto */
+}
+
+/* Estilos para Select2 */
+.select2-container--default .select2-selection--single {
+  background-color: #1a1a2e !important; /* Fondo del select */
+  border: 1px solid #444444 !important; /* Borde del select */
+  color: #ffffff !important; /* Color del texto */
+}
+
+.select2-container--default .select2-selection--multiple {
+  background-color: #1a1a2e !important; /* Fondo del select múltiple */
+  border: 1px solid #444444 !important; /* Borde del select múltiple */
+  color: #ffffff !important; /* Color del texto */
+}
+
+.select2-container--default .select2-results__option {
+  background-color: #1a1a2e !important; /* Fondo de las opciones */
+  color: #ffffff !important; /* Color del texto de las opciones */
+}
+
+.select2-container--default .select2-results__option--highlighted {
+  background-color: #162447 !important; /* Fondo de la opción seleccionada */
+  color: #ffffff !important; /* Color del texto de la opción seleccionada */
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background-color: #162447 !important; /* Fondo de las opciones seleccionadas */
+  border: 1px solid #444444 !important; /* Borde de las opciones seleccionadas */
+  color: #ffffff !important; /* Color del texto de las opciones seleccionadas */
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+  color: #ffffff !important; /* Color del icono de eliminar */
 }
 
 .form-control-file,
