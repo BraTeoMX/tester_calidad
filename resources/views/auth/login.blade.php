@@ -1,7 +1,7 @@
 @extends('layouts.app', ['class' => 'login-page', 'page' => __('Sistema de Calidad'), 'contentClass' => 'login-page'])
+<div style="background-image: url('{{ asset('black') }}/img/backlog.jpg'); background-size: cover; background-position: top center;align-items: center;">
 
 @section('content')
-<div style="background-image: url('{{ asset('black') }}/img/backlog.jpg'); background-size: cover; background-position: top center;align-items: center;">
     <div class="col-lg-4 col-md-6 ml-auto mr-auto">
         <form class="form" method="post" action="{{ route('login') }}">
             @csrf
@@ -41,5 +41,5 @@
             </div>
         </form>
     </div>
-</div>
+
 @endsection
