@@ -16,6 +16,7 @@ use App\Http\Controllers\Maquila;
 use App\Http\Controllers\viewlistaFormularios;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\reporteriaInternaController;
+use App\Http\Controllers\Auth\LoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,11 +34,13 @@ Route::get('/', function () {
 });
 
 Auth::routes();
-
+// Rutas adicionales
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Auth::routes();
 
 Route::get('/home', 'App\Http\Controllers\HomeController@index')->name('home')->middleware('auth');
+// Sobrescribir la ruta de login para usar el método personalizado
+Route::post('login', [LoginController::class, 'login'])->name('login');
 
 Route::group(['middleware' => 'auth'], function () {
 		Route::get('icons', ['as' => 'pages.icons', 'uses' => 'App\Http\Controllers\PageController@icons']);
