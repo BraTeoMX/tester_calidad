@@ -84,71 +84,144 @@
                     <a href="#" class="simple-text logo-normal">{{ _('INTIMARK') }}</a>
                 </div>
                 <ul class="nav">
-                    <li>
-                        <a href="{{ route('home') }}">
-                            <i class="tim-icons icon-chart-pie-36"></i>
-                            <p>{{ _('Dashboard') }}</p>
-                        </a>
-                    </li>
-                    <li>
-                        <a data-toggle="collapse" href="#laravel-examples" aria-expanded="true">
-                            <i class="fab fa-laravel"></i>
-                            <span class="nav-link-text">{{ __('Laravel Examples') }}</span>
-                            <b class="caret mt-1"></b>
-                        </a>
+                    @if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Gerente de Calidad')))
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('home') }}">
+                                <i class="tim-icons icon-chart-pie-36"></i>
+                                <p>{{ __('Dashboard') }}</p>
+                            </a>
+                        </li>
+                    @endif
 
-                        <div class="collapse show" id="laravel-examples">
-                            <ul class="nav pl-4">
-                                <li>
-                                    <a href="{{ route('profile.edit') }}">
-                                        <i class="tim-icons icon-single-02"></i>
-                                        <p>{{ _('User Profile') }}</p>
-                                    </a>
-                                </li>
-                                <li class="active">
-                                    <a href="{{ route('user.index') }}">
-                                        <i class="tim-icons icon-bullet-list-67"></i>
-                                        <p>{{ _('User Management') }}</p>
-                                    </a>
-                                </li>
+                    @if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Gerente de Calidad')))
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="collapse" href="#laravelExample" aria-expanded="true">
+                                <i class="fab fa-laravel"></i>
+                                <p>{{ __('Admin cuentas') }}
+                                    <b class="caret"></b>
+                                </p>
+                            </a>
+                            <div class="collapse" id="laravelExample">
+                                <ul class="nav">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('profile.edit') }}">
+                                            <i class="tim-icons icon-single-02"></i>
+                                            <span class="sidebar-normal">{{ __('User profile') }} </span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item active">
+                                        <a class="nav-link" href="{{ route('user.index') }}">
+                                            <i class="tim-icons icon-single-02"></i>
+                                            <span class="sidebar-normal"> {{ __('User Management') }} </span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    @endif
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="collapse" href="#laravelExamples" aria-expanded="true">
+                            <i class="fab fa-laravel"></i>
+                            <p>{{ __('Formularios Calidad') }}
+                                <b class="caret"></b>
+                            </p>
+                        </a>
+                        <div class="collapse" id="laravelExamples">
+                            <ul class="nav">
+                                @if (auth()->check() &&
+                                        (auth()->user()->hasRole('Auditor') ||
+                                            auth()->user()->hasRole('Administrador') ||
+                                            auth()->user()->hasRole('Gerente de Calidad')) &&
+                                        auth()->user()->Planta == 'Planta1')
+                                    <li class="nav-item">
+                                        <a class="nav-link"
+                                            href="{{ route('formulariosCalidad.auditoriaEtiquetas') }}">
+                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <p>{{ __('FCC-014') }}</p>
+                                            <p style="text-align: center;">{{ __('AUDITORIA ETIQUETAS') }}</p>
+
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link"
+                                            href="{{ route('auditoriaCorte.inicioAuditoriaCorte') }}">
+                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <p>{{ __('FCC-010') }}</p>
+                                            <p style="text-align: center;">{{ __('AUDITORIA CORTE') }}</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link"
+                                            href="{{ route('evaluacionCorte.inicioEvaluacionCorte') }}">
+                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <p>{{ __('F-4') }}</p>
+                                            <p style="text-align: center;">{{ __('EVALUACION DE CORTE') }}</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link"
+                                            href="{{ route('auditoriaProcesoCorte.altaProcesoCorte') }}">
+                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <p>{{ __('FCC-04') }}</p>
+                                            <p style="text-align: center;">{{ __('AUDITORIA PROCESO DE CORTE') }}</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('aseguramientoCalidad.altaProceso') }}">
+                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <p>{{ __('FCC-001') }}</p>
+                                            <p style="text-align: center;">{{ __('AUDITORIA DE PROCESOS') }}</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('auditoriaAQL.altaAQL') }}">
+                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <p>{{ __('FCC-009-B') }}</p>
+                                            <p style="text-align: center;">{{ __('AUDITORIA FINAL A.Q.L') }}</p>
+                                        </a>
+                                    </li>
+                                @endif
+                                @if (auth()->check() &&
+                                        (auth()->user()->hasRole('Auditor') ||
+                                            auth()->user()->hasRole('Administrador') ||
+                                            auth()->user()->hasRole('Gerente de Calidad')) &&
+                                        auth()->user()->Planta == 'Planta2')
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('ScreenPlanta2.ScreenPrint') }}">
+                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <p>{{ __('Screen Print') }}</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('ScreenPlanta2.InsEstamHorno') }}">
+                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <p>{{ __('Inspección Después De Horno') }}</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link"
+                                            href="{{ route('ScreenPlanta2.CalidadProcesoPlancha') }}">
+                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <p>{{ __('Proceso Plancha') }}</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('aseguramientoCalidad.altaProceso') }}">
+                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <p>{{ __('FCC-001') }}</p>
+                                            <p style="text-align: center;">{{ __('AUDITORIA DE PROCESOS') }}</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('auditoriaAQL.altaAQL') }}">
+                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <p>{{ __('FCC-009-B') }}</p>
+                                            <p style="text-align: center;">{{ __('AUDITORIA FINAL A.Q.L') }}</p>
+                                        </a>
+                                    </li>
+                                @endif
                             </ul>
                         </div>
-                    </li>
-                    <li>
-                        <a href="{{ route('pages.icons') }}">
-                            <i class="tim-icons icon-atom"></i>
-                            <p>{{ _('Icons') }}</p>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('pages.maps') }}">
-                            <i class="tim-icons icon-pin"></i>
-                            <p>{{ _('Maps') }}</p>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('pages.notifications') }}">
-                            <i class="tim-icons icon-bell-55"></i>
-                            <p>{{ _('Notifications') }}</p>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('pages.tables') }}">
-                            <i class="tim-icons icon-puzzle-10"></i>
-                            <p>{{ _('Table List') }}</p>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('pages.typography') }}">
-                            <i class="tim-icons icon-align-center"></i>
-                            <p>{{ _('Typography') }}</p>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('pages.rtl') }}">
-                            <i class="tim-icons icon-world"></i>
-                            <p>{{ _('RTL Support') }}</p>
-                        </a>
                     </li>
                 </ul>
             </div>
@@ -271,66 +344,212 @@
 
 
             <div class="content">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card ">
-                            <div class="card-header">
-                                <div class="row">
-                                    <div class="col-8">
-                                        <h4 class="card-title">Users</h4>
-                                    </div>
-                                    <div class="col-4 text-right">
-                                        <a href="#" class="btn btn-sm btn-primary">Add user</a>
-                                    </div>
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+            
+                                <div class="card-header card-header-primary">
+                                    <h4 class="card-title">Users</h4>
+                                    <p class="card-category"> Here you can manage users</p>
                                 </div>
-                            </div>
-                            <div class="card-body">
-
-                                <div class="">
-                                    <table class="table tablesorter " id="">
-                                        <thead class=" text-primary">
-                                            <tr>
-                                                <th scope="col">Name</th>
-                                                <th scope="col">Email</th>
-                                                <th scope="col">Creation Date</th>
-                                                <th scope="col"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>Admin Admin</td>
-                                                <td>
-                                                    <a href="mailto:admin@black.com">admin@black.com</a>
-                                                </td>
-                                                <td>24/02/2020 16:47</td>
-                                                <td class="text-right">
-                                                    <div class="dropdown">
-                                                        <a class="btn btn-sm btn-icon-only text-light" href="#"
-                                                            role="button" data-toggle="dropdown"
-                                                            aria-haspopup="true" aria-expanded="false">
-                                                            <i class="fas fa-ellipsis-v"></i>
-                                                        </a>
-                                                        <div
-                                                            class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
-                                                            <a class="dropdown-item" href="#">Edit</a>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-12 text-right">
+                                            <a href="#" class="btn btn-sm btn-primary" id="addUserBtn">
+                                                Agregar nuevo personal <i class="tim-icons icon-single-02"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="card-body table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="text-primary">
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>No. Empleado</th>
+                                                    <th>Email</th>
+                                                    <th>Auditor</th>
+                                                    <th>Puesto</th>
+                                                    <th>Creation date</th>
+                                                    <th>Status User</th>
+                                                    <th class="text-right">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($users as $user)
+                                                    <tr>
+                                                        <td>{{ $user->name }}</td>
+                                                        <td>{{ $user->no_empleado }}</td>
+                                                        <td>{{ $user->email }}</td>
+                                                        <td>{{ $user->tipo_auditor }}</td>
+                                                        <td>{{ $user->puesto }}</td>
+                                                        <td>{{ $user->created_at }}</td>
+                                                        <td>{{ $user->Estatus }}</td>
+                                                        <td class="td-actions text-right">
+                                                            <div class="btn-group" role="group" aria-label="Acciones">
+                                                                <button class="btn btn-info btn-link editUserBtn" data-id="{{ $user->no_empleado }}" data-name="{{ $user->name }}">
+                                                                    <i class="tim-icons icon-single-02"></i>
+                                                                </button>
+                                                                <form method="POST" action="{{ route('blockUser', ['noEmpleado' => $user->no_empleado]) }}">
+                                                                    @method('PUT')
+                                                                    @csrf
+                                                                    <button type="submit" class="btn btn-danger btn-link">
+                                                                        @if ($user->Estatus == 'Baja')
+                                                                            <i class="tim-icons icon-single-02"></i>
+                                                                        @else
+                                                                            <i class="tim-icons icon-single-02"></i>
+                                                                        @endif
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+            
+                                        <!-- Modal -->
+                                        <form id="addUserForm" action="{{ route('user.AddUser') }}" method="POST">
+                                            @csrf
+                                            <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="card-header card-header-primary" id="addUserModalLabel">Add User</h5>
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="form-group">
+                                                                <label for="name" class="material-icons">person</label>
+                                                                <input type="text" class="form-control" name="name" id="name" placeholder="Enter name" required>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="email" class="material-icons">mail</label>
+                                                                <input type="email" class="form-control" name="email" id="email" placeholder="Enter email" required>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="no_empleado" class="material-icons">numbers</label>
+                                                                <input type="number" class="form-control" name="no_empleado" id="no_empleado" placeholder="Enter no. empleado" oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);" maxlength="10" required>
+                                                            </div>
+                                                            <div class="form-group row">
+                                                                <span class="material-icons">key</span>
+                                                                <label for="password" class="col-sm-2 col-form-label"></label>
+                                                                <div class="col-sm-10">
+                                                                    <div class="input-group">
+                                                                        <input type="password" class="form-control" name="password" id="password" placeholder="Enter password" required>
+                                                                        <div class="input-group-append">
+                                                                            <span class="input-group-text show-password-toggle" style="cursor: pointer;" onclick="togglePasswordVisibility('password')">
+                                                                                <i class="material-icons">visibility</i>{{ __('Ver') }}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="tipo_auditoria" class="material-icons">engineering</label>
+                                                                <select class="form-control" id="tipo_auditoria" name="tipo_auditoria" required>
+                                                                    <!-- Las opciones se cargarán dinámicamente aquí -->
+                                                                </select>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="editPuesto" class="material-icons">work</label>
+                                                                <select class="form-control" id="editPuesto" name="editPuesto" required>
+                                                                    <!-- Las opciones se cargarán dinámicamente aquí -->
+                                                                </select>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="editPlanta" class="material-icons">apartment</label>
+                                                                <select class="form-control" id="editPlanta" name="editPlanta" required>
+                                                                    <option value="" disabled selected hidden>Seleccione la planta</option>
+                                                                    <option value="Planta1">Ixtlahuaca</option>
+                                                                    <option value="Planta2">San Bartolo</option>
+                                                                </select>
+                                                            </div>
+                                                            <!-- Otros campos del formulario según tus necesidades -->
+                                                            <button type="submit" class="bookmarkBtn">
+                                                                <span class="IconContainer">
+                                                                    <svg viewBox="0 0 384 512" height="0.9em" class="icon">
+                                                                        <path d="M0 48V487.7C0 501.1 10.9 512 24.3 512c5 0 9.9-1.5 14-4.4L192 400 345.7 507.6c4.1 2.9 9 4.4 14 4.4c13.4 0 24.3-10.9 24.3-24.3V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48z"></path>
+                                                                    </svg>
+                                                                </span>
+                                                                <p class="text">Save</p>
+                                                            </button>
                                                         </div>
                                                     </div>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                                </div>
+                                            </div>
+                                        </form>
+                                        <form id="editUser" action="{{ route('users.editUser') }}" method="POST">
+                                            @csrf
+                                            <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="card-header card-header-primary" id="editModalLabel">Editar Usuario</h5>
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="form-group">
+                                                                <label for="editId" class="material-icons">badge</label>
+                                                                <input type="text" class="form-control disabled-input" name="editId" id="editId">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="editName" class="material-icons">person</label>
+                                                                <input type="text" class="form-control" name="editName" id="editName" placeholder="Nombre del usuario">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="editTipoAuditoria" class="material-icons">engineering</label>
+                                                                <select class="form-control" id="editTipoAuditoria" name="editTipoAuditoria">
+                                                                    <!-- Las opciones se cargarán dinámicamente aquí -->
+                                                                </select>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="editPuestos" class="material-icons">work</label>
+                                                                <select class="form-control" id="editPuestos" name="editPuestos">
+                                                                    <!-- Las opciones se cargarán dinámicamente aquí -->
+                                                                </select>
+                                                            </div>
+                                                            <div class="form-group row">
+                                                                <span class="material-icons">lock_reset</span>
+                                                                <label for="password" class="col-sm-2 col-form-label"></label>
+                                                                <div class="col-sm-10">
+                                                                    <div class="input-group">
+                                                                        <input type="password" class="form-control" name="password_update" id="password_update" placeholder="Cambiar Contraseña">
+                                                                        <div class="input-group-append">
+                                                                            <span class="input-group-text show-password-toggle" style="cursor: pointer;" onclick="togglePasswordVisibility('password_update')">
+                                                                                <i class="material-icons">visibility</i>{{ __('Ver') }}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <!-- Otros campos según sea necesario -->
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="submit" class="bookmarkBtn">
+                                                                <span class="IconContainer">
+                                                                    <svg viewBox="0 0 384 512" height="0.9em" class="icon">
+                                                                        <path d="M0 48V487.7C0 501.1 10.9 512 24.3 512c5 0 9.9-1.5 14-4.4L192 400 345.7 507.6c4.1 2.9 9 4.4 14 4.4c13.4 0 24.3-10.9 24.3-24.3V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48z"></path>
+                                                                    </svg>
+                                                                </span>
+                                                                <p class="text">Save</p>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="card-footer py-4">
-                                <nav class="d-flex justify-content-end" aria-label="...">
-
-                                </nav>
-                            </div>
                         </div>
-
                     </div>
                 </div>
-            </div>
+            </div>   
 
             <footer class="footer">
                 <div class="container-fluid">
@@ -344,50 +563,6 @@
     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
         <input type="hidden" name="_token" value="ub2DzAIrgUnghVvu3l3KAbbq0UztNO8yfkrDNm6n">
     </form>
-    <div class="fixed-plugin">
-        <div class="dropdown show-dropdown">
-            <a href="#" data-toggle="dropdown">
-                <i class="fa fa-cog fa-2x"> </i>
-            </a>
-            <ul class="dropdown-menu">
-                <li class="header-title"> Sidebar Background</li>
-                <li class="adjustments-line">
-                    <a href="javascript:void(0)" class="switch-trigger background-color">
-                        <div class="badge-colors text-center">
-                            <span class="badge filter badge-primary active" data-color="primary"></span>
-                            <span class="badge filter badge-info" data-color="blue"></span>
-                            <span class="badge filter badge-success" data-color="green"></span>
-                        </div>
-                        <div class="clearfix"></div>
-                    </a>
-                </li>
-                <li class="button-container">
-                    <a href="https://www.creative-tim.com/product/black-dashboard-laravel" target="_blank"
-                        class="btn btn-primary btn-block btn-round">Download Now</a>
-                    <a href="https://black-dashboard-laravel.creative-tim.com/docs/getting-started/laravel-setup.html"
-                        target="_blank" class="btn btn-default btn-block btn-round">
-                        Documentation
-                    </a>
-                    <a href="https://www.creative-tim.com/product/black-dashboard-pro-laravel" target="_blank"
-                        class="btn btn-danger btn-block btn-round">
-                        Upgrade to PRO
-                    </a>
-                </li>
-                <li class="header-title">Thank you for 95 shares!</li>
-                <li class="button-container text-center">
-                    <button id="twitter" class="btn btn-round btn-info"><i class="fab fa-twitter"></i> ·
-                        45</button>
-                    <button id="facebook" class="btn btn-round btn-info"><i class="fab fa-facebook-f"></i> ·
-                        50</button>
-                    <br>
-                    <br>
-                    <a class="github-button" href="https://github.com/creativetimofficial/black-dashboard-laravel"
-                        data-icon="octicon-star" data-size="large" data-show-count="true"
-                        aria-label="Star ntkme/github-buttons on GitHub">Star</a>
-                </li>
-            </ul>
-        </div>
-    </div>
     <script src="{{ asset('black') }}/js/core/jquery.min.js"></script>
     <script src="{{ asset('black') }}/js/core/popper.min.js"></script>
     <script src="{{ asset('black') }}/js/core/bootstrap.min.js"></script>
@@ -532,6 +707,172 @@
         } catch (err) {
             console.log('Facebook Track Error:', err);
         }
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            // Mostrar el modal al hacer clic en el botón "Add user"
+            $("#addUserBtn").click(function() {
+                $('#addUserModal').modal('show'); // Bootstrap 5
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            // Deshabilitar visualmente los campos editId, editName y editTipoAuditoria
+            $("#editId, #editName").addClass("disabled-input").attr("readonly", true).css("pointer-events", "none");
+
+            // Mostrar el modal al hacer clic en cualquier botón de edición
+            $(".editUserBtn").click(function() {
+                // Obtener el ID del usuario desde el atributo data-id
+                var userId = $(this).data('id');
+
+                // Asignar el ID al campo editId en el modal
+                $("#editId").val(userId);
+
+                // Obtener el nombre del usuario desde el atributo data-name
+                var userName = $(this).data('name');
+
+                // Asignar el nombre al campo editName en el modal
+                $("#editName").val(userName);
+
+                // Cargar las opciones del tipo de auditoría desde la base de datos
+                $.ajax({
+                    url: '/tipoAuditorias', // Ajusta la URL según tu ruta
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        // Limpiar las opciones existentes
+                        $('#editTipoAuditoria').empty();
+                        // Agregar la opción predeterminada
+                        $('#editTipoAuditoria').append($('<option>', {
+                            text: 'Enter Auditor',
+                            disabled: true,
+                            selected: true
+                        }));
+                        // Agregar las nuevas opciones desde la respuesta del servidor
+                        $.each(data, function(key, value) {
+                            $('#editTipoAuditoria').append($('<option>', {
+                                text: value.Tipo_auditoria
+                            }));
+                        });
+                    },
+                    error: function(error) {
+                        console.error('Error al cargar opciones: ', error);
+                    }
+                });
+
+                // Cargar las opciones de los puestos desde la base de datos
+                $.ajax({
+                    url: '/puestos', // Ajusta la URL según tu ruta
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        // Limpiar las opciones existentes
+                        $('#editPuestos').empty();
+
+                        // Agregar la opción predeterminada
+                        $('#editPuestos').append($('<option>', {
+                            text: 'Enter puesto',
+                            disabled: true,
+                            selected: true
+                        }));
+                        // Agregar las nuevas opciones desde la respuesta del servidor
+                        $.each(data, function(key, value) {
+                            $('#editPuestos').append($('<option>', {
+                                text: value.Puesto
+                            }));
+                        });
+                    },
+                    error: function(error) {
+                        console.error('Error al cargar opciones de puestos: ', error);
+                    }
+                });
+
+                // Mostrar el modal de edición
+                $("#editModal").modal("show");
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            // Al abrir el modal, cargar las opciones del dropdown
+            $('#addUserModal').on('show.bs.modal', function() {
+                $.ajax({
+                    url: '/tipoAuditorias',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        // Limpiar las opciones existentes
+                        $('#tipo_auditoria').empty();
+                        // Agregar la opción predeterminada
+                        $('#tipo_auditoria').append($('<option>', {
+                            text: 'Enter puesto',
+                            disabled: true,
+                            selected: true
+                        }));
+                        // Agregar las nuevas opciones desde la respuesta del servidor
+                        $.each(data, function(key, value) {
+                            $('#tipo_auditoria').append($('<option>', {
+                                text: value.Tipo_auditoria
+                            }));
+                        });
+                    },
+                    error: function(error) {
+                        console.error('Error al cargar opciones: ', error);
+                    }
+                });
+                $.ajax({
+                    url: '/puestos', // Ajusta la URL según tu ruta
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        // Limpiar las opciones existentes
+                        $('#editPuesto').empty();
+
+                        // Agregar la opción predeterminada
+                        $('#editPuesto').append($('<option>', {
+                            text: 'Enter puesto',
+                            disabled: true,
+                            selected: true
+                        }));
+                        // Agregar las nuevas opciones desde la respuesta del servidor
+                        $.each(data, function(key, value) {
+                            $('#editPuesto').append($('<option>', {
+                                text: value.Puesto
+                            }));
+                        });
+                    },
+                    error: function(error) {
+                        console.error('Error al cargar opciones de puestos: ', error);
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        function togglePasswordVisibility(inputId) {
+            var passwordInput = document.getElementById(inputId);
+            passwordInput.type = (passwordInput.type === 'password') ? 'text' : 'password';
+        }
+    </script>
+    <script>
+        function togglePasswordVisibility(inputId) {
+            var passwordInput = document.getElementById(inputId);
+            passwordInput.type = (passwordInput.type === 'password') ? 'text' : 'password';
+        }
+    </script>
+    <script>
+        $(document).ready(function() {
+            // Cierra el mensaje cuando se hace clic en el botón de cerrar
+            $(".alert").alert();
+
+            // Cierra automáticamente el mensaje después de 5 segundos (puedes ajustar este tiempo)
+            setTimeout(function() {
+                $(".alert").alert('close'); // Bootstrap 5
+            }, 5000);
+        });
     </script>
 
 </body>
