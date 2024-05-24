@@ -109,7 +109,6 @@
                                         <td>
                                             <select name="modulo" id="modulo" class="form-control" required title="Por favor, selecciona una opción">
                                                 <option value="" selected>Selecciona una opción</option>
-                                                <!-- Agrega el atributo selected aquí -->
                                                 @if ($auditorPlanta == 'Planta1')
                                                     @foreach ($auditoriaProcesoIntimark1 as $moduloP1)
                                                         <option value="{{ $moduloP1->moduleid }}" data-itemid="{{ $moduloP1->itemid }}">
@@ -126,12 +125,12 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <select name="estilo" id="estilo" class="form-control" data-selected-itemid="" required>
-                                            </select>
+                                            <input type="text" class="form-control" name="estilo" id="estilo" readonly required />
                                         </td>
                                         <td>
                                             <input type="text" class="form-control" name="cliente" id="cliente" readonly required />
                                         </td>
+                                        
                                         <td>
                                             <select name="team_leader" id="team_leader" class="form-control" required
                                                 title="Por favor, selecciona una opción">
@@ -569,14 +568,11 @@
     </style>
     <script>
         $(document).ready(function() {
-            $('#modulo').select2({
-                placeholder: 'Seleccione una opción',
-                allowClear: true
-            });
+            // Manejar la selección del módulo para actualizar el input de estilo
+            $('#modulo').change(function() {
+                var moduleid = $(this).val();
+                $('#estilo').val(''); // Limpiar el input anterior
     
-            $('#modulo').on('select2:select', function(e) {
-                var moduleid = e.params.data.element.value;
-                $('#estilo').empty(); // Limpiar opciones anteriores
                 $.ajax({
                     url: '{{ route("obtenerItemId") }}',
                     type: 'POST',
@@ -585,49 +581,43 @@
                         'moduleid': moduleid
                     },
                     success: function(response) {
-                        $('#estilo').empty(); // Limpiar opciones anteriores
-                        $.each(response.itemid, function(key, value) {
-                            var selected = ($('#estilo').val() == key); // Verificar si esta opción está seleccionada actualmente
-                            $('#estilo').append($('<option>', {
-                                value: value, // Usar el valor de la columna "itemid"
-                                text: value,
-                                selected: selected // Marcar la opción como seleccionada si coincide con el valor actualmente seleccionado en el select
-                            }));
-                        });
+                        console.log(response); // Verificar los datos recibidos
+                        if (response.itemid) {
+                            $('#estilo').val(response.itemid); // Establecer el itemid en el input
+                        } else {
+                            $('#estilo').val('No se encontró estilo'); // Mensaje si no hay itemid
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(error);
                     }
                 });
             });
     
-            $('form').submit(function() {
-                var selectedItemId = $('#estilo').val();
-                $('#estilo').val(selectedItemId); // Establecer el valor seleccionado como el "itemid"
+            // Manejar la selección del módulo para actualizar el input de cliente
+            $('#modulo').change(function() {
+                var moduleid = $(this).val();
+    
+                // Realizar solicitud AJAX para obtener el cliente correspondiente al módulo seleccionado
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route("obtenerCliente1") }}',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        moduleid: moduleid
+                    },
+                    success: function(response) {
+                        console.log(response); // Verificar los datos recibidos
+                        // Actualizar el valor del campo "cliente" con el cliente obtenido de la respuesta AJAX
+                        $('#cliente').val(response.cliente);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(error);
+                    }
+                });
             });
         });
-    </script>
-
-    <script>
-        // Evento change para el select "modulo"
-        $('#modulo').change(function() {
-            var moduleid = $(this).val();
-
-            // Realizar solicitud AJAX para obtener el cliente correspondiente al módulo seleccionado
-            $.ajax({
-                type: 'POST',
-                url: '{{ route("obtenerCliente1") }}',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    moduleid: moduleid
-                },
-                success: function(response) {
-                    // Actualizar el valor del campo "cliente" con el cliente obtenido de la respuesta AJAX
-                    $('#cliente').val(response.cliente);
-                },
-                error: function(xhr, status, error) {
-                    console.error(error);
-                }
-            });
-        });
-    </script>
+    </script>    
 
 
 

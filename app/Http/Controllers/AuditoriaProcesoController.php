@@ -113,18 +113,17 @@ class AuditoriaProcesoController extends Controller
     }
 
     public function obtenerItemId(Request $request) 
-    {
-        $moduleid = $request->input('moduleid');
-        $auditoriaProceso = AuditoriaProceso::where('moduleid', $moduleid)->get();
-        $itemid = $auditoriaProceso->pluck('itemid', 'id')->unique()->toArray();
-        
-        return response()->json([
-            'itemid' => $itemid,
-            'selectedItemid' => $itemid[0] ?? null // Asigna el primer itemid como selectedItemid, o null si no hay elementos
-        ]);
-    } 
+{
+    $moduleid = $request->input('moduleid');
+    $auditoriaProceso = AuditoriaProceso::where('moduleid', $moduleid)->first();
+    $itemid = $auditoriaProceso ? $auditoriaProceso->itemid : null;
+    
+    return response()->json([
+        'itemid' => $itemid,
+    ]);
+}
 
-    public function obtenerCliente1(Request $request)
+    public function obtenerCliente1(Request $request) 
 {
     $moduleid = $request->input('moduleid');
     $auditoriaProceso = AuditoriaProceso::where('moduleid', $moduleid)->first();

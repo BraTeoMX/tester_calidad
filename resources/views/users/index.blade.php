@@ -347,22 +347,21 @@
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-md-12">
-                            <div class="card">
-            
-                                <div class="card-header card-header-primary">
+                            <div class="card bg-dark text-white">
+                                <div class="card-header bg-primary text-white">
                                     <h4 class="card-title">Users</h4>
-                                    <p class="card-category"> Here you can manage users</p>
+                                    <p class="card-category">Here you can manage users</p>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-12 text-right">
-                                            <a href="#" class="btn btn-sm btn-primary" id="addUserBtn">
+                                            <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addUserModal">
                                                 Agregar nuevo personal <i class="tim-icons icon-single-02"></i>
-                                            </a>
+                                            </button>
                                         </div>
                                     </div>
                                     <div class="card-body table-responsive">
-                                        <table class="table table-hover">
+                                        <table class="table table-hover table-dark">
                                             <thead class="text-primary">
                                                 <tr>
                                                     <th>Name</th>
@@ -387,15 +386,15 @@
                                                         <td>{{ $user->Estatus }}</td>
                                                         <td class="td-actions text-right">
                                                             <div class="btn-group" role="group" aria-label="Acciones">
-                                                                <button class="btn btn-info btn-link editUserBtn" data-id="{{ $user->no_empleado }}" data-name="{{ $user->name }}">
-                                                                    <i class="tim-icons icon-single-02"></i>
+                                                                <button class="btn btn-info btn-link editUserBtn" data-id="{{ $user->no_empleado }}" data-name="{{ $user->name }}" data-toggle="modal" data-target="#editModal">
+                                                                    <i class="tim-icons icon-pencil"></i>
                                                                 </button>
                                                                 <form method="POST" action="{{ route('blockUser', ['noEmpleado' => $user->no_empleado]) }}">
                                                                     @method('PUT')
                                                                     @csrf
                                                                     <button type="submit" class="btn btn-danger btn-link">
                                                                         @if ($user->Estatus == 'Baja')
-                                                                            <i class="tim-icons icon-single-02"></i>
+                                                                            <i class="tim-icons icon-alert-circle-exc"></i>
                                                                         @else
                                                                             <i class="tim-icons icon-single-02"></i>
                                                                         @endif
@@ -408,136 +407,115 @@
                                             </tbody>
                                         </table>
             
-                                        <!-- Modal -->
+                                        <!-- CSS personalizado -->
+                                        <style>
+                                            .modal-dialog {
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                min-height: calc(100% - 1rem); /* Altura mínima del modal */
+                                            }
+
+                                            .modal-content {
+                                                margin: 0;
+                                            }
+                                        </style>
+                                        <!-- Modal Add User -->
                                         <form id="addUserForm" action="{{ route('user.AddUser') }}" method="POST">
                                             @csrf
                                             <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
+                                                    <div class="modal-content bg-dark text-white">
                                                         <div class="modal-header">
-                                                            <h5 class="card-header card-header-primary" id="addUserModalLabel">Add User</h5>
+                                                            <h3 class="modal-title" style="color: aliceblue" id="addUserModalLabel">Add User</h3>
                                                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                                                 <span aria-hidden="true">&times;</span>
                                                             </button>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <div class="form-group">
-                                                                <label for="name" class="material-icons">person</label>
+                                                            <div class="mb-3">
+                                                                <label for="name" class="form-label">Name</label>
                                                                 <input type="text" class="form-control" name="name" id="name" placeholder="Enter name" required>
                                                             </div>
-                                                            <div class="form-group">
-                                                                <label for="email" class="material-icons">mail</label>
+                                                            <div class="mb-3">
+                                                                <label for="email" class="form-label">Email</label>
                                                                 <input type="email" class="form-control" name="email" id="email" placeholder="Enter email" required>
                                                             </div>
-                                                            <div class="form-group">
-                                                                <label for="no_empleado" class="material-icons">numbers</label>
-                                                                <input type="number" class="form-control" name="no_empleado" id="no_empleado" placeholder="Enter no. empleado" oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);" maxlength="10" required>
+                                                            <div class="mb-3">
+                                                                <label for="no_empleado" class="form-label">No. Empleado</label>
+                                                                <input type="number" class="form-control" name="no_empleado" id="no_empleado" placeholder="Enter no. empleado" maxlength="10" required>
                                                             </div>
-                                                            <div class="form-group row">
-                                                                <span class="material-icons">key</span>
-                                                                <label for="password" class="col-sm-2 col-form-label"></label>
-                                                                <div class="col-sm-10">
-                                                                    <div class="input-group">
-                                                                        <input type="password" class="form-control" name="password" id="password" placeholder="Enter password" required>
-                                                                        <div class="input-group-append">
-                                                                            <span class="input-group-text show-password-toggle" style="cursor: pointer;" onclick="togglePasswordVisibility('password')">
-                                                                                <i class="material-icons">visibility</i>{{ __('Ver') }}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
+                                                            <div class="mb-3">
+                                                                <label for="password" class="form-label">Password</label>
+                                                                <div class="input-group">
+                                                                    <input type="password" class="form-control" name="password" id="password" placeholder="Enter password" required>
+                                                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('password')">
+                                                                        <i class="bi bi-eye"></i>
+                                                                    </button>
                                                                 </div>
                                                             </div>
-                                                            <div class="form-group">
-                                                                <label for="tipo_auditoria" class="material-icons">engineering</label>
-                                                                <select class="form-control" id="tipo_auditoria" name="tipo_auditoria" required>
-                                                                    <!-- Las opciones se cargarán dinámicamente aquí -->
-                                                                </select>
+                                                            <div class="mb-3">
+                                                                <label for="tipo_auditoria" class="form-label">Tipo Auditoria</label>
+                                                                <select class="form-control" id="tipo_auditoria" name="tipo_auditoria" required></select>
                                                             </div>
-                                                            <div class="form-group">
-                                                                <label for="editPuesto" class="material-icons">work</label>
-                                                                <select class="form-control" id="editPuesto" name="editPuesto" required>
-                                                                    <!-- Las opciones se cargarán dinámicamente aquí -->
-                                                                </select>
+                                                            <div class="mb-3">
+                                                                <label for="editPuesto" class="form-label">Puesto</label>
+                                                                <select class="form-control" id="editPuesto" name="editPuesto" required></select>
                                                             </div>
-                                                            <div class="form-group">
-                                                                <label for="editPlanta" class="material-icons">apartment</label>
+                                                            <div class="mb-3">
+                                                                <label for="editPlanta" class="form-label">Planta</label>
                                                                 <select class="form-control" id="editPlanta" name="editPlanta" required>
                                                                     <option value="" disabled selected hidden>Seleccione la planta</option>
                                                                     <option value="Planta1">Ixtlahuaca</option>
                                                                     <option value="Planta2">San Bartolo</option>
                                                                 </select>
                                                             </div>
-                                                            <!-- Otros campos del formulario según tus necesidades -->
-                                                            <button type="submit" class="bookmarkBtn">
-                                                                <span class="IconContainer">
-                                                                    <svg viewBox="0 0 384 512" height="0.9em" class="icon">
-                                                                        <path d="M0 48V487.7C0 501.1 10.9 512 24.3 512c5 0 9.9-1.5 14-4.4L192 400 345.7 507.6c4.1 2.9 9 4.4 14 4.4c13.4 0 24.3-10.9 24.3-24.3V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48z"></path>
-                                                                    </svg>
-                                                                </span>
-                                                                <p class="text">Save</p>
-                                                            </button>
+                                                            <button type="submit" class="btn btn-primary">Save</button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </form>
+
+                                        <!-- Modal Edit User -->
                                         <form id="editUser" action="{{ route('users.editUser') }}" method="POST">
                                             @csrf
-                                            <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+                                            <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
+                                                    <div class="modal-content bg-dark text-white">
                                                         <div class="modal-header">
-                                                            <h5 class="card-header card-header-primary" id="editModalLabel">Editar Usuario</h5>
+                                                            <h5 class="modal-title" id="editModalLabel">Editar Usuario</h5>
                                                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                                                 <span aria-hidden="true">&times;</span>
                                                             </button>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <div class="form-group">
-                                                                <label for="editId" class="material-icons">badge</label>
-                                                                <input type="text" class="form-control disabled-input" name="editId" id="editId">
+                                                            <div class="mb-3">
+                                                                <label for="editId" class="form-label">ID</label>
+                                                                <input type="text" class="form-control disabled-input" name="editId" id="editId" readonly>
                                                             </div>
-                                                            <div class="form-group">
-                                                                <label for="editName" class="material-icons">person</label>
+                                                            <div class="mb-3">
+                                                                <label for="editName" class="form-label">Name</label>
                                                                 <input type="text" class="form-control" name="editName" id="editName" placeholder="Nombre del usuario">
                                                             </div>
-                                                            <div class="form-group">
-                                                                <label for="editTipoAuditoria" class="material-icons">engineering</label>
-                                                                <select class="form-control" id="editTipoAuditoria" name="editTipoAuditoria">
-                                                                    <!-- Las opciones se cargarán dinámicamente aquí -->
-                                                                </select>
+                                                            <div class="mb-3">
+                                                                <label for="editTipoAuditoria" class="form-label">Tipo Auditoria</label>
+                                                                <select class="form-control" id="editTipoAuditoria" name="editTipoAuditoria"></select>
                                                             </div>
-                                                            <div class="form-group">
-                                                                <label for="editPuestos" class="material-icons">work</label>
-                                                                <select class="form-control" id="editPuestos" name="editPuestos">
-                                                                    <!-- Las opciones se cargarán dinámicamente aquí -->
-                                                                </select>
+                                                            <div class="mb-3">
+                                                                <label for="editPuestos" class="form-label">Puesto</label>
+                                                                <select class="form-control" id="editPuestos" name="editPuestos"></select>
                                                             </div>
-                                                            <div class="form-group row">
-                                                                <span class="material-icons">lock_reset</span>
-                                                                <label for="password" class="col-sm-2 col-form-label"></label>
-                                                                <div class="col-sm-10">
-                                                                    <div class="input-group">
-                                                                        <input type="password" class="form-control" name="password_update" id="password_update" placeholder="Cambiar Contraseña">
-                                                                        <div class="input-group-append">
-                                                                            <span class="input-group-text show-password-toggle" style="cursor: pointer;" onclick="togglePasswordVisibility('password_update')">
-                                                                                <i class="material-icons">visibility</i>{{ __('Ver') }}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
+                                                            <div class="mb-3">
+                                                                <label for="password_update" class="form-label">Password</label>
+                                                                <div class="input-group">
+                                                                    <input type="password" class="form-control" name="password_update" id="password_update" placeholder="Cambiar Contraseña">
+                                                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('password_update')">
+                                                                        <i class="bi bi-eye"></i>
+                                                                    </button>
                                                                 </div>
                                                             </div>
-                                                            <!-- Otros campos según sea necesario -->
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="submit" class="bookmarkBtn">
-                                                                <span class="IconContainer">
-                                                                    <svg viewBox="0 0 384 512" height="0.9em" class="icon">
-                                                                        <path d="M0 48V487.7C0 501.1 10.9 512 24.3 512c5 0 9.9-1.5 14-4.4L192 400 345.7 507.6c4.1 2.9 9 4.4 14 4.4c13.4 0 24.3-10.9 24.3-24.3V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48z"></path>
-                                                                    </svg>
-                                                                </span>
-                                                                <p class="text">Save</p>
-                                                            </button>
+                                                            <button type="submit" class="btn btn-primary">Save</button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -549,7 +527,7 @@
                         </div>
                     </div>
                 </div>
-            </div>   
+            </div>
 
             <footer class="footer">
                 <div class="container-fluid">
@@ -711,28 +689,18 @@
 
     <script>
         $(document).ready(function() {
-            // Mostrar el modal al hacer clic en el botón "Add user"
-            $("#addUserBtn").click(function() {
-                $('#addUserModal').modal('show'); // Bootstrap 5
-            });
-        });
-    </script>
-    <script>
-        $(document).ready(function() {
-            // Deshabilitar visualmente los campos editId, editName y editTipoAuditoria
+            // Deshabilitar visualmente los campos editId y editName
             $("#editId, #editName").addClass("disabled-input").attr("readonly", true).css("pointer-events", "none");
 
             // Mostrar el modal al hacer clic en cualquier botón de edición
             $(".editUserBtn").click(function() {
                 // Obtener el ID del usuario desde el atributo data-id
                 var userId = $(this).data('id');
-
                 // Asignar el ID al campo editId en el modal
                 $("#editId").val(userId);
 
                 // Obtener el nombre del usuario desde el atributo data-name
                 var userName = $(this).data('name');
-
                 // Asignar el nombre al campo editName en el modal
                 $("#editName").val(userName);
 
@@ -788,9 +756,6 @@
                         console.error('Error al cargar opciones de puestos: ', error);
                     }
                 });
-
-                // Mostrar el modal de edición
-                $("#editModal").modal("show");
             });
         });
     </script>
@@ -863,17 +828,7 @@
             passwordInput.type = (passwordInput.type === 'password') ? 'text' : 'password';
         }
     </script>
-    <script>
-        $(document).ready(function() {
-            // Cierra el mensaje cuando se hace clic en el botón de cerrar
-            $(".alert").alert();
 
-            // Cierra automáticamente el mensaje después de 5 segundos (puedes ajustar este tiempo)
-            setTimeout(function() {
-                $(".alert").alert('close'); // Bootstrap 5
-            }, 5000);
-        });
-    </script>
 
 </body>
 
