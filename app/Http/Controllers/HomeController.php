@@ -30,6 +30,8 @@ class HomeController extends Controller
     {
         $title = "";
         $fechaActual = Carbon::now()->toDateString();
+        $fechaInicio = Carbon::now()->subMonth()->toDateString(); // Cambia el rango de fechas según necesites
+        $fechaFin = Carbon::now()->toDateString();
 
 
         // Verifica si el usuario tiene los roles 'Administrador' o 'Gerente de Calidad'
@@ -37,14 +39,11 @@ class HomeController extends Controller
 
             function calcularPorcentaje($modelo, $fecha, $planta = null) {
                 $query = $modelo::whereDate('created_at', $fecha);
-            
                 if ($planta) {
                     $query->where('planta', $planta);
                 }
-            
                 $data = $query->selectRaw('SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada')
                               ->first();
-            
                 return $data->cantidad_auditada != 0 ? number_format(($data->cantidad_rechazada / $data->cantidad_auditada) * 100, 2) : 0;
             }
             
@@ -59,6 +58,22 @@ class HomeController extends Controller
             // Planta 2 San Bartolo
             $generalProcesoPlanta2 = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark2');
             $generalAQLPlanta2 = calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark2');
+
+            // Nueva consulta para obtener datos por fecha
+            $fechas = collect();
+            $period = Carbon::parse($fechaInicio)->daysUntil(Carbon::parse($fechaFin));
+
+            foreach ($period as $date) {
+                $fechas->push($date->format('Y-m-d'));
+            }
+
+            $porcentajesAQL = $fechas->map(function($fecha) {
+                return calcularPorcentaje(AuditoriaAQL::class, $fecha);
+            });
+
+            $porcentajesProceso = $fechas->map(function($fecha) {
+                return calcularPorcentaje(AseguramientoCalidad::class, $fecha);
+            });
 
 
             // Obtención y cálculo de datos generales para AQL y Proceso
@@ -129,7 +144,8 @@ class HomeController extends Controller
                                     'dataGerentesAQLGeneral', 'dataGerentesProcesoGeneral', 'dataGerentesAQLPlanta1', 'dataGerentesAQLPlanta2', 'dataGerentesProcesoPlanta1', 'dataGerentesProcesoPlanta2',
                                     'generalProceso', 'generalAQL', 'generalAQLPlanta1', 'generalAQLPlanta2','generalProcesoPlanta1', 'generalProcesoPlanta2',
                                     'dataGeneral', 'totalGeneral', 'dataPlanta1', 'totalPlanta1', 'dataPlanta2', 'totalPlanta2',
-                                    'dataGerentesGeneral', 'dataModulosGeneral'));
+                                    'dataGerentesGeneral', 'dataModulosGeneral',
+                                    'fechas', 'porcentajesAQL', 'porcentajesProceso'));
         } else {
             // Si el usuario no tiene esos roles, redirige a listaFormularios
             return redirect()->route('viewlistaFormularios');

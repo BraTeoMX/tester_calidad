@@ -66,39 +66,32 @@
                 <div class="card-header ">
                     <div class="row">
                         <div class="col-sm-6 text-left">
-                            <!--<h5 class="card-category">sistema de CalidadTotal Shipments</h5>-->
                             <h2 class="card-title">Intimark Mensual</h2>
                         </div>
                         <div class="col-sm-6">
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-                            <label class="btn btn-sm btn-primary btn-simple active" id="0">
-                                <input type="radio" name="options" checked>
-                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
-                                <span class="d-block d-sm-none">
-                                    <i class="tim-icons icon-single-02"></i>
-                                </span>
-                            </label>
-                            <label class="btn btn-sm btn-primary btn-simple" id="1">
-                                <input type="radio" class="d-none d-sm-none" name="options">
-                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Procesos</span>
-                                <span class="d-block d-sm-none">
-                                    <i class="tim-icons icon-gift-2"></i>
-                                </span>
-                            </label>
-                         <!--   <label class="btn btn-sm btn-primary btn-simple" id="2">
-                                <input type="radio" class="d-none" name="options">
-                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Incidencias</span>
-                                <span class="d-block d-sm-none">
-                                    <i class="tim-icons icon-tap-02"></i>
-                                </span>
-                            </label>-->
+                                <label class="btn btn-sm btn-primary btn-simple active" id="0">
+                                    <input type="radio" name="options" checked>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
+                                    <span class="d-block d-sm-none">
+                                        <i class="tim-icons icon-single-02"></i>
+                                    </span>
+                                </label>
+                                <label class="btn btn-sm btn-primary btn-simple" id="1">
+                                    <input type="radio" class="d-none d-sm-none" name="options">
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Procesos</span>
+                                    <span class="d-block d-sm-none">
+                                        <i class="tim-icons icon-gift-2"></i>
+                                    </span>
+                                </label>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="chart-area">
-                        <canvas id="chartBig1"></canvas>
+                        <canvas id="chartAQL"></canvas>
+                        <canvas id="chartProcesos" style="display: none;"></canvas>
                     </div>
                 </div>
             </div>
@@ -325,6 +318,7 @@
             </div>
         </div>
     </div>
+    
 @endsection
 
 @push('js')
@@ -334,4 +328,108 @@
           demo.initDashboardPageCharts();
         });
     </script>
+
+<script>
+    $(document).ready(function() {
+        // Inicializa las gráficas
+        var ctxAQL = document.getElementById('chartAQL').getContext('2d');
+        var chartAQL = new Chart(ctxAQL, {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($fechas) !!},
+                datasets: [{
+                    label: 'AQL',
+                    data: {!! json_encode($porcentajesAQL) !!},
+                    borderColor: '#f96332',
+                    backgroundColor: 'rgba(249, 99, 50, 0.4)',
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    display: false // Ocultar la leyenda
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            tooltipFormat: 'll',
+                            displayFormats: {
+                                day: 'DD-MM-YYYY'
+                            }
+                        },
+                        ticks: {
+                            autoSkip: false,
+                            maxRotation: 90,
+                            minRotation: 45
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+
+        var ctxProcesos = document.getElementById('chartProcesos').getContext('2d');
+        var chartProcesos = new Chart(ctxProcesos, {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($fechas) !!},
+                datasets: [{
+                    label: 'Procesos',
+                    data: {!! json_encode($porcentajesProceso) !!},
+                    borderColor: '#1f8ef1',
+                    backgroundColor: 'rgba(31, 142, 241, 0.4)',
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    display: false // Ocultar la leyenda
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            tooltipFormat: 'll',
+                            displayFormats: {
+                                day: 'DD-MM-YYYY'
+                            }
+                        },
+                        ticks: {
+                            autoSkip: false,
+                            maxRotation: 90,
+                            minRotation: 45
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+
+        // Manejar el cambio de gráficos
+        $('#0').on('click', function() {
+            $('#chartAQL').show();
+            $('#chartProcesos').hide();
+        });
+
+        $('#1').on('click', function() {
+            $('#chartAQL').hide();
+            $('#chartProcesos').show();
+        });
+    });
+</script>
 @endpush
