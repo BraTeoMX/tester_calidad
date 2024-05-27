@@ -22,7 +22,7 @@
                         <span class="d-lg-none d-md-block">{{ __('Search') }}</span>
                     </button>
                 </li>-->
-                <li class="dropdown nav-item">
+                {{--<li class="dropdown nav-item">
                     <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
                         <div class="notification d-none d-lg-block d-xl-block"></div>
                         <i class="tim-icons icon-sound-wave"></i>
@@ -45,7 +45,7 @@
                             <a href="#" class="nav-item dropdown-item">{{ __('Another one') }}</a>
                         </li>
                     </ul>
-                </li>
+                </li>--}}
                 <li class="dropdown nav-item">
                     <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
                         <div class="photo">
@@ -57,9 +57,6 @@
                     <ul class="dropdown-menu dropdown-navbar">
                         <li class="nav-link">
                             <a href="{{ route('profile.edit') }}" class="nav-item dropdown-item">{{ __('Profile') }}</a>
-                        </li>
-                        <li class="nav-link">
-                            <a href="#" class="nav-item dropdown-item">{{ __('Settings') }}</a>
                         </li>
                         <li class="dropdown-divider"></li>
                         <li class="nav-link">

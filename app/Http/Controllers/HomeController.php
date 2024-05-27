@@ -70,6 +70,9 @@ class HomeController extends Controller
             $dataGerentesAQLPlanta2 = $this->getDataGerentesProduccionAQL($fechaActual, 'Intimark2');
             $dataGerentesProcesoPlanta1 = $this->getDataGerentesProduccionProceso($fechaActual, 'Intimark1');
             $dataGerentesProcesoPlanta2 = $this->getDataGerentesProduccionProceso($fechaActual, 'Intimark2');
+
+            // Combinar los datos
+            $dataGerentesGeneral = $this->combineDataGerentes($dataGerentesAQLGeneral, $dataGerentesProcesoGeneral);
  
 
 
@@ -98,6 +101,9 @@ class HomeController extends Controller
         $dataModuloProcesoPlanta1 = $this->getDataModuloProceso($fechaActual, 'Intimark1');
         $dataModuloProcesoPlanta2 = $this->getDataModuloProceso($fechaActual, 'Intimark2');
 
+        // Combinar los datos
+        $dataModulosGeneral = $this->combineDataModulos($dataModuloAQLGeneral, $dataModuloProcesoGeneral);
+
 
         //dd($dataModuloAQLGeneral, $dataModuloProcesoGeneral, $dataModuloAQLPlanta1, $dataModuloAQLPlanta2, $dataModuloProcesoPlanta1, $dataModuloProcesoPlanta2);
 
@@ -122,7 +128,8 @@ class HomeController extends Controller
                                     'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
                                     'dataGerentesAQLGeneral', 'dataGerentesProcesoGeneral', 'dataGerentesAQLPlanta1', 'dataGerentesAQLPlanta2', 'dataGerentesProcesoPlanta1', 'dataGerentesProcesoPlanta2',
                                     'generalProceso', 'generalAQL', 'generalAQLPlanta1', 'generalAQLPlanta2','generalProcesoPlanta1', 'generalProcesoPlanta2',
-                                    'dataGeneral', 'totalGeneral', 'dataPlanta1', 'totalPlanta1', 'dataPlanta2', 'totalPlanta2'));
+                                    'dataGeneral', 'totalGeneral', 'dataPlanta1', 'totalPlanta1', 'dataPlanta2', 'totalPlanta2',
+                                    'dataGerentesGeneral', 'dataModulosGeneral'));
         } else {
             // Si el usuario no tiene esos roles, redirige a listaFormularios
             return redirect()->route('viewlistaFormularios');
@@ -509,5 +516,79 @@ class HomeController extends Controller
         }
 
         return $dataGerentesProceso;
+    }
+
+    private function combineDataGerentes($dataAQL, $dataProceso)
+    {
+        $combinedData = [];
+
+        // Indexar datos de Proceso por team_leader
+        $dataProcesoIndexed = [];
+        foreach ($dataProceso as $item) {
+            $dataProcesoIndexed[$item['team_leader']] = $item;
+        }
+
+        // Combinar datos
+        foreach ($dataAQL as $itemAQL) {
+            $teamLeader = $itemAQL['team_leader'];
+            $itemProceso = $dataProcesoIndexed[$teamLeader] ?? null;
+
+            $combinedData[] = [
+                'team_leader' => $teamLeader,
+                'porcentaje_error_aql' => $itemAQL['porcentaje_error_aql'],
+                'porcentaje_error_proceso' => $itemProceso['porcentaje_error_proceso'] ?? null
+            ];
+
+            // Eliminar el entry del array indexado para evitar duplicados
+            unset($dataProcesoIndexed[$teamLeader]);
+        }
+
+        // Agregar cualquier item de Proceso que no haya sido combinado
+        foreach ($dataProcesoIndexed as $itemProceso) {
+            $combinedData[] = [
+                'team_leader' => $itemProceso['team_leader'],
+                'porcentaje_error_aql' => null,
+                'porcentaje_error_proceso' => $itemProceso['porcentaje_error_proceso']
+            ];
+        }
+
+        return $combinedData;
+    }
+
+    private function combineDataModulos($dataAQL, $dataProceso)
+    {
+        $combinedData = [];
+
+        // Indexar datos de Proceso por modulo
+        $dataProcesoIndexed = [];
+        foreach ($dataProceso as $item) {
+            $dataProcesoIndexed[$item['modulo']] = $item;
+        }
+
+        // Combinar datos
+        foreach ($dataAQL as $itemAQL) {
+            $modulo = $itemAQL['modulo'];
+            $itemProceso = $dataProcesoIndexed[$modulo] ?? null;
+
+            $combinedData[] = [
+                'modulo' => $modulo,
+                'porcentaje_error_aql' => $itemAQL['porcentaje_error_aql'],
+                'porcentaje_error_proceso' => $itemProceso['porcentaje_error_proceso'] ?? null
+            ];
+
+            // Eliminar el entry del array indexado para evitar duplicados
+            unset($dataProcesoIndexed[$modulo]);
+        }
+
+        // Agregar cualquier item de Proceso que no haya sido combinado
+        foreach ($dataProcesoIndexed as $itemProceso) {
+            $combinedData[] = [
+                'modulo' => $itemProceso['modulo'],
+                'porcentaje_error_aql' => null,
+                'porcentaje_error_proceso' => $itemProceso['porcentaje_error_proceso']
+            ];
+        }
+
+        return $combinedData;
     }
 }

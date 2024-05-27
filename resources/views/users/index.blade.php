@@ -2,24 +2,77 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'Black Dashboard Laravel - Free Laravel Preset') }}</title>
+    <title>{{ config('app.name', 'Sistema de Calidad') }}</title>
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('black') }}/img/apple-icon.png">
     <link rel="icon" type="image/png" href="{{ asset('black') }}/img/favicon.png">
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,600,700,800" rel="stylesheet" />
     <link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
-    <!-- Icons -->
+    <!-- Fonts and icons -->
     <link rel="stylesheet" type="text/css"
         href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+    <!-- Icons -->
     <link href="{{ asset('black') }}/css/nucleo-icons.css" rel="stylesheet" />
     <!-- CSS -->
     <link href="{{ asset('black') }}/css/black-dashboard.css?v=1.0.0" rel="stylesheet" />
     <link href="{{ asset('black') }}/css/theme.css" rel="stylesheet" />
+       <!-- Select2 -->
+       <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+       <!-- jQuery -->
+       <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+       <script src="{{ asset('material') }}/js/plugins/jquery-jvectormap.js"></script>
+       <script>
+        jQuery.event.special.touchstart = {
+          setup: function (_, ns, handle) {
+            this.addEventListener("touchstart", handle, { passive: !ns.includes("noPreventDefault") });
+          }
+        };
+
+        jQuery.event.special.touchmove = {
+          setup: function (_, ns, handle) {
+            this.addEventListener("touchmove", handle, { passive: !ns.includes("noPreventDefault") });
+          }
+        };
+
+        jQuery.event.special.wheel = {
+          setup: function (_, ns, handle) {
+            this.addEventListener("wheel", handle, { passive: true });
+          }
+        };
+
+        jQuery.event.special.mousewheel = {
+          setup: function (_, ns, handle) {
+            this.addEventListener("mousewheel", handle, { passive: true });
+          }
+        };
+    </script>
+    <script src="{{ asset('material') }}/js/plugins/arrive.min.js"></script>
+    <!-- Core Scripts -->
+    <script src="{{ asset('material') }}/js/core/popper.min.js"></script>
+    <script src="{{ asset('material') }}/js/core/bootstrap-material-design.min.js"></script>
+
+    <!-- Select2 and Datepicker Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
+
+    <!-- flatpickr CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <!-- Other Plugins -->
+    <script src="{{ asset('material') }}/js/plugins/bootstrap-selectpicker.js"></script>
+    <script src="{{ asset('material') }}/js/plugins/perfect-scrollbar.jquery.min.js"></script>
+    <script src="{{ asset('material') }}/js/settings.js"></script>
+    <script src="{{ asset('material') }}/js/material-dashboard.js?v=2.1.1" type="text/javascript"></script>
+
+
 </head>
 <body class="">
     <!-- End Google Tag Manager (noscript) -->

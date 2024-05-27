@@ -17977,3 +17977,32 @@ Copyright (c) 2015 Daniel Eden
   line-height: 0;
 }
 /*# sourceMappingURL=dashboard-free.css.map */
+
+/* Ocultar las barras de desplazamiento hasta que sean necesarias */
+.table-responsive {
+  overflow: auto; /* Mostrar las barras de desplazamiento solo cuando sea necesario */
+}
+
+
+
+/* Personalizar las barras de desplazamiento para WebKit (Chrome, Safari) */
+.table-responsive::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+/* Color de la barra de desplazamiento */
+.table-responsive::-webkit-scrollbar-track {
+  background: #2a2c36; /* Color del track (fondo de la barra) */
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background-color: #6c757d; /* Color del pulgar (scroll thumb) */
+  border-radius: 10px;       /* Bordes redondeados */
+  border: 2px solid #2a2c36; /* Borde alrededor del pulgar para separar del track */
+}
+
+/* Opcional: Cambiar el color del pulgar al pasar el cursor */
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Color más oscuro al pasar el cursor */
+}

@@ -558,6 +558,14 @@
         </div>
     </div>
 
+    <script>
+        $('#modulo').select2({
+                placeholder: 'Seleccione una o varias opciones',
+                allowClear: true,
+            });
+
+    </script>
+
     <style>
         thead.thead-primary {
             background-color: #59666e54;
