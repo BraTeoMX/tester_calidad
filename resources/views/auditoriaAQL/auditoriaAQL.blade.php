@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageSlug' => 'AQL', 'titlePage' => __('AQL')])
+@extends('layouts.app', ['activePage' => 'AQL', 'titlePage' => __('AQL')])
 
 @section('content')
     {{-- ... dentro de tu vista ... --}}
@@ -189,14 +189,7 @@
                                                 
                                                 <script>
                                                     $(document).ready(function() {
-                                                        // Inicializar Select2 en el select con id "bulto"
-                                                        $('#bulto').select2({
-                                                            placeholder: 'Seleccione una opción',
-                                                            allowClear: true
-                                                        });
-                                                
-                                                        // Manejar el cambio de selección en el select "bulto"
-                                                        $('#bulto').on('change', function() {
+                                                        $('#bulto').change(function() {
                                                             var selectedOption = $(this).find(':selected');
                                                             $('#pieza').val(selectedOption.data('pieza'));
                                                             $('#estilo').val(selectedOption.data('estilo'));
@@ -211,7 +204,7 @@
                                                         $('#color').val(selectedOption.data('color'));
                                                         $('#talla').val(selectedOption.data('talla'));
                                                     });
-                                                </script>
+                                                </script>                                            
                                                 
                                                 <td><input type="text" class="form-control" name="cantidad_auditada"
                                                         id="cantidad_auditada" required></td>
@@ -512,13 +505,6 @@
         </div>
     </div>
 
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{{ asset('material') }}/js/plugins/jquery-jvectormap.js"></script>
-    <!-- Select2 and Datepicker Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
-
     <style>
         thead.thead-primary {
             background-color: #59666e54;
@@ -581,7 +567,3 @@
     
 
 @endsection
-
-@push('scripts')
-
-@endpush
