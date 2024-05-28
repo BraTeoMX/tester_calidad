@@ -6,7 +6,8 @@ use App\Models\AseguramientoCalidad;
 use App\Models\AuditoriaAQL;  
 use App\Models\TpAseguramientoCalidad;  
 use App\Models\TpAuditoriaAQL;  
-use Carbon\Carbon; // Asegúrate de importar la clase Carbon 
+use Carbon\Carbon; // Asegúrate de importar la clase Carbon  
+use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon  
 use Illuminate\Support\Facades\DB; // Importa la clase DB
 
 class HomeController extends Controller
@@ -103,11 +104,31 @@ class HomeController extends Controller
             $dataPlanta2 = $this->obtenerDatosClientesPorFiltro($fechaActual, 'Intimark2');
             $totalPlanta2 = $this->calcularTotales($dataPlanta2['dataCliente']);
 
-            $clientesGrafica = collect($dataGeneral['dataCliente'])->pluck('cliente')->toArray();
-            $porcentajesErrorAQLGrafica = collect($dataGeneral['dataCliente'])->pluck('porcentajeErrorAQL')->toArray();
-            $porcentajesErrorProcesoGrafica = collect($dataGeneral['dataCliente'])->pluck('porcentajeErrorProceso')->toArray();
-            
-            //dd($dataGeneral, $clientesGrafica, $porcentajesErrorAQLGrafica, $porcentajesErrorProcesoGrafica);
+            // Datos para las gráficas usando el rango de fechas
+            $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
+            $clientesGrafica = collect($dataGrafica['clientesUnicos'])->toArray();
+            $fechasGrafica = collect($dataGrafica['dataCliente'][0]['fechas'])->toArray();
+
+            $datasetsAQL = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
+                return [
+                    'label' => $clienteData['cliente'],
+                    'data' => $clienteData['porcentajesErrorAQL'],
+                    'borderColor' => 'rgba(75, 192, 192, 1)',
+                    'borderWidth' => 1,
+                    'fill' => false
+                ];
+            })->toArray();
+
+            $datasetsProceso = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
+                return [
+                    'label' => $clienteData['cliente'],
+                    'data' => $clienteData['porcentajesErrorProceso'],
+                    'borderColor' => 'rgba(153, 102, 255, 1)',
+                    'borderWidth' => 1,
+                    'fill' => false
+                ];
+            })->toArray();
+            //dd($dataGrafica, $clientesGrafica, $datasetsAQL, $datasetsProceso);
             //apartado para mostrar datos de gerente de prodduccion, en este caso por dia AseguramientoCalidad y AuditoriaAQL
         // Obtención y cálculo de datos generales para AQL y Proceso
         $dataModuloAQLGeneral = $this->getDataModuloAQL($fechaActual);
@@ -151,7 +172,7 @@ class HomeController extends Controller
                                     'dataGeneral', 'totalGeneral', 'dataPlanta1', 'totalPlanta1', 'dataPlanta2', 'totalPlanta2',
                                     'dataGerentesGeneral', 'dataModulosGeneral',
                                     'fechas', 'porcentajesAQL', 'porcentajesProceso',
-                                    'clientesGrafica', 'porcentajesErrorAQLGrafica', 'porcentajesErrorProcesoGrafica'));
+                                    'fechasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica'));
         } else {
             // Si el usuario no tiene esos roles, redirige a listaFormularios
             return redirect()->route('viewlistaFormularios');
@@ -215,6 +236,96 @@ class HomeController extends Controller
         return [
             'clientesAQL' => $clientesAQL,
             'clientesProceso' => $clientesProceso,
+            'dataCliente' => $dataCliente
+        ];
+    }
+
+    private function obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin, $planta = null)
+    {
+        $clientesUnicos = collect();
+        $dataCliente = [];
+
+        // Iterar sobre cada día en el rango
+        $fechas = CarbonPeriod::create($fechaInicio, '1 day', $fechaFin)->toArray();
+        $fechasStr = array_map(function ($fecha) {
+            return $fecha->toDateString();
+        }, $fechas);
+
+        foreach ($fechas as $fecha) {
+            $fechaStr = $fecha->toDateString();
+
+            // Obtener clientes únicos para la fecha actual
+            $queryAQL = AuditoriaAQL::whereNotNull('cliente')->whereDate('created_at', $fechaStr);
+            $queryProceso = AseguramientoCalidad::whereNotNull('cliente')->whereDate('created_at', $fechaStr);
+
+            if ($planta) {
+                $queryAQL->where('planta', $planta);
+                $queryProceso->where('planta', $planta);
+            }
+
+            $clientesAQL = $queryAQL->pluck('cliente');
+            $clientesProceso = $queryProceso->pluck('cliente');
+            $clientesDelDia = $clientesAQL->merge($clientesProceso)->unique();
+
+            $clientesUnicos = $clientesUnicos->merge($clientesDelDia)->unique();
+
+            foreach ($clientesDelDia as $cliente) {
+                // Inicializar los datos del cliente si no existen
+                if (!isset($dataCliente[$cliente])) {
+                    $dataCliente[$cliente] = [
+                        'cliente' => $cliente,
+                        'fechas' => $fechasStr,
+                        'porcentajesErrorAQL' => array_fill(0, count($fechasStr), 0),
+                        'porcentajesErrorProceso' => array_fill(0, count($fechasStr), 0)
+                    ];
+                }
+
+                // Obtener datos de AQL
+                $sumaAuditadaAQL = AuditoriaAQL::where('cliente', $cliente)
+                    ->whereDate('created_at', $fechaStr)
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_auditada');
+                $sumaRechazadaAQL = AuditoriaAQL::where('cliente', $cliente)
+                    ->whereDate('created_at', $fechaStr)
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_rechazada');
+
+                $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
+
+                // Obtener datos de Procesos
+                $sumaAuditadaProceso = AseguramientoCalidad::where('cliente', $cliente)
+                    ->whereDate('created_at', $fechaStr)
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_auditada');
+                $sumaRechazadaProceso = AseguramientoCalidad::where('cliente', $cliente)
+                    ->whereDate('created_at', $fechaStr)
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_rechazada');
+
+                $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
+
+                // Encontrar el índice correspondiente a la fecha
+                $index = array_search($fechaStr, $fechasStr);
+
+                // Agregar datos al array dataCliente
+                $dataCliente[$cliente]['porcentajesErrorAQL'][$index] = $porcentajeErrorAQL;
+                $dataCliente[$cliente]['porcentajesErrorProceso'][$index] = $porcentajeErrorProceso;
+            }
+        }
+
+        // Convertir dataCliente a la estructura esperada
+        $dataCliente = array_values($dataCliente);
+
+        return [
+            'clientesUnicos' => $clientesUnicos,
             'dataCliente' => $dataCliente
         ];
     }
