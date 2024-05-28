@@ -107,7 +107,7 @@ class HomeController extends Controller
             $porcentajesErrorAQLGrafica = collect($dataGeneral['dataCliente'])->pluck('porcentajeErrorAQL')->toArray();
             $porcentajesErrorProcesoGrafica = collect($dataGeneral['dataCliente'])->pluck('porcentajeErrorProceso')->toArray();
             
-
+            //dd($dataGeneral, $clientesGrafica, $porcentajesErrorAQLGrafica, $porcentajesErrorProcesoGrafica);
             //apartado para mostrar datos de gerente de prodduccion, en este caso por dia AseguramientoCalidad y AuditoriaAQL
         // Obtención y cálculo de datos generales para AQL y Proceso
         $dataModuloAQLGeneral = $this->getDataModuloAQL($fechaActual);
@@ -172,27 +172,39 @@ class HomeController extends Controller
         $clientesProceso = $queryProceso->pluck('cliente');
         $clientesUnicos = $clientesAQL->merge($clientesProceso)->unique();
 
-        //dd($clientesUnicos);
         $dataCliente = [];
         foreach ($clientesUnicos as $cliente) {
-            $sumaAuditadaAQL = AuditoriaAQL::where('cliente', $cliente)->whereDate('created_at', $fechaActual)->when($planta, function ($query) use ($planta) {
-                return $query->where('planta', $planta);
-            })->sum('cantidad_auditada');
-            $sumaRechazadaAQL = AuditoriaAQL::where('cliente', $cliente)->whereDate('created_at', $fechaActual)->when($planta, function ($query) use ($planta) {
-                return $query->where('planta', $planta);
-            })->sum('cantidad_rechazada');
+            $sumaAuditadaAQL = AuditoriaAQL::where('cliente', $cliente)
+                ->whereDate('created_at', $fechaActual)
+                ->when($planta, function ($query) use ($planta) {
+                    return $query->where('planta', $planta);
+                })
+                ->sum('cantidad_auditada');
+            $sumaRechazadaAQL = AuditoriaAQL::where('cliente', $cliente)
+                ->whereDate('created_at', $fechaActual)
+                ->when($planta, function ($query) use ($planta) {
+                    return $query->where('planta', $planta);
+                })
+                ->sum('cantidad_rechazada');
 
             $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
 
-            $sumaAuditadaProceso = AseguramientoCalidad::where('cliente', $cliente)->whereDate('created_at', $fechaActual)->when($planta, function ($query) use ($planta) {
-                return $query->where('planta', $planta);
-            })->sum('cantidad_auditada');
-            $sumaRechazadaProceso = AseguramientoCalidad::where('cliente', $cliente)->whereDate('created_at', $fechaActual)->when($planta, function ($query) use ($planta) {
-                return $query->where('planta', $planta);
-            })->sum('cantidad_rechazada');
+            $sumaAuditadaProceso = AseguramientoCalidad::where('cliente', $cliente)
+                ->whereDate('created_at', $fechaActual)
+                ->when($planta, function ($query) use ($planta) {
+                    return $query->where('planta', $planta);
+                })
+                ->sum('cantidad_auditada');
+            $sumaRechazadaProceso = AseguramientoCalidad::where('cliente', $cliente)
+                ->whereDate('created_at', $fechaActual)
+                ->when($planta, function ($query) use ($planta) {
+                    return $query->where('planta', $planta);
+                })
+                ->sum('cantidad_rechazada');
 
             $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
 
+            // Agregar al array dataCliente
             $dataCliente[] = [
                 'cliente' => $cliente,
                 'porcentajeErrorProceso' => $porcentajeErrorProceso,
