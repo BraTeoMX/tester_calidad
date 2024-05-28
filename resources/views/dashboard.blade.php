@@ -242,6 +242,44 @@
         </div>
     </div>
 
+    <!-- Graficas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-chart">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-sm-6 text-left">
+                            <h2 class="card-title">Errores Mensuales por Cliente</h2>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+                                <label class="btn btn-sm btn-primary btn-simple active" id="cliente0">
+                                    <input type="radio" name="clienteOptions" checked>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
+                                    <span class="d-block d-sm-none">
+                                        <i class="tim-icons icon-single-02"></i>
+                                    </span>
+                                </label>
+                                <label class="btn btn-sm btn-primary btn-simple" id="cliente1">
+                                    <input type="radio" class="d-none d-sm-none" name="clienteOptions">
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Procesos</span>
+                                    <span class="d-block d-sm-none">
+                                        <i class="tim-icons icon-gift-2"></i>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="clienteChartAQL"></canvas>
+                        <canvas id="clienteChartProcesos" style="display: none;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-lg-6 col-md-12">
             <div class="card ">
@@ -369,7 +407,10 @@
                     }],
                     yAxes: [{
                         ticks: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            callback: function(value, index, values) {
+                                return value + '%'; // Añadir el símbolo de porcentaje
+                            }
                         }
                     }]
                 }
@@ -413,7 +454,10 @@
                     }],
                     yAxes: [{
                         ticks: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            callback: function(value, index, values) {
+                                return value + '%'; // Añadir el símbolo de porcentaje
+                            }
                         }
                     }]
                 }
@@ -429,6 +473,75 @@
         $('#1').on('click', function() {
             $('#chartAQL').hide();
             $('#chartProcesos').show();
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');
+        const ctxClienteProcesos = document.getElementById('clienteChartProcesos').getContext('2d');
+
+        const chartClienteAQL = new Chart(ctxClienteAQL, {
+            type: 'line',
+            data: {
+                labels: @json($clientesGrafica),
+                datasets: [{
+                    label: '% Error AQL',
+                    data: @json($porcentajesErrorAQLGrafica),
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const chartClienteProcesos = new Chart(ctxClienteProcesos, {
+            type: 'line',
+            data: {
+                labels: @json($clientesGrafica),
+                datasets: [{
+                    label: '% Error Procesos',
+                    data: @json($porcentajesErrorProcesoGrafica),
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        document.getElementById('cliente0').addEventListener('click', function() {
+            document.getElementById('clienteChartAQL').style.display = 'block';
+            document.getElementById('clienteChartProcesos').style.display = 'none';
+        });
+
+        document.getElementById('cliente1').addEventListener('click', function() {
+            document.getElementById('clienteChartAQL').style.display = 'none';
+            document.getElementById('clienteChartProcesos').style.display = 'block';
         });
     });
 </script>

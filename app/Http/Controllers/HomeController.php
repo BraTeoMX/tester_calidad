@@ -91,7 +91,7 @@ class HomeController extends Controller
  
 
 
-             // Datos generales
+            // Datos generales
             $dataGeneral = $this->obtenerDatosClientesPorFiltro($fechaActual);
             $totalGeneral = $this->calcularTotales($dataGeneral['dataCliente']);
 
@@ -102,6 +102,11 @@ class HomeController extends Controller
             // Datos planta Intimark2
             $dataPlanta2 = $this->obtenerDatosClientesPorFiltro($fechaActual, 'Intimark2');
             $totalPlanta2 = $this->calcularTotales($dataPlanta2['dataCliente']);
+
+            $clientesGrafica = collect($dataGeneral['dataCliente'])->pluck('cliente')->toArray();
+            $porcentajesErrorAQLGrafica = collect($dataGeneral['dataCliente'])->pluck('porcentajeErrorAQL')->toArray();
+            $porcentajesErrorProcesoGrafica = collect($dataGeneral['dataCliente'])->pluck('porcentajeErrorProceso')->toArray();
+            
 
             //apartado para mostrar datos de gerente de prodduccion, en este caso por dia AseguramientoCalidad y AuditoriaAQL
         // Obtención y cálculo de datos generales para AQL y Proceso
@@ -145,7 +150,8 @@ class HomeController extends Controller
                                     'generalProceso', 'generalAQL', 'generalAQLPlanta1', 'generalAQLPlanta2','generalProcesoPlanta1', 'generalProcesoPlanta2',
                                     'dataGeneral', 'totalGeneral', 'dataPlanta1', 'totalPlanta1', 'dataPlanta2', 'totalPlanta2',
                                     'dataGerentesGeneral', 'dataModulosGeneral',
-                                    'fechas', 'porcentajesAQL', 'porcentajesProceso'));
+                                    'fechas', 'porcentajesAQL', 'porcentajesProceso',
+                                    'clientesGrafica', 'porcentajesErrorAQLGrafica', 'porcentajesErrorProcesoGrafica'));
         } else {
             // Si el usuario no tiene esos roles, redirige a listaFormularios
             return redirect()->route('viewlistaFormularios');
@@ -154,12 +160,9 @@ class HomeController extends Controller
 
     private function obtenerDatosClientesPorFiltro($fechaActual, $planta = null)
     {
-        $queryAQL = AuditoriaAQL::whereNotNull('cliente')
-            ->whereDate('created_at', $fechaActual);
-        
-        $queryProceso = AseguramientoCalidad::whereNotNull('cliente')
-            ->whereDate('created_at', $fechaActual);
-        
+        $queryAQL = AuditoriaAQL::whereNotNull('cliente')->whereDate('created_at', $fechaActual);
+        $queryProceso = AseguramientoCalidad::whereNotNull('cliente')->whereDate('created_at', $fechaActual);
+
         if ($planta) {
             $queryAQL->where('planta', $planta);
             $queryProceso->where('planta', $planta);
@@ -167,39 +170,27 @@ class HomeController extends Controller
 
         $clientesAQL = $queryAQL->pluck('cliente');
         $clientesProceso = $queryProceso->pluck('cliente');
-        
         $clientesUnicos = $clientesAQL->merge($clientesProceso)->unique();
-        
+
+        //dd($clientesUnicos);
         $dataCliente = [];
         foreach ($clientesUnicos as $cliente) {
-            $sumaAuditadaAQL = AuditoriaAQL::where('cliente', $cliente)
-                ->whereDate('created_at', $fechaActual)
-                ->when($planta, function ($query) use ($planta) {
-                    return $query->where('planta', $planta);
-                })
-                ->sum('cantidad_auditada');
-            $sumaRechazadaAQL = AuditoriaAQL::where('cliente', $cliente)
-                ->whereDate('created_at', $fechaActual)
-                ->when($planta, function ($query) use ($planta) {
-                    return $query->where('planta', $planta);
-                })
-                ->sum('cantidad_rechazada');
-            
+            $sumaAuditadaAQL = AuditoriaAQL::where('cliente', $cliente)->whereDate('created_at', $fechaActual)->when($planta, function ($query) use ($planta) {
+                return $query->where('planta', $planta);
+            })->sum('cantidad_auditada');
+            $sumaRechazadaAQL = AuditoriaAQL::where('cliente', $cliente)->whereDate('created_at', $fechaActual)->when($planta, function ($query) use ($planta) {
+                return $query->where('planta', $planta);
+            })->sum('cantidad_rechazada');
+
             $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
-            
-            $sumaAuditadaProceso = AseguramientoCalidad::where('cliente', $cliente)
-                ->whereDate('created_at', $fechaActual)
-                ->when($planta, function ($query) use ($planta) {
-                    return $query->where('planta', $planta);
-                })
-                ->sum('cantidad_auditada');
-            $sumaRechazadaProceso = AseguramientoCalidad::where('cliente', $cliente)
-                ->whereDate('created_at', $fechaActual)
-                ->when($planta, function ($query) use ($planta) {
-                    return $query->where('planta', $planta);
-                })
-                ->sum('cantidad_rechazada');
-            
+
+            $sumaAuditadaProceso = AseguramientoCalidad::where('cliente', $cliente)->whereDate('created_at', $fechaActual)->when($planta, function ($query) use ($planta) {
+                return $query->where('planta', $planta);
+            })->sum('cantidad_auditada');
+            $sumaRechazadaProceso = AseguramientoCalidad::where('cliente', $cliente)->whereDate('created_at', $fechaActual)->when($planta, function ($query) use ($planta) {
+                return $query->where('planta', $planta);
+            })->sum('cantidad_rechazada');
+
             $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
 
             $dataCliente[] = [
@@ -208,7 +199,7 @@ class HomeController extends Controller
                 'porcentajeErrorAQL' => $porcentajeErrorAQL,
             ];
         }
-        
+
         return [
             'clientesAQL' => $clientesAQL,
             'clientesProceso' => $clientesProceso,
@@ -219,23 +210,19 @@ class HomeController extends Controller
     private function calcularTotales($dataClientes)
     {
         $totalAuditadaAQL = array_sum(array_map(function ($data) {
-            return AuditoriaAQL::where('cliente', $data['cliente'])
-                ->sum('cantidad_auditada');
+            return AuditoriaAQL::where('cliente', $data['cliente'])->sum('cantidad_auditada');
         }, $dataClientes));
 
         $totalRechazadaAQL = array_sum(array_map(function ($data) {
-            return AuditoriaAQL::where('cliente', $data['cliente'])
-                ->sum('cantidad_rechazada');
+            return AuditoriaAQL::where('cliente', $data['cliente'])->sum('cantidad_rechazada');
         }, $dataClientes));
 
         $totalAuditadaProceso = array_sum(array_map(function ($data) {
-            return AseguramientoCalidad::where('cliente', $data['cliente'])
-                ->sum('cantidad_auditada');
+            return AseguramientoCalidad::where('cliente', $data['cliente'])->sum('cantidad_auditada');
         }, $dataClientes));
 
         $totalRechazadaProceso = array_sum(array_map(function ($data) {
-            return AseguramientoCalidad::where('cliente', $data['cliente'])
-                ->sum('cantidad_rechazada');
+            return AseguramientoCalidad::where('cliente', $data['cliente'])->sum('cantidad_rechazada');
         }, $dataClientes));
 
         return [
