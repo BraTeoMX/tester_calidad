@@ -732,6 +732,7 @@ class AuditoriaCorteController extends Controller
             $existeOrden->sellado_paquete = $request->input('sellado_paquete');
             $existeOrden->sellado_paquete_estatus = $request->input('sellado_paquete_estatus');
             $existeOrden->defecto = $request->input('defecto');
+            $existeOrden->cantidad_defecto = $request->input('cantidad_defecto');
             $existeOrden->porcentaje = $request->input('porcentaje');
 
         

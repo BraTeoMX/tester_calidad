@@ -1,5 +1,7 @@
+
+
 <?php $__env->startSection('content'); ?>
-    
+
     <div class="row">
         <div class="col-lg-6 col-md-12">
             <div class="card">
@@ -95,7 +97,7 @@
             </div>
         </div>
     </div>
-    <!-- Graficas -->  
+    <!-- Graficas -->
     <div class="row">
         <div class="col-12">
             <div class="card card-chart">
@@ -134,6 +136,7 @@
         </div>
     </div>
     <div class="row">
+
         <div class="col-lg-4">
             <div class="card card-chart">
                 <div class="card-header">
@@ -149,6 +152,8 @@
                 </div>
             </div>
         </div>
+
+
         <div class="col-lg-4">
             <div class="card card-chart">
                 <div class="card-header">
@@ -355,7 +360,6 @@
             </div>
         </div>
     </div>
-    
     <style>
         .chart-area {
           height: 500px; /* Ajusta esta altura según tus necesidades */
@@ -365,12 +369,6 @@
 
 <?php $__env->startPush('js'); ?>
     <script src="<?php echo e(asset('black')); ?>/js/plugins/chartjs.min.js"></script>
-    <script>
-        $(document).ready(function() {
-          demo.initDashboardPageCharts();
-        });
-    </script>
-
 <script>
     $(document).ready(function() {
         // Inicializa las gráficas
@@ -484,24 +482,24 @@
 <script>
     $(document).ready(function() {
       // Lista de colores
-      var colores = [
-        'rgba(75, 192, 192, 1)',
-        'rgba(153, 102, 255, 1)',
-        'rgba(255, 99, 132, 1)',
-        'rgba(54, 162, 235, 1)',
-        'rgba(255, 206, 86, 1)',
-        'rgba(75, 192, 192, 1)',
-        'rgba(153, 102, 255, 1)',
-        'rgba(255, 99, 132, 1)',
-        'rgba(54, 162, 235, 1)',
-        'rgba(255, 206, 86, 1)',
-        'rgba(75, 192, 192, 1)',
-        'rgba(153, 102, 255, 1)',
-        'rgba(255, 99, 132, 1)',
-        'rgba(54, 162, 235, 1)',
-        'rgba(255, 206, 86, 1)'
-      ];
-    
+        var colores = [
+            'rgba(75, 192, 192, 1)',   // Teal
+            'rgba(153, 102, 255, 1)', // Light Purple
+            'rgba(255, 99, 132, 1)',  // Red
+            'rgba(54, 162, 235, 1)',  // Blue
+            'rgba(255, 206, 86, 1)',  // Yellow
+            'rgba(255, 159, 64, 1)',  // Orange
+            'rgba(199, 199, 199, 1)', // Gray
+            'rgba(255, 99, 255, 1)',  // Pink
+            'rgba(99, 255, 132, 1)',  // Light Green
+            'rgba(99, 132, 255, 1)',  // Light Blue
+            'rgba(132, 99, 255, 1)',  // Purple
+            'rgba(192, 75, 192, 1)',  // Magenta
+            'rgba(235, 162, 54, 1)',  // Brown
+            'rgba(86, 255, 206, 1)',  // Cyan
+            'rgba(64, 159, 255, 1)'   // Sky Blue
+        ];
+
       // Inicializa las gráficas
       var ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');
       var datasetsAQL = <?php echo json_encode($datasetsAQL, 15, 512) ?>.map((dataset, index) => {
@@ -545,7 +543,7 @@
           }
         }
       });
-    
+
       var ctxClienteProcesos = document.getElementById('clienteChartProcesos').getContext('2d');
       var datasetsProceso = <?php echo json_encode($datasetsProceso, 15, 512) ?>.map((dataset, index) => {
         return {
@@ -588,13 +586,13 @@
           }
         }
       });
-    
+
       $('#cliente0').on('click', function() {
         $('#clienteChartAQL').show();
         $('#clienteChartProcesos').hide();
         chartClienteAQL.update(); // Asegurarse de que la gráfica se actualice
       });
-    
+
       $('#cliente1').on('click', function() {
         $('#clienteChartAQL').hide();
         $('#clienteChartProcesos').show();

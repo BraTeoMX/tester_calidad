@@ -349,140 +349,151 @@
                                 </form>
                                 
                                 <?php elseif($encabezadoAuditoriaCorte && ($encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaMarcada' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaTendido' || $encabezadoAuditoriaCorte->estatus == 'estatusLectra' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaBulto' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaFinal' || $encabezadoAuditoriaCorte->estatus == 'fin')): ?>  
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="yarda_orden" class="col-sm-6 col-form-label">Yardas en la
-                                            orden</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <div class="form-check form-check-inline">
-                                                <h4><?php echo e(isset($auditoriaMarcada) ? $auditoriaMarcada->yarda_orden : ''); ?></h4>
-                                            </div>
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($auditoriaMarcada) && $auditoriaMarcada->yarda_orden_estatus == 1): ?>
-                                                    <label class="label-paloma" for="yarda_orden_estatus1">✔</label>
-                                                <?php elseif(isset($auditoriaMarcada) && $auditoriaMarcada->yarda_orden_estatus == 0): ?>
-                                                    <label class="label-tache" for="yarda_orden_estatus2">✖</label>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="yarda_orden" class="col-sm-6 col-form-label">Yardas en la orden</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <div class="form-check form-check-inline">
+                                                    <input type="number" step="0.0001" class="form-control me-2"
+                                                        name="yarda_orden" id="yarda_orden" placeholder="..."
+                                                        value="<?php echo e(isset($auditoriaMarcada) ? $auditoriaMarcada->yarda_orden : ''); ?>"
+                                                        <?php echo e(isset($auditoriaMarcada) ? 'readonly' : ''); ?>
+
+                                                        required />
+                                                </div>
+                                                <?php if(isset($auditoriaMarcada)): ?>
+                                                    <div class="form-check form-check-inline">
+                                                        <?php if($auditoriaMarcada->yarda_orden_estatus == 1): ?>
+                                                            <label class="label-paloma">✔</label>
+                                                        <?php else: ?>
+                                                            <label class="label-tache">✖</label>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
+                                        <br>
+                                        <hr>
+                                        <div class="table-responsive">
+                                            <p>CANTIDADES ABSOLUTAS</p>
+                                            <table class="table">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Tallas</td>
+                                                        <?php for($i = 1; $i <= 6; $i++): ?>
+                                                        <td>
+                                                            <?php if(isset($auditoriaMarcada)): ?>
+                                                                <input type="text" class="form-control" value="<?php echo e($auditoriaMarcada->{'talla'.$i}); ?>" readonly />
+                                                            <?php else: ?>
+                                                                <select name="talla<?php echo e($i); ?>" class="form-control">
+                                                                    <option value="">Selecciona una talla</option>
+                                                                    <?php $__currentLoopData = $auditoriaMarcadaTalla; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sizename): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                                        <option value="<?php echo e($sizename); ?>" <?php echo e(isset($auditoriaMarcada) && $auditoriaMarcada->{'talla'.$i} == $sizename ? 'selected' : ''); ?>>
+                                                                            <?php echo e($sizename); ?>
+
+                                                                        </option>
+                                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                                </select>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                        <?php endfor; ?>
+                                                    </tr>
+                                                    <tr>
+                                                        <td># Bultos</td>
+                                                        <?php for($i = 1; $i <= 6; $i++): ?>
+                                                        <td>
+                                                            <input type="number" class="form-control" name="bulto<?php echo e($i); ?>"
+                                                                value="<?php echo e(isset($auditoriaMarcada) ? $auditoriaMarcada->{'bulto'.$i} : ''); ?>"
+                                                                <?php echo e(isset($auditoriaMarcada) ? 'readonly' : ''); ?> />
+                                                        </td>
+                                                        <?php endfor; ?>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Total Piezas</td>
+                                                        <?php for($i = 1; $i <= 6; $i++): ?>
+                                                        <td>
+                                                            <input type="number" class="form-control" name="total_pieza<?php echo e($i); ?>"
+                                                                value="<?php echo e(isset($auditoriaMarcada) ? $auditoriaMarcada->{'total_pieza'.$i} : ''); ?>"
+                                                                <?php echo e(isset($auditoriaMarcada) ? 'readonly' : ''); ?> />
+                                                        </td>
+                                                        <?php endfor; ?>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <p>CANTIDADES PARCIALES</p>
+                                            <table class="table">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Tallas</td>
+                                                        <?php for($i = 1; $i <= 6; $i++): ?>
+                                                        <td>
+                                                            <?php if(isset($auditoriaMarcada)): ?>
+                                                                <input type="text" class="form-control" value="<?php echo e($auditoriaMarcada->{'talla_parcial'.$i}); ?>" readonly />
+                                                            <?php else: ?>
+                                                                <select name="talla_parcial<?php echo e($i); ?>" class="form-control">
+                                                                    <option value="">Selecciona una talla</option>
+                                                                    <?php $__currentLoopData = $auditoriaMarcadaTalla; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sizename): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                                        <option value="<?php echo e($sizename); ?>" <?php echo e(isset($auditoriaMarcada) && $auditoriaMarcada->{'talla_parcial'.$i} == $sizename ? 'selected' : ''); ?>>
+                                                                            <?php echo e($sizename); ?>
+
+                                                                        </option>
+                                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                                </select>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                        <?php endfor; ?>
+                                                    </tr>
+                                                    <tr>
+                                                        <td># Bultos</td>
+                                                        <?php for($i = 1; $i <= 6; $i++): ?>
+                                                        <td>
+                                                            <input type="number" class="form-control" name="bulto_parcial<?php echo e($i); ?>"
+                                                                value="<?php echo e(isset($auditoriaMarcada) ? $auditoriaMarcada->{'bulto_parcial'.$i} : ''); ?>"
+                                                                <?php echo e(isset($auditoriaMarcada) ? 'readonly' : ''); ?> />
+                                                        </td>
+                                                        <?php endfor; ?>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Total Piezas</td>
+                                                        <?php for($i = 1; $i <= 6; $i++): ?>
+                                                        <td>
+                                                            <input type="number"  class="form-control" name="total_pieza_parcial<?php echo e($i); ?>"
+                                                                value="<?php echo e(isset($auditoriaMarcada) ? $auditoriaMarcada->{'total_pieza_parcial'.$i} : ''); ?>"
+                                                                <?php echo e(isset($auditoriaMarcada) ? 'readonly' : ''); ?> />
+                                                        </td>
+                                                        <?php endfor; ?>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="yarda_marcada" class="col-sm-6 col-form-label">Yardas en la
-                                            marcada</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <div class="form-check form-check-inline">
-                                                <h4><?php echo e(isset($auditoriaMarcada) ? $auditoriaMarcada->yarda_marcada : ''); ?></h4>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="largo_trazo" class="col-sm-3 col-form-label">Largo Trazo </label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <input type="number" step="0.0001" class="form-control me-2"
+                                                    name="largo_trazo" id="largo_trazo" placeholder="..."
+                                                    value="<?php echo e(isset($auditoriaMarcada) ? $auditoriaMarcada->largo_trazo : ''); ?>"
+                                                    <?php echo e(isset($auditoriaMarcada) ? 'readonly' : ''); ?>
+
+                                                    required />
                                             </div>
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($auditoriaMarcada) && $auditoriaMarcada->yarda_marcada_estatus == 1): ?>
-                                                    <label class="label-paloma" for="yarda_orden_estatus1">✔</label>
-                                                <?php elseif(isset($auditoriaMarcada) && $auditoriaMarcada->yarda_marcada_estatus == 0): ?>
-                                                    <label class="label-tache" for="yarda_orden_estatus2">✖</label>
-                                                <?php endif; ?>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="ancho_trazo" class="col-sm-3 col-form-label">Ancho Trazo </label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <input type="number" step="0.0001" class="form-control me-2"
+                                                    name="ancho_trazo" id="ancho_trazo" placeholder="..."
+                                                    value="<?php echo e(isset($auditoriaMarcada) ? $auditoriaMarcada->ancho_trazo : ''); ?>"
+                                                    <?php echo e(isset($auditoriaMarcada) ? 'readonly' : ''); ?>
+
+                                                    required />
                                             </div>
                                         </div>
                                     </div>
-                                    <br>
-                                </div>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="talla1" class="col-sm-3 col-form-label">Tallas</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <?php
-                                            $total_tallas1 = [
-                                                $auditoriaMarcada->talla1 ?? '',
-                                                $auditoriaMarcada->talla2 ?? '',
-                                                $auditoriaMarcada->talla3 ?? '',
-                                                $auditoriaMarcada->talla4 ?? '',
-                                                $auditoriaMarcada->talla5 ?? '',
-                                            ];
-                                            ?>
-                                            <input type="text" readonly value="<?php echo e(implode(' - ', array_filter($total_tallas1))); ?>" class="form-control">
-                                        </div>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <?php
-                                            $total_tallas2 = [
-                                                $auditoriaMarcada->talla6 ?? '',
-                                                $auditoriaMarcada->talla7 ?? '',
-                                                $auditoriaMarcada->talla8 ?? '',
-                                                $auditoriaMarcada->talla9 ?? '',
-                                                $auditoriaMarcada->talla10 ?? '',
-                                            ];
-                                            ?>
-                                            <input type="text" readonly value="<?php echo e(implode(' -- ', array_filter($total_tallas2))); ?>" class="form-control">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="bulto1" class="col-sm-3 col-form-label"># Bultos</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <?php
-                                            $total_bultos1 = [
-                                                $auditoriaMarcada->bulto1 ?? '',
-                                                $auditoriaMarcada->bulto2 ?? '',
-                                                $auditoriaMarcada->bulto3 ?? '',
-                                                $auditoriaMarcada->bulto4 ?? '',
-                                                $auditoriaMarcada->bulto5 ?? '',
-                                            ];
-                                            ?>
-                                            <input type="text" readonly value="<?php echo e(implode(' -- ', array_filter($total_bultos1))); ?>" class="form-control">
-                                        </div>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <?php
-                                            $total_bultos2 = [
-                                                $auditoriaMarcada->total_bulto1 ?? '',
-                                                $auditoriaMarcada->total_bulto2 ?? '',
-                                                $auditoriaMarcada->total_bulto3 ?? '',
-                                                $auditoriaMarcada->total_bulto4 ?? '',
-                                                $auditoriaMarcada->total_bulto5 ?? '',
-                                            ];
-                                            ?>
-                                            <input type="text" readonly value="<?php echo e(implode(' -- ', array_filter($total_bultos2))); ?>" class="form-control">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="total_pieza1" class="col-sm-3 col-form-label">Total piezas</label>
-                                        <div class="col-sm-6 d-flex align-items-center">
-                                            <?php
-                                            $total_piezas1 = [
-                                                $auditoriaMarcada->total_pieza1 ?? '',
-                                                $auditoriaMarcada->total_pieza2 ?? '',
-                                                $auditoriaMarcada->total_pieza3 ?? '',
-                                                $auditoriaMarcada->total_pieza4 ?? '',
-                                                $auditoriaMarcada->total_pieza5 ?? '',
-                                            ];
-                                            ?>
-                                            <input type="text" readonly value="<?php echo e(implode(' -- ', array_filter($total_piezas1))); ?>" class="form-control">
-                                        </div>
-                                        <div class="col-sm-6 d-flex align-items-center">
-                                            <?php
-                                            $total_piezas2 = [
-                                                $auditoriaMarcada->total_pieza6 ?? '',
-                                                $auditoriaMarcada->total_pieza7 ?? '',
-                                                $auditoriaMarcada->total_pieza8 ?? '',
-                                                $auditoriaMarcada->total_pieza9 ?? '',
-                                                $auditoriaMarcada->total_pieza10 ?? '',
-                                            ];
-                                            ?>
-                                            <input type="text" readonly value="<?php echo e(implode(' -- ', array_filter($total_piezas2))); ?>" class="form-control">
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="largo_trazo" class="col-sm-3 col-form-label">Largo Trazo </label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" readonly value="<?php echo e(isset($auditoriaMarcada) ? $auditoriaMarcada->largo_trazo : ''); ?>" class="form-control">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="ancho_trazo" class="col-sm-3 col-form-label">Ancho Trazo </label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" readonly value="<?php echo e(isset($auditoriaMarcada) ? $auditoriaMarcada->ancho_trazo : ''); ?>" class="form-control">
-                                        </div>
-                                    </div>
-                                </div>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -511,7 +522,7 @@
                                     <input type="hidden" name="idAuditoriaTendido" value="<?php echo e($auditoriaTendido->id); ?>">
                                     <input type="hidden" name="orden" value="<?php echo e($datoAX->orden); ?>">
                                     
-                                    <input type="hidden" name="accion" value="">
+                                    <input type="hidden" name="accion" value=""> 
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <div class="row"> 
@@ -796,7 +807,6 @@
                                                         required />
                                                     <label class="label-tache" for="empalme_estatus2">✖ </label>
                                                 </div>
-                                                
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
@@ -821,7 +831,6 @@
                                                         required />
                                                     <label class="label-tache" for="cara_material_estatus2">✖ </label>
                                                 </div>
-                                                
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
@@ -854,7 +863,6 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="alineacion_tendido" class="col-sm-6 col-form-label">11. Alineacion de tendido</label>
                                             <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                                
                                                 <div class="form-check form-check-inline">
                                                     <select name="alineacion_tendido" id="alineacion_tendido" class="form-control" title="Por favor, selecciona una opción">
                                                         <option value="">Selecciona una opción</option>
@@ -868,7 +876,6 @@
                                             <label for="arruga_tendido" class="col-sm-6 col-form-label">12. Arrugas de
                                                 tendido</label>
                                             <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                                
                                                 <div class="form-check form-check-inline">
                                                     <select name="arruga_tendido" id="arruga_tendido" class="form-control" title="Por favor, selecciona una opción"> 
                                                         <option value="">Selecciona una opción</option>
@@ -965,7 +972,6 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        
                                     </div>
                                     <div>
                                         <button type="submit" class="btn btn-success">Guardar</button>
@@ -977,269 +983,466 @@
                                     </div>
                                 </form>
                                 <?php elseif($encabezadoAuditoriaCorte && ($encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaMarcada' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaTendido' || $encabezadoAuditoriaCorte->estatus == 'estatusLectra' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaBulto' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaFinal' || $encabezadoAuditoriaCorte->estatus == 'fin')): ?>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="nombre" class="col-sm-6 col-form-label">NOMBRE DEL TENDEDOR</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" class="form-control" name="nombre" id="nombre" readonly
-                                                value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->nombre : ''); ?>">
-                                            &nbsp;&nbsp;
-                                            <input type="text" class="form-control" name="nombre2" id="nombre2" readonly
-                                                value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->nombre2 : ''); ?>">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="row"> 
+                                                <label for="nombre" class="col-sm-6 col-form-label">NOMBRE(S) TENDEDOR(RES)</label>
+                                                <div class="col-sm-6">
+                                                    <?php if(isset($auditoriaTendido)): ?>
+                                                        <?php $__currentLoopData = explode(',', trim($auditoriaTendido->nombre)); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $nombre): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <input type="text" class="form-control mb-2" value="<?php echo e($nombre); ?>" readonly />
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                    <?php else: ?>
+                                                        <select class="form-control" name="nombre[]" id="nombre" multiple>
+                                                            <option value="">Selecciona una opción</option>
+                                                            <?php $__currentLoopData = $CategoriaTecnico; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $nombre): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                                <option value="<?php echo e($nombre->nombre); ?>"><?php echo e($nombre->nombre); ?></option>
+                                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                        </select>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="fecha" class="col-sm-6 col-form-label">Fecha</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <?php echo e($auditoriaTendido->created_at->format('d ') . $mesesEnEspanol[$auditoriaTendido->created_at->format('n') - 1] . $auditoriaTendido->created_at->format(' Y')); ?>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="fecha" class="col-sm-6 col-form-label">Fecha</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <?php echo e(now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y')); ?>
 
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="mesa" class="col-sm-6 col-form-label">MESA</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" class="form-control" name="mesa" id="mesa" readonly
-                                                value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->mesa : ''); ?>">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="auditor" class="col-sm-6 col-form-label">AUDITOR</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" class="form-control me-2" name="auditor" id="auditor"
-                                                value="<?php echo e($auditoriaTendido->auditor); ?>" readonly  />
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="codigo_material" class="col-sm-6 col-form-label">1. Codigo de
-                                            material</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($auditoriaTendido) && $auditoriaTendido->codigo_material_estatus == 1): ?>
-                                                    <label class="label-paloma" for="codigo_material_estatus1">✔</label>
-                                                <?php elseif(isset($auditoriaTendido) && $auditoriaTendido->codigo_material_estatus == 0): ?>
-                                                    <label class="label-tache" for="codigo_material_estatus2">✖</label>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="mesa" class="col-sm-6 col-form-label">MESA</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <?php if(isset($auditoriaTendido)): ?>
+                                                    <input type="text" class="form-control" value="<?php echo e($auditoriaTendido->mesa); ?>" readonly />
+                                                <?php else: ?>
+                                                    <select name="mesa" id="mesa" class="form-control" title="Por favor, selecciona una opción" required>
+                                                        <option value="">Selecciona una opción</option>
+                                                        <option value="1 : Mesa">1 : Manual</option>
+                                                        <option value="2 : Brio">2 : Brio</option>
+                                                        <option value="3 : Brio">3 : Brio</option>
+                                                        <option value="4 : Brio">4 : Brio</option>
+                                                        <option value="5 : Brio">5 : Brio</option>
+                                                        <option value="6 : Brio">6 : Brio</option>
+                                                    </select>
                                                 <?php endif; ?>
                                             </div>
-                                            <div class="form-check form-check-inline">
-                                                <input type="text" class="form-control me-2"
-                                                    name="codigo_material" id="codigo_material" readonly
-                                                    value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->codigo_material : ''); ?>"
-                                                    required />
-                                            </div>                                              
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="auditor" class="col-sm-6 col-form-label">AUDITOR</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <input type="text" class="form-control me-2" name="auditor" id="auditor"
+                                                    value="<?php echo e($auditorDato); ?>" readonly required />
+                                                <input type="hidden" name="auditor" value="<?php echo e($auditorDato); ?>">
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="codigo_color" class="col-sm-6 col-form-label">2. Codigo de
-                                            color</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <div class="col-sm-12 d-flex align-items-center"
-                                                style="margin-right: -5px;">
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="codigo_material" class="col-sm-6 col-form-label">1. Codigo de material</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
                                                 <div class="form-check form-check-inline">
-                                                    <?php if(isset($auditoriaTendido) && $auditoriaTendido->codigo_color_estatus == 1): ?>
-                                                        <label class="label-paloma" for="codigo_color_estatus1">✔</label>
-                                                    <?php elseif(isset($auditoriaTendido) && $auditoriaTendido->codigo_color_estatus == 0): ?>
-                                                        <label class="label-tache" for="codigo_color_estatus2">✖</label>
+                                                    <?php if(isset($auditoriaTendido)): ?>
+                                                        <?php if($auditoriaTendido->codigo_material_estatus == 1): ?>
+                                                            <label class="label-paloma">✔</label>
+                                                        <?php else: ?>
+                                                            <label class="label-tache">✖</label>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <input class="quitar-espacio" type="radio"
+                                                            name="codigo_material_estatus" id="codigo_material_estatus1"
+                                                            value="1" required />
+                                                        <label class="label-paloma" for="codigo_material_estatus1">✔</label>
+                                                        <input class="quitar-espacio" type="radio"
+                                                            name="codigo_material_estatus" id="codigo_material_estatus2"
+                                                            value="0" required />
+                                                        <label class="label-tache" for="codigo_material_estatus2">✖</label>
                                                     <?php endif; ?>
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input type="text" class="form-control me-2" name="codigo_color" id="codigo_color"
-                                                           value="<?php echo e($encabezadoAuditoriaCorte->color); ?>" readonly required />
-                                                    <input type="hidden" name="codigo_color" value="<?php echo e($encabezadoAuditoriaCorte->color); ?>">
+                                                    <input type="text" class="form-control me-2"
+                                                        name="codigo_material" id="codigo_material" placeholder="..."
+                                                        value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->codigo_material : ''); ?>"
+                                                        <?php echo e(isset($auditoriaTendido) ? 'readonly' : ''); ?>
+
+                                                        required />
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="informacion_trazo" class="col-sm-6 col-form-label">3. Informacion
-                                            de trazo</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($auditoriaTendido) && $auditoriaTendido->informacion_trazo_estatus == 1): ?>
-                                                    <label class="label-paloma" for="informacion_trazo_estatus1">✔</label>
-                                                <?php elseif(isset($auditoriaTendido) && $auditoriaTendido->informacion_trazo_estatus == 0): ?>
-                                                    <label class="label-tache" for="informacion_trazo_estatus2">✖</label>
-                                                <?php endif; ?>
-                                            </div>
-                                            <div class="form-check form-check-inline">
-                                                <input type="text" class="form-control" name="informacion_trazo" id="informacion_trazo" readonly
-                                                value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->informacion_trazo : ''); ?>">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="cantidad_lienzo" class="col-sm-6 col-form-label">4. Cantidad de
-                                            lienzos</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($auditoriaTendido) && $auditoriaTendido->cantidad_lienzo_estatus == 1): ?>
-                                                    <label class="label-paloma" for="cantidad_lienzo_estatus1">✔</label>
-                                                <?php elseif(isset($auditoriaTendido) && $auditoriaTendido->cantidad_lienzo_estatus == 0): ?>
-                                                    <label class="label-tache" for="cantidad_lienzo_estatus2">✖</label>
-                                                <?php endif; ?>
-                                            </div>
-                                            <div class="form-check form-check-inline">
-                                                <input type="text" class="form-control me-2" name="cantidad_lienzo" id="cantidad_lienzo"
-                                                       value="<?php echo e($encabezadoAuditoriaCorte->lienzo); ?>" readonly required />
-                                                <input type="hidden" name="cantidad_lienzo" value="<?php echo e($encabezadoAuditoriaCorte->lienzo); ?>">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="codigo_color" class="col-sm-6 col-form-label">2. Codigo de color</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                    <div class="form-check form-check-inline">
+                                                        <?php if(isset($auditoriaTendido)): ?>
+                                                            <?php if($auditoriaTendido->codigo_color_estatus == 1): ?>
+                                                                <label class="label-paloma">✔</label>
+                                                            <?php else: ?>
+                                                                <label class="label-tache">✖</label>
+                                                            <?php endif; ?>
+                                                        <?php else: ?>
+                                                            <input class="quitar-espacio" type="radio"
+                                                                name="codigo_color_estatus" id="codigo_color_estatus1"
+                                                                value="1" required />
+                                                            <label class="label-paloma" for="codigo_color_estatus1">✔</label>
+                                                            <input class="quitar-espacio" type="radio"
+                                                                name="codigo_color_estatus" id="codigo_color_estatus2"
+                                                                value="0" required />
+                                                            <label class="label-tache" for="codigo_color_estatus2">✖</label>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input type="text" class="form-control me-2" name="codigo_color" id="codigo_color"
+                                                            placeholder="..." value="<?php echo e($encabezadoAuditoriaCorte->color_id); ?>" readonly required />
+                                                        <input type="hidden" name="codigo_color" value="<?php echo e($encabezadoAuditoriaCorte->color_id); ?>">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="longitud_tendido" class="col-sm-6 col-form-label">5. Longitud de
-                                            tendido</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($auditoriaTendido) && $auditoriaTendido->longitud_tendido_estatus == 1): ?>
-                                                    <label class="label-paloma" for="longitud_tendido_estatus1">✔</label>
-                                                <?php elseif(isset($auditoriaTendido) && $auditoriaTendido->longitud_tendido_estatus == 0): ?>
-                                                    <label class="label-tache" for="longitud_tendido_estatus2">✖</label>
-                                                <?php endif; ?>
-                                            </div>
-                                            <div class="form-check form-check-inline">
-                                                <input type="text" class="form-control me-2" name="longitud_tendido" id="longitud_tendido"
-                                                       value="<?php echo e($auditoriaMarcada->largo_trazo); ?>" readonly required />
-                                                <input type="hidden" name="longitud_tendido" value="<?php echo e($auditoriaMarcada->largo_trazo); ?>">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="ancho_tendido" class="col-sm-6 col-form-label">6. Ancho de
-                                            tendido</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($auditoriaTendido) && $auditoriaTendido->ancho_tendido_estatus == 1): ?>
-                                                    <label class="label-paloma" for="ancho_tendido_estatus1">✔</label>
-                                                <?php elseif(isset($auditoriaTendido) && $auditoriaTendido->ancho_tendido_estatus == 0): ?>
-                                                    <label class="label-tache" for="ancho_tendido_estatus1">✖</label>
-                                                <?php endif; ?>
-                                            </div>
-                                            <div class="form-check form-check-inline">
-                                                <input type="text" class="form-control me-2" name="ancho_tendido" id="ancho_tendido"
-                                                       value="<?php echo e($auditoriaMarcada->ancho_trazo); ?>" readonly />
-                                                <input type="hidden" name="ancho_tendido" value="<?php echo e($auditoriaMarcada->ancho_trazo); ?>">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="informacion_trazo" class="col-sm-6 col-form-label">3. Informacion de trazo</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <div class="form-check form-check-inline">
+                                                    <?php if(isset($auditoriaTendido)): ?>
+                                                        <?php if($auditoriaTendido->informacion_trazo_estatus == 1): ?>
+                                                            <label class="label-paloma">✔</label>
+                                                        <?php else: ?>
+                                                            <label class="label-tache">✖</label>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <input class="quitar-espacio" type="radio"
+                                                            name="informacion_trazo_estatus" id="informacion_trazo_estatus1"
+                                                            value="1" required />
+                                                        <label class="label-paloma" for="informacion_trazo_estatus1">✔</label>
+                                                        <input class="quitar-espacio" type="radio"
+                                                            name="informacion_trazo_estatus" id="informacion_trazo_estatus2"
+                                                            value="0" required />
+                                                        <label class="label-tache" for="informacion_trazo_estatus2">✖</label>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <?php if(isset($auditoriaTendido)): ?>
+                                                        <input type="text" class="form-control" value="<?php echo e($auditoriaTendido->informacion_trazo); ?>" readonly />
+                                                    <?php else: ?>
+                                                        <select name="informacion_trazo" id="informacion_trazo" class="form-control" title="Por favor, selecciona una opción">
+                                                            <option value="">Selecciona una opción</option>
+                                                            <option value="Si">Si</option>
+                                                            <option value="No">No</option>
+                                                        </select>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="material_relajado" class="col-sm-6 col-form-label">7. Material relajado</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($auditoriaTendido) && $auditoriaTendido->material_relajado_estatus == 1): ?>
-                                                    <label class="label-paloma" for="material_relajado_estatus1">✔</label>
-                                                <?php elseif(isset($auditoriaTendido) && $auditoriaTendido->material_relajado_estatus == 0): ?>
-                                                    <label class="label-tache" for="material_relajado_estatus1">✖</label>
-                                                <?php endif; ?>
-                                            </div>
-                                            <div class="form-check form-check-inline">
-                                                <input type="text" class="form-control" name="informacion_trazo" id="informacion_trazo" readonly
-                                                    value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->material_relajado : ''); ?>">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="empalme" class="col-sm-6 col-form-label">8. Empalmes</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($auditoriaTendido) && $auditoriaTendido->empalme_estatus == 1): ?>
-                                                    <label class="label-paloma" for="empalme_estatus1">✔</label>
-                                                <?php elseif(isset($auditoriaTendido) && $auditoriaTendido->empalme_estatus == 0): ?>
-                                                    <label class="label-tache" for="empalme_estatus2">✖</label>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="cara_material" class="col-sm-6 col-form-label">9. Cara de
-                                            material</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($auditoriaTendido) && $auditoriaTendido->cara_material_estatus == 1): ?>
-                                                    <label class="label-paloma" for="cara_material_estatus1">✔</label>
-                                                <?php elseif(isset($auditoriaTendido) && $auditoriaTendido->cara_material_estatus == 0): ?>
-                                                    <label class="label-tache" for="cara_material_estatus2">✖</label>
-                                                <?php endif; ?>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="cantidad_lienzo" class="col-sm-6 col-form-label">4. Cantidad de lienzos</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <div class="form-check form-check-inline">
+                                                    <?php if(isset($auditoriaTendido)): ?>
+                                                        <?php if($auditoriaTendido->cantidad_lienzo_estatus == 1): ?>
+                                                            <label class="label-paloma">✔</label>
+                                                        <?php else: ?>
+                                                            <label class="label-tache">✖</label>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <input class="quitar-espacio" type="radio"
+                                                            name="cantidad_lienzo_estatus" id="cantidad_lienzo_estatus1"
+                                                            value="1" required />
+                                                        <label class="label-paloma" for="cantidad_lienzo_estatus1">✔</label>
+                                                        <input class="quitar-espacio" type="radio"
+                                                            name="cantidad_lienzo_estatus" id="cantidad_lienzo_estatus2"
+                                                            value="0" required />
+                                                        <label class="label-tache" for="cantidad_lienzo_estatus2">✖</label>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input type="text" class="form-control me-2" name="cantidad_lienzo" id="cantidad_lienzo"
+                                                        value="<?php echo e($encabezadoAuditoriaCorte->lienzo); ?>" readonly required />
+                                                    <input type="hidden" name="cantidad_lienzo" value="<?php echo e($encabezadoAuditoriaCorte->lienzo); ?>">
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="tono" class="col-sm-6 col-form-label">10. Tonos</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($auditoriaTendido) && $auditoriaTendido->tono_estatus == 1): ?>
-                                                    <label class="label-paloma" for="tono_estatus1">✔</label>
-                                                <?php elseif(isset($auditoriaTendido) && $auditoriaTendido->tono_estatus == 0): ?>
-                                                    <label class="label-tache" for="tono_estatus2">✖</label>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="longitud_tendido" class="col-sm-6 col-form-label">5. Longitud de tendido</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <div class="form-check form-check-inline">
+                                                    <?php if(isset($auditoriaTendido)): ?>
+                                                        <?php if($auditoriaTendido->longitud_tendido_estatus == 1): ?>
+                                                            <label class="label-paloma">✔</label>
+                                                        <?php else: ?>
+                                                            <label class="label-tache">✖</label>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <input class="quitar-espacio" type="radio"
+                                                            name="longitud_tendido_estatus" id="longitud_tendido_estatus1"
+                                                            value="1" required />
+                                                        <label class="label-paloma" for="longitud_tendido_estatus1">✔</label>
+                                                        <input class="quitar-espacio" type="radio"
+                                                            name="longitud_tendido_estatus" id="longitud_tendido_estatus2"
+                                                            value="0" required />
+                                                        <label class="label-tache" for="longitud_tendido_estatus2">✖</label>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input type="text" class="form-control me-2" name="longitud_tendido" id="longitud_tendido"
+                                                        value="<?php echo e($auditoriaMarcada->largo_trazo); ?>" readonly required />
+                                                    <input type="hidden" name="longitud_tendido" value="<?php echo e($auditoriaMarcada->largo_trazo); ?>">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="ancho_tendido" class="col-sm-6 col-form-label">6. Ancho de tendido</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <div class="form-check form-check-inline">
+                                                    <?php if(isset($auditoriaTendido)): ?>
+                                                        <?php if($auditoriaTendido->ancho_tendido_estatus == 1): ?>
+                                                            <label class="label-paloma">✔</label>
+                                                        <?php else: ?>
+                                                            <label class="label-tache">✖</label>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <input class="quitar-espacio" type="radio"
+                                                            name="ancho_tendido_estatus" id="ancho_tendido_estatus1"
+                                                            value="1" required />
+                                                        <label class="label-paloma" for="ancho_tendido_estatus1">✔</label>
+                                                        <input class="quitar-espacio" type="radio"
+                                                            name="ancho_tendido_estatus" id="ancho_tendido_estatus2"
+                                                            value="0" required />
+                                                        <label class="label-tache" for="ancho_tendido_estatus2">✖</label>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input type="text" class="form-control me-2" name="ancho_tendido" id="ancho_tendido"
+                                                        value="<?php echo e($auditoriaMarcada->ancho_trazo); ?>" readonly required />
+                                                    <input type="hidden" name="ancho_tendido" value="<?php echo e($auditoriaMarcada->ancho_trazo); ?>">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="material_relajado" class="col-sm-6 col-form-label">7. Material relajado</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <div class="form-check form-check-inline">
+                                                    <?php if(isset($auditoriaTendido)): ?>
+                                                        <?php if($auditoriaTendido->material_relajado_estatus == 1): ?>
+                                                            <label class="label-paloma">✔</label>
+                                                        <?php else: ?>
+                                                            <label class="label-tache">✖</label>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <input class="quitar-espacio" type="radio"
+                                                            name="material_relajado_estatus" id="material_relajado_estatus1"
+                                                            value="1" required />
+                                                        <label class="label-paloma" for="material_relajado_estatus1">✔</label>
+                                                        <input class="quitar-espacio" type="radio"
+                                                            name="material_relajado_estatus" id="material_relajado_estatus2"
+                                                            value="0" required />
+                                                        <label class="label-tache" for="material_relajado_estatus2">✖</label>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <?php if(isset($auditoriaTendido)): ?>
+                                                        <input type="text" class="form-control" value="<?php echo e($auditoriaTendido->material_relajado); ?>" readonly />
+                                                    <?php else: ?>
+                                                        <select name="material_relajado" id="material_relajado" class="form-control"
+                                                            title="Por favor, selecciona una opción">
+                                                            <option value="">Selecciona una opción</option>
+                                                            <?php $__currentLoopData = $CategoriaMaterialRelajado; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $materialRelajado): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> 
+                                                                <option value="<?php echo e($materialRelajado->nombre); ?>"><?php echo e($materialRelajado->nombre); ?></option>
+                                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                        </select>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="empalme" class="col-sm-6 col-form-label">8. Empalmes</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <div class="form-check form-check-inline">
+                                                    <?php if(isset($auditoriaTendido)): ?>
+                                                        <?php if($auditoriaTendido->empalme_estatus == 1): ?>
+                                                            <label class="label-paloma">✔</label>
+                                                        <?php else: ?>
+                                                            <label class="label-tache">✖</label>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <input class="quitar-espacio" type="radio" name="empalme_estatus"
+                                                            id="empalme_estatus1" value="1" required />
+                                                        <label class="label-paloma" for="empalme_estatus1">✔</label>
+                                                        <input class="quitar-espacio" type="radio" name="empalme_estatus"
+                                                            id="empalme_estatus2" value="0" required />
+                                                        <label class="label-tache" for="empalme_estatus2">✖</label>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="cara_material" class="col-sm-6 col-form-label">9. Cara de material</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <div class="form-check form-check-inline">
+                                                    <?php if(isset($auditoriaTendido)): ?>
+                                                        <?php if($auditoriaTendido->cara_material_estatus == 1): ?>
+                                                            <label class="label-paloma">✔</label>
+                                                        <?php else: ?>
+                                                            <label class="label-tache">✖</label>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <input class="quitar-espacio" type="radio"
+                                                            name="cara_material_estatus" id="cara_material_estatus1"
+                                                            value="1" required />
+                                                        <label class="label-paloma" for="cara_material_estatus1">✔</label>
+                                                        <input class="quitar-espacio" type="radio"
+                                                            name="cara_material_estatus" id="cara_material_estatus2"
+                                                            value="0" required />
+                                                        <label class="label-tache" for="cara_material_estatus2">✖</label>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="tono" class="col-sm-6 col-form-label">10. Tonos</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <div class="form-check form-check-inline">
+                                                    <?php if(isset($auditoriaTendido)): ?>
+                                                        <?php if($auditoriaTendido->tono_estatus == 1): ?>
+                                                            <label class="label-paloma">✔</label>
+                                                        <?php else: ?>
+                                                            <label class="label-tache">✖</label>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <input class="quitar-espacio" type="radio" name="tono_estatus"
+                                                            id="tono_estatus1" value="1" required />
+                                                        <label class="label-paloma" for="tono_estatus1">✔</label>
+                                                        <input class="quitar-espacio" type="radio" name="tono_estatus"
+                                                            id="tono_estatus2" value="0" required />
+                                                        <label class="label-tache" for="tono_estatus2">✖</label>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input type="text" class="form-control me-2"
+                                                        name="tono" id="tono" placeholder="..."
+                                                        value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->tono : ''); ?>"
+                                                        <?php echo e(isset($auditoriaTendido) ? 'readonly' : ''); ?>
+
+                                                        required />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="alineacion_tendido" class="col-sm-6 col-form-label">11. Alineacion de tendido</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <div class="form-check form-check-inline">
+                                                    <?php if(isset($auditoriaTendido)): ?>
+                                                        <input type="text" class="form-control" value="<?php echo e($auditoriaTendido->alineacion_tendido); ?>" readonly />
+                                                    <?php else: ?>
+                                                        <select name="alineacion_tendido" id="alineacion_tendido" class="form-control" title="Por favor, selecciona una opción">
+                                                            <option value="">Selecciona una opción</option>
+                                                            <option value="Regular">Regular</option>
+                                                            <option value="Mal">Mal</option>
+                                                        </select>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="arruga_tendido" class="col-sm-6 col-form-label">12. Arrugas de tendido</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <div class="form-check form-check-inline">
+                                                    <?php if(isset($auditoriaTendido)): ?>
+                                                        <input type="text" class="form-control" value="<?php echo e($auditoriaTendido->arruga_tendido); ?>" readonly />
+                                                    <?php else: ?>
+                                                        <select name="arruga_tendido" id="arruga_tendido" class="form-control" title="Por favor, selecciona una opción"> 
+                                                            <option value="">Selecciona una opción</option>
+                                                            <option value="Algunas">Algunas</option>
+                                                            <option value="Pocas">Pocas</option>
+                                                        </select>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="defecto_material" class="col-sm-6 col-form-label">13. Defecto de material</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <?php if(isset($auditoriaTendido)): ?>
+                                                    <?php $__currentLoopData = explode(',', trim($auditoriaTendido->defecto_material)); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $defecto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <input type="text" class="form-control mb-2" value="<?php echo e($defecto); ?>" readonly />
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                <?php else: ?>
+                                                    <select name="defecto_material[]" id="defecto_material" class="form-control" multiple>
+                                                        <option value="">Selecciona una opción</option>
+                                                        <?php $__currentLoopData = $CategoriaDefectoCorte; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $defectoMaterial): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <option value="<?php echo e($defectoMaterial->nombre); ?>"><?php echo e($defectoMaterial->nombre); ?></option>
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                    </select>
                                                 <?php endif; ?>
                                             </div>
-                                            <div class="form-check form-check-inline">
+                                        </div>                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label for="yarda_marcada" class="col-sm-6 col-form-label">14. Yardas en la marcada</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <div class="form-check form-check-inline">
+                                                    <input type="number" step="0.0001" class="form-control me-2"
+                                                        name="yarda_marcada" id="yarda_marcada" placeholder="..."
+                                                        value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->yarda_marcada : ''); ?>"
+                                                        <?php echo e(isset($auditoriaTendido) ? 'readonly' : ''); ?>
+
+                                                        required />
+                                                </div>
+                                                <?php if(isset($auditoriaTendido)): ?>
+                                                    <div class="form-check form-check-inline">
+                                                        <?php if($auditoriaTendido->yarda_marcada_estatus == 1): ?>
+                                                            <label class="label-paloma">✔</label>
+                                                        <?php else: ?>
+                                                            <label class="label-tache">✖</label>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="bio_tension" class="col-sm-6 col-form-label">15. Parametro de Brio Tension:</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <?php if(isset($auditoriaTendido)): ?>
+                                                    <input type="text" class="form-control" value="<?php echo e($auditoriaTendido->bio_tension); ?>" readonly />
+                                                <?php else: ?>
+                                                    <select class="form-control me-2" name="bio_tension" id="bio_tension" required>
+                                                        <option value="">Selecciona una opcion</option>
+                                                        <option value="automatico">Automático</option>
+                                                        <option value="manual">Manual</option>
+                                                    </select>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="velocidad" class="col-sm-6 col-form-label">16. Velocidad:</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
                                                 <input type="text" class="form-control me-2"
-                                                    name="tono" id="tono" readonly
-                                                    value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->tono : ''); ?>"
+                                                    name="velocidad" id="velocidad" placeholder="..."
+                                                    value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->velocidad : ''); ?>"
+                                                    <?php echo e(isset($auditoriaTendido) ? 'readonly' : ''); ?>
+
                                                     required />
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="alineacion_tendido" class="col-sm-6 col-form-label">11. Alineacion de tendido</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <input type="text" class="form-control" name="informacion_trazo" id="informacion_trazo" readonly
-                                                    value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->alineacion_tendido : ''); ?>">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="arruga_tendido" class="col-sm-6 col-form-label">12. Arrugas de
-                                            tendido</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <input type="text" class="form-control" name="informacion_trazo" id="informacion_trazo" readonly
-                                                    value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->arruga_tendido : ''); ?>">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="defecto_material" class="col-sm-6 col-form-label">13. defecto de
-                                            material</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <input type="text" class="form-control" name="informacion_trazo" id="informacion_trazo" readonly
-                                                    value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->defecto_material : ''); ?>">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="yarda_marcada" class="col-sm-6 col-form-label">Yardas en la
-                                            marcada</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <div class="form-check form-check-inline">
-                                                <h4><?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->yarda_marcada : ''); ?></h4>
-                                            </div>
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($auditoriaTendido) && $auditoriaTendido->yarda_marcada_estatus == 1): ?>
-                                                    <label class="label-paloma" for="yarda_orden_estatus1">✔</label>
-                                                <?php elseif(isset($auditoriaTendido) && $auditoriaTendido->yarda_marcada_estatus == 0): ?>
-                                                    <label class="label-tache" for="yarda_orden_estatus2">✖</label>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="accion_correctiva" class="col-sm-6 col-form-label">Accion correctiva</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <?php if(isset($auditoriaTendido)): ?>
+                                                    <input type="text" class="form-control" value="<?php echo e($auditoriaTendido->accion_correctiva); ?>" readonly />
+                                                <?php else: ?>
+                                                    <select name="accion_correctiva" id="accion_correctiva" class="form-control me-2" required>
+                                                        <option value="">Selecciona una opción</option>
+                                                        <option value="NINGUNO">NINGUNO</option>
+                                                        <?php $__currentLoopData = $CategoriaAccionCorrectiva; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $categoria): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <option value="<?php echo e($categoria->accion_correctiva); ?>"><?php echo e($categoria->accion_correctiva); ?></option>
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                    </select>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="accion_correctiva" class="col-sm-6 col-form-label">Accion
-                                            correctiva </label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" class="form-control me-2" name="accion_correctiva"
-                                                id="accion_correctiva" readonly
-                                                value="<?php echo e(isset($auditoriaTendido) ? $auditoriaTendido->accion_correctiva : ''); ?>" />
-                                        </div>
-                                    </div>
-                                </div>
                                 <?php endif; ?>
                                 
                             </div>
@@ -1397,7 +1600,6 @@
                                                         required />
                                                     <label class="label-tache" for="pieza_contrapatron_estatus2">✖ </label>
                                                 </div>
-                                                
                                             </div>
                                         </div> 
                                     </div>
@@ -1715,175 +1917,196 @@
                                     </div>
                                 </form>
                                 <?php elseif($encabezadoAuditoriaCorte && ($encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaMarcada' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaTendido' || $encabezadoAuditoriaCorte->estatus == 'estatusLectra' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaBulto' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaFinal' || $encabezadoAuditoriaCorte->estatus == 'fin')): ?>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="nombre" class="col-sm-6 col-form-label">NOMBRE DEL CORTADOR</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" class="form-control" name="nombre" id="nombre" readonly
-                                                value="<?php echo e(isset($Lectra) ? $Lectra->nombre : ''); ?>">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="fecha" class="col-sm-6 col-form-label">Fecha</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <?php echo e($Lectra->created_at->format('d ') . $mesesEnEspanol[$Lectra->created_at->format('n') - 1] . $Lectra->created_at->format(' Y')); ?>
-
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="mesa" class="col-sm-6 col-form-label">Maquina Lectra: </label>
-                                        <div class="col-sm-12 d-flex align-items-center"> 
-                                            <input type="text" name="mesa" id="mesa" class="form-control" title="Por favor, selecciona una opción" value="<?php echo e(isset($Lectra) ? $Lectra->mesa : ''); ?>" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="auditor" class="col-sm-6 col-form-label">AUDITOR</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" class="form-control me-2" name="auditor" id="auditor"
-                                                value="<?php echo e($Lectra->auditor); ?>" readonly />
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="row">
-                                    <?php
-                                        $options = ['-1', '-15/16', '-7/8', '-13/16', '-3/4', '-11/16', '-5/8', '-9/16', '-1/2', '-7/16', '-3/8', '-5/16', '-1/4', '-3/16', '-1/8', '-1/16', 
-                                            '0', '+1/16', '+1/8', '+3/16', '+1/4', '+5/16', '+3/8', '+7/16', '+1/2', '+9/16', '+5/8', '+11/16', '+3/4', '+13/16', '+7/8', '+15/16', '+1'];
-                                        $paneles = ['DELANTERO', 'TRACERO', 'PARCHE', 'ADICIONAL'];
-                                    ?>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="col-sm-6 col-form-label">1. Simetria de piezas</label>
-                                        <div class="form-check form-check-inline">
-                                            <label for="simetria_pieza1" class="col-sm-6 col-form-label">Panel 1</label>
-                                            <input type="text" class="form-control me-2"
-                                                name="simetria_pieza1" id="simetria_pieza1" placeholder="panel 1" readonly
-                                                value="<?php echo e(isset($Lectra) ? $Lectra->simetria_pieza1 : ''); ?>"
-                                                 />
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <?php for($i = 1; $i <= 5; $i++): ?>
-                                                <input type="text" class="form-control" value=" <?php echo e(isset($Lectra) ? $Lectra->{'panel1_x'.$i} : ''); ?>" readonly> &nbsp;&nbsp;
-                                            <?php endfor; ?>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <?php for($i = 1; $i <= 5; $i++): ?>
-                                                <input type="text" class="form-control" value=" <?php echo e(isset($Lectra) ? $Lectra->{'panel1_y'.$i} : ''); ?>" readonly> &nbsp;&nbsp;
-                                            <?php endfor; ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="col-sm-6 col-form-label">&nbsp;</label>
-                                        <div class="form-check form-check-inline">
-                                            <label for="simetria_pieza1" class="col-sm-6 col-form-label">Panel 2</label>
-                                            <input type="text" class="form-control me-2"
-                                                name="simetria_pieza2" id="simetria_pieza2" placeholder="panel 1" readonly
-                                                value="<?php echo e(isset($Lectra) ? $Lectra->simetria_pieza2 : ''); ?>" />
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <?php for($i = 1; $i <= 5; $i++): ?>
-                                                <input type="text" class="form-control" value=" <?php echo e(isset($Lectra) ? $Lectra->{'panel2_x'.$i} : ''); ?>" readonly> &nbsp;&nbsp;
-                                            <?php endfor; ?>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <?php for($i = 1; $i <= 5; $i++): ?>
-                                                <input type="text" class="form-control" value=" <?php echo e(isset($Lectra) ? $Lectra->{'panel2_y'.$i} : ''); ?>" readonly> &nbsp;&nbsp;
-                                            <?php endfor; ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div class="form-check form-check-inline">
-                                            <label for="simetria_pieza3" class="col-sm-6 col-form-label">Panel 3</label>
-                                            <input type="text" class="form-control me-2"
-                                                name="simetria_pieza3" id="simetria_pieza3" placeholder="panel 3" readonly
-                                                value="<?php echo e(isset($Lectra) ? $Lectra->simetria_pieza4 : ''); ?>" />
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <?php for($i = 1; $i <= 5; $i++): ?>
-                                                <input type="text" class="form-control" value=" <?php echo e(isset($Lectra) ? $Lectra->{'panel3_x'.$i} : ''); ?>" readonly> &nbsp;&nbsp;
-                                            <?php endfor; ?>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <?php for($i = 1; $i <= 5; $i++): ?>
-                                                <input type="text" class="form-control" value=" <?php echo e(isset($Lectra) ? $Lectra->{'panel3_y'.$i} : ''); ?>" readonly> &nbsp;&nbsp;
-                                            <?php endfor; ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div class="form-check form-check-inline">
-                                            <label for="simetria_pieza4" class="col-sm-6 col-form-label">Panel 4</label>
-                                            <input type="text" class="form-control me-2"
-                                                name="simetria_pieza4" id="simetria_pieza4" placeholder="panel 4" readonly
-                                                value="<?php echo e(isset($Lectra) ? $Lectra->simetria_pieza4 : ''); ?>" />
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <?php for($i = 1; $i <= 5; $i++): ?>
-                                                <input type="text" class="form-control" value=" <?php echo e(isset($Lectra) ? $Lectra->{'panel4_x'.$i} : ''); ?>" readonly> &nbsp;&nbsp;
-                                            <?php endfor; ?>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <?php for($i = 1; $i <= 5; $i++): ?>
-                                                <input type="text" class="form-control" value=" <?php echo e(isset($Lectra) ? $Lectra->{'panel4_y'.$i} : ''); ?>" readonly> &nbsp;&nbsp;
-                                            <?php endfor; ?>
-                                        </div>
-                                    </div>
-                                    
-
-                                    <div class="col-md-6 mb-3">
-                                        <label for="pieza_contrapatron" class="col-sm-6 col-form-label">1. Piezas contra patron</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($Lectra) && $Lectra->pieza_contrapatron_estatus == 1): ?>
-                                                    <label class="label-paloma" for="pieza_contrapatron_estatus1">✔</label>
-                                                <?php elseif(isset($Lectra) && $Lectra->pieza_contrapatron_estatus == 0): ?>
-                                                    <label class="label-tache" for="pieza_contrapatron_estatus2">✖</label>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="nombre" class="col-sm-6 col-form-label">NOMBRE(S) CORTADOR(ES)</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <?php if(isset($Lectra)): ?>
+                                                    <?php $__currentLoopData = explode(',', trim($Lectra->nombre)); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $nombre): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <input type="text" class="form-control mb-2" value="<?php echo e($nombre); ?>" readonly />
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                <?php else: ?>
+                                                    <select name="nombre[]" id="nombrel" class="form-control" multiple required>
+                                                        <option value="">Selecciona una opción</option>
+                                                        <?php $__currentLoopData = $CategoriaTecnico; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $nombre): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <option value="<?php echo e($nombre->nombre); ?>"><?php echo e($nombre->nombre); ?></option>
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                    </select>
                                                 <?php endif; ?>
                                             </div>
-                                            <div class="form-check form-check-inline">
-                                                <input type="number" step="0.0001" class="form-control me-2"
-                                                    name="pieza_contrapatron" id="pieza_contrapatron" placeholder="..."
-                                                    value="<?php echo e(isset($Lectra) ? $Lectra->pieza_contrapatron : ''); ?>" readonly />
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="fecha" class="col-sm-6 col-form-label">Fecha</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <?php echo e(now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y')); ?>
+
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="mesa" class="col-sm-6 col-form-label">Maquina Lectra:</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <?php if(isset($Lectra)): ?>
+                                                    <input type="text" class="form-control" value="<?php echo e($Lectra->mesa); ?>" readonly />
+                                                <?php else: ?>
+                                                    <select name="mesa" id="mesa" class="form-control" title="Por favor, selecciona una opción">
+                                                        <option value="">Selecciona una opción</option>
+                                                        <option value="IH8">IH8</option>
+                                                        <option value="IX6">IX6</option>
+                                                    </select>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="auditor" class="col-sm-6 col-form-label">AUDITOR</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <input type="text" class="form-control me-2" name="auditor" id="auditor" value="<?php echo e($auditorDato); ?>" readonly required />
+                                                <input type="hidden" name="auditor" value="<?php echo e($auditorDato); ?>">
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <hr>
-                                <div class="row"> 
-                                    <div class="col-md-6 mb-3">
-                                        <label for="pieza_inspeccionada" class="col-sm-6 col-form-label">Piezas inspeccionadas</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" name="pieza_inspeccionada" id="pieza_inspeccionada" class="form-control" title="Por favor, selecciona una opción" value="<?php echo e(isset($Lectra) ? $Lectra->pieza_inspeccionada : ''); ?>" readonly>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col">Panel</th>
+                                                        <th scope="col">Simetria de piezas</th>
+                                                        <th scope="col" colspan="2">X° ANCHO</th>
+                                                        <th scope="col" colspan="2">Y° LARGO</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php for($panel = 1; $panel <= 4; $panel++): ?>
+                                                        <tr>
+                                                            <th scope="row">Panel <?php echo e($panel); ?></th>
+                                                            <td>
+                                                                <input type="text" class="form-control" name="simetria_pieza<?php echo e($panel); ?>" id="simetria_pieza<?php echo e($panel); ?>" placeholder="panel <?php echo e($panel); ?>" value="<?php echo e(isset($Lectra) ? $Lectra->{'simetria_pieza'.$panel} : ''); ?>" readonly />
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" class="form-control" value="<?php echo e(isset($Lectra) ? $Lectra->{'panel'.$panel.'_x1'} : ''); ?>" readonly />
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" class="form-control" value="<?php echo e(isset($Lectra) ? $Lectra->{'panel'.$panel.'_x2'} : ''); ?>" readonly />
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" class="form-control" value="<?php echo e(isset($Lectra) ? $Lectra->{'panel'.$panel.'_y1'} : ''); ?>" readonly />
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" class="form-control" value="<?php echo e(isset($Lectra) ? $Lectra->{'panel'.$panel.'_y2'} : ''); ?>" readonly />
+                                                            </td>
+                                                        </tr>
+                                                    <?php endfor; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    
+                                        <div class="col-md-6 mb-3"> 
+                                            <label for="pieza_contrapatron" class="col-sm-6 col-form-label">1. Piezas contra patron</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <?php if(isset($Lectra)): ?>
+                                                    <?php if($Lectra->pieza_contrapatron_estatus == 1): ?>
+                                                        <label class="label-paloma">✔</label>
+                                                    <?php else: ?>
+                                                        <label class="label-tache">✖</label>
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div> 
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="pieza_inspeccionada" class="col-sm-6 col-form-label">Piezas inspeccionadas</label> 
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <?php if($encabezadoAuditoriaCorte->pieza >= 2 && $encabezadoAuditoriaCorte->pieza <= 8): ?>
+                                                    <input type="text" class="form-control" readonly value="2" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                <?php elseif($encabezadoAuditoriaCorte->pieza >= 9 && $encabezadoAuditoriaCorte->pieza <= 15): ?>
+                                                    <input type="text" class="form-control" readonly value="3" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                <?php elseif($encabezadoAuditoriaCorte->pieza >= 16 && $encabezadoAuditoriaCorte->pieza <= 25): ?>
+                                                    <input type="text" class="form-control" readonly value="5" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                <?php elseif($encabezadoAuditoriaCorte->pieza >= 26 && $encabezadoAuditoriaCorte->pieza <= 50): ?>
+                                                    <input type="text" class="form-control" readonly value="8" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                <?php elseif($encabezadoAuditoriaCorte->pieza >= 51 && $encabezadoAuditoriaCorte->pieza <= 90): ?>
+                                                    <input type="text" class="form-control" readonly value="13" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                <?php elseif($encabezadoAuditoriaCorte->pieza >= 91 && $encabezadoAuditoriaCorte->pieza <= 150): ?>
+                                                    <input type="text" class="form-control" readonly value="20" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                <?php elseif($encabezadoAuditoriaCorte->pieza >= 151 && $encabezadoAuditoriaCorte->pieza <= 280): ?>
+                                                    <input type="text" class="form-control" readonly value="32" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                <?php elseif($encabezadoAuditoriaCorte->pieza >= 281 && $encabezadoAuditoriaCorte->pieza <= 500): ?>
+                                                    <input type="text" class="form-control" readonly value="50" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                <?php elseif($encabezadoAuditoriaCorte->pieza >= 501 && $encabezadoAuditoriaCorte->pieza <= 1200): ?>
+                                                    <input type="text" class="form-control" readonly value="80" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                <?php elseif($encabezadoAuditoriaCorte->pieza >= 1201 && $encabezadoAuditoriaCorte->pieza <= 3200): ?>
+                                                    <input type="text" class="form-control" readonly value="125" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                <?php elseif($encabezadoAuditoriaCorte->pieza >= 3201 && $encabezadoAuditoriaCorte->pieza <= 10000): ?>
+                                                    <input type="text" class="form-control" readonly value="200" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                <?php elseif($encabezadoAuditoriaCorte->pieza >= 10001 && $encabezadoAuditoriaCorte->pieza <= 35000): ?>
+                                                    <input type="text" class="form-control" readonly value="315" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                <?php endif; ?>
+                                            </div> 
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="nivel_aql" class="col-sm-6 col-form-label">Nivel AQL</label>
+                                            <div class="col-sm-12">
+                                                <?php if(isset($Lectra)): ?>
+                                                    <input type="text" class="form-control" value="<?php echo e($Lectra->nivel_aql); ?>" readonly />
+                                                <?php else: ?>
+                                                    <select class="form-control" name="nivel_aql" id="nivel_aql">
+                                                        <option value="1.0">1.0</option>
+                                                        <option value="1.5">1.5</option>
+                                                        <option value="2.5">2.5</option>
+                                                    </select>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="cantidad_defecto" class="col-sm-6 col-form-label">Cantidad de Defectos</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <input type="text" class="form-control me-2" name="cantidad_defecto"
+                                                    id="cantidad_defecto" placeholder="..."
+                                                    value="<?php echo e(isset($Lectra) ? $Lectra->cantidad_defecto : ''); ?>"
+                                                    readonly required />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="porcentaje" class="col-sm-6 col-form-label">Porcentaje</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <input type="text" class="form-control me-2" name="porcentaje" id="porcentaje" placeholder="..."
+                                                    value="<?php echo e(isset($Lectra) ? $Lectra->porcentaje : ''); ?>" readonly step="0.01"/>
+                                                <span>%</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="col-sm-12">
+                                                <!-- Campo oculto para enviar el mensaje de validación al formulario -->
+                                                <input type="hidden" name="estado_validacion" id="estado_validacion" />
+                                                <input type="text" class="form-control" name="mensaje_validacion" readonly id="mensaje_validacion" 
+                                                value="<?php echo e(isset($Lectra) ? $Lectra->estado_validacion : ''); ?>" readonly />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="cantidad_defecto" class="col-sm-6 col-form-label">Cantidad de Defectos </label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" class="form-control me-2" name="cantidad_defecto"
-                                                id="cantidad_defecto" placeholder="..."
-                                                value="<?php echo e(isset($Lectra) ? $Lectra->cantidad_defecto : ''); ?>" readonly />
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="defecto" class="col-sm-6 col-form-label">Defectos</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <?php if(isset($Lectra)): ?>
+                                                    <?php $__currentLoopData = explode(',', trim($Lectra->defecto)); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $defecto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <input type="text" class="form-control mb-2" value="<?php echo e($defecto); ?>" readonly />
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                <?php else: ?>
+                                                    <select name="defecto[]" id="defecto" class="form-control" multiple title="Por favor, selecciona una opción" required>
+                                                        <option value="">Selecciona una opción</option>
+                                                        <option value="ninguno">Ninguno</option>
+                                                        <?php $__currentLoopData = $CategoriaDefectoCorteTendido; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $corteTendido): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <option value="<?php echo e($corteTendido->nombre); ?>"><?php echo e($corteTendido->nombre); ?></option>
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                    </select>
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="defecto" class="col-sm-6 col-form-label">Defectos </label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" class="form-control me-2" name="defecto"
-                                                id="defecto" placeholder="..."
-                                                value="<?php echo e(isset($Lectra) ? $Lectra->defecto : ''); ?>" readonly />
-                                        </div>
-                                    </div>
-                                    <?php
-                                        $cantidadDefecto = isset($Lectra->cantidad_defecto) ? $Lectra->cantidad_defecto : 0;
-                                        $piezaInspeccionada = isset($Lectra->pieza_inspeccionada) ? $Lectra->pieza_inspeccionada : 0;
-                                        $calculoPorcentaje = $piezaInspeccionada != 0 ? intval(($cantidadDefecto / $piezaInspeccionada) * 100) : 0;
-                                    ?>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="porcentaje" class="col-sm-6 col-form-label">Porcentaje</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" class="form-control me-2" name="porcentaje" id="porcentaje" placeholder="..."
-                                                value="<?php echo e(isset($calculoPorcentaje) ? $calculoPorcentaje : ''); ?>" readonly />
-                                            <span>%</span>
-                                        </div>
-                                    </div>
-                                </div>
                                 <?php endif; ?>
                                 
                             </div>
@@ -1914,11 +2137,11 @@
                                     <input type="hidden" name="orden" value="<?php echo e($datoAX->orden); ?>">
                                     
                                     <input type="hidden" name="accion" value="">
-                                    <div class="row">
+                                    <div class="row"> 
                                         <div class="col-md-6 mb-3">
                                             <label for="nombre" class="col-sm-6 col-form-label">NOMBRE DEL SELLADOR</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <select name="nombre[]" id="nombreb" class="form-control" multiple>
+                                                <select name="nombre[]" id="nombreb" class="form-control" multiple required>
                                                     <option value="">Selecciona una opción</option>
                                                     <?php $__currentLoopData = $CategoriaTecnico; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $nombre): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                         <option value="<?php echo e($nombre->nombre); ?>"
@@ -1965,7 +2188,7 @@
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
                                                     <div class="form-check form-check-inline">
-                                                        <input type="number" step="0.0001" class="form-control me-2"
+                                                        <input type="number" class="form-control me-2"
                                                                name="pieza_paquete" id="pieza_paquete" placeholder="..."
                                                                value="<?php echo e(isset($auditoriaBulto) ? $auditoriaBulto->pieza_paquete : ''); ?>"
                                                                required />
@@ -2023,7 +2246,6 @@
                                                         required />
                                                     <label class="label-tache" for="ingreso_ticket_estatus2">✖ </label>
                                                 </div>
-                                                
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
@@ -2048,17 +2270,25 @@
                                                         required />
                                                     <label class="label-tache" for="sellado_paquete_estatus2">✖ </label>
                                                 </div>
-                                                
                                             </div>
                                         </div>
                                     </div>
                                     <hr>
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
+                                            <label for="cantidad_defecto" class="col-sm-6 col-form-label">Cantidad de Defectos</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <input type="text" class="form-control me-2" name="cantidad_defecto"
+                                                    id="cantidad_defecto_bulto" placeholder="..."
+                                                    value="<?php echo e(isset($auditoriaBulto) ? $auditoriaBulto->cantidad_defecto : ''); ?>"
+                                                    required />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
                                             <label for="defecto" class="col-sm-6 col-form-label">Defectos </label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <input type="text" class="form-control me-2" name="defecto"
-                                                    id="defecto" placeholder="..."
+                                                    id="defecto_bulto" placeholder="..."
                                                     value="<?php echo e(isset($auditoriaBulto) ? $auditoriaBulto->defecto : ''); ?>"
                                                     required />
                                             </div>
@@ -2067,11 +2297,47 @@
                                             <label for="porcentaje" class="col-sm-6 col-form-label">Porcentaje</label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <input type="text" class="form-control me-2" name="porcentaje"
-                                                    id="porcentaje" placeholder="..."
+                                                    id="porcentaje_bulto" placeholder="..."
                                                     value="<?php echo e(isset($auditoriaBulto) ? $auditoriaBulto->porcentaje : ''); ?>"
-                                                    required />
+                                                    readonly />
                                             </div>
                                         </div>
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                // Obtener referencias a los elementos del DOM
+                                                const piezaPaqueteInput = document.getElementById('pieza_paquete');
+                                                const cantidadDefectoInput = document.getElementById('cantidad_defecto_bulto');
+                                                const porcentajeInput = document.getElementById('porcentaje_bulto');
+                                        
+                                                // Función para actualizar el porcentaje
+                                                function actualizarPorcentaje() {
+                                                    const piezaPaquete = parseFloat(piezaPaqueteInput.value) || 0;
+                                                    const cantidadDefecto = parseFloat(cantidadDefectoInput.value) || 0;
+                                                    console.log('pieza_paquete:', piezaPaquete);
+                                                    console.log('cantidad_defecto:', cantidadDefecto);
+                                        
+                                                    if (piezaPaquete !== 0) {
+                                                        const porcentaje = (cantidadDefecto / piezaPaquete) * 100;
+                                                        console.log('porcentaje:', porcentaje);
+                                                        if (!isNaN(porcentaje)) {
+                                                            porcentajeInput.value = porcentaje.toFixed(2);
+                                                            console.log('porcentajeInput.value:', porcentajeInput.value);
+                                                        } else {
+                                                            porcentajeInput.value = '';
+                                                        }
+                                                    } else {
+                                                        porcentajeInput.value = '';
+                                                    }
+                                                }
+                                        
+                                                // Agregar eventos de escucha a los inputs
+                                                piezaPaqueteInput.addEventListener('input', actualizarPorcentaje);
+                                                cantidadDefectoInput.addEventListener('input', actualizarPorcentaje);
+                                        
+                                                // Calcular el porcentaje inicial al cargar la página
+                                                actualizarPorcentaje();
+                                            });
+                                        </script>
                                     </div>
                                     <div>
                                         <button type="submit" class="btn btn-success">Guardar</button>
@@ -2083,112 +2349,126 @@
                                     </div>
                                 </form>
                                 <?php elseif($encabezadoAuditoriaCorte && ($encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaMarcada' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaTendido' || $encabezadoAuditoriaCorte->estatus == 'estatusLectra' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaBulto' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaFinal' || $encabezadoAuditoriaCorte->estatus == 'fin')): ?>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="nombre" class="col-sm-6 col-form-label">NOMBRE TECNICO</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" name="nombre" id="nombre" class="form-control" title="Por favor, selecciona una opción" value="<?php echo e(isset($auditoriaBulto) ? $auditoriaBulto->nombre : ''); ?>" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="fecha" class="col-sm-6 col-form-label">Fecha: </label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <?php echo e($auditoriaBulto->created_at->format('d ') . $mesesEnEspanol[$auditoriaBulto->created_at->format('n') - 1] . $auditoriaBulto->created_at->format(' Y')); ?>
-
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <?php
-                                            $nombreMesa = "SELLADO";
-                                        ?>
-                                        <label for="mesa" class="col-sm-6 col-form-label">MESA</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" class="form-control me-2" name="mesa" id="mesa" placeholder="..."
-                                                value="<?php echo e(isset($nombreMesa) ? $nombreMesa : ''); ?>" readonly />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="auditor" class="col-sm-6 col-form-label">AUDITOR</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
+                                    <<div class="row"> 
+                                        <div class="col-md-6 mb-3">
+                                            <label for="nombre" class="col-sm-6 col-form-label">NOMBRE DEL SELLADOR</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="auditor" id="auditor"
-                                                    value="<?php echo e(isset($auditoriaBulto) ? $auditoriaBulto->auditor : ''); ?>" readonly />
+                                                <?php if(isset($auditoriaBulto)): ?>
+                                                    <?php $__currentLoopData = explode(',', $auditoriaBulto->nombre); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $nombre): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <input type="text" class="form-control me-2 mb-2" value="<?php echo e(trim($nombre)); ?>" readonly />
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                <?php else: ?>
+                                                    <input type="text" class="form-control me-2" value="No hay datos" readonly />
+                                                <?php endif; ?>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <?php
-                                            $calculoPorcentajeBulto = isset($auditoriaBulto->pieza_paquete) ?
-                                            ($auditoriaBulto->pieza_paquete === 0 ? 0 : intval(($encabezadoAuditoriaCorte->pieza / $auditoriaBulto->pieza_paquete)))
-                                            : 0;
-                                        ?>
-                                        <label for="cantidad_bulto" class="col-sm-6 col-form-label">1. Cantidad de Bultos</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <input type="text" class="form-control me-2" name="cantidad_bulto" id="cantidad_bulto" placeholder="..."
-                                                    value="<?php echo e(isset($calculoPorcentajeBulto) ? $calculoPorcentajeBulto : ''); ?>" readonly />
+                                        <div class="col-md-6 mb-3">
+                                            <label for="fecha" class="col-sm-6 col-form-label">Fecha</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <?php echo e(now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y')); ?>
+
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="pieza_paquete" class="col-sm-6 col-form-label">2. Piezas por paquete</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                                <div class="form-check form-check-inline">
-                                                    <input type="number" step="0.0001" class="form-control me-2"
-                                                        name="pieza_paquete" id="pieza_paquete" placeholder="..."
-                                                        value="<?php echo e(isset($auditoriaBulto) ? $auditoriaBulto->pieza_paquete : ''); ?>" readonly />
+                                        <div class="col-md-6 mb-3">
+                                            <?php
+                                                $nombreMesa = "SELLADO";
+                                            ?>
+                                            <label for="mesa" class="col-sm-6 col-form-label">MESA</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <input type="text" class="form-control me-2" name="mesa" id="mesa" placeholder="..."
+                                                    value="<?php echo e(isset($nombreMesa) ? $nombreMesa : ''); ?>" readonly />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="auditor" class="col-sm-6 col-form-label">AUDITOR</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <div class="col-sm-12 d-flex align-items-center">
+                                                    <input type="text" class="form-control me-2" name="auditor" id="auditor"
+                                                        value="<?php echo e($auditorDato); ?>" readonly required />
+                                                    <input type="hidden" name="auditor" value="<?php echo e($auditorDato); ?>">
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="ingreso_ticket" class="col-sm-6 col-form-label">3. Ingreso de Tickets</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($auditoriaBulto) && $auditoriaBulto->ingreso_ticket_estatus == 1): ?>
-                                                    <label class="label-paloma" for="ingreso_ticket_estatus1">✔</label>
-                                                <?php elseif(isset($auditoriaBulto) && $auditoriaBulto->ingreso_ticket_estatus == 0): ?>
-                                                    <label class="label-tache" for="ingreso_ticket_estatus1">✖</label>
-                                                <?php endif; ?>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="pieza_paquete" class="col-sm-6 col-form-label">1. Piezas por paquete</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                    <div class="form-check form-check-inline">
+                                                        <input type="number" class="form-control me-2"
+                                                               name="pieza_paquete" id="pieza_paquete" placeholder="..."
+                                                               value="<?php echo e(isset($auditoriaBulto) ? $auditoriaBulto->pieza_paquete : ''); ?>"
+                                                               readonly />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="cantidad_bulto" class="col-sm-6 col-form-label">2. Cantidad de Bultos</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <div class="form-check form-check-inline">
+                                                    <input type="text" class="form-control me-2" name="cantidad_bulto" id="cantidad_bulto" placeholder="..."
+                                                           value="<?php echo e(isset($auditoriaBulto) ? $auditoriaBulto->cantidad_bulto : ''); ?>" readonly />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="ingreso_ticket" class="col-sm-6 col-form-label">3. Ingreso de Tickets</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <div class="form-check form-check-inline">
+                                                    <?php if(isset($auditoriaBulto) && $auditoriaBulto->ingreso_ticket_estatus == 1): ?>
+                                                        <label class="label-paloma">✔</label>
+                                                    <?php else: ?>
+                                                        <label class="label-tache">✖</label>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="sellado_paquete" class="col-sm-6 col-form-label">4. Sellado de Paquetes</label>
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <div class="form-check form-check-inline">
+                                                    <?php if(isset($auditoriaBulto) && $auditoriaBulto->sellado_paquete_estatus == 1): ?>
+                                                        <label class="label-paloma">✔</label>
+                                                    <?php else: ?>
+                                                        <label class="label-tache">✖</label>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="sellado_paquete" class="col-sm-6 col-form-label">4. Sellado de Paquetes</label>
-                                        <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
-                                            <div class="form-check form-check-inline">
-                                                <?php if(isset($auditoriaBulto) && $auditoriaBulto->sellado_paquete_estatus == 1): ?>
-                                                    <label class="label-paloma" for="sellado_paquete_estatus1">✔</label>
-                                                <?php elseif(isset($auditoriaBulto) && $auditoriaBulto->sellado_paquete_estatus == 0): ?>
-                                                    <label class="label-tache" for="sellado_paquete_estatus2">✖</label>
-                                                <?php endif; ?>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="cantidad_defecto" class="col-sm-6 col-form-label">Cantidad de Defectos</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <input type="text" class="form-control me-2" name="cantidad_defecto"
+                                                    id="cantidad_defecto_bulto" placeholder="..."
+                                                    value="<?php echo e(isset($auditoriaBulto) ? $auditoriaBulto->cantidad_defecto : ''); ?>"
+                                                    readonly />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="defecto" class="col-sm-6 col-form-label">Defectos </label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <input type="text" class="form-control me-2" name="defecto"
+                                                    id="defecto_bulto" placeholder="..."
+                                                    value="<?php echo e(isset($auditoriaBulto) ? $auditoriaBulto->defecto : ''); ?>"
+                                                    readonly />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="porcentaje" class="col-sm-6 col-form-label">Porcentaje</label>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <input type="text" class="form-control me-2" name="porcentaje"
+                                                    id="porcentaje_bulto" placeholder="..."
+                                                    value="<?php echo e(isset($auditoriaBulto) ? $auditoriaBulto->porcentaje : ''); ?>"
+                                                    readonly />
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="defecto" class="col-sm-6 col-form-label">Defectos </label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" class="form-control me-2" name="defecto"
-                                                id="defecto" placeholder="..."
-                                                value="<?php echo e(isset($auditoriaBulto) ? $auditoriaBulto->defecto : ''); ?>" readonly />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="porcentaje" class="col-sm-6 col-form-label">Porcentaje</label>
-                                        <div class="col-sm-12 d-flex align-items-center">
-                                            <input type="text" class="form-control me-2" name="porcentaje"
-                                                id="porcentaje" placeholder="..."
-                                                value="<?php echo e(isset($auditoriaBulto) ? $auditoriaBulto->porcentaje : ''); ?>" readonly />
-                                        </div>
-                                    </div>
-                                </div>
                                 <?php endif; ?>
                                 
                             </div>
@@ -2270,6 +2550,41 @@
                                             <?php endif; ?>
                                         </div>
                                     </form>
+                                <?php elseif($encabezadoAuditoriaCorte && ($encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaMarcada' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaTendido' || $encabezadoAuditoriaCorte->estatus == 'estatusLectra' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaBulto' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaFinal' || $encabezadoAuditoriaCorte->estatus == 'fin')): ?>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="supervisor_corte" class="col-sm-6 col-form-label">Supervisor de Corte</label>
+                                            <?php
+                                                $supervisorCorteFinal = "DAVID";
+                                            ?>
+                                            <div class="col-sm-12 d-flex align-items-center">
+                                                <input type="text" class="form-control me-2" name="supervisor_corte" id="supervisor_corte"
+                                                    value="<?php echo e($supervisorCorteFinal); ?>" readonly />
+                                                <input type="hidden" name="supervisor_corte" value="<?php echo e($supervisorCorteFinal); ?>">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="aceptado_condicion" class="col-sm-6 col-form-label">Aceptado con condiciones :</label>
+                                            <div class="col-sm-12">
+                                                <textarea class="form-control" name="aceptado_condicion" id="aceptado_condicion" rows="3" placeholder="comentarios" readonly><?php echo e(isset($auditoriaFinal) ? $auditoriaFinal->aceptado_condicion : ''); ?></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
+                                                <?php if(isset($auditoriaFinal)): ?>
+                                                    <?php if($auditoriaFinal->aceptado_rechazado == 1): ?>
+                                                        <label for="aceptado_rechazado" class="col-sm-6 col-form-label">Aceptado</label>
+                                                        <label class="label-paloma">✔</label>
+                                                    <?php else: ?>
+                                                        <label for="aceptado_rechazado" class="col-sm-6 col-form-label">Rechazado</label>
+                                                        <label class="label-tache">✖</label>
+                                                    <?php endif; ?>
+                                                <?php else: ?>
+                                                    <label class="label-tache">✖</label>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
                                 <?php endif; ?>
                                 
                             </div>
