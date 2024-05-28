@@ -240,7 +240,7 @@
         </div>
     </div>
 
-    <!-- Graficas -->
+    <!-- Graficas --> 
     <div class="row">
         <div class="col-12">
             <div class="card card-chart">
@@ -277,7 +277,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> 
 
     <div class="row">
         <div class="col-lg-6 col-md-12">
@@ -477,70 +477,83 @@
 </script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');
-        const ctxClienteProcesos = document.getElementById('clienteChartProcesos').getContext('2d');
-
-        const chartClienteAQL = new Chart(ctxClienteAQL, {
+    $(document).ready(function() {
+        var ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');
+        var chartClienteAQL = new Chart(ctxClienteAQL, {
             type: 'line',
             data: {
-                labels: <?php echo json_encode($clientesGrafica, 15, 512) ?>,
-                datasets: [{
-                    label: '% Error AQL',
-                    data: <?php echo json_encode($porcentajesErrorAQLGrafica, 15, 512) ?>,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1,
-                    fill: false
-                }]
+                labels: <?php echo json_encode($fechasGrafica, 15, 512) ?>,
+                datasets: <?php echo json_encode($datasetsAQL, 15, 512) ?>
             },
             options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    display: true // Mostrar la leyenda
+                },
                 scales: {
-                    y: {
-                        beginAtZero: true,
+                    xAxes: [{
+                        type: 'category', // Categorías en lugar de tiempo
                         ticks: {
-                            callback: function(value) {
-                                return value + '%';
+                            autoSkip: false,
+                            maxRotation: 90,
+                            minRotation: 45
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            callback: function(value, index, values) {
+                                return value + '%'; // Añadir el símbolo de porcentaje
                             }
                         }
-                    }
+                    }]
                 }
             }
         });
 
-        const chartClienteProcesos = new Chart(ctxClienteProcesos, {
+        var ctxClienteProcesos = document.getElementById('clienteChartProcesos').getContext('2d');
+        var chartClienteProcesos = new Chart(ctxClienteProcesos, {
             type: 'line',
             data: {
-                labels: <?php echo json_encode($clientesGrafica, 15, 512) ?>,
-                datasets: [{
-                    label: '% Error Procesos',
-                    data: <?php echo json_encode($porcentajesErrorProcesoGrafica, 15, 512) ?>,
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 1,
-                    fill: false
-                }]
+                labels: <?php echo json_encode($fechasGrafica, 15, 512) ?>,
+                datasets: <?php echo json_encode($datasetsProceso, 15, 512) ?>
             },
             options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    display: true // Mostrar la leyenda
+                },
                 scales: {
-                    y: {
-                        beginAtZero: true,
+                    xAxes: [{
+                        type: 'category', // Categorías en lugar de tiempo
                         ticks: {
-                            callback: function(value) {
-                                return value + '%';
+                            autoSkip: false,
+                            maxRotation: 90,
+                            minRotation: 45
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            callback: function(value, index, values) {
+                                return value + '%'; // Añadir el símbolo de porcentaje
                             }
                         }
-                    }
+                    }]
                 }
             }
         });
 
-        document.getElementById('cliente0').addEventListener('click', function() {
-            document.getElementById('clienteChartAQL').style.display = 'block';
-            document.getElementById('clienteChartProcesos').style.display = 'none';
+        $('#cliente0').on('click', function() {
+            $('#clienteChartAQL').show();
+            $('#clienteChartProcesos').hide();
         });
 
-        document.getElementById('cliente1').addEventListener('click', function() {
-            document.getElementById('clienteChartAQL').style.display = 'none';
-            document.getElementById('clienteChartProcesos').style.display = 'block';
+        $('#cliente1').on('click', function() {
+            $('#clienteChartAQL').hide();
+            $('#clienteChartProcesos').show();
         });
     });
 </script>
