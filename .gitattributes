@@ -1,10 +1,18 @@
+# Auto-convert text files to the appropriate line endings
 * text=auto
 
+# Specific settings for files with certain extensions
+*.sh text eol=lf
+*.bat text eol=crlf
+*.log text eol=lf
+
+# Existing diff settings
 *.blade.php diff=html
 *.css diff=css
 *.html diff=html
 *.md diff=markdown
 *.php diff=php
 
+# Export-ignore settings
 /.github export-ignore
 CHANGELOG.md export-ignore
