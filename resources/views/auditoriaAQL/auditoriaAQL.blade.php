@@ -231,7 +231,7 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                <button type="submit" class="btn btn-success">Guardar</button>
+                                <button type="submit" class="btn btn-verde">Guardar</button>
                             @endif
                         </form>
                     @endif

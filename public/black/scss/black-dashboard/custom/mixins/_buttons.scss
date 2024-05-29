@@ -102,6 +102,17 @@
             }
         }
 
+        &.btn-verde{
+            color: $verde;
+
+            &:hover,
+            &:focus,
+            &:active,
+            &:active:focus{
+                color: $verde-states;
+            }
+        }
+
         &.btn-default{
             color: $default;
 

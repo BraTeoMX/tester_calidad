@@ -109,6 +109,10 @@
 .btn-success { @include btn-styles($success, $success-states);
 
               }
+
+.btn-verde { @include btn-styles($verde, $verde-states);
+
+              }
 .btn-info    { @include btn-styles($info, $info-states);
 
               }

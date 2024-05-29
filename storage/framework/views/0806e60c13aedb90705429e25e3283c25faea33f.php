@@ -212,7 +212,7 @@
                                                         $('#color').val(selectedOption.data('color'));
                                                         $('#talla').val(selectedOption.data('talla'));
                                                     });
-                                                </script>      
+                                                </script>                                            
                                                 
                                                 <td><input type="text" class="form-control" name="cantidad_auditada"
                                                         id="cantidad_auditada" required></td>
@@ -241,7 +241,7 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                <button type="submit" class="btn btn-success">Guardar</button>
+                                <button type="submit" class="btn btn-verde">Guardar</button>
                             <?php endif; ?>
                         </form>
                     <?php endif; ?>
@@ -512,13 +512,6 @@
         </div>
     </div>
 
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="<?php echo e(asset('material')); ?>/js/plugins/jquery-jvectormap.js"></script>
-    <!-- Select2 and Datepicker Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
-
     <style>
         thead.thead-primary {
             background-color: #59666e54;
@@ -582,8 +575,4 @@
 
 <?php $__env->stopSection(); ?>
 
-<?php $__env->startPush('scripts'); ?>
-
-<?php $__env->stopPush(); ?>
-
-<?php echo $__env->make('layouts.app', ['pageSlug' => 'AQL', 'titlePage' => __('AQL')], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\calidad2\resources\views/auditoriaAQL/auditoriaAQL.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app', ['activePage' => 'AQL', 'titlePage' => __('AQL')], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\calidad2\resources\views/auditoriaAQL/auditoriaAQL.blade.php ENDPATH**/ ?>
