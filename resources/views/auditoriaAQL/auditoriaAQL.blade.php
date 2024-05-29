@@ -61,6 +61,57 @@
             border-radius: 15px;
             font-size: 20px;
         }
+
+        .btn-verde-xd {
+            color: #fff !important;
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08) !important;
+            padding: 0.5rem 2rem;
+            /* Aumenta el tamaño del botón */
+            font-size: 1.2rem;
+            /* Aumenta el tamaño de la fuente */
+            font-weight: bold;
+            /* Texto en negritas */
+            border-radius: 10px;
+            /* Ajusta las esquinas redondeadas */
+            transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+            cursor: pointer;
+            /* Cambia el cursor a una mano */
+        }
+
+        .btn-verde-xd:hover {
+            color: #fff !important;
+            background-color: #218838 !important;
+            border-color: #1e7e34 !important;
+        }
+
+        .btn-verde-xd:focus,
+        .btn-verde-xd.focus {
+            box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08), 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
+        }
+
+        .btn-verde-xd:disabled,
+        .btn-verde-xd.disabled {
+            color: #fff !important;
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+        }
+
+        .btn-verde-xd:not(:disabled):not(.disabled).active,
+        .btn-verde-xd:not(:disabled):not(.disabled):active,
+        .show>.btn-verde-xd.dropdown-toggle {
+            color: #fff !important;
+            background-color: #1e7e34 !important;
+            border-color: #1c7430 !important;
+        }
+
+        .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
+        .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
+        .show>.btn-verde-xd.dropdown-toggle:focus {
+            box-shadow: none, 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
+        }
+        
     </style>
     {{-- ... el resto de tu vista ... --}}
     <div class="content">
@@ -81,15 +132,19 @@
                 </div>
                 <hr>
                 <div class="card-body">
-                    @if((($conteoParos == 2) && ($finParoModular1 == true)) || (($conteoParos == 4) && ($finParoModular2 == true)))
+                    @if (($conteoParos == 2 && $finParoModular1 == true) || ($conteoParos == 4 && $finParoModular2 == true))
                         <div class="row">
                             <form method="POST" action="{{ route('auditoriaAQL.cambiarEstadoInicioParoAQL') }}">
                                 @csrf
                                 <input type="hidden" name="finalizar_paro_modular" value="1">
-                                <input type="hidden" class="form-control" name="modulo" id="modulo" value="{{ $data['modulo'] }}">
-                                <input type="hidden" class="form-control" name="op" id="op" value="{{ $data['op'] }}">
-                                <input type="hidden" class="form-control" name="area" id="area" value="{{ $data['area'] }}">
-                                <input type="hidden" class="form-control" name="team_leader" id="team_leader" value="{{ $data['team_leader'] }}">
+                                <input type="hidden" class="form-control" name="modulo" id="modulo"
+                                    value="{{ $data['modulo'] }}">
+                                <input type="hidden" class="form-control" name="op" id="op"
+                                    value="{{ $data['op'] }}">
+                                <input type="hidden" class="form-control" name="area" id="area"
+                                    value="{{ $data['area'] }}">
+                                <input type="hidden" class="form-control" name="team_leader" id="team_leader"
+                                    value="{{ $data['team_leader'] }}">
 
 
                                 <button type="submit" class="btn btn-primary">Fin Paro Modular</button>
@@ -120,8 +175,8 @@
                                                     value="{{ $data['op'] }}" readonly></td>
                                             <td><input type="text" class="form-control" name="cliente" id="cliente"
                                                     value="{{ $datoUnicoOP->customername }}" readonly></td>
-                                            <td><input type="text" class="form-control" name="team_leader" id="team_leader"
-                                                    value="{{ $data['team_leader'] }}" readonly></td>
+                                            <td><input type="text" class="form-control" name="team_leader"
+                                                    id="team_leader" value="{{ $data['team_leader'] }}" readonly></td>
                                             <td><input type="text" class="form-control" name="auditor" id="auditor"
                                                     value="{{ $data['auditor'] }}" readonly></td>
                                             <td><input type="text" class="form-control" name="turno" id="turno"
@@ -134,7 +189,7 @@
                             @if ($estatusFinalizar)
                             @else
                                 <div class="table-responsive">
-                                    <table class="table table32"> 
+                                    <table class="table table32">
                                         <thead class="thead-primary">
                                             <tr>
                                                 <th>NOMBRE</th>
@@ -153,40 +208,51 @@
                                                 <td>
                                                     <select name="nombre" id="nombre" class="form-control" required>
                                                         <option value="">Selecciona una opción</option>
-                                                        @if($auditorPlanta == 'Planta1')
-                                                            @foreach($nombreProcesoToAQLPlanta1 as $opcion)
-                                                                <option value="{{ $opcion['nombre'] ?? $opcion['name'] }}">{{ $opcion['nombre'] ?? $opcion['name'] }}</option>
+                                                        @if ($auditorPlanta == 'Planta1')
+                                                            @foreach ($nombreProcesoToAQLPlanta1 as $opcion)
+                                                                <option value="{{ $opcion['nombre'] ?? $opcion['name'] }}">
+                                                                    {{ $opcion['nombre'] ?? $opcion['name'] }}</option>
                                                             @endforeach
                                                         @elseif($auditorPlanta == 'Planta2')
-                                                            @foreach($nombreProcesoToAQLPlanta2 as $opcion)
-                                                                <option value="{{ $opcion['nombre'] ?? $opcion['name'] }}">{{ $opcion['nombre'] ?? $opcion['name'] }}</option>
+                                                            @foreach ($nombreProcesoToAQLPlanta2 as $opcion)
+                                                                <option value="{{ $opcion['nombre'] ?? $opcion['name'] }}">
+                                                                    {{ $opcion['nombre'] ?? $opcion['name'] }}</option>
                                                             @endforeach
                                                         @endif
                                                     </select>
                                                 </td>
                                                 <td>
-                                                    <select name="bulto" id="bulto" class="form-control" required title="Por favor, selecciona una opción">
+                                                    <select name="bulto" id="bulto" class="form-control" required
+                                                        title="Por favor, selecciona una opción">
                                                         <option value="">Selecciona una opción</option>
                                                         @foreach ($datoBultos as $bulto)
-                                                            <option value="{{ $bulto->prodpackticketid }}" data-estilo="{{ $bulto->itemid }}" data-color="{{ $bulto->colorname }}" data-talla="{{ $bulto->inventsizeid }}" data-pieza="{{ $bulto->qty }}">
+                                                            <option value="{{ $bulto->prodpackticketid }}"
+                                                                data-estilo="{{ $bulto->itemid }}"
+                                                                data-color="{{ $bulto->colorname }}"
+                                                                data-talla="{{ $bulto->inventsizeid }}"
+                                                                data-pieza="{{ $bulto->qty }}">
                                                                 {{ $bulto->prodpackticketid }}
                                                             </option>
                                                         @endforeach
                                                     </select>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="pieza" id="pieza" readonly>
+                                                    <input type="text" class="form-control" name="pieza"
+                                                        id="pieza" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="estilo" id="estilo" readonly>
+                                                    <input type="text" class="form-control" name="estilo"
+                                                        id="estilo" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="color" id="color" readonly>
+                                                    <input type="text" class="form-control" name="color"
+                                                        id="color" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="talla" id="talla" readonly>
+                                                    <input type="text" class="form-control" name="talla"
+                                                        id="talla" readonly>
                                                 </td>
-                                                
+
                                                 <script>
                                                     $(document).ready(function() {
                                                         $('#bulto').change(function() {
@@ -196,7 +262,7 @@
                                                             $('#color').val(selectedOption.data('color'));
                                                             $('#talla').val(selectedOption.data('talla'));
                                                         });
-                                                
+
                                                         // Actualizar valores al cargar la página si una opción está seleccionada por defecto
                                                         var selectedOption = $('#bulto').find(':selected');
                                                         $('#pieza').val(selectedOption.data('pieza'));
@@ -204,24 +270,26 @@
                                                         $('#color').val(selectedOption.data('color'));
                                                         $('#talla').val(selectedOption.data('talla'));
                                                     });
-                                                </script>                                            
-                                                
+                                                </script>
+
                                                 <td><input type="text" class="form-control" name="cantidad_auditada"
                                                         id="cantidad_auditada" required></td>
                                                 <td><input type="text" class="form-control" name="cantidad_rechazada"
                                                         id="cantidad_rechazada" required></td>
                                                 <td>
-                                                    <select name="tp[]" id="tp" class="form-control" required multiple 
-                                                        title="Por favor, selecciona una opción">
+                                                    <select name="tp[]" id="tp" class="form-control" required
+                                                        multiple title="Por favor, selecciona una opción">
                                                         <option value="NINGUNO">NINGUNO</option>
                                                         @if ($data['area'] == 'AUDITORIA AQL')
                                                             @foreach ($categoriaTPProceso as $proceso)
-                                                                <option value="{{ $proceso->nombre }}">{{ $proceso->nombre }}
+                                                                <option value="{{ $proceso->nombre }}">
+                                                                    {{ $proceso->nombre }}
                                                                 </option>
                                                             @endforeach
                                                         @elseif($data['area'] == 'AUDITORIA AQL PLAYERA')
                                                             @foreach ($categoriaTPPlayera as $playera)
-                                                                <option value="{{ $playera->nombre }}">{{ $playera->nombre }}
+                                                                <option value="{{ $playera->nombre }}">
+                                                                    {{ $playera->nombre }}
                                                                 </option>
                                                             @endforeach
                                                         @endif
@@ -231,7 +299,7 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                <button type="submit" class="btn btn-verde">Guardar</button>
+                                <button type="submit" class="btn-verde-xd">Guardar</button>
                             @endif
                         </form>
                     @endif
@@ -240,7 +308,7 @@
                     @if ($mostrarRegistro)
                         @if ($estatusFinalizar)
                             <h2>Registro</h2>
-                            <table class="table table55"> 
+                            <table class="table table55">
                                 <thead class="thead-primary">
                                     <tr>
                                         <th>PARO</th>
@@ -260,40 +328,42 @@
                                         <tr>
                                             <td>
                                                 <input type="text" class="form-control" name="bulto"
-                                                value="{{ $registro->bulto }}" readonly>
+                                                    value="{{ $registro->bulto }}" readonly>
                                             </td>
                                             <td>
                                                 <input type="text" class="form-control" name="pieza"
-                                                value="{{ $registro->pieza }}" readonly>
+                                                    value="{{ $registro->pieza }}" readonly>
                                             </td>
                                             <td>
                                                 <input type="text" class="form-control" name="talla"
-                                                value="{{ $registro->talla }}" readonly>
+                                                    value="{{ $registro->talla }}" readonly>
                                             </td>
                                             <td>
                                                 <input type="text" class="form-control" name="color" id="color"
-                                                value="{{$registro->color}}" readonly>
+                                                    value="{{ $registro->color }}" readonly>
                                             </td>
                                             <td>
                                                 <input type="text" class="form-control" name="estilo" id="estilo"
-                                                value="{{$registro->estilo}}" readonly>
+                                                    value="{{ $registro->estilo }}" readonly>
                                             </td>
                                             <td>
-                                                <input type="text" class="form-control" name="cantidad_auditada" id="cantidad_auditada"
-                                                value="{{$registro->cantidad_auditada}}" readonly>
+                                                <input type="text" class="form-control" name="cantidad_auditada"
+                                                    id="cantidad_auditada" value="{{ $registro->cantidad_auditada }}"
+                                                    readonly>
                                             </td>
                                             <td>
-                                                <input type="text" class="form-control" name="cantidad_rechazada" id="cantidad_rechazada"
-                                                value="{{$registro->cantidad_rechazada}}" readonly>
+                                                <input type="text" class="form-control" name="cantidad_rechazada"
+                                                    id="cantidad_rechazada" value="{{ $registro->cantidad_rechazada }}"
+                                                    readonly>
                                             </td>
-                                            
+
                                             <form action="{{ route('auditoriaAQL.formUpdateDeleteProceso') }}"
                                                 method="POST">
                                                 @csrf
                                                 <input type="hidden" name="id" value="{{ $registro->id }}">
                                                 <td>
                                                     <input type="text" class="form-control" readonly
-                                                           value="{{ implode(', ', $registro->tpAuditoriaAQL->pluck('tp')->toArray()) }}">
+                                                        value="{{ implode(', ', $registro->tpAuditoriaAQL->pluck('tp')->toArray()) }}">
                                                 </td>
                                                 <td>
                                                     {{ $registro->created_at->format('H:i:s') }}
@@ -302,7 +372,7 @@
                                         </tr>
                                     @endforeach
                                 </tbody>
-                            </table> 
+                            </table>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="observacion" class="col-sm-6 col-form-label">Observaciones:</label>
@@ -335,54 +405,59 @@
                                         @foreach ($mostrarRegistro as $registro)
                                             <tr>
                                                 <td>
-                                                    @if($registro->inicio_paro == NULL)
+                                                    @if ($registro->inicio_paro == null)
                                                         -
-                                                    @elseif($registro->fin_paro != NULL)
-                                                        {{$registro->minutos_paro}}
-                                                    @elseif($registro->fin_paro == NULL)
-                                                        <form method="POST" action="{{ route('auditoriaAQL.cambiarEstadoInicioParoAQL') }}">
+                                                    @elseif($registro->fin_paro != null)
+                                                        {{ $registro->minutos_paro }}
+                                                    @elseif($registro->fin_paro == null)
+                                                        <form method="POST"
+                                                            action="{{ route('auditoriaAQL.cambiarEstadoInicioParoAQL') }}">
                                                             @csrf
-                                                            <input type="hidden" name="idCambio" value="{{ $registro->id }}">
-                                                            <button type="submit" class="btn btn-primary">Fin Paro AQL</button>
+                                                            <input type="hidden" name="idCambio"
+                                                                value="{{ $registro->id }}">
+                                                            <button type="submit" class="btn btn-primary">Fin Paro
+                                                                AQL</button>
                                                         </form>
                                                     @endif
                                                 </td>
                                                 <td>
                                                     <input type="text" class="form-control" name="bulto"
-                                                    value="{{ $registro->bulto }}" readonly>
+                                                        value="{{ $registro->bulto }}" readonly>
                                                 </td>
                                                 <td>
                                                     <input type="text" class="form-control" name="pieza"
-                                                    value="{{ $registro->pieza }}" readonly>
+                                                        value="{{ $registro->pieza }}" readonly>
                                                 </td>
                                                 <td>
                                                     <input type="text" class="form-control" name="talla"
-                                                    value="{{ $registro->talla }}" readonly>
+                                                        value="{{ $registro->talla }}" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="color" id="color"
-                                                    value="{{$registro->color}}" readonly>
+                                                    <input type="text" class="form-control" name="color"
+                                                        id="color" value="{{ $registro->color }}" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="estilo" id="estilo"
-                                                    value="{{$registro->estilo}}" readonly>
+                                                    <input type="text" class="form-control" name="estilo"
+                                                        id="estilo" value="{{ $registro->estilo }}" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="cantidad_auditada" id="cantidad_auditada"
-                                                    value="{{$registro->cantidad_auditada}}" readonly>
+                                                    <input type="text" class="form-control" name="cantidad_auditada"
+                                                        id="cantidad_auditada" value="{{ $registro->cantidad_auditada }}"
+                                                        readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="cantidad_rechazada" id="cantidad_rechazada"
-                                                    value="{{$registro->cantidad_rechazada}}" readonly>
+                                                    <input type="text" class="form-control" name="cantidad_rechazada"
+                                                        id="cantidad_rechazada"
+                                                        value="{{ $registro->cantidad_rechazada }}" readonly>
                                                 </td>
-                                                
+
                                                 <form action="{{ route('auditoriaAQL.formUpdateDeleteProceso') }}"
                                                     method="POST">
                                                     @csrf
                                                     <input type="hidden" name="id" value="{{ $registro->id }}">
                                                     <td>
                                                         <input type="text" class="form-control" readonly
-                                                               value="{{ implode(', ', $registro->tpAuditoriaAQL->pluck('tp')->toArray()) }}">
+                                                            value="{{ implode(', ', $registro->tpAuditoriaAQL->pluck('tp')->toArray()) }}">
                                                     </td>
                                                     <td>
                                                         <button type="submit" name="action" value="delete"
@@ -461,9 +536,9 @@
                         <tbody>
                             @foreach ($registrosIndividualPieza as $registro)
                                 <tr>
-                                    <td><input type="text" class="form-control"
-                                        value="{{ $registro->total_pieza }}" readonly></td>
-                                        {{--
+                                    <td><input type="text" class="form-control" value="{{ $registro->total_pieza }}"
+                                            readonly></td>
+                                    {{--
                                         <td><input type="text" class="form-control"
                                                 value="{{ $registro->total_rechazada }}" readonly></td>
                                         <td><input type="text" class="form-control"
@@ -488,8 +563,8 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><input type="text" class="form-control" name="conteo_bulto"
-                                            id="conteo_bulto" value="{{ $conteoBultos }}" readonly></td>
+                                    <td><input type="text" class="form-control" name="conteo_bulto" id="conteo_bulto"
+                                            value="{{ $conteoBultos }}" readonly></td>
                                     <td><input type="text" class="form-control" name="total_rechazada"
                                             id="total_rechazada" value="{{ $conteoPiezaConRechazo }}" readonly></td>
                                     <td><input type="text" class="form-control" name="total_porcentaje"
@@ -517,10 +592,12 @@
             min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table32 th:nth-child(9) {
             min-width: 200px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table32 th:nth-child(4) {
             min-width: 100px;
             /* Ajusta el ancho mínimo según tu necesidad */
@@ -536,12 +613,13 @@
             min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
-        
+
 
         /* Estilo general para el contenedor de la tabla */
         .contenedor-tabla {
-            width: 30%; /* Ajusta el ancho según tus necesidades */
-            
+            width: 30%;
+            /* Ajusta el ancho según tus necesidades */
+
         }
 
 
@@ -554,16 +632,16 @@
     </style>
     <script>
         $('#tp').select2({
-                placeholder: 'Seleccione una o varias opciones',
-                allowClear: true,
-                multiple: true // Esta opción permite la selección múltiple
-            });
+            placeholder: 'Seleccione una o varias opciones',
+            allowClear: true,
+            multiple: true // Esta opción permite la selección múltiple
+        });
         $('#bulto').select2({
             placeholder: 'Seleccione una o varias opciones',
             allowClear: true,
         });
     </script>
 
-    
+
 
 @endsection

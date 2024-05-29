@@ -61,6 +61,55 @@
             border-radius: 15px;
             font-size: 20px;
         }
+        .btn-verde-xd {
+            color: #fff !important;
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08) !important;
+            padding: 0.5rem 2rem;
+            /* Aumenta el tamaño del botón */
+            font-size: 1.2rem;
+            /* Aumenta el tamaño de la fuente */
+            font-weight: bold;
+            /* Texto en negritas */
+            border-radius: 10px;
+            /* Ajusta las esquinas redondeadas */
+            transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+            cursor: pointer;
+            /* Cambia el cursor a una mano */
+        }
+
+        .btn-verde-xd:hover {
+            color: #fff !important;
+            background-color: #218838 !important;
+            border-color: #1e7e34 !important;
+        }
+
+        .btn-verde-xd:focus,
+        .btn-verde-xd.focus {
+            box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08), 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
+        }
+
+        .btn-verde-xd:disabled,
+        .btn-verde-xd.disabled {
+            color: #fff !important;
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+        }
+
+        .btn-verde-xd:not(:disabled):not(.disabled).active,
+        .btn-verde-xd:not(:disabled):not(.disabled):active,
+        .show>.btn-verde-xd.dropdown-toggle {
+            color: #fff !important;
+            background-color: #1e7e34 !important;
+            border-color: #1c7430 !important;
+        }
+
+        .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
+        .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
+        .show>.btn-verde-xd.dropdown-toggle:focus {
+            box-shadow: none, 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
+        }
     </style>
     {{-- ... el resto de tu vista ... --}}
     <div class="content">
@@ -335,7 +384,7 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <button type="submit" class="btn btn-success">GUARDAR</button>
+                            <button type="submit" class="btn-verde-xd">GUARDAR</button>
                         @endif
                     </form>
                     <hr>
