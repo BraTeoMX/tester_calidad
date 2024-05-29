@@ -85,7 +85,18 @@ class AuditoriaAQLController extends Controller
         ];
     }
 
-
+    public function metodoNombre(Request $request) {
+        $moduloSeleccionado = $request->input('modulo');
+      
+        // Filtrar los datos de 'ordenOPs' según el módulo seleccionado
+        $ordenesOPFiltradas = JobAQL::where('moduleid', $moduloSeleccionado)
+          ->select('prodid')
+          ->distinct()
+          ->get();
+      
+        // Convertir los datos a formato JSON y retornar
+        return response()->json($ordenesOPFiltradas);
+    }
 
     public function altaAQL(Request $request)
     {

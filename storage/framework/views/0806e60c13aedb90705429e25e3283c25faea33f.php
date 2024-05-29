@@ -67,6 +67,57 @@
             border-radius: 15px;
             font-size: 20px;
         }
+
+        .btn-verde-xd {
+            color: #fff !important;
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08) !important;
+            padding: 0.5rem 2rem;
+            /* Aumenta el tamaño del botón */
+            font-size: 1.2rem;
+            /* Aumenta el tamaño de la fuente */
+            font-weight: bold;
+            /* Texto en negritas */
+            border-radius: 10px;
+            /* Ajusta las esquinas redondeadas */
+            transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+            cursor: pointer;
+            /* Cambia el cursor a una mano */
+        }
+
+        .btn-verde-xd:hover {
+            color: #fff !important;
+            background-color: #218838 !important;
+            border-color: #1e7e34 !important;
+        }
+
+        .btn-verde-xd:focus,
+        .btn-verde-xd.focus {
+            box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08), 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
+        }
+
+        .btn-verde-xd:disabled,
+        .btn-verde-xd.disabled {
+            color: #fff !important;
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+        }
+
+        .btn-verde-xd:not(:disabled):not(.disabled).active,
+        .btn-verde-xd:not(:disabled):not(.disabled):active,
+        .show>.btn-verde-xd.dropdown-toggle {
+            color: #fff !important;
+            background-color: #1e7e34 !important;
+            border-color: #1c7430 !important;
+        }
+
+        .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
+        .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
+        .show>.btn-verde-xd.dropdown-toggle:focus {
+            box-shadow: none, 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
+        }
+        
     </style>
     
     <div class="content">
@@ -214,10 +265,26 @@
                                                     });
                                                 </script>                                            
                                                 
-                                                <td><input type="text" class="form-control" name="cantidad_auditada"
+                                                <td><input type="numbre" class="form-control" name="cantidad_auditada"
                                                         id="cantidad_auditada" required></td>
-                                                <td><input type="text" class="form-control" name="cantidad_rechazada"
-                                                        id="cantidad_rechazada" required></td>
+                                                <td>
+                                                    <input type="text" class="form-control" name="cantidad_rechazada" id="cantidad_rechazada" required>
+                                                </td>
+                                                <script>
+                                                    $(document).ready(function() {
+                                                      $('#cantidad_rechazada').on('input', function() {
+                                                        const cantidadRechazada = parseInt($(this).val());
+                                                        const nombreSelect = $('#nombre');
+                                                  
+                                                        if (cantidadRechazada === 0) {
+                                                          nombreSelect.prop('required', false);
+                                                        } else {
+                                                          nombreSelect.prop('required', true);
+                                                        }
+                                                      });
+                                                    });
+                                                  </script>
+                                                  
                                                 <td>
                                                     <select name="tp[]" id="tp" class="form-control" required multiple 
                                                         title="Por favor, selecciona una opción">
@@ -242,48 +309,6 @@
                                     </table>
                                 </div>
                                 <button type="submit" class="btn-verde-xd">Guardar</button>
-                                <style>
-                                    .btn-verde-xd {
-                                        color: #fff !important;
-                                        background-color: #28a745 !important;
-                                        border-color: #28a745 !important;
-                                        box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08) !important;
-                                        padding: 0.5rem 2rem; /* Aumenta el tamaño del botón */
-                                        font-size: 1.2rem; /* Aumenta el tamaño de la fuente */
-                                        font-weight: bold; /* Texto en negritas */
-                                        border-radius: 10px; /* Ajusta las esquinas redondeadas */
-                                        transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
-                                        cursor: pointer; /* Cambia el cursor a una mano */
-                                    }
-                                
-                                    .btn-verde-xd:hover {
-                                        color: #fff !important;
-                                        background-color: #218838 !important;
-                                        border-color: #1e7e34 !important;
-                                    }
-                                
-                                    .btn-verde-xd:focus, .btn-verde-xd.focus {
-                                        box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08), 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
-                                    }
-                                
-                                    .btn-verde-xd:disabled, .btn-verde-xd.disabled {
-                                        color: #fff !important;
-                                        background-color: #28a745 !important;
-                                        border-color: #28a745 !important;
-                                    }
-                                
-                                    .btn-verde-xd:not(:disabled):not(.disabled).active, .btn-verde-xd:not(:disabled):not(.disabled):active,
-                                    .show > .btn-verde-xd.dropdown-toggle {
-                                        color: #fff !important;
-                                        background-color: #1e7e34 !important;
-                                        border-color: #1c7430 !important;
-                                    }
-                                
-                                    .btn-verde-xd:not(:disabled):not(.disabled).active:focus, .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
-                                    .show > .btn-verde-xd.dropdown-toggle:focus {
-                                        box-shadow: none, 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
-                                    }
-                                </style>
                             <?php endif; ?>
                         </form>
                     <?php endif; ?>
@@ -292,7 +317,7 @@
                     <?php if($mostrarRegistro): ?>
                         <?php if($estatusFinalizar): ?>
                             <h2>Registro</h2>
-                            <table class="table table55"> 
+                            <table class="table table56"> 
                                 <thead class="thead-primary">
                                     <tr>
                                         <th>PARO</th>
@@ -310,6 +335,10 @@
                                 <tbody>
                                     <?php $__currentLoopData = $mostrarRegistro; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $registro): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <tr>
+                                            <td>
+                                                <input type="text" class="form-control" name="minutos_paro"
+                                                value="&nbsp;<?php echo e($registro->minutos_paro); ?>" readonly>
+                                            </td>
                                             <td>
                                                 <input type="text" class="form-control" name="bulto"
                                                 value="<?php echo e($registro->bulto); ?>" readonly>
@@ -566,10 +595,12 @@
             min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table32 th:nth-child(9) {
             min-width: 200px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table32 th:nth-child(4) {
             min-width: 100px;
             /* Ajusta el ancho mínimo según tu necesidad */
@@ -585,12 +616,13 @@
             min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
-        
+
 
         /* Estilo general para el contenedor de la tabla */
         .contenedor-tabla {
-            width: 30%; /* Ajusta el ancho según tus necesidades */
-            
+            width: 30%;
+            /* Ajusta el ancho según tus necesidades */
+
         }
 
 
@@ -603,17 +635,17 @@
     </style>
     <script>
         $('#tp').select2({
-                placeholder: 'Seleccione una o varias opciones',
-                allowClear: true,
-                multiple: true // Esta opción permite la selección múltiple
-            });
+            placeholder: 'Seleccione una o varias opciones',
+            allowClear: true,
+            multiple: true // Esta opción permite la selección múltiple
+        });
         $('#bulto').select2({
             placeholder: 'Seleccione una o varias opciones',
             allowClear: true,
         });
     </script>
 
-    
+
 
 <?php $__env->stopSection(); ?>
 

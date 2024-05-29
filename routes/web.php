@@ -197,6 +197,7 @@ Route::post('/formUpdateDeleteProcesoAQL', [AuditoriaAQLController::class, 'form
 Route::post('/formFinalizarProcesoAQL', [AuditoriaAQLController::class, 'formFinalizarProceso'])->name('auditoriaAQL.formFinalizarProceso');
 Route::post('/cambiarEstadoInicioParoAQL', [AuditoriaAQLController::class, 'cambiarEstadoInicioParoAQL'])->name('auditoriaAQL.cambiarEstadoInicioParoAQL');
 Route::get('/RechazosParoAQL', [AuditoriaAQLController::class, 'RechazosParoAQL'])->name('auditoriaAQL.RechazosParoAQL');
+Route::post('/cargarOrdenesOP', [AuditoriaAQLController::class, 'metodoNombre'])->name('metodoNombre');
 
 
 //Fin apartado para seccion Evaluacion corte

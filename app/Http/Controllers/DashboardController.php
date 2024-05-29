@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 
 use App\Models\AuditoriaProcesoCorte; 
-use App\Models\AseguramientoCalidad;   
+use App\Models\AseguramientoCalidad;  
+use App\Models\TpAseguramientoCalidad; 
+use App\Models\TpAuditoriaAQL; 
 use App\Models\AuditoriaAQL;   
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon  
+use Illuminate\Support\Facades\DB; // Importa la clase DB
 
 
 class DashboardController extends Controller
@@ -142,574 +146,178 @@ class DashboardController extends Controller
     public function dashboarAProcesoAQL(Request $request) 
     {
         $title = "";
+        if($request->fecha_fin){
+            $fechaInicio1 = $request->input('fecha_inicio', Carbon::now()->format('Y-m-d') . ' 00:00:00');
+            $fechaInicio = $fechaInicio1 . ' 00:00:00';
+            $fechaFin1 = $request->input('fecha_fin', Carbon::now()->format('Y-m-d') . ' 23:59:59');
+            $fechaFin = $fechaFin1 . ' 23:59:59';
+            $fechaActual = Carbon::now()->toDateString();
 
-        $fechaInicio1 = $request->input('fecha_inicio', Carbon::now()->format('Y-m-d') . ' 00:00:00');
-        $fechaInicio = $fechaInicio1 . ' 00:00:00';
-        $fechaFin1 = $request->input('fecha_fin', Carbon::now()->format('Y-m-d') . ' 23:59:59');
-        $fechaFin = $fechaFin1 . ' 23:59:59';
+            // Convertir a instancias de Carbon
+            $fechaInicio = Carbon::parse($fechaInicio);
+            $fechaFin = Carbon::parse($fechaFin);
+            
+            // Obtener el rango de semanas
+            $startWeek = $fechaInicio->copy()->startOfWeek();
+            $endWeek = $fechaFin->copy()->endOfWeek();
+            
+            $semanas = collect();
+            $currentWeek = $startWeek->copy();
 
+            while ($currentWeek <= $endWeek) {
+                $semanas->push($currentWeek->format('Y-W')); // Formato Año-Semana
+                $currentWeek->addWeek();
+            }
+        }else{
+            $fechaActual = Carbon::now()->toDateString();
+            $fechaInicio = Carbon::now()->subDays(15)->toDateString(); // Cambia el rango de fechas según necesites
+            $fechaFin = Carbon::now()->toDateString();
+        }
+        
         //dd($fechaInicio, $fechaFin);
-
-        //Inicio apartado para detalles generales
-        // Obtener clientes y porcentajes de error por cliente
-        $clientes = AuditoriaAQL::whereNotNull('cliente')
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->orderBy('cliente')
-            ->pluck('cliente')
-            ->unique();
-        $porcentajesError = [];
-
-        foreach ($clientes as $cliente) {
-            $sumaAuditada = AuditoriaAQL::where('cliente', $cliente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->sum('cantidad_auditada');
-            $sumaRechazada = AuditoriaAQL::where('cliente', $cliente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->sum('cantidad_rechazada');
-
-            $porcentajeError = ($sumaAuditada != 0) ? ($sumaRechazada / $sumaAuditada) * 100 : 0;
-
-            $porcentajesError[$cliente] = $porcentajeError;
+        //dd($request->all());
+        // Obtener el rango de fechas
+        $fechas = collect();
+        $period = Carbon::parse($fechaInicio)->daysUntil(Carbon::parse($fechaFin));
+        foreach ($period as $date) {
+            $fechas->push($date->format('Y-m-d'));
         }
-        arsort($porcentajesError);
 
-        // Obtener operarios de máquina, porcentajes de error por operario y otras relaciones por operario
-        $nombres = AuditoriaAQL::whereNotNull('modulo')
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->orderBy('modulo')
-            ->pluck('modulo')
-            ->unique();
-        $porcentajesErrorNombre = [];
-        $operacionesPorNombre = [];
-        $teamLeaderPorNombre = [];
-        $moduloPorNombre = [];
 
-        foreach ($nombres as $nombre) {
-            $sumaAuditadaNombre = AuditoriaAQL::where('modulo', $nombre)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->sum('cantidad_auditada');
-            $sumaRechazadaNombre = AuditoriaAQL::where('modulo', $nombre)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->sum('cantidad_rechazada');
-
-            $porcentajeErrorNombre = ($sumaAuditadaNombre != 0) ? ($sumaRechazadaNombre / $sumaAuditadaNombre) * 100 : 0;
-
-            $porcentajesErrorNombre[$nombre] = $porcentajeErrorNombre;
-
-            // Obtener la operación, el team leader y el módulo correspondientes al operario de máquina
-            $operacion = AuditoriaAQL::where('modulo', $nombre)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->value('op');
-            $operacionesPorNombre[$nombre] = $operacion;
-
-            $teamleader = AuditoriaAQL::where('modulo', $nombre)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->value('team_leader');
-            $teamLeaderPorNombre[$nombre] = $teamleader;
-
-            $moduloPorNombre[$nombre] = $nombre;
+        // Función para calcular el porcentaje de error
+        function calcularPorcentaje($modelo, $fecha) {
+            $data = $modelo::whereDate('created_at', $fecha)
+                        ->selectRaw('SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada')
+                        ->first();
+            return $data->cantidad_auditada != 0 ? number_format(($data->cantidad_rechazada / $data->cantidad_auditada) * 100, 2) : 0;
         }
-        arsort($porcentajesErrorNombre);
 
-        // Obtener team leaders y porcentajes de error por team leader
-        $teamLeaders = AuditoriaAQL::where(function($query) {
-                $query->whereNull('jefe_produccion')
-                    ->orWhere('jefe_produccion', '0');
-            })
-            ->whereNotNull('team_leader')
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->orderBy('team_leader')
-            ->pluck('team_leader')
-            ->unique();
-        $porcentajesErrorTeamLeader = [];
+        // Calcular porcentajes AQL y Proceso para cada fecha
+        $porcentajesAQL = $fechas->map(function($fecha) {
+            return calcularPorcentaje(AuditoriaAQL::class, $fecha);
+        });
+        $porcentajesProceso = $fechas->map(function($fecha) {
+            return calcularPorcentaje(AseguramientoCalidad::class, $fecha);
+        });
 
-        foreach ($teamLeaders as $teamLeader) {
-            $sumaAuditadaTeamLeader = AuditoriaAQL::where('team_leader', $teamLeader)
-                //->whereNull('jefe_produccion')
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->sum('cantidad_auditada');
-            $sumaRechazadaTeamLeader = AuditoriaAQL::where('team_leader', $teamLeader)
-                //->whereNull('jefe_produccion')
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->sum('cantidad_rechazada');
-
-            $porcentajeErrorTeamLeader = ($sumaAuditadaTeamLeader != 0) ? ($sumaRechazadaTeamLeader / $sumaAuditadaTeamLeader) * 100 : 0;
-
-            $porcentajesErrorTeamLeader[$teamLeader] = $porcentajeErrorTeamLeader;
-        }
-        arsort($porcentajesErrorTeamLeader);
-
-        //para jefes de produccion
-        // Obtener team leaders y porcentajes de error por team leader
-        $jefesProduccion = AuditoriaAQL::whereNotNull('team_leader')
-            ->where('jefe_produccion', 1)
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->orderBy('team_leader')
-            ->pluck('team_leader')
-            ->unique();
-        $porcentajesErrorJefeProduccion = [];
-
-        foreach ($jefesProduccion as $jefeProduccion) {
-            $sumaAuditadaJefeProduccion = AuditoriaAQL::where('team_leader', $jefeProduccion)
-                ->where('jefe_produccion', 1)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->sum('cantidad_auditada');
-            $sumaRechazadaJefeProduccion = AuditoriaAQL::where('team_leader', $jefeProduccion)
-                ->where('jefe_produccion', 1)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->sum('cantidad_rechazada');
-
-            $porcentajeErrorJefeProduccion = ($sumaAuditadaJefeProduccion != 0) ? ($sumaRechazadaJefeProduccion / $sumaAuditadaJefeProduccion) * 100 : 0;
-
-            $porcentajesErrorJefeProduccion[$jefeProduccion] = $porcentajeErrorJefeProduccion;
-        }
-        arsort($porcentajesErrorJefeProduccion);
-
-        //Fin de apartado para detalles generales
-
-
-        //Inicio apartado para detalles para Planta 1
-        // Obtener clientesPlanta1 y porcentajes de error por cliente
-        //apartado para mostrar datos de clientes de prodduccion, en este caso por dia AseguramientoCalidad y AuditoriaAQL
-        $clientesAQLPlanta1 = AuditoriaAQL::whereNotNull('cliente')
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->where('planta', 'Intimark1')
-            ->pluck('cliente');
-
-        $clientesProcesoPlanta1 = AseguramientoCalidad::whereNotNull('cliente')
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->where('planta', 'Intimark1')
-            ->pluck('cliente');
-
-        $clientesPlanta1 = $clientesAQLPlanta1->merge($clientesProcesoPlanta1)->unique();
-
-        
-        $dataClientePlanta1 = [];
-        $totalPorcentajeErrorAQL = 0;
-        $totalPorcentajeErrorProceso =0;
-        //dd($clientesAQLPlanta1, $clientesProcesoPlanta1, $clientesPlanta1);
-        foreach ($clientesPlanta1 as $cliente) {
-            $sumaAuditadaAQL = AuditoriaAQL::where('cliente', $cliente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->sum('cantidad_auditada');
-            $sumaRechazadaAQL = AuditoriaAQL::where('cliente', $cliente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->sum('cantidad_rechazada');
-        
-            $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
-        
-            $sumaAuditadaProceso = AseguramientoCalidad::where('cliente', $cliente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->sum('cantidad_auditada');
-            $sumaRechazadaProceso = AseguramientoCalidad::where('cliente', $cliente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->sum('cantidad_rechazada');
-        
-            $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
-
-
-            $totalAuditadaAQL = $clientesAQLPlanta1->sum(function ($cliente) use ($fechaInicio, $fechaFin) {
-                return AuditoriaAQL::where('cliente', $cliente)
-                    ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                    ->where('planta', 'Intimark1')
-                    ->sum('cantidad_auditada');
-            });
-            
-            $totalRechazadaAQL = $clientesAQLPlanta1->sum(function ($cliente) use ($fechaInicio, $fechaFin) {
-                return AuditoriaAQL::where('cliente', $cliente)
-                    ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                    ->where('planta', 'Intimark1')
-                    ->sum('cantidad_rechazada');
-            });
-            
-            $totalAuditadaProceso = $clientesProcesoPlanta1->sum(function ($cliente) use ($fechaInicio, $fechaFin) {
-                return AseguramientoCalidad::where('cliente', $cliente)
-                    ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                    ->where('planta', 'Intimark1')
-                    ->sum('cantidad_auditada');
-            });
-            
-            $totalRechazadaProceso = $clientesProcesoPlanta1->sum(function ($cliente) use ($fechaInicio, $fechaFin) {
-                return AseguramientoCalidad::where('cliente', $cliente)
-                    ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                    ->where('planta', 'Intimark1')
-                    ->sum('cantidad_rechazada');
-            });
-            
-            $totalPorcentajeErrorAQL = ($totalAuditadaAQL != 0) ? ($totalRechazadaAQL / $totalAuditadaAQL) * 100 : 0;
-            $totalPorcentajeErrorProceso = ($totalAuditadaProceso != 0) ? ($totalRechazadaProceso / $totalAuditadaProceso) * 100 : 0;
-            
-
-            $dataClientePlanta1[] = [
-                'cliente' => $cliente,
-                'porcentajeErrorProceso' => $porcentajeErrorProceso,
-                'porcentajeErrorAQL' => $porcentajeErrorAQL,
+        // Datos para las gráficas de clientes
+        $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
+        $clientesGrafica = collect($dataGrafica['clientesUnicos'])->toArray();
+        $fechasGrafica = collect($dataGrafica['dataCliente'][0]['fechas'])->toArray();
+        $datasetsAQL = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
+            return [
+                'label' => $clienteData['cliente'],
+                'data' => $clienteData['porcentajesErrorAQL'],
+                'borderColor' => 'rgba(75, 192, 192, 1)',
+                'borderWidth' => 1,
+                'fill' => false
             ];
-
-        }
-
-        // Obtener operarios de máquina, porcentajes de error por operario y otras relaciones por operario
-        $modulosPlanta1 = AuditoriaAQL::whereNotNull('modulo')
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->where('planta', 'Intimark1')
-            ->orderBy('modulo')
-            ->pluck('modulo')
-            ->unique();
-        $porcentajesErrorModuloPlanta1 = [];
-        $operacionesPorModuloPlanta1 = [];
-        $teamLeaderPorModuloPlanta1 = [];
-        $moduloPorModuloPlanta1 = [];
-
-        foreach ($modulosPlanta1 as $modulo) {
-            $sumaAuditadaModulo = AuditoriaAQL::where('modulo', $modulo)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->sum('cantidad_auditada');
-            $sumaRechazadaModulo = AuditoriaAQL::where('modulo', $modulo)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->sum('cantidad_rechazada');
-
-            $porcentajeErrorModuloPlanta1 = ($sumaAuditadaModulo != 0) ? ($sumaRechazadaModulo / $sumaAuditadaModulo) * 100 : 0;
-
-            $porcentajesErrorModuloPlanta1[$modulo] = $porcentajeErrorModuloPlanta1;
-
-            // Obtener la operación, el team leader y el módulo correspondientes al operario de máquina
-            $operacion = AuditoriaAQL::where('modulo', $modulo)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->value('op');
-            $operacionesPorModuloPlanta1[$modulo] = $operacion;
-
-            $teamleader = AuditoriaAQL::where('modulo', $modulo)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->value('team_leader');
-            $teamLeaderPorModuloPlanta1[$modulo] = $teamleader;
-
-            $moduloPorModuloPlanta1[$modulo] = $modulo;
-        }
-        arsort($porcentajesErrorModuloPlanta1);
-
-        // Obtener team leaders y porcentajes de error por team leader
-        $teamLeadersPlanta1 = AuditoriaAQL::where(function($query) {
-                $query->whereNull('jefe_produccion')
-                    ->orWhere('jefe_produccion', '0');
-            })
-            ->whereNotNull('team_leader')
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->where('planta', 'Intimark1')
-            ->orderBy('team_leader')
-            ->pluck('team_leader')
-            ->unique();
-        $porcentajesErrorTeamLeaderPlanta1 = [];
-
-        foreach ($teamLeadersPlanta1 as $teamLeader) {
-            $sumaAuditadaTeamLeader = AuditoriaAQL::where('team_leader', $teamLeader)
-                //->whereNull('jefe_produccion')
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->sum('cantidad_auditada');
-            $sumaRechazadaTeamLeader = AuditoriaAQL::where('team_leader', $teamLeader)
-                //->whereNull('jefe_produccion')
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->sum('cantidad_rechazada');
-
-            $porcentajeErrorTeamLeaderPlanta1 = ($sumaAuditadaTeamLeader != 0) ? ($sumaRechazadaTeamLeader / $sumaAuditadaTeamLeader) * 100 : 0;
-
-            $porcentajesErrorTeamLeaderPlanta1[$teamLeader] = $porcentajeErrorTeamLeaderPlanta1;
-        }
-        arsort($porcentajesErrorTeamLeaderPlanta1);
-
-        //para jefes de produccion
-        // Obtener team leaders y porcentajes de error por team leader
-        $jefesProduccionPlanta1 = AuditoriaAQL::whereNotNull('team_leader')
-            ->where('jefe_produccion', 1)
-            ->where('planta', 'Intimark1')
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->orderBy('team_leader')
-            ->pluck('team_leader')
-            ->unique();
-        $porcentajesErrorJefeProduccionPlanta1 = [];
-
-        foreach ($jefesProduccionPlanta1 as $jefeProduccion) {
-            $sumaAuditadaJefeProduccion = AuditoriaAQL::where('team_leader', $jefeProduccion)
-                ->where('jefe_produccion', 1)
-                ->where('planta', 'Intimark1')
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->sum('cantidad_auditada');
-            $sumaRechazadaJefeProduccion = AuditoriaAQL::where('team_leader', $jefeProduccion)
-                ->where('jefe_produccion', 1)
-                ->where('planta', 'Intimark1')
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->sum('cantidad_rechazada');
-
-            $porcentajeErrorJefeProduccion = ($sumaAuditadaJefeProduccion != 0) ? ($sumaRechazadaJefeProduccion / $sumaAuditadaJefeProduccion) * 100 : 0;
-
-            $porcentajesErrorJefeProduccionPlanta1[$jefeProduccion] = $porcentajeErrorJefeProduccion;
-        }
-        arsort($porcentajesErrorJefeProduccionPlanta1);
-
-
-
-        //detalles: 
-        //apartado para mostrar datos de gerente de prodduccion, en este caso por dia AseguramientoCalidad y AuditoriaAQL
-        $gerentesProduccionAQL = AuditoriaAQL::where('jefe_produccion', 1)
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->where('planta', 'Intimark1')
-            ->select('team_leader')
-            ->distinct()
-            ->pluck('team_leader')
-            ->all();
-
-        $gerentesProduccionProceso = AseguramientoCalidad::where('jefe_produccion', 1)
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->where('planta', 'Intimark1')
-            ->select('team_leader')
-            ->distinct()
-            ->pluck('team_leader')
-            ->all();
-
-        $gerentesProduccion = array_unique(array_merge($gerentesProduccionAQL, $gerentesProduccionProceso));
-
-        
-        $dataGerentes = [];
-        $dataGerentesTotales = collect();
-        //dd($gerentesProduccionAQL, $gerentesProduccionProceso, $gerentesProduccion);
-        foreach ($gerentesProduccion as $gerente) {
-            $modulosUnicosAQL = AuditoriaAQL::where('team_leader', $gerente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->select('modulo')
-                ->distinct()
-                ->get()
-                ->pluck('modulo');
-        
-            $modulosUnicosProceso = AseguramientoCalidad::where('team_leader', $gerente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->select('modulo')
-                ->distinct()
-                ->get()
-                ->pluck('modulo');
-        
-            $modulosUnicos = count(array_unique(array_merge($modulosUnicosAQL->toArray(), $modulosUnicosProceso->toArray())));
-        
-            $sumaAuditadaAQL = AuditoriaAQL::where('team_leader', $gerente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->sum('cantidad_auditada');
-        
-            $sumaRechazadaAQL = AuditoriaAQL::where('team_leader', $gerente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->sum('cantidad_rechazada');
-        
-            $sumaAuditadaProceso = AseguramientoCalidad::where('team_leader', $gerente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->sum('cantidad_auditada');
-        
-            $sumaRechazadaProceso = AseguramientoCalidad::where('team_leader', $gerente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->sum('cantidad_rechazada');
-        
-            $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
-            $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
-
-            $conteoOperario = AseguramientoCalidad::where('team_leader', $gerente)
-                ->where('utility', null)
-                ->where('planta', 'Intimark1')
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->distinct('nombre')
-                ->count('nombre');
-            $conteoUtility = AseguramientoCalidad::where('team_leader', $gerente)
-                ->where('utility', 1)
-                ->where('planta', 'Intimark1')
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->distinct('nombre')
-                ->count('nombre');
-            $conteoMinutos = AseguramientoCalidad::where('team_leader', $gerente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->count('minutos_paro');
-
-            $sumaMinutos = AseguramientoCalidad::where('team_leader', $gerente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark1')
-                ->sum('minutos_paro');
-
-            $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
-            $promedioMinutosEntero = ceil($promedioMinutos);
-            $dataGerentes[] = [
-                'team_leader' => $gerente,
-                'modulos_unicos' => $modulosUnicos,
-                'porcentaje_error_aql' => $porcentajeErrorAQL,
-                'porcentaje_error_proceso' => $porcentajeErrorProceso,
-                'conteoOperario' => $conteoOperario,
-                'conteoUtility' => $conteoUtility,
-                'conteoMinutos' => $conteoMinutos,
-                'sumaMinutos' => $sumaMinutos,
-                'promedioMinutosEntero' => $promedioMinutosEntero
+        })->toArray();
+        $datasetsProceso = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
+            return [
+                'label' => $clienteData['cliente'],
+                'data' => $clienteData['porcentajesErrorProceso'],
+                'borderColor' => 'rgba(153, 102, 255, 1)',
+                'borderWidth' => 1,
+                'fill' => false
             ];
+        })->toArray();
 
-            $dataGerentesTotales = collect($dataGerentes);
+        //dd($gerentesProduccionAQL, $gerentesProduccionProceso, $gerentesProduccion, $data);
+        return view('dashboar.dashboarAProcesoAQL', compact('title', 'fechas', 'porcentajesAQL', 'porcentajesProceso',
+        'fechasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica'));
+
+    }
+
+
+    private function obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin, $planta = null)
+    {
+        $clientesUnicos = collect();
+        $dataCliente = [];
+
+        // Iterar sobre cada día en el rango
+        $fechas = CarbonPeriod::create($fechaInicio, '1 day', $fechaFin)->toArray();
+        $fechasStr = array_map(function ($fecha) {
+            return $fecha->toDateString();
+        }, $fechas);
+
+        foreach ($fechas as $fecha) {
+            $fechaStr = $fecha->toDateString();
+
+            // Obtener clientes únicos para la fecha actual
+            $queryAQL = AuditoriaAQL::whereNotNull('cliente')->whereDate('created_at', $fechaStr);
+            $queryProceso = AseguramientoCalidad::whereNotNull('cliente')->whereDate('created_at', $fechaStr);
+
+            if ($planta) {
+                $queryAQL->where('planta', $planta);
+                $queryProceso->where('planta', $planta);
+            }
+
+            $clientesAQL = $queryAQL->pluck('cliente');
+            $clientesProceso = $queryProceso->pluck('cliente');
+            $clientesDelDia = $clientesAQL->merge($clientesProceso)->unique();
+
+            $clientesUnicos = $clientesUnicos->merge($clientesDelDia)->unique();
+
+            foreach ($clientesDelDia as $cliente) {
+                // Inicializar los datos del cliente si no existen
+                if (!isset($dataCliente[$cliente])) {
+                    $dataCliente[$cliente] = [
+                        'cliente' => $cliente,
+                        'fechas' => $fechasStr,
+                        'porcentajesErrorAQL' => array_fill(0, count($fechasStr), 0),
+                        'porcentajesErrorProceso' => array_fill(0, count($fechasStr), 0)
+                    ];
+                }
+
+                // Obtener datos de AQL
+                $sumaAuditadaAQL = AuditoriaAQL::where('cliente', $cliente)
+                    ->whereDate('created_at', $fechaStr)
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_auditada');
+                $sumaRechazadaAQL = AuditoriaAQL::where('cliente', $cliente)
+                    ->whereDate('created_at', $fechaStr)
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_rechazada');
+
+                $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
+
+                // Obtener datos de Procesos
+                $sumaAuditadaProceso = AseguramientoCalidad::where('cliente', $cliente)
+                    ->whereDate('created_at', $fechaStr)
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_auditada');
+                $sumaRechazadaProceso = AseguramientoCalidad::where('cliente', $cliente)
+                    ->whereDate('created_at', $fechaStr)
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_rechazada');
+
+                $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
+
+                // Encontrar el índice correspondiente a la fecha
+                $index = array_search($fechaStr, $fechasStr);
+
+                // Agregar datos al array dataCliente
+                $dataCliente[$cliente]['porcentajesErrorAQL'][$index] = $porcentajeErrorAQL;
+                $dataCliente[$cliente]['porcentajesErrorProceso'][$index] = $porcentajeErrorProceso;
+            }
         }
 
-        //dd($dataGerentes);
+        // Convertir dataCliente a la estructura esperada
+        $dataCliente = array_values($dataCliente);
 
-        //Fin de apartado para detalles para Planta 1
-
-
-        //Inicio apartado para detalles para Planta 2
-        // Obtener clientesPlanta2 y porcentajes de error por cliente
-        $clientesPlanta2 = AuditoriaAQL::whereNotNull('cliente')
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->where('planta', 'Intimark2')
-            ->orderBy('cliente')
-            ->pluck('cliente')
-            ->unique();
-        $porcentajesErrorPlanta2 = [];
-
-        foreach ($clientesPlanta2 as $cliente) {
-            $sumaAuditada = AuditoriaAQL::where('cliente', $cliente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark2')
-                ->sum('cantidad_auditada');
-            $sumaRechazada = AuditoriaAQL::where('cliente', $cliente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark2')
-                ->sum('cantidad_rechazada');
-
-            $porcentajeError = ($sumaAuditada != 0) ? ($sumaRechazada / $sumaAuditada) * 100 : 0;
-
-            $porcentajesErrorPlanta2[$cliente] = $porcentajeError;
-        }
-        arsort($porcentajesErrorPlanta2);
-
-        // Obtener operarios de máquina, porcentajes de error por operario y otras relaciones por operario
-        $modulosPlanta2 = AuditoriaAQL::whereNotNull('modulo')
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->where('planta', 'Intimark2')
-            ->orderBy('modulo')
-            ->pluck('modulo')
-            ->unique();
-        $porcentajesErrorModuloPlanta2 = [];
-        $operacionesPorModuloPlanta2 = [];
-        $teamLeaderPorModuloPlanta2 = [];
-        $moduloPorModuloPlanta2 = [];
-
-        foreach ($modulosPlanta2 as $modulo) {
-            $sumaAuditadaModulo = AuditoriaAQL::where('modulo', $modulo)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark2')
-                ->sum('cantidad_auditada');
-            $sumaRechazadaModulo = AuditoriaAQL::where('modulo', $modulo)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->sum('cantidad_rechazada');
-
-            $porcentajeErrorModuloPlanta2 = ($sumaAuditadaModulo != 0) ? ($sumaRechazadaModulo / $sumaAuditadaModulo) * 100 : 0;
-
-            $porcentajesErrorModuloPlanta2[$modulo] = $porcentajeErrorModuloPlanta2;
-
-            // Obtener la operación, el team leader y el módulo correspondientes al operario de máquina
-            $operacion = AuditoriaAQL::where('modulo', $modulo)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark2')
-                ->value('op');
-            $operacionesPorModuloPlanta2[$modulo] = $operacion;
-
-            $teamleader = AuditoriaAQL::where('modulo', $modulo)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark2')
-                ->value('team_leader');
-            $teamLeaderPorModuloPlanta2[$modulo] = $teamleader;
-
-            $moduloPorModuloPlanta2[$modulo] = $modulo;
-        }
-        arsort($porcentajesErrorModuloPlanta2);
-
-        // Obtener team leaders y porcentajes de error por team leader
-        $teamLeadersPlanta2 = AuditoriaAQL::where(function($query) {
-                $query->whereNull('jefe_produccion')
-                    ->orWhere('jefe_produccion', '0');
-            })
-            ->whereNotNull('team_leader')
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->where('planta', 'Intimark2')
-            ->orderBy('team_leader')
-            ->pluck('team_leader')
-            ->unique();
-        $porcentajesErrorTeamLeaderPlanta2 = [];
-
-        foreach ($teamLeadersPlanta2 as $teamLeader) {
-            $sumaAuditadaTeamLeader = AuditoriaAQL::where('team_leader', $teamLeader)
-                //->whereNull('jefe_produccion')
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark2')
-                ->sum('cantidad_auditada');
-            $sumaRechazadaTeamLeader = AuditoriaAQL::where('team_leader', $teamLeader)
-                //->whereNull('jefe_produccion')
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('planta', 'Intimark2')
-                ->sum('cantidad_rechazada');
-
-            $porcentajeErrorTeamLeaderPlanta2 = ($sumaAuditadaTeamLeader != 0) ? ($sumaRechazadaTeamLeader / $sumaAuditadaTeamLeader) * 100 : 0;
-
-            $porcentajesErrorTeamLeaderPlanta2[$teamLeader] = $porcentajeErrorTeamLeaderPlanta2;
-        }
-        arsort($porcentajesErrorTeamLeaderPlanta2);
-
-        //para jefes de produccion
-        // Obtener team leaders y porcentajes de error por team leader
-        $jefesProduccionPlanta2 = AuditoriaAQL::whereNotNull('team_leader')
-            ->where('jefe_produccion', 1)
-            ->where('planta', 'Intimark2')
-            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->orderBy('team_leader')
-            ->pluck('team_leader')
-            ->unique();
-        $porcentajesErrorJefeProduccionPlanta2 = [];
-
-        foreach ($jefesProduccionPlanta2 as $jefeProduccion) {
-            $sumaAuditadaJefeProduccion = AuditoriaAQL::where('team_leader', $jefeProduccion)
-                ->where('jefe_produccion', 1)
-                ->where('planta', 'Intimark2')
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->sum('cantidad_auditada');
-            $sumaRechazadaJefeProduccion = AuditoriaAQL::where('team_leader', $jefeProduccion)
-                ->where('jefe_produccion', 1)
-                ->where('planta', 'Intimark2')
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->sum('cantidad_rechazada');
-
-            $porcentajeErrorJefeProduccion = ($sumaAuditadaJefeProduccion != 0) ? ($sumaRechazadaJefeProduccion / $sumaAuditadaJefeProduccion) * 100 : 0;
-
-            $porcentajesErrorJefeProduccionPlanta2[$jefeProduccion] = $porcentajeErrorJefeProduccion;
-        }
-        arsort($porcentajesErrorJefeProduccionPlanta2);
-
-        //Fin de apartado para detalles para Planta 2
-
-        return view('dashboar.dashboarAProcesoAQL', compact('title', 'fechaInicio', 'fechaFin',
-            'clientes', 'porcentajesError',
-            'nombres', 'porcentajesErrorNombre', 'operacionesPorNombre', 'teamLeaderPorNombre', 'moduloPorNombre',
-            'teamLeaders', 'porcentajesErrorTeamLeader',
-            'jefesProduccion', 'porcentajesErrorJefeProduccion',
-            'modulosPlanta1', 'porcentajesErrorModuloPlanta1', 'operacionesPorModuloPlanta1', 'teamLeaderPorModuloPlanta1', 'moduloPorModuloPlanta1',
-            'teamLeadersPlanta1', 'porcentajesErrorTeamLeaderPlanta1',
-            'jefesProduccionPlanta1', 'porcentajesErrorJefeProduccionPlanta1',
-            'clientesPlanta2', 'porcentajesErrorPlanta2',
-            'modulosPlanta2', 'porcentajesErrorModuloPlanta2', 'operacionesPorModuloPlanta2', 'teamLeaderPorModuloPlanta2', 'moduloPorModuloPlanta2',
-            'teamLeadersPlanta2', 'porcentajesErrorTeamLeaderPlanta2',
-            'jefesProduccionPlanta2', 'porcentajesErrorJefeProduccionPlanta2',
-            'dataGerentes', 'dataGerentesTotales', 
-            'dataClientePlanta1', 'totalPorcentajeErrorAQL', 'totalPorcentajeErrorProceso'));
+        return [
+            'clientesUnicos' => $clientesUnicos,
+            'dataCliente' => $dataCliente
+        ];
     }
 
 

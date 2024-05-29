@@ -113,21 +113,20 @@
                                         </td>
                                         <td>
                                             <select name="modulo" id="modulo" class="form-control" required
-                                                title="Por favor, selecciona una opción">
+                                                title="Por favor, selecciona una opción" onchange="cargarOrdenesOP()">
                                                 <option value="" selected>Selecciona una opción</option>
-                                                <!-- Agrega el atributo selected aquí -->
                                                 <?php if($auditorPlanta == 'Planta1'): ?>
-                                                    <?php $__currentLoopData = $auditoriaProcesoIntimark1; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $moduloP1): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> 
+                                                    <?php $__currentLoopData = $auditoriaProcesoIntimark1; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $moduloP1): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                         <option value="<?php echo e($moduloP1->moduleid); ?>"
-                                                            data-itemid="<?php echo e($moduloP1->itemid); ?>">
+                                                            data-modulo="<?php echo e($moduloP1->moduleid); ?>">
                                                             <?php echo e($moduloP1->moduleid); ?>
 
                                                         </option>
                                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                 <?php elseif($auditorPlanta == 'Planta2'): ?>
-                                                    <?php $__currentLoopData = $auditoriaProcesoIntimark2; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $moduloP2): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> 
+                                                    <?php $__currentLoopData = $auditoriaProcesoIntimark2; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $moduloP2): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                         <option value="<?php echo e($moduloP2->moduleid); ?>"
-                                                            data-itemid="<?php echo e($moduloP2->itemid); ?>">
+                                                            data-modulo="<?php echo e($moduloP2->moduleid); ?>">
                                                             <?php echo e($moduloP2->moduleid); ?>
 
                                                         </option>
@@ -136,17 +135,10 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <select name="op" id="op" class="form-control" required 
-                                            title="Por favor, selecciona una opción">
-                                            <option value="" selected>Selecciona una opción</option>
-                                            <!-- Agrega el atributo selected aquí -->
-                                            <?php $__currentLoopData = $ordenOPs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $orden): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                <option value="<?php echo e($orden->prodid); ?>">
-                                                    <?php echo e($orden->prodid); ?>
-
-                                                </option>
-                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                        </select>
+                                            <select name="op" id="op" class="form-control" required
+                                                title="Por favor, selecciona una opción">
+                                                <option value="" selected>Selecciona una opción</option>
+                                            </select>
                                         </td>
                                         <td>
                                             <select name="team_leader" id="team_leader" class="form-control" required
@@ -548,6 +540,29 @@
     </script>
 
 
+    <script>
+        function cargarOrdenesOP() {
+            var moduloSeleccionado = $('#modulo').val();
+
+            $.ajax({
+                url: '/cargarOrdenesOP',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    modulo: moduloSeleccionado
+                },
+                method: 'POST',
+                success: function(data) {
+                    $('#op').empty(); // Limpiar el select de ordenesOP
+                    $('#op').append('<option value="">Selecciona una opción</option>');
+
+                    data.forEach(function(orden) {
+                        $('#op').append('<option value="' + orden.prodid + '">' + orden.prodid +
+                            '</option>');
+                    });
+                }
+            });
+        }
+    </script>
 
 
 

@@ -106,20 +106,19 @@
                                         </td>
                                         <td>
                                             <select name="modulo" id="modulo" class="form-control" required
-                                                title="Por favor, selecciona una opción">
+                                                title="Por favor, selecciona una opción" onchange="cargarOrdenesOP()">
                                                 <option value="" selected>Selecciona una opción</option>
-                                                <!-- Agrega el atributo selected aquí -->
                                                 @if ($auditorPlanta == 'Planta1')
-                                                    @foreach ($auditoriaProcesoIntimark1 as $moduloP1) 
+                                                    @foreach ($auditoriaProcesoIntimark1 as $moduloP1)
                                                         <option value="{{ $moduloP1->moduleid }}"
-                                                            data-itemid="{{ $moduloP1->itemid }}">
+                                                            data-modulo="{{ $moduloP1->moduleid }}">
                                                             {{ $moduloP1->moduleid }}
                                                         </option>
                                                     @endforeach
                                                 @elseif($auditorPlanta == 'Planta2')
-                                                    @foreach ($auditoriaProcesoIntimark2 as $moduloP2) 
+                                                    @foreach ($auditoriaProcesoIntimark2 as $moduloP2)
                                                         <option value="{{ $moduloP2->moduleid }}"
-                                                            data-itemid="{{ $moduloP2->itemid }}">
+                                                            data-modulo="{{ $moduloP2->moduleid }}">
                                                             {{ $moduloP2->moduleid }}
                                                         </option>
                                                     @endforeach
@@ -127,16 +126,10 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <select name="op" id="op" class="form-control" required 
-                                            title="Por favor, selecciona una opción">
-                                            <option value="" selected>Selecciona una opción</option>
-                                            <!-- Agrega el atributo selected aquí -->
-                                            @foreach ($ordenOPs as $orden)
-                                                <option value="{{ $orden->prodid }}">
-                                                    {{ $orden->prodid }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                            <select name="op" id="op" class="form-control" required
+                                                title="Por favor, selecciona una opción">
+                                                <option value="" selected>Selecciona una opción</option>
+                                            </select>
                                         </td>
                                         <td>
                                             <select name="team_leader" id="team_leader" class="form-control" required
@@ -536,6 +529,29 @@
     </script>
 
 
+    <script>
+        function cargarOrdenesOP() {
+            var moduloSeleccionado = $('#modulo').val();
+
+            $.ajax({
+                url: '/cargarOrdenesOP',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    modulo: moduloSeleccionado
+                },
+                method: 'POST',
+                success: function(data) {
+                    $('#op').empty(); // Limpiar el select de ordenesOP
+                    $('#op').append('<option value="">Selecciona una opción</option>');
+
+                    data.forEach(function(orden) {
+                        $('#op').append('<option value="' + orden.prodid + '">' + orden.prodid +
+                            '</option>');
+                    });
+                }
+            });
+        }
+    </script>
 
 
 
