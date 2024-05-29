@@ -52,31 +52,9 @@
     <!-- CSS -->
     <link href="<?php echo e(asset('black')); ?>/css/black-dashboard.css?v=1.0.0" rel="stylesheet" />
     <link href="<?php echo e(asset('black')); ?>/css/theme.css" rel="stylesheet" />
-    <!-- Google Tag Manager -->
-    <script>
-        (function(w, d, s, l, i) {
-            w[l] = w[l] || [];
-            w[l].push({
-                'gtm.start': new Date().getTime(),
-                event: 'gtm.js'
-            });
-            var f = d.getElementsByTagName(s)[0],
-                j = d.createElement(s),
-                dl = l != 'dataLayer' ? '&l=' + l : '';
-            j.async = true;
-            j.src =
-                'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-            f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', 'GTM-NKDMSK6');
-    </script>
-    <!-- End Google Tag Manager -->
 </head>
 
 <body class="">
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NKDMSK6" height="0" width="0"
-            style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
     <div class="wrapper">
         <div class="sidebar">
             <div class="sidebar-wrapper">
@@ -107,13 +85,13 @@
                                     <li class="nav-item">
                                         <a class="nav-link" href="<?php echo e(route('profile.edit')); ?>">
                                             <i class="tim-icons icon-single-02"></i>
-                                            <span class="sidebar-normal"><?php echo e(__('User profile')); ?> </span>
+                                            <span class="sidebar-normal"><?php echo e(__('Perfil de usuario')); ?> </span>
                                         </a>
                                     </li>
                                     <li class="nav-item active">
                                         <a class="nav-link" href="<?php echo e(route('user.index')); ?>">
                                             <i class="tim-icons icon-single-02"></i>
-                                            <span class="sidebar-normal"> <?php echo e(__('User Management')); ?> </span>
+                                            <span class="sidebar-normal"> <?php echo e(__('Administrador de Usuarios')); ?> </span>
                                         </a>
                                     </li>
                                 </ul>
@@ -250,40 +228,6 @@
                     </button>
                     <div class="collapse navbar-collapse" id="navigation">
                         <ul class="navbar-nav ml-auto">
-                            <li class="search-bar input-group">
-                                <button class="btn btn-link" id="search-button" data-toggle="modal"
-                                    data-target="#searchModal"><i class="tim-icons icon-zoom-split"></i>
-                                    <span class="d-lg-none d-md-block"><?php echo e(__('Search')); ?></span>
-                                </button>
-                            </li>
-                            <li class="dropdown nav-item">
-                                <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
-                                    <div class="notification d-none d-lg-block d-xl-block"></div>
-                                    <i class="tim-icons icon-sound-wave"></i>
-                                    <p class="d-lg-none"> <?php echo e(__('Notifications')); ?> </p>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-right dropdown-navbar">
-                                    <li class="nav-link">
-                                        <a href="#"
-                                            class="nav-item dropdown-item"><?php echo e(__('Mike John responded to your email')); ?></a>
-                                    </li>
-                                    <li class="nav-link">
-                                        <a href="#"
-                                            class="nav-item dropdown-item"><?php echo e(__('You have 5 more tasks')); ?></a>
-                                    </li>
-                                    <li class="nav-link">
-                                        <a href="#"
-                                            class="nav-item dropdown-item"><?php echo e(__('Your friend Michael is in town')); ?></a>
-                                    </li>
-                                    <li class="nav-link">
-                                        <a href="#"
-                                            class="nav-item dropdown-item"><?php echo e(__('Another notification')); ?></a>
-                                    </li>
-                                    <li class="nav-link">
-                                        <a href="#" class="nav-item dropdown-item"><?php echo e(__('Another one')); ?></a>
-                                    </li>
-                                </ul>
-                            </li>
                             <li class="dropdown nav-item">
                                 <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
                                     <div class="photo">
@@ -297,9 +241,6 @@
                                     <li class="nav-link">
                                         <a href="<?php echo e(route('profile.edit')); ?>"
                                             class="nav-item dropdown-item"><?php echo e(__('Profile')); ?></a>
-                                    </li>
-                                    <li class="nav-link">
-                                        <a href="#" class="nav-item dropdown-item"><?php echo e(__('Settings')); ?></a>
                                     </li>
                                     <li class="dropdown-divider"></li>
                                     <li class="nav-link">
@@ -350,9 +291,9 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="card bg-dark text-white">
-                                <div class="card-header bg-primary text-white">
-                                    <h4 class="card-title">Users</h4>
-                                    <p class="card-category">Here you can manage users</p>
+                                <div class="card-header bg-info text-white">
+                                    <h2 style="color: aliceblue; font-weight: bold;">Usuarios</h2>
+                                    <p style="color: aliceblue">Apartado para gestionar a los usuarios</p>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -366,13 +307,13 @@
                                         <table class="table table-hover table-dark">
                                             <thead class="text-primary">
                                                 <tr>
-                                                    <th>Name</th>
+                                                    <th>Nombre</th>
                                                     <th>No. Empleado</th>
-                                                    <th>Email</th>
+                                                    <th>Correo </th>
                                                     <th>Auditor</th>
                                                     <th>Puesto</th>
-                                                    <th>Creation date</th>
-                                                    <th>Status User</th>
+                                                    <th>Fecha de Creacion</th>
+                                                    <th>Estatus</th>
                                                     <th class="text-right">Actions</th>
                                                 </tr>
                                             </thead>
@@ -385,7 +326,7 @@
                                                         <td><?php echo e($user->tipo_auditor); ?></td>
                                                         <td><?php echo e($user->puesto); ?></td>
                                                         <td><?php echo e($user->created_at); ?></td>
-                                                        <td><?php echo e($user->Estatus); ?></td>
+                                                        <td style="font-weight: bold"><?php echo e($user->Estatus); ?></td>
                                                         <td class="td-actions text-right">
                                                             <div class="btn-group" role="group" aria-label="Acciones">
                                                                 <button class="btn btn-info btn-link editUserBtn" data-id="<?php echo e($user->no_empleado); ?>" data-name="<?php echo e($user->name); ?>" data-toggle="modal" data-target="#editModal">

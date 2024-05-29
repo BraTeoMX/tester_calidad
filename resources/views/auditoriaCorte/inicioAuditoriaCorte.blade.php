@@ -109,7 +109,7 @@
                                         <div class="card-body">
                                             <input type="text" id="searchInputAcordeon" class="form-control"
                                                 placeholder="Buscar por Proceso">
-                                            <!-- Desde aquí inicia la edición del código para mostrar el contenido -->
+                                            <!-- Desde aquí inicia la edición del código para mostrar el contenido --> 
                                             <div class="accordion" id="accordionExample">
                                                 @if($EncabezadoAuditoriaCorte->isNotEmpty())
                                                     @foreach ($EncabezadoAuditoriaCorte->unique('orden_id') as $encabezadoCorte)
@@ -156,7 +156,7 @@
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
-                                                                            @foreach ($EncabezadoAuditoriaCorte->where('orden_id', $encabezadoCorte->orden_id) as $encabezado)
+                                                                            @foreach ($EncabezadoAuditoriaCorteFiltro->where('orden_id', $encabezadoCorte->orden_id)->where('estatus', '!=', 'fin') as $encabezado)
                                                                                 <tr>
                                                                                     <td><a href="{{ route('auditoriaCorte.auditoriaCorte', ['id' => $encabezado->id, 'orden' => $encabezado->orden_id]) }}"
                                                                                         class="btn btn-primary">Acceder</a>
@@ -202,53 +202,94 @@
                     <div class="row">
                         <div class="col-md-6">
                             {{-- Inicio de Acordeon --}}
-                            <div class="accordion" id="accordionExample3">
+                            <div class="accordion" id="accordionExampleFinal">
                                 <div class="card">
-                                    <div class="card-header" id="headingOne3">
+                                    <div class="card-header" id="headingFinalOne">
                                         <h2 class="mb-0">
-                                            <button class="btn btn-success  btn-block" type="button" data-toggle="collapse"
-                                                data-target="#collapseOne3" aria-expanded="true"
-                                                aria-controls="collapseOne3">
+                                            <button class="btn btn-info btn-block" type="button"
+                                                data-toggle="collapse" data-target="#collapseFinalOne" aria-expanded="true"
+                                                aria-controls="collapseFinalOne">
                                                 ESTATUS: FINAL
                                             </button>
                                         </h2>
                                     </div>
-
-                                    <div id="collapseOne3" class="collapse show" aria-labelledby="headingOne3"
-                                        data-parent="#accordionExample3">
+                        
+                                    <div id="collapseFinalOne" class="collapse show" aria-labelledby="headingFinalOne"
+                                        data-parent="#accordionExampleFinal">
                                         <div class="card-body">
-                                            <input type="text" id="searchInputFin" class="form-control"
-                                                placeholder="Buscar por Proceso Final">
+                                            <input type="text" id="searchInputAcordeonFinal" class="form-control"
+                                                placeholder="Buscar por Operacion">
                                             <!-- Desde aquí inicia la edición del código para mostrar el contenido -->
-                                            <div class="table-responsive">
-                                                <table class="table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>iniciar</th>
-                                                            <th>Orden</th>
-                                                            <th>Estilo</th>
-                                                            <th>Planta</th>
-                                                            <th>Temporada</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody id="tablaBodyFin">
-                                                        @foreach ($DatoAXFin as $fin)
-                                                            <tr>
-                                                                <td><a href="{{ route('auditoriaCorte.auditoriaCorte', ['id' => $fin->id, 'orden' => $fin->op]) }}"
-                                                                        class="btn btn-primary">Acceder</a></td>
-                                                                <td>{{ $fin->op }} </td>
-                                                                <td>{{ $fin->estilo }}</td>
-                                                                <td>{{ $fin->planta }}</td>
-                                                                <td>{{ $fin->temporada }}</td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
+                                            <div class="accordion" id="accordionExampleFinalSub">
+                                                @if($EncabezadoAuditoriaCorteFinal->isNotEmpty())
+                                                    @foreach ($EncabezadoAuditoriaCorteFinal->unique('orden_id') as $encabezadoCorte)
+                                                        <div class="card proceso-card-final" data-proceso="{{ $encabezadoCorte->orden_id }}">
+                                                            <div class="card-header" id="headingFinal{{ $encabezadoCorte->orden_id }}">
+                                                                <h2 class="mb-0">
+                                                                    <button class="btn btn-success btn-block" type="button"
+                                                                        data-toggle="collapse"
+                                                                        data-target="#collapseFinal{{ $encabezadoCorte->orden_id }}"
+                                                                        aria-expanded="true"
+                                                                        aria-controls="collapseFinal{{ $encabezadoCorte->orden_id }}">
+                                                                        {{ $encabezadoCorte->orden_id }}
+                                                                    </button>
+                                                                </h2>
+                                                            </div>
+                                                            <div id="collapseFinal{{ $encabezadoCorte->orden_id }}" class="collapse"
+                                                                aria-labelledby="headingFinal{{ $encabezadoCorte->orden_id }}"
+                                                                data-parent="#accordionExampleFinalSub">
+                                                                <div class="card-body">
+                                                                    <div>
+                                                                    </div>
+                                                                    <table class="table">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>Acceso</th>
+                                                                                <th>Evento</th>
+                                                                                <th>Estilo</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            @foreach ($EncabezadoAuditoriaCorteFinal->where('orden_id', $encabezadoCorte->orden_id) as $encabezado)
+                                                                                <tr>
+                                                                                    <td><a href="{{ route('auditoriaCorte.auditoriaCorte', ['id' => $encabezado->id, 'orden' => $encabezado->orden_id]) }}"
+                                                                                        class="btn btn-primary">Acceder</a>
+                                                                                    </td>
+                                                                                    <td>{{ $encabezado->evento }}</td>
+                                                                                    <td>{{ $encabezado->estilo_id }}</td>
+                                                                                </tr>
+                                                                            @endforeach
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                @endif
                                             </div>
                                             <!--Fin del cuerpo del acordeon-->
                                         </div>
+                                        <script>
+                                            document.addEventListener("DOMContentLoaded", function() {
+                                                const searchInputFinal = document.getElementById('searchInputAcordeonFinal');
+                                                const procesoCardsFinal = document.querySelectorAll('.proceso-card-final');
+                        
+                                                searchInputFinal.addEventListener('input', function() {
+                                                    const busqueda = this.value.trim().toLowerCase();
+                                                    procesoCardsFinal.forEach(card => {
+                                                        const proceso = card.getAttribute('data-proceso').toLowerCase();
+                                                        if (proceso.includes(busqueda)) {
+                                                            card.style.display = 'block'; // Mostrar el acordeón
+                                                        } else {
+                                                            card.style.display = 'none'; // Ocultar el acordeón
+                                                        }
+                                                    });
+                                                });
+                                            });
+                                        </script>
                                     </div>
                                 </div>
+                                <!-- Fin del acordeón -->
                             </div>
                         </div>
                         <!-- Fin del acordeón -->
@@ -258,7 +299,7 @@
                                 <div class="card">
                                     <div class="card-header" id="headingOne4">
                                         <h2 class="mb-0">
-                                            <button class="btn btn-rechazado btn-block" type="button"
+                                            <button class="btn-rechazado btn-block" type="button"
                                                 data-toggle="collapse" data-target="#collapseOne4" aria-expanded="true"
                                                 aria-controls="collapseOne4">
                                                 ESTATUS: RECHAZADO
@@ -333,19 +374,53 @@
             }
 
             .btn-rechazado {
-                background-color: #FF5733;
-                /* Color de fondo naranja */
-                color: white;
-                /* Color de texto blanco */
-                border-color: #FF5733;
-                /* Color del borde igual al de fondo */
+                color: #fff !important;
+                background-color: #FF5733 !important;
+                border-color: #FF5733 !important;
+                box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08) !important;
+                padding: 0.5rem 2rem;
+                /* Aumenta el tamaño del botón */
+                font-size: 1rem;
+                /* Aumenta el tamaño de la fuente */
+                font-weight: bold;
+                /* Texto en negritas */
+                border-radius: 10px;
+                /* Ajusta las esquinas redondeadas */
+                transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+                cursor: pointer;
+                /* Cambia el cursor a una mano */
             }
 
             .btn-rechazado:hover {
-                background-color: #FF8C00;
-                /* Cambiar color de fondo al pasar el cursor */
-                border-color: #FF8C00;
-                /* Cambiar color del borde al pasar el cursor */
+                color: #fff !important;
+                background-color: #FF8C00 !important;
+                border-color: #FF8C00 !important;
+            }
+
+            .btn-rechazado:focus,
+            .btn-rechazado.focus {
+                box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08), 0 0 0 0.2rem rgba(255, 87, 51, 0.5) !important;
+            }
+
+            .btn-rechazado:disabled,
+            .btn-rechazado.disabled {
+                color: #fff !important;
+                background-color: #FF5733 !important;
+                border-color: #FF5733 !important;
+            }
+
+            .btn-rechazado:not(:disabled):not(.disabled).active,
+            .btn-rechazado:not(:disabled):not(.disabled):active,
+            .show>.btn-rechazado.dropdown-toggle {
+                color: #fff !important;
+                background-color: #E6501C !important;
+                border-color: #CC4717 !important;
+            }
+
+            .btn-rechazado:not(:disabled):not(.disabled).active:focus,
+            .btn-rechazado:not(:disabled):not(.disabled).active:focus,
+            .show>.btn-rechazado.dropdown-toggle:focus {
+                box-shadow: none, 0 0 0 0.2rem rgba(255, 87, 51, 0.5) !important;
             }
         </style>
         <script>

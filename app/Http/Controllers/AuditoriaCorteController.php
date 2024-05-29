@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; 
 use App\Models\User;
 use App\Models\CategoriaAuditor;
 use App\Models\CategoriaTecnico;
@@ -78,7 +78,8 @@ class AuditoriaCorteController extends Controller
                            ->get(),
             'DatoAXFin' => DatoAX::where('estatus', 'fin')->get(),
             'DatoAXRechazado' => DatoAX::where('estatus', 'rechazado')->get(),
-            'EncabezadoAuditoriaCorte' => EncabezadoAuditoriaCorte::all(),
+            'EncabezadoAuditoriaCorteFiltro' => EncabezadoAuditoriaCorte::all(),
+            'EncabezadoAuditoriaCorteFinal' => EncabezadoAuditoriaCorte::where('estatus', 'fin')->get(),
             'auditoriasMarcadas' => AuditoriaMarcada::all(),
             'CategoriaAccionCorrectiva' => CategoriaAccionCorrectiva::where('estado', 1)->where('area', '0')->get(),
         ];
@@ -88,13 +89,26 @@ class AuditoriaCorteController extends Controller
     {
         $pageSlug ='';
         $categorias = $this->cargarCategorias();
+        $encabezados = EncabezadoAuditoriaCorte::all();
+
+        // Filtrar los registros para eliminar aquellos cuya 'orden_id' tenga todos los 'estatus' iguales a 'fin'
+        $filteredEncabezados = $encabezados->filter(function ($item) use ($encabezados) {
+            // Obtén todos los registros con el mismo 'orden_id'
+            $ordenItems = $encabezados->where('orden_id', $item->orden_id);
+            // Verifica si todos los 'estatus' son 'fin'
+            $allFin = $ordenItems->every(function ($value) {
+                return $value->estatus === 'fin';
+            });
+            // Retorna true si no todos los 'estatus' son 'fin', para incluir en el filtrado
+            return !$allFin;
+        });
 
 
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
 
-        return view('auditoriaCorte.inicioAuditoriaCorte', array_merge($categorias, ['mesesEnEspanol' => $mesesEnEspanol, 'pageSlug' => $pageSlug]));
+        return view('auditoriaCorte.inicioAuditoriaCorte', array_merge($categorias, ['mesesEnEspanol' => $mesesEnEspanol, 'pageSlug' => $pageSlug, 'EncabezadoAuditoriaCorte' => $filteredEncabezados]));
     }
 
     public function auditoriaCorte($id, $orden)
