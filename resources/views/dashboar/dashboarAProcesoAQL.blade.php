@@ -122,7 +122,6 @@
             </div>
         </div>
     </div>
-    
 
     <style>
         .chart-area {
@@ -247,22 +246,22 @@
     $(document).ready(function() {
       // Lista de colores
       var colores = [
-        'rgba(75, 192, 192, 1)',
-        'rgba(153, 102, 255, 1)',
-        'rgba(255, 99, 132, 1)',
-        'rgba(54, 162, 235, 1)',
-        'rgba(255, 206, 86, 1)',
-        'rgba(75, 192, 192, 1)',
-        'rgba(153, 102, 255, 1)',
-        'rgba(255, 99, 132, 1)',
-        'rgba(54, 162, 235, 1)',
-        'rgba(255, 206, 86, 1)',
-        'rgba(75, 192, 192, 1)',
-        'rgba(153, 102, 255, 1)',
-        'rgba(255, 99, 132, 1)',
-        'rgba(54, 162, 235, 1)',
-        'rgba(255, 206, 86, 1)'
-      ];
+            'rgba(75, 192, 192, 1)',   // Teal
+            'rgba(153, 102, 255, 1)', // Light Purple
+            'rgba(255, 99, 132, 1)',  // Red
+            'rgba(54, 162, 235, 1)',  // Blue
+            'rgba(255, 206, 86, 1)',  // Yellow
+            'rgba(255, 159, 64, 1)',  // Orange
+            'rgba(199, 199, 199, 1)', // Gray
+            'rgba(255, 99, 255, 1)',  // Pink
+            'rgba(99, 255, 132, 1)',  // Light Green
+            'rgba(99, 132, 255, 1)',  // Light Blue
+            'rgba(132, 99, 255, 1)',  // Purple
+            'rgba(192, 75, 192, 1)',  // Magenta
+            'rgba(235, 162, 54, 1)',  // Brown
+            'rgba(86, 255, 206, 1)',  // Cyan
+            'rgba(64, 159, 255, 1)'   // Sky Blue
+        ];
 
       // Inicializa las gráficas
       var ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');

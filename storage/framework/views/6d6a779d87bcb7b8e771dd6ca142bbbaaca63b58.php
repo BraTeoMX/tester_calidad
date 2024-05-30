@@ -122,7 +122,6 @@
             </div>
         </div>
     </div>
-    
 
     <style>
         .chart-area {
