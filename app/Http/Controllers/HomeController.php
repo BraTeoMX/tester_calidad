@@ -31,7 +31,7 @@ class HomeController extends Controller
     {
         $title = "";
         $fechaActual = Carbon::now()->toDateString();
-        $fechaInicio = Carbon::now()->subMonth()->toDateString(); // Cambia el rango de fechas según necesites
+        $fechaInicio = Carbon::now()->subDays(15)->toDateString(); // Cambia el rango de fechas según necesites
         $fechaFin = Carbon::now()->toDateString();
 
 

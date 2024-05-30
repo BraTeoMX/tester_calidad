@@ -172,6 +172,28 @@ class DashboardController extends Controller
             list($year, $week) = explode('-', $semana);
             return $this->calcularPorcentajePorSemana(AseguramientoCalidad::class, $year, $week);
         });
+        // Datos para las gráficas de clientes
+        $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
+        $clientesGrafica = collect($dataGrafica['clientesUnicos'])->toArray();
+        $semanasGrafica = $semanas->toArray();
+        $datasetsAQL = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
+            return [
+                'label' => $clienteData['cliente'],
+                'data' => $clienteData['porcentajesErrorAQL'],
+                'borderColor' => 'rgba(75, 192, 192, 1)',
+                'borderWidth' => 1,
+                'fill' => false
+            ];
+        })->toArray();
+        $datasetsProceso = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
+            return [
+                'label' => $clienteData['cliente'],
+                'data' => $clienteData['porcentajesErrorProceso'],
+                'borderColor' => 'rgba(153, 102, 255, 1)',
+                'borderWidth' => 1,
+                'fill' => false
+            ];
+        })->toArray();
 
         // Datos generales
         $dataGeneral = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
@@ -211,7 +233,8 @@ class DashboardController extends Controller
         return view('dashboar.dashboarAProcesoAQL', compact('title', 'semanas', 'porcentajesAQL', 'porcentajesProceso',
             'semanasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica', 'dataGeneral', 'totalGeneral', 
             'dataGerentesGeneral', 'dataModulosGeneral', 'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2', 
-            'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2', 'topDefectosAQL', 'topDefectosProceso'));
+            'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2', 'topDefectosAQL', 'topDefectosProceso',
+            'fechaInicio', 'fechaFin', 'dataModuloAQLGeneral', 'dataModuloProcesoGeneral'));
     }
 
     private function calcularPorcentajePorSemana($modelo, $year, $week)
@@ -303,6 +326,10 @@ class DashboardController extends Controller
                 // Agregar datos al array dataCliente
                 $dataCliente[$cliente]['porcentajesErrorAQL'][$index] = $porcentajeErrorAQL;
                 $dataCliente[$cliente]['porcentajesErrorProceso'][$index] = $porcentajeErrorProceso;
+
+                // Agregar también las claves porcentajeErrorProceso y porcentajeErrorAQL al nivel superior
+                $dataCliente[$cliente]['porcentajeErrorAQL'] = array_sum($dataCliente[$cliente]['porcentajesErrorAQL']) / count($dataCliente[$cliente]['porcentajesErrorAQL']);
+                $dataCliente[$cliente]['porcentajeErrorProceso'] = array_sum($dataCliente[$cliente]['porcentajesErrorProceso']) / count($dataCliente[$cliente]['porcentajesErrorProceso']);
             }
         }
 

@@ -127,24 +127,47 @@
         <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title"> <i class="tim-icons icon-shape-star text-primary"></i> Clientes</h4>
-                    <p class="card-category d-inline"> Dia actual</p>
-
+                    <h4 class="card-title"><i class="tim-icons icon-shape-star text-primary"></i> Clientes</h4>
+                    <p class="card-category d-inline"> Rango de Fechas: <?php echo e($fechaInicio); ?> - <?php echo e($fechaFin); ?></p>
                 </div>
                 <div class="card-body">
-                    
+                    <div class="table-responsive">
+                        <table id="tablaClientes" class="table tablesorter">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>% Error Proceso</th>
+                                    <th>% Error AQL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $__currentLoopData = $dataGeneral['dataCliente']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $clienteData): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <tr>
+                                    <td><?php echo e($clienteData['cliente']); ?></td>
+                                    <td><?php echo e(number_format($clienteData['porcentajeErrorProceso'], 2)); ?>%</td>
+                                    <td><?php echo e(number_format($clienteData['porcentajeErrorAQL'], 2)); ?>%</td>
+                                </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </tbody>
+                            <tr style="background: #1d1c1c;">
+                                <td>GENERAL</td>
+                                <td><?php echo e(number_format($totalGeneral['totalPorcentajeErrorProceso'], 2)); ?>%</td>
+                                <td><?php echo e(number_format($totalGeneral['totalPorcentajeErrorAQL'], 2)); ?>%</td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title">Responsables AQL <i class="tim-icons icon-app text-success"></i> y PROCESO <i class="tim-icons icon-vector text-primary"></i></h4>
-                    <p class="card-category d-inline"> Dia actual</p>
+                    <h4 class="card-title">Responsables <i class="tim-icons icon-app text-success"></i>&nbsp; AQL  y &nbsp;<i class="tim-icons icon-vector text-primary"></i>&nbsp; PROCESO </h4>
+                    <p class="card-category d-inline"> Rango de Fechas: <?php echo e($fechaInicio); ?> - <?php echo e($fechaFin); ?></p>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table tablesorter" id="">
+                        <table class="table tablesorter" id="tablaDinamico">
                             <thead class="text-primary">
                                 <tr>
                                     <th>Gerentes Produccion</th>
@@ -169,12 +192,12 @@
         <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title">Modulos AQL <i class="tim-icons icon-app text-success"></i> y PROCESO <i class="tim-icons icon-vector text-primary"></i></h4>
-                    <p class="card-category d-inline"> Dia actual</p>
+                    <h4 class="card-title">Modulos &nbsp;<i class="tim-icons icon-app text-success"></i>&nbsp;  AQL y  &nbsp;<i class="tim-icons icon-vector text-primary"></i> &nbsp;PROCESO</h4>
+                    <p class="card-category d-inline"> Rango de Fechas: <?php echo e($fechaInicio); ?> - <?php echo e($fechaFin); ?></p>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table tablesorter">
+                        <table class="table tablesorter" id="tablaDinamico2">
                             <thead class="text-primary">
                                 <tr>
                                     <th>Modulo</th>
@@ -203,11 +226,11 @@
         <div class="col-lg-6 col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
-                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general</h3>
+                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i>&nbsp; Modulo AQL general</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table tablesorter" id="">
+                        <table class="table tablesorter" id="tablaDinamico3">
                             <thead class=" text-primary">
                                 <tr>
                                     <th>Modulo (AQL)</th>
@@ -240,11 +263,11 @@
         <div class="col-lg-6 col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
-                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general</h3>
+                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i>&nbsp; Modulo Proceso general</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table tablesorter" id="">
+                        <table class="table tablesorter" id="tablaDinamico4">
                             <thead class=" text-primary">
                                 <tr>
                                     <th>Modulo (Proceso)</th>
@@ -522,6 +545,75 @@
                 $('#clienteChartProcesos').show();
                 chartClienteProcesos.update();
             });
+        });
+    </script>
+
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
+    <!-- DataTables JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+
+
+    <script>
+        $(document).ready(function() {
+            // Verifica si la tabla ya está inicializada antes de inicializarla nuevamente
+            if (!$.fn.dataTable.isDataTable('#tablaClientes')) {
+                $('#tablaClientes').DataTable({
+                    lengthChange: false,
+                    searching: false,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true,
+                });
+            }
+        
+            if (!$.fn.dataTable.isDataTable('#tablaDinamico')) {
+                $('#tablaDinamico').DataTable({
+                    lengthChange: false,
+                    searching: false,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true,
+                });
+            }
+        
+            if (!$.fn.dataTable.isDataTable('#tablaDinamico2')) {
+                $('#tablaDinamico2').DataTable({
+                    lengthChange: false,
+                    searching: false,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true,
+                });
+            }
+        
+            if (!$.fn.dataTable.isDataTable('#tablaDinamico3')) {
+                $('#tablaDinamico3').DataTable({
+                    lengthChange: false,
+                    searching: false,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true,
+                });
+            }
+        
+            if (!$.fn.dataTable.isDataTable('#tablaDinamico4')) {
+                $('#tablaDinamico4').DataTable({
+                    lengthChange: false,
+                    searching: false,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true,
+                });
+            }
         });
     </script>
 <?php $__env->stopPush(); ?>
