@@ -173,40 +173,6 @@ class DashboardController extends Controller
             return $this->calcularPorcentajePorSemana(AseguramientoCalidad::class, $year, $week);
         });
 
-        // Datos para las gráficas de clientes
-        $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
-        $clientesGrafica = collect($dataGrafica['clientesUnicos'])->toArray();
-        $semanasGrafica = $semanas->toArray();
-        $datasetsAQL = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
-            return [
-                'label' => $clienteData['cliente'],
-                'data' => $clienteData['porcentajesErrorAQL'],
-                'borderColor' => 'rgba(75, 192, 192, 1)',
-                'borderWidth' => 1,
-                'fill' => false
-            ];
-        })->toArray();
-        $datasetsProceso = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
-            return [
-                'label' => $clienteData['cliente'],
-                'data' => $clienteData['porcentajesErrorProceso'],
-                'borderColor' => 'rgba(153, 102, 255, 1)',
-                'borderWidth' => 1,
-                'fill' => false
-            ];
-        })->toArray();
-
-        // Adaptar las funciones para trabajar con el rango de fechas
-        function calcularPorcentaje($modelo, $fechaInicio, $fechaFin, $planta = null) {
-            $query = $modelo::whereBetween('created_at', [$fechaInicio, $fechaFin]);
-            if ($planta) {
-                $query->where('planta', $planta);
-            }
-            $data = $query->selectRaw('SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada')
-                        ->first();
-            return $data->cantidad_auditada != 0 ? number_format(($data->cantidad_rechazada / $data->cantidad_auditada) * 100, 2) : 0;
-        }
-
         // Datos generales
         $dataGeneral = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
         $totalGeneral = $this->calcularTotales($dataGeneral['dataCliente'], $fechaInicio, $fechaFin);
@@ -242,7 +208,7 @@ class DashboardController extends Controller
             ->limit(3)
             ->get();
 
-            return view('dashboar.dashboarAProcesoAQL', compact('title', 'semanas', 'porcentajesAQL', 'porcentajesProceso',
+        return view('dashboar.dashboarAProcesoAQL', compact('title', 'semanas', 'porcentajesAQL', 'porcentajesProceso',
             'semanasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica', 'dataGeneral', 'totalGeneral', 
             'dataGerentesGeneral', 'dataModulosGeneral', 'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2', 
             'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2', 'topDefectosAQL', 'topDefectosProceso'));

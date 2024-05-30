@@ -127,12 +127,35 @@
         <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title"> <i class="tim-icons icon-shape-star text-primary"></i> Clientes</h4>
-                    <p class="card-category d-inline"> Dia actual</p>
-
+                    <h4 class="card-title"><i class="tim-icons icon-shape-star text-primary"></i> Clientes</h4>
+                    <p class="card-category d-inline"> Rango de Fechas: {{ $fechaInicio }} - {{ $fechaFin }}</p>
                 </div>
                 <div class="card-body">
-                    
+                    <div class="table-responsive">
+                        <table id="tablaClientes" class="table tablesorter">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>% Error Proceso</th>
+                                    <th>% Error AQL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($dataGeneral['dataCliente'] as $clienteData)
+                                <tr class="{{ $clienteData['porcentajeErrorProceso'] > 9 && $clienteData['porcentajeErrorProceso'] <= 15 ? 'error-bajo' : ($clienteData['porcentajeErrorProceso'] > 15 ? 'error-alto' : '') }}">
+                                    <td>{{ $clienteData['cliente'] }}</td>
+                                    <td>{{ number_format($clienteData['porcentajeErrorProceso'], 2) }}%</td>
+                                    <td>{{ number_format($clienteData['porcentajeErrorAQL'], 2) }}%</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                            <tr style="background: #1d1c1c;">
+                                <td>GENERAL</td>
+                                <td>{{ number_format($totalGeneral['totalPorcentajeErrorProceso'], 2) }}%</td>
+                                <td>{{ number_format($totalGeneral['totalPorcentajeErrorAQL'], 2) }}%</td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -140,7 +163,7 @@
             <div class="card ">
                 <div class="card-header">
                     <h4 class="card-title">Responsables AQL <i class="tim-icons icon-app text-success"></i> y PROCESO <i class="tim-icons icon-vector text-primary"></i></h4>
-                    <p class="card-category d-inline"> Dia actual</p>
+                    <p class="card-category d-inline"> Rango de Fechas: {{ $fechaInicio }} - {{ $fechaFin }}</p>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -170,7 +193,7 @@
             <div class="card ">
                 <div class="card-header">
                     <h4 class="card-title">Modulos AQL <i class="tim-icons icon-app text-success"></i> y PROCESO <i class="tim-icons icon-vector text-primary"></i></h4>
-                    <p class="card-category d-inline"> Dia actual</p>
+                    <p class="card-category d-inline"> Rango de Fechas: {{ $fechaInicio }} - {{ $fechaFin }}</p>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
