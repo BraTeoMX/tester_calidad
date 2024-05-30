@@ -1,6 +1,6 @@
 @extends('layouts.app', ['pageSlug' => 'dashboard'])
 
-@section('content')
+@section('content') 
     <div class="row">
         <div class="col-md-12">
             <!--Desde aqui inicia la edicion del codigo para mostrar el contenido-->
