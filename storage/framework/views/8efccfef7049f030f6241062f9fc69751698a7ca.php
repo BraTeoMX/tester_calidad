@@ -194,7 +194,7 @@
                                         <tr>
                                             <input type="hidden" name="nombre_hidden" id="nombre_hidden" value="">
                                             <td>
-                                                <button class="btn btn-secondary" type="button" onclick="resetForm()">Restablecer</button>
+                                                <button class="btn btn-secondary btn-block" type="button" onclick="resetForm()">Restablecer</button>
                                                 <select name="nombre" id="nombre" class="form-control" required title="Por favor, selecciona una opción" onchange="showOtherOptions()">
                                                     <option value="">Selecciona una opción</option>
                                                     <option value="OTRO">OTRO</option>

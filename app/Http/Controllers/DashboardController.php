@@ -143,67 +143,40 @@ class DashboardController extends Controller
                 'teamLeaders', 'porcentajesErrorTeamLeader'));
     }
 
-    public function dashboarAProcesoAQL(Request $request) 
+    public function dashboarAProcesoAQL(Request $request)  
     {
         $title = "";
         if($request->fecha_fin){
-            $fechaInicio1 = $request->input('fecha_inicio', Carbon::now()->format('Y-m-d') . ' 00:00:00');
-            $fechaInicio = $fechaInicio1 . ' 00:00:00';
-            $fechaFin1 = $request->input('fecha_fin', Carbon::now()->format('Y-m-d') . ' 23:59:59');
-            $fechaFin = $fechaFin1 . ' 23:59:59';
-            $fechaActual = Carbon::now()->toDateString();
-
-            // Convertir a instancias de Carbon
-            $fechaInicio = Carbon::parse($fechaInicio);
-            $fechaFin = Carbon::parse($fechaFin);
-            
-            // Obtener el rango de semanas
-            $startWeek = $fechaInicio->copy()->startOfWeek();
-            $endWeek = $fechaFin->copy()->endOfWeek();
-            
-            $semanas = collect();
-            $currentWeek = $startWeek->copy();
-
-            while ($currentWeek <= $endWeek) {
-                $semanas->push($currentWeek->format('Y-W')); // Formato Año-Semana
-                $currentWeek->addWeek();
-            }
-        }else{
-            $fechaActual = Carbon::now()->toDateString();
-            $fechaInicio = Carbon::now()->subDays(15)->toDateString(); // Cambia el rango de fechas según necesites
-            $fechaFin = Carbon::now()->toDateString();
-        }
-        
-        //dd($fechaInicio, $fechaFin);
-        //dd($request->all());
-        // Obtener el rango de fechas
-        $fechas = collect();
-        $period = Carbon::parse($fechaInicio)->daysUntil(Carbon::parse($fechaFin));
-        foreach ($period as $date) {
-            $fechas->push($date->format('Y-m-d'));
+            $fechaInicio = Carbon::parse($request->input('fecha_inicio'))->startOfWeek();
+            $fechaFin = Carbon::parse($request->input('fecha_fin'))->endOfWeek();
+        } else {
+            $fechaFin = Carbon::now()->endOfWeek();
+            $fechaInicio = $fechaFin->copy()->subWeeks(2)->startOfWeek();
         }
 
-
-        // Función para calcular el porcentaje de error
-        function calcularPorcentaje($modelo, $fecha) {
-            $data = $modelo::whereDate('created_at', $fecha)
-                        ->selectRaw('SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada')
-                        ->first();
-            return $data->cantidad_auditada != 0 ? number_format(($data->cantidad_rechazada / $data->cantidad_auditada) * 100, 2) : 0;
+        // Obtener las semanas en el rango
+        $semanas = collect();
+        $currentWeek = $fechaInicio->copy();
+        while ($currentWeek <= $fechaFin) {
+            $semanas->push($currentWeek->format('Y-W')); // Formato Año-Semana
+            $currentWeek->addWeek();
         }
 
-        // Calcular porcentajes AQL y Proceso para cada fecha
-        $porcentajesAQL = $fechas->map(function($fecha) {
-            return calcularPorcentaje(AuditoriaAQL::class, $fecha);
+        // Calcular porcentajes AQL y Proceso para cada semana
+        $porcentajesAQL = $semanas->map(function($semana) {
+            list($year, $week) = explode('-', $semana);
+            return $this->calcularPorcentajePorSemana(AuditoriaAQL::class, $year, $week);
         });
-        $porcentajesProceso = $fechas->map(function($fecha) {
-            return calcularPorcentaje(AseguramientoCalidad::class, $fecha);
+
+        $porcentajesProceso = $semanas->map(function($semana) {
+            list($year, $week) = explode('-', $semana);
+            return $this->calcularPorcentajePorSemana(AseguramientoCalidad::class, $year, $week);
         });
 
         // Datos para las gráficas de clientes
         $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
         $clientesGrafica = collect($dataGrafica['clientesUnicos'])->toArray();
-        $fechasGrafica = collect($dataGrafica['dataCliente'][0]['fechas'])->toArray();
+        $semanasGrafica = $semanas->toArray();
         $datasetsAQL = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
             return [
                 'label' => $clienteData['cliente'],
@@ -223,30 +196,38 @@ class DashboardController extends Controller
             ];
         })->toArray();
 
-        //dd($gerentesProduccionAQL, $gerentesProduccionProceso, $gerentesProduccion, $data);
-        return view('dashboar.dashboarAProcesoAQL', compact('title', 'fechas', 'porcentajesAQL', 'porcentajesProceso',
-        'fechasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica'));
-
+        return view('dashboar.dashboarAProcesoAQL', compact('title', 'semanas', 'porcentajesAQL', 'porcentajesProceso',
+        'semanasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica'));
     }
 
+    private function calcularPorcentajePorSemana($modelo, $year, $week)
+    {
+        $startOfWeek = Carbon::now()->setISODate($year, $week)->startOfWeek();
+        $endOfWeek = $startOfWeek->copy()->endOfWeek();
+        $data = $modelo::whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                    ->selectRaw('SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada')
+                    ->first();
+        return $data->cantidad_auditada != 0 ? number_format(($data->cantidad_rechazada / $data->cantidad_auditada) * 100, 2) : 0;
+    }
 
     private function obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin, $planta = null)
     {
         $clientesUnicos = collect();
         $dataCliente = [];
 
-        // Iterar sobre cada día en el rango
-        $fechas = CarbonPeriod::create($fechaInicio, '1 day', $fechaFin)->toArray();
-        $fechasStr = array_map(function ($fecha) {
-            return $fecha->toDateString();
-        }, $fechas);
+        // Iterar sobre cada semana en el rango
+        $period = CarbonPeriod::create($fechaInicio, '1 week', $fechaFin)->toArray();
+        $semanasStr = array_map(function ($date) {
+            return $date->format('Y-W');
+        }, $period);
 
-        foreach ($fechas as $fecha) {
-            $fechaStr = $fecha->toDateString();
+        foreach ($period as $week) {
+            $startOfWeek = $week->startOfWeek()->toDateString();
+            $endOfWeek = $week->endOfWeek()->toDateString();
 
-            // Obtener clientes únicos para la fecha actual
-            $queryAQL = AuditoriaAQL::whereNotNull('cliente')->whereDate('created_at', $fechaStr);
-            $queryProceso = AseguramientoCalidad::whereNotNull('cliente')->whereDate('created_at', $fechaStr);
+            // Obtener clientes únicos para la semana actual
+            $queryAQL = AuditoriaAQL::whereNotNull('cliente')->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
+            $queryProceso = AseguramientoCalidad::whereNotNull('cliente')->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
 
             if ($planta) {
                 $queryAQL->where('planta', $planta);
@@ -264,21 +245,21 @@ class DashboardController extends Controller
                 if (!isset($dataCliente[$cliente])) {
                     $dataCliente[$cliente] = [
                         'cliente' => $cliente,
-                        'fechas' => $fechasStr,
-                        'porcentajesErrorAQL' => array_fill(0, count($fechasStr), 0),
-                        'porcentajesErrorProceso' => array_fill(0, count($fechasStr), 0)
+                        'semanas' => $semanasStr,
+                        'porcentajesErrorAQL' => array_fill(0, count($semanasStr), 0),
+                        'porcentajesErrorProceso' => array_fill(0, count($semanasStr), 0)
                     ];
                 }
 
                 // Obtener datos de AQL
                 $sumaAuditadaAQL = AuditoriaAQL::where('cliente', $cliente)
-                    ->whereDate('created_at', $fechaStr)
+                    ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
                     ->when($planta, function ($query) use ($planta) {
                         return $query->where('planta', $planta);
                     })
                     ->sum('cantidad_auditada');
                 $sumaRechazadaAQL = AuditoriaAQL::where('cliente', $cliente)
-                    ->whereDate('created_at', $fechaStr)
+                    ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
                     ->when($planta, function ($query) use ($planta) {
                         return $query->where('planta', $planta);
                     })
@@ -288,13 +269,13 @@ class DashboardController extends Controller
 
                 // Obtener datos de Procesos
                 $sumaAuditadaProceso = AseguramientoCalidad::where('cliente', $cliente)
-                    ->whereDate('created_at', $fechaStr)
+                    ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
                     ->when($planta, function ($query) use ($planta) {
                         return $query->where('planta', $planta);
                     })
                     ->sum('cantidad_auditada');
                 $sumaRechazadaProceso = AseguramientoCalidad::where('cliente', $cliente)
-                    ->whereDate('created_at', $fechaStr)
+                    ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
                     ->when($planta, function ($query) use ($planta) {
                         return $query->where('planta', $planta);
                     })
@@ -302,8 +283,8 @@ class DashboardController extends Controller
 
                 $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
 
-                // Encontrar el índice correspondiente a la fecha
-                $index = array_search($fechaStr, $fechasStr);
+                // Encontrar el índice correspondiente a la semana
+                $index = array_search($week->format('Y-W'), $semanasStr);
 
                 // Agregar datos al array dataCliente
                 $dataCliente[$cliente]['porcentajesErrorAQL'][$index] = $porcentajeErrorAQL;
