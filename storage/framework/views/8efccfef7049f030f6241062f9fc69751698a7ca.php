@@ -338,13 +338,13 @@
                                             <td><input type="text" class="form-control" name="cantidad_rechazada"
                                                     id="cantidad_rechazada" required></td>
                                             <td>
-                                                <select name="tp[]" id="tp" class="form-control" required multiple title="Por favor, selecciona una opción"> 
+                                                <select name="tp[]" id="tpSelect" class="form-control" required multiple title="Por favor, selecciona una opción"> 
                                                     <option value="">Selecciona una opción</option>
                                                     <option value="NINGUNO">NINGUNO</option>
                                                     <option value="OTRO">OTRO</option>
                                                     <?php if($data['area'] == 'AUDITORIA EN PROCESO'): ?>
                                                         <?php $__currentLoopData = $categoriaTPProceso; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $proceso): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                               <option value="<?php echo e($proceso->nombre); ?>"><?php echo e($proceso->nombre); ?></option>
+                                                            <option value="<?php echo e($proceso->nombre); ?>"><?php echo e($proceso->nombre); ?></option>
                                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                     <?php elseif($data['area'] == 'AUDITORIA EN PROCESO PLAYERA'): ?>
                                                         <?php $__currentLoopData = $categoriaTPPlayera; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $playera): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -357,7 +357,7 @@
                                                     <?php endif; ?>
                                                 </select>
                                             </td>
-                                                    
+                                            
                                             <td>
                                                 <select name="ac" id="ac" class="form-control" required
                                                     title="Por favor, selecciona una opción">
@@ -394,6 +394,26 @@
                             <button type="submit" class="btn-verde-xd">GUARDAR</button>
                         <?php endif; ?>
                     </form>
+                    <!-- Modal -->
+                    <div class="modal fade" id="nuevoConceptoModal" tabindex="-1" role="dialog" aria-labelledby="nuevoConceptoModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content bg-dark text-white">
+                                <div class="modal-header">
+                                    <h5 id="nuevoConceptoModalLabel">Introduce el nuevo concepto</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true" class="text-white">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="text" class="form-control bg-dark text-white" id="nuevoConceptoInput" placeholder="Nuevo concepto">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="guardarNuevoConcepto">Guardar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <hr>
                     <!--Desde aqui inicia la edicion del codigo para mostrar el contenido-->
                     <?php if($mostrarRegistro): ?>
@@ -691,13 +711,71 @@
     </style>
 
     <script>
-        $('#tp').select2({
+        $(document).ready(function() {
+            $('#tpSelect').select2({
                 placeholder: 'Seleccione una o varias opciones',
                 allowClear: true,
-                multiple: true // Esta opción permite la selección múltiple
+                multiple: true
             });
+    
+            $('#tpSelect').on('change', function() {
+                let selectedOptions = $(this).val();
+                if (selectedOptions.includes('OTRO')) {
+                    $('#nuevoConceptoModal').modal('show');
+                }
+            });
+    
+            $('#guardarNuevoConcepto').on('click', function() {
+                let nuevoConcepto = $('#nuevoConceptoInput').val();
+                if (nuevoConcepto) {
+                    let area = '';
+                    <?php if($data['area'] == 'AUDITORIA EN PROCESO'): ?>
+                        area = 'proceso';
+                    <?php elseif($data['area'] == 'AUDITORIA EN PROCESO PLAYERA'): ?>
+                        area = 'playera';
+                    <?php elseif($data['area'] == 'AUDITORIA EN EMPAQUE'): ?>
+                        area = 'empaque';
+                    <?php endif; ?>
+    
+                    fetch('<?php echo e(route('categoria_tipo_problema.store')); ?>', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+                        },
+                        body: JSON.stringify({
+                            nombre: nuevoConcepto.toUpperCase(),
+                            area: area
+                        })
+                    }).then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            let newOption = new Option(nuevoConcepto.toUpperCase(), nuevoConcepto.toUpperCase(), true, true);
+                            $('#tpSelect').append(newOption).trigger('change');
+                            $('#nuevoConceptoModal').modal('hide');
+                        } else {
+                            alert('Error al guardar el nuevo concepto');
+                        }
+                    }).catch(error => {
+                        console.error('Error:', error);
+                        alert('Error al guardar el nuevo concepto');
+                    });
+                } else {
+                    alert('Por favor, introduce un concepto válido');
+                }
+            });
+    
+            $('#nuevoConceptoModal').on('hidden.bs.modal', function () {
+                $('#nuevoConceptoInput').val('');
+                let selectedOptions = $('#tpSelect').val();
+                let index = selectedOptions.indexOf('OTRO');
+                if (index > -1) {
+                    selectedOptions.splice(index, 1);
+                    $('#tpSelect').val(selectedOptions).trigger('change');
+                }
+            });
+        });
     </script>
-
 
 <?php $__env->stopSection(); ?>
 

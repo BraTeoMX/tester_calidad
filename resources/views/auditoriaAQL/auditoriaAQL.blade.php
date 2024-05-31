@@ -278,18 +278,16 @@
                                                   </script>
                                                   
                                                 <td>
-                                                    <select name="tp[]" id="tp" class="form-control" required multiple 
-                                                        title="Por favor, selecciona una opción">
+                                                    <select name="tp[]" id="tpSelectAQL" class="form-control" required multiple title="Por favor, selecciona una opción"> 
                                                         <option value="NINGUNO">NINGUNO</option>
+                                                        <option value="OTRO">OTRO</option>
                                                         @if ($data['area'] == 'AUDITORIA AQL')
                                                             @foreach ($categoriaTPProceso as $proceso)
-                                                                <option value="{{ $proceso->nombre }}">{{ $proceso->nombre }}
-                                                                </option>
+                                                                <option value="{{ $proceso->nombre }}">{{ $proceso->nombre }}</option>
                                                             @endforeach
                                                         @elseif($data['area'] == 'AUDITORIA AQL PLAYERA')
                                                             @foreach ($categoriaTPPlayera as $playera)
-                                                                <option value="{{ $playera->nombre }}">{{ $playera->nombre }}
-                                                                </option>
+                                                                <option value="{{ $playera->nombre }}">{{ $playera->nombre }}</option>
                                                             @endforeach
                                                         @endif
                                                     </select>
@@ -301,6 +299,26 @@
                                 <button type="submit" class="btn-verde-xd">Guardar</button>
                             @endif
                         </form>
+                        <!-- Modal -->
+                        <div class="modal fade" id="nuevoConceptoModalAQL" tabindex="-1" role="dialog" aria-labelledby="nuevoConceptoModalLabelAQL" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content bg-dark text-white">
+                                    <div class="modal-header">
+                                        <h5 id="nuevoConceptoModalLabelAQL">Introduce el nuevo concepto</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true" class="text-white">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <input type="text" class="form-control bg-dark text-white" id="nuevoConceptoInputAQL" placeholder="Nuevo concepto">
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                        <button type="button" class="btn btn-primary" id="guardarNuevoConceptoAQL">Guardar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     @endif
                     <hr>
                     <!--Desde aqui inicia la edicion del codigo para mostrar el contenido-->
@@ -627,17 +645,73 @@
         }
     </style>
     <script>
-        $('#tp').select2({
-            placeholder: 'Seleccione una o varias opciones',
-            allowClear: true,
-            multiple: true // Esta opción permite la selección múltiple
-        });
-        $('#bulto').select2({
-            placeholder: 'Seleccione una o varias opciones',
-            allowClear: true,
+        $(document).ready(function() {
+            $('#bulto').select2({
+                placeholder: 'Seleccione una o varias opciones',
+                allowClear: true,
+            });
+            $('#tpSelectAQL').select2({
+                placeholder: 'Seleccione una o varias opciones',
+                allowClear: true,
+                multiple: true
+            });
+
+            $('#tpSelectAQL').on('change', function() {
+                let selectedOptions = $(this).val();
+                if (selectedOptions.includes('OTRO')) {
+                    $('#nuevoConceptoModalAQL').modal('show');
+                }
+            });
+
+            $('#guardarNuevoConceptoAQL').on('click', function() {
+                let nuevoConcepto = $('#nuevoConceptoInputAQL').val();
+                if (nuevoConcepto) {
+                    let area = '';
+                    @if ($data['area'] == 'AUDITORIA AQL')
+                        area = 'proceso';
+                    @elseif($data['area'] == 'AUDITORIA AQL PLAYERA')
+                        area = 'playera';
+                    @endif
+
+                    fetch('{{ route('categoria_tipo_problema_aql.store') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            nombre: nuevoConcepto.toUpperCase(),
+                            area: area
+                        })
+                    }).then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            let newOption = new Option(nuevoConcepto.toUpperCase(), nuevoConcepto.toUpperCase(), true, true);
+                            $('#tpSelectAQL').append(newOption).trigger('change');
+                            $('#nuevoConceptoModalAQL').modal('hide');
+                        } else {
+                            alert('Error al guardar el nuevo concepto');
+                        }
+                    }).catch(error => {
+                        console.error('Error:', error);
+                        alert('Error al guardar el nuevo concepto');
+                    });
+                } else {
+                    alert('Por favor, introduce un concepto válido');
+                }
+            });
+
+            $('#nuevoConceptoModalAQL').on('hidden.bs.modal', function () {
+                $('#nuevoConceptoInputAQL').val('');
+                let selectedOptions = $('#tpSelectAQL').val();
+                let index = selectedOptions.indexOf('OTRO');
+                if (index > -1) {
+                    selectedOptions.splice(index, 1);
+                    $('#tpSelectAQL').val(selectedOptions).trigger('change');
+                }
+            });
         });
     </script>
-
 
 
 @endsection
