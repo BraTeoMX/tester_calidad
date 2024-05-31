@@ -564,7 +564,7 @@
                         }
                     }
                 }
-            });
+            }); 
 
             $('#cliente0').on('click', function() {
                 $('#clienteChartAQL').show();

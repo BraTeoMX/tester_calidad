@@ -154,6 +154,37 @@ class DashboardController extends Controller
             $fechaInicio = $fechaFin->copy()->subWeeks(2)->startOfWeek();
         }
 
+        // Obtener las fechas
+        $fechaInicioExplode = explode('-', $request->fecha_inicio);
+        $diaInicio = $fechaInicioExplode[2];
+        $mesInicio = $fechaInicioExplode[1];
+        $añoInicio = $fechaInicioExplode[0];
+
+        $fechaFinExplode = explode('-', $request->fecha_fin);
+        $diaFin = $fechaFinExplode[2];
+        $mesFin = $fechaFinExplode[1];
+        $añoFin = $fechaFinExplode[0];
+
+        // Obtener el nombre del mes en español
+        $mesesEnEspanol = [
+            1 => 'Enero',
+            2 => 'Febrero',
+            3 => 'Marzo',
+            4 => 'Abril',
+            5 => 'Mayo',
+            6 => 'Junio',
+            7 => 'Julio',
+            8 => 'Agosto',
+            9 => 'Septiembre',
+            10 => 'Octubre',
+            11 => 'Noviembre',
+            12 => 'Diciembre'
+        ];
+        //dd($fechaInicioExplode, $fechaFinExplode, );
+
+        // Formatear la fecha con el nombre del mes en español
+        $fechaInicioFormateada = $diaInicio . ' de ' . $mesesEnEspanol[$mesInicio] . ' ' . $añoInicio;
+        $fechaFinFormateada = $diaFin . ' de ' . $mesesEnEspanol[$mesFin] . ' ' . $añoFin;
         // Obtener las semanas en el rango
         $semanas = collect();
         $currentWeek = $fechaInicio->copy();
@@ -229,12 +260,17 @@ class DashboardController extends Controller
             ->orderBy('total', 'desc')
             ->limit(3)
             ->get();
+        //para textos
+        
 
+
+        //dd($fechaInicioFormateada, $fechaFinFormateada);
         return view('dashboar.dashboarAProcesoAQL', compact('title', 'semanas', 'porcentajesAQL', 'porcentajesProceso',
             'semanasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica', 'dataGeneral', 'totalGeneral', 
             'dataGerentesGeneral', 'dataModulosGeneral', 'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2', 
             'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2', 'topDefectosAQL', 'topDefectosProceso',
-            'fechaInicio', 'fechaFin', 'dataModuloAQLGeneral', 'dataModuloProcesoGeneral'));
+            'fechaInicio', 'fechaFin', 'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
+            'fechaInicioFormateada', 'fechaFinFormateada'));
     }
 
     private function calcularPorcentajePorSemana($modelo, $year, $week)
