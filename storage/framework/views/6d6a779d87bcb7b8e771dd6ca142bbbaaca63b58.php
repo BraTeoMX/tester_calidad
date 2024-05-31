@@ -59,14 +59,14 @@
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
                                 <label class="btn btn-sm btn-primary btn-simple active" id="0">
                                     <input type="radio" name="options" checked>
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-app text-success"></i> AQL</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-app text-success"></i>&nbsp; AQL</span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-single-02"></i>
                                     </span>
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="1">
                                     <input type="radio" class="d-none d-sm-none" name="options">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"> <i class="tim-icons icon-vector text-primary"></i> Procesos</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"> <i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos</span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-gift-2"></i>
                                     </span>
@@ -97,14 +97,14 @@
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
                                 <label class="btn btn-sm btn-primary btn-simple active" id="cliente0">
                                     <input type="radio" name="clienteOptions" checked>
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-app text-success"></i>&nbsp; AQL</span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-single-02"></i>
                                     </span>
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="cliente1">
                                     <input type="radio" class="d-none d-sm-none" name="clienteOptions">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Procesos</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"> <i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos</span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-gift-2"></i>
                                     </span>
@@ -127,7 +127,7 @@
         <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title"><i class="tim-icons icon-shape-star text-primary"></i> Clientes</h4>
+                    <h4 class="card-title"><i class="tim-icons icon-spaceship text-primary"></i> Clientes</h4>
                     <p class="card-category d-inline"> Rango de Fechas: <?php echo e($fechaInicio); ?> - <?php echo e($fechaFin); ?></p>
                 </div>
                 <div class="card-body">
@@ -344,18 +344,26 @@
                                 },
                                 autoSkip: false,
                                 maxRotation: 0, // Para que las etiquetas sean horizontales
-                                minRotation: 0
+                                minRotation: 0,
+                                maxTicksLimit: 10, // Limita el número de ticks
                             }
                         }],
                         yAxes: [{
                             ticks: {
                                 beginAtZero: true,
-                                stepSize: 0.2, // Define el intervalo de los ticks
+                                stepSize: 0.2, // Ajusta el intervalo de los ticks
                                 callback: function(value) {
-                                    return Number(value.toFixed(2)) + '%'; // Formatea los valores a dos decimales
+                                    return value % 1 === 0 ? Number(value.toFixed(2)) + '%' : '';
                                 }
                             }
                         }]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                return data.datasets[tooltipItem.datasetIndex].label + ': ' + Number(tooltipItem.yLabel.toFixed(2)) + '%';
+                            }
+                        }
                     }
                 }
             });
@@ -389,18 +397,26 @@
                                 },
                                 autoSkip: false,
                                 maxRotation: 0, // Para que las etiquetas sean horizontales
-                                minRotation: 0
+                                minRotation: 0,
+                                maxTicksLimit: 10, // Limita el número de ticks
                             }
                         }],
                         yAxes: [{
                             ticks: {
                                 beginAtZero: true,
-                                stepSize: 0.2, // Define el intervalo de los ticks
+                                stepSize: 0.2, // Ajusta el intervalo de los ticks
                                 callback: function(value) {
-                                    return Number(value.toFixed(2)) + '%'; // Formatea los valores a dos decimales
+                                    return value % 1 === 0 ? Number(value.toFixed(2)) + '%' : '';
                                 }
                             }
                         }]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                return data.datasets[tooltipItem.datasetIndex].label + ': ' + Number(tooltipItem.yLabel.toFixed(2)) + '%';
+                            }
+                        }
                     }
                 }
             });
@@ -472,18 +488,26 @@
                                 },
                                 autoSkip: false,
                                 maxRotation: 0, // Para que las etiquetas sean horizontales
-                                minRotation: 0
+                                minRotation: 0,
+                                maxTicksLimit: 10, // Limita el número de ticks
                             }
                         }],
                         yAxes: [{
                             ticks: {
                                 beginAtZero: true,
-                                stepSize: 0.2, // Define el intervalo de los ticks
+                                stepSize: 0.2, // Ajusta el intervalo de los ticks
                                 callback: function(value) {
-                                    return Number(value.toFixed(2)) + '%'; // Formatea los valores a dos decimales
+                                    return value % 1 === 0 ? Number(value.toFixed(2)) + '%' : '';
                                 }
                             }
                         }]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                return data.datasets[tooltipItem.datasetIndex].label + ': ' + Number(tooltipItem.yLabel.toFixed(2)) + '%';
+                            }
+                        }
                     }
                 }
             });
@@ -518,18 +542,26 @@
                                 },
                                 autoSkip: false,
                                 maxRotation: 0, // Para que las etiquetas sean horizontales
-                                minRotation: 0
+                                minRotation: 0,
+                                maxTicksLimit: 10, // Limita el número de ticks
                             }
                         }],
                         yAxes: [{
                             ticks: {
                                 beginAtZero: true,
-                                stepSize: 0.2, // Define el intervalo de los ticks
+                                stepSize: 0.2, // Ajusta el intervalo de los ticks
                                 callback: function(value) {
-                                    return Number(value.toFixed(2)) + '%'; // Formatea los valores a dos decimales
+                                    return value % 1 === 0 ? Number(value.toFixed(2)) + '%' : '';
                                 }
                             }
                         }]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                return data.datasets[tooltipItem.datasetIndex].label + ': ' + Number(tooltipItem.yLabel.toFixed(2)) + '%';
+                            }
+                        }
                     }
                 }
             });
