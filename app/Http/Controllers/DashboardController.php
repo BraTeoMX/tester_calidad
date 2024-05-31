@@ -56,7 +56,7 @@ class DashboardController extends Controller
         
         return view('dashboar.dashboarAProceso', compact('title', 'clientes', 'porcentajesError'));
     }
-
+ 
     public function dashboarAProcesoPlayera()
     {
         $title = "";
