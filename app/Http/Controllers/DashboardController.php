@@ -154,37 +154,6 @@ class DashboardController extends Controller
             $fechaInicio = $fechaFin->copy()->subWeeks(2)->startOfWeek();
         }
 
-        // Obtener las fechas
-        $fechaInicioExplode = explode('-', $request->fecha_inicio);
-        $diaInicio = $fechaInicioExplode[2];
-        $mesInicio = $fechaInicioExplode[1];
-        $añoInicio = $fechaInicioExplode[0];
-
-        $fechaFinExplode = explode('-', $request->fecha_fin);
-        $diaFin = $fechaFinExplode[2];
-        $mesFin = $fechaFinExplode[1];
-        $añoFin = $fechaFinExplode[0];
-
-        // Obtener el nombre del mes en español
-        $mesesEnEspanol = [
-            1 => 'Enero',
-            2 => 'Febrero',
-            3 => 'Marzo',
-            4 => 'Abril',
-            5 => 'Mayo',
-            6 => 'Junio',
-            7 => 'Julio',
-            8 => 'Agosto',
-            9 => 'Septiembre',
-            10 => 'Octubre',
-            11 => 'Noviembre',
-            12 => 'Diciembre'
-        ];
-        //dd($fechaInicioExplode, $fechaFinExplode, );
-
-        // Formatear la fecha con el nombre del mes en español
-        $fechaInicioFormateada = $diaInicio . ' de ' . $mesesEnEspanol[$mesInicio] . ' ' . $añoInicio;
-        $fechaFinFormateada = $diaFin . ' de ' . $mesesEnEspanol[$mesFin] . ' ' . $añoFin;
         // Obtener las semanas en el rango
         $semanas = collect();
         $currentWeek = $fechaInicio->copy();
@@ -262,8 +231,48 @@ class DashboardController extends Controller
             ->get();
         //para textos
         
+        // Obtener las fechas
+        $fechaInicioUnico = substr($fechaInicio, 0, 10); // Extraer solo la parte de la fecha
+        $fechaFinUnico = substr($fechaFin, 0, 10); // Extraer solo la parte de la fecha
+        $fechaInicioExplode = explode('-', $fechaInicioUnico);
+        if (count($fechaInicioExplode) === 3) {
+            $diaInicio = $fechaInicioExplode[2];
+            $mesInicio = (int) $fechaInicioExplode[1]; // Convertir a entero
+            $añoInicio = $fechaInicioExplode[0];
+        } else {
+            // Manejar el error de formato de fecha aquí
+            return response()->json(['error' => 'Formato de fecha de inicio inválido'], 400);
+        }
 
+        $fechaFinExplode = explode('-', $fechaFinUnico);
+        if (count($fechaFinExplode) === 3) {
+            $diaFin = $fechaFinExplode[2];
+            $mesFin = (int) $fechaFinExplode[1]; // Convertir a entero
+            $añoFin = $fechaFinExplode[0];
+        } else {
+            // Manejar el error de formato de fecha aquí
+            return response()->json(['error' => 'Formato de fecha de fin inválido'], 400);
+        }
 
+        // Obtener el nombre del mes en español
+        $mesesEnEspanol = [
+            1 => 'Enero',
+            2 => 'Febrero',
+            3 => 'Marzo',
+            4 => 'Abril',
+            5 => 'Mayo',
+            6 => 'Junio',
+            7 => 'Julio',
+            8 => 'Agosto',
+            9 => 'Septiembre',
+            10 => 'Octubre',
+            11 => 'Noviembre',
+            12 => 'Diciembre'
+        ];
+
+        // Formatear la fecha con el nombre del mes en español
+        $fechaInicioFormateada = $diaInicio . ' de ' . $mesesEnEspanol[$mesInicio] . ' ' . $añoInicio;
+        $fechaFinFormateada = $diaFin . ' de ' . $mesesEnEspanol[$mesFin] . ' ' . $añoFin;
         //dd($fechaInicioFormateada, $fechaFinFormateada);
         return view('dashboar.dashboarAProcesoAQL', compact('title', 'semanas', 'porcentajesAQL', 'porcentajesProceso',
             'semanasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica', 'dataGeneral', 'totalGeneral', 

@@ -128,7 +128,7 @@
             <div class="card ">
                 <div class="card-header">
                     <h4 class="card-title"><i class="tim-icons icon-spaceship text-primary"></i> Clientes</h4>
-                    <p class="card-category d-inline"> Rango de Fechas: <?php echo e($fechaInicio); ?> - <?php echo e($fechaFin); ?></p>
+                    <p class="card-category d-inline"> Rango de Fechas: <?php echo e($fechaInicioFormateada); ?> - <?php echo e($fechaFinFormateada); ?></p>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -163,7 +163,7 @@
             <div class="card ">
                 <div class="card-header">
                     <h4 class="card-title">Responsables <i class="tim-icons icon-app text-success"></i>&nbsp; AQL  y &nbsp;<i class="tim-icons icon-vector text-primary"></i>&nbsp; PROCESO </h4>
-                    <p class="card-category d-inline"> Rango de Fechas: <?php echo e($fechaInicio); ?> - <?php echo e($fechaFin); ?></p>
+                    <p class="card-category d-inline"> Rango de Fechas: <?php echo e($fechaInicioFormateada); ?> - <?php echo e($fechaFinFormateada); ?></p>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -193,7 +193,7 @@
             <div class="card ">
                 <div class="card-header">
                     <h4 class="card-title">Modulos &nbsp;<i class="tim-icons icon-app text-success"></i>&nbsp;  AQL y  &nbsp;<i class="tim-icons icon-vector text-primary"></i> &nbsp;PROCESO</h4>
-                    <p class="card-category d-inline"> Rango de Fechas: <?php echo e($fechaInicio); ?> - <?php echo e($fechaFin); ?></p>
+                    <p class="card-category d-inline"> Rango de Fechas: <?php echo e($fechaInicioFormateada); ?> - <?php echo e($fechaFinFormateada); ?></p>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
