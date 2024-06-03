@@ -304,7 +304,8 @@ Route::post('/guardarInformacion', [DatosAuditoriaEtiquetas::class, 'guardarInfo
 Route::put('/actualizarStatus', [DatosAuditoriaEtiquetas::class, 'actualizarStatus']);
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Apartado para detalles dashboard
-Route::get('/dashboarAProceso', [DashboardController::class, 'dashboarAProceso'])->name('dashboar.dashboarAProceso');
+Route::get('/buscadorDinamico', [DashboardController::class, 'buscadorDinamico'])->name('dashboar.buscadorDinamico');
+Route::get('/buscadorDinamico/search', [DashboardController::class, 'search']);
 Route::get('/dashboarAProcesoPlayera', [DashboardController::class, 'dashboarAProcesoPlayera'])->name('dashboar.dashboarAProcesoPlayera');
 
 Route::get('/dashboarAProceso', [DashboardController::class, 'dashboarAProceso'])->name('dashboar.dashboarAProceso');

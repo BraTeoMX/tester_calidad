@@ -31,31 +31,6 @@ class DashboardController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function dashboarAProceso()
-    {
-        $title = "";
-
-        $clientes = AuditoriaProcesoCorte::whereNotNull('cliente')
-            ->orderBy('cliente')
-            ->pluck('cliente')
-            ->unique();
-        $porcentajesError = [];
-
-        foreach ($clientes as $cliente) {
-            $sumaAuditada = AuditoriaProcesoCorte::where('cliente', $cliente)->sum('cantidad_auditada');
-            $sumaRechazada = AuditoriaProcesoCorte::where('cliente', $cliente)->sum('cantidad_rechazada');
-
-            if ($sumaAuditada != 0) {
-                $porcentajeError = ($sumaRechazada / $sumaAuditada) * 100;
-            } else {
-                $porcentajeError = 0;
-            }
-
-            $porcentajesError[$cliente] = $porcentajeError;
-        }
-        
-        return view('dashboar.dashboarAProceso', compact('title', 'clientes', 'porcentajesError'));
-    }
  
     public function dashboarAProcesoPlayera()
     {
@@ -1000,4 +975,56 @@ class DashboardController extends Controller
     }
 
 
+    public function buscadorDinamico()
+    {
+
+        
+        return view('dashboar.buscadorDinamico');
+    }
+
+    public function search(Request $request)
+    {
+        $query = $request->input('q');
+        $results = [];
+
+        if ($query) {
+            try {
+                // Buscar en AseguramientoCalidad
+                $aseguramientoCalidad = AseguramientoCalidad::where('nombre', 'like', "%{$query}%")
+                    ->orWhere('cliente', 'like', "%{$query}%")
+                    ->orWhere('team_leader', 'like', "%{$query}%")
+                    ->orWhere('modulo', 'like', "%{$query}%")
+                    ->get();
+                foreach ($aseguramientoCalidad as $item) {
+                    $results[] = [
+                        'model' => 'AseguramientoCalidad', 
+                        'name' => $item->nombre,
+                        'cliente' => $item->cliente,
+                        'team_leader' => $item->team_leader,
+                        'modulo' => $item->modulo
+                    ];
+                }
+
+                // Buscar en AuditoriaAQL
+                $auditoriaAQL = AuditoriaAQL::where('nombre', 'like', "%{$query}%")
+                    ->orWhere('auditor', 'like', "%{$query}%")
+                    ->orWhere('cliente', 'like', "%{$query}%")
+                    ->orWhere('modulo', 'like', "%{$query}%")
+                    ->get();
+                foreach ($auditoriaAQL as $item) {
+                    $results[] = [
+                        'model' => 'AuditoriaAQL', 
+                        'name' => $item->nombre,
+                        'auditor' => $item->auditor,
+                        'cliente' => $item->cliente,
+                        'modulo' => $item->modulo
+                    ];
+                }
+            } catch (\Exception $e) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        }
+
+        return response()->json($results);
+    }
 }
