@@ -195,7 +195,6 @@
                                     <table class="table table32"> 
                                         <thead class="thead-primary">
                                             <tr>
-                                                <th>NOMBRE</th>
                                                 <th># BULTO</th>
                                                 <th>PIEZAS</th>
                                                 <th>ESTILO</th>
@@ -204,24 +203,12 @@
                                                 <th>PIEZAS INSPECCIONADAS</th>
                                                 <th>PIEZAS RECHAZADAS</th>
                                                 <th>TIPO DE DEFECTO</th>
+                                                <th id="ac-column-header">ACCION CORRECTIVA</th>
+                                                <th id="nombre-column-header">NOMBRE</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td>
-                                                    <select name="nombre" id="nombre" class="form-control" required>
-                                                        <option value="">Selecciona una opción</option>
-                                                        <?php if($auditorPlanta == 'Planta1'): ?>
-                                                            <?php $__currentLoopData = $nombreProcesoToAQLPlanta1; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $opcion): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                                <option value="<?php echo e($opcion['nombre'] ?? $opcion['name']); ?>"><?php echo e($opcion['nombre'] ?? $opcion['name']); ?></option>
-                                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                                        <?php elseif($auditorPlanta == 'Planta2'): ?>
-                                                            <?php $__currentLoopData = $nombreProcesoToAQLPlanta2; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $opcion): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                                <option value="<?php echo e($opcion['nombre'] ?? $opcion['name']); ?>"><?php echo e($opcion['nombre'] ?? $opcion['name']); ?></option>
-                                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                                        <?php endif; ?>
-                                                    </select>
-                                                </td>
                                                 <td>
                                                     <select name="bulto" id="bulto" class="form-control" required title="Por favor, selecciona una opción">
                                                         <option value="">Selecciona una opción</option>
@@ -233,58 +220,12 @@
                                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                     </select>
                                                 </td>
-                                                <td>
-                                                    <input type="text" class="form-control" name="pieza" id="pieza" readonly>
-                                                </td>
-                                                <td>
-                                                    <input type="text" class="form-control" name="estilo" id="estilo" readonly>
-                                                </td>
-                                                <td>
-                                                    <input type="text" class="form-control" name="color" id="color" readonly>
-                                                </td>
-                                                <td>
-                                                    <input type="text" class="form-control" name="talla" id="talla" readonly>
-                                                </td>
-                                                
-                                                <script>
-                                                    $(document).ready(function() {
-                                                        $('#bulto').change(function() {
-                                                            var selectedOption = $(this).find(':selected');
-                                                            $('#pieza').val(selectedOption.data('pieza'));
-                                                            $('#estilo').val(selectedOption.data('estilo'));
-                                                            $('#color').val(selectedOption.data('color'));
-                                                            $('#talla').val(selectedOption.data('talla'));
-                                                        });
-                                                
-                                                        // Actualizar valores al cargar la página si una opción está seleccionada por defecto
-                                                        var selectedOption = $('#bulto').find(':selected');
-                                                        $('#pieza').val(selectedOption.data('pieza'));
-                                                        $('#estilo').val(selectedOption.data('estilo'));
-                                                        $('#color').val(selectedOption.data('color'));
-                                                        $('#talla').val(selectedOption.data('talla'));
-                                                    });
-                                                </script>                                            
-                                                
-                                                <td><input type="numbre" class="form-control" name="cantidad_auditada"
-                                                        id="cantidad_auditada" required></td>
-                                                <td>
-                                                    <input type="text" class="form-control" name="cantidad_rechazada" id="cantidad_rechazada" required>
-                                                </td>
-                                                <script>
-                                                    $(document).ready(function() {
-                                                      $('#cantidad_rechazada').on('input', function() {
-                                                        const cantidadRechazada = parseInt($(this).val());
-                                                        const nombreSelect = $('#nombre');
-                                                  
-                                                        if (cantidadRechazada === 0) {
-                                                          nombreSelect.prop('required', false);
-                                                        } else {
-                                                          nombreSelect.prop('required', true);
-                                                        }
-                                                      });
-                                                    });
-                                                  </script>
-                                                  
+                                                <td><input type="text" class="form-control" name="pieza" id="pieza" readonly></td>
+                                                <td><input type="text" class="form-control" name="estilo" id="estilo" readonly></td>
+                                                <td><input type="text" class="form-control" name="color" id="color" readonly></td>
+                                                <td><input type="text" class="form-control" name="talla" id="talla" readonly></td>
+                                                <td><input type="numbre" class="form-control" name="cantidad_auditada" id="cantidad_auditada" required></td>
+                                                <td><input type="text" class="form-control" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
                                                 <td>
                                                     <select name="tp[]" id="tpSelectAQL" class="form-control" required multiple title="Por favor, selecciona una opción"> 
                                                         <option value="NINGUNO">NINGUNO</option>
@@ -296,6 +237,21 @@
                                                         <?php elseif($data['area'] == 'AUDITORIA AQL PLAYERA'): ?>
                                                             <?php $__currentLoopData = $categoriaTPPlayera; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $playera): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                                 <option value="<?php echo e($playera->nombre); ?>"><?php echo e($playera->nombre); ?></option>
+                                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                        <?php endif; ?>
+                                                    </select>
+                                                </td>
+                                                <td class="ac-column"><input type="text" class="form-control" name="ac" id="ac"></td>
+                                                <td class="nombre-column">
+                                                    <select name="nombre" id="nombre" class="form-control">
+                                                        <option value="">Selecciona una opción</option>
+                                                        <?php if($auditorPlanta == 'Planta1'): ?>
+                                                            <?php $__currentLoopData = $nombreProcesoToAQLPlanta1; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $opcion): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                                <option value="<?php echo e($opcion['nombre'] ?? $opcion['name']); ?>"><?php echo e($opcion['nombre'] ?? $opcion['name']); ?></option>
+                                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                        <?php elseif($auditorPlanta == 'Planta2'): ?>
+                                                            <?php $__currentLoopData = $nombreProcesoToAQLPlanta2; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $opcion): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                                <option value="<?php echo e($opcion['nombre'] ?? $opcion['name']); ?>"><?php echo e($opcion['nombre'] ?? $opcion['name']); ?></option>
                                                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                         <?php endif; ?>
                                                     </select>
@@ -607,22 +563,22 @@
             /* Color del texto */
         }
 
-        .table32 th:nth-child(2) {
+        .table32 th:nth-child(1) {
             min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
 
-        .table32 th:nth-child(9) {
+        .table32 th:nth-child(8) {
             min-width: 200px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
 
-        .table32 th:nth-child(4) {
+        .table32 th:nth-child(3) {
             min-width: 100px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
 
-        .table32 th:nth-child(5) {
+        .table32 th:nth-child(4) {
             min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
@@ -647,6 +603,10 @@
                 min-width: 100px;
                 /* Ajusta el ancho mínimo para móviles */
             }
+        }
+
+        #ac-column-header, .ac-column, #nombre-column-header, .nombre-column {
+            display: none;
         }
     </style>
     <script>
@@ -718,7 +678,47 @@
         });
     </script>
 
+    <script>
+        $(document).ready(function() {
+            // Función para mostrar/ocultar columnas según el valor de cantidad_rechazada
+            function updateColumnsVisibility() {
+                const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
+                if (isNaN(cantidadRechazada) || cantidadRechazada === 0) { // Ocultar si es 0 o NaN
+                    $('#ac-column-header, #nombre-column-header').hide();
+                    $('.ac-column, .nombre-column').hide();
+                    $('#ac, #nombre').prop('required', false);
+                } else {
+                    $('#ac-column-header, #nombre-column-header').show();
+                    $('.ac-column, .nombre-column').show();
+                    $('#ac, #nombre').prop('required', true);
+                }
+            }
 
+            // Inicializar la visibilidad de las columnas al cargar la página
+            updateColumnsVisibility();
+
+            // Actualizar la visibilidad de las columnas al cambiar el valor de cantidad_rechazada
+            $('#cantidad_rechazada').on('input', function() {
+                updateColumnsVisibility();
+            });
+
+            // Actualizar los valores de los campos según la opción seleccionada en el select "bulto"
+            $('#bulto').change(function() {
+                var selectedOption = $(this).find(':selected');
+                $('#pieza').val(selectedOption.data('pieza'));
+                $('#estilo').val(selectedOption.data('estilo'));
+                $('#color').val(selectedOption.data('color'));
+                $('#talla').val(selectedOption.data('talla'));
+            });
+
+            // Actualizar los valores de los campos al cargar la página si una opción está seleccionada por defecto
+            var selectedOption = $('#bulto').find(':selected');
+            $('#pieza').val(selectedOption.data('pieza'));
+            $('#estilo').val(selectedOption.data('estilo'));
+            $('#color').val(selectedOption.data('color'));
+            $('#talla').val(selectedOption.data('talla'));
+        });
+    </script>
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.app', ['activePage' => 'AQL', 'titlePage' => __('AQL')], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\calidad2\resources\views/auditoriaAQL/auditoriaAQL.blade.php ENDPATH**/ ?>
