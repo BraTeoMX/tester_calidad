@@ -312,7 +312,7 @@
                                                     <th>Puesto</th>
                                                     <th>Fecha de Creacion</th>
                                                     <th>Estatus</th>
-                                                    <th class="text-right">Actions</th>
+                                                    <th class="text-right">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
