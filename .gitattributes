@@ -6,6 +6,10 @@
 *.bat text eol=crlf
 *.log text eol=lf
 
+# Force specific line endings for PHP and Blade files
+*.php text eol=lf
+*.blade.php text eol=lf
+
 # Existing diff settings
 *.blade.php diff=html
 *.css diff=css
