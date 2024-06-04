@@ -974,7 +974,7 @@ class DashboardController extends Controller
                                                         'conteoRechazos'));
     }
 
-
+ 
     public function buscadorDinamico()
     {
 
@@ -989,35 +989,75 @@ class DashboardController extends Controller
 
         if ($query) {
             try {
+                // Inicializa arrays para rastrear en qué columnas y modelos se encontraron los resultados
+                $aseguramientoCalidadColumns = [];
+                $auditoriaAQLColumns = [];
+
                 // Buscar en AseguramientoCalidad
                 $aseguramientoCalidad = AseguramientoCalidad::where('nombre', 'like', "%{$query}%")
                     ->orWhere('cliente', 'like', "%{$query}%")
                     ->orWhere('team_leader', 'like', "%{$query}%")
                     ->orWhere('modulo', 'like', "%{$query}%")
+                    ->orWhere('auditor', 'like', "%{$query}%")
                     ->get();
+
                 foreach ($aseguramientoCalidad as $item) {
+                    if (stripos($item->nombre, $query) !== false && !in_array('nombre', $aseguramientoCalidadColumns)) {
+                        $aseguramientoCalidadColumns[] = 'nombre';
+                    }
+                    if (stripos($item->cliente, $query) !== false && !in_array('cliente', $aseguramientoCalidadColumns)) {
+                        $aseguramientoCalidadColumns[] = 'cliente';
+                    }
+                    if (stripos($item->team_leader, $query) !== false && !in_array('team_leader', $aseguramientoCalidadColumns)) {
+                        $aseguramientoCalidadColumns[] = 'team_leader';
+                    }
+                    if (stripos($item->modulo, $query) !== false && !in_array('modulo', $aseguramientoCalidadColumns)) {
+                        $aseguramientoCalidadColumns[] = 'modulo';
+                    }
+                    if (stripos($item->auditor, $query) !== false && !in_array('auditor', $aseguramientoCalidadColumns)) {
+                        $aseguramientoCalidadColumns[] = 'auditor';
+                    }
+                }
+
+                if (!empty($aseguramientoCalidadColumns)) {
                     $results[] = [
-                        'model' => 'AseguramientoCalidad', 
-                        'name' => $item->nombre,
-                        'cliente' => $item->cliente,
-                        'team_leader' => $item->team_leader,
-                        'modulo' => $item->modulo
+                        'model' => 'AseguramientoCalidad',
+                        'found_in' => 'Auditoria Proceso',
+                        'columns' => $aseguramientoCalidadColumns
                     ];
                 }
 
                 // Buscar en AuditoriaAQL
                 $auditoriaAQL = AuditoriaAQL::where('nombre', 'like', "%{$query}%")
                     ->orWhere('auditor', 'like', "%{$query}%")
+                    ->orWhere('team_leader', 'like', "%{$query}%")
                     ->orWhere('cliente', 'like', "%{$query}%")
                     ->orWhere('modulo', 'like', "%{$query}%")
                     ->get();
+
                 foreach ($auditoriaAQL as $item) {
+                    if (stripos($item->nombre, $query) !== false && !in_array('nombre', $auditoriaAQLColumns)) {
+                        $auditoriaAQLColumns[] = 'nombre';
+                    }
+                    if (stripos($item->auditor, $query) !== false && !in_array('auditor', $auditoriaAQLColumns)) {
+                        $auditoriaAQLColumns[] = 'auditor';
+                    }
+                    if (stripos($item->team_leader, $query) !== false && !in_array('team_leader', $auditoriaAQLColumns)) {
+                        $auditoriaAQLColumns[] = 'team_leader';
+                    }
+                    if (stripos($item->cliente, $query) !== false && !in_array('cliente', $auditoriaAQLColumns)) {
+                        $auditoriaAQLColumns[] = 'cliente';
+                    }
+                    if (stripos($item->modulo, $query) !== false && !in_array('modulo', $auditoriaAQLColumns)) {
+                        $auditoriaAQLColumns[] = 'modulo';
+                    }
+                }
+
+                if (!empty($auditoriaAQLColumns)) {
                     $results[] = [
-                        'model' => 'AuditoriaAQL', 
-                        'name' => $item->nombre,
-                        'auditor' => $item->auditor,
-                        'cliente' => $item->cliente,
-                        'modulo' => $item->modulo
+                        'model' => 'AuditoriaAQL',
+                        'found_in' => 'Auditoria AQL',
+                        'columns' => $auditoriaAQLColumns
                     ];
                 }
             } catch (\Exception $e) {

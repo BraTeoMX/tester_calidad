@@ -26,13 +26,13 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('profile.edit') }}">
                                     <i class="tim-icons icon-single-02"></i>
-                                    <span class="sidebar-normal">{{ __('User profile') }} </span>
+                                    <span class="sidebar-normal">{{ __('Perfil de usuario') }} </span>
                                 </a>
                             </li>
                             <li class="nav-item active">
                                 <a class="nav-link" href="{{ route('user.index') }}">
                                     <i class="tim-icons icon-single-02"></i>
-                                    <span class="sidebar-normal"> {{ __('User Management') }} </span>
+                                    <span class="sidebar-normal"> {{ __('Administrador de Usuarios') }} </span>
                                 </a>
                             </li>
                         </ul>

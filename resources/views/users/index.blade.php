@@ -324,7 +324,11 @@
                                                         <td>{{ $user->tipo_auditor }}</td>
                                                         <td>{{ $user->puesto }}</td>
                                                         <td>{{ $user->created_at }}</td>
-                                                        <td style="font-weight: bold">{{ $user->Estatus }}</td>
+                                                        @if($user->Estatus == "Baja")
+                                                            <td style="color: #ff4d4d !important;">{{ $user->Estatus }}</td>
+                                                        @else
+                                                            <td>{{ $user->Estatus }}</td>
+                                                        @endif
                                                         <td class="td-actions text-right">
                                                             <div class="btn-group" role="group" aria-label="Acciones">
                                                                 <button class="btn btn-info btn-link editUserBtn" data-id="{{ $user->no_empleado }}" data-name="{{ $user->name }}" data-toggle="modal" data-target="#editModal">
@@ -438,12 +442,11 @@
                                                                 <label for="password_update" class="form-label">Password</label>
                                                                 <div class="input-group">
                                                                     <input type="password" class="form-control" name="password_update" id="password_update" placeholder="Cambiar Contraseña">
-                                                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('password_update')">
-                                                                        <i class="bi bi-eye"></i>
+                                                                    <button class="btn btn-warning" type="button" onclick="togglePasswordVisibility('password_update')">Ver
                                                                     </button>
                                                                 </div>
                                                             </div>
-                                                            <button type="submit" class="btn btn-primary">Save</button>
+                                                            <button type="submit" class="btn btn-primary">Guardar</button>
                                                         </div>
                                                     </div>
                                                 </div>

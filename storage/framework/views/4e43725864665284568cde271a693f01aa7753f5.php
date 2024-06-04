@@ -27,13 +27,13 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="<?php echo e(route('profile.edit')); ?>">
                                     <i class="tim-icons icon-single-02"></i>
-                                    <span class="sidebar-normal"><?php echo e(__('User profile')); ?> </span>
+                                    <span class="sidebar-normal"><?php echo e(__('Perfil de usuario')); ?> </span>
                                 </a>
                             </li>
                             <li class="nav-item active">
                                 <a class="nav-link" href="<?php echo e(route('user.index')); ?>">
                                     <i class="tim-icons icon-single-02"></i>
-                                    <span class="sidebar-normal"> <?php echo e(__('User Management')); ?> </span>
+                                    <span class="sidebar-normal"> <?php echo e(__('Administrador de Usuarios')); ?> </span>
                                 </a>
                             </li>
                         </ul>

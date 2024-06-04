@@ -33,11 +33,11 @@
                     </a>
                     <ul class="dropdown-menu dropdown-navbar">
                         <li class="nav-link">
-                            <a href="<?php echo e(route('profile.edit')); ?>" class="nav-item dropdown-item"><?php echo e(__('Profile')); ?></a>
+                            <a href="<?php echo e(route('profile.edit')); ?>" class="nav-item dropdown-item"><?php echo e(__('Perfil')); ?></a>
                         </li>
                         <li class="dropdown-divider"></li>
                         <li class="nav-link">
-                            <a href="<?php echo e(route('logout')); ?>" class="nav-item dropdown-item" onclick="event.preventDefault();  document.getElementById('logout-form').submit();"><?php echo e(__('Log out')); ?></a>
+                            <a href="<?php echo e(route('logout')); ?>" class="nav-item dropdown-item" onclick="event.preventDefault();  document.getElementById('logout-form').submit();"><?php echo e(__('Cerrar sesion')); ?></a>
                         </li>
                     </ul>
                 </li>

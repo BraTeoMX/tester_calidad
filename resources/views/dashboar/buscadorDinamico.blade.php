@@ -17,8 +17,18 @@
                 </div>
                 <hr>
                 <div class="card-body">
-                    <!-- Contenido de la búsqueda -->
-                    <div id="searchResults"></div>
+                    <div class="row">
+                        <!-- Columna para Auditoria AQL -->
+                        <div class="col-md-6" id="aqlResults">
+                            <h4>Auditoria AQL</h4>
+                            <div id="aqlSearchResults"></div>
+                        </div>
+                        <!-- Columna para Auditoria Proceso -->
+                        <div class="col-md-6" id="procesoResults">
+                            <h4>Auditoria Proceso</h4>
+                            <div id="procesoSearchResults"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -30,7 +40,8 @@
             if (query.length > 2) {
                 fetchResults(query);
             } else {
-                document.getElementById('searchResults').innerHTML = '';
+                document.getElementById('aqlSearchResults').innerHTML = '';
+                document.getElementById('procesoSearchResults').innerHTML = '';
             }
         });
 
@@ -38,20 +49,22 @@
             fetch(`/buscadorDinamico/search?q=${query}`)
                 .then(response => response.json())
                 .then(data => {
-                    let resultsContainer = document.getElementById('searchResults');
-                    resultsContainer.innerHTML = '';
+                    let aqlResultsContainer = document.getElementById('aqlSearchResults');
+                    let procesoResultsContainer = document.getElementById('procesoSearchResults');
+                    aqlResultsContainer.innerHTML = '';
+                    procesoResultsContainer.innerHTML = '';
 
                     data.forEach(item => {
                         let div = document.createElement('div');
                         div.classList.add('search-result-item');
                         div.innerHTML = `
-                            <strong>${item.model}:</strong> ${item.name}<br>
-                            ${item.cliente ? `<strong>Cliente:</strong> ${item.cliente}<br>` : ''}
-                            ${item.team_leader ? `<strong>Team Leader:</strong> ${item.team_leader}<br>` : ''}
-                            ${item.auditor ? `<strong>Auditor:</strong> ${item.auditor}<br>` : ''}
-                            ${item.modulo ? `<strong>Modulo:</strong> ${item.modulo}<br>` : ''}
+                            <strong>Columnas:</strong> ${item.columns.join(', ')}
                         `;
-                        resultsContainer.appendChild(div);
+                        if (item.model === 'AuditoriaAQL') {
+                            aqlResultsContainer.appendChild(div);
+                        } else if (item.model === 'AseguramientoCalidad') {
+                            procesoResultsContainer.appendChild(div);
+                        }
                     });
                 })
                 .catch(error => {
