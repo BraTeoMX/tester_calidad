@@ -17,6 +17,7 @@ use App\Http\Controllers\viewlistaFormularios;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\reporteriaInternaController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\AltaYBajaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -320,3 +321,7 @@ Route::get('/detallePorGerente', [DashboardController::class, 'detallePorGerente
 Route::get('/detallePorCliente', [DashboardController::class, 'detallePorCliente'])->name('dashboar.detallePorCliente');
 
 Route::get('/reporteriaInterna',[reporteriaInternaController::class, 'reporteriaInterna'])->name('reporteriaInterna.reporteriaInterna')->middleware('checkrole');
+
+Route::get('/altaYbaja', [AltaYBajaController::class, 'altaYbaja'])->name('altaYbaja');
+Route::patch('/altaYbaja/defecto-proceso/{id}', [AltaYBajaController::class, 'actualizarEstadoDefectoProceso'])->name('actualizarEstadoDefectoProceso');
+Route::patch('/altaYbaja/defecto-playera/{id}', [AltaYBajaController::class, 'actualizarEstadoDefectoPlayera'])->name('actualizarEstadoDefectoPlayera');

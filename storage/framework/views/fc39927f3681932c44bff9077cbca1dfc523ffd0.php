@@ -203,7 +203,6 @@
                                     </button>
                                 </h2>
                             </div>
-                    
                             <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
                                 data-parent="#accordionExample">
                                 <div class="card-body">
@@ -568,7 +567,7 @@
             </div>
         </div>
     </div>
-
+ 
     <script>
         $('#modulo').select2({
                 placeholder: 'Seleccione una o varias opciones',

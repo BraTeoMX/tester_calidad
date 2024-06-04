@@ -20,3 +20,5 @@
 # Export-ignore settings
 /.github export-ignore
 CHANGELOG.md export-ignore
+
+storage/framework/views/*.php text eol=crlf
