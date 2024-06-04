@@ -1,3 +1,4 @@
+
 <div style="background-image: url('<?php echo e(asset('black')); ?>/img/backlog.jpg'); background-size: cover; background-position: top center;align-items: center;">
 
 <?php $__env->startSection('content'); ?>

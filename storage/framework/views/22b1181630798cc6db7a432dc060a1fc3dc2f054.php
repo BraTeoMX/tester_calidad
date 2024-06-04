@@ -28,7 +28,7 @@
                         <div class="photo">
                             <img src="<?php echo e(asset('black')); ?>/img/anime3.png" alt="<?php echo e(__('Profile Photo')); ?>">
                         </div>
-                        <b class="caret d-none d-lg-block d-xl-block"></b>
+                        <b class="caret d-none d-lg-block d-xl-block"></b> 
                         <p class="d-lg-none"><?php echo e(__('Log out')); ?></p>
                     </a>
                     <ul class="dropdown-menu dropdown-navbar">

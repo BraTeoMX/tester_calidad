@@ -13,8 +13,6 @@ use App\Models\CategoriaTipoProblema;
 use App\Models\CategoriaAccionCorrectiva;  
 use App\Models\AuditoriaAQL;  
 use App\Models\CategoriaUtility;
-use App\Models\DatosAX;
-use App\Models\EvaluacionCorte; 
 use App\Models\TpAuditoriaAQL;  
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon 
 
@@ -545,7 +543,7 @@ class AuditoriaAQLController extends Controller
 
         return back()->with('success', 'Fin de Paro Aplicado.')->with('pageSlug', $pageSlug);
     }
-
+    //Ya no recuerdo 
     public function storeCategoriaTipoProblemaAQL(Request $request)
     {
         $request->validate([
