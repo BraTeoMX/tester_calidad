@@ -1,14 +1,14 @@
-# Auto-convert text files to the appropriate line endings
-* text=auto
+# Auto-convert text files to CRLF line endings in the working directory
+* text=auto eol=crlf
 
 # Specific settings for files with certain extensions
 *.sh text eol=lf
 *.bat text eol=crlf
 *.log text eol=lf
 
-# Force specific line endings for PHP and Blade files
-*.php text eol=lf
-*.blade.php text eol=lf
+# Force specific line endings for PHP and Blade files to CRLF
+*.php text eol=crlf
+*.blade.php text eol=crlf
 
 # Existing diff settings
 *.blade.php diff=html

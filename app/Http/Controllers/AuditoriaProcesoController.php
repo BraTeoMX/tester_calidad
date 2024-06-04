@@ -495,7 +495,7 @@ class AuditoriaProcesoController extends Controller
             'area' => 'required|string|max:255',
         ]);
 
-        $categoriaTipoProblema = new CategoriaTipoProblema();
+        $categoriaTipoProblema = new CategoriaTipoProblema(); 
         $categoriaTipoProblema->nombre = strtoupper($request->nombre);
         $categoriaTipoProblema->area = $request->area;
         $categoriaTipoProblema->estado = 1;
