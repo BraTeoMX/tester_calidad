@@ -137,13 +137,29 @@
     </div>
     <div class="row">
 
+
         <div class="col-lg-4">
             <div class="card card-chart">
                 <div class="card-header">
                     <h3 class="card-title"><i class="tim-icons icon-bell-55 text-primary"></i> Top 3 (Defectos)</h3>
-                    <h5 class="card-title">AQL :      45 % </h5>
-                    <h5 class="card-title">PROCESOS : 45 % </h5>
-
+                    <div class="col-sm-15">
+                        <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+                            <label class="btn btn-sm btn-primary btn-simple active" id="cliente0">
+                                <input type="radio" name="clienteOptions" checked>
+                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
+                                <span class="d-block d-sm-none">
+                                    <i class="tim-icons icon-single-02"></i>
+                                </span>
+                            </label>
+                            <label class="btn btn-sm btn-primary btn-simple" id="cliente1">
+                                <input type="radio" class="d-none d-sm-none" name="clienteOptions">
+                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Procesos</span>
+                                <span class="d-block d-sm-none">
+                                    <i class="tim-icons icon-gift-2"></i>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="chart-area">
@@ -483,21 +499,21 @@
     $(document).ready(function() {
       // Lista de colores
       var colores = [
-        'rgba(75, 192, 192, 1)',   
-        'rgba(153, 102, 255, 1)', 
-        'rgba(255, 99, 132, 1)',  
-        'rgba(54, 162, 235, 1)',  
-        'rgba(255, 206, 86, 1)',  
-        'rgba(255, 159, 64, 1)',  
-        'rgba(199, 199, 199, 1)', 
-        'rgba(255, 99, 255, 1)',  
-        'rgba(99, 255, 132, 1)',  
-        'rgba(99, 132, 255, 1)',  
-        'rgba(132, 99, 255, 1)',  
-        'rgba(192, 75, 192, 1)',  
-        'rgba(235, 162, 54, 1)',  
-        'rgba(86, 255, 206, 1)',  
-        'rgba(64, 159, 255, 1)'   
+        'rgba(75, 192, 192, 1)',
+        'rgba(153, 102, 255, 1)',
+        'rgba(255, 99, 132, 1)',
+        'rgba(54, 162, 235, 1)',
+        'rgba(255, 206, 86, 1)',
+        'rgba(255, 159, 64, 1)',
+        'rgba(199, 199, 199, 1)',
+        'rgba(255, 99, 255, 1)',
+        'rgba(99, 255, 132, 1)',
+        'rgba(99, 132, 255, 1)',
+        'rgba(132, 99, 255, 1)',
+        'rgba(192, 75, 192, 1)',
+        'rgba(235, 162, 54, 1)',
+        'rgba(86, 255, 206, 1)',
+        'rgba(64, 159, 255, 1)'
       ];
 
       // Inicializa las gráficas
@@ -600,4 +616,86 @@
       });
     });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script>
+        $(document).ready(function() {
+            let myChart;
+
+            function actualizarGrafico(datos) {
+                const ctx = document.getElementById('chartLinePurple').getContext('2d');
+
+                if (myChart) {
+                    myChart.destroy();
+                }
+
+                const backgroundColor = datos.map(() => {
+                    const r = Math.floor(Math.random() * 256);
+                    const g = Math.floor(Math.random() * 256);
+                    const b = Math.floor(Math.random() * 256);
+                    return `rgba(${r}, ${g}, ${b}, 0.5)`;
+                });
+
+                // Prepara los datos para el gráfico (un solo dataset)
+                const labels = datos.map((item, index) => `${item.defecto} (${index + 1})`);
+                const cantidades = datos.map(item => item.cantidad);
+
+                myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{ // Un solo dataset con todos los datos
+                            label: 'Cantidad', // Etiqueta general para el dataset
+                            data: cantidades,
+                            backgroundColor: backgroundColor,
+                            borderColor: backgroundColor.map(color => color.replace('0.5', '1')),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                formatter: (value, context) => {
+                                    return `${labels[context.dataIndex]} (${value})`; // Mostrar etiqueta y valor
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            $('#cliente0, #cliente1').change(function() {
+                let tipo = $(this).attr('id') === 'cliente0' ? 'TpAuditoriaAQL' : 'TpAseguramientoCalidad';
+
+                $.ajax({
+                    url: 'obtener_top_defectos',
+                    method: 'GET',
+                    data: {
+                        tipo: tipo
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            actualizarGrafico(response.data);
+                        } else {
+                            console.error(response.error);
+                        }
+                    },
+                    error: function() {
+                        console.error('Error en la solicitud AJAX.');
+                    }
+                });
+            });
+
+            $('#cliente0').trigger('change');
+        });
+    </script>
+
 @endpush
