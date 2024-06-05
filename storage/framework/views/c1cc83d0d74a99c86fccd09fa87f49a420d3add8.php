@@ -3,6 +3,16 @@
 <?php $__env->startSection('content'); ?> 
     <div class="row">
         <div class="col-md-12">
+            <div class="card">
+                <div class="card-header card-header-success card-header-icon">
+                    <h2 class="card-title" style="text-align: center">Dashboard Detalle Planta 2 - San Bartolo </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
             <!--Desde aqui inicia la edicion del codigo para mostrar el contenido-->
             <form action="<?php echo e(route('dashboar.dashboardPlanta2Detalle')); ?>" method="GET" id="filterForm">
                 <div class="row">
