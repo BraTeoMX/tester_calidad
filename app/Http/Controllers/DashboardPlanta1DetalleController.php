@@ -721,4 +721,5 @@ class DashboardPlanta1DetalleController extends Controller
         return Response::json(['success' => true, 'data' => $data]);
     }
 
+    
 }
