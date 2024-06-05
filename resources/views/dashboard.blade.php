@@ -17,11 +17,11 @@
                                     <td>{{ $generalAQL }}%</td>
                                 </tr>
                                 <tr>
-                                    <td>Planta I :</td>
+                                    <td><a href="{{ route('dashboar.dashboardPlanta1') }}">Planta I :</a></td>
                                     <td>{{ $generalAQLPlanta1 }}%</td>
                                 </tr>
                                 <tr>
-                                    <td>Planta II :</td>
+                                    <td><a href="{{ route('dashboar.dashboardPlanta2') }}">Planta II :</a></td>
                                     <td>{{ $generalAQLPlanta2 }}%</td>
                                 </tr>
                             </tbody>
@@ -44,11 +44,11 @@
                                     <td>{{ $generalProceso }}%</td>
                                 </tr>
                                 <tr>
-                                    <td>Planta I :</td>
+                                    <td><a href="{{ route('dashboar.dashboardPlanta1') }}">Planta I :</a></td>
                                     <td>{{ $generalProcesoPlanta1 }}%</td>
                                 </tr>
                                 <tr>
-                                    <td>Planta II :</td>
+                                    <td><a href="{{ route('dashboar.dashboardPlanta2') }}">Planta II :</a></td>
                                     <td>{{ $generalProcesoPlanta2 }}%</td>
                                 </tr>
                             </tbody>

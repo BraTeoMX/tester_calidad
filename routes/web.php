@@ -17,7 +17,8 @@ use App\Http\Controllers\viewlistaFormularios;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DashboardPlanta1Controller; 
 use App\Http\Controllers\DashboardPlanta2Controller; 
-use App\Http\Controllers\DashboardPlanta1DetalleController;  
+use App\Http\Controllers\DashboardPlanta1DetalleController;
+use App\Http\Controllers\DashboardPlanta2DetalleController;
 use App\Http\Controllers\reporteriaInternaController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AltaYBajaController;
@@ -327,6 +328,7 @@ Route::get('/dashboardPanta1', [DashboardPlanta1Controller::class, 'dashboardPan
 Route::get('/dashboardPlanta1Detalle', [DashboardPlanta1DetalleController::class, 'dashboardPlanta1Detalle'])->name('dashboar.dashboardPlanta1Detalle'); 
 //dashboard Planta 2
 Route::get('/dashboardPanta2', [DashboardPlanta2Controller::class, 'dashboardPanta2'])->name('dashboar.dashboardPlanta2'); 
+Route::get('/dashboardPlanta2Detalle', [DashboardPlanta2DetalleController::class, 'dashboardPlanta2Detalle'])->name('dashboar.dashboardPlanta2Detalle'); 
 
 Route::get('/reporteriaInterna',[reporteriaInternaController::class, 'reporteriaInterna'])->name('reporteriaInterna.reporteriaInterna')->middleware('checkrole');
 Route::get('/obtener_top_defectos', [DashboardController::class, 'Top3Defectos']);

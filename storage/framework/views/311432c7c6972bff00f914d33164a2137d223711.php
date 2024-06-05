@@ -17,11 +17,11 @@
                                     <td><?php echo e($generalAQL); ?>%</td>
                                 </tr>
                                 <tr>
-                                    <td>Planta I :</td>
+                                    <td><a href="<?php echo e(route('dashboar.dashboardPlanta1')); ?>">Planta I :</a></td>
                                     <td><?php echo e($generalAQLPlanta1); ?>%</td>
                                 </tr>
                                 <tr>
-                                    <td>Planta II :</td>
+                                    <td><a href="<?php echo e(route('dashboar.dashboardPlanta2')); ?>">Planta II :</a></td>
                                     <td><?php echo e($generalAQLPlanta2); ?>%</td>
                                 </tr>
                             </tbody>
@@ -44,11 +44,11 @@
                                     <td><?php echo e($generalProceso); ?>%</td>
                                 </tr>
                                 <tr>
-                                    <td>Planta I :</td>
+                                    <td><a href="<?php echo e(route('dashboar.dashboardPlanta1')); ?>">Planta I :</a></td>
                                     <td><?php echo e($generalProcesoPlanta1); ?>%</td>
                                 </tr>
                                 <tr>
-                                    <td>Planta II :</td>
+                                    <td><a href="<?php echo e(route('dashboar.dashboardPlanta2')); ?>">Planta II :</a></td>
                                     <td><?php echo e($generalProcesoPlanta2); ?>%</td>
                                 </tr>
                             </tbody>

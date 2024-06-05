@@ -68,7 +68,7 @@
                 <div class="card-header ">
                     <div class="row">
                         <div class="col-sm-6 text-left">
-                            <h2 class="card-title"><a href="<?php echo e(route('dashboar.dashboarAProcesoAQL')); ?>">Intimark Mensual General</a></h2>
+                            <h2 class="card-title"><a href="<?php echo e(route('dashboar.dashboardPlanta2Detalle')); ?>">Intimark Mensual General</a></h2>
                         </div>
                         <div class="col-sm-6">
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
