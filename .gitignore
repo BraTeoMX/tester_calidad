@@ -2,3 +2,18 @@
 .env.backup
 # Laravel storage exclusions
 /storage/framework/views
+
+# Ignorar todo en storage excepto ciertas carpetas
+/storage/*
+!/storage/app
+!/storage/app/public
+!/storage/framework
+!/storage/framework/cache
+!/storage/framework/sessions
+!/storage/framework/testing
+!/storage/framework/views
+!/storage/logs
+
+# Ignorar el contenido de bootstrap/cache excepto la carpeta
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
