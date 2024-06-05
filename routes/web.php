@@ -15,6 +15,7 @@ use App\Http\Controllers\AuditoriaAQLController;
 use App\Http\Controllers\Maquila;
 use App\Http\Controllers\viewlistaFormularios;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardPlanta1Controller; 
 use App\Http\Controllers\reporteriaInternaController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AltaYBajaController;
@@ -318,7 +319,9 @@ Route::get('/detalleXModuloAQL', [DashboardController::class, 'detalleXModuloAQL
 Route::get('/dashboarAProcesoAQL', [DashboardController::class, 'dashboarAProcesoAQL'])->name('dashboar.dashboarAProcesoAQL');
 Route::get('/detalleXModuloAQL', [DashboardController::class, 'detalleXModuloAQL'])->name('dashboar.detalleXModuloAQL');
 Route::get('/detallePorGerente', [DashboardController::class, 'detallePorGerente'])->name('dashboar.detallePorGerente');
-Route::get('/detallePorCliente', [DashboardController::class, 'detallePorCliente'])->name('dashboar.detallePorCliente');
+Route::get('/detallePorCliente', [DashboardController::class, 'detallePorCliente'])->name('dashboar.detallePorCliente'); 
+//dashboard Planta 1
+Route::get('/dashboardPanta1', [DashboardPlanta1Controller::class, 'dashboardPanta1'])->name('dashboar.dashboardPlanta1'); 
 
 Route::get('/reporteriaInterna',[reporteriaInternaController::class, 'reporteriaInterna'])->name('reporteriaInterna.reporteriaInterna')->middleware('checkrole');
 Route::get('/obtener_top_defectos', [DashboardController::class, 'Top3Defectos']);
