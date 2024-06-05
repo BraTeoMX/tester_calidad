@@ -17,11 +17,11 @@
                                     <td>{{ $generalAQL }}%</td>
                                 </tr>
                                 <tr>
-                                    <td>Planta I :</td>
+                                    <td><a href="{{ route('dashboar.dashboardPlanta1') }}">Planta I :</a></td>
                                     <td>{{ $generalAQLPlanta1 }}%</td>
                                 </tr>
                                 <tr>
-                                    <td>Planta II :</td>
+                                    <td><a href="{{ route('dashboar.dashboardPlanta2') }}">Planta II :</a></td>
                                     <td>{{ $generalAQLPlanta2 }}%</td>
                                 </tr>
                             </tbody>
@@ -44,11 +44,11 @@
                                     <td>{{ $generalProceso }}%</td>
                                 </tr>
                                 <tr>
-                                    <td>Planta I :</td>
+                                    <td><a href="{{ route('dashboar.dashboardPlanta1') }}">Planta I :</a></td>
                                     <td>{{ $generalProcesoPlanta1 }}%</td>
                                 </tr>
                                 <tr>
-                                    <td>Planta II :</td>
+                                    <td><a href="{{ route('dashboar.dashboardPlanta2') }}">Planta II :</a></td>
                                     <td>{{ $generalProcesoPlanta2 }}%</td>
                                 </tr>
                             </tbody>
@@ -144,14 +144,14 @@
                     <h3 class="card-title"><i class="tim-icons icon-bell-55 text-primary"></i> Top 3 (Defectos)</h3>
                     <div class="col-sm-15">
                         <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-                            <label class="btn btn-sm btn-primary btn-simple active" id="cliente0">
+                            <label class="btn btn-sm btn-primary btn-simple active" id="top3-1">
                                 <input type="radio" name="clienteOptions" checked>
                                 <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
                                 <span class="d-block d-sm-none">
                                     <i class="tim-icons icon-single-02"></i>
                                 </span>
                             </label>
-                            <label class="btn btn-sm btn-primary btn-simple" id="cliente1">
+                            <label class="btn btn-sm btn-primary btn-simple" id="top3-2">
                                 <input type="radio" class="d-none d-sm-none" name="clienteOptions">
                                 <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Procesos</span>
                                 <span class="d-block d-sm-none">
@@ -163,7 +163,7 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-area">
-                        <canvas id="chartLinePurple"></canvas>
+                        <canvas id="chartLinePurple" style="width: 100%; height: 400px;"></canvas>
                     </div>
                 </div>
             </div>
@@ -616,8 +616,7 @@
       });
     });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
     <script>
         $(document).ready(function() {
             let myChart;
@@ -653,6 +652,8 @@
                         }]
                     },
                     options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
                         plugins: {
                             datalabels: {
                                 anchor: 'end',
@@ -671,8 +672,8 @@
                 });
             }
 
-            $('#cliente0, #cliente1').change(function() {
-                let tipo = $(this).attr('id') === 'cliente0' ? 'TpAuditoriaAQL' : 'TpAseguramientoCalidad';
+            $('#top3-1, #top3-2').change(function() {
+                let tipo = $(this).attr('id') === 'top3-1' ? 'TpAuditoriaAQL' : 'TpAseguramientoCalidad';
 
                 $.ajax({
                     url: 'obtener_top_defectos',
@@ -694,7 +695,7 @@
                 });
             });
 
-            $('#cliente0').trigger('change');
+            $('#top3-1').trigger('change');
         });
     </script>
 
