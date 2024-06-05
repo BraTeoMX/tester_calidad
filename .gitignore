@@ -20,3 +20,8 @@
 /storage
 /storage/framework
 /storage/framework/sessions
+/storage
+/storage/logs
+/storage
+/storage/framework
+/storage/framework/sessions
