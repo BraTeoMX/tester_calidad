@@ -422,240 +422,119 @@
 
 @push('js')
     <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
-<script>
-    $(document).ready(function() {
-        // Inicializa las gráficas
-        var ctxAQL = document.getElementById('chartAQL').getContext('2d');
-        var chartAQL = new Chart(ctxAQL, {
-            type: 'line',
-            data: {
-                labels: {!! json_encode($fechas) !!},
-                datasets: [{
-                    label: 'AQL',
-                    data: {!! json_encode($porcentajesAQL) !!},
-                    borderColor: '#f96332',
-                    backgroundColor: 'rgba(249, 99, 50, 0.4)',
-                    fill: true,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                legend: {
-                    display: false // Ocultar la leyenda
-                },
-                scales: {
-                    xAxes: [{
-                        type: 'time',
-                        time: {
-                            unit: 'day',
-                            tooltipFormat: 'll',
-                            displayFormats: {
-                                day: 'DD-MM-YYYY'
-                            }
-                        },
-                        ticks: {
-                            autoSkip: false,
-                            maxRotation: 90,
-                            minRotation: 45
-                        }
-                    }],
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true,
-                            callback: function(value, index, values) {
-                                return value + '%'; // Añadir el símbolo de porcentaje
-                            }
-                        }
+    <script>
+        $(document).ready(function() {
+            // Inicializa las gráficas
+            var ctxAQL = document.getElementById('chartAQL').getContext('2d');
+            var chartAQL = new Chart(ctxAQL, {
+                type: 'line',
+                data: {
+                    labels: {!! json_encode($fechas) !!},
+                    datasets: [{
+                        label: 'AQL',
+                        data: {!! json_encode($porcentajesAQL) !!},
+                        borderColor: '#f96332',
+                        backgroundColor: 'rgba(249, 99, 50, 0.4)',
+                        fill: true,
                     }]
-                }
-            }
-        });
-
-        var ctxProcesos = document.getElementById('chartProcesos').getContext('2d');
-        var chartProcesos = new Chart(ctxProcesos, {
-            type: 'line',
-            data: {
-                labels: {!! json_encode($fechas) !!},
-                datasets: [{
-                    label: 'Procesos',
-                    data: {!! json_encode($porcentajesProceso) !!},
-                    borderColor: '#1f8ef1',
-                    backgroundColor: 'rgba(31, 142, 241, 0.4)',
-                    fill: true,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                legend: {
-                    display: false // Ocultar la leyenda
                 },
-                scales: {
-                    xAxes: [{
-                        type: 'time',
-                        time: {
-                            unit: 'day',
-                            tooltipFormat: 'll',
-                            displayFormats: {
-                                day: 'DD-MM-YYYY'
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: {
+                        display: false // Ocultar la leyenda
+                    },
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'll',
+                                displayFormats: {
+                                    day: 'DD-MM-YYYY'
+                                }
+                            },
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 90,
+                                minRotation: 45
                             }
-                        },
-                        ticks: {
-                            autoSkip: false,
-                            maxRotation: 90,
-                            minRotation: 45
-                        }
-                    }],
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true,
-                            callback: function(value, index, values) {
-                                return value + '%'; // Añadir el símbolo de porcentaje
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function(value, index, values) {
+                                    return value + '%'; // Añadir el símbolo de porcentaje
+                                }
                             }
-                        }
+                        }]
+                    }
+                }
+            });
+
+            var ctxProcesos = document.getElementById('chartProcesos').getContext('2d');
+            var chartProcesos = new Chart(ctxProcesos, {
+                type: 'line',
+                data: {
+                    labels: {!! json_encode($fechas) !!},
+                    datasets: [{
+                        label: 'Procesos',
+                        data: {!! json_encode($porcentajesProceso) !!},
+                        borderColor: '#1f8ef1',
+                        backgroundColor: 'rgba(31, 142, 241, 0.4)',
+                        fill: true,
                     }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: {
+                        display: false // Ocultar la leyenda
+                    },
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'll',
+                                displayFormats: {
+                                    day: 'DD-MM-YYYY'
+                                }
+                            },
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 90,
+                                minRotation: 45
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function(value, index, values) {
+                                    return value + '%'; // Añadir el símbolo de porcentaje
+                                }
+                            }
+                        }]
+                    }
                 }
-            }
+            });
+
+            // Manejar el cambio de gráficos
+            $('#0').on('click', function() {
+                $('#chartAQL').show();
+                $('#chartProcesos').hide();
+            });
+
+            $('#1').on('click', function() {
+                $('#chartAQL').hide();
+                $('#chartProcesos').show();
+            });
         });
+    </script>
 
-        // Manejar el cambio de gráficos
-        $('#0').on('click', function() {
-            $('#chartAQL').show();
-            $('#chartProcesos').hide();
-        });
-
-        $('#1').on('click', function() {
-            $('#chartAQL').hide();
-            $('#chartProcesos').show();
-        });
-    });
-</script>
-
-<script>
-    $(document).ready(function() {
-      // Lista de colores
-      var colores = [
-        'rgba(75, 192, 192, 1)',
-        'rgba(153, 102, 255, 1)',
-        'rgba(255, 99, 132, 1)',
-        'rgba(54, 162, 235, 1)',
-        'rgba(255, 206, 86, 1)',
-        'rgba(255, 159, 64, 1)',
-        'rgba(199, 199, 199, 1)',
-        'rgba(255, 99, 255, 1)',
-        'rgba(99, 255, 132, 1)',
-        'rgba(99, 132, 255, 1)',
-        'rgba(132, 99, 255, 1)',
-        'rgba(192, 75, 192, 1)',
-        'rgba(235, 162, 54, 1)',
-        'rgba(86, 255, 206, 1)',
-        'rgba(64, 159, 255, 1)'
-      ];
-
-      // Inicializa las gráficas
-      var ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');
-      var datasetsAQL = @json($datasetsAQL).map((dataset, index) => {
-        return {
-          ...dataset,
-          borderColor: colores[index % colores.length],
-          backgroundColor: colores[index % colores.length]
-        };
-      });
-      var chartClienteAQL = new Chart(ctxClienteAQL, {
-        type: 'line',
-        data: {
-          labels: @json($fechasGrafica),
-          datasets: datasetsAQL
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          legend: {
-            display: true // Mostrar la leyenda
-          },
-          scales: {
-            xAxes: [{
-              type: 'time',
-              time: {
-                unit: 'day',
-                tooltipFormat: 'll',
-                displayFormats: {
-                  day: 'YYYY-MM-DD'
-                }
-              }
-            }],
-            yAxes: [{
-              ticks: {
-                beginAtZero: true,
-                callback: function(value, index, values) {
-                  return value + '%'; // Añadir el símbolo de porcentaje
-                }
-              }
-            }]
-          }
-        }
-      });
-
-      var ctxClienteProcesos = document.getElementById('clienteChartProcesos').getContext('2d');
-      var datasetsProceso = @json($datasetsProceso).map((dataset, index) => {
-        return {
-          ...dataset,
-          borderColor: colores[index % colores.length],
-          backgroundColor: colores[index % colores.length]
-        };
-      });
-      var chartClienteProcesos = new Chart(ctxClienteProcesos, {
-        type: 'line',
-        data: {
-          labels: @json($fechasGrafica),
-          datasets: datasetsProceso
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          legend: {
-            display: true // Mostrar la leyenda
-          },
-          scales: {
-            xAxes: [{
-              type: 'time',
-              time: {
-                unit: 'day',
-                tooltipFormat: 'll',
-                displayFormats: {
-                  day: 'YYYY-MM-DD'
-                }
-              }
-            }],
-            yAxes: [{
-              ticks: {
-                beginAtZero: true,
-                callback: function(value, index, values) {
-                  return value + '%'; // Añadir el símbolo de porcentaje
-                }
-              }
-            }]
-          }
-        }
-      });
-
-      $('#cliente0').on('click', function() {
-        $('#clienteChartAQL').show();
-        $('#clienteChartProcesos').hide();
-        chartClienteAQL.update(); // Asegurarse de que la gráfica se actualice
-      });
-
-      $('#cliente1').on('click', function() {
-        $('#clienteChartAQL').hide();
-        $('#clienteChartProcesos').show();
-        chartClienteProcesos.update(); // Asegurarse de que la gráfica se actualice
-      });
-    });
-</script>
-
-<script>
-    $(document).ready(function() {
+    <script>
+        $(document).ready(function() {
+        // Lista de colores
         var colores = [
             'rgba(75, 192, 192, 1)',
             'rgba(153, 102, 255, 1)',
@@ -674,108 +553,228 @@
             'rgba(64, 159, 255, 1)'
         ];
 
-        // Inicializa las gráficas de módulos
-        var ctxModuloAQL = document.getElementById('moduloChartAQL').getContext('2d');
-        var datasetsAQLModulos = @json($datasetsAQLModulos).map((dataset, index) => {
+        // Inicializa las gráficas
+        var ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');
+        var datasetsAQL = @json($datasetsAQL).map((dataset, index) => {
             return {
-                ...dataset,
-                borderColor: colores[index % colores.length],
-                backgroundColor: colores[index % colores.length]
+            ...dataset,
+            borderColor: colores[index % colores.length],
+            backgroundColor: colores[index % colores.length]
             };
         });
-        var chartModuloAQL = new Chart(ctxModuloAQL, {
+        var chartClienteAQL = new Chart(ctxClienteAQL, {
             type: 'line',
             data: {
-                labels: @json($fechasGraficaModulos),
-                datasets: datasetsAQLModulos
+            labels: @json($fechasGrafica),
+            datasets: datasetsAQL
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                legend: {
-                    display: true
-                },
-                scales: {
-                    xAxes: [{
-                        type: 'time',
-                        time: {
-                            unit: 'day',
-                            tooltipFormat: 'll',
-                            displayFormats: {
-                                day: 'YYYY-MM-DD'
-                            }
-                        }
-                    }],
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true,
-                            callback: function(value, index, values) {
-                                return value + '%';
-                            }
-                        }
-                    }]
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: {
+                display: true // Mostrar la leyenda
+            },
+            scales: {
+                xAxes: [{
+                type: 'time',
+                time: {
+                    unit: 'day',
+                    tooltipFormat: 'll',
+                    displayFormats: {
+                    day: 'YYYY-MM-DD'
+                    }
                 }
+                }],
+                yAxes: [{
+                ticks: {
+                    beginAtZero: true,
+                    callback: function(value, index, values) {
+                    return value + '%'; // Añadir el símbolo de porcentaje
+                    }
+                }
+                }]
+            }
             }
         });
 
-        var ctxModuloProcesos = document.getElementById('moduloChartProcesos').getContext('2d');
-        var datasetsProcesoModulos = @json($datasetsProcesoModulos).map((dataset, index) => {
+        var ctxClienteProcesos = document.getElementById('clienteChartProcesos').getContext('2d');
+        var datasetsProceso = @json($datasetsProceso).map((dataset, index) => {
             return {
-                ...dataset,
-                borderColor: colores[index % colores.length],
-                backgroundColor: colores[index % colores.length]
+            ...dataset,
+            borderColor: colores[index % colores.length],
+            backgroundColor: colores[index % colores.length]
             };
         });
-        var chartModuloProcesos = new Chart(ctxModuloProcesos, {
+        var chartClienteProcesos = new Chart(ctxClienteProcesos, {
             type: 'line',
             data: {
-                labels: @json($fechasGraficaModulos),
-                datasets: datasetsProcesoModulos
+            labels: @json($fechasGrafica),
+            datasets: datasetsProceso
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                legend: {
-                    display: true
-                },
-                scales: {
-                    xAxes: [{
-                        type: 'time',
-                        time: {
-                            unit: 'day',
-                            tooltipFormat: 'll',
-                            displayFormats: {
-                                day: 'YYYY-MM-DD'
-                            }
-                        }
-                    }],
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true,
-                            callback: function(value, index, values) {
-                                return value + '%';
-                            }
-                        }
-                    }]
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: {
+                display: true // Mostrar la leyenda
+            },
+            scales: {
+                xAxes: [{
+                type: 'time',
+                time: {
+                    unit: 'day',
+                    tooltipFormat: 'll',
+                    displayFormats: {
+                    day: 'YYYY-MM-DD'
+                    }
                 }
+                }],
+                yAxes: [{
+                ticks: {
+                    beginAtZero: true,
+                    callback: function(value, index, values) {
+                    return value + '%'; // Añadir el símbolo de porcentaje
+                    }
+                }
+                }]
+            }
             }
         });
 
-        $('#modulo0').on('click', function() {
-            $('#moduloChartAQL').show();
-            $('#moduloChartProcesos').hide();
-            chartModuloAQL.update();
+        $('#cliente0').on('click', function() {
+            $('#clienteChartAQL').show();
+            $('#clienteChartProcesos').hide();
+            chartClienteAQL.update(); // Asegurarse de que la gráfica se actualice
         });
 
-        $('#modulo1').on('click', function() {
-            $('#moduloChartAQL').hide();
-            $('#moduloChartProcesos').show();
-            chartModuloProcesos.update();
+        $('#cliente1').on('click', function() {
+            $('#clienteChartAQL').hide();
+            $('#clienteChartProcesos').show();
+            chartClienteProcesos.update(); // Asegurarse de que la gráfica se actualice
         });
-    });
-</script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            var colores = [
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(255, 159, 64, 1)',
+                'rgba(199, 199, 199, 1)',
+                'rgba(255, 99, 255, 1)',
+                'rgba(99, 255, 132, 1)',
+                'rgba(99, 132, 255, 1)',
+                'rgba(132, 99, 255, 1)',
+                'rgba(192, 75, 192, 1)',
+                'rgba(235, 162, 54, 1)',
+                'rgba(86, 255, 206, 1)',
+                'rgba(64, 159, 255, 1)'
+            ];
+
+            // Inicializa las gráficas de módulos
+            var ctxModuloAQL = document.getElementById('moduloChartAQL').getContext('2d');
+            var datasetsAQLModulos = @json($datasetsAQLModulos).map((dataset, index) => {
+                return {
+                    ...dataset,
+                    borderColor: colores[index % colores.length],
+                    backgroundColor: colores[index % colores.length]
+                };
+            });
+            var chartModuloAQL = new Chart(ctxModuloAQL, {
+                type: 'line',
+                data: {
+                    labels: @json($fechasGraficaModulos),
+                    datasets: datasetsAQLModulos
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: {
+                        display: true
+                    },
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'll',
+                                displayFormats: {
+                                    day: 'YYYY-MM-DD'
+                                }
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function(value, index, values) {
+                                    return value + '%';
+                                }
+                            }
+                        }]
+                    }
+                }
+            });
+
+            var ctxModuloProcesos = document.getElementById('moduloChartProcesos').getContext('2d');
+            var datasetsProcesoModulos = @json($datasetsProcesoModulos).map((dataset, index) => {
+                return {
+                    ...dataset,
+                    borderColor: colores[index % colores.length],
+                    backgroundColor: colores[index % colores.length]
+                };
+            });
+            var chartModuloProcesos = new Chart(ctxModuloProcesos, {
+                type: 'line',
+                data: {
+                    labels: @json($fechasGraficaModulos),
+                    datasets: datasetsProcesoModulos
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: {
+                        display: true
+                    },
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'll',
+                                displayFormats: {
+                                    day: 'YYYY-MM-DD'
+                                }
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function(value, index, values) {
+                                    return value + '%';
+                                }
+                            }
+                        }]
+                    }
+                }
+            });
+
+            $('#modulo0').on('click', function() {
+                $('#moduloChartAQL').show();
+                $('#moduloChartProcesos').hide();
+                chartModuloAQL.update();
+            });
+
+            $('#modulo1').on('click', function() {
+                $('#moduloChartAQL').hide();
+                $('#moduloChartProcesos').show();
+                chartModuloProcesos.update();
+            });
+        });
+    </script>
+
     <script>
         $(document).ready(function() {
             let myChart;
