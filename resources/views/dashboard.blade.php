@@ -616,7 +616,8 @@
       });
     });
 </script>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script>
         $(document).ready(function() {
             let myChart;
@@ -648,7 +649,7 @@
                             data: cantidades,
                             backgroundColor: backgroundColor,
                             borderColor: backgroundColor.map(color => color.replace('0.5', '1')),
-                            borderWidth: 5
+                            borderWidth: 1
                         }]
                     },
                     options: {
