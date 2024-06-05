@@ -15,7 +15,7 @@ use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\DB; // Importa la clase DB
 
 
-class DashboardPlanta1Controller extends Controller
+class DashboardPlanta2Controller extends Controller
 {
     /**
      * Create a new controller instance.
@@ -33,7 +33,7 @@ class DashboardPlanta1Controller extends Controller
      * @return \Illuminate\View\View
      */
 
-    public function dashboardPanta1()
+    public function dashboardPanta2()
     {
         $title = "";
         $fechaActual = Carbon::now()->toDateString();
@@ -72,13 +72,13 @@ class DashboardPlanta1Controller extends Controller
             $fechas->push($date->format('Y-m-d'));
         }
 
-        $plantaIxtlahuaca = 'Intimark1';
-        $porcentajesAQL = $fechas->map(function ($fecha) use ($plantaIxtlahuaca) {
-            return calcularPorcentaje(AuditoriaAQL::class, $fecha, $plantaIxtlahuaca);
+        $plantaSanBartolo = 'Intimark2';
+        $porcentajesAQL = $fechas->map(function ($fecha) use ($plantaSanBartolo) {
+            return calcularPorcentaje(AuditoriaAQL::class, $fecha, $plantaSanBartolo);
         });
         
-        $porcentajesProceso = $fechas->map(function ($fecha) use ($plantaIxtlahuaca) {
-            return calcularPorcentaje(AseguramientoCalidad::class, $fecha, $plantaIxtlahuaca);
+        $porcentajesProceso = $fechas->map(function ($fecha) use ($plantaSanBartolo) {
+            return calcularPorcentaje(AseguramientoCalidad::class, $fecha, $plantaSanBartolo);
         });
 
 
@@ -169,7 +169,7 @@ class DashboardPlanta1Controller extends Controller
             ->get();
 
         //dd($gerentesProduccionAQL, $gerentesProduccionProceso, $gerentesProduccion, $data);
-        return view('dashboar.dashboardPlanta1', compact(
+        return view('dashboar.dashboardPlanta2', compact(
             'title',
             'topDefectosAQL',
             'topDefectosProceso',
@@ -212,8 +212,8 @@ class DashboardPlanta1Controller extends Controller
 
     private function obtenerDatosClientesPorFiltro($fechaActual, $planta = null)
     {
-        $queryAQL = AuditoriaAQL::whereNotNull('cliente')->whereDate('created_at', $fechaActual)->where('planta', 'Intimark1');
-        $queryProceso = AseguramientoCalidad::whereNotNull('cliente')->whereDate('created_at', $fechaActual)->where('planta', 'Intimark1');
+        $queryAQL = AuditoriaAQL::whereNotNull('cliente')->whereDate('created_at', $fechaActual)->where('planta', 'Intimark2');
+        $queryProceso = AseguramientoCalidad::whereNotNull('cliente')->whereDate('created_at', $fechaActual)->where('planta', 'Intimark2');
 
         if ($planta) {
             $queryAQL->where('planta', $planta);
@@ -231,14 +231,14 @@ class DashboardPlanta1Controller extends Controller
                 ->when($planta, function ($query) use ($planta) {
                     return $query->where('planta', $planta);
                 })
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('cantidad_auditada');
             $sumaRechazadaAQL = AuditoriaAQL::where('cliente', $cliente)
                 ->whereDate('created_at', $fechaActual)
                 ->when($planta, function ($query) use ($planta) {
                     return $query->where('planta', $planta);
                 })
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('cantidad_rechazada');
 
             $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
@@ -248,14 +248,14 @@ class DashboardPlanta1Controller extends Controller
                 ->when($planta, function ($query) use ($planta) {
                     return $query->where('planta', $planta);
                 })
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('cantidad_auditada');
             $sumaRechazadaProceso = AseguramientoCalidad::where('cliente', $cliente)
                 ->whereDate('created_at', $fechaActual)
                 ->when($planta, function ($query) use ($planta) {
                     return $query->where('planta', $planta);
                 })
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('cantidad_rechazada');
 
             $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
@@ -290,8 +290,8 @@ class DashboardPlanta1Controller extends Controller
             $fechaStr = $fecha->toDateString();
 
             // Obtener clientes únicos para la fecha actual
-            $queryAQL = AuditoriaAQL::whereNotNull('cliente')->whereDate('created_at', $fechaStr)->where('planta', 'Intimark1');
-            $queryProceso = AseguramientoCalidad::whereNotNull('cliente')->whereDate('created_at', $fechaStr)->where('planta', 'Intimark1');
+            $queryAQL = AuditoriaAQL::whereNotNull('cliente')->whereDate('created_at', $fechaStr)->where('planta', 'Intimark2');
+            $queryProceso = AseguramientoCalidad::whereNotNull('cliente')->whereDate('created_at', $fechaStr)->where('planta', 'Intimark2');
 
             if ($planta) {
                 $queryAQL->where('planta', $planta);
@@ -321,14 +321,14 @@ class DashboardPlanta1Controller extends Controller
                     ->when($planta, function ($query) use ($planta) {
                         return $query->where('planta', $planta);
                     })
-                    ->where('planta', 'Intimark1')
+                    ->where('planta', 'Intimark2')
                     ->sum('cantidad_auditada');
                 $sumaRechazadaAQL = AuditoriaAQL::where('cliente', $cliente)
                     ->whereDate('created_at', $fechaStr)
                     ->when($planta, function ($query) use ($planta) {
                         return $query->where('planta', $planta);
                     })
-                    ->where('planta', 'Intimark1')
+                    ->where('planta', 'Intimark2')
                     ->sum('cantidad_rechazada');
 
                 $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
@@ -339,14 +339,14 @@ class DashboardPlanta1Controller extends Controller
                     ->when($planta, function ($query) use ($planta) {
                         return $query->where('planta', $planta);
                     })
-                    ->where('planta', 'Intimark1')
+                    ->where('planta', 'Intimark2')
                     ->sum('cantidad_auditada');
                 $sumaRechazadaProceso = AseguramientoCalidad::where('cliente', $cliente)
                     ->whereDate('created_at', $fechaStr)
                     ->when($planta, function ($query) use ($planta) {
                         return $query->where('planta', $planta);
                     })
-                    ->where('planta', 'Intimark1')
+                    ->where('planta', 'Intimark2')
                     ->sum('cantidad_rechazada');
 
                 $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
@@ -372,19 +372,19 @@ class DashboardPlanta1Controller extends Controller
     private function calcularTotales($dataClientes)
     {
         $totalAuditadaAQL = array_sum(array_map(function ($data) {
-            return AuditoriaAQL::where('cliente', $data['cliente'])->where('planta', 'Intimark1')->sum('cantidad_auditada');
+            return AuditoriaAQL::where('cliente', $data['cliente'])->where('planta', 'Intimark2')->sum('cantidad_auditada');
         }, $dataClientes));
 
         $totalRechazadaAQL = array_sum(array_map(function ($data) {
-            return AuditoriaAQL::where('cliente', $data['cliente'])->where('planta', 'Intimark1')->sum('cantidad_rechazada');
+            return AuditoriaAQL::where('cliente', $data['cliente'])->where('planta', 'Intimark2')->sum('cantidad_rechazada');
         }, $dataClientes));
 
         $totalAuditadaProceso = array_sum(array_map(function ($data) {
-            return AseguramientoCalidad::where('cliente', $data['cliente'])->where('planta', 'Intimark1')->sum('cantidad_auditada');
+            return AseguramientoCalidad::where('cliente', $data['cliente'])->where('planta', 'Intimark2')->sum('cantidad_auditada');
         }, $dataClientes));
 
         $totalRechazadaProceso = array_sum(array_map(function ($data) {
-            return AseguramientoCalidad::where('cliente', $data['cliente'])->where('planta', 'Intimark1')->sum('cantidad_rechazada');
+            return AseguramientoCalidad::where('cliente', $data['cliente'])->where('planta', 'Intimark2')->sum('cantidad_rechazada');
         }, $dataClientes));
 
         return [
@@ -397,7 +397,7 @@ class DashboardPlanta1Controller extends Controller
 
     private function getDataModuloAQL($fecha, $planta = null)
     {
-        $query = AuditoriaAQL::whereDate('created_at', $fecha)->where('planta', 'Intimark1');
+        $query = AuditoriaAQL::whereDate('created_at', $fecha)->where('planta', 'Intimark2');
 
         if (!is_null($planta)) {
             $query->where('planta', $planta);
@@ -411,7 +411,7 @@ class DashboardPlanta1Controller extends Controller
         $dataModuloAQL = [];
         foreach ($modulosAQL as $modulo) {
             $queryModulo = AuditoriaAQL::where('modulo', $modulo)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->whereDate('created_at', $fecha);
 
             if (!is_null($planta)) {
@@ -420,41 +420,41 @@ class DashboardPlanta1Controller extends Controller
 
             $modulosUnicos = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->distinct()
                 ->count('modulo');
 
             $sumaAuditadaAQL = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('cantidad_auditada');
 
             $sumaRechazadaAQL = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('cantidad_rechazada');
 
             $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
 
             $conteoOperario = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->distinct()
                 ->count('nombre');
 
             $conteoMinutos = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->count('minutos_paro');
 
             $conteParoModular = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->count('minutos_paro_modular');
 
             $sumaMinutos = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('minutos_paro');
 
             $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
@@ -477,7 +477,7 @@ class DashboardPlanta1Controller extends Controller
 
     private function getDataModuloProceso($fecha, $planta = null)
     {
-        $query = AseguramientoCalidad::whereDate('created_at', $fecha)->where('planta', 'Intimark1');
+        $query = AseguramientoCalidad::whereDate('created_at', $fecha)->where('planta', 'Intimark2');
 
         if (!is_null($planta)) {
             $query->where('planta', $planta);
@@ -491,7 +491,7 @@ class DashboardPlanta1Controller extends Controller
         $dataModuloProceso = [];
         foreach ($modulosProceso as $modulo) {
             $queryModulo = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->whereDate('created_at', $fecha);
 
             if (!is_null($planta)) {
@@ -500,18 +500,18 @@ class DashboardPlanta1Controller extends Controller
 
             $modulosUnicos = AseguramientoCalidad::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->distinct()
                 ->count('modulo');
 
             $sumaAuditadaProceso = AseguramientoCalidad::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('cantidad_auditada');
 
             $sumaRechazadaProceso = AseguramientoCalidad::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('cantidad_rechazada');
 
             $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
@@ -519,25 +519,25 @@ class DashboardPlanta1Controller extends Controller
             $conteoOperario = AseguramientoCalidad::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
                 ->where('utility', null)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->distinct()
                 ->count('nombre');
 
             $conteoUtility = AseguramientoCalidad::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
                 ->where('utility', 1)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->distinct()
                 ->count('nombre');
 
             $conteoMinutos = AseguramientoCalidad::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->count('minutos_paro');
 
             $sumaMinutos = AseguramientoCalidad::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('minutos_paro');
 
             $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
@@ -560,7 +560,7 @@ class DashboardPlanta1Controller extends Controller
 
     private function getDataGerentesProduccionAQL($fecha, $planta = null)
     {
-        $query = AuditoriaAQL::whereDate('created_at', $fecha)->where('planta', 'Intimark1');
+        $query = AuditoriaAQL::whereDate('created_at', $fecha)->where('planta', 'Intimark2');
 
         if (!is_null($planta)) {
             $query->where('planta', $planta);
@@ -575,7 +575,7 @@ class DashboardPlanta1Controller extends Controller
         foreach ($gerentesAQL as $gerente) {
             $modulosUnicosAQL = AuditoriaAQL::where('team_leader', $gerente)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->select('modulo')
                 ->distinct()
                 ->get()
@@ -585,35 +585,35 @@ class DashboardPlanta1Controller extends Controller
 
             $sumaAuditadaAQL = AuditoriaAQL::where('team_leader', $gerente)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('cantidad_auditada');
 
             $sumaRechazadaAQL = AuditoriaAQL::where('team_leader', $gerente)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('cantidad_rechazada');
 
             $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
 
             $conteoOperario = AuditoriaAQL::where('team_leader', $gerente)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->distinct('nombre')
                 ->count('nombre');
 
             $conteoMinutos = AuditoriaAQL::where('team_leader', $gerente)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->count('minutos_paro');
 
             $conteParoModular = AuditoriaAQL::where('team_leader', $gerente)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->count('minutos_paro_modular');
 
             $sumaMinutos = AuditoriaAQL::where('team_leader', $gerente)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('minutos_paro');
 
             $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
@@ -636,7 +636,7 @@ class DashboardPlanta1Controller extends Controller
 
     private function getDataGerentesProduccionProceso($fecha, $planta = null)
     {
-        $query = AseguramientoCalidad::whereDate('created_at', $fecha)->where('planta', 'Intimark1');
+        $query = AseguramientoCalidad::whereDate('created_at', $fecha)->where('planta', 'Intimark2');
 
         if (!is_null($planta)) {
             $query->where('planta', $planta);
@@ -651,7 +651,7 @@ class DashboardPlanta1Controller extends Controller
         foreach ($gerentesProceso as $gerente) {
             $modulosUnicosProceso = AseguramientoCalidad::where('team_leader', $gerente)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->select('modulo')
                 ->distinct()
                 ->get()
@@ -661,12 +661,12 @@ class DashboardPlanta1Controller extends Controller
 
             $sumaAuditadaProceso = AseguramientoCalidad::where('team_leader', $gerente)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('cantidad_auditada');
 
             $sumaRechazadaProceso = AseguramientoCalidad::where('team_leader', $gerente)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('cantidad_rechazada');
 
             $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
@@ -674,26 +674,26 @@ class DashboardPlanta1Controller extends Controller
             $conteoOperario = AseguramientoCalidad::where('team_leader', $gerente)
                 ->where('utility', null)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->distinct('nombre')
                 ->count('nombre');
 
             $conteoUtility = AseguramientoCalidad::where('team_leader', $gerente)
                 ->where('utility', 1)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->distinct('nombre')
                 ->count('nombre');
 
             $conteoMinutos = AseguramientoCalidad::where('team_leader', $gerente)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
+                ->where('planta', 'Intimark2')
                 ->count('minutos_paro');
 
             $sumaMinutos = AseguramientoCalidad::where('team_leader', $gerente)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
+                ->where('planta', 'Intimark2')
                 ->sum('minutos_paro');
 
             $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;

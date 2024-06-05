@@ -1,12 +1,12 @@
+@extends('layouts.app', ['pageSlug' => 'dashboard'])
 
-
-<?php $__env->startSection('content'); ?>
+@section('content')
 
     <div class="row">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
-                    <h2 class="card-title" style="text-align: center">Dashboard General Planta 1 - Ixtlahuaca </h2>
+                    <h2 class="card-title" style="text-align: center">Dashboard General Planta 2 - San Bartolo </h2>
                 </div>
             </div>
         </div>
@@ -24,11 +24,11 @@
                             <tbody>
                                 <tr>
                                     <td>Porcentaje General :</td>
-                                    <td><?php echo e($generalAQL); ?>%</td>
+                                    <td>{{ $generalAQL }}%</td>
                                 </tr>
                                 <tr>
                                     <td>Planta I :</td>
-                                    <td><?php echo e($generalAQLPlanta1); ?>%</td>
+                                    <td>{{ $generalAQLPlanta1 }}%</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -47,11 +47,11 @@
                             <tbody>
                                 <tr>
                                     <td>Porcentaje General :</td>
-                                    <td><?php echo e($generalProceso); ?>%</td>
+                                    <td>{{ $generalProceso }}%</td>
                                 </tr>
                                 <tr>
                                     <td>Planta I :</td>
-                                    <td><?php echo e($generalProcesoPlanta1); ?>%</td>
+                                    <td>{{ $generalProcesoPlanta1 }}%</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -68,7 +68,7 @@
                 <div class="card-header ">
                     <div class="row">
                         <div class="col-sm-6 text-left">
-                            <h2 class="card-title"><a href="<?php echo e(route('dashboar.dashboarAProcesoAQL')); ?>">Intimark Mensual General</a></h2>
+                            <h2 class="card-title"><a href="{{ route('dashboar.dashboarAProcesoAQL') }}">Intimark Mensual General</a></h2>
                         </div>
                         <div class="col-sm-6">
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
@@ -221,18 +221,18 @@
                                 </tr>
                             </thead>
                             <tbody>
-                              <?php $__currentLoopData = $dataGeneral['dataCliente']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $clienteData): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                              <tr class="<?php echo e($clienteData['porcentajeErrorProceso'] > 9 && $clienteData['porcentajeErrorProceso'] <= 15 ? 'error-bajo' : ($clienteData['porcentajeErrorProceso'] > 15 ? 'error-alto' : '')); ?>">
-                                <td><?php echo e($clienteData['cliente']); ?></td>
-                                <td><?php echo e(number_format($clienteData['porcentajeErrorProceso'], 2)); ?>%</td>
-                                <td><?php echo e(number_format($clienteData['porcentajeErrorAQL'], 2)); ?>%</td>
+                              @foreach ($dataGeneral['dataCliente'] as $clienteData)
+                              <tr class="{{ $clienteData['porcentajeErrorProceso'] > 9 && $clienteData['porcentajeErrorProceso'] <= 15 ? 'error-bajo' : ($clienteData['porcentajeErrorProceso'] > 15 ? 'error-alto' : '') }}">
+                                <td>{{ $clienteData['cliente'] }}</td>
+                                <td>{{ number_format($clienteData['porcentajeErrorProceso'], 2) }}%</td>
+                                <td>{{ number_format($clienteData['porcentajeErrorAQL'], 2) }}%</td>
                               </tr>
-                              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                              @endforeach
                             </tbody>
                             <tr style="background: #1d1c1c;">
                               <td>GENERAL</td>
-                              <td><?php echo e(number_format($totalGeneral['totalPorcentajeErrorProceso'], 2)); ?>%</td>
-                              <td><?php echo e(number_format($totalGeneral['totalPorcentajeErrorAQL'], 2)); ?>%</td>
+                              <td>{{ number_format($totalGeneral['totalPorcentajeErrorProceso'], 2) }}%</td>
+                              <td>{{ number_format($totalGeneral['totalPorcentajeErrorAQL'], 2) }}%</td>
                             </tr>
                         </table>
                     </div>
@@ -256,13 +256,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php $__currentLoopData = $dataGerentesGeneral; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                @foreach ($dataGerentesGeneral as $item)
                                     <tr>
-                                        <td><?php echo e($item['team_leader']); ?></td>
-                                        <td><?php echo e($item['porcentaje_error_aql'] !== null ? number_format($item['porcentaje_error_aql'], 2) . '%' : 'N/A'); ?></td>
-                                        <td><?php echo e($item['porcentaje_error_proceso'] !== null ? number_format($item['porcentaje_error_proceso'], 2) . '%' : 'N/A'); ?></td>
+                                        <td>{{ $item['team_leader'] }}</td>
+                                        <td>{{ $item['porcentaje_error_aql'] !== null ? number_format($item['porcentaje_error_aql'], 2) . '%' : 'N/A' }}</td>
+                                        <td>{{ $item['porcentaje_error_proceso'] !== null ? number_format($item['porcentaje_error_proceso'], 2) . '%' : 'N/A' }}</td>
                                     </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -286,13 +286,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php $__currentLoopData = $dataModulosGeneral; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                @foreach ($dataModulosGeneral as $item)
                                     <tr>
-                                        <td><?php echo e($item['modulo']); ?></td>
-                                        <td><?php echo e($item['porcentaje_error_aql'] !== null ? number_format($item['porcentaje_error_aql'], 2) . '%' : 'N/A'); ?></td>
-                                        <td><?php echo e($item['porcentaje_error_proceso'] !== null ? number_format($item['porcentaje_error_proceso'], 2) . '%' : 'N/A'); ?></td>
+                                        <td>{{ $item['modulo'] }}</td>
+                                        <td>{{ $item['porcentaje_error_aql'] !== null ? number_format($item['porcentaje_error_aql'], 2) . '%' : 'N/A' }}</td>
+                                        <td>{{ $item['porcentaje_error_proceso'] !== null ? number_format($item['porcentaje_error_proceso'], 2) . '%' : 'N/A' }}</td>
                                     </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -323,17 +323,17 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php $__currentLoopData = $dataModuloAQLGeneral; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                @foreach ($dataModuloAQLGeneral as $item)
                                     <tr>
-                                        <td><?php echo e($item['modulo']); ?></td>
-                                        <td><?php echo e($item['conteoOperario']); ?></td>
-                                        <td><?php echo e($item['conteoMinutos']); ?></td>
-                                        <td><?php echo e($item['sumaMinutos']); ?></td>
-                                        <td><?php echo e($item['promedioMinutosEntero']); ?></td>
-                                        <td><?php echo e($item['conteParoModular']); ?></td>
-                                        <td><?php echo e(number_format($item['porcentaje_error_aql'], 2)); ?>%</td>
+                                        <td>{{ $item['modulo'] }}</td>
+                                        <td>{{ $item['conteoOperario'] }}</td>
+                                        <td>{{ $item['conteoMinutos'] }}</td>
+                                        <td>{{ $item['sumaMinutos'] }}</td>
+                                        <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                        <td>{{ $item['conteParoModular'] }}</td>
+                                        <td>{{ number_format($item['porcentaje_error_aql'], 2) }}%</td>
                                     </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -360,17 +360,17 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php $__currentLoopData = $dataModuloProcesoGeneral; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                @foreach ($dataModuloProcesoGeneral as $item)
                                     <tr>
-                                        <td><?php echo e($item['modulo']); ?></td>
-                                        <td><?php echo e($item['conteoOperario']); ?></td>
-                                        <td><?php echo e($item['conteoUtility']); ?></td>
-                                        <td><?php echo e($item['conteoMinutos']); ?></td>
-                                        <td><?php echo e($item['sumaMinutos']); ?></td>
-                                        <td><?php echo e($item['promedioMinutosEntero']); ?></td>
-                                        <td><?php echo e(number_format($item['porcentaje_error_proceso'], 2)); ?>%</td>
+                                        <td>{{ $item['modulo'] }}</td>
+                                        <td>{{ $item['conteoOperario'] }}</td>
+                                        <td>{{ $item['conteoUtility'] }}</td>
+                                        <td>{{ $item['conteoMinutos'] }}</td>
+                                        <td>{{ $item['sumaMinutos'] }}</td>
+                                        <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                        <td>{{ number_format($item['porcentaje_error_proceso'], 2) }}%</td>
                                     </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -383,10 +383,10 @@
           height: 500px; /* Ajusta esta altura según tus necesidades */
         }
       </style>
-<?php $__env->stopSection(); ?>
+@endsection
 
-<?php $__env->startPush('js'); ?>
-    <script src="<?php echo e(asset('black')); ?>/js/plugins/chartjs.min.js"></script>
+@push('js')
+    <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
 <script>
     $(document).ready(function() {
         // Inicializa las gráficas
@@ -394,10 +394,10 @@
         var chartAQL = new Chart(ctxAQL, {
             type: 'line',
             data: {
-                labels: <?php echo json_encode($fechas); ?>,
+                labels: {!! json_encode($fechas) !!},
                 datasets: [{
                     label: 'AQL',
-                    data: <?php echo json_encode($porcentajesAQL); ?>,
+                    data: {!! json_encode($porcentajesAQL) !!},
                     borderColor: '#f96332',
                     backgroundColor: 'rgba(249, 99, 50, 0.4)',
                     fill: true,
@@ -441,10 +441,10 @@
         var chartProcesos = new Chart(ctxProcesos, {
             type: 'line',
             data: {
-                labels: <?php echo json_encode($fechas); ?>,
+                labels: {!! json_encode($fechas) !!},
                 datasets: [{
                     label: 'Procesos',
-                    data: <?php echo json_encode($porcentajesProceso); ?>,
+                    data: {!! json_encode($porcentajesProceso) !!},
                     borderColor: '#1f8ef1',
                     backgroundColor: 'rgba(31, 142, 241, 0.4)',
                     fill: true,
@@ -520,7 +520,7 @@
 
       // Inicializa las gráficas
       var ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');
-      var datasetsAQL = <?php echo json_encode($datasetsAQL, 15, 512) ?>.map((dataset, index) => {
+      var datasetsAQL = @json($datasetsAQL).map((dataset, index) => {
         return {
           ...dataset,
           borderColor: colores[index % colores.length],
@@ -530,7 +530,7 @@
       var chartClienteAQL = new Chart(ctxClienteAQL, {
         type: 'line',
         data: {
-          labels: <?php echo json_encode($fechasGrafica, 15, 512) ?>,
+          labels: @json($fechasGrafica),
           datasets: datasetsAQL
         },
         options: {
@@ -563,7 +563,7 @@
       });
 
       var ctxClienteProcesos = document.getElementById('clienteChartProcesos').getContext('2d');
-      var datasetsProceso = <?php echo json_encode($datasetsProceso, 15, 512) ?>.map((dataset, index) => {
+      var datasetsProceso = @json($datasetsProceso).map((dataset, index) => {
         return {
           ...dataset,
           borderColor: colores[index % colores.length],
@@ -573,7 +573,7 @@
       var chartClienteProcesos = new Chart(ctxClienteProcesos, {
         type: 'line',
         data: {
-          labels: <?php echo json_encode($fechasGrafica, 15, 512) ?>,
+          labels: @json($fechasGrafica),
           datasets: datasetsProceso
         },
         options: {
@@ -701,6 +701,4 @@
         });
     </script>
 
-<?php $__env->stopPush(); ?>
-
-<?php echo $__env->make('layouts.app', ['pageSlug' => 'dashboard'], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\calidad2\resources\views/dashboar/dashboardPlanta1.blade.php ENDPATH**/ ?>
+@endpush

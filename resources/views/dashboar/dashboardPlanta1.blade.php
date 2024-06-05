@@ -3,6 +3,16 @@
 @section('content')
 
     <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header card-header-success card-header-icon">
+                    <h2 class="card-title" style="text-align: center">Dashboard General Planta 1 - Ixtlahuaca </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
         <div class="col-lg-6 col-md-12">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
@@ -19,10 +29,6 @@
                                 <tr>
                                     <td>Planta I :</td>
                                     <td>{{ $generalAQLPlanta1 }}%</td>
-                                </tr>
-                                <tr>
-                                    <td>Planta II :</td>
-                                    <td>{{ $generalAQLPlanta2 }}%</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -46,10 +52,6 @@
                                 <tr>
                                     <td>Planta I :</td>
                                     <td>{{ $generalProcesoPlanta1 }}%</td>
-                                </tr>
-                                <tr>
-                                    <td>Planta II :</td>
-                                    <td>{{ $generalProcesoPlanta2 }}%</td>
                                 </tr>
                             </tbody>
                         </table>

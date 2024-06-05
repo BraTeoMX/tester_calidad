@@ -6,7 +6,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
-                    <h2 class="card-title" style="text-align: center">Dashboard General Planta 1 - Ixtlahuaca </h2>
+                    <h2 class="card-title" style="text-align: center">Dashboard General Planta 2 - San Bartolo </h2>
                 </div>
             </div>
         </div>
@@ -703,4 +703,4 @@
 
 <?php $__env->stopPush(); ?>
 
-<?php echo $__env->make('layouts.app', ['pageSlug' => 'dashboard'], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\calidad2\resources\views/dashboar/dashboardPlanta1.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app', ['pageSlug' => 'dashboard'], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\calidad2\resources\views/dashboar/dashboardPlanta2.blade.php ENDPATH**/ ?>
