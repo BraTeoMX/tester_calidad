@@ -34,6 +34,8 @@ class DashboardPlanta1DetalleController extends Controller
     public function dashboardPlanta1Detalle(Request $request)
     {
         $title = "";
+        // Definir el valor de planta
+        $planta = "Intimark1";
         if($request->fecha_fin){
             $fechaInicio = Carbon::parse($request->input('fecha_inicio'))->startOfWeek();
             $fechaFin = Carbon::parse($request->input('fecha_fin'))->endOfWeek();
@@ -53,15 +55,15 @@ class DashboardPlanta1DetalleController extends Controller
         // Calcular porcentajes AQL y Proceso para cada semana
         $porcentajesAQL = $semanas->map(function($semana) {
             list($year, $week) = explode('-', $semana);
-            return $this->calcularPorcentajePorSemana(AuditoriaAQL::class, $year, $week);
+            return $this->calcularPorcentajePorSemana(AuditoriaAQL::class, $year, $week, 'Intimark1');
         });
 
         $porcentajesProceso = $semanas->map(function($semana) {
             list($year, $week) = explode('-', $semana);
-            return $this->calcularPorcentajePorSemana(AseguramientoCalidad::class, $year, $week);
+            return $this->calcularPorcentajePorSemana(AseguramientoCalidad::class, $year, $week, 'Intimark1');
         });
         // Datos para las gráficas de clientes
-        $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
+        $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin, 'Intimark1');
         $clientesGrafica = collect($dataGrafica['clientesUnicos'])->toArray();
         $semanasGrafica = $semanas->toArray();
         $datasetsAQL = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
@@ -84,17 +86,18 @@ class DashboardPlanta1DetalleController extends Controller
         })->toArray();
 
         // Datos generales
-        $dataGeneral = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
+        $dataGeneral = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin, $planta);
         $totalGeneral = $this->calcularTotales($dataGeneral['dataCliente'], $fechaInicio, $fechaFin);
+        //dd($dataGeneral, $totalGeneral);
 
         // Datos para gerentes de producción
-        $dataGerentesAQLGeneral = $this->getDataGerentesProduccionAQL($fechaInicio, $fechaFin);
-        $dataGerentesProcesoGeneral = $this->getDataGerentesProduccionProceso($fechaInicio, $fechaFin);
+        $dataGerentesAQLGeneral = $this->getDataGerentesProduccionAQL($fechaInicio, $fechaFin, 'Intimark1');
+        $dataGerentesProcesoGeneral = $this->getDataGerentesProduccionProceso($fechaInicio, $fechaFin, 'Intimark1');
         $dataGerentesGeneral = $this->combineDataGerentes($dataGerentesAQLGeneral, $dataGerentesProcesoGeneral);
 
         // Datos para módulos
-        $dataModuloAQLGeneral = $this->getDataModuloAQL($fechaInicio, $fechaFin);
-        $dataModuloProcesoGeneral = $this->getDataModuloProceso($fechaInicio, $fechaFin);
+        $dataModuloAQLGeneral = $this->getDataModuloAQL($fechaInicio, $fechaFin, 'Intimark1');
+        $dataModuloProcesoGeneral = $this->getDataModuloProceso($fechaInicio, $fechaFin, 'Intimark1');
         $dataModuloAQLPlanta1 = $this->getDataModuloAQL($fechaInicio, $fechaFin, 'Intimark1');
         $dataModuloAQLPlanta2 = $this->getDataModuloAQL($fechaInicio, $fechaFin, 'Intimark2');
         $dataModuloProcesoPlanta1 = $this->getDataModuloProceso($fechaInicio, $fechaFin, 'Intimark1');
@@ -170,11 +173,12 @@ class DashboardPlanta1DetalleController extends Controller
             'fechaInicioFormateada', 'fechaFinFormateada'));
     }
 
-    private function calcularPorcentajePorSemana($modelo, $year, $week)
+    private function calcularPorcentajePorSemana($modelo, $year, $week, $planta)
     {
         $startOfWeek = Carbon::now()->setISODate($year, $week)->startOfWeek();
         $endOfWeek = $startOfWeek->copy()->endOfWeek();
         $data = $modelo::whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                    ->where('planta', $planta)
                     ->selectRaw('SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada')
                     ->first();
         return $data->cantidad_auditada != 0 ? number_format(($data->cantidad_rechazada / $data->cantidad_auditada) * 100, 2) : 0;
@@ -185,7 +189,6 @@ class DashboardPlanta1DetalleController extends Controller
         $clientesUnicos = collect();
         $dataCliente = [];
 
-        // Iterar sobre cada semana en el rango
         $period = CarbonPeriod::create($fechaInicio, '1 week', $fechaFin)->toArray();
         $semanasStr = array_map(function ($date) {
             return $date->format('Y-W');
@@ -195,23 +198,25 @@ class DashboardPlanta1DetalleController extends Controller
             $startOfWeek = $week->startOfWeek()->toDateString();
             $endOfWeek = $week->endOfWeek()->toDateString();
 
-            // Obtener clientes únicos para la semana actual
-            $queryAQL = AuditoriaAQL::whereNotNull('cliente')->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
-            $queryProceso = AseguramientoCalidad::whereNotNull('cliente')->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
+            $queryAQL = AuditoriaAQL::whereNotNull('cliente')
+                ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                ->when($planta, function ($query) use ($planta) {
+                    return $query->where('planta', $planta);
+                });
 
-            if ($planta) {
-                $queryAQL->where('planta', $planta);
-                $queryProceso->where('planta', $planta);
-            }
+            $queryProceso = AseguramientoCalidad::whereNotNull('cliente')
+                ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                ->when($planta, function ($query) use ($planta) {
+                    return $query->where('planta', $planta);
+                });
 
             $clientesAQL = $queryAQL->pluck('cliente');
             $clientesProceso = $queryProceso->pluck('cliente');
-            $clientesDelDia = $clientesAQL->merge($clientesProceso)->unique();
 
+            $clientesDelDia = $clientesAQL->merge($clientesProceso)->unique();
             $clientesUnicos = $clientesUnicos->merge($clientesDelDia)->unique();
 
             foreach ($clientesDelDia as $cliente) {
-                // Inicializar los datos del cliente si no existen
                 if (!isset($dataCliente[$cliente])) {
                     $dataCliente[$cliente] = [
                         'cliente' => $cliente,
@@ -221,7 +226,6 @@ class DashboardPlanta1DetalleController extends Controller
                     ];
                 }
 
-                // Obtener datos de AQL
                 $sumaAuditadaAQL = AuditoriaAQL::where('cliente', $cliente)
                     ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
                     ->when($planta, function ($query) use ($planta) {
@@ -237,7 +241,6 @@ class DashboardPlanta1DetalleController extends Controller
 
                 $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
 
-                // Obtener datos de Procesos
                 $sumaAuditadaProceso = AseguramientoCalidad::where('cliente', $cliente)
                     ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
                     ->when($planta, function ($query) use ($planta) {
@@ -253,20 +256,17 @@ class DashboardPlanta1DetalleController extends Controller
 
                 $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
 
-                // Encontrar el índice correspondiente a la semana
                 $index = array_search($week->format('Y-W'), $semanasStr);
 
-                // Agregar datos al array dataCliente
                 $dataCliente[$cliente]['porcentajesErrorAQL'][$index] = $porcentajeErrorAQL;
                 $dataCliente[$cliente]['porcentajesErrorProceso'][$index] = $porcentajeErrorProceso;
 
-                // Agregar también las claves porcentajeErrorProceso y porcentajeErrorAQL al nivel superior
+                // Asegurar que los índices se calculen correctamente
                 $dataCliente[$cliente]['porcentajeErrorAQL'] = array_sum($dataCliente[$cliente]['porcentajesErrorAQL']) / count($dataCliente[$cliente]['porcentajesErrorAQL']);
                 $dataCliente[$cliente]['porcentajeErrorProceso'] = array_sum($dataCliente[$cliente]['porcentajesErrorProceso']) / count($dataCliente[$cliente]['porcentajesErrorProceso']);
             }
         }
 
-        // Convertir dataCliente a la estructura esperada
         $dataCliente = array_values($dataCliente);
 
         return [
@@ -278,19 +278,19 @@ class DashboardPlanta1DetalleController extends Controller
     private function calcularTotales($dataClientes, $fechaInicio, $fechaFin)
     {
         $totalAuditadaAQL = array_sum(array_map(function ($data) use ($fechaInicio, $fechaFin) {
-            return AuditoriaAQL::where('cliente', $data['cliente'])->whereBetween('created_at', [$fechaInicio, $fechaFin])->sum('cantidad_auditada');
+            return AuditoriaAQL::where('cliente', $data['cliente'])->where('planta', 'Intimark1')->whereBetween('created_at', [$fechaInicio, $fechaFin])->sum('cantidad_auditada');
         }, $dataClientes));
 
         $totalRechazadaAQL = array_sum(array_map(function ($data) use ($fechaInicio, $fechaFin) {
-            return AuditoriaAQL::where('cliente', $data['cliente'])->whereBetween('created_at', [$fechaInicio, $fechaFin])->sum('cantidad_rechazada');
+            return AuditoriaAQL::where('cliente', $data['cliente'])->where('planta', 'Intimark1')->whereBetween('created_at', [$fechaInicio, $fechaFin])->sum('cantidad_rechazada');
         }, $dataClientes));
 
         $totalAuditadaProceso = array_sum(array_map(function ($data) use ($fechaInicio, $fechaFin) {
-            return AseguramientoCalidad::where('cliente', $data['cliente'])->whereBetween('created_at', [$fechaInicio, $fechaFin])->sum('cantidad_auditada');
+            return AseguramientoCalidad::where('cliente', $data['cliente'])->where('planta', 'Intimark1')->whereBetween('created_at', [$fechaInicio, $fechaFin])->sum('cantidad_auditada');
         }, $dataClientes));
 
         $totalRechazadaProceso = array_sum(array_map(function ($data) use ($fechaInicio, $fechaFin) {
-            return AseguramientoCalidad::where('cliente', $data['cliente'])->whereBetween('created_at', [$fechaInicio, $fechaFin])->sum('cantidad_rechazada');
+            return AseguramientoCalidad::where('cliente', $data['cliente'])->where('planta', 'Intimark1')->whereBetween('created_at', [$fechaInicio, $fechaFin])->sum('cantidad_rechazada');
         }, $dataClientes));
 
         return [
@@ -301,7 +301,7 @@ class DashboardPlanta1DetalleController extends Controller
 
     private function getDataGerentesProduccionAQL($fechaInicio, $fechaFin, $planta = null)
     {
-        $query = AuditoriaAQL::whereBetween('created_at', [$fechaInicio, $fechaFin]);
+        $query = AuditoriaAQL::whereBetween('created_at', [$fechaInicio, $fechaFin])->where('planta', $planta);
 
         if (!is_null($planta)) {
             $query->where('planta', $planta);
@@ -316,6 +316,7 @@ class DashboardPlanta1DetalleController extends Controller
         foreach ($gerentesAQL as $gerente) {
             $modulosUnicosAQL = AuditoriaAQL::where('team_leader', $gerente)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('planta', $planta)
                 ->select('modulo')
                 ->distinct()
                 ->get()
@@ -325,29 +326,35 @@ class DashboardPlanta1DetalleController extends Controller
 
             $sumaAuditadaAQL = AuditoriaAQL::where('team_leader', $gerente)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('planta', $planta)
                 ->sum('cantidad_auditada');
 
             $sumaRechazadaAQL = AuditoriaAQL::where('team_leader', $gerente)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('planta', $planta)
                 ->sum('cantidad_rechazada');
 
             $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
 
             $conteoOperario = AuditoriaAQL::where('team_leader', $gerente)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('planta', $planta)
                 ->distinct('nombre')
                 ->count('nombre');
 
             $conteoMinutos = AuditoriaAQL::where('team_leader', $gerente)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('planta', $planta)
                 ->count('minutos_paro');
 
             $conteParoModular = AuditoriaAQL::where('team_leader', $gerente)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('planta', $planta)
                 ->count('minutos_paro_modular');
 
             $sumaMinutos = AuditoriaAQL::where('team_leader', $gerente)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('planta', $planta)
                 ->sum('minutos_paro');
 
             $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
@@ -370,7 +377,7 @@ class DashboardPlanta1DetalleController extends Controller
 
     private function getDataGerentesProduccionProceso($fechaInicio, $fechaFin, $planta = null)
     {
-        $query = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin]);
+        $query = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin])->where('planta', $planta);
 
         if (!is_null($planta)) {
             $query->where('planta', $planta);
@@ -385,6 +392,7 @@ class DashboardPlanta1DetalleController extends Controller
         foreach ($gerentesProceso as $gerente) {
             $modulosUnicosProceso = AseguramientoCalidad::where('team_leader', $gerente)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('planta', $planta)
                 ->select('modulo')
                 ->distinct()
                 ->get()
@@ -394,10 +402,12 @@ class DashboardPlanta1DetalleController extends Controller
 
             $sumaAuditadaProceso = AseguramientoCalidad::where('team_leader', $gerente)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('planta', $planta)
                 ->sum('cantidad_auditada');
 
             $sumaRechazadaProceso = AseguramientoCalidad::where('team_leader', $gerente)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('planta', $planta)
                 ->sum('cantidad_rechazada');
 
             $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
@@ -405,21 +415,25 @@ class DashboardPlanta1DetalleController extends Controller
             $conteoOperario = AseguramientoCalidad::where('team_leader', $gerente)
                 ->where('utility', null)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('planta', $planta)
                 ->distinct('nombre')
                 ->count('nombre');
 
             $conteoUtility = AseguramientoCalidad::where('team_leader', $gerente)
                 ->where('utility', 1)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('planta', $planta)
                 ->distinct('nombre')
                 ->count('nombre');
 
             $conteoMinutos = AseguramientoCalidad::where('team_leader', $gerente)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('planta', $planta)
                 ->count('minutos_paro');
 
             $sumaMinutos = AseguramientoCalidad::where('team_leader', $gerente)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('planta', $planta)
                 ->sum('minutos_paro');
 
             $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
@@ -479,7 +493,7 @@ class DashboardPlanta1DetalleController extends Controller
 
     private function getDataModuloAQL($fechaInicio, $fechaFin, $planta = null)
     {
-        $query = AuditoriaAQL::whereBetween('created_at', [$fechaInicio, $fechaFin]);
+        $query = AuditoriaAQL::whereBetween('created_at', [$fechaInicio, $fechaFin])->where('planta', $planta);
 
         if (!is_null($planta)) {
             $query->where('planta', $planta);
@@ -493,7 +507,8 @@ class DashboardPlanta1DetalleController extends Controller
         $dataModuloAQL = [];
         foreach ($modulosAQL as $modulo) {
             $queryModulo = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
+                                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta);
 
             if (!is_null($planta)) {
                 $queryModulo->where('planta', $planta);
@@ -501,34 +516,41 @@ class DashboardPlanta1DetalleController extends Controller
 
             $modulosUnicos = AuditoriaAQL::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta)
                                 ->distinct()
                                 ->count('modulo');
 
             $sumaAuditadaAQL = AuditoriaAQL::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta)
                                 ->sum('cantidad_auditada');
 
             $sumaRechazadaAQL = AuditoriaAQL::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta)
                                 ->sum('cantidad_rechazada');
 
             $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
 
             $conteoOperario = AuditoriaAQL::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta)
                                 ->distinct()
                                 ->count('nombre');
 
             $conteoMinutos = AuditoriaAQL::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta)
                                 ->count('minutos_paro');
 
             $conteParoModular = AuditoriaAQL::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta)
                                 ->count('minutos_paro_modular');
 
             $sumaMinutos = AuditoriaAQL::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta)
                                 ->sum('minutos_paro');
 
             $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
@@ -551,7 +573,7 @@ class DashboardPlanta1DetalleController extends Controller
 
     private function getDataModuloProceso($fechaInicio, $fechaFin, $planta = null)
     {
-        $query = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin]);
+        $query = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin])->where('planta', $planta);
 
         if (!is_null($planta)) {
             $query->where('planta', $planta);
@@ -565,7 +587,8 @@ class DashboardPlanta1DetalleController extends Controller
         $dataModuloProceso = [];
         foreach ($modulosProceso as $modulo) {
             $queryModulo = AseguramientoCalidad::where('modulo', $modulo)
-                                    ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
+                                    ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                    ->where('planta', $planta);
 
             if (!is_null($planta)) {
                 $queryModulo->where('planta', $planta);
@@ -573,37 +596,44 @@ class DashboardPlanta1DetalleController extends Controller
 
             $modulosUnicos = AseguramientoCalidad::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta)
                                 ->distinct()
                                 ->count('modulo');
 
             $sumaAuditadaProceso = AseguramientoCalidad::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta)
                                 ->sum('cantidad_auditada');
 
             $sumaRechazadaProceso = AseguramientoCalidad::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta)
                                 ->sum('cantidad_rechazada');
 
             $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
 
             $conteoOperario = AseguramientoCalidad::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta)
                                 ->where('utility', null)
                                 ->distinct()
                                 ->count('nombre');
 
             $conteoUtility = AseguramientoCalidad::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta)
                                 ->where('utility', 1)
                                 ->distinct()
                                 ->count('nombre');
 
             $conteoMinutos = AseguramientoCalidad::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta)
                                 ->count('minutos_paro');
 
             $sumaMinutos = AseguramientoCalidad::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                                ->where('planta', $planta)
                                 ->sum('minutos_paro');
 
             $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
@@ -659,232 +689,6 @@ class DashboardPlanta1DetalleController extends Controller
         }
 
         return $combinedData;
-    }
-
-    public function detalleXModuloAQL(Request $request)
-    {
-        $title = "";
-        //dd($request->all());
-        $rangoInicialShort = substr($request->fecha_inicio, 0, 19); // Obtener los primeros 19 caracteres
-        $rangofinShort = substr($request->fecha_fin, 0, 19); // Obtener los primeros 19 caracteres
-
-        $nombreModulo = $request->modulo;
-
-        // Obtener el nombre del mes en español
-        $meses = [
-            1 => 'enero',
-            2 => 'febrero',
-            3 => 'marzo',
-            4 => 'abril',
-            5 => 'mayo',
-            6 => 'junio',
-            7 => 'julio',
-            8 => 'agosto',
-            9 => 'septiembre',
-            10 => 'octubre',
-            11 => 'noviembre',
-            12 => 'diciembre'
-        ];
-
-        $rangoInicial = date('d', strtotime($rangoInicialShort)) . ' ' . $meses[date('n', strtotime($rangoInicialShort))] . ' ' . date('Y', strtotime($rangoInicialShort));
-        $rangoFinal = date('d', strtotime($rangofinShort)) . ' ' . $meses[date('n', strtotime($rangofinShort))] . ' ' . date('Y', strtotime($rangofinShort));
-
-
-        $mostrarRegistro = AuditoriaAQL::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('modulo', $request->modulo)
-            ->where('op', $request->op)
-            ->where('team_leader', $request->team_leader)
-            ->get();
-
-        // Actualiza las consultas para los datos que necesitas mostrar en la vista
-        $registrosIndividual = AuditoriaAQL::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('modulo', $request->modulo)
-            ->where('op', $request->op)
-            ->where('team_leader', $request->team_leader)
-            ->selectRaw('COALESCE(SUM(cantidad_auditada), 0) as total_auditada, COALESCE(SUM(cantidad_rechazada), 0) as total_rechazada')
-            ->get();
-
-        $registrosIndividualPieza = AuditoriaAQL::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('modulo', $request->modulo)
-            ->where('op', $request->op)
-            ->where('team_leader', $request->team_leader)
-            ->selectRaw('SUM(pieza) as total_pieza, SUM(cantidad_rechazada) as total_rechazada')
-            ->get();
-
-        $conteoBultos = AuditoriaAQL::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('modulo', $request->modulo)
-            ->where('op', $request->op)
-            ->where('team_leader', $request->team_leader)
-            ->count();
-
-        $conteoPiezaConRechazo = AuditoriaAQL::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('modulo', $request->modulo)
-            ->where('op', $request->op)
-            ->where('team_leader', $request->team_leader)
-            ->where('cantidad_rechazada', '>', 0)
-            ->count('pieza');
-
-        $porcentajeBulto = $conteoBultos != 0 ? ($conteoPiezaConRechazo / $conteoBultos) * 100 : 0;
-
-        return view('dashboar.detalleXModuloAQL', compact('title', 'mostrarRegistro', 'rangoInicial', 'rangoFinal',
-                'registrosIndividual', 'registrosIndividualPieza', 'conteoBultos', 'conteoPiezaConRechazo', 'porcentajeBulto',
-                'nombreModulo'));
-    }
-
-
-    public function detallePorGerente(Request $request)
-    {
-        $title = "";
-        //dd($request->all());
-        $rangoInicialShort = substr($request->fecha_inicio, 0, 19); // Obtener los primeros 19 caracteres
-        $rangofinShort = substr($request->fecha_fin, 0, 19); // Obtener los primeros 19 caracteres
-        //dd($request->all());
-        // Obtener el nombre del mes en español
-        $meses = [
-            1 => 'enero',
-            2 => 'febrero',
-            3 => 'marzo',
-            4 => 'abril',
-            5 => 'mayo',
-            6 => 'junio',
-            7 => 'julio',
-            8 => 'agosto',
-            9 => 'septiembre',
-            10 => 'octubre',
-            11 => 'noviembre',
-            12 => 'diciembre'
-        ];
-
-        $rangoInicial = date('d', strtotime($rangoInicialShort)) . ' ' . $meses[date('n', strtotime($rangoInicialShort))] . ' ' . date('Y', strtotime($rangoInicialShort));
-        $rangoFinal = date('d', strtotime($rangofinShort)) . ' ' . $meses[date('n', strtotime($rangofinShort))] . ' ' . date('Y', strtotime($rangofinShort));
-
-        $gerenteProduccion = $request->team_leader;
-
-        $modulosUnicosAQL = AuditoriaAQL::where('team_leader', $request->team_leader)
-            ->whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('planta', 'Intimark1')
-            ->select('modulo')
-            ->distinct()
-            ->get();
-
-        $modulosUnicosProceso = AseguramientoCalidad::where('team_leader', $request->team_leader)
-            ->whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('planta', 'Intimark1')
-            ->select('modulo')
-            ->distinct()
-            ->get();
-
-        $mostrarRegistroModulo = $modulosUnicosAQL->union($modulosUnicosProceso);
-
-        //dd($mostrarRegistroModulo, $modulosUnicosProceso, $modulosUnicosAQL);
-
-        $mostrarRegistroOperario = AseguramientoCalidad::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('utility', null)
-            ->where('planta', $request->planta)
-            ->where('team_leader', $request->team_leader)
-            ->select('nombre')
-            ->distinct()
-            ->get();
-
-        $mostrarRegistroUtility = AseguramientoCalidad::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('utility', 1)
-            ->where('planta', $request->planta)
-            ->where('team_leader', $request->team_leader)
-            ->select('nombre')
-            ->distinct()
-            ->get();
-
-
-        return view('dashboar.detallePorGerente', compact('title', 'mostrarRegistroModulo', 'rangoInicial', 'rangoFinal',
-                                                        'gerenteProduccion', 'mostrarRegistroOperario', 'mostrarRegistroUtility'));
-    }
-
-
-    public function detallePorCliente(Request $request)
-    {
-        $title = "";
-        //dd($request->all());
-        $rangoInicialShort = substr($request->fecha_inicio, 0, 19); // Obtener los primeros 19 caracteres
-        $rangofinShort = substr($request->fecha_fin, 0, 19); // Obtener los primeros 19 caracteres
-
-        // Obtener el nombre del mes en español
-        $meses = [
-            1 => 'enero',
-            2 => 'febrero',
-            3 => 'marzo',
-            4 => 'abril',
-            5 => 'mayo',
-            6 => 'junio',
-            7 => 'julio',
-            8 => 'agosto',
-            9 => 'septiembre',
-            10 => 'octubre',
-            11 => 'noviembre',
-            12 => 'diciembre'
-        ];
-
-        $rangoInicial = date('d', strtotime($rangoInicialShort)) . ' ' . $meses[date('n', strtotime($rangoInicialShort))] . ' ' . date('Y', strtotime($rangoInicialShort));
-        $rangoFinal = date('d', strtotime($rangofinShort)) . ' ' . $meses[date('n', strtotime($rangofinShort))] . ' ' . date('Y', strtotime($rangofinShort));
-
-        $clienteSeleccionado = $request->cliente;
-
-
-        $datosAQLPlanta1TurnoNormal = AuditoriaAQL::with('tpAuditoriaAQL')
-            ->where('cliente', $request->cliente)
-            ->whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('planta', 'Intimark1')
-            ->where('tiempo_extra', null)
-            ->get();
-
-        $datosProcesoPlanta1TurnoNormal = AseguramientoCalidad::with('tpAseguramientoCalidad')
-            ->where('cliente', $request->cliente)
-            ->whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('planta', 'Intimark1')
-            ->where('tiempo_extra', null)
-            ->where('cantidad_rechazada', '>', 0) // Filtrar registros con cantidad_rechazada mayor a 0
-            ->get();
-
-        $conteoRechazos = $datosProcesoPlanta1TurnoNormal->where('cantidad_rechazada', '>', 0)->count();
-
-
-        $modulosUnicosAQL = AuditoriaAQL::where('team_leader', $request->team_leader)
-            ->whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('planta', 'Intimark1')
-            ->select('modulo')
-            ->distinct()
-            ->get();
-
-        $modulosUnicosProceso = AseguramientoCalidad::where('team_leader', $request->team_leader)
-            ->whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('planta', 'Intimark1')
-            ->select('modulo')
-            ->distinct()
-            ->get();
-
-        $mostrarRegistroModulo = $modulosUnicosAQL->union($modulosUnicosProceso);
-
-        //dd($mostrarRegistroModulo, $modulosUnicosProceso, $modulosUnicosAQL);
-
-        $mostrarRegistroOperario = AseguramientoCalidad::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('utility', null)
-            ->where('planta', $request->planta)
-            ->where('team_leader', $request->team_leader)
-            ->select('nombre')
-            ->distinct()
-            ->get();
-
-        $mostrarRegistroUtility = AseguramientoCalidad::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('utility', 1)
-            ->where('planta', $request->planta)
-            ->where('team_leader', $request->team_leader)
-            ->select('nombre')
-            ->distinct()
-            ->get();
-
-
-        return view('dashboar.detallePorCliente', compact('title', 'mostrarRegistroModulo', 'rangoInicial', 'rangoFinal',
-                                                        'clienteSeleccionado', 'datosAQLPlanta1TurnoNormal', 'datosProcesoPlanta1TurnoNormal',
-                                                        'conteoRechazos'));
     }
 
 

@@ -144,8 +144,8 @@
                                 @foreach ($dataGeneral['dataCliente'] as $clienteData)
                                 <tr>
                                     <td>{{ $clienteData['cliente'] }}</td>
-                                    <td>{{ number_format($clienteData['porcentajeErrorProceso'], 2) }}%</td>
-                                    <td>{{ number_format($clienteData['porcentajeErrorAQL'], 2) }}%</td>
+                                    <td>{{ isset($clienteData['porcentajeErrorProceso']) ? number_format($clienteData['porcentajeErrorProceso'], 2) : 'N/A' }}%</td>
+                                    <td>{{ isset($clienteData['porcentajeErrorAQL']) ? number_format($clienteData['porcentajeErrorAQL'], 2) : 'N/A' }}%</td>
                                 </tr>
                                 @endforeach
                             </tbody>

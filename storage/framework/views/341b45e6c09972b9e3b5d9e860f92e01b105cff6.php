@@ -144,8 +144,8 @@
                                 <?php $__currentLoopData = $dataGeneral['dataCliente']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $clienteData): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
                                     <td><?php echo e($clienteData['cliente']); ?></td>
-                                    <td><?php echo e(number_format($clienteData['porcentajeErrorProceso'], 2)); ?>%</td>
-                                    <td><?php echo e(number_format($clienteData['porcentajeErrorAQL'], 2)); ?>%</td>
+                                    <td><?php echo e(isset($clienteData['porcentajeErrorProceso']) ? number_format($clienteData['porcentajeErrorProceso'], 2) : 'N/A'); ?>%</td>
+                                    <td><?php echo e(isset($clienteData['porcentajeErrorAQL']) ? number_format($clienteData['porcentajeErrorAQL'], 2) : 'N/A'); ?>%</td>
                                 </tr>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </tbody>
