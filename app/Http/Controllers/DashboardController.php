@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
-use App\Models\AuditoriaProcesoCorte;
 use App\Models\AseguramientoCalidad;
 use App\Models\TpAseguramientoCalidad;
 use App\Models\TpAuditoriaAQL;
