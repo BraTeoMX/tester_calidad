@@ -278,15 +278,17 @@ public function PorcenTotalDefecMaquila()
 
         // Obtener todos los registros con Tipo_Problema diferente de 'N/A' para el día actual
         $registrosConDefectos = Maquilas::whereDate('created_at', $today)
-            ->where('Tipo_Problema', '<>', 'N/A')
+            ->where('Num_Problemas', '<>', 'N/A')
             ->get();
 
         // Contar el número total de defectos en todos los registros
         $totalDefectos = 0;
         foreach ($registrosConDefectos as $registro) {
-            $tiposProblema = explode(',', $registro->Tipo_Problema);
-            $totalDefectos += count($tiposProblema);
+            $tiposProblema = explode(',', $registro->Num_Problemas);
+            // Sumar los valores numéricos de los tipos de problema
+            $totalDefectos += array_sum(array_map('intval', $tiposProblema));
         }
+
 
         // Calcular el porcentaje
         $porcentaje = $totalRegistros > 0 ? ($totalDefectos / $totalRegistros) * 100 : 0;

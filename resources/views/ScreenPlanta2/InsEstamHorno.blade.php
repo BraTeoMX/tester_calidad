@@ -34,6 +34,21 @@
                             </select>
                         </div>
                         <div class="col-md-2">
+                            <form class="form-inline">
+                                <label class="my-1 mr-2" for="tipoPanel" name="tipoPanel">Tipo de
+                                    Panel</label>
+                                <select class="custom-select my-1 mr-sm-2" id="tipoPanel" name="tipoPanel">
+                                    <option selected>Seleccion tipo de Panel</option>
+                                    <option value="Manga">M</option>
+                                    <option value="Bolsa">B</option>
+                                    <option value="Delantero">D</option>
+                                    <option value="Trasero">T</option>
+                                </select>
+                                <input type="text" class="form-control my-1 mr-sm-2" id="otraTipoMaquina"
+                                    name="otraTipoMaquina" placeholder="Especificar otra máquina" style="display: none;">
+                            </form>
+                        </div>
+                        <div class="col-md-2">
                             <label for="clienteSelect">Seleccion de cliente:</label>
                             <select class="form-control" id="clienteSelect" name="clienteSelect" required>
                                 <!-- Las opciones se cargarán dinámicamente aquí -->
@@ -84,7 +99,7 @@
                         </div>
                         <div class="col-md-2">
                             <label for="tecnicaSelect">Seleccion de tipo de tecnica:</label>
-                            <select class="form-control" id="tecnicaSelect" name="tecnicaSelect" required>
+                            <select class="form-control" id="tecnicaSelect" name="tecnicaSelect[]" required>
                                 <!-- Las opciones se cargarán dinámicamente aquí -->
                             </select>
                         </div>
@@ -100,6 +115,7 @@
                             </select>
                         </div>
                     </div>
+                    <br>
                     <div class="col-md-2">
                         <button type="button" class="button" id="insertarFila">
                             <span class="button__text">Añadir</span>
@@ -192,6 +208,10 @@
                                             style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 5%;">
                                             OP</th>
                                         <th
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 2.5%;">
+                                            Panel</th>
+
+                                           <th
                                             style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 3%">
                                             Tecnico</th>
                                         <th
@@ -285,7 +305,8 @@
             });
             $('#tecnicaSelect').select2({
                 placeholder: 'Seleccione una tecnica',
-                allowClear: true
+                allowClear: true,
+                multiple: true
             });
             // Contenedor para los inputs
             var contenedorInputs = $('<div>', {
@@ -516,7 +537,8 @@
                     // Agregar la opción predeterminada
                     $('#tecnicaSelect').append($('<option>', {
                         disabled: true,
-                        selected: true
+                        selected: true,
+                        multiple: true
                     }));
                     // Agregar las nuevas opciones desde la respuesta del servidor
                     $.each(data, function(key, value) {
@@ -652,6 +674,9 @@
                                 ' style="white-space: nowrap;"></td>' +
                                 '<td><input type="text" name="OP_Defec" class="form-control" value="' +
                                 item.OP_Defec + '" ' + readonlyAttribute +
+                                ' style="white-space: nowrap;"></td>' +
+                                '<td><input type="text" name="Panel" class="form-control" value="' +
+                                item.Panel + '" ' + readonlyAttribute +
                                 ' style="white-space: nowrap;"></td>' +
                                 '<td><input type="text" name="Tecnico" class="form-control" value="' +
                                 item.Tecnico + '" ' + readonlyAttribute +
@@ -834,26 +859,21 @@
             addRowClicked = true;
 
             // Verificar si todos los campos están llenos
-            var camposVacios = false;
+
             $('select, input').each(function() {
                 if ($(this).val() === "" && !(($(this).attr('id') === 'otraTipoMaquina') && ($(
                         '#inputTipoMaquina').val() !== 'Otra'))) {
-                    camposVacios = true;
+
                     return false; // Salir del bucle si se encuentra un campo vacío
                 }
             });
-
-            if (camposVacios) {
-                alert('Por favor, complete todos los campos antes de añadir una nueva fila.');
-                return; // Detener la ejecución si hay campos vacíos
-            }
-
             lastRegisteredId++;
 
             var auditor = '{{ Auth::user()->name }}';
             var cliente = $('#clienteSelect').val();
             var estilo = $('#estiloSelect').val();
             var op = $('#ordenSelect').val();
+            var panel = $('#tipoPanel').val();
             var tecnico = $('#tecnicosSelect').val();
             var color = $('#inputColor').val();
             var numGrafico = $('#inputGrafico').val();
@@ -886,6 +906,8 @@
                 '" style="white-space: nowrap;"></td>' +
                 '<td><input type="text" name="op_defecR[]" class="form-control" value="' + op +
                 '" style="white-space: nowrap;"></td>' +
+                '<td><input type="text" name="panelR[]" class="form-control" value="' + panel +
+                '" style="white-space: nowrap;"></td>' +
                 '<td><input type="text" name="tecnicoR[]" class="form-control" value="' + tecnico +
                 '" style="white-space: nowrap;"></td>' +
                 '<td><input type="text" name="colorR[]" class="form-control" value="' + color +
@@ -896,7 +918,7 @@
                 tipoMaquinaValue + '" style="white-space: nowrap;"></td>' +
                 '<td><input type="text" name="leyendasprintR[]" class="form-control" value="' +
                 leyendasprint + '" style="white-space: nowrap;"></td>' +
-                '<td><input type="text" name="tecnicaR[]" class="form-control" value="' + tecnica +
+                '<td><input type="text" name="tecnicaR[]" class="form-control" value="' + tecnica.join(', ') +
                 '" style="white-space: nowrap;"></td>' +
                 '<td><input type="text" name="piezas_auditarR[]" class="form-control" value="' + piezasAuditar +
                 '" style="white-space: nowrap;"></td>' +
@@ -940,7 +962,7 @@
                 var input = $('<input>', {
                     type: 'number',
                     class: 'form-control',
-                    name: '#_problemasR[]',
+                    name: 'num_problemasR[]',
                     placeholder: '# problemas de ' + option,
                     style: 'white-space: nowrap; width: 150px;'
                 });
@@ -965,6 +987,7 @@
                 var clienteValue = $(this).closest('tr').find('[name="clienteR[]"]').val();
                 var estiloValue = $(this).closest('tr').find('[name="estiloR[]"]').val();
                 var opDefecValue = $(this).closest('tr').find('[name="op_defecR[]"]').val();
+                var panelValue = $(this).closest('tr').find('[name="panelR[]"]').val();
                 var tecnicoValue = $(this).closest('tr').find('[name="tecnicoR[]"]').val();
                 var colorValue = $(this).closest('tr').find('[name="colorR[]"]').val();
                 var numGraficoValue = $(this).closest('tr').find('[name="num_graficoR[]"]').val();
@@ -985,6 +1008,7 @@
                     valor); // Envía 0 si está vacío, si no, envía el valor
                 });
                 var acCorrectivaValue = $(this).closest('tr').find('[name="ac_correctivaR[]"]').val();
+
                 $.ajax({
                     url: '/SendInspeccionEstampadoHornot',
                     method: 'POST',
@@ -995,6 +1019,7 @@
                         Cliente: clienteValue,
                         Estilo: estiloValue,
                         OP_Defec: opDefecValue,
+                        Panel: panelValue,
                         Tecnico: tecnicoValue,
                         Color: colorValue,
                         Num_Grafico: numGraficoValue,
@@ -1040,6 +1065,7 @@
             var clienteValue = row.find('input[name="Cliente"]').val();
             var estiloValue = row.find('input[name="Estilo"]').val();
             var opDefecValue = row.find('input[name="OP_Defec"]').val();
+            var panelValue = row.find('input[name="Panel"]').val();
             var tecnicoValue = row.find('input[name="Tecnico"]').val();
             var colorValue = row.find('input[name="Color"]').val();
             var numGraficoValue = row.find('input[name="Num_Grafico"]').val();
@@ -1070,6 +1096,7 @@
                     Cliente: clienteValue,
                     Estilo: estiloValue,
                     OP_Defec: opDefecValue,
+                    Panel: panelValue,
                     Tecnico: tecnicoValue,
                     Color: colorValue,
                     Num_Grafico: numGraficoValue,

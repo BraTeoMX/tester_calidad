@@ -1,4 +1,4 @@
-@extends('layouts.app', ['activePage' => 'AQL', 'titlePage' => __('AQL')])
+@extends('layouts.app', ['pageSlug' => 'AQL', 'titlePage' => __('AQL')])
 
 @section('content')
     {{-- ... dentro de tu vista ... --}}
@@ -111,7 +111,7 @@
         .show>.btn-verde-xd.dropdown-toggle:focus {
             box-shadow: none, 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
         }
-        
+
     </style>
     {{-- ... el resto de tu vista ... --}}
     <div class="content">
@@ -185,7 +185,7 @@
                             @if ($estatusFinalizar)
                             @else
                                 <div class="table-responsive">
-                                    <table class="table table32"> 
+                                    <table class="table table32">
                                         <thead class="thead-primary">
                                             <tr>
                                                 <th># BULTO</th>
@@ -219,7 +219,7 @@
                                                 <td><input type="numbre" class="form-control" name="cantidad_auditada" id="cantidad_auditada" required></td>
                                                 <td><input type="text" class="form-control" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
                                                 <td>
-                                                    <select name="tp[]" id="tpSelectAQL" class="form-control" required multiple title="Por favor, selecciona una opción"> 
+                                                    <select name="tp[]" id="tpSelectAQL" class="form-control" required multiple title="Por favor, selecciona una opción">
                                                         <option value="NINGUNO">NINGUNO</option>
                                                         <option value="OTRO">OTRO</option>
                                                         @if ($data['area'] == 'AUDITORIA AQL')
@@ -281,7 +281,7 @@
                     @if ($mostrarRegistro)
                         @if ($estatusFinalizar)
                             <h2>Registro</h2>
-                            <table class="table table56"> 
+                            <table class="table table56">
                                 <thead class="thead-primary">
                                     <tr>
                                         <th>PARO</th>
@@ -331,7 +331,7 @@
                                                 <input type="text" class="form-control" name="cantidad_rechazada" id="cantidad_rechazada"
                                                 value="{{$registro->cantidad_rechazada}}" readonly>
                                             </td>
-                                            
+
                                             <form action="{{ route('auditoriaAQL.formUpdateDeleteProceso') }}"
                                                 method="POST">
                                                 @csrf
@@ -347,7 +347,7 @@
                                         </tr>
                                     @endforeach
                                 </tbody>
-                            </table> 
+                            </table>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="observacion" class="col-sm-6 col-form-label">Observaciones:</label>
@@ -420,7 +420,7 @@
                                                     <input type="text" class="form-control" name="cantidad_rechazada" id="cantidad_rechazada"
                                                     value="{{$registro->cantidad_rechazada}}" readonly>
                                                 </td>
-                                                
+
                                                 <form action="{{ route('auditoriaAQL.formUpdateDeleteProceso') }}"
                                                     method="POST">
                                                     @csrf

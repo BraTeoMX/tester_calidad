@@ -919,7 +919,7 @@
                 var input = $('<input>', {
                     type: 'number',
                     class: 'form-control',
-                    name: '#_problemasR[]',
+                    name: 'num_problemasR[]',
                     placeholder: '# problemas de ' + option,
                     style: 'white-space: nowrap; width: 150px;'
                 });
@@ -933,69 +933,46 @@
                 container.append(input);
             });
         }
-
-        // Evento de clic en el botón "Guardar"
-        $(document).on('click', '.guardarFila', function() {
-            // Obtener el token CSRF
-            var csrfToken = $('meta[name="csrf-token"]').attr('content');
-            // Verificar si se hizo clic en el botón "AddRow"
-            if (addRowClicked) {
-                // Obtener los valores de la fila desde los campos de entrada
-                var auditorValue = $(this).closest('tr').find('[name="auditorR[]"]').val();
-                var clienteValue = $(this).closest('tr').find('[name="clienteR[]"]').val();
-                var estiloValue = $(this).closest('tr').find('[name="estiloR[]"]').val();
-                var opDefecValue = $(this).closest('tr').find('[name="op_defecR[]"]').val();
-                var tecnicoValue = $(this).closest('tr').find('[name="tecnicoR[]"]').val();
-                var colorValue = $(this).closest('tr').find('[name="colorR[]"]').val();
-                var numGraficoValue = $(this).closest('tr').find('[name="num_graficoR[]"]').val();
-                var tecnicaValue = $(this).closest('tr').find('[name="tecnicaR[]"]').val();
-                var fibrasValue = $(this).closest('tr').find('[name="fibrasR[]"]').val();
-                var porcentajeFibraValue = $(this).closest('tr').find('[name="porcentaje_fibraR[]"]').val();
-                var piezasAuditarValue = $(this).closest('tr').find('[name="piezas_auditarR[]"]').val();
-                var tipoProblemaValue = $(this).closest('tr').find('[name="tipo_problemaR[]"]').val();
-                var acCorrectivaValue = $(this).closest('tr').find('[name="ac_correctivaR[]"]').val();
-                var numProblemas = [];
-                $(this).closest('tr').find('input[name="num_problemasR[]"]').each(function() {
-                    var valor = $(this).val();
-                    numProblemas.push(valor === "" ? 0 :
-                    valor); // Envía 0 si está vacío, si no, envía el valor
-                });
-
-                // Crear objeto con todos los datos a enviar
-
-                $.ajax({
-                    url: '/SendScreenPrint',
-                    method: 'POST',
-                    data: {
-                        _token: csrfToken,
-                        addRowClicked: addRowClicked,
-                        Auditor: auditorValue,
-                        Cliente: clienteValue,
-                        Estilo: estiloValue,
-                        OP_Defec: opDefecValue,
-                        Tecnico: tecnicoValue,
-                        Color: colorValue,
-                        Num_Grafico: numGraficoValue,
-                        Tecnica: tecnicaValue,
-                        Fibras: fibrasValue,
-                        Porcen_Fibra: porcentajeFibraValue,
-                        Piezas_Auditar: piezasAuditarValue,
-                        Tipo_Problema: tipoProblemaValue,
-                        Ac_Correctiva: acCorrectivaValue,
-                        Num_Problemas: numProblemas,
-
-                    },
-                    success: function(response) {
-                        // Realizar acciones adicionales si es necesario después de la respuesta exitosa
-                        console.log(response);
-                    },
-                    error: function(error) {
-                        // Manejar errores si es necesario
-                        console.log('Error en la solicitud POST:', error);
-                    }
-                });
-            }
-        });
+    // Evento de clic en el botón "Guardar"
+    $(document).on('click', '.guardarFila', function() {
+        // Obtener el token CSRF
+        var csrfToken = $('meta[name="csrf-token"]').attr('content');
+        // Verificar si se hizo clic en el botón "AddRow"
+        if (addRowClicked) {
+            // Obtener los valores de la fila desde los campos de entrada
+            var auditorValue = $(this).closest('tr').find('[name="auditorR[]"]').val();
+            var clienteValue = $(this).closest('tr').find('[name="clienteR[]"]').val();
+            var estiloValue = $(this).closest('tr').find('[name="estiloR[]"]').val();
+            var opDefecValue = $(this).closest('tr').find('[name="op_defecR[]"]').val();
+            var tecnicoValue = $(this).closest('tr').find('[name="tecnicoR[]"]').val();
+            var colorValue = $(this).closest('tr').find('[name="colorR[]"]').val();
+            var numGraficoValue = $(this).closest('tr').find('[name="num_graficoR[]"]').val();
+            var tecnicaValue = $(this).closest('tr').find('[name="tecnicaR[]"]').val();
+            var fibrasValue = $(this).closest('tr').find('[name="fibrasR[]"]').val();
+            var porcentajeFibraValue = $(this).closest('tr').find('[name="porcentaje_fibraR[]"]').val();
+            var piezasAuditarValue = $(this).closest('tr').find('[name="piezas_auditarR[]"]').val();
+            var tipoProblemaValue = $(this).closest('tr').find('[name="tipo_problemaR[]"]').val();
+            var acCorrectivaValue = $(this).closest('tr').find('[name="ac_correctivaR[]"]').val();
+            var numProblemas = [];
+            $(this).closest('tr').find('input[name="num_problemasR[]"]').each(function() {
+                var valor = $(this).val();
+                numProblemas.push(valor === "" ? 0 : valor); // Envía 0 si está vacío, si no, envía el valor
+            });
+            $.ajax({
+                url: '/SendScreenPrint',
+                method: 'POST',
+                data: datos,
+                success: function(response) {
+                    // Realizar acciones adicionales si es necesario después de la respuesta exitosa
+                    console.log(response);
+                },
+                error: function(error) {
+                    // Manejar errores si es necesario
+                    console.log('Error en la solicitud POST:', error);
+                }
+            });
+        }
+    });
     </script>
     <script>
         var lastRegisteredId = 0;

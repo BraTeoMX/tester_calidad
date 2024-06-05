@@ -616,7 +616,7 @@
                 var input = $('<input>', {
                     type: 'number',
                     class: 'form-control',
-                    name: '#_problemasR[]',
+                    name: 'num_problemasR[]',
                     placeholder: '# problemas de ' + option,
                     style: 'white-space: nowrap; width: 150px;'
                 });

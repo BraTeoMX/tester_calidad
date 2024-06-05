@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
-
-use App\Models\AuditoriaProcesoCorte; 
-use App\Models\AseguramientoCalidad;  
-use App\Models\TpAseguramientoCalidad; 
-use App\Models\TpAuditoriaAQL; 
-use App\Models\AuditoriaAQL;   
+use Illuminate\Support\Facades\Response;
+use App\Models\AuditoriaProcesoCorte;
+use App\Models\AseguramientoCalidad;
+use App\Models\TpAseguramientoCalidad;
+use App\Models\TpAuditoriaAQL;
+use App\Models\AuditoriaAQL;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon  
+use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\DB; // Importa la clase DB
 
 
@@ -31,7 +31,7 @@ class DashboardController extends Controller
      *
      * @return \Illuminate\View\View
      */
- 
+
     public function dashboarAProcesoPlayera()
     {
         $title = "";
@@ -86,7 +86,7 @@ class DashboardController extends Controller
             // Obtener la modulo correspondiente al operario de máquina
             $modulo = AseguramientoCalidad::where('nombre', $nombre)->value('modulo');
             $moduloPorNombre[$nombre] = $modulo;
-            
+
         }
         // Ordenar los operarios de maquina por el porcentaje de error de mayor a menor
         arsort($porcentajesErrorNombre);
@@ -112,13 +112,13 @@ class DashboardController extends Controller
         }
         // Ordenar los team leaders por el porcentaje de error de mayor a menor
         arsort($porcentajesErrorTeamLeader);
-        
-        return view('dashboar.dashboarAProcesoPlayera', compact('title', 'clientes', 'porcentajesError', 
+
+        return view('dashboar.dashboarAProcesoPlayera', compact('title', 'clientes', 'porcentajesError',
                 'nombres', 'porcentajesErrorNombre', 'operacionesPorNombre', 'teamLeaderPorNombre', 'moduloPorNombre',
                 'teamLeaders', 'porcentajesErrorTeamLeader'));
     }
 
-    public function dashboarAProcesoAQL(Request $request)  
+    public function dashboarAProcesoAQL(Request $request)
     {
         $title = "";
         if($request->fecha_fin){
@@ -205,7 +205,7 @@ class DashboardController extends Controller
             ->limit(3)
             ->get();
         //para textos
-        
+
         // Obtener las fechas
         $fechaInicioUnico = substr($fechaInicio, 0, 10); // Extraer solo la parte de la fecha
         $fechaFinUnico = substr($fechaFin, 0, 10); // Extraer solo la parte de la fecha
@@ -250,8 +250,8 @@ class DashboardController extends Controller
         $fechaFinFormateada = $diaFin . ' de ' . $mesesEnEspanol[$mesFin] . ' ' . $añoFin;
         //dd($fechaInicioFormateada, $fechaFinFormateada);
         return view('dashboar.dashboarAProcesoAQL', compact('title', 'semanas', 'porcentajesAQL', 'porcentajesProceso',
-            'semanasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica', 'dataGeneral', 'totalGeneral', 
-            'dataGerentesGeneral', 'dataModulosGeneral', 'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2', 
+            'semanasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica', 'dataGeneral', 'totalGeneral',
+            'dataGerentesGeneral', 'dataModulosGeneral', 'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2',
             'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2', 'topDefectosAQL', 'topDefectosProceso',
             'fechaInicio', 'fechaFin', 'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
             'fechaInicioFormateada', 'fechaFinFormateada'));
@@ -594,7 +594,7 @@ class DashboardController extends Controller
             $sumaAuditadaAQL = AuditoriaAQL::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                                 ->sum('cantidad_auditada');
-                                
+
             $sumaRechazadaAQL = AuditoriaAQL::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                                 ->sum('cantidad_rechazada');
@@ -605,7 +605,7 @@ class DashboardController extends Controller
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                                 ->distinct()
                                 ->count('nombre');
-                                
+
             $conteoMinutos = AuditoriaAQL::where('modulo', $modulo)
                                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                                 ->count('minutos_paro');
@@ -813,7 +813,7 @@ class DashboardController extends Controller
 
         $porcentajeBulto = $conteoBultos != 0 ? ($conteoPiezaConRechazo / $conteoBultos) * 100 : 0;
 
-        return view('dashboar.detalleXModuloAQL', compact('title', 'mostrarRegistro', 'rangoInicial', 'rangoFinal', 
+        return view('dashboar.detalleXModuloAQL', compact('title', 'mostrarRegistro', 'rangoInicial', 'rangoFinal',
                 'registrosIndividual', 'registrosIndividualPieza', 'conteoBultos', 'conteoPiezaConRechazo', 'porcentajeBulto',
                 'nombreModulo'));
     }
@@ -845,7 +845,7 @@ class DashboardController extends Controller
         $rangoInicial = date('d', strtotime($rangoInicialShort)) . ' ' . $meses[date('n', strtotime($rangoInicialShort))] . ' ' . date('Y', strtotime($rangoInicialShort));
         $rangoFinal = date('d', strtotime($rangofinShort)) . ' ' . $meses[date('n', strtotime($rangofinShort))] . ' ' . date('Y', strtotime($rangofinShort));
 
-        $gerenteProduccion = $request->team_leader; 
+        $gerenteProduccion = $request->team_leader;
 
         $modulosUnicosAQL = AuditoriaAQL::where('team_leader', $request->team_leader)
             ->whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
@@ -872,7 +872,7 @@ class DashboardController extends Controller
             ->select('nombre')
             ->distinct()
             ->get();
-        
+
         $mostrarRegistroUtility = AseguramientoCalidad::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
             ->where('utility', 1)
             ->where('planta', $request->planta)
@@ -913,7 +913,7 @@ class DashboardController extends Controller
         $rangoInicial = date('d', strtotime($rangoInicialShort)) . ' ' . $meses[date('n', strtotime($rangoInicialShort))] . ' ' . date('Y', strtotime($rangoInicialShort));
         $rangoFinal = date('d', strtotime($rangofinShort)) . ' ' . $meses[date('n', strtotime($rangofinShort))] . ' ' . date('Y', strtotime($rangofinShort));
 
-        $clienteSeleccionado = $request->cliente; 
+        $clienteSeleccionado = $request->cliente;
 
 
         $datosAQLPlanta1TurnoNormal = AuditoriaAQL::with('tpAuditoriaAQL')
@@ -933,7 +933,7 @@ class DashboardController extends Controller
 
         $conteoRechazos = $datosProcesoPlanta1TurnoNormal->where('cantidad_rechazada', '>', 0)->count();
 
-        
+
         $modulosUnicosAQL = AuditoriaAQL::where('team_leader', $request->team_leader)
             ->whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
             ->where('planta', 'Intimark1')
@@ -959,7 +959,7 @@ class DashboardController extends Controller
             ->select('nombre')
             ->distinct()
             ->get();
-        
+
         $mostrarRegistroUtility = AseguramientoCalidad::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
             ->where('utility', 1)
             ->where('planta', $request->planta)
@@ -974,11 +974,11 @@ class DashboardController extends Controller
                                                         'conteoRechazos'));
     }
 
- 
+
     public function buscadorDinamico()
     {
 
-        
+
         return view('dashboar.buscadorDinamico');
     }
 
@@ -1067,4 +1067,33 @@ class DashboardController extends Controller
 
         return response()->json($results);
     }
+    public function Top3Defectos(Request $request)
+    {
+        $tipoModelo = $request->input('tipo');
+
+        if (!in_array($tipoModelo, ['TpAuditoriaAQL', 'TpAseguramientoCalidad'])) {
+            return Response::json(['success' => false, 'error' => 'Tipo de modelo inválido'], 400);
+        }
+
+        $modelo = $tipoModelo === 'TpAuditoriaAQL' ? TpAuditoriaAQL::query() : TpAseguramientoCalidad::query();
+
+        // Consulta para usar la columna 'tp'
+        $defectos = $modelo->select('tp AS defecto', DB::raw('COUNT(*) as cantidad'))
+            ->groupBy('tp')
+            ->orderByDesc('cantidad')
+            ->limit(3)
+            ->get();
+
+        // Formateo de resultados (ajustado para usar 'defecto' como alias)
+        $data = [];
+        foreach ($defectos as $defecto) {
+            $data[] = [
+                'defecto' => $defecto->defecto, // Usamos el alias 'defecto'
+                'cantidad' => $defecto->cantidad
+            ];
+        }
+
+        return Response::json(['success' => true, 'data' => $data]);
+    }
+
 }
