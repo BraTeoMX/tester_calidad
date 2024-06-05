@@ -2054,6 +2054,13 @@ select.form-control option {
 
 /* Opción seleccionada */
 
+.select2-container--default .select2-selection--single {
+    background-color: #343a40;
+    /* Cambia este valor al color exacto que deseas */
+    border: 1px solid #ced4da;
+    /* Opcional: ajusta el borde si es necesario */
+}
+
 .custom-select option:checked,
 .custom-select option:hover {
     background-color: #162447;
