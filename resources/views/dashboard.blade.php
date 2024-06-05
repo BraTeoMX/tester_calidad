@@ -649,7 +649,7 @@
                             data: cantidades,
                             backgroundColor: backgroundColor,
                             borderColor: backgroundColor.map(color => color.replace('0.5', '1')),
-                            borderWidth: 1
+                            borderWidth: 5
                         }]
                     },
                     options: {
