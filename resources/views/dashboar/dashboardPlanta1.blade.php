@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageSlug' => 'dashboard'])
+@extends('layouts.app', ['pageSlug' => 'dashboard', 'titlePage' => __('Dashboard')])
 
 @section('content')
 
@@ -6,7 +6,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
-                    <h2 class="card-title" style="text-align: center">Dashboard General Planta 1 - Ixtlahuaca </h2>
+                    <h2 class="card-title" style="text-align: center; font-weight: bold;">Dashboard General Planta 1 - Ixtlahuaca </h2>
                 </div>
             </div>
         </div>

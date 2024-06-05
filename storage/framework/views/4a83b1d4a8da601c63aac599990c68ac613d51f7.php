@@ -6,7 +6,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
-                    <h2 class="card-title" style="text-align: center">Dashboard General Planta 2 - San Bartolo </h2>
+                    <h2 class="card-title" style="text-align: center; font-weight: bold;">Dashboard General Planta 2 - San Bartolo </h2>
                 </div>
             </div>
         </div>
@@ -106,7 +106,7 @@
                 <div class="card-header">
                     <div class="row">
                         <div class="col-sm-6 text-left">
-                            <h2 class="card-title">Indicador Mensual por Cliente</h2>
+                            <h2 class="card-title" >Indicador Mensual por Cliente</h2>
                         </div>
                         <div class="col-sm-6">
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
