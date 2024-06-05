@@ -17,3 +17,6 @@
 # Ignorar el contenido de bootstrap/cache excepto la carpeta
 /bootstrap/cache/*
 !/bootstrap/cache/.gitignore
+/storage
+/storage/framework
+/storage/framework/sessions
