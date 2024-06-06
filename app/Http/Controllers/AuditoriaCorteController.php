@@ -55,22 +55,6 @@ class AuditoriaCorteController extends Controller
                     ->groupBy('op');
             })
             ->get(),
-            'DatoAXNoIniciado' => DatoAX::select('estilo', 'op')
-                ->distinct()
-                ->whereNotNull('op')
-                ->whereNotNull('sizename') // Descarta valores nulos
-                ->where('sizename', '<>', '') // Descarta valores vacíos
-                ->whereNotIn('id', function ($query) {
-                    $query->select('id')
-                        ->from('datos_auditorias')
-                        ->whereIn('op', function ($subquery) {
-                            $subquery->select('orden_id')
-                                ->from('encabezado_auditoria_cortes');
-                        });
-                })
-                ->whereNull('estatus')
-                ->where('period', '>', '202312') // Descarta valores menores o iguales a "202312"
-                ->get(),
             'DatoAXProceso' => DatoAX::whereNotIn('estatus', ['fin'])
                            ->whereNotNull('estatus')
                            ->whereNotIn('estatus', [''])
@@ -85,7 +69,7 @@ class AuditoriaCorteController extends Controller
         ];
     }
 
-    public function inicioAuditoriaCorte()
+    public function inicioAuditoriaCorte(Request $request)
     {
         $pageSlug ='';
         $categorias = $this->cargarCategorias();
@@ -108,7 +92,34 @@ class AuditoriaCorteController extends Controller
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
 
-        return view('auditoriaCorte.inicioAuditoriaCorte', array_merge($categorias, ['mesesEnEspanol' => $mesesEnEspanol, 'pageSlug' => $pageSlug, 'EncabezadoAuditoriaCorte' => $filteredEncabezados]));
+        $query = DatoAX::select('estilo', 'op')
+            ->distinct()
+            ->whereNotNull('op')
+            ->whereNotNull('sizename')
+            ->where('sizename', '<>', '')
+            ->whereNotIn('id', function ($query) {
+                $query->select('id')
+                    ->from('datos_auditorias')
+                    ->whereIn('op', function ($subquery) {
+                        $subquery->select('orden_id')
+                            ->from('encabezado_auditoria_cortes');
+                    });
+            })
+            ->whereNull('estatus')
+            ->where('period', '>', '202312');
+
+        if ($request->has('search')) {
+            $query->where('op', 'LIKE', '%' . $request->search . '%');
+        }
+
+        $DatoAXNoIniciado = $query->get();
+
+        if ($request->ajax()) {
+            return view('auditoriaCorte.partials._table', compact('DatoAXNoIniciado'))->render();
+        }
+
+        return view('auditoriaCorte.inicioAuditoriaCorte', array_merge($categorias, ['mesesEnEspanol' => $mesesEnEspanol, 'pageSlug' => $pageSlug,
+                'EncabezadoAuditoriaCorte' => $filteredEncabezados, 'DatoAXNoIniciado' => $DatoAXNoIniciado]));
     }
 
     public function auditoriaCorte($id, $orden)

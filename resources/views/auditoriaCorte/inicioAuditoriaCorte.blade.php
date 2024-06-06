@@ -59,27 +59,24 @@
                                     <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
                                         data-parent="#accordionExample">
                                         <div class="card-body">
-                                            <input type="text" id="searchInput" class="form-control"
-                                                placeholder="Buscar por Orden">
+                                            <input type="text" id="searchInput" class="form-control" placeholder="Buscar por Orden">
                                             <br>
-                                            <!-- Desde aquí inicia la edición del código para mostrar el contenido -->
                                             <div class="table-responsive" data-filter="false">
                                                 <table class="table">
                                                     <thead>
                                                         <tr>
-                                                            <th>iniciar</th>
+                                                            <th>Iniciar</th>
                                                             <th>Orden</th>
                                                             <th>Estilo</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody id="tablaBody">
-                                                        @foreach ($DatoAXNoIniciado as $inicio)  
-                                                            <tr>
-                                                                <td><a href="{{ route('auditoriaCorte.altaAuditoriaCorte', ['orden' => $inicio->op]) }}"
-                                                                        class="btn btn-primary">Acceder</a></td>
-                                                                <td>{{ $inicio->op }}</td>
-                                                                <td>{{ $inicio->estilo }}</td>
-                                                            </tr>
+                                                        @foreach ($DatoAXNoIniciado as $inicio)
+                                                        <tr>
+                                                            <td><a href="{{ route('auditoriaCorte.altaAuditoriaCorte', ['orden' => $inicio->op]) }}" class="btn btn-primary">Acceder</a></td>
+                                                            <td>{{ $inicio->op }}</td>
+                                                            <td>{{ $inicio->estilo }}</td>
+                                                        </tr>
                                                         @endforeach
                                                     </tbody>
                                                 </table>
@@ -424,20 +421,20 @@
             }
         </style>
         <script>
-            const searchInput = document.getElementById('searchInput');
-            const tablaBody = document.getElementById('tablaBody');
-            const filas = tablaBody.getElementsByTagName('tr');
-
-            searchInput.addEventListener('input', function() {
-                const busqueda = this.value.toLowerCase();
-                for (const fila of filas) {
-                    const orden = fila.getElementsByTagName('td')[1].innerText.toLowerCase();
-                    if (orden.includes(busqueda)) {
-                        fila.style.display = '';
-                    } else {
-                        fila.style.display = 'none';
-                    }
-                }
+            $(document).ready(function() {
+                $('#searchInput').on('input', function() {
+                    var query = $(this).val();
+                    $.ajax({
+                        url: "{{ route('auditoriaCorte.inicioAuditoriaCorte') }}",
+                        type: "GET",
+                        data: {
+                            'search': query
+                        },
+                        success: function(data) {
+                            $('#tablaBody').html(data);
+                        }
+                    });
+                });
             });
         </script>
 
