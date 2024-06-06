@@ -330,6 +330,7 @@ class AuditoriaProcesoController extends Controller
         $modulo = $request->modulo;
         // Extraer la parte numérica del módulo
         $modulo_num = intval(substr($modulo, 0, 3));
+        //dd($request->all());
         $nuevoRegistro = new AseguramientoCalidad();
         $nuevoRegistro->area = $request->area;
         if($modulo_num >= 100 && $modulo_num < 200){
@@ -356,12 +357,13 @@ class AuditoriaProcesoController extends Controller
         }else{$nuevoRegistro->jefe_produccion = NULL; }
         $nuevoRegistro->auditor = $request->auditor;
         $nuevoRegistro->turno = $request->turno;
-        if($request->utility){
-            $nuevoRegistro->nombre = $request->utility;
+        if($request->nombre_utility){
+            $nuevoRegistro->nombre = $request->nombre_utility;
             $nuevoRegistro->utility = 1;
         }else{ 
             if(!$request->input('nombre')){
-                $nuevoRegistro->nombre = $request->input('nombre_hidden');
+                $nuevoRegistro->nombre = $request->input('nombre_otro');
+                //dd($nuevoRegistro->nombre);
             }else{
                 $nuevoRegistro->nombre = $request->nombre;
             }
@@ -402,13 +404,17 @@ class AuditoriaProcesoController extends Controller
         // Obtener el ID del nuevo registro
         $nuevoRegistroId = $nuevoRegistro->id;
 
-        // Almacenar los valores de tp en la tabla tp_aseguramiento_calidad
-        foreach ($request->tp as $tp) {
+        // Asegúrate de que $request->tp sea un arreglo y contenga "NINGUNO" si está vacío o es null
+        $tp = $request->input('tp', ['NINGUNO']);
+
+        // Itera sobre el arreglo $tp y guarda cada valor
+        foreach ($tp as $valorTp) {
             $nuevoTp = new TpAseguramientoCalidad();
-            $nuevoTp->aseguramiento_calidad_id = $nuevoRegistroId;
-            $nuevoTp->tp = $tp;
+            $nuevoTp->aseguramiento_calidad_id = $nuevoRegistroId; // Asegúrate de que $nuevoRegistroId esté definido
+            $nuevoTp->tp = $valorTp;
             $nuevoTp->save();
         }
+
 
         
 

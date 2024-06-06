@@ -195,7 +195,7 @@
                                                 <th>TALLA</th>
                                                 <th>PIEZAS INSPECCIONADAS</th>
                                                 <th>PIEZAS RECHAZADAS</th>
-                                                <th>TIPO DE DEFECTO</th>
+                                                <th id="tp-column-header">TIPO DE DEFECTO</th>
                                                 <th id="ac-column-header">ACCION CORRECTIVA</th>
                                                 <th id="nombre-column-header">NOMBRE</th>
                                             </tr>
@@ -216,11 +216,10 @@
                                                 <td><input type="text" class="form-control" name="estilo" id="estilo" readonly></td>
                                                 <td><input type="text" class="form-control" name="color" id="color" readonly></td>
                                                 <td><input type="text" class="form-control" name="talla" id="talla" readonly></td>
-                                                <td><input type="numbre" class="form-control" name="cantidad_auditada" id="cantidad_auditada" required></td>
+                                                <td><input type="number" class="form-control" name="cantidad_auditada" id="cantidad_auditada" required></td>
                                                 <td><input type="text" class="form-control" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
-                                                <td>
+                                                <td class="tp-column">
                                                     <select name="tp[]" id="tpSelectAQL" class="form-control" required multiple title="Por favor, selecciona una opción">
-                                                        <option value="NINGUNO">NINGUNO</option>
                                                         <option value="OTRO">OTRO</option>
                                                         @if ($data['area'] == 'AUDITORIA AQL')
                                                             @foreach ($categoriaTPProceso as $proceso)
@@ -679,13 +678,13 @@
             function updateColumnsVisibility() {
                 const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
                 if (isNaN(cantidadRechazada) || cantidadRechazada === 0) { // Ocultar si es 0 o NaN
-                    $('#ac-column-header, #nombre-column-header').hide();
-                    $('.ac-column, .nombre-column').hide();
-                    $('#ac, #nombre').prop('required', false);
+                    $('#ac-column-header, #nombre-column-header, #tp-column-header').hide();
+                    $('.ac-column, .nombre-column, .tp-column').hide();
+                    $('#ac, #nombre, #tpSelectAQL').prop('required', false);
                 } else {
-                    $('#ac-column-header, #nombre-column-header').show();
-                    $('.ac-column, .nombre-column').show();
-                    $('#ac, #nombre').prop('required', true);
+                    $('#ac-column-header, #nombre-column-header, #tp-column-header').show();
+                    $('.ac-column, .nombre-column, .tp-column').show();
+                    $('#ac, #nombre, #tpSelectAQL').prop('required', true);
                 }
             }
 

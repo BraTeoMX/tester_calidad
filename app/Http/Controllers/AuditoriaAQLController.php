@@ -392,10 +392,15 @@ class AuditoriaAQLController extends Controller
         $nuevoRegistroId = $nuevoRegistro->id;
 
         // Almacenar los valores de tp en la tabla tp_auditoria_aql
-        foreach ($request->tp as $tp) {
+        
+        // Asegúrate de que $request->tp sea un arreglo y contenga "NINGUNO" si está vacío o es null
+        $tp = $request->input('tp', ['NINGUNO']);
+
+        // Itera sobre el arreglo $tp y guarda cada valor
+        foreach ($tp as $valorTp) {
             $nuevoTp = new TpAuditoriaAQL();
-            $nuevoTp->auditoria_aql_id = $nuevoRegistroId;
-            $nuevoTp->tp = $tp;
+            $nuevoTp->auditoria_aql_id = $nuevoRegistroId; // Asegúrate de que $nuevoRegistroId esté definido
+            $nuevoTp->tp = $valorTp;
             $nuevoTp->save();
         }
 
