@@ -174,9 +174,9 @@
                                             <th>NOMBRE</th>
                                             <th>OPERACION</th>
                                             <th>PIEZAS AUDITADAS</th>
-                                            <th>PIEZAS RECHAZADOS</th>
-                                            <th>TIPO DE PROBLEMA</th>
-                                            <th>ACCION CORRECTIVA</th>
+                                            <th>PIEZAS RECHAZADAS</th>
+                                            <th id="tp-column-header" class="d-none">TIPO DE PROBLEMA</th>
+                                            <th id="ac-column-header" class="d-none">ACCION CORRECTIVA</th>
                                             @if ($data['area'] == 'AUDITORIA EN EMPAQUE')
                                             @else
                                                 <th>P x P</th>
@@ -202,138 +202,25 @@
                                                         @endforeach
                                                     @endif
                                                 </select>
-                                                
-                                            
                                                 <div id="otroOptions" style="display: none;">
                                                     <select name="modulo_adicional" id="module" class="form-control" onchange="loadNames()">
                                                         <option value="">Selecciona un módulo</option>
                                                     </select>
-                                                    <select name="nombre" id="name" class="form-control">
+                                                    <select name="nombre_otro" id="name" class="form-control">
                                                         <option value="">Selecciona un nombre</option>
                                                     </select>
                                                 </div>
-
                                                 <div id="utilityOptions" style="display: none;">
-                                                    <select name="utility" id="utility" class="form-control">
+                                                    <select name="nombre_utility" id="utility" class="form-control">
                                                         <option value="">Selecciona un Utility</option>
                                                     </select>
                                                 </div>
-                                                
                                             </td>
-                                            
-                                            <script>
-                                                function showOtherOptions() {
-                                                    var select = document.getElementById("nombre");
-                                                    var otroOptions = document.getElementById("otroOptions");
-                                                    var utilityOptions = document.getElementById("utilityOptions");
-                                                    var nombreHidden = document.getElementById("nombre_hidden");
-
-                                                    if (select.value !== "OTRO" && select.value !== "UTILITY") {
-                                                        select.style.display = "block";
-                                                        select.disabled = false;
-                                                        otroOptions.style.display = "none";
-                                                        utilityOptions.style.display = "none";
-                                                        nombreHidden.value = select.value; // Actualiza el campo oculto con el valor seleccionado del primer select
-                                                    } else if (select.value === "UTILITY") {
-                                                        select.style.display = "none";
-                                                        select.disabled = true;
-                                                        otroOptions.style.display = "none";
-                                                        utilityOptions.style.display = "block";
-                                                        loadUtilities(); // Cargar los utilities disponibles
-                                                    } else {
-                                                        select.style.display = "none";
-                                                        select.disabled = true;
-                                                        otroOptions.style.display = "block";
-                                                        utilityOptions.style.display = "none";
-                                                        loadModules(); // Cargar los módulos disponibles
-                                                    }
-                                                }
-                                            
-                                                function loadModules() {
-                                                    fetch("{{ route('modules.getModules') }}")
-                                                        .then(response => response.json())
-                                                        .then(data => {
-                                                            var select = document.getElementById("module");
-                                                            select.innerHTML = "";
-                                                            data.forEach(module => {
-                                                                var option = document.createElement("option");
-                                                                option.text = module.moduleid;
-                                                                option.value = module.moduleid;
-                                                                select.appendChild(option);
-                                                            });
-                                                        });
-                                                }
-                                            
-                                                function loadNames() {
-                                                    var moduleid = document.getElementById("module").value;
-                                                    fetch("{{ route('modules.getNamesByModule') }}?moduleid=" + moduleid)
-                                                        .then(response => response.json())
-                                                        .then(data => {
-                                                            var select = document.getElementById("name");
-                                                            select.innerHTML = "";
-                                                            data.forEach(name => {
-                                                                var option = document.createElement("option");
-                                                                option.text = name.name;
-                                                                option.value = name.name;
-                                                                select.appendChild(option);
-                                                            });
-                                                        });
-                                                }
-                                            
-                                                // Cargar los módulos iniciales
-                                                loadModules();
-                                                function loadUtilities() {
-                                                    fetch("{{ route('utilities.getUtilities') }}")
-                                                        .then(response => response.json())
-                                                        .then(data => {
-                                                            var select = document.getElementById("utility");
-                                                            select.innerHTML = "";
-                                                            data.forEach(utility => {
-                                                                var option = document.createElement("option");
-                                                                option.text = utility.nombre; // Usa 'nombre' en lugar de 'name'
-                                                                option.value = utility.nombre; // Usa 'nombre' en lugar de 'name'
-                                                                select.appendChild(option);
-                                                            });
-                                                        });
-                                                }
-                                                
-                                            </script>
-                                            <script>
-                                                function resetForm() {
-                                                    var select = document.getElementById("nombre");
-                                                    var otroOptions = document.getElementById("otroOptions");
-                                                    var utilityOptions = document.getElementById("utilityOptions");
-                                                    var nombreHidden = document.getElementById("nombre_hidden");
-
-                                                    select.style.display = "block";
-                                                    select.disabled = false;
-                                                    otroOptions.style.display = "none";
-                                                    utilityOptions.style.display = "none";
-                                                    nombreHidden.value = ""; // Restablecer el valor del campo oculto
-
-                                                    // Limpiar select de módulos y nombres si fuera necesario
-                                                    var moduleSelect = document.getElementById("module");
-                                                    moduleSelect.innerHTML = "<option value=''>Selecciona un módulo</option>";
-
-                                                    var nameSelect = document.getElementById("name");
-                                                    nameSelect.innerHTML = "<option value=''>Selecciona un nombre</option>";
-
-                                                    // Cargar los módulos iniciales
-                                                    loadModules();
-                                                }
-
-                                            </script>
-                                            
-                                            <td><input type="text" class="form-control" name="operacion" id="operacion"
-                                                    required></td>
-                                            <td><input type="text" class="form-control" name="cantidad_auditada"
-                                                    id="cantidad_auditada" required></td>
-                                            <td><input type="text" class="form-control" name="cantidad_rechazada"
-                                                    id="cantidad_rechazada" required></td>
-                                            <td>
-                                                <select name="tp[]" id="tpSelect" class="form-control" required multiple title="Por favor, selecciona una opción"> 
-                                                    <option value="">Selecciona una opción</option>
-                                                    <option value="NINGUNO">NINGUNO</option>
+                                            <td><input type="text" class="form-control" name="operacion" id="operacion" required></td>
+                                            <td><input type="text" class="form-control" name="cantidad_auditada" id="cantidad_auditada" required></td>
+                                            <td><input type="text" class="form-control" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
+                                            <td class="tp-column d-none">
+                                                <select name="tp[]" id="tpSelect" class="form-control" multiple title="Por favor, selecciona una opción"> 
                                                     <option value="OTRO">OTRO</option>
                                                     @if ($data['area'] == 'AUDITORIA EN PROCESO')
                                                         @foreach ($categoriaTPProceso as $proceso)
@@ -350,36 +237,28 @@
                                                     @endif
                                                 </select>
                                             </td>
-                                            
-                                            <td>
-                                                <select name="ac" id="ac" class="form-control" required
-                                                    title="Por favor, selecciona una opción">
+                                            <td class="ac-column d-none">
+                                                <select name="ac" id="ac" class="form-control" title="Por favor, selecciona una opción">
                                                     <option value="">Selecciona una opción</option>
-                                                    <option value="NINGUNO">NINGUNO</option>
                                                     @if ($data['area'] == 'AUDITORIA EN PROCESO')
                                                         @foreach ($categoriaACProceso as $proceso)
-                                                            <option value="{{ $proceso->accion_correctiva }}">
-                                                                {{ $proceso->accion_correctiva }}</option>
+                                                            <option value="{{ $proceso->accion_correctiva }}">{{ $proceso->accion_correctiva }}</option>
                                                         @endforeach
                                                     @elseif($data['area'] == 'AUDITORIA EN PROCESO PLAYERA')
                                                         @foreach ($categoriaACPlayera as $playera)
-                                                            <option value="{{ $playera->accion_correctiva }}">
-                                                                {{ $playera->accion_correctiva }}</option>
+                                                            <option value="{{ $playera->accion_correctiva }}">{{ $playera->accion_correctiva }}</option>
                                                         @endforeach
                                                     @elseif($data['area'] == 'AUDITORIA EN EMPAQUE')
                                                         @foreach ($categoriaACEmpaque as $empque)
-                                                            <option value="{{ $empque->accion_correctiva }}">
-                                                                {{ $empque->accion_correctiva }}</option>
+                                                            <option value="{{ $empque->accion_correctiva }}">{{ $empque->accion_correctiva }}</option>
                                                         @endforeach
                                                     @endif
                                                 </select>
                                             </td>
-                                            <td>
-                                                @if ($data['area'] == 'AUDITORIA EN EMPAQUE')
-                                                @else
-                                                    <input type="text" class="form-control" name="pxp" id="pxp">
-                                                @endif
-                                            </td>
+                                            @if ($data['area'] == 'AUDITORIA EN EMPAQUE')
+                                            @else
+                                                <td><input type="text" class="form-control" name="pxp" id="pxp"></td>
+                                            @endif
                                         </tr>
                                     </tbody>
                                 </table>
@@ -702,20 +581,123 @@
     </style>
 
     <script>
+        function showOtherOptions() {
+            var select = document.getElementById("nombre");
+            var otroOptions = document.getElementById("otroOptions");
+            var utilityOptions = document.getElementById("utilityOptions");
+            var nombreHidden = document.getElementById("nombre_hidden");
+
+            if (select.value !== "OTRO" && select.value !== "UTILITY") {
+                select.style.display = "block";
+                select.disabled = false;
+                otroOptions.style.display = "none";
+                utilityOptions.style.display = "none";
+                nombreHidden.value = select.value; // Actualiza el campo oculto con el valor seleccionado del primer select
+            } else if (select.value === "UTILITY") {
+                select.style.display = "none";
+                select.disabled = true;
+                otroOptions.style.display = "none";
+                utilityOptions.style.display = "block";
+                loadUtilities(); // Cargar los utilities disponibles
+            } else {
+                select.style.display = "none";
+                select.disabled = true;
+                otroOptions.style.display = "block";
+                utilityOptions.style.display = "none";
+                loadModules(); // Cargar los módulos disponibles
+            }
+        }
+
+        function loadModules() {
+            fetch("{{ route('modules.getModules') }}")
+                .then(response => response.json())
+                .then(data => {
+                    var select = document.getElementById("module");
+                    select.innerHTML = "";
+                    data.forEach(module => {
+                        var option = document.createElement("option");
+                        option.text = module.moduleid;
+                        option.value = module.moduleid;
+                        select.appendChild(option);
+                    });
+                });
+        }
+
+        function loadNames() {
+            var moduleid = document.getElementById("module").value;
+            fetch("{{ route('modules.getNamesByModule') }}?moduleid=" + moduleid)
+                .then(response => response.json())
+                .then(data => {
+                    var select = document.getElementById("name");
+                    select.innerHTML = "";
+                    data.forEach(name => {
+                        var option = document.createElement("option");
+                        option.text = name.name;
+                        option.value = name.name;
+                        select.appendChild(option);
+                    });
+                });
+        }
+
+        // Cargar los módulos iniciales
+        loadModules();
+        function loadUtilities() {
+            fetch("{{ route('utilities.getUtilities') }}")
+                .then(response => response.json())
+                .then(data => {
+                    var select = document.getElementById("utility");
+                    select.innerHTML = "";
+                    data.forEach(utility => {
+                        var option = document.createElement("option");
+                        option.text = utility.nombre; // Usa 'nombre' en lugar de 'name'
+                        option.value = utility.nombre; // Usa 'nombre' en lugar de 'name'
+                        select.appendChild(option);
+                    });
+                });
+        }
+        
+    </script>
+    <script>
+        function resetForm() {
+            var select = document.getElementById("nombre");
+            var otroOptions = document.getElementById("otroOptions");
+            var utilityOptions = document.getElementById("utilityOptions");
+            var nombreHidden = document.getElementById("nombre_hidden");
+
+            select.style.display = "block";
+            select.disabled = false;
+            otroOptions.style.display = "none";
+            utilityOptions.style.display = "none";
+            nombreHidden.value = ""; // Restablecer el valor del campo oculto
+
+            // Limpiar select de módulos y nombres si fuera necesario
+            var moduleSelect = document.getElementById("module");
+            moduleSelect.innerHTML = "<option value=''>Selecciona un módulo</option>";
+
+            var nameSelect = document.getElementById("name");
+            nameSelect.innerHTML = "<option value=''>Selecciona un nombre</option>";
+
+            // Cargar los módulos iniciales
+            loadModules();
+        }
+
+    </script>
+    <!-- Nuevo script para manejar la visibilidad de las columnas y select2 -->
+    <script>
         $(document).ready(function() {
             $('#tpSelect').select2({
                 placeholder: 'Seleccione una o varias opciones',
                 allowClear: true,
                 multiple: true
             });
-    
+
             $('#tpSelect').on('change', function() {
                 let selectedOptions = $(this).val();
                 if (selectedOptions.includes('OTRO')) {
                     $('#nuevoConceptoModal').modal('show');
                 }
             });
-    
+
             $('#guardarNuevoConcepto').on('click', function() {
                 let nuevoConcepto = $('#nuevoConceptoInput').val();
                 if (nuevoConcepto) {
@@ -727,7 +709,7 @@
                     @elseif($data['area'] == 'AUDITORIA EN EMPAQUE')
                         area = 'empaque';
                     @endif
-    
+
                     fetch('{{ route('categoria_tipo_problema.store') }}', {
                         method: 'POST',
                         headers: {
@@ -755,7 +737,7 @@
                     alert('Por favor, introduce un concepto válido');
                 }
             });
-    
+
             $('#nuevoConceptoModal').on('hidden.bs.modal', function () {
                 $('#nuevoConceptoInput').val('');
                 let selectedOptions = $('#tpSelect').val();
@@ -764,6 +746,27 @@
                     selectedOptions.splice(index, 1);
                     $('#tpSelect').val(selectedOptions).trigger('change');
                 }
+            });
+
+            function updateColumnsVisibility() {
+                const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
+                if (isNaN(cantidadRechazada) || cantidadRechazada === 0) {
+                    $('#tp-column-header, #ac-column-header').addClass('d-none');
+                    $('.tp-column, .ac-column').addClass('d-none');
+                    $('#tpSelect, #ac').prop('required', false);
+                } else {
+                    $('#tp-column-header, #ac-column-header').removeClass('d-none');
+                    $('.tp-column, .ac-column').removeClass('d-none');
+                    $('#tpSelect, #ac').prop('required', true);
+                }
+            }
+
+            // Inicializar la visibilidad de las columnas al cargar la página
+            updateColumnsVisibility();
+
+            // Actualizar la visibilidad de las columnas al cambiar el valor de cantidad_rechazada
+            $('#cantidad_rechazada').on('input', function() {
+                updateColumnsVisibility();
             });
         });
     </script>
