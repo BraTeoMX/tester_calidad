@@ -138,6 +138,44 @@
         </div>
     </div>
     <div class="row">
+        <div class="col-12">
+            <div class="card card-chart">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-sm-6 text-left">
+                            <h2 class="card-title">Indicador Mensual por Módulo</h2>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+                                <label class="btn btn-sm btn-primary btn-simple active" id="modulo0">
+                                    <input type="radio" name="moduloOptions" checked>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
+                                    <span class="d-block d-sm-none">
+                                        <i class="tim-icons icon-single-02"></i>
+                                    </span>
+                                </label>
+                                <label class="btn btn-sm btn-primary btn-simple" id="modulo1">
+                                    <input type="radio" class="d-none d-sm-none" name="moduloOptions">
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Procesos</span>
+                                    <span class="d-block d-sm-none">
+                                        <i class="tim-icons icon-gift-2"></i>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="height: 500px;"> <!-- Ajusta esta altura según tus necesidades -->
+                        <canvas id="moduloChartAQL"></canvas>
+                        <canvas id="moduloChartProcesos" style="display: none;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
 
 
         <div class="col-lg-4">
@@ -618,6 +656,126 @@
       });
     });
 </script>
+    <script>
+        $(document).ready(function() {
+            var colores = [
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(255, 159, 64, 1)',
+                'rgba(199, 199, 199, 1)',
+                'rgba(255, 99, 255, 1)',
+                'rgba(99, 255, 132, 1)',
+                'rgba(99, 132, 255, 1)',
+                'rgba(132, 99, 255, 1)',
+                'rgba(192, 75, 192, 1)',
+                'rgba(235, 162, 54, 1)',
+                'rgba(86, 255, 206, 1)',
+                'rgba(64, 159, 255, 1)'
+            ];
+
+            // Inicializa las gráficas de módulos
+            var ctxModuloAQL = document.getElementById('moduloChartAQL').getContext('2d');
+            var datasetsAQLModulos = @json($datasetsAQLModulos).map((dataset, index) => {
+                return {
+                    ...dataset,
+                    borderColor: colores[index % colores.length],
+                    backgroundColor: colores[index % colores.length]
+                };
+            });
+            var chartModuloAQL = new Chart(ctxModuloAQL, {
+                type: 'line',
+                data: {
+                    labels: @json($fechasGraficaModulos),
+                    datasets: datasetsAQLModulos
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: {
+                        display: true
+                    },
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'll',
+                                displayFormats: {
+                                    day: 'YYYY-MM-DD'
+                                }
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function(value, index, values) {
+                                    return value + '%';
+                                }
+                            }
+                        }]
+                    }
+                }
+            });
+
+            var ctxModuloProcesos = document.getElementById('moduloChartProcesos').getContext('2d');
+            var datasetsProcesoModulos = @json($datasetsProcesoModulos).map((dataset, index) => {
+                return {
+                    ...dataset,
+                    borderColor: colores[index % colores.length],
+                    backgroundColor: colores[index % colores.length]
+                };
+            });
+            var chartModuloProcesos = new Chart(ctxModuloProcesos, {
+                type: 'line',
+                data: {
+                    labels: @json($fechasGraficaModulos),
+                    datasets: datasetsProcesoModulos
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: {
+                        display: true
+                    },
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'll',
+                                displayFormats: {
+                                    day: 'YYYY-MM-DD'
+                                }
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function(value, index, values) {
+                                    return value + '%';
+                                }
+                            }
+                        }]
+                    }
+                }
+            });
+
+            $('#modulo0').on('click', function() {
+                $('#moduloChartAQL').show();
+                $('#moduloChartProcesos').hide();
+                chartModuloAQL.update();
+            });
+
+            $('#modulo1').on('click', function() {
+                $('#moduloChartAQL').hide();
+                $('#moduloChartProcesos').show();
+                chartModuloProcesos.update();
+            });
+        });
+    </script> 
 
     <script>
         $(document).ready(function() {

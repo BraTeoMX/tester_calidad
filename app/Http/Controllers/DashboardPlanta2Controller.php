@@ -169,6 +169,30 @@ class DashboardPlanta2Controller extends Controller
             ->get();
 
         //dd($gerentesProduccionAQL, $gerentesProduccionProceso, $gerentesProduccion, $data);
+        $dataGraficaModulos = $this->obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin);
+        $modulosGrafica = collect($dataGraficaModulos['modulosUnicos'])->toArray();
+        $fechasGraficaModulos = collect($dataGraficaModulos['dataModulo'][0]['fechas'])->toArray();
+
+        $datasetsAQLModulos = collect($dataGraficaModulos['dataModulo'])->map(function ($moduloData) {
+            return [
+                'label' => $moduloData['modulo'],
+                'data' => $moduloData['porcentajesErrorAQL'],
+                'borderColor' => 'rgba(75, 192, 192, 1)',
+                'borderWidth' => 1,
+                'fill' => false
+            ];
+        })->toArray();
+
+        $datasetsProcesoModulos = collect($dataGraficaModulos['dataModulo'])->map(function ($moduloData) {
+            return [
+                'label' => $moduloData['modulo'],
+                'data' => $moduloData['porcentajesErrorProceso'],
+                'borderColor' => 'rgba(153, 102, 255, 1)',
+                'borderWidth' => 1,
+                'fill' => false
+            ];
+        })->toArray();
+
         return view('dashboar.dashboardPlanta2', compact(
             'title',
             'topDefectosAQL',
@@ -205,7 +229,8 @@ class DashboardPlanta2Controller extends Controller
             'fechasGrafica',
             'datasetsAQL',
             'datasetsProceso',
-            'clientesGrafica'
+            'clientesGrafica',
+            'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica'
         ));
     }
 
@@ -786,5 +811,82 @@ class DashboardPlanta2Controller extends Controller
         }
 
         return $combinedData;
+    }
+
+    private function obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin)
+    {
+        $modulosUnicos = collect();
+        $dataModulo = [];
+
+        // Iterar sobre cada día en el rango
+        $fechas = CarbonPeriod::create($fechaInicio, '1 day', $fechaFin)->toArray();
+        $fechasStr = array_map(function ($fecha) {
+            return $fecha->toDateString();
+        }, $fechas);
+
+        foreach ($fechas as $fecha) {
+            $fechaStr = $fecha->toDateString();
+
+            // Obtener módulos únicos para la fecha actual
+            $queryAQL = AuditoriaAQL::whereNotNull('modulo')->whereDate('created_at', $fechaStr)->where('planta', 'Intimark2');
+            $queryProceso = AseguramientoCalidad::whereNotNull('modulo')->whereDate('created_at', $fechaStr)->where('planta', 'Intimark2');
+
+            $modulosAQL = $queryAQL->pluck('modulo');
+            $modulosProceso = $queryProceso->pluck('modulo');
+            $modulosDelDia = $modulosAQL->merge($modulosProceso)->unique();
+
+            $modulosUnicos = $modulosUnicos->merge($modulosDelDia)->unique();
+
+            foreach ($modulosDelDia as $modulo) {
+                // Inicializar los datos del módulo si no existen
+                if (!isset($dataModulo[$modulo])) {
+                    $dataModulo[$modulo] = [
+                        'modulo' => $modulo,
+                        'fechas' => $fechasStr,
+                        'porcentajesErrorAQL' => array_fill(0, count($fechasStr), 0),
+                        'porcentajesErrorProceso' => array_fill(0, count($fechasStr), 0)
+                    ];
+                }
+
+                // Obtener datos de AQL
+                $sumaAuditadaAQL = AuditoriaAQL::where('modulo', $modulo)
+                    ->whereDate('created_at', $fechaStr)
+                    ->where('planta', 'Intimark2')
+                    ->sum('cantidad_auditada');
+                $sumaRechazadaAQL = AuditoriaAQL::where('modulo', $modulo)
+                    ->whereDate('created_at', $fechaStr)
+                    ->where('planta', 'Intimark2')
+                    ->sum('cantidad_rechazada');
+
+                $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
+
+                // Obtener datos de Procesos
+                $sumaAuditadaProceso = AseguramientoCalidad::where('modulo', $modulo)
+                    ->whereDate('created_at', $fechaStr)
+                    ->where('planta', 'Intimark2')
+                    ->sum('cantidad_auditada');
+                $sumaRechazadaProceso = AseguramientoCalidad::where('modulo', $modulo)
+                    ->whereDate('created_at', $fechaStr)
+                    ->where('planta', 'Intimark2')
+                    ->sum('cantidad_rechazada');
+
+                $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
+
+                // Encontrar el índice correspondiente a la fecha
+                $index = array_search($fechaStr, $fechasStr);
+
+                // Agregar datos al array dataModulo
+                $dataModulo[$modulo]['porcentajesErrorAQL'][$index] = $porcentajeErrorAQL;
+                $dataModulo[$modulo]['porcentajesErrorProceso'][$index] = $porcentajeErrorProceso;
+            }
+        }
+
+        // Convertir dataModulo a la estructura esperada
+        $dataModulo = array_values($dataModulo);
+
+        return [
+            'modulosUnicos' => $modulosUnicos,
+            'dataModulo' => $dataModulo
+        ];
     }
 }

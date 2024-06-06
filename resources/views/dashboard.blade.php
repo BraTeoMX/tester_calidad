@@ -773,7 +773,7 @@
                 chartModuloProcesos.update();
             });
         });
-    </script>
+    </script> 
     <!-- nothing-->
     <!-- nothing-->
     <script>
