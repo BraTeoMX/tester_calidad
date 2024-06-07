@@ -106,8 +106,11 @@ class HomeController extends Controller
 
             // Datos para las gráficas usando el rango de fechas
             $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
-            $clientesGrafica = collect($dataGrafica['clientesUnicos'])->toArray();
-            $fechasGrafica = collect($dataGrafica['dataCliente'][0]['fechas'])->toArray();
+            //$clientesGrafica = collect($dataGrafica['clientesUnicos'])->toArray();
+            //$fechasGrafica = collect($dataGrafica['dataCliente'][0]['fechas'])->toArray();
+            // Verificar si los datos están vacíos y asignar valores por defecto
+            $clientesGrafica = !empty($dataGrafica['clientesUnicos']) ? collect($dataGrafica['clientesUnicos'])->toArray() : [0];
+            $fechasGrafica = !empty($dataGrafica['dataCliente'][0]['fechas']) ? collect($dataGrafica['dataCliente'][0]['fechas'])->toArray() : [0];
 
             $datasetsAQL = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
                 return [
@@ -188,6 +191,41 @@ class HomeController extends Controller
                 ];
             })->toArray();
 
+
+            // Obtener los clientes únicos de AseguramientoCalidad
+            $clientesAseguramientoBusqueda = AseguramientoCalidad::select('cliente')
+            ->distinct()
+            ->pluck('cliente');
+
+            // Obtener los clientes únicos de AuditoriaAQL
+            $clientesAuditoriaBusqueda = AuditoriaAQL::select('cliente')
+            ->distinct()
+            ->pluck('cliente');
+
+            // Combinar ambas listas y eliminar duplicados
+            $clientesUnicosBusqueda = $clientesAseguramientoBusqueda->merge($clientesAuditoriaBusqueda)->unique();
+
+            // Convertir la colección a un array si es necesario
+            $clientesUnicosArrayBusqueda = $clientesUnicosBusqueda->values()->all();
+
+            // Obtener los modulos únicos de AseguramientoCalidad
+            $modulosAseguramientoBusqueda = AseguramientoCalidad::select('modulo')
+            ->distinct()
+            ->pluck('modulo');
+
+            // Obtener los modulos únicos de AuditoriaAQL
+            $modulosAuditoriaBusqueda = AuditoriaAQL::select('modulo')
+            ->distinct()
+            ->pluck('modulo');
+
+            // Combinar ambas listas y eliminar duplicados
+            $modulosUnicosBusqueda = $modulosAseguramientoBusqueda->merge($modulosAuditoriaBusqueda)->unique();
+
+            // Convertir la colección a un array si es necesario
+            $modulosUnicosArrayBusqueda = $modulosUnicosBusqueda->values()->all();
+            //dd($clientesUnicosArrayBusqueda);
+
+
             return view('dashboard', compact('title', 'topDefectosAQL', 'topDefectosProceso',
                                     'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2', 'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2',
                                     'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
@@ -197,7 +235,8 @@ class HomeController extends Controller
                                     'dataGerentesGeneral', 'dataModulosGeneral',
                                     'fechas', 'porcentajesAQL', 'porcentajesProceso',
                                     'fechasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica',
-                                    'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica'));
+                                    'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica',
+                                    'clientesUnicosArrayBusqueda', 'modulosUnicosArrayBusqueda')); 
         } else {
             // Si el usuario no tiene esos roles, redirige a listaFormularios
             return redirect()->route('viewlistaFormularios');

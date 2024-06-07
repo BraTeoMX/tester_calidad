@@ -413,6 +413,42 @@
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-lg-6 col-md-12">
+            <div class="card ">
+                <div class="card-header card-header-success card-header-icon">
+                     <h3 class="card-title"><i class="tim-icons icon-zoom-split text-success"></i> Seleccion de Cliente por Modulo</h3>
+                </div>
+                <div class="card-body">
+                    <select class="form-control" name="clienteBusqueda" id="clienteBusqueda">
+                        <option value="">Seleccione un cliente</option>
+                        @foreach ($clientesUnicosArrayBusqueda as $cliente)
+                            <option value="{{ $cliente }}">{{ $cliente }}</option>
+                        @endforeach
+                    </select>
+                    <select class="form-control" name="moduloBusqueda" id="moduloBusqueda">
+                        <option value="">Seleccione un modulo</option>
+                        @foreach ($modulosUnicosArrayBusqueda as $modulo)
+                            <option value="{{ $modulo }}">{{ $modulo }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-12">
+            <div class="card ">
+                <div class="card-header card-header-success card-header-icon">
+                <h3 class="card-title"></h3>
+                </div>
+                <div class="card-body">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <style>
         .chart-area {
           height: 500px; /* Ajusta esta altura según tus necesidades */
