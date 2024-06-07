@@ -242,8 +242,7 @@
                                     </li>
                                     <li class="dropdown-divider"></li>
                                     <li class="nav-link">
-                                        <a href="{{ route('logout') }}" class="nav-item dropdown-item"
-                                            onclick="event.preventDefault();  document.getElementById('logout-form').submit();">{{ __('Log out') }}</a>
+                                        <a href="{{ route('logout') }}" class="nav-item dropdown-item" onclick="event.preventDefault();  document.getElementById('logout-form').submit();">{{ __('Cerrar sesion') }}</a>
                                     </li>
                                 </ul>
                             </li>
@@ -470,7 +469,7 @@
         </div>
     </div>
     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-        <input type="hidden" name="_token" value="ub2DzAIrgUnghVvu3l3KAbbq0UztNO8yfkrDNm6n">
+        @csrf
     </form>
     <script src="{{ asset('black') }}/js/core/jquery.min.js"></script>
     <script src="{{ asset('black') }}/js/core/popper.min.js"></script>
