@@ -168,8 +168,8 @@ class HomeController extends Controller
 
             //dd($gerentesProduccionAQL, $gerentesProduccionProceso, $gerentesProduccion, $data);
             $dataGraficaModulos = $this->obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin);
-            $modulosGrafica = collect($dataGraficaModulos['modulosUnicos'])->toArray();
-            $fechasGraficaModulos = collect($dataGraficaModulos['dataModulo'][0]['fechas'])->toArray();
+            $modulosGrafica = !empty($dataGraficaModulos['modulosUnicos']) ? collect($dataGraficaModulos['modulosUnicos'])->toArray() : [0];
+            $fechasGraficaModulos = !empty($dataGraficaModulos['dataModulo'][0]['fechas']) ? collect($dataGraficaModulos['dataModulo'][0]['fechas'])->toArray() : [0];
 
             $datasetsAQLModulos = collect($dataGraficaModulos['dataModulo'])->map(function ($moduloData) {
                 return [
