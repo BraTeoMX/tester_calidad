@@ -2,6 +2,21 @@
 
 @section('content')
 
+    <div class="row"> 
+        <div class="col-md-12">
+            <div class="card ">
+                <div class="card-header card-header-success card-header-icon">
+                    <h3 class="card-title"><i class="tim-icons icon-zoom-split text-success"></i> Seleccion de Cliente por Modulo</h3>
+                </div>
+                <div class="card-body">
+                    <div class="card-body">
+                        <h4>Cliente seleccionado: {{ $clienteBusqueda }}</h4>
+                        <h4>Módulo seleccionado: {{ $moduloBusqueda }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
     <div class="row">
         <div class="col-md-12">
             <!--Desde aqui inicia la edicion del codigo para mostrar el contenido-->
@@ -50,31 +65,84 @@
             <hr>     
         </div>
     </div>
-    <div class="row"> 
-        <div class="col-lg-6 col-md-12">
+
+    <div class="row">
+        <div class="col-lg-12 col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
-                     <h3 class="card-title"><i class="tim-icons icon-zoom-split text-success"></i> Seleccion de Cliente por Modulo</h3>
+                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Módulo AQL General</h3>
                 </div>
                 <div class="card-body">
-                    <div class="card-body">
-                        <p>Cliente seleccionado: {{ $clienteBusqueda }}</p>
-                        <p>Módulo seleccionado: {{ $moduloBusqueda }}</p>
+                    <div class="table-responsive">
+                        <table class="table tablesorter" id="">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Nombre</th>
+                                    @foreach ($semanas as $semana)
+                                        <th>{{ $semana }}</th>
+                                    @endforeach
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($datosAgrupadosAQL as $semana => $items)
+                                    @foreach ($items as $item)
+                                        <tr>
+                                            <td>{{ $item->nombre }}</td>
+                                            @foreach ($semanas as $sem)
+                                                <td>
+                                                    @if ($sem == $semana)
+                                                        {{ $item->created_at->format('d-m-Y') }}
+                                                    @endif
+                                                </td>
+                                            @endforeach
+                                        </tr>
+                                    @endforeach
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-6 col-md-12">
+    
+        <div class="col-lg-12 col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
-                <h3 class="card-title"></h3>
+                    <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Módulo Proceso General</h3>
                 </div>
                 <div class="card-body">
-                    
+                    <div class="table-responsive">
+                        <table class="table tablesorter" id="">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Nombre</th>
+                                    @foreach ($semanas as $semana)
+                                        <th>{{ $semana }}</th>
+                                    @endforeach
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($datosAgrupadosProceso as $semana => $items)
+                                    @foreach ($items as $item)
+                                        <tr>
+                                            <td>{{ $item->nombre }}</td>
+                                            @foreach ($semanas as $sem)
+                                                <td>
+                                                    @if ($sem == $semana)
+                                                        {{ $item->created_at->format('d-m-Y') }}
+                                                    @endif
+                                                </td>
+                                            @endforeach
+                                        </tr>
+                                    @endforeach
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
 
 
     <style>

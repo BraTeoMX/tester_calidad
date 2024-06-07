@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
+use App\Models\AuditoriaAQL;
 use App\Models\AseguramientoCalidad;
 use App\Models\TpAseguramientoCalidad;
 use App\Models\TpAuditoriaAQL;
-use App\Models\AuditoriaAQL;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
@@ -1046,10 +1046,33 @@ class DashboardController extends Controller
             $semanas->push($currentWeek->format('Y-W')); // Formato Año-Semana
             $currentWeek->addWeek();
         }
-        //dd($request->all(), $fechaInicio, $fechaFin);
+         // Consultas en los dos modelos
+        $auditoriasAQL = AuditoriaAQL::where('cliente', $clienteBusqueda)
+            ->where('modulo', $moduloBusqueda)
+            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+            ->get();
 
+        $audtidoriaProceso = AseguramientoCalidad::where('cliente', $clienteBusqueda)
+                ->where('modulo', $moduloBusqueda)
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->get();
         // Pasa los resultados y otros datos necesarios a la vista
-        return view('dashboar.detalleXModulo', compact('title', 'clienteBusqueda', 'moduloBusqueda'));
+        // Agrupar los datos por semana
+        $datosAgrupadosAQL = [];
+        $datosAgrupadosProceso = [];
+
+        foreach ($auditoriasAQL as $item) {
+            $semana = Carbon::parse($item->created_at)->format('Y-W');
+            $datosAgrupadosAQL[$semana][] = $item;
+        }
+
+        foreach ($audtidoriaProceso as $item) {
+            $semana = Carbon::parse($item->created_at)->format('Y-W');
+            $datosAgrupadosProceso[$semana][] = $item;
+        }
+
+        return view('dashboar.detalleXModulo', compact('title', 'clienteBusqueda', 'moduloBusqueda', 'auditoriasAQL', 'audtidoriaProceso', 
+                    'semanas', 'datosAgrupadosAQL', 'datosAgrupadosProceso'));
     }
 
 }
