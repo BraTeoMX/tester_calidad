@@ -843,10 +843,6 @@
                     return false; // Salir del bucle si se encuentra un campo vacío
                 }
             });
-            if (camposVacios) {
-                alert('Por favor, complete todos los campos antes de añadir una nueva fila.');
-                return; // Detener la ejecución si hay campos vacíos
-            }
             lastRegisteredId++;
             var auditor = '{{ Auth::user()->name }}';
             var cliente = $('#clienteSelect').val();
