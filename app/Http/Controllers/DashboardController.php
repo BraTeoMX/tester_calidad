@@ -747,75 +747,6 @@ class DashboardController extends Controller
         return $combinedData;
     }
 
-    public function detalleXModuloAQL(Request $request)
-    {
-        $title = "";
-        //dd($request->all());
-        $rangoInicialShort = substr($request->fecha_inicio, 0, 19); // Obtener los primeros 19 caracteres
-        $rangofinShort = substr($request->fecha_fin, 0, 19); // Obtener los primeros 19 caracteres
-
-        $nombreModulo = $request->modulo;
-
-        // Obtener el nombre del mes en español
-        $meses = [
-            1 => 'enero',
-            2 => 'febrero',
-            3 => 'marzo',
-            4 => 'abril',
-            5 => 'mayo',
-            6 => 'junio',
-            7 => 'julio',
-            8 => 'agosto',
-            9 => 'septiembre',
-            10 => 'octubre',
-            11 => 'noviembre',
-            12 => 'diciembre'
-        ];
-
-        $rangoInicial = date('d', strtotime($rangoInicialShort)) . ' ' . $meses[date('n', strtotime($rangoInicialShort))] . ' ' . date('Y', strtotime($rangoInicialShort));
-        $rangoFinal = date('d', strtotime($rangofinShort)) . ' ' . $meses[date('n', strtotime($rangofinShort))] . ' ' . date('Y', strtotime($rangofinShort));
-
-
-        $mostrarRegistro = AuditoriaAQL::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('modulo', $request->modulo)
-            ->where('op', $request->op)
-            ->where('team_leader', $request->team_leader)
-            ->get();
-
-        // Actualiza las consultas para los datos que necesitas mostrar en la vista
-        $registrosIndividual = AuditoriaAQL::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('modulo', $request->modulo)
-            ->where('op', $request->op)
-            ->where('team_leader', $request->team_leader)
-            ->selectRaw('COALESCE(SUM(cantidad_auditada), 0) as total_auditada, COALESCE(SUM(cantidad_rechazada), 0) as total_rechazada')
-            ->get();
-
-        $registrosIndividualPieza = AuditoriaAQL::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('modulo', $request->modulo)
-            ->where('op', $request->op)
-            ->where('team_leader', $request->team_leader)
-            ->selectRaw('SUM(pieza) as total_pieza, SUM(cantidad_rechazada) as total_rechazada')
-            ->get();
-
-        $conteoBultos = AuditoriaAQL::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('modulo', $request->modulo)
-            ->where('op', $request->op)
-            ->where('team_leader', $request->team_leader)
-            ->count();
-
-        $conteoPiezaConRechazo = AuditoriaAQL::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])
-            ->where('modulo', $request->modulo)
-            ->where('op', $request->op)
-            ->where('team_leader', $request->team_leader)
-            ->where('cantidad_rechazada', '>', 0)
-            ->count('pieza');
-
-        $porcentajeBulto = $conteoBultos != 0 ? ($conteoPiezaConRechazo / $conteoBultos) * 100 : 0;
-
-        return view('dashboar.detalleXModuloAQL', compact('title', 'mostrarRegistro', 'rangoInicial', 'rangoFinal',
-                'registrosIndividual', 'registrosIndividualPieza', 'conteoBultos', 'conteoPiezaConRechazo', 'porcentajeBulto',
-                'nombreModulo'));
-    }
 
 
     public function detallePorGerente(Request $request)
@@ -1093,6 +1024,32 @@ class DashboardController extends Controller
         }
 
         return Response::json(['success' => true, 'data' => $data]);
+    }
+
+    public function detalleXModulo(Request $request)
+    {
+        $title = "";
+        $clienteBusqueda = $request->input('clienteBusqueda');
+        $moduloBusqueda = $request->input('moduloBusqueda');
+        if($request->fecha_fin){
+            $fechaInicio = Carbon::parse($request->input('fecha_inicio'))->startOfWeek();
+            $fechaFin = Carbon::parse($request->input('fecha_fin'))->endOfWeek();
+        } else {
+            $fechaFin = Carbon::now()->endOfWeek();
+            $fechaInicio = $fechaFin->copy()->subWeeks(2)->startOfWeek();
+        }
+
+        // Obtener las semanas en el rango
+        $semanas = collect();
+        $currentWeek = $fechaInicio->copy();
+        while ($currentWeek <= $fechaFin) {
+            $semanas->push($currentWeek->format('Y-W')); // Formato Año-Semana
+            $currentWeek->addWeek();
+        }
+        //dd($request->all(), $fechaInicio, $fechaFin);
+
+        // Pasa los resultados y otros datos necesarios a la vista
+        return view('dashboar.detalleXModulo', compact('title', 'clienteBusqueda', 'moduloBusqueda'));
     }
 
 }
