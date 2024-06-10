@@ -1976,7 +1976,6 @@ select.form-control:focus::-ms-value {
 
 
 /* Estilo para las opciones del select */
-
 select.form-control option {
     background-color: #1a1a2e;
     /* Color de fondo aproximado del tema */
@@ -1984,9 +1983,7 @@ select.form-control option {
     /* Color del texto */
 }
 
-
 /* Estilos para Select2 */
-
 .select2-container--default .select2-selection--single {
     background-color: #1a1a2e !important;
     /* Fondo del select */
@@ -2031,6 +2028,26 @@ select.form-control option {
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
     color: #ffffff !important;
     /* Color del icono de eliminar */
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #ffffff !important;
+    /* Color del texto de la opción seleccionada en el select simple */
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    color: #ffffff !important;
+    /* Color del texto de las opciones seleccionadas en el select múltiple */
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #ffffff !important;
+    /* Color del texto del placeholder en el select simple */
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__placeholder {
+    color: #ffffff !important;
+    /* Color del texto del placeholder en el select múltiple */
 }
 
 
