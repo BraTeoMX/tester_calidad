@@ -157,55 +157,55 @@
                                 <thead class="text-primary">
                                     <tr>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 3%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                             ID</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 7.1%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                             Auditor</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 5%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                             Cliente</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 5%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                             Estilo</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 5%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                             OP</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 3%">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto%">
                                             Tecnico</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 3.5%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                             Color</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 2.5%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                             # Grafico</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 3.5%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                             Tecnica</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 6.5%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                             Fibras</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 4.6%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                             % de Fibras</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 2.5%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                             Piezas a auditar</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 8.5%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                             Tipo Defectos</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 2.5%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                             # Defectos</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 8.7%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                             Acciones Correctivas</th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 6.5%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                         </th>
                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 8%;">
+                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;">
                                         </th>
                                     </tr>
                                 </thead>
@@ -658,48 +658,48 @@
                             // Crear la fila con las celdas modificadas
                             var row = '<tr>' +
                                 '<td><input type="text" name="id" class="form-control" value="' +
-                                item.id + '" readonly style="white-space: nowrap;"></td>' +
+                                item.id + '" readonly  style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;"></td>' +
                                 '<td><input type="text" name="Auditor" class="form-control" value="' +
-                                item.Auditor + '" readonly style="white-space: nowrap;"></td>' +
+                                item.Auditor + '" readonly  style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;"></td>' +
                                 '<td><input type="text" name="Cliente" class="form-control" value="' +
                                 item.Cliente + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                ' style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;"></td>' +
                                 '<td><input type="text" name="Estilo" class="form-control" value="' +
                                 item.Estilo + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                ' style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;"></td>' +
                                 '<td><input type="text" name="OP_Defec" class="form-control" value="' +
                                 item.OP_Defec + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                ' style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;"></td>' +
                                 '<td><input type="text" name="Tecnico" class="form-control" value="' +
                                 item.Tecnico + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                '  style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;"></td>' +
                                 '<td><input type="text" name="Color" class="form-control" value="' +
                                 item.Color + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                '  style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;"></td>' +
                                 '<td><input type="text" name="Num_Grafico" class="form-control" value="' +
                                 item.Num_Grafico + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                '  style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;"></td>' +
                                 '<td><input type="text" name="Tecnica" class="form-control" value="' +
                                 item.Tecnica + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                ' style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;"></td>' +
                                 '<td><input type="text" name="Fibras" class="form-control" value="' +
                                 item.Fibras + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                ' style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;"></td>' +
                                 '<td><input type="text" name="Porcen_Fibra" class="form-control" value="' +
                                 item.Porcen_Fibra + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                ' style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;"></td>' +
                                 '<td><input type="text" name="Piezas_Auditar" class="form-control" value="' +
                                 item.Piezas_Auditar + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                ' style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;"></td>' +
                                 '<td><input type="text" name="Tipo_Problemas" class="form-control" value="' +
                                 item.Tipo_Problema + '" ' +
-                                'readonly style="white-space: nowrap;"></td>' +
+                                'readonly  style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;"></td>' +
                                 '<td><input type="text" name="Num_Problemas" class="form-control" value="' +
                                 item.Num_Problemas + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                '  style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;"></td>' +
                                 '<td><input type="text" name="Ac_Correctiva" class="form-control" value="' +
                                 item.Ac_Correctiva + '" ' +
-                                'readonly style="white-space: nowrap;"></td>' +
+                                'readonly  style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: auto;"></td>' +
                                 '<td><button type="button" class="btn btn-success guardarFila updateFile" ' +
                                 disabledAttribute + ' ' + hiddenAttribute +
                                 '>Guardar</button></td>' +
@@ -955,18 +955,32 @@
                 numProblemas.push(valor === "" ? 0 : valor); // Envía 0 si está vacío, si no, envía el valor
             });
             $.ajax({
-                url: '/SendScreenPrint',
-                method: 'POST',
-                data: datos,
-                success: function(response) {
-                    // Realizar acciones adicionales si es necesario después de la respuesta exitosa
-                    console.log(response);
-                },
-                error: function(error) {
-                    // Manejar errores si es necesario
-                    console.log('Error en la solicitud POST:', error);
-                }
-            });
+                    url: '/SendPlancha',
+                    method: 'POST',
+                    data: {
+                        _token: csrfToken,
+                        addRowClicked: addRowClicked,
+                        Auditor: auditorValue,
+                        Cliente: clienteValue,
+                        Estilo: estiloValue,
+                        OP_Defec: opDefecValue,
+                        Tecnico: tecnicoValue,
+                        Color: colorValue,
+                        Num_Grafico: numGraficoValue,
+                        Piezas_Auditar: piezasAuditarValue,
+                        Tipo_Problema: tipoProblemaValue,
+                        Num_Problemas: numProblemas,
+                        Ac_Correctiva: acCorrectivaValue
+                    },
+                    success: function(response) {
+                        // Realizar acciones adicionales si es necesario después de la respuesta exitosa
+                        console.log(response);
+                    },
+                    error: function(error) {
+                        // Manejar errores si es necesario
+                        console.log('Error en la solicitud POST:', error);
+                    }
+                });
         }
     });
     </script>
