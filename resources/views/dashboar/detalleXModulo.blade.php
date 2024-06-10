@@ -11,7 +11,6 @@
                 <div class="card-body">
                     <div class="card-body">
                         <h4>Cliente seleccionado: {{ $clienteBusqueda }}</h4>
-                        <h4>Módulo seleccionado: {{ $moduloBusqueda }}</h4>
                     </div>
                 </div>
             </div>
@@ -22,8 +21,6 @@
             <!--Desde aqui inicia la edicion del codigo para mostrar el contenido-->
             <form action="{{ route('dashboar.detalleXModulo') }}" method="GET" id="filterForm">
                 <input type="hidden" name="clienteBusqueda" id="hiddenClienteBusqueda" value="{{ $clienteBusqueda }}">
-                <input type="hidden" name="moduloBusqueda" id="hiddenModuloBusqueda" value="{{ $moduloBusqueda }}">
-                
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
@@ -68,35 +65,58 @@
 
     <div class="row">
         <div class="col-lg-12 col-md-12">
-            <div class="card ">
+            <div class="card">
                 <div class="card-header card-header-success card-header-icon">
-                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Módulo AQL General</h3>
+                    <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Módulo AQL General</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table tablesorter" id="">
                             <thead class="text-primary">
                                 <tr>
-                                    <th>Nombre</th>
+                                    <th>Modulo</th>
                                     @foreach ($semanas as $semana)
-                                        <th>{{ $semana }}</th>
+                                        <th colspan="2">{{ $semana }}</th>
                                     @endforeach
+                                    <th>Porcentaje General</th>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    @foreach ($semanas as $semana)
+                                        <th>Cantidad</th>
+                                        <th>Porcentaje</th>
+                                    @endforeach
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($datosAgrupadosAQL as $semana => $items)
-                                    @foreach ($items as $item)
-                                        <tr>
-                                            <td>{{ $item->nombre }}</td>
-                                            @foreach ($semanas as $sem)
-                                                <td>
-                                                    @if ($sem == $semana)
-                                                        {{ $item->created_at->format('d-m-Y') }}
-                                                    @endif
-                                                </td>
-                                            @endforeach
-                                        </tr>
-                                    @endforeach
+                                @foreach ($datosAgrupadosAQL as $modulo => $datos)
+                                    <tr>
+                                        <td>{{ $modulo }}</td>
+                                        @foreach ($semanas as $semana)
+                                            <td>
+                                                @if (isset($datos['semanas'][$semana]))
+                                                    {{ $datos['semanas'][$semana]['cantidad'] }}
+                                                @else
+                                                    0
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if (isset($datos['semanas'][$semana]))
+                                                    {{ number_format(($datos['semanas'][$semana]['cantidad_rechazada'] / $datos['semanas'][$semana]['cantidad_auditada']) * 100, 2) }}%
+                                                @else
+                                                    0%
+                                                @endif
+                                            </td>
+                                        @endforeach
+                                        <td>
+                                            @if ($datos['cantidad_total_auditada'] > 0)
+                                                {{ number_format(($datos['cantidad_total_rechazada'] / $datos['cantidad_total_auditada']) * 100, 2) }}%
+                                            @else
+                                                N/A
+                                            @endif
+                                        </td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>
@@ -106,7 +126,7 @@
         </div>
     
         <div class="col-lg-12 col-md-12">
-            <div class="card ">
+            <div class="card">
                 <div class="card-header card-header-success card-header-icon">
                     <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Módulo Proceso General</h3>
                 </div>
@@ -115,26 +135,49 @@
                         <table class="table tablesorter" id="">
                             <thead class="text-primary">
                                 <tr>
-                                    <th>Nombre</th>
+                                    <th>Modulo</th>
                                     @foreach ($semanas as $semana)
-                                        <th>{{ $semana }}</th>
+                                        <th colspan="2">{{ $semana }}</th>
                                     @endforeach
+                                    <th>Porcentaje General</th>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    @foreach ($semanas as $semana)
+                                        <th>Cantidad</th>
+                                        <th>Porcentaje</th>
+                                    @endforeach
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($datosAgrupadosProceso as $semana => $items)
-                                    @foreach ($items as $item)
-                                        <tr>
-                                            <td>{{ $item->nombre }}</td>
-                                            @foreach ($semanas as $sem)
-                                                <td>
-                                                    @if ($sem == $semana)
-                                                        {{ $item->created_at->format('d-m-Y') }}
-                                                    @endif
-                                                </td>
-                                            @endforeach
-                                        </tr>
-                                    @endforeach
+                                @foreach ($datosAgrupadosProceso as $modulo => $datos)
+                                    <tr>
+                                        <td>{{ $modulo }}</td>
+                                        @foreach ($semanas as $semana)
+                                            <td>
+                                                @if (isset($datos['semanas'][$semana]))
+                                                    {{ $datos['semanas'][$semana]['cantidad'] }}
+                                                @else
+                                                    0
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if (isset($datos['semanas'][$semana]))
+                                                    {{ number_format(($datos['semanas'][$semana]['cantidad_rechazada'] / $datos['semanas'][$semana]['cantidad_auditada']) * 100, 2) }}%
+                                                @else
+                                                    0%
+                                                @endif
+                                            </td>
+                                        @endforeach
+                                        <td>
+                                            @if ($datos['cantidad_total_auditada'] > 0)
+                                                {{ number_format(($datos['cantidad_total_rechazada'] / $datos['cantidad_total_auditada']) * 100, 2) }}%
+                                            @else
+                                                N/A
+                                            @endif
+                                        </td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>

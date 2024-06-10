@@ -192,7 +192,7 @@ class HomeController extends Controller
             })->toArray();
 
 
-            // Obtener los clientes únicos de AseguramientoCalidad
+            // Obtener los clientes únicos de AseguramientoCalidad 
             $clientesAseguramientoBusqueda = AseguramientoCalidad::select('cliente')
             ->distinct()
             ->pluck('cliente');
@@ -208,21 +208,21 @@ class HomeController extends Controller
             // Convertir la colección a un array si es necesario
             $clientesUnicosArrayBusqueda = $clientesUnicosBusqueda->values()->all();
 
-            // Obtener los modulos únicos de AseguramientoCalidad
-            $modulosAseguramientoBusqueda = AseguramientoCalidad::select('modulo')
-            ->distinct()
-            ->pluck('modulo');
+            // Obtener los modulos únicos de AseguramientoCalidad 
+            //$modulosAseguramientoBusqueda = AseguramientoCalidad::select('modulo')
+            //->distinct()
+            //->pluck('modulo');
 
             // Obtener los modulos únicos de AuditoriaAQL
-            $modulosAuditoriaBusqueda = AuditoriaAQL::select('modulo')
-            ->distinct()
-            ->pluck('modulo');
+            //$modulosAuditoriaBusqueda = AuditoriaAQL::select('modulo')
+            //->distinct()
+            //->pluck('modulo');
 
             // Combinar ambas listas y eliminar duplicados
-            $modulosUnicosBusqueda = $modulosAseguramientoBusqueda->merge($modulosAuditoriaBusqueda)->unique();
+            //$modulosUnicosBusqueda = $modulosAseguramientoBusqueda->merge($modulosAuditoriaBusqueda)->unique();
 
             // Convertir la colección a un array si es necesario
-            $modulosUnicosArrayBusqueda = $modulosUnicosBusqueda->values()->all();
+            //$modulosUnicosArrayBusqueda = $modulosUnicosBusqueda->values()->all();
             //dd($clientesUnicosArrayBusqueda);
 
 
@@ -236,7 +236,7 @@ class HomeController extends Controller
                                     'fechas', 'porcentajesAQL', 'porcentajesProceso',
                                     'fechasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica',
                                     'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica',
-                                    'clientesUnicosArrayBusqueda', 'modulosUnicosArrayBusqueda')); 
+                                    'clientesUnicosArrayBusqueda')); 
         } else {
             // Si el usuario no tiene esos roles, redirige a listaFormularios
             return redirect()->route('viewlistaFormularios');

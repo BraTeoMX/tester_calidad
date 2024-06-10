@@ -431,15 +431,6 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="moduloBusqueda">Seleccione un modulo:</label>
-                            <select class="form-control" name="moduloBusqueda" id="moduloBusqueda" required>
-                                <option value="">Seleccione un modulo</option>
-                                @foreach ($modulosUnicosArrayBusqueda as $modulo)
-                                    <option value="{{ $modulo }}">{{ $modulo }}</option>
-                                @endforeach
-                            </select>
-                        </div>
                         <button type="submit" class="btn btn-primary">Buscar</button>
                     </form>
                 </div>
