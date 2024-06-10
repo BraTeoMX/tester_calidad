@@ -1072,13 +1072,11 @@ class DashboardController extends Controller
             if (!isset($datosAgrupadosAQL[$modulo]['semanas'][$semana])) {
                 $datosAgrupadosAQL[$modulo]['semanas'][$semana] = [
                     'cantidad_rechazada' => 0,
-                    'cantidad_auditada' => 0,
-                    'cantidad' => 0
+                    'cantidad_auditada' => 0
                 ];
             }
             $datosAgrupadosAQL[$modulo]['semanas'][$semana]['cantidad_rechazada'] += $item->cantidad_rechazada;
             $datosAgrupadosAQL[$modulo]['semanas'][$semana]['cantidad_auditada'] += $item->cantidad_auditada;
-            $datosAgrupadosAQL[$modulo]['semanas'][$semana]['cantidad']++;
             $datosAgrupadosAQL[$modulo]['cantidad_total_rechazada'] += $item->cantidad_rechazada;
             $datosAgrupadosAQL[$modulo]['cantidad_total_auditada'] += $item->cantidad_auditada;
         }
@@ -1096,18 +1094,17 @@ class DashboardController extends Controller
             if (!isset($datosAgrupadosProceso[$modulo]['semanas'][$semana])) {
                 $datosAgrupadosProceso[$modulo]['semanas'][$semana] = [
                     'cantidad_rechazada' => 0,
-                    'cantidad_auditada' => 0,
-                    'cantidad' => 0
+                    'cantidad_auditada' => 0
                 ];
             }
             $datosAgrupadosProceso[$modulo]['semanas'][$semana]['cantidad_rechazada'] += $item->cantidad_rechazada;
             $datosAgrupadosProceso[$modulo]['semanas'][$semana]['cantidad_auditada'] += $item->cantidad_auditada;
-            $datosAgrupadosProceso[$modulo]['semanas'][$semana]['cantidad']++;
             $datosAgrupadosProceso[$modulo]['cantidad_total_rechazada'] += $item->cantidad_rechazada;
             $datosAgrupadosProceso[$modulo]['cantidad_total_auditada'] += $item->cantidad_auditada;
         }
 
         return view('dashboar.detalleXModulo', compact('title', 'clienteBusqueda', 'semanas', 'datosAgrupadosAQL', 'datosAgrupadosProceso'));
     }
+
 
 }

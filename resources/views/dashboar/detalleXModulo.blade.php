@@ -76,14 +76,13 @@
                                 <tr>
                                     <th>Modulo</th>
                                     @foreach ($semanas as $semana)
-                                        <th colspan="2">{{ $semana }}</th>
+                                        <th colspan="1">{{ $semana }}</th>
                                     @endforeach
                                     <th>Porcentaje General</th>
                                 </tr>
                                 <tr>
                                     <th></th>
                                     @foreach ($semanas as $semana)
-                                        <th>Cantidad</th>
                                         <th>Porcentaje</th>
                                     @endforeach
                                     <th></th>
@@ -96,16 +95,9 @@
                                         @foreach ($semanas as $semana)
                                             <td>
                                                 @if (isset($datos['semanas'][$semana]))
-                                                    {{ $datos['semanas'][$semana]['cantidad'] }}
-                                                @else
-                                                    0
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if (isset($datos['semanas'][$semana]))
                                                     {{ number_format(($datos['semanas'][$semana]['cantidad_rechazada'] / $datos['semanas'][$semana]['cantidad_auditada']) * 100, 2) }}%
                                                 @else
-                                                    0%
+                                                    N/A
                                                 @endif
                                             </td>
                                         @endforeach
@@ -137,14 +129,13 @@
                                 <tr>
                                     <th>Modulo</th>
                                     @foreach ($semanas as $semana)
-                                        <th colspan="2">{{ $semana }}</th>
+                                        <th colspan="1">{{ $semana }}</th>
                                     @endforeach
                                     <th>Porcentaje General</th>
                                 </tr>
                                 <tr>
                                     <th></th>
                                     @foreach ($semanas as $semana)
-                                        <th>Cantidad</th>
                                         <th>Porcentaje</th>
                                     @endforeach
                                     <th></th>
@@ -157,16 +148,9 @@
                                         @foreach ($semanas as $semana)
                                             <td>
                                                 @if (isset($datos['semanas'][$semana]))
-                                                    {{ $datos['semanas'][$semana]['cantidad'] }}
-                                                @else
-                                                    0
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if (isset($datos['semanas'][$semana]))
                                                     {{ number_format(($datos['semanas'][$semana]['cantidad_rechazada'] / $datos['semanas'][$semana]['cantidad_auditada']) * 100, 2) }}%
                                                 @else
-                                                    0%
+                                                    N/A
                                                 @endif
                                             </td>
                                         @endforeach
