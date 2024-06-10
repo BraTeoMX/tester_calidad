@@ -64,63 +64,48 @@
     </div>
 
     <div class="row">
-        <div class="col-lg-12 col-md-12">
-            <div class="card">
-                <div class="card-header card-header-success card-header-icon">
-                    <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Módulo AQL General</h3>
+        <div class="col-12">
+            <div class="card card-chart">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-sm-6 text-left">
+                            <h2 class="card-title">Promedio General Semanal</h2>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table tablesorter" id="">
-                            <thead class="text-primary">
-                                <tr>
-                                    <th>Modulo</th>
-                                    @foreach ($semanas as $semana)
-                                        <th colspan="1">{{ $semana }}</th>
-                                    @endforeach
-                                    <th>Porcentaje General</th>
-                                </tr>
-                                <tr>
-                                    <th></th>
-                                    @foreach ($semanas as $semana)
-                                        <th>Porcentaje</th>
-                                    @endforeach
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($datosAgrupadosAQL as $modulo => $datos)
-                                    <tr>
-                                        <td>{{ $modulo }}</td>
-                                        @foreach ($semanas as $semana)
-                                            <td>
-                                                @if (isset($datos['semanas'][$semana]))
-                                                    {{ number_format(($datos['semanas'][$semana]['cantidad_rechazada'] / $datos['semanas'][$semana]['cantidad_auditada']) * 100, 2) }}%
-                                                @else
-                                                    N/A
-                                                @endif
-                                            </td>
-                                        @endforeach
-                                        <td>
-                                            @if ($datos['cantidad_total_auditada'] > 0)
-                                                {{ number_format(($datos['cantidad_total_rechazada'] / $datos['cantidad_total_auditada']) * 100, 2) }}%
-                                            @else
-                                                N/A
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                    <div class="chart-area" style="height: 500px;"> <!-- Ajusta esta altura según tus necesidades -->
+                        <canvas id="promedioGeneralChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
-    
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-chart">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-sm-6 text-left">
+                            <h2 class="card-title">Indicador Semanal por Módulo</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="height: 500px;"> <!-- Ajusta esta altura según tus necesidades -->
+                        <canvas id="moduloChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
         <div class="col-lg-12 col-md-12">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
-                    <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Módulo Proceso General</h3>
+                    <h3 class="card-title">Módulo por: <i class="tim-icons icon-app text-success"></i> AQL y <i class="tim-icons icon-vector text-primary"></i> PROCESO</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -129,40 +114,81 @@
                                 <tr>
                                     <th>Modulo</th>
                                     @foreach ($semanas as $semana)
-                                        <th colspan="1">{{ $semana }}</th>
+                                        @php
+                                            list($year, $week) = explode('-', $semana);
+                                        @endphp
+                                        <th colspan="2" style="text-align: center">Semana {{ $week }}, Año {{ $year }}</th>
                                     @endforeach
-                                    <th>Porcentaje General</th>
+                                    <th>% General AQL</th>
+                                    <th>% General Proceso</th>
                                 </tr>
                                 <tr>
                                     <th></th>
                                     @foreach ($semanas as $semana)
-                                        <th>Porcentaje</th>
+                                        <th>Porcentaje AQL</th>
+                                        <th>Porcentaje Proceso</th>
                                     @endforeach
+                                    <th></th>
                                     <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($datosAgrupadosProceso as $modulo => $datos)
+                                @foreach ($datosCombinados as $modulo => $datos)
                                     <tr>
                                         <td>{{ $modulo }}</td>
                                         @foreach ($semanas as $semana)
                                             <td>
-                                                @if (isset($datos['semanas'][$semana]))
-                                                    {{ number_format(($datos['semanas'][$semana]['cantidad_rechazada'] / $datos['semanas'][$semana]['cantidad_auditada']) * 100, 2) }}%
+                                                @if (isset($datos['semanas'][$semana]['cantidad_auditada_AQL']) && $datos['semanas'][$semana]['cantidad_auditada_AQL'] > 0)
+                                                    {{ number_format(($datos['semanas'][$semana]['cantidad_rechazada_AQL'] / $datos['semanas'][$semana]['cantidad_auditada_AQL']) * 100, 2) }}%
+                                                @else
+                                                    N/A
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if (isset($datos['semanas'][$semana]['cantidad_auditada_Proceso']) && $datos['semanas'][$semana]['cantidad_auditada_Proceso'] > 0)
+                                                    {{ number_format(($datos['semanas'][$semana]['cantidad_rechazada_Proceso'] / $datos['semanas'][$semana]['cantidad_auditada_Proceso']) * 100, 2) }}%
                                                 @else
                                                     N/A
                                                 @endif
                                             </td>
                                         @endforeach
                                         <td>
-                                            @if ($datos['cantidad_total_auditada'] > 0)
-                                                {{ number_format(($datos['cantidad_total_rechazada'] / $datos['cantidad_total_auditada']) * 100, 2) }}%
+                                            @if ($datos['cantidad_total_auditada_AQL'] > 0)
+                                                {{ number_format(($datos['cantidad_total_rechazada_AQL'] / $datos['cantidad_total_auditada_AQL']) * 100, 2) }}%
+                                            @else
+                                                N/A
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if ($datos['cantidad_total_auditada_Proceso'] > 0)
+                                                {{ number_format(($datos['cantidad_total_rechazada_Proceso'] / $datos['cantidad_total_auditada_Proceso']) * 100, 2) }}%
                                             @else
                                                 N/A
                                             @endif
                                         </td>
                                     </tr>
                                 @endforeach
+                                <tr>
+                                    <td>Promedio General</td>
+                                    @foreach ($semanas as $semana)
+                                        <td>
+                                            @if ($promediosGenerales[$semana]['total_auditada_AQL'] > 0)
+                                                {{ number_format(($promediosGenerales[$semana]['total_rechazada_AQL'] / $promediosGenerales[$semana]['total_auditada_AQL']) * 100, 2) }}%
+                                            @else
+                                                N/A
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if ($promediosGenerales[$semana]['total_auditada_Proceso'] > 0)
+                                                {{ number_format(($promediosGenerales[$semana]['total_rechazada_Proceso'] / $promediosGenerales[$semana]['total_auditada_Proceso']) * 100, 2) }}%
+                                            @else
+                                                N/A
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                    <td></td>
+                                    <td></td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -170,6 +196,7 @@
             </div>
         </div>
     </div>
+
 
 
     <style>
@@ -181,6 +208,164 @@
 
 @push('js')
     <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
+    <!-- Script para la gráfica de Indicador Semanal por Módulo -->
+<script>
+    $(document).ready(function() {
+        var colores = [
+            'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)'
+        ];
+
+        var ctxModulo = document.getElementById('moduloChart').getContext('2d');
+        var datasetsModulo = Object.keys(@json($datosCombinados)).map((modulo, index) => {
+            var aqlData = @json($semanas).map((semana) => {
+                if (@json($datosCombinados)[modulo].semanas[semana] && @json($datosCombinados)[modulo].semanas[semana]['cantidad_auditada_AQL'] > 0) {
+                    return ((@json($datosCombinados)[modulo].semanas[semana]['cantidad_rechazada_AQL'] / @json($datosCombinados)[modulo].semanas[semana]['cantidad_auditada_AQL']) * 100).toFixed(2);
+                } else {
+                    return NaN;
+                }
+            });
+            var procesoData = @json($semanas).map((semana) => {
+                if (@json($datosCombinados)[modulo].semanas[semana] && @json($datosCombinados)[modulo].semanas[semana]['cantidad_auditada_Proceso'] > 0) {
+                    return ((@json($datosCombinados)[modulo].semanas[semana]['cantidad_rechazada_Proceso'] / @json($datosCombinados)[modulo].semanas[semana]['cantidad_auditada_Proceso']) * 100).toFixed(2);
+                } else {
+                    return NaN;
+                }
+            });
+            return [
+                {
+                    label: `${modulo} AQL`,
+                    data: aqlData,
+                    borderColor: colores[index % colores.length],
+                    backgroundColor: colores[index % colores.length],
+                    fill: false,
+                    spanGaps: true
+                },
+                {
+                    label: `${modulo} Proceso`,
+                    data: procesoData,
+                    borderColor: colores[(index + 1) % colores.length],
+                    backgroundColor: colores[(index + 1) % colores.length],
+                    fill: false,
+                    spanGaps: true
+                }
+            ];
+        }).flat();
+
+        var chartModulo = new Chart(ctxModulo, {
+            type: 'line',
+            data: {
+                labels: @json($semanas).map((semana) => {
+                    var parts = semana.split('-');
+                    return 'Semana ' + parts[1] + ', Año ' + parts[0];
+                }),
+                datasets: datasetsModulo
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    display: true
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'category',
+                        labels: @json($semanas).map((semana) => {
+                            var parts = semana.split('-');
+                            return 'Semana ' + parts[1] + ', Año ' + parts[0];
+                        })
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            callback: function(value, index, values) {
+                                return value + '%';
+                            }
+                        }
+                    }]
+                }
+            }
+        });
+    });
+</script>
+
+<!-- Script para la gráfica de Promedio General Semanal -->
+<script>
+    $(document).ready(function() {
+        var colores = [
+            'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)'
+        ];
+
+        var ctxPromedioGeneral = document.getElementById('promedioGeneralChart').getContext('2d');
+        var promedioAQL = @json($semanas).map((semana) => {
+            if (@json($promediosGenerales)[semana]['total_auditada_AQL'] > 0) {
+                return ((@json($promediosGenerales)[semana]['total_rechazada_AQL'] / @json($promediosGenerales)[semana]['total_auditada_AQL']) * 100).toFixed(2);
+            } else {
+                return NaN;
+            }
+        });
+        var promedioProceso = @json($semanas).map((semana) => {
+            if (@json($promediosGenerales)[semana]['total_auditada_Proceso'] > 0) {
+                return ((@json($promediosGenerales)[semana]['total_rechazada_Proceso'] / @json($promediosGenerales)[semana]['total_auditada_Proceso']) * 100).toFixed(2);
+            } else {
+                return NaN;
+            }
+        });
+
+        var chartPromedioGeneral = new Chart(ctxPromedioGeneral, {
+            type: 'line',
+            data: {
+                labels: @json($semanas).map((semana) => {
+                    var parts = semana.split('-');
+                    return 'Semana ' + parts[1] + ', Año ' + parts[0];
+                }),
+                datasets: [
+                    {
+                        label: 'Promedio AQL',
+                        data: promedioAQL,
+                        borderColor: colores[0],
+                        backgroundColor: colores[0],
+                        fill: false,
+                        spanGaps: true
+                    },
+                    {
+                        label: 'Promedio Proceso',
+                        data: promedioProceso,
+                        borderColor: colores[1],
+                        backgroundColor: colores[1],
+                        fill: false,
+                        spanGaps: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    display: true
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'category',
+                        labels: @json($semanas).map((semana) => {
+                            var parts = semana.split('-');
+                            return 'Semana ' + parts[1] + ', Año ' + parts[0];
+                        })
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            callback: function(value, index, values) {
+                                return value + '%';
+                            }
+                        }
+                    }]
+                }
+            }
+        });
+    });
+</script>
 
 
 @endpush

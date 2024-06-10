@@ -1056,55 +1056,79 @@ class DashboardController extends Controller
             ->get();
 
         // Agrupar los datos por módulo y semana, y realizar cálculos
-        $datosAgrupadosAQL = [];
-        $datosAgrupadosProceso = [];
+        $datosCombinados = [];
+        $promediosGenerales = [];
+
+        foreach ($semanas as $semana) {
+            $promediosGenerales[$semana] = [
+                'total_rechazada_AQL' => 0,
+                'total_auditada_AQL' => 0,
+                'total_rechazada_Proceso' => 0,
+                'total_auditada_Proceso' => 0
+            ];
+        }
 
         foreach ($auditoriasAQL as $item) {
             $semana = Carbon::parse($item->created_at)->format('Y-W');
             $modulo = $item->modulo;
-            if (!isset($datosAgrupadosAQL[$modulo])) {
-                $datosAgrupadosAQL[$modulo] = [
+            if (!isset($datosCombinados[$modulo])) {
+                $datosCombinados[$modulo] = [
                     'semanas' => [],
-                    'cantidad_total_rechazada' => 0,
-                    'cantidad_total_auditada' => 0
+                    'cantidad_total_rechazada_AQL' => 0,
+                    'cantidad_total_auditada_AQL' => 0,
+                    'cantidad_total_rechazada_Proceso' => 0,
+                    'cantidad_total_auditada_Proceso' => 0
                 ];
             }
-            if (!isset($datosAgrupadosAQL[$modulo]['semanas'][$semana])) {
-                $datosAgrupadosAQL[$modulo]['semanas'][$semana] = [
-                    'cantidad_rechazada' => 0,
-                    'cantidad_auditada' => 0
+            if (!isset($datosCombinados[$modulo]['semanas'][$semana])) {
+                $datosCombinados[$modulo]['semanas'][$semana] = [
+                    'cantidad_rechazada_AQL' => 0,
+                    'cantidad_auditada_AQL' => 0,
+                    'cantidad_rechazada_Proceso' => 0,
+                    'cantidad_auditada_Proceso' => 0
                 ];
             }
-            $datosAgrupadosAQL[$modulo]['semanas'][$semana]['cantidad_rechazada'] += $item->cantidad_rechazada;
-            $datosAgrupadosAQL[$modulo]['semanas'][$semana]['cantidad_auditada'] += $item->cantidad_auditada;
-            $datosAgrupadosAQL[$modulo]['cantidad_total_rechazada'] += $item->cantidad_rechazada;
-            $datosAgrupadosAQL[$modulo]['cantidad_total_auditada'] += $item->cantidad_auditada;
+            $datosCombinados[$modulo]['semanas'][$semana]['cantidad_rechazada_AQL'] += $item->cantidad_rechazada;
+            $datosCombinados[$modulo]['semanas'][$semana]['cantidad_auditada_AQL'] += $item->cantidad_auditada;
+            $datosCombinados[$modulo]['cantidad_total_rechazada_AQL'] += $item->cantidad_rechazada;
+            $datosCombinados[$modulo]['cantidad_total_auditada_AQL'] += $item->cantidad_auditada;
+
+            $promediosGenerales[$semana]['total_rechazada_AQL'] += $item->cantidad_rechazada;
+            $promediosGenerales[$semana]['total_auditada_AQL'] += $item->cantidad_auditada;
         }
 
         foreach ($audtidoriaProceso as $item) {
             $semana = Carbon::parse($item->created_at)->format('Y-W');
             $modulo = $item->modulo;
-            if (!isset($datosAgrupadosProceso[$modulo])) {
-                $datosAgrupadosProceso[$modulo] = [
+            if (!isset($datosCombinados[$modulo])) {
+                $datosCombinados[$modulo] = [
                     'semanas' => [],
-                    'cantidad_total_rechazada' => 0,
-                    'cantidad_total_auditada' => 0
+                    'cantidad_total_rechazada_AQL' => 0,
+                    'cantidad_total_auditada_AQL' => 0,
+                    'cantidad_total_rechazada_Proceso' => 0,
+                    'cantidad_total_auditada_Proceso' => 0
                 ];
             }
-            if (!isset($datosAgrupadosProceso[$modulo]['semanas'][$semana])) {
-                $datosAgrupadosProceso[$modulo]['semanas'][$semana] = [
-                    'cantidad_rechazada' => 0,
-                    'cantidad_auditada' => 0
+            if (!isset($datosCombinados[$modulo]['semanas'][$semana])) {
+                $datosCombinados[$modulo]['semanas'][$semana] = [
+                    'cantidad_rechazada_AQL' => 0,
+                    'cantidad_auditada_AQL' => 0,
+                    'cantidad_rechazada_Proceso' => 0,
+                    'cantidad_auditada_Proceso' => 0
                 ];
             }
-            $datosAgrupadosProceso[$modulo]['semanas'][$semana]['cantidad_rechazada'] += $item->cantidad_rechazada;
-            $datosAgrupadosProceso[$modulo]['semanas'][$semana]['cantidad_auditada'] += $item->cantidad_auditada;
-            $datosAgrupadosProceso[$modulo]['cantidad_total_rechazada'] += $item->cantidad_rechazada;
-            $datosAgrupadosProceso[$modulo]['cantidad_total_auditada'] += $item->cantidad_auditada;
+            $datosCombinados[$modulo]['semanas'][$semana]['cantidad_rechazada_Proceso'] += $item->cantidad_rechazada;
+            $datosCombinados[$modulo]['semanas'][$semana]['cantidad_auditada_Proceso'] += $item->cantidad_auditada;
+            $datosCombinados[$modulo]['cantidad_total_rechazada_Proceso'] += $item->cantidad_rechazada;
+            $datosCombinados[$modulo]['cantidad_total_auditada_Proceso'] += $item->cantidad_auditada;
+
+            $promediosGenerales[$semana]['total_rechazada_Proceso'] += $item->cantidad_rechazada;
+            $promediosGenerales[$semana]['total_auditada_Proceso'] += $item->cantidad_auditada;
         }
 
-        return view('dashboar.detalleXModulo', compact('title', 'clienteBusqueda', 'semanas', 'datosAgrupadosAQL', 'datosAgrupadosProceso'));
+        return view('dashboar.detalleXModulo', compact('title', 'clienteBusqueda', 'semanas', 'datosCombinados', 'promediosGenerales'));
     }
+
 
 
 }
