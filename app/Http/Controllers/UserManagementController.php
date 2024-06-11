@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\tipo_auditoria;
 use App\Models\puestos;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+
 
 class UserManagementController extends Controller
 {
@@ -33,7 +35,7 @@ class UserManagementController extends Controller
     ];
 
     // Validar los datos del formulario con mensajes personalizados
-    $request->validate([
+    $validator = Validator::make($request->all(), [
         'name' => 'required|string',
         'no_empleado' => [
             'required',
@@ -56,6 +58,11 @@ class UserManagementController extends Controller
         'editPlanta' => 'required|string',
         // Agrega las reglas de validación necesarias para los demás campos
     ], $messages);
+
+    // Si la validación falla, retorna un error con un mensaje personalizado
+    if ($validator->fails()) {
+        return back()->withErrors($validator)->with('error', 'Número de empleado o correo ya existente, intente con otro diferente.')->withInput();
+    }
 
     // Crear un nuevo usuario
     $user = new User([

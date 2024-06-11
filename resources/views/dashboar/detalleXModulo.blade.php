@@ -128,7 +128,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table tablesorter" id="tablaDinamico">
+                        <table class="table table-fixed-header" id="tablaDinamico">
                             <thead class="text-primary">
                                 <tr>
                                     <th>Modulo</th>
@@ -188,17 +188,17 @@
                                     </tr>
                                 @endforeach
                             </tbody>
-                            <tr style="background: #1d1c1c;">
-                                <td>Promedio General</td>
+                            <tr>
+                                <td style="background-color: #000; color: #fff;">Promedio General</td>
                                 @foreach ($semanas as $semana)
-                                    <td>
+                                    <td style="background-color: #000; color: #fff;">
                                         @if ($promediosGenerales[$semana]['total_auditada_AQL'] > 0)
                                             {{ number_format(($promediosGenerales[$semana]['total_rechazada_AQL'] / $promediosGenerales[$semana]['total_auditada_AQL']) * 100, 2) }}%
                                         @else
                                             N/A
                                         @endif
                                     </td>
-                                    <td>
+                                    <td style="background-color: #000; color: #fff;">
                                         @if ($promediosGenerales[$semana]['total_auditada_Proceso'] > 0)
                                             {{ number_format(($promediosGenerales[$semana]['total_rechazada_Proceso'] / $promediosGenerales[$semana]['total_auditada_Proceso']) * 100, 2) }}%
                                         @else
@@ -206,8 +206,8 @@
                                         @endif
                                     </td>
                                 @endforeach
-                                <td></td>
-                                <td></td>
+                                <td style="background-color: #000; color: #fff;"></td>
+                                <td style="background-color: #000; color: #fff;"></td>
                             </tr>
                         </table>
                     </div>
@@ -218,11 +218,60 @@
 
 
 
+
     <style>
         .chart-area {
           height: 500px; /* Ajusta esta altura según tus necesidades */
         }
-      </style>
+    </style>
+    <style>
+        /* Contenedor de la tabla para permitir el desplazamiento horizontal */
+        .table-responsive {
+            position: relative;
+            overflow-x: auto;
+        }
+    
+        /* Estilos para la tabla */
+        .table-fixed-header {
+            display: table;
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #1a1b2f; /* Color de fondo del tema */
+        }
+    
+        /* Estilo para las columnas de la tabla */
+        .table-fixed-header th, .table-fixed-header td {
+            padding: 8px 16px;
+            white-space: nowrap;
+            border: 1px solid #ddd;
+            background-color: #1a1b2f; /* Color de fondo del tema */
+        }
+    
+        /* Estilo para fijar la primera columna y el encabezado de la primera columna */
+        .table-fixed-header thead th:first-child,
+        .table-fixed-header tbody td:first-child,
+        .table-fixed-header tfoot td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 3;
+            background-color: #1a1b2f; /* Color de fondo del tema */
+        }
+    
+        /* Estilo para fijar la primera fila */
+        .table-fixed-header thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background-color: #1a1b2f; /* Color de fondo del tema */
+        }
+    
+        /* Estilo específico para la última fila fuera del tbody */
+        .table-fixed-header tfoot tr td {
+            background-color: #000; /* Color de fondo específico para esta fila */
+            color: #fff; /* Color de texto blanco para mejor legibilidad */
+        }
+    </style>
+    
 @endsection
 
 @push('js')
