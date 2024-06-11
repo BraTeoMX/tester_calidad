@@ -414,7 +414,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row"> 
         <div class="col-lg-6 col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
@@ -442,11 +442,11 @@
                 <h3 class="card-title"></h3>
                 </div>
                 <div class="card-body">
-
+                    
                 </div>
             </div>
         </div>
-    </div>
+    </div> 
 
 
     <style>
@@ -809,148 +809,89 @@
                 chartModuloProcesos.update();
             });
         });
-    </script>
+    </script> 
+    <!-- nothing-->
+    <!-- nothing-->
+    <script>
+        $(document).ready(function() {
+            let myChart;
 
+            function actualizarGrafico(datos) {
+                const ctx = document.getElementById('chartLinePurple').getContext('2d');
 
-<script>
-    $(document).ready(function() {
-        let myChart;
-
-        function actualizarGrafico(datos) {
-            // Validación de datos
-            if (!Array.isArray(datos) || datos.length === 0) {
-                console.error("Error: Los datos recibidos no son un array válido o está vacío.");
-                return;
-            }
-
-            // Esperar a que el canvas esté disponible (con tiempo de espera)
-            let intentos = 0;
-            const maxIntentos = 10;
-            const intervaloEspera = 500; // 0.5 segundos
-
-            function esperarCanvas() {
-                const ctx = document.getElementById('chartLinePurple');
-                if (ctx) {
-                    crearActualizarGrafico(ctx, datos);
-                } else if (intentos < maxIntentos) {
-                    intentos++;
-                    setTimeout(esperarCanvas, intervaloEspera);
-                } else {
-                    console.error("Error: No se pudo encontrar el elemento canvas después de varios intentos.");
+                if (myChart) {
+                    myChart.destroy();
                 }
-            }
 
-            esperarCanvas();
-
-            function crearActualizarGrafico(ctx, datos) {
-                // Configurar colores de fondo con mejor contraste
-                const coloresFondo = datos.map(() => {
-                    const tono = Math.floor(Math.random() * 360);
-                    return `hsl(${tono}, 70%, 40%)`;
+                const backgroundColor = datos.map(() => {
+                    const r = Math.floor(Math.random() * 256);
+                    const g = Math.floor(Math.random() * 256);
+                    const b = Math.floor(Math.random() * 256);
+                    return `rgba(${r}, ${g}, ${b}, 0.5)`;
                 });
 
-                // Obtener etiquetas y valores, con validación de propiedades
-                const etiquetas = datos.map((item, index) => {
-                    if (!item.hasOwnProperty('defecto') || !item.hasOwnProperty('cantidad')) {
-                        console.error("Error: Los objetos de datos no tienen las propiedades 'defecto' y 'cantidad'.");
-                        return;
-                    }
-                    return `${item.defecto} (${index + 1})`;
-                });
+                // Prepara los datos para el gráfico (un solo dataset)
+                const labels = datos.map((item, index) => `${item.defecto} (${index + 1})`);
                 const cantidades = datos.map(item => item.cantidad);
 
-                // Crear o actualizar el gráfico
-                if (myChart) {
-                    myChart.data.labels = etiquetas;
-                    myChart.data.datasets[0].data = cantidades;
-                    myChart.data.datasets[0].backgroundColor = coloresFondo;
-                    myChart.data.datasets[0].borderColor = coloresFondo;
-                    myChart.update();
-                } else {
-                    myChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: etiquetas,
-                            datasets: [{
-                                label: 'Cantidad',
-                                data: cantidades,
-                                backgroundColor: coloresFondo,
-                                borderColor: coloresFondo,
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                datalabels: {
-                                    anchor: 'end',
-                                    align: 'end',
-                                    offset: -10,
-                                    formatter: (valor, contexto) => {
-                                        const etiqueta = etiquetas[contexto.dataIndex];
-                                        return etiqueta.split(' ').join('\n');
-                                    },
-                                    color: 'white'
-                                },
-                                legend: {
-                                    display: true,
-                                    labels: {
-                                        color: 'white'
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        stepSize: 1,
-                                        color: 'white'
-                                    },
-                                    grid: {
-                                        color: 'rgba(255, 255, 255, 0.2)'
-                                    }
-                                },
-                                x: {
-                                    ticks: {
-                                        autoSkip: false,
-                                        maxRotation: 45,
-                                        color: 'white'
-                                    },
-                                    padding: 20
+                myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{ // Un solo dataset con todos los datos
+                            label: 'Cantidad', // Etiqueta general para el dataset
+                            data: cantidades,
+                            backgroundColor: backgroundColor,
+                            borderColor: backgroundColor.map(color => color.replace('0.5', '1')),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                formatter: (value, context) => {
+                                    return `${labels[context.dataIndex]} (${value})`; // Mostrar etiqueta y valor
                                 }
                             }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
                         }
-                    });
-                }
-            }
-        }
-
-        // Manejar cambios en los filtros
-        $('#top3-1, #top3-2').change(function() {
-            const tipo = $(this).attr('id') === 'top3-1' ? 'TpAuditoriaAQL' : 'TpAseguramientoCalidad';
-            $.ajax({
-                url: 'obtener_top_defectos',
-                method: 'GET',
-                data: { tipo: tipo },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success && response.data) {
-                        actualizarGrafico(response.data);
-                    } else {
-                        console.error("Error: La respuesta del servidor no contiene datos válidos.");
                     }
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error en la solicitud AJAX:", error);
-                }
+                });
+            }
+
+            $('#top3-1, #top3-2').change(function() {
+                let tipo = $(this).attr('id') === 'top3-1' ? 'TpAuditoriaAQL' : 'TpAseguramientoCalidad';
+
+                $.ajax({
+                    url: 'obtener_top_defectos',
+                    method: 'GET',
+                    data: {
+                        tipo: tipo
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            actualizarGrafico(response.data);
+                        } else {
+                            console.error(response.error);
+                        }
+                    },
+                    error: function() {
+                        console.error('Error en la solicitud AJAX.');
+                    }
+                });
             });
+
+            $('#top3-1').trigger('change');
         });
-
-        // Cargar el gráfico inicial
-        $('#top3-1').trigger('change');
-    });
     </script>
-
 
 @endpush
