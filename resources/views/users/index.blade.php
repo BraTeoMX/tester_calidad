@@ -316,7 +316,7 @@
                                         </div>
                                     </div>
                                     <div class="card-body table-responsive">
-                                        <table class="table table-hover table-dark">
+                                        <table class="table table-hover table-dark" id="tablaDinamico">
                                             <thead class="text-primary">
                                                 <tr>
                                                     <th>Nombre</th>
@@ -395,18 +395,27 @@
                                                                 <label for="password" class="form-label">Password</label>
                                                                 <div class="input-group">
                                                                     <input type="password" class="form-control" name="password" id="password" placeholder="Enter password" required>
-                                                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('password')">
-                                                                        <i class="bi bi-eye"></i>
+                                                                    <button class="btn btn-warning" type="button" onclick="togglePasswordVisibility('password')">Ver
                                                                     </button>
                                                                 </div>
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label for="tipo_auditoria" class="form-label">Tipo Auditoria</label>
-                                                                <select class="form-control" id="tipo_auditoria" name="tipo_auditoria" required></select>
+                                                                <select class="form-control" id="tipo_auditoria1" name="tipo_auditoria" required>
+                                                                    <option value="" disabled selected hidden>Seleccione el tipo de auditoria</option>
+                                                                    @foreach ($tipoAuditoriaDatos as $tipo)
+                                                                        <option value="{{ $tipo->Tipo_auditoria }}">{{ $tipo->Tipo_auditoria }}</option>
+                                                                    @endforeach
+                                                                </select>
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label for="editPuesto" class="form-label">Puesto</label>
-                                                                <select class="form-control" id="editPuesto" name="editPuesto" required></select>
+                                                                <select class="form-control" id="editPuesto1" name="editPuesto" required>
+                                                                    <option value="" disabled selected hidden>Seleccione el puesto</option>
+                                                                    @foreach ($puestoDatos as $puesto)
+                                                                        <option value="{{ $puesto->Puesto }}">{{ $puesto->Puesto }}</option>
+                                                                    @endforeach
+                                                                </select>
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label for="editPlanta" class="form-label">Planta</label>
@@ -774,6 +783,37 @@
         }
     </script>
 
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
+    <!-- DataTables JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+
+
+    <script>
+        $(document).ready(function() {
+            // Verifica si la tabla ya está inicializada antes de inicializarla nuevamente
+
+            if (!$.fn.dataTable.isDataTable('#tablaDinamico')) {
+                $('#tablaDinamico').DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 10,
+                    autoWidth: false,
+                    responsive: true,
+                    columnDefs: [
+                        {
+                            targets: 7, // Índice de la columna a excluir (0-indexed, es decir, la septima columna es índice 8)
+                            searchable: false, // Excluir de la búsqueda
+                            orderable: false, // Excluir del ordenamiento
+                        },
+                    ],
+                });
+            }
+        });
+    </script>
 
 </body>
 

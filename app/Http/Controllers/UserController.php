@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Http\Requests\UserRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use App\Models\tipo_auditoria;
+use App\Models\puestos;
 
 class UserController extends Controller
 {
@@ -17,7 +19,13 @@ class UserController extends Controller
      */
     public function index(User $model)
     {
-        return view('users.index', ['users' => $model->paginate(50)]);
+        $tipoAuditoriaDatos =  tipo_auditoria::all();
+        $puestoDatos =  puestos::all();
+        return view('users.index', [
+            'users' => $model->all(),
+            'tipoAuditoriaDatos' => $tipoAuditoriaDatos,
+            'puestoDatos' => $puestoDatos,
+        ]);
     }
 
 }

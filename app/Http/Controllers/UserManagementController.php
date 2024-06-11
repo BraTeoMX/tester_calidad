@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Hash;
 
 class UserManagementController extends Controller
 {
-    public function tipoAuditorias()
+    public function tipoAuditorias() 
     {
         $options = tipo_auditoria::all();
 
