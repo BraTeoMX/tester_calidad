@@ -194,7 +194,7 @@
                                 </button>
                             </h2>
                         </div>
-                
+
                         <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
                             data-parent="#accordionExample">
                             <div class="card-body">
@@ -211,7 +211,7 @@
                                                         </button>
                                                     </h2>
                                                 </div>
-                                
+
                                                 <div id="collapseOne5" class="collapse show" aria-labelledby="headingOne5"
                                                     data-parent="#accordionExample5">
                                                     <div class="card-body">
@@ -254,7 +254,7 @@
                                                                             @endphp
                                                                         @endif
                                                                     @endforeach
-                                                                </tbody>                                                                
+                                                                </tbody>
                                                             </table>
                                                         </div>
                                                     </div>
@@ -275,7 +275,7 @@
                                                         </button>
                                                     </h2>
                                                 </div>
-                                
+
                                                 <div id="collapseOne6" class="collapse show" aria-labelledby="headingOne6"
                                                     data-parent="#accordionExample6">
                                                     <div class="card-body">
@@ -344,7 +344,7 @@
                                 </button>
                             </h2>
                         </div>
-                
+
                         <div id="collapseTwo" class="collapse show" aria-labelledby="headingOne"
                             data-parent="#accordionExample">
                             <div class="card-body">
@@ -361,7 +361,7 @@
                                                         </button>
                                                     </h2>
                                                 </div>
-                                
+
                                                 <div id="collapseTwo5" class="collapse show" aria-labelledby="headingOne5"
                                                     data-parent="#accordionExample5">
                                                     <div class="card-body">
@@ -404,7 +404,7 @@
                                                                             @endphp
                                                                         @endif
                                                                     @endforeach
-                                                                </tbody>                                                                
+                                                                </tbody>
                                                             </table>
                                                         </div>
                                                     </div>
@@ -425,7 +425,7 @@
                                                         </button>
                                                     </h2>
                                                 </div>
-                                
+
                                                 <div id="collapseTwo6" class="collapse show" aria-labelledby="headingOne6"
                                                     data-parent="#accordionExample6">
                                                     <div class="card-body">
@@ -468,7 +468,7 @@
                                                                             @endphp
                                                                         @endif
                                                                     @endforeach
-                                                                </tbody>                                                                
+                                                                </tbody>
                                                             </table>
                                                         </div>
                                                     </div>
@@ -483,7 +483,7 @@
                     </div>
                 </div>
                 {{--Fin del Segundo Acordeon Externo--}}
-                
+
                 <!--Fin de la edicion del codigo para mostrar el contenido-->
             </div>
         </div>
