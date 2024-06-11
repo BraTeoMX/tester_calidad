@@ -815,8 +815,39 @@
     <script>
         $(document).ready(function() {
             let myNewChart;
+            let chartInitialized = false;
     
-            function createChart(data) {
+            const colorsAQL = [
+                {
+                    backgroundColor: 'rgba(128, 0, 0, 0.8)', // Color fuerte y sólido (Rojo oscuro)
+                    borderColor: 'rgba(128, 0, 0, 1)'
+                },
+                {
+                    backgroundColor: 'rgba(255, 165, 0, 0.6)', // Color intermedio (Naranja)
+                    borderColor: 'rgba(255, 165, 0, 1)'
+                },
+                {
+                    backgroundColor: 'rgba(255, 255, 0, 0.4)', // Color claro (Amarillo claro)
+                    borderColor: 'rgba(255, 255, 0, 1)'
+                }
+            ];
+
+            const colorsProceso = [
+                {
+                    backgroundColor: 'rgba(0, 0, 139, 0.8)', // Color fuerte y sólido (Azul oscuro)
+                    borderColor: 'rgba(0, 0, 139, 1)'
+                },
+                {
+                    backgroundColor: 'rgba(34, 139, 34, 0.6)', // Color intermedio (Verde)
+                    borderColor: 'rgba(34, 139, 34, 1)'
+                },
+                {
+                    backgroundColor: 'rgba(173, 216, 230, 0.4)', // Color claro (Celeste)
+                    borderColor: 'rgba(173, 216, 230, 1)'
+                }
+            ];
+    
+            function createChart(data, tipo) {
                 const canvas = document.getElementById('newChart');
                 const ctx = canvas.getContext('2d');
     
@@ -824,18 +855,16 @@
                     myNewChart.destroy();
                 }
     
-                const datasets = data.map(item => {
-                    const r = Math.floor(Math.random() * 256);
-                    const g = Math.floor(Math.random() * 256);
-                    const b = Math.floor(Math.random() * 256);
-                    const backgroundColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
-                    const borderColor = `rgba(${r}, ${g}, ${b}, 1)`;
+                const colors = tipo === 'TpAuditoriaAQL' ? colorsAQL : colorsProceso;
+    
+                const datasets = data.map((item, index) => {
+                    const color = colors[index % colors.length]; // Ciclar a través de los colores si hay más de 3 defectos
     
                     return {
                         label: item.defecto,
                         data: [item.cantidad],
-                        backgroundColor: backgroundColor,
-                        borderColor: borderColor,
+                        backgroundColor: color.backgroundColor,
+                        borderColor: color.borderColor,
                         borderWidth: 1
                     };
                 });
@@ -863,9 +892,7 @@
                 });
             }
     
-            $('#top3-1, #top3-2').change(function() {
-                let tipo = $(this).attr('id') === 'top3-1' ? 'TpAuditoriaAQL' : 'TpAseguramientoCalidad';
-    
+            function fetchChartData(tipo) {
                 $.ajax({
                     url: 'obtener_top_defectos',
                     method: 'GET',
@@ -875,7 +902,7 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.success) {
-                            createChart(response.data);
+                            createChart(response.data, tipo);
                         } else {
                             console.error(response.error);
                         }
@@ -884,9 +911,19 @@
                         console.error('Error en la solicitud AJAX.');
                     }
                 });
-            });
+            }
     
-            $('#top3-1').trigger('change');
+            // Asegurar que los eventos solo se enlacen una vez
+            if (!chartInitialized) {
+                $('#top3-1, #top3-2').change(function() {
+                    let tipo = $(this).attr('id') === 'top3-1' ? 'TpAuditoriaAQL' : 'TpAseguramientoCalidad';
+                    fetchChartData(tipo);
+                });
+    
+                // Llamar una vez al cargar la página
+                fetchChartData('TpAuditoriaAQL');
+                chartInitialized = true;
+            }
         });
     </script>
 
