@@ -178,7 +178,7 @@
         <div class="col-lg-4">
             <div class="card card-chart">
                 <div class="card-header">
-                    <h3 class="card-title"><i class="tim-icons icon-bell-55 text-primary"></i> Top 3 (Defectos)</h3>
+                    <h3 class="card-title"><i class="tim-icons icon-bell-55 text-primary"></i> Top 3 Defectos</h3>
                     <div class="col-sm-15">
                         <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
                             <label class="btn btn-sm btn-primary btn-simple active" id="top3-1">
@@ -200,7 +200,7 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-area">
-                        <canvas id="chartLinePurple" style="width: 100%; height: 400px;"></canvas>
+                        <canvas id="newChart" style="width: 100%; height: 400px;"></canvas>
                     </div>
                 </div>
             </div>
@@ -814,62 +814,58 @@
     <!-- nothing-->
     <script>
         $(document).ready(function() {
-            let myChart;
-
-            function actualizarGrafico(datos) {
-                const ctx = document.getElementById('chartLinePurple').getContext('2d');
-
-                if (myChart) {
-                    myChart.destroy();
+            let myNewChart;
+    
+            function createChart(data) {
+                const canvas = document.getElementById('newChart');
+                const ctx = canvas.getContext('2d');
+    
+                if (myNewChart) {
+                    myNewChart.destroy();
                 }
-
-                const backgroundColor = datos.map(() => {
+    
+                const datasets = data.map(item => {
                     const r = Math.floor(Math.random() * 256);
                     const g = Math.floor(Math.random() * 256);
                     const b = Math.floor(Math.random() * 256);
-                    return `rgba(${r}, ${g}, ${b}, 0.5)`;
+                    const backgroundColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
+                    const borderColor = `rgba(${r}, ${g}, ${b}, 1)`;
+    
+                    return {
+                        label: item.defecto,
+                        data: [item.cantidad],
+                        backgroundColor: backgroundColor,
+                        borderColor: borderColor,
+                        borderWidth: 1
+                    };
                 });
-
-                // Prepara los datos para el gráfico (un solo dataset)
-                const labels = datos.map((item, index) => `${item.defecto} (${index + 1})`);
-                const cantidades = datos.map(item => item.cantidad);
-
-                myChart = new Chart(ctx, {
+    
+                myNewChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: labels,
-                        datasets: [{ // Un solo dataset con todos los datos
-                            label: 'Cantidad', // Etiqueta general para el dataset
-                            data: cantidades,
-                            backgroundColor: backgroundColor,
-                            borderColor: backgroundColor.map(color => color.replace('0.5', '1')),
-                            borderWidth: 1
-                        }]
+                        labels: ['Defectos'],
+                        datasets: datasets
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            datalabels: {
-                                anchor: 'end',
-                                align: 'top',
-                                formatter: (value, context) => {
-                                    return `${labels[context.dataIndex]} (${value})`; // Mostrar etiqueta y valor
-                                }
-                            }
-                        },
                         scales: {
-                            y: {
-                                beginAtZero: true
-                            }
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        },
+                        legend: {
+                            display: true
                         }
                     }
                 });
             }
-
+    
             $('#top3-1, #top3-2').change(function() {
                 let tipo = $(this).attr('id') === 'top3-1' ? 'TpAuditoriaAQL' : 'TpAseguramientoCalidad';
-
+    
                 $.ajax({
                     url: 'obtener_top_defectos',
                     method: 'GET',
@@ -879,7 +875,7 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.success) {
-                            actualizarGrafico(response.data);
+                            createChart(response.data);
                         } else {
                             console.error(response.error);
                         }
@@ -889,7 +885,7 @@
                     }
                 });
             });
-
+    
             $('#top3-1').trigger('change');
         });
     </script>

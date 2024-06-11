@@ -1009,6 +1009,7 @@ class DashboardController extends Controller
 
         // Consulta para usar la columna 'tp'
         $defectos = $modelo->select('tp AS defecto', DB::raw('COUNT(*) as cantidad'))
+            ->where('tp', '!=', 'NINGUNO')
             ->groupBy('tp')
             ->orderByDesc('cantidad')
             ->limit(3)
