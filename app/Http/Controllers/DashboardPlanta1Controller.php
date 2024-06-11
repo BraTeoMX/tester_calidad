@@ -195,6 +195,22 @@ class DashboardPlanta1Controller extends Controller
         })->toArray();
 
 
+        // Obtener los clientes únicos de AseguramientoCalidad 
+        $clientesAseguramientoBusqueda = AseguramientoCalidad::select('cliente')
+        ->distinct()
+        ->pluck('cliente');
+
+        // Obtener los clientes únicos de AuditoriaAQL
+        $clientesAuditoriaBusqueda = AuditoriaAQL::select('cliente')
+        ->distinct()
+        ->pluck('cliente');
+
+        // Combinar ambas listas y eliminar duplicados
+        $clientesUnicosBusqueda = $clientesAseguramientoBusqueda->merge($clientesAuditoriaBusqueda)->unique();
+
+        // Convertir la colección a un array si es necesario
+        $clientesUnicosArrayBusqueda = $clientesUnicosBusqueda->values()->all();
+
         return view('dashboar.dashboardPlanta1', compact(
             'title',
             'topDefectosAQL',
@@ -232,7 +248,7 @@ class DashboardPlanta1Controller extends Controller
             'datasetsAQL',
             'datasetsProceso',
             'clientesGrafica',
-            'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica'
+            'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica', 'clientesUnicosArrayBusqueda'
         ));
     }
 
