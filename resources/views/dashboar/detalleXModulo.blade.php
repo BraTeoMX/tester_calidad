@@ -128,7 +128,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table tablesorter" id="">
+                        <table class="table tablesorter" id="tablaDinamico">
                             <thead class="text-primary">
                                 <tr>
                                     <th>Modulo</th>
@@ -187,28 +187,28 @@
                                         </td>
                                     </tr>
                                 @endforeach
-                                <tr>
-                                    <td>Promedio General</td>
-                                    @foreach ($semanas as $semana)
-                                        <td>
-                                            @if ($promediosGenerales[$semana]['total_auditada_AQL'] > 0)
-                                                {{ number_format(($promediosGenerales[$semana]['total_rechazada_AQL'] / $promediosGenerales[$semana]['total_auditada_AQL']) * 100, 2) }}%
-                                            @else
-                                                N/A
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if ($promediosGenerales[$semana]['total_auditada_Proceso'] > 0)
-                                                {{ number_format(($promediosGenerales[$semana]['total_rechazada_Proceso'] / $promediosGenerales[$semana]['total_auditada_Proceso']) * 100, 2) }}%
-                                            @else
-                                                N/A
-                                            @endif
-                                        </td>
-                                    @endforeach
-                                    <td></td>
-                                    <td></td>
-                                </tr>
                             </tbody>
+                            <tr style="background: #1d1c1c;">
+                                <td>Promedio General</td>
+                                @foreach ($semanas as $semana)
+                                    <td>
+                                        @if ($promediosGenerales[$semana]['total_auditada_AQL'] > 0)
+                                            {{ number_format(($promediosGenerales[$semana]['total_rechazada_AQL'] / $promediosGenerales[$semana]['total_auditada_AQL']) * 100, 2) }}%
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($promediosGenerales[$semana]['total_auditada_Proceso'] > 0)
+                                            {{ number_format(($promediosGenerales[$semana]['total_rechazada_Proceso'] / $promediosGenerales[$semana]['total_auditada_Proceso']) * 100, 2) }}%
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                @endforeach
+                                <td></td>
+                                <td></td>
+                            </tr>
                         </table>
                     </div>
                 </div>
@@ -379,8 +379,8 @@
 <script>
     $(document).ready(function() {
         var colores = [
-            'rgba(226, 51, 218, 1)' , // Color del icono de Auditoria AQL
-            'rgba(51, 226, 223, 1)' // Color del icono de Auditoria de Procesos
+            'rgba(51, 226, 223, 1)', // Color del icono de Auditoria AQL
+            'rgba(226, 51, 218, 1)' // Color del icono de Auditoria de Procesos
         ];
 
         var ctxPromedioGeneral = document.getElementById('promedioGeneralChart').getContext('2d');
@@ -455,5 +455,61 @@
     });
 </script>
 
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
+    <!-- DataTables JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
 
+
+    <script>
+        $(document).ready(function() {
+            // Verifica si la tabla ya está inicializada antes de inicializarla nuevamente
+
+            if (!$.fn.dataTable.isDataTable('#tablaDinamico')) {
+                $('#tablaDinamico').DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 10,
+                    autoWidth: false,
+                    responsive: true,
+                });
+            }
+        
+            if (!$.fn.dataTable.isDataTable('#tablaDinamico2')) {
+                $('#tablaDinamico2').DataTable({
+                    lengthChange: false,
+                    searching: false,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true,
+                });
+            }
+        
+            if (!$.fn.dataTable.isDataTable('#tablaDinamico3')) {
+                $('#tablaDinamico3').DataTable({
+                    lengthChange: false,
+                    searching: false,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true,
+                });
+            }
+        
+            if (!$.fn.dataTable.isDataTable('#tablaDinamico4')) {
+                $('#tablaDinamico4').DataTable({
+                    lengthChange: false,
+                    searching: false,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true,
+                });
+            }
+        });
+    </script>
 @endpush
