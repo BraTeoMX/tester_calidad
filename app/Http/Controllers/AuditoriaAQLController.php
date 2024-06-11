@@ -4,17 +4,17 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Http\Request;
-use App\Models\User; 
-use App\Models\JobAQL; 
-use App\Models\AuditoriaProceso;  
-use App\Models\AseguramientoCalidad;  
-use App\Models\CategoriaTeamLeader;  
-use App\Models\CategoriaTipoProblema; 
-use App\Models\CategoriaAccionCorrectiva;  
-use App\Models\AuditoriaAQL;  
+use App\Models\User;
+use App\Models\JobAQL;
+use App\Models\AuditoriaProceso;
+use App\Models\AseguramientoCalidad;
+use App\Models\CategoriaTeamLeader;
+use App\Models\CategoriaTipoProblema;
+use App\Models\CategoriaAccionCorrectiva;
+use App\Models\AuditoriaAQL;
 use App\Models\CategoriaUtility;
-use App\Models\TpAuditoriaAQL;  
-use Carbon\Carbon; // Asegúrate de importar la clase Carbon 
+use App\Models\TpAuditoriaAQL;
+use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 
 class AuditoriaAQLController extends Controller
 {
@@ -51,7 +51,7 @@ class AuditoriaAQLController extends Controller
                 ->select('moduleid')
                 ->distinct()
                 ->orderBy('moduleid', 'asc')
-                ->get(), 
+                ->get(),
             'procesoActualAQL' => AuditoriaAQL::where('estatus', NULL)
                 ->where('area', 'AUDITORIA AQL')
                 ->whereDate('created_at', $fechaActual)
@@ -85,13 +85,13 @@ class AuditoriaAQLController extends Controller
 
     public function metodoNombre(Request $request) {
         $moduloSeleccionado = $request->input('modulo');
-      
+
         // Filtrar los datos de 'ordenOPs' según el módulo seleccionado
         $ordenesOPFiltradas = JobAQL::where('moduleid', $moduloSeleccionado)
           ->select('prodid')
           ->distinct()
           ->get();
-      
+
         // Convertir los datos a formato JSON y retornar
         return response()->json($ordenesOPFiltradas);
     }
@@ -102,14 +102,14 @@ class AuditoriaAQLController extends Controller
         $categorias = $this->cargarCategorias();
 
 
-        //dd($registroEvaluacionCorte->all()); 
+        //dd($registroEvaluacionCorte->all());
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
 
-        
+
         return view('auditoriaAQL.altaAQL', array_merge($categorias, [
-            'mesesEnEspanol' => $mesesEnEspanol, 
+            'mesesEnEspanol' => $mesesEnEspanol,
             'pageSlug' => $pageSlug]));
     }
 
@@ -118,13 +118,13 @@ class AuditoriaAQLController extends Controller
         $moduleid = $request->input('moduleid');
         $auditoriaProceso = AuditoriaProceso::where('moduleid', $moduleid)->first();
         $itemid = $auditoriaProceso ? $auditoriaProceso->itemid : '';
-        
+
         return response()->json(['itemid' => $itemid]);
     }
 
     public function auditoriaAQL(Request $request)
     {
-        
+
         $pageSlug ='';
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
@@ -142,7 +142,7 @@ class AuditoriaAQLController extends Controller
             ->select('prodpackticketid', 'qty', 'itemid', 'colorname', 'inventsizeid')
             ->distinct()
             ->get();
-        $datoUnicoOP = JobAQL::where('prodid', $data['op']) 
+        $datoUnicoOP = JobAQL::where('prodid', $data['op'])
             ->first();
 
 
@@ -206,8 +206,8 @@ class AuditoriaAQLController extends Controller
         // Calcula el porcentaje total
         $total_porcentajeIndividual = $total_auditadaIndividual != 0 ? ($total_rechazadaIndividual / $total_auditadaIndividual) * 100 : 0;
 
-        
- 
+
+
         //dd($finParoModular);
         $registrosOriginales = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('area', $data['area'])
@@ -230,7 +230,7 @@ class AuditoriaAQLController extends Controller
         $finParoModular1 = $evaluacionRegistro2;
         $finParoModular2 = $evaluacionRegistro4;
 
-        
+
         $conteoParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
@@ -249,40 +249,40 @@ class AuditoriaAQLController extends Controller
             ->select('nombre')
             ->get()
             ->toArray();
-        
+
         $utilityPlanta2 = CategoriaUtility::where('planta', 'Intimark2')
             ->where('estado', 1)
             ->select('nombre')
             ->get()
             ->toArray();
-        
+
         $nombreProcesoToAQL = AuditoriaProceso::where('moduleid', $data['modulo'])
             ->select('name')
             ->get()
             ->toArray();
-        
+
         // Fusionar los arrays
         $nombreProcesoToAQLPlanta1 = array_merge($utilityPlanta1, $nombreProcesoToAQL);
         $nombreProcesoToAQLPlanta2 = array_merge($utilityPlanta2, $nombreProcesoToAQL);
         //dd($nombreProcesoToAQL, $utilityPlanta2, $utilityPlanta1, $nombreProcesoToAQLPlanta1, $nombreProcesoToAQLPlanta2);
         return view('auditoriaAQL.auditoriaAQL', array_merge($categorias, [
-            'mesesEnEspanol' => $mesesEnEspanol, 
+            'mesesEnEspanol' => $mesesEnEspanol,
             'pageSlug' => $pageSlug,
-            'datoBultos' => $datoBultos, 
-            'datoUnicoOP' => $datoUnicoOP, 
-            'data' => $data, 
-            'total_auditada' => $total_auditada, 
+            'datoBultos' => $datoBultos,
+            'datoUnicoOP' => $datoUnicoOP,
+            'data' => $data,
+            'total_auditada' => $total_auditada,
             'total_rechazada' => $total_rechazada,
             'total_porcentaje' => $total_porcentaje,
             'registrosIndividual' => $registrosIndividual,
-            'total_auditadaIndividual' => $total_auditadaIndividual, 
+            'total_auditadaIndividual' => $total_auditadaIndividual,
             'total_rechazadaIndividual' => $total_rechazadaIndividual,
             'total_porcentajeIndividual' => $total_porcentajeIndividual,
-            'estatusFinalizar' => $estatusFinalizar, 
+            'estatusFinalizar' => $estatusFinalizar,
             'registrosIndividualPieza' => $registrosIndividualPieza,
-            'conteoBultos' => $conteoBultos,  
-            'conteoPiezaConRechazo' => $conteoPiezaConRechazo, 
-            'porcentajeBulto' => $porcentajeBulto, 
+            'conteoBultos' => $conteoBultos,
+            'conteoPiezaConRechazo' => $conteoPiezaConRechazo,
+            'porcentajeBulto' => $porcentajeBulto,
             'mostrarRegistro' => $mostrarRegistro,
             'conteoParos' => $conteoParos,
             'finParoModular1' => $finParoModular1,
@@ -293,7 +293,7 @@ class AuditoriaAQLController extends Controller
 
 
 
-    public function formAltaProcesoAQL(Request $request) 
+    public function formAltaProcesoAQL(Request $request)
     {
         $pageSlug ='';
 
@@ -304,7 +304,7 @@ class AuditoriaAQLController extends Controller
             'op' => $request->op,
             'cliente' => $request->cliente,
             'auditor' => $request->auditor,
-            'turno' => $request->turno, 
+            'turno' => $request->turno,
             'team_leader' => $request->team_leader,
         ];
         //dd($data);
@@ -315,7 +315,7 @@ class AuditoriaAQLController extends Controller
     {
         $pageSlug ='';
 
-        $fechaHoraActual= now(); 
+        $fechaHoraActual= now();
 
         // Verificar el día de la semana
         $diaSemana = $fechaHoraActual ->dayOfWeek;
@@ -327,10 +327,10 @@ class AuditoriaAQLController extends Controller
         //dd($plantaBusqueda);
         $jefeProduccionBusqueda = CategoriaTeamLeader::where('nombre', $request->team_leader)
             ->where('jefe_produccion', 1)
-            ->first(); 
+            ->first();
 
         $fechaActual = Carbon::now()->toDateString();
-        
+
         $conteoParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('area', $request->area)
             ->where('modulo', $request->modulo)
@@ -354,15 +354,15 @@ class AuditoriaAQLController extends Controller
         $nuevoRegistro->turno = $request->turno;
         $nuevoRegistro->planta = $plantaBusqueda;
 
-        $nuevoRegistro->bulto = $request->bulto; 
+        $nuevoRegistro->bulto = $request->bulto;
         $nuevoRegistro->pieza = $request->pieza;
         $nuevoRegistro->estilo = $request->estilo;
-        $nuevoRegistro->color = $request->color; 
-        $nuevoRegistro->talla = $request->talla; 
+        $nuevoRegistro->color = $request->color;
+        $nuevoRegistro->talla = $request->talla;
         $nuevoRegistro->cantidad_auditada = $request->cantidad_auditada;
         $nuevoRegistro->cantidad_rechazada = $request->cantidad_rechazada;
         if($request->cantidad_rechazada > 0){
-            $nuevoRegistro->inicio_paro = Carbon::now(); 
+            $nuevoRegistro->inicio_paro = Carbon::now();
         }
 
         // Verificar la hora para determinar el valor de "tiempo_extra"
@@ -392,7 +392,7 @@ class AuditoriaAQLController extends Controller
         $nuevoRegistroId = $nuevoRegistro->id;
 
         // Almacenar los valores de tp en la tabla tp_auditoria_aql
-        
+
         // Asegúrate de que $request->tp sea un arreglo y contenga "NINGUNO" si está vacío o es null
         $tp = $request->input('tp', ['NINGUNO']);
 
@@ -408,7 +408,7 @@ class AuditoriaAQLController extends Controller
         return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
-    
+
     public function formUpdateDeleteProceso(Request $request){
         $pageSlug ='';
         $action = $request->input('action');
@@ -454,7 +454,7 @@ class AuditoriaAQLController extends Controller
         ->where('modulo', $modulo)
         ->where('area', $area)
         ->update(['observacion' => $observacion, 'estatus' => $estatus]);
-        
+
 
         return back()->with('success', 'Finalizacion aplicada correctamente.')->with('pageSlug', $pageSlug);
     }
@@ -463,13 +463,13 @@ class AuditoriaAQLController extends Controller
     {
         $pageSlug ='';
         $id = $request->idCambio;
-        
+
         $registro = AuditoriaAQL::find($id);
-       
+
         if($request->finalizar_paro_modular == 1){
             // Obtener la fecha actual
             $fechaActual = Carbon::now()->toDateString();
-            
+
             // Obtener la hora actual
             $horaActual = Carbon::now()->toTimeString();
 
@@ -530,16 +530,16 @@ class AuditoriaAQLController extends Controller
                 $cuartoRegistro->save();
             }
 
-            //dd($request->all(), $registro); 
+            //dd($request->all(), $registro);
 
         }else{
             $registro->fin_paro = Carbon::now();
-            
+
             // Calcular la duración del paro en minutos
             $inicioParo = Carbon::parse($registro->inicio_paro);
             $finParo = Carbon::parse($registro->fin_paro);
             $minutosParo = $inicioParo->diffInMinutes($finParo);
-            
+
             // Almacenar la duración en minutos
             $registro->minutos_paro = $minutosParo;
 
@@ -548,7 +548,7 @@ class AuditoriaAQLController extends Controller
 
         return back()->with('success', 'Fin de Paro Aplicado.')->with('pageSlug', $pageSlug);
     }
-    //Ya no recuerdo 
+    //Ya no recuerdo
     public function storeCategoriaTipoProblemaAQL(Request $request)
     {
         $request->validate([

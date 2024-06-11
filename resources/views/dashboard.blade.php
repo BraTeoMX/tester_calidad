@@ -819,147 +819,93 @@
             });
         });
     </script>
+    <!-- nothing-->
+    <!-- nothing-->
+    <script>
+  $(document).ready(function() {
+    let myChart;  // Variable para almacenar la instancia del gráfico
 
+    function actualizarGrafico(datos) {
+        const ctx = document.getElementById('chartLinePurple').getContext('2d');
 
-<script>
-    $(document).ready(function() {
-        let myChart;
-
-        function actualizarGrafico(datos) {
-            // Validación de datos
-            if (!Array.isArray(datos) || datos.length === 0) {
-                console.error("Error: Los datos recibidos no son un array válido o está vacío.");
-                return;
-            }
-
-            // Esperar a que el canvas esté disponible (con tiempo de espera)
-            let intentos = 0;
-            const maxIntentos = 10;
-            const intervaloEspera = 500; // 0.5 segundos
-
-            function esperarCanvas() {
-                const ctx = document.getElementById('chartLinePurple');
-                if (ctx) {
-                    crearActualizarGrafico(ctx, datos);
-                } else if (intentos < maxIntentos) {
-                    intentos++;
-                    setTimeout(esperarCanvas, intervaloEspera);
-                } else {
-                    console.error("Error: No se pudo encontrar el elemento canvas después de varios intentos.");
-                }
-            }
-
-            esperarCanvas();
-
-            function crearActualizarGrafico(ctx, datos) {
-                // Configurar colores de fondo con mejor contraste
-                const coloresFondo = datos.map(() => {
-                    const tono = Math.floor(Math.random() * 360);
-                    return `hsl(${tono}, 70%, 40%)`;
-                });
-
-                // Obtener etiquetas y valores, con validación de propiedades
-                const etiquetas = datos.map((item, index) => {
-                    if (!item.hasOwnProperty('defecto') || !item.hasOwnProperty('cantidad')) {
-                        console.error("Error: Los objetos de datos no tienen las propiedades 'defecto' y 'cantidad'.");
-                        return;
-                    }
-                    return `${item.defecto} (${index + 1})`;
-                });
-                const cantidades = datos.map(item => item.cantidad);
-
-                // Crear o actualizar el gráfico
-                if (myChart) {
-                    myChart.data.labels = etiquetas;
-                    myChart.data.datasets[0].data = cantidades;
-                    myChart.data.datasets[0].backgroundColor = coloresFondo;
-                    myChart.data.datasets[0].borderColor = coloresFondo;
-                    myChart.update();
-                } else {
-                    myChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: etiquetas,
-                            datasets: [{
-                                label: 'Cantidad',
-                                data: cantidades,
-                                backgroundColor: coloresFondo,
-                                borderColor: coloresFondo,
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                datalabels: {
-                                    anchor: 'end',
-                                    align: 'end',
-                                    offset: -10,
-                                    formatter: (valor, contexto) => {
-                                        const etiqueta = etiquetas[contexto.dataIndex];
-                                        return etiqueta.split(' ').join('\n');
-                                    },
-                                    color: 'white'
-                                },
-                                legend: {
-                                    display: true,
-                                    labels: {
-                                        color: 'white'
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        stepSize: 1,
-                                        color: 'white'
-                                    },
-                                    grid: {
-                                        color: 'rgba(255, 255, 255, 0.2)'
-                                    }
-                                },
-                                x: {
-                                    ticks: {
-                                        autoSkip: false,
-                                        maxRotation: 45,
-                                        color: 'white'
-                                    },
-                                    padding: 20
-                                }
-                            }
-                        }
-                    });
-                }
-            }
+        // Si ya existe un gráfico, lo destruimos para evitar conflictos
+        if (myChart) {
+            myChart.destroy();
         }
 
-        // Manejar cambios en los filtros
-        $('#top3-1, #top3-2').change(function() {
-            const tipo = $(this).attr('id') === 'top3-1' ? 'TpAuditoriaAQL' : 'TpAseguramientoCalidad';
-            $.ajax({
-                url: 'obtener_top_defectos',
-                method: 'GET',
-                data: { tipo: tipo },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success && response.data) {
-                        actualizarGrafico(response.data);
-                    } else {
-                        console.error("Error: La respuesta del servidor no contiene datos válidos.");
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error en la solicitud AJAX:", error);
-                }
-            });
+        // Generamos colores de fondo con luminosidad consistente (usando HSL)
+        const coloresFondo = datos.map(() => {
+            const tono = Math.floor(Math.random() * 360); // Tono aleatorio (0-360)
+            return `hsl(${tono}, 70%, 60%)`; // Saturación 70%, Luminosidad 60%
         });
 
-        // Cargar el gráfico inicial
-        $('#top3-1').trigger('change');
-    });
-    </script>
+        const etiquetas = datos.map((item, index) => `${item.defecto} (${index + 1})`);
+        const cantidades = datos.map(item => item.cantidad);
 
+        // Creamos la nueva instancia del gráfico
+        myChart = new Chart(ctx, {
+            type: 'bar', // Tipo de gráfico: barras
+            data: {
+                labels: etiquetas, // Etiquetas en el eje X
+                datasets: [{
+                    label: 'Cantidad', // Etiqueta para la leyenda
+                    data: cantidades,  // Datos numéricos para las barras
+                    backgroundColor: coloresFondo, // Colores de fondo de las barras
+                    borderColor: coloresFondo,    // Color de borde de las barras
+                    borderWidth: 1               // Ancho del borde
+                }]
+            },
+            options: {
+                responsive: true,                 // Se adapta al tamaño del contenedor
+                maintainAspectRatio: false,      // Permite cambiar la relación de aspecto
+                plugins: {
+                    datalabels: {              // Configura etiquetas de datos sobre las barras
+                        anchor: 'end',         // Ancladas al final de la barra
+                        align: 'top',           // Alineadas arriba
+                        formatter: (valor, contexto) => `${etiquetas[contexto.dataIndex]} (${valor})`
+                                                      // Formato: etiqueta (valor)
+                    },
+                    legend: {                 // Mostrar leyenda para identificar la serie de datos "Cantidad"
+                        display: true
+                    }
+                },
+                scales: {
+                    y: {                          // Eje Y (vertical)
+                        beginAtZero: true,     // Comienza en cero
+                        ticks: {                 // Formato de los números en el eje
+                            stepSize: 1        // Incrementos de 1 en 1
+                        }
+                    },
+                    x: {                          // Eje X (horizontal)
+                        ticks: {
+                            autoSkip: false,  // No ocultar etiquetas automáticamente
+                            maxRotation: 45   // Rotar etiquetas hasta 45 grados si es necesario
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Cuando cambia la selección de los filtros
+    $('#top3-1, #top3-2').change(function() {
+        const tipo = $(this).attr('id') === 'top3-1' ? 'TpAuditoriaAQL' : 'TpAseguramientoCalidad';
+        $.ajax({
+            url: 'obtener_top_defectos',
+            method: 'GET',
+            data: { tipo: tipo },       // Enviamos el tipo de filtro seleccionado
+            dataType: 'json',
+            success: actualizarGrafico, // Si la petición es exitosa, actualizamos el gráfico
+            error: function() {
+                console.error('Error en la solicitud AJAX.');
+                // Aquí podrías mostrar un mensaje de error más amigable al usuario.
+            }
+        });
+    });
+
+    // Cargamos el gráfico inicial (cuando la página carga)
+    $('#top3-1').trigger('change');
+});
+    </script>
 
 @endpush
