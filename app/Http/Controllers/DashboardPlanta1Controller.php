@@ -176,7 +176,11 @@ class DashboardPlanta1Controller extends Controller
         //dd($gerentesProduccionAQL, $gerentesProduccionProceso, $gerentesProduccion, $data);
         $dataGraficaModulos = $this->obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin);
         $modulosGrafica = collect($dataGraficaModulos['modulosUnicos'])->toArray();
-        $fechasGraficaModulos = collect($dataGraficaModulos['dataModulo'][0]['fechas'])->toArray();
+        if (!empty($dataGraficaModulos['dataModulo']) && !empty($dataGraficaModulos['dataModulo'][0]['fechas'])) {
+            $fechasGraficaModulos = collect($dataGraficaModulos['dataModulo'][0]['fechas'])->toArray();
+        } else {
+            $fechasGraficaModulos = []; // Inicializar en un array vacío
+        }
 
         $datasetsAQLModulos = collect($dataGraficaModulos['dataModulo'])->map(function ($moduloData) {
             return [
