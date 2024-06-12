@@ -2,7 +2,7 @@
 
 @section('content')
 
-    <div class="row"> 
+    <div class="row">
         <div class="col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
@@ -15,7 +15,7 @@
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
     <div class="row">
         <div class="col-md-12">
             <!--Desde aqui inicia la edicion del codigo para mostrar el contenido-->
@@ -37,7 +37,7 @@
                 </div>
                 <button type="submit" class="btn btn-secondary">Mostrar datos</button>
             </form>
-            
+
             <script>
                 document.addEventListener("DOMContentLoaded", function() {
                     // Obtener los parámetros de la URL
@@ -59,7 +59,7 @@
                 });
 
             </script>
-            <hr>     
+            <hr>
         </div>
     </div>
 
@@ -215,10 +215,6 @@
             </div>
         </div>
     </div>
-
-
-
-
     <style>
         .chart-area {
           height: 500px; /* Ajusta esta altura según tus necesidades */
@@ -230,7 +226,7 @@
             position: relative;
             overflow-x: auto;
         }
-    
+
         /* Estilos para la tabla */
         .table-fixed-header {
             display: table;
@@ -238,7 +234,7 @@
             border-collapse: collapse;
             background-color: #1a1b2f; /* Color de fondo del tema */
         }
-    
+
         /* Estilo para las columnas de la tabla */
         .table-fixed-header th, .table-fixed-header td {
             padding: 8px 16px;
@@ -246,7 +242,7 @@
             border: 1px solid #ddd;
             background-color: #1a1b2f; /* Color de fondo del tema */
         }
-    
+
         /* Estilo para fijar la primera columna y el encabezado de la primera columna */
         .table-fixed-header thead th:first-child,
         .table-fixed-header tbody td:first-child,
@@ -256,7 +252,7 @@
             z-index: 3;
             background-color: #1a1b2f; /* Color de fondo del tema */
         }
-    
+
         /* Estilo para fijar la primera fila */
         .table-fixed-header thead th {
             position: sticky;
@@ -264,14 +260,14 @@
             z-index: 2;
             background-color: #1a1b2f; /* Color de fondo del tema */
         }
-    
+
         /* Estilo específico para la última fila fuera del tbody */
         .table-fixed-header tfoot tr td {
             background-color: #000; /* Color de fondo específico para esta fila */
             color: #fff; /* Color de texto blanco para mejor legibilidad */
         }
     </style>
-    
+
 @endsection
 
 @push('js')
@@ -280,23 +276,23 @@
     <script>
         $(document).ready(function() {
             var colores = [
-                'rgba(75, 192, 192, 1)',   
-                'rgba(153, 102, 255, 1)', 
-                'rgba(255, 99, 132, 1)',  
-                'rgba(54, 162, 235, 1)',  
-                'rgba(255, 206, 86, 1)',  
-                'rgba(255, 159, 64, 1)',  
-                'rgba(199, 199, 199, 1)', 
-                'rgba(255, 99, 255, 1)',  
-                'rgba(99, 255, 132, 1)',  
-                'rgba(99, 132, 255, 1)',  
-                'rgba(132, 99, 255, 1)',  
-                'rgba(192, 75, 192, 1)',  
-                'rgba(235, 162, 54, 1)',  
-                'rgba(86, 255, 206, 1)',  
-                'rgba(64, 159, 255, 1)'   
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(255, 159, 64, 1)',
+                'rgba(199, 199, 199, 1)',
+                'rgba(255, 99, 255, 1)',
+                'rgba(99, 255, 132, 1)',
+                'rgba(99, 132, 255, 1)',
+                'rgba(132, 99, 255, 1)',
+                'rgba(192, 75, 192, 1)',
+                'rgba(235, 162, 54, 1)',
+                'rgba(86, 255, 206, 1)',
+                'rgba(64, 159, 255, 1)'
             ];
-    
+
             // Datos para gráfico AQL
             var ctxModuloAQL = document.getElementById('moduloChartAQL').getContext('2d');
             var datasetsAQL = Object.keys(@json($datosCombinados)).map((modulo, index) => {
@@ -317,7 +313,7 @@
                     lineTension: 0.4
                 };
             });
-    
+
             var chartModuloAQL = new Chart(ctxModuloAQL, {
                 type: 'line',
                 data: {
@@ -352,7 +348,7 @@
                     }
                 }
             });
-    
+
             // Datos para gráfico Proceso
             var ctxModuloProcesos = document.getElementById('moduloChartProcesos').getContext('2d');
             var datasetsProceso = Object.keys(@json($datosCombinados)).map((modulo, index) => {
@@ -373,7 +369,7 @@
                     lineTension: 0.4
                 };
             });
-    
+
             var chartModuloProcesos = new Chart(ctxModuloProcesos, {
                 type: 'line',
                 data: {
@@ -408,14 +404,14 @@
                     }
                 }
             });
-    
+
             // Alternar entre gráficos
             $('#moduloAQLButton').on('click', function() {
                 $('#moduloChartAQL').show();
                 $('#moduloChartProcesos').hide();
                 chartModuloAQL.update();
             });
-    
+
             $('#moduloProcesoButton').on('click', function() {
                 $('#moduloChartAQL').hide();
                 $('#moduloChartProcesos').show();
@@ -526,7 +522,7 @@
                     responsive: true,
                 });
             }
-        
+
             if (!$.fn.dataTable.isDataTable('#tablaDinamico2')) {
                 $('#tablaDinamico2').DataTable({
                     lengthChange: false,
@@ -537,7 +533,7 @@
                     responsive: true,
                 });
             }
-        
+
             if (!$.fn.dataTable.isDataTable('#tablaDinamico3')) {
                 $('#tablaDinamico3').DataTable({
                     lengthChange: false,
@@ -548,7 +544,7 @@
                     responsive: true,
                 });
             }
-        
+
             if (!$.fn.dataTable.isDataTable('#tablaDinamico4')) {
                 $('#tablaDinamico4').DataTable({
                     lengthChange: false,
