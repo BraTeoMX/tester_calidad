@@ -112,7 +112,11 @@ class DashboardPlanta1Controller extends Controller
         // Datos para las gráficas usando el rango de fechas
         $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
         $clientesGrafica = collect($dataGrafica['clientesUnicos'])->toArray();
-        $fechasGrafica = collect($dataGrafica['dataCliente'][0]['fechas'])->toArray();
+        if (!empty($dataGrafica['dataCliente']) && !empty($dataGrafica['dataCliente'][0]['fechas'])) {
+            $fechasGrafica = collect($dataGrafica['dataCliente'][0]['fechas'])->toArray();
+        } else {
+            $fechasGrafica = []; // Inicializar en un array vacío
+        }
 
         $datasetsAQL = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
             return [

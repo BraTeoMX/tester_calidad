@@ -215,9 +215,6 @@
                     <div class="col-lg-3 col-md-4 col-sm-6 col-12">
                         <h4>Piezas: {{ isset($encabezadoAuditoriaCorte) ? $encabezadoAuditoriaCorte->pieza : '' }}</h4>
                     </div>
-                    <div class="col-lg-3 col-md-4 col-sm-6 col-12">
-                        <h4>Piezas Total: {{ isset($encabezadoAuditoriaCorte) ? $encabezadoAuditoriaCorte->qtysched_id : '' }}</h4>
-                    </div>
                 </div>
                 @endif
                 <div id="accordion">

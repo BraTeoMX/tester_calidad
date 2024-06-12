@@ -110,7 +110,6 @@
     <script src="{{ asset('black') }}/js/core/bootstrap.min.js"></script>
     <script src="{{ asset('black') }}/js/plugins/perfect-scrollbar.jquery.min.js"></script>-->
     <!-- Chart JS -->
-    <!-- <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>-->
     <!--  Notifications Plugin    -->
     <!--<script src="{{ asset('black') }}/js/plugins/bootstrap-notify.js"></script>
 
