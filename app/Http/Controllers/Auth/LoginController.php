@@ -44,6 +44,15 @@ class LoginController extends Controller
         ]);
 
         $fieldType = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'no_empleado';
+        
+        // Verificar el estatus del usuario
+        $user = \App\Models\User::where($fieldType, $input['email'])->first();
+        //dd($user);
+        if ($user && $user->Estatus == 'Baja') {
+            return redirect()->route('login')
+                ->with('error', 'Usuario dado de Baja, consulta con el gerente de calidad.');
+        }
+
         if (auth()->attempt([$fieldType => $input['email'], 'password' => $input['password']])) {
             return redirect()->route('home');
         } else {
