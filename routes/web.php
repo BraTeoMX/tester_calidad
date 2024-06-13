@@ -269,9 +269,13 @@ Route::patch('/altaYbaja/defecto-proceso/{id}', [AltaYBajaController::class, 'ac
 Route::patch('/altaYbaja/defecto-playera/{id}', [AltaYBajaController::class, 'actualizarEstadoDefectoPlayera'])->name('actualizarEstadoDefectoPlayera');
 Route::patch('/altaYbaja/defecto-empaque/{id}', [AltaYBajaController::class, 'actualizarEstadoDefectoEmpaque'])->name('actualizarEstadoDefectoEmpaque');
 Route::patch('/altaYbaja/gestion-utility/{id}', [AltaYBajaController::class, 'actualizarEstadoUtility'])->name('actualizarEstadoUtility');
+Route::patch('/altaYbaja/gestion-responsable/{id}', [AltaYBajaController::class, 'actualizarEstadoResponsable'])->name('actualizarEstadoResponsable');
+Route::patch('/altaYbaja/gestion-tecnico/{id}', [AltaYBajaController::class, 'actualizarEstadoTecnico'])->name('actualizarEstadoTecnico');
 Route::post('/altaYbaja/defecto-proceso', [AltaYBajaController::class, 'crearDefectoProceso'])->name('crearDefectoProceso');
 Route::post('/altaYbaja/defecto-playera', [AltaYBajaController::class, 'crearDefectoPlayera'])->name('crearDefectoPlayera');
 Route::post('/altaYbaja/defecto-empaque', [AltaYBajaController::class, 'crearDefectoEmpaque'])->name('crearDefectoEmpaque');
 Route::post('/altaYbaja/gestion-utility', [AltaYBajaController::class, 'crearUtility'])->name('crearUtility');
+Route::post('/altaYbaja/gestion-responsable', [AltaYBajaController::class, 'crearResponsable'])->name('crearResponsable');
+Route::post('/altaYbaja/gestion-tecnico', [AltaYBajaController::class, 'crearTecnico'])->name('crearTecnico');
 
 

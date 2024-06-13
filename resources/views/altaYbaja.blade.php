@@ -1,4 +1,4 @@
-@extends('layouts.app', ['page' => __('User Profile'), 'pageSlug' => 'profile'])
+@extends('layouts.app', ['pageSlug' => 'Gestion', 'titlePage' => __('Gestion')])
 
 @section('content')
     @if (session('success'))
@@ -181,7 +181,7 @@
                         @csrf
                         <div class="input-group mb-0 mr-2">
                             <input type="text" class="form-control mr-2" id="nombre" name="nombre" placeholder="Nombre del utility" required>
-                            <input type="number" class="form-control" id="numero_empleado" name="numero_empleado" placeholder="Numero de empleado" required step="1">
+                            <input type="number" class="form-control" id="numero_empleado" name="numero_empleado" placeholder="Numero de empleado"  step="1">
                         </div>
                         <div class="input-group mb-0 mr-2">
                             <select name="planta" id="planta" class="form-control mr-2" required>
@@ -201,7 +201,7 @@
                                 <tr>
                                     <th>Nombre</th>
                                     <th>No. Empleado</th>
-                                    <th>Estatus</th>
+                                    <th>Planta</th>
                                     <th>Accion</th>
                                 </tr>
                             </thead>
@@ -243,14 +243,22 @@
         <div class="col-lg-4">
             <div class="card card-chart">
                 <div class="card-header">
-                    <h3>Categoria Defectos: PLAYERA</h3>
+                    <h3>Categoria Responsable</h3>
                 </div>
                 <div class="card-body">
-                    <label for="nombre">Alta de nuevo defecto</label>
-                    <form action="{{ route('crearDefectoPlayera') }}" method="POST" class="form-inline">
+                    <label for="nombre">Alta de nuevo Responsable</label>
+                    <form action="{{ route('crearResponsable') }}" method="POST" class="form-inline">
                         @csrf
                         <div class="input-group mb-0 mr-2">
-                            <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Nombre del defecto" required>
+                            <input type="text" class="form-control mr-2" id="nombre" name="nombre" placeholder="Nombre del Responsable" required>
+                            <input type="number" class="form-control" id="numero_empleado" name="numero_empleado" placeholder="Numero de empleado"  step="1">
+                        </div>
+                        <div class="input-group mb-0 mr-2">
+                            <select name="planta" id="planta" class="form-control mr-2" required>
+                                <option value="">Selecciona una opción</option>
+                                <option value="Intimark1">Planta 1</option>
+                                <option value="Intimark2">Planta 2</option>
+                            </select>
                             <div class="input-group-append">
                                 <button type="submit" class="btn btn-primary">Agregar</button>
                             </div>
@@ -258,27 +266,39 @@
                     </form>
                     <hr>
                     <div class="table-responsive">
-                        <table id="tablaDefectoPlayera" class="table tablesorter">
+                        <table id="tablaResponsable" class="table tablesorter">
                             <thead class=" text-primary">
                                 <tr>
-                                    <th>Nombre del defecto</th>
-                                    <th>Estatus</th>
+                                    <th>Nombre</th>
+                                    <th>No. Empleado</th>
+                                    <th>Planta</th>
                                     <th>Accion</th>
                                 </tr>
                             </thead>
                             <tbody>
-                              @foreach ($categoriaTipoProblemaPlayera as $tp)
+                              @foreach ($categoriaResponsable as $dato)
                               <tr>
-                                <td>{{ $tp->nombre }}</td>
-                                <td>{{ $tp->estado }}</td>
+                                <td>{{ $dato->nombre }}</td>
+                                <td>{{ $dato->numero_empleado }}</td>
                                 <td>
-                                    <form action="{{ route('actualizarEstadoDefectoProceso', $tp->id) }}" method="POST">
+                                    <form action="{{ route('actualizarEstadoResponsable', $dato->id) }}" method="POST" style="display:inline;">
                                         @csrf
                                         @method('PATCH')
-                                        @if ($tp->estado == 1)
-                                            <button type="submit" class="btn btn-danger">Baja</button>
+                                        @if ($dato->planta == 'Intimark1')
+                                            <button type="submit" name="action" value="cambiarPlanta" class="btn btn-secondary">Planta 1</button>
                                         @else
-                                            <button type="submit" class="btn btn-success">Alta</button>
+                                            <button type="submit" name="action" value="cambiarPlanta" class="btn btn-secondary">Planta 2</button>
+                                        @endif
+                                    </form>
+                                </td>
+                                <td>
+                                    <form action="{{ route('actualizarEstadoResponsable', $dato->id) }}" method="POST" style="display:inline;">
+                                        @csrf
+                                        @method('PATCH')
+                                        @if ($dato->estatus == 1)
+                                            <button type="submit" name="action" value="cambiarEstado" class="btn btn-danger">Baja</button>
+                                        @else
+                                            <button type="submit" name="action" value="cambiarEstado" class="btn btn-success">Alta</button>
                                         @endif
                                     </form>
                                 </td>
@@ -293,14 +313,22 @@
         <div class="col-lg-4">
             <div class="card card-chart">
                 <div class="card-header">
-                    <h3>Categoria Defectos: EMPAQUE</h3>
+                    <h3>Categoria Tecnicos Corte</h3>
                 </div>
                 <div class="card-body">
-                    <label for="nombre">Alta de nuevo defecto</label>
-                    <form action="{{ route('crearDefectoEmpaque') }}" method="POST" class="form-inline">
+                    <label for="nombre">Alta de nuevo Tecnico Corte</label>
+                    <form action="{{ route('crearTecnico') }}" method="POST" class="form-inline">
                         @csrf
                         <div class="input-group mb-0 mr-2">
-                            <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Nombre del defecto" required>
+                            <input type="text" class="form-control mr-2" id="nombre" name="nombre" placeholder="Nombre del Responsable" required>
+                            <input type="number" class="form-control" id="numero_empleado" name="numero_empleado" placeholder="Numero de empleado"  step="1">
+                        </div>
+                        <div class="input-group mb-0 mr-2">
+                            <select name="planta" id="planta" class="form-control mr-2" required>
+                                <option value="">Selecciona una opción</option>
+                                <option value="Intimark1">Planta 1</option>
+                                <option value="Intimark2">Planta 2</option>
+                            </select>
                             <div class="input-group-append">
                                 <button type="submit" class="btn btn-primary">Agregar</button>
                             </div>
@@ -308,27 +336,39 @@
                     </form>
                     <hr>
                     <div class="table-responsive">
-                        <table id="tablaDefectoEmpaque" class="table tablesorter">
+                        <table id="tablaTecnico" class="table tablesorter">
                             <thead class=" text-primary">
                                 <tr>
-                                    <th>Nombre del defecto</th>
-                                    <th>Estatus</th>
+                                    <th>Nombre</th>
+                                    <th>No. Empleado</th>
+                                    <th>Planta</th>
                                     <th>Accion</th>
                                 </tr>
                             </thead>
                             <tbody>
-                              @foreach ($categoriaTipoProblemaEmpaque as $tp)
+                              @foreach ($categoriaTecnico as $dato)
                               <tr>
-                                <td>{{ $tp->nombre }}</td>
-                                <td>{{ $tp->estado }}</td>
+                                <td>{{ $dato->nombre }}</td>
+                                <td>{{ $dato->numero_empleado }}</td>
                                 <td>
-                                    <form action="{{ route('actualizarEstadoDefectoEmpaque', $tp->id) }}" method="POST">
+                                    <form action="{{ route('actualizarEstadoTecnico', $dato->id) }}" method="POST" style="display:inline;">
                                         @csrf
                                         @method('PATCH')
-                                        @if ($tp->estado == 1)
-                                            <button type="submit" class="btn btn-danger">Baja</button>
+                                        @if ($dato->planta == 'Intimark1')
+                                            <button type="submit" name="action" value="cambiarPlanta" class="btn btn-secondary">Planta 1</button>
                                         @else
-                                            <button type="submit" class="btn btn-success">Alta</button>
+                                            <button type="submit" name="action" value="cambiarPlanta" class="btn btn-secondary">Planta 2</button>
+                                        @endif
+                                    </form>
+                                </td>
+                                <td>
+                                    <form action="{{ route('actualizarEstadoTecnico', $dato->id) }}" method="POST" style="display:inline;">
+                                        @csrf
+                                        @method('PATCH')
+                                        @if ($dato->estado == 1)
+                                            <button type="submit" name="action" value="cambiarEstado" class="btn btn-danger">Baja</button>
+                                        @else
+                                            <button type="submit" name="action" value="cambiarEstado" class="btn btn-success">Alta</button>
                                         @endif
                                     </form>
                                 </td>
@@ -422,8 +462,18 @@
                 });
             }
         
-            if (!$.fn.dataTable.isDataTable('#tablaDinamico4')) {
-                $('#tablaDinamico4').DataTable({
+            if (!$.fn.dataTable.isDataTable('#tablaResponsable')) {
+                $('#tablaResponsable').DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true,
+                });
+            }
+            if (!$.fn.dataTable.isDataTable('#tablaTecnico')) {
+                $('#tablaTecnico').DataTable({
                     lengthChange: false,
                     searching: true,
                     paging: true,
