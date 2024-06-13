@@ -1,6 +1,7 @@
 @extends('layouts.app', ['pageSlug' => 'Maquila', 'titlePage' => __('Maquila')])
 
 @section('content')
+<link rel="stylesheet" href="black/css/styleScreenPrint.css">
     <style>
         .negative-image {
             filter: invert(100%);
@@ -166,76 +167,53 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tab-pane" id="messages">
-                        <div class="card-body table-responsive">
-                            <table class="table-cebra" id="miTabla">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="tablaDinamicaMaquila">
                                 <thead class="text-primary">
                                     <tr>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 1.5%;">
+                                        <th>
                                             ID</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 7.1%;">
+                                        <th>
                                             Auditor</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 7.1%;">
+                                        <th>
                                             Descripción</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 5%;">
+                                        <th>
                                             Cliente</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 5%;">
+                                        <th>
                                             Estilo</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 5%;">
+                                        <th>
                                             OP</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 2.1%;">
+                                        <th>
                                             Maquina</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 3%">
+                                        <th>
                                             Tecnico</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 3.5%;">
+                                        <th>
                                             Corte</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 3.5%;">
+                                        <th>
                                             Color</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 2.0%;">
+                                        <th>
                                             Talla</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 2.5%;">
+                                        <th>
                                             Piezas a auditar</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 8.5%;">
+                                        <th>
                                             Tipo Defectos</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 2.5%;">
+                                        <th>
                                             # Defectos</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 8.7%;">
+                                        <th>
                                             Acciones Correctivas</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 7.5%;">
+                                        <th>
                                         </th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 8.5%;">
+                                        <th>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                 </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td>
-                                            <button type="button" class="btn btn-danger" id="Finalizar">
-                                                <span>Finalizar</span>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tfoot>
                             </table>
+                            <button type="button" class="btn btn-danger" id="Finalizar">
+                                <span>Finalizar</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -354,7 +332,7 @@
                                 '</tr>';
 
                             // Agregar la fila a la tabla
-                            $('#miTabla tbody').append(row);
+                            $('#tablaDinamicaMaquila tbody').append(row);
                             lastRegisteredId = item.id;
 
                             if (!isFinalizado) {
@@ -539,7 +517,7 @@
                 '<td><button type="button" class="btn btn-danger descartar" style="white-space: nowrap;" onclick="descartarClicked()">Descartar <i class="material-icons">delete</i></button></td>' +
                 '</tr>';
 
-            $('#miTabla tbody').append(newRow);
+            $('#tablaDinamicaMaquila tbody').append(newRow);
 
             // Cargar opciones de los nuevos select
             cargarOpcionesACCorrectiva();
@@ -706,7 +684,7 @@
         $(document).ready(function() {
             $('#Finalizar').click(function() {
                 // Iterar sobre cada fila de la tabla
-                $('#miTabla tbody tr').each(function() {
+                $('#tablaDinamicaMaquila tbody tr').each(function() {
                     var id = $(this).find('input[name="id"]').val();
                     // Hacer una solicitud POST para cada fila para actualizar el estado a "Finalizado"
                     $.ajax({

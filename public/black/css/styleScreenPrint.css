@@ -363,3 +363,269 @@
 #tablaDinamicoHorn th:nth-child(23) {
     width: 3%;
 }
+
+
+/* Estilos específicos para la tabla tablaDinamicaPlancha */
+
+#tablaDinamicaPlancha {
+    display: table;
+    /* Importante para usar anchos fijos en porcentaje */
+    width: 360%;
+    /* Puedes ajustar este valor según tus necesidades */
+}
+
+#tablaDinamicaPlancha th,
+#tablaDinamicaPlancha td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* Ajusta los anchos de las columnas según tus preferencias */
+
+
+/* ID */
+
+#tablaDinamicaPlancha th:nth-child(1) {
+    width: 1%;
+}
+
+
+/* Auditor */
+
+#tablaDinamicaPlancha th:nth-child(2) {
+    width: 3%;
+}
+
+
+/* Cliente */
+
+#tablaDinamicaPlancha th:nth-child(3) {
+    width: 4%;
+}
+
+
+/* Estilo */
+
+#tablaDinamicaPlancha th:nth-child(4) {
+    width: 2%;
+}
+
+
+/* OP */
+
+#tablaDinamicaPlancha th:nth-child(5) {
+    width: 4%;
+}
+
+
+/* Tecnico */
+
+#tablaDinamicaPlancha th:nth-child(6) {
+    width: 3%;
+}
+
+
+/* Color */
+
+#tablaDinamicaPlancha th:nth-child(7) {
+    width: 3%;
+}
+
+
+/* # Grafico */
+
+#tablaDinamicaPlancha th:nth-child(8) {
+    width: 3%;
+}
+
+
+/* Piezas */
+
+#tablaDinamicaPlancha th:nth-child(9) {
+    width: 2%;
+}
+
+
+/* TipoDefectos */
+
+#tablaDinamicaPlancha th:nth-child(10) {
+    width: 5%;
+}
+
+
+/* #Defectos */
+
+#tablaDinamicaPlancha th:nth-child(11) {
+    width: 5%;
+}
+
+
+/* Ac.Correct */
+
+#tablaDinamicaPlancha th:nth-child(12) {
+    width: 5%;
+}
+
+
+/* Columna vacía 1 */
+
+#tablaDinamicaPlancha th:nth-child(13) {
+    width: 3%;
+}
+
+
+/* Ocultar */
+
+
+/* Columna vacía 2 */
+
+#tablaDinamicaPlancha th:nth-child(14) {
+    width: 3%;
+}
+
+
+/* Estilos específicos para la tabla tablaDinamicaMaquila */
+
+#tablaDinamicaMaquila {
+    table-layout: fixed;
+    /* Importante para usar anchos fijos en porcentaje */
+    width: 360%;
+    /* Puedes ajustar este valor según tus necesidades */
+}
+
+#tablaDinamicaMaquila th,
+#tablaDinamicaMaquila td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* Ajusta los anchos de las columnas según tus preferencias */
+
+
+/* ID */
+
+#tablaDinamicaMaquila th:nth-child(1) {
+    width: 1%;
+}
+
+
+/* Auditor */
+
+#tablaDinamicaMaquila th:nth-child(2) {
+    width: 3%;
+}
+
+
+/* Descripción */
+
+#tablaDinamicaMaquila th:nth-child(3) {
+    width: 5%;
+}
+
+
+/* Cliente */
+
+#tablaDinamicaMaquila th:nth-child(4) {
+    width: 4%;
+}
+
+
+/* Estilo */
+
+#tablaDinamicaMaquila th:nth-child(5) {
+    width: 2%;
+}
+
+
+/* OP */
+
+#tablaDinamicaMaquila th:nth-child(6) {
+    width: 3%;
+}
+
+
+/* Maquina */
+
+#tablaDinamicaMaquila th:nth-child(7) {
+    width: 3%;
+}
+
+
+/* Tecnico */
+
+#tablaDinamicaMaquila th:nth-child(8) {
+    width: 3%;
+}
+
+
+/* Corte */
+
+#tablaDinamicaMaquila th:nth-child(9) {
+    width: 3%;
+}
+
+
+/* Color */
+
+#tablaDinamicaMaquila th:nth-child(10) {
+    width: 3%;
+}
+
+
+/* Talla */
+
+#tablaDinamicaMaquila th:nth-child(11) {
+    width: 3%;
+}
+
+
+/* Piezas */
+
+#tablaDinamicaMaquila th:nth-child(12) {
+    width: 2%;
+}
+
+
+/* TipoDefectos */
+
+#tablaDinamicaMaquila th:nth-child(13) {
+    width: 6%;
+}
+
+
+/* #Defectos */
+
+#tablaDinamicaMaquila th:nth-child(14) {
+    width: 4%;
+}
+
+
+/* Ac.Correct */
+
+#tablaDinamicaMaquila th:nth-child(15) {
+    width: 6%;
+}
+
+
+/* Columna vacía 1 */
+
+#tablaDinamicaMaquila th:nth-child(16) {
+    width: 3%;
+}
+
+
+/* Ocultar */
+
+
+/* Columna vacía 2 */
+
+#tablaDinamicaMaquila th:nth-child(17) {
+    width: 3%;
+}
+
+
+/* Ocultar */

@@ -1,6 +1,7 @@
 @extends('layouts.app', ['pageSlug' => 'CalidadProcesoPlancha', 'titlePage' => __('Calidad Proceso  Plancha')])
 
 @section('content')
+<link rel="stylesheet" href="black/css/styleScreenPrint.css">
     <style>
         .negative-image {
             filter: invert(100%);
@@ -139,67 +140,49 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tab-pane" id="messages">
-                        <div class="card-body table-responsive">
-                            <table class="table-cebra" id="miTabla">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="tablaDinamicaPlancha">
                                 <thead class="text-primary">
                                     <tr>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 1.5%;">
+                                        <th>
                                             ID</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 7.1%;">
+                                        <th>
                                             Auditor</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 5%;">
+                                        <th>
                                             Cliente</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 5%;">
+                                        <th>
                                             Estilo</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 5%;">
+                                        <th>
                                             OP</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 3%">
+                                        <th>
                                             Tecnico</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 3.5%;">
+                                        <th>
                                             Color</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 3.5%;">
+                                        <th>
                                             # Grafico</th>
-                                         <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 2.5%;">
+                                         <th>
                                             Piezas a auditar</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 6.5%;">
+                                        <th>
                                             Tipo Defectos</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 2.5%;">
+                                        <th>
                                             # Defectos</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 8.7%;">
+                                        <th>
                                             Acciones Correctivas</th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 7.5%;">
+                                        <th>
+
                                         </th>
-                                        <th
-                                            style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: 8.5%;">
+                                        <th>
+
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                 </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td>
-                                            <button type="button" class="btn btn-danger" id="Finalizar">
-                                                <span>Finalizar</span>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tfoot>
                             </table>
+                            <button type="button" class="btn btn-danger" id="Finalizar">
+                                <span>Finalizar</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -363,54 +346,53 @@
                                 '';
                             // Crear celdas para Tipo_Problema y Ac_Correctiva como select2
                             var tipoProblemaCell = isFinalizado ? '' :
-                                '<td style="white-space: nowrap;"><select class="form-control tipoProblemaSelect" name="tipoProblemaSelect[]" multiple ' +
+                                '<td><select class="form-control tipoProblemaSelect" name="tipoProblemaSelect[]" multiple ' +
                                 readonlyAttribute + '"></select></td>';
                             var acCorrectivaCell = isFinalizado ? '' :
-                                '<td style="white-space: nowrap;"><select class="form-control acCorrectivaSelect"  name="acCorrectivaSelect[]" multiple ' +
+                                '<td><select class="form-control acCorrectivaSelect"  name="acCorrectivaSelect[]" multiple ' +
                                 readonlyAttribute + '"></select></td>';
                             // Crear la fila con las celdas modificadas
                             var row = '<tr>' +
                                 '<td><input type="text" name="id" class="form-control" value="' +
-                                item.id + '" readonly style="white-space: nowrap;"></td>' +
+                                item.id + '" readonly></td>' +
                                 '<td><input type="text" name="Auditor" class="form-control" value="' +
-                                item.Auditor + '" readonly style="white-space: nowrap;"></td>' +
+                                item.Auditor + '" readonly></td>' +
                                 '<td><input type="text" name="Cliente" class="form-control" value="' +
                                 item.Cliente + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                '></td>' +
                                 '<td><input type="text" name="Estilo" class="form-control" value="' +
                                 item.Estilo + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                '></td>' +
                                 '<td><input type="text" name="OP_Defec" class="form-control" value="' +
                                 item.OP_Defec + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                '></td>' +
                                 '<td><input type="text" name="Tecnico" class="form-control" value="' +
                                 item.Tecnico + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                '></td>' +
                                 '<td><input type="text" name="Color" class="form-control" value="' +
                                 item.Color + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                '></td>' +
                                 '<td><input type="text" name="Num_Grafico" class="form-control" value="' +
                                 item.Num_Grafico + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                '></td>' +
                                 '<td><input type="text" name="Piezas_Auditar" class="form-control" value="' +
                                 item.Piezas_Auditar + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                '></td>' +
                                 '<td><input type="text" name="Tipo_Problemas" class="form-control" value="' +
                                 item.Tipo_Problema + '" ' +
-                                'readonly style="white-space: nowrap;"></td>' +
+                                'readonly></td>' +
                                 '<td><input type="text" name="Num_Problemas" class="form-control" value="' +
                                 item.Num_Problemas + '" ' + readonlyAttribute +
-                                ' style="white-space: nowrap;"></td>' +
+                                '></td>' +
                                 '<td><input type="text" name="Ac_Correctiva" class="form-control" value="' +
                                 item.Ac_Correctiva + '" ' +
-                                'readonly style="white-space: nowrap;"></td>' +
+                                'readonly></td>' +
                                 '<td><button type="button" class="btn btn-success guardarFila updateFile" ' +
-                                disabledAttribute + ' ' + hiddenAttribute +
-                                '>Guardar</button></td>' +
+                                disabledAttribute + ' ' + hiddenAttribute +'>Guardar</button></td>' +
                                 '</tr>';
 
                             // Agregar la fila a la tabla
-                            $('#miTabla tbody').append(row);
+                            $('#tablaDinamicaPlancha tbody').append(row);
                             lastRegisteredId = item.id;
 
                             if (!isFinalizado) {
@@ -564,29 +546,29 @@
             var newRow = '<tr>' +
                 '<td><input type="hidden" name="idR[]" value="' + lastRegisteredId + '"></td>' +
                 '<td><input type="text" name="auditorR[]" class="form-control" value="' + auditor +
-                '" readonly style="white-space: nowrap;"></td>' +
+                '" readonly></td>' +
                 '<td><input type="text" name="clienteR[]" class="form-control" value="' + cliente +
-                '" style="white-space: nowrap;"></td>' +
+                '"></td>' +
                 '<td><input type="text" name="estiloR[]" class="form-control" value="' + estilo +
-                '" style="white-space: nowrap;"></td>' +
+                '"></td>' +
                 '<td><input type="text" name="op_defecR[]" class="form-control" value="' + op +
-                '" style="white-space: nowrap;"></td>' +
+                '"></td>' +
                 '<td><input type="text" name="tecnicoR[]" class="form-control" value="' + tecnico +
-                '" style="white-space: nowrap;"></td>' +
+                '"></td>' +
                 '<td><input type="text" name="colorR[]" class="form-control" value="' + color +
-                '" style="white-space: nowrap;"></td>' +
+                '"></td>' +
                 '<td><input type="text" name="num_graficoR[]" class="form-control" value="' +
-                numGrafico + '" style="white-space: nowrap;"></td>' +
+                numGrafico + '"></td>' +
                 '<td><input type="text" name="piezas_auditarR[]" class="form-control" value="' + piezasAuditar +
-                '" style="white-space: nowrap;"></td>' +
-                '<td><select class="form-control" name="tipo_problemaR[]" style="white-space: nowrap;"></select></td>' +
+                '"></td>' +
+                '<td><select class="form-control" name="tipo_problemaR[]"></select></td>' +
                 '<td id="problemasContainer' + lastRegisteredId + '"></td>' + // Contenedor para los inputs
-                '<td><select class="form-control" name="ac_correctivaR[]" style="white-space: nowrap;"></select></td>' +
+                '<td><select class="form-control" name="ac_correctivaR[]"></select></td>' +
                 '<td><button type="button" class="btn btn-success guardarFila updateFile" style="white-space: nowrap;">Guardar</button></td>' +
-                '<td><button type="button" class="btn btn-danger descartar" style="white-space: nowrap;" onclick="descartarClicked()">Descartar <i class="material-icons">delete</i></button></td>' +
+                '<td><button type="button" class="btn btn-danger descartar" onclick="descartarClicked()">Descartar <i class="material-icons" style="white-space: nowrap;">delete</i></button></td>' +
                 '</tr>';
 
-            $('#miTabla tbody').append(newRow);
+            $('#tablaDinamicaPlancha tbody').append(newRow);
 
             // Cargar opciones de los nuevos select
             cargarOpcionesACCorrectiva();
@@ -740,7 +722,7 @@
         $(document).ready(function() {
             $('#Finalizar').click(function() {
                 // Iterar sobre cada fila de la tabla
-                $('#miTabla tbody tr').each(function() {
+                $('#tablaDinamicaPlancha tbody tr').each(function() {
                     var id = $(this).find('input[name="id"]').val();
                     // Hacer una solicitud POST para cada fila para actualizar el estado a "Finalizado"
                     $.ajax({
