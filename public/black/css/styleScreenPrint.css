@@ -94,14 +94,14 @@
 /* #Grafico */
 
 #tablaDinamico th:nth-child(9) {
-    width: 6%;
+    width: 4%;
 }
 
 
 /* Tecnica */
 
 #tablaDinamico th:nth-child(10) {
-    width: 6%;
+    width: 4%;
 }
 
 
@@ -122,7 +122,7 @@
 /* Piezas */
 
 #tablaDinamico th:nth-child(13) {
-    width: 8%;
+    width: 5%;
 }
 
 
@@ -136,11 +136,19 @@
 /* #Defectos */
 
 #tablaDinamico th:nth-child(15) {
-    width: 8%;
+    width: 5%;
 }
 
 
 /* AcCorrectiva */
+
+#tablaDinamico th:nth-child(16) {
+    width: 3%;
+}
+
+#tablaDinamico th:nth-child(17) {
+    width: 3%;
+}
 
 
 /* Estilos específicos para la tabla #CtrHorno */
@@ -177,3 +185,181 @@
 
 
 /* HORARIO */
+
+
+/* styleScreenPrint2.css */
+
+
+/* Estilos para la tabla #tablaDinamicoHorn */
+
+#tablaDinamicoHorn {
+    table-layout: fixed;
+    /* Importante para usar anchos fijos en porcentaje */
+    width: 360%;
+    /* Puedes ajustar este valor según tus necesidades */
+}
+
+#tablaDinamicoHorn th,
+#tablaDinamicoHorn td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* Ajusta los anchos de las columnas según tus preferencias */
+
+
+/* ID */
+
+#tablaDinamicoHorn th:nth-child(1) {
+    width: 1%;
+}
+
+
+/* Auditor */
+
+#tablaDinamicoHorn th:nth-child(2) {
+    width: 3%;
+}
+
+
+/* Cliente */
+
+#tablaDinamicoHorn th:nth-child(3) {
+    width: 4%;
+}
+
+
+/* Estilo */
+
+#tablaDinamicoHorn th:nth-child(4) {
+    width: 2%;
+}
+
+
+/* OP */
+
+#tablaDinamicoHorn th:nth-child(5) {
+    width: 3%;
+}
+
+
+/* Panel */
+
+#tablaDinamicoHorn th:nth-child(6) {
+    width: 3%;
+}
+
+
+/* Tecnico */
+
+#tablaDinamicoHorn th:nth-child(7) {
+    width: 3%;
+}
+
+
+/* Color */
+
+#tablaDinamicoHorn th:nth-child(8) {
+    width: 3%;
+}
+
+
+/* # Grafico */
+
+#tablaDinamicoHorn th:nth-child(9) {
+    width: 3%;
+}
+
+
+/* TipoMaquina */
+
+#tablaDinamicoHorn th:nth-child(10) {
+    width: 6%;
+}
+
+
+/* Leyenda */
+
+#tablaDinamicoHorn th:nth-child(11) {
+    width: 6%;
+}
+
+
+/* Tecnica */
+
+#tablaDinamicoHorn th:nth-child(12) {
+    width: 6%;
+}
+
+
+/* Piezas */
+
+#tablaDinamicoHorn th:nth-child(13) {
+    width: 2%;
+}
+
+
+/* Fibras */
+
+#tablaDinamicoHorn th:nth-child(14) {
+    width: 6%;
+}
+
+
+/* % Fibras */
+
+#tablaDinamicoHorn th:nth-child(15) {
+    width: 4%;
+}
+
+
+/* Hora */
+
+#tablaDinamicoHorn th:nth-child(16) {
+    width: 3%;
+}
+
+
+/* Bulto */
+
+#tablaDinamicoHorn th:nth-child(17) {
+    width: 2%;
+}
+
+
+/* Talla */
+
+#tablaDinamicoHorn th:nth-child(18) {
+    width: 3%;
+}
+
+
+/* TipoDefectos */
+
+#tablaDinamicoHorn th:nth-child(19) {
+    width: 8%;
+}
+
+
+/* #Defectos */
+
+#tablaDinamicoHorn th:nth-child(20) {
+    width: 5%;
+}
+
+
+/* Ac.Correct */
+
+#tablaDinamicoHorn th:nth-child(21) {
+    width: 8%;
+}
+
+#tablaDinamicoHorn th:nth-child(22) {
+    width: 3%;
+}
+
+#tablaDinamicoHorn th:nth-child(23) {
+    width: 3%;
+}
