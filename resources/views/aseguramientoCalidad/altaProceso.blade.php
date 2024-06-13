@@ -102,7 +102,6 @@
                                             <select name="area" id="area" class="form-control" required>
                                                 <option value="">Selecciona una opción</option>
                                                 <option value="AUDITORIA EN PROCESO">AUDITORIA EN PROCESO</option>
-                                                <option value="AUDITORIA EN PROCESO PLAYERA">AUDITORIA EN PROCESO PLAYERA</option>
                                                 <option value="AUDITORIA EN EMPAQUE">AUDITORIA EN EMPAQUE</option>
                                             </select>
                                         </td>
@@ -314,7 +313,7 @@
                     </div>
                     {{--Fin del apartado del primer acordeon externo--}}
                     {{--Inicio del Segundo acordeon externo--}}
-                    <div class="accordion" id="accordionExample">
+                    {{--<div class="accordion" id="accordionExample">
                         <div class="card">
                             <div class="card-header" id="headingOne">
                                 <h2 class="mb-0">
@@ -330,7 +329,7 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            {{-- Inicio de Acordeon --}}
+                                   
                                             <div class="accordion" id="accordionExample5">
                                                 <div class="card">
                                                     <div class="card-header" id="headingOne5">
@@ -382,9 +381,9 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Fin del acordeón 1 -->
+
                                         <div class="col-md-6">
-                                            {{-- Inicio de Acordeon --}}
+
                                             <div class="accordion" id="accordionExample6">
                                                 <div class="card">
                                                     <div class="card-header" id="headingOne6">
@@ -436,12 +435,12 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Fin del acordeón 2 -->
+
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div>--}}
                     {{--Fin del Segundo Acordeon Externo--}}
                     {{--Inicio del Tercer Acordeon Externo--}}
                     <div class="accordion" id="accordionExample">
