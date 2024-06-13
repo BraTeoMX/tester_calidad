@@ -11,6 +11,12 @@
                         <p>{{ __('Dashboard') }}</p>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('altaYbaja') }}">
+                        <i class="tim-icons icon-support-17"></i>
+                        <p>{{ __('Gestión de Categorías') }}</p>
+                    </a>
+                </li>
             @endif
 
             @if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Gerente de Calidad')))
