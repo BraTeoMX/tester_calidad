@@ -1,7 +1,7 @@
 @extends('layouts.app', ['pageSlug' => 'ScreenPrint', 'titlePage' => __('Screen Print')])
 @section('content')
 <link rel="stylesheet" href="black/css/styleScreenPrint.css">
-    < class="content">
+<div class="content">
         <div class="container-fluid">
             <div class="card">
                 <div class="card-header card-header-primary">
@@ -177,6 +177,10 @@
                                             # Defectos</th>
                                         <th>
                                             Ac. Correctivas</th>
+                                       <th>
+                                        </th>
+                                        <th>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -611,7 +615,7 @@
                                 var row = '<tr>' +
                                     '<td><input type="text" name="id" class="form-control" value="' +
                                     item.id + '" readonly  ></td>' +
-                                    '<td><input type="text" name="Auditor" class="form-control" value="' +
+                                    '<td class="white-text"><input type="text" name="Auditor" class="form-control" value="' +
                                     item.Auditor + '" readonly  ></td>' +
                                     '<td><input type="text" name="Cliente" class="form-control" value="' +
                                     item.Cliente + '" ' + readonlyAttribute +
