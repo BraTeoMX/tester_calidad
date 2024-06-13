@@ -98,11 +98,7 @@
                                 <tbody>
                                     <tr>
                                         <td>
-                                            <select name="area" id="area" class="form-control" required>
-                                                <option value="">Selecciona una opción</option>
-                                                <option value="AUDITORIA AQL">AUDITORIA AQL</option>
-                                                <option value="AUDITORIA AQL PLAYERA">AUDITORIA AQL PLAYERA</option>
-                                            </select>
+                                            <input type="text" class="form-control texto-blanco" name="area" value="AUDITORIA AQL" readonly>
                                         </td>
                                         <td>
                                             <select name="modulo" id="modulo" class="form-control" required

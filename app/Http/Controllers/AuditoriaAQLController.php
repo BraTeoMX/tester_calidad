@@ -26,7 +26,7 @@ class AuditoriaAQLController extends Controller
             'auditorDato' => Auth::user()->name,
             'auditorPlanta' => Auth::user()->Planta,
             'AuditoriaProceso' => AuditoriaProceso::all(),
-            'categoriaTPProceso' => CategoriaTipoProblema::where('area', 'proceso')->get(),
+            'categoriaTPProceso' => CategoriaTipoProblema::whereIn('area', ['proceso', 'playera'])->get(),
             'categoriaTPPlayera' => CategoriaTipoProblema::where('area', 'playera')->get(),
             'categoriaTPEmpaque' => CategoriaTipoProblema::where('area', 'empaque')->get(),
             'categoriaACProceso' => CategoriaAccionCorrectiva::where('area', 'proceso')->get(),
