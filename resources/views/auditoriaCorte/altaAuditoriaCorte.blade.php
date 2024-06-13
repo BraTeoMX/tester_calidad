@@ -61,6 +61,10 @@
             border-radius: 15px;
             font-size: 20px;
         }
+
+        .texto-blanco {
+            color: white !important;
+        }
     </style>
     {{-- ... el resto de tu vista ... --}} 
     <div class="content">
@@ -120,7 +124,7 @@
                                 <tr>
                                     <td>
                                         @if($datoAX->inventcolorid)
-                                            <input type="text" class="form-control" name="color_id" id="color_id" value="{{ $datoAX->inventcolorid }}" readonly/>
+                                            <input type="text" class="form-control texto-blanco" name="color_id" id="color_id" value="{{ $datoAX->inventcolorid }}" readonly/>
                                         @else
                                             <input type="text" class="form-control" name="color_id" id="color_id" placeholder="..." required/>
                                         @endif

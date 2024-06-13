@@ -151,9 +151,9 @@
                                                 @endif
                                             </select>
                                         </td>
-                                        <td><input type="text" class="form-control me-2" name="auditor" id="auditor"
+                                        <td><input type="text" class="form-control texto-blanco" name="auditor" id="auditor"
                                                 value="{{ $auditorDato }}" readonly required /></td>
-                                        <td><input type="text" class="form-control me-2" name="turno" id="turno"
+                                        <td><input type="text" class="form-control texto-blanco" name="turno" id="turno"
                                                 value="1" readonly required /></td>
                                     </tr>
                                 </tbody>
@@ -496,6 +496,10 @@
             /* Azul claro */
             color: #333;
             /* Color del texto */
+        }
+
+        .texto-blanco {
+            color: white !important;
         }
     </style>
     <script>

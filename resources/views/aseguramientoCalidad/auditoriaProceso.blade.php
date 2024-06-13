@@ -148,17 +148,17 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td><input type="text" class="form-control" name="modulo" id="modulo"
+                                        <td><input type="text" class="form-control texto-blanco" name="modulo" id="modulo"
                                                 value="{{ $data['modulo'] }}" readonly></td>
-                                        <td><input type="text" class="form-control" name="estilo" id="estilo"
+                                        <td><input type="text" class="form-control texto-blanco" name="estilo" id="estilo"
                                                 value="{{ $data['estilo'] }}" readonly></td>
-                                        <td><input type="text" class="form-control" name="team_leader" id="team_leader"
+                                        <td><input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader"
                                                 value="{{ $data['team_leader'] }}" readonly></td>
-                                        <td><input type="text" class="form-control" name="auditor" id="auditor"
+                                        <td><input type="text" class="form-control texto-blanco" name="auditor" id="auditor"
                                                 value="{{ $data['auditor'] }}" readonly></td>
-                                        <td><input type="text" class="form-control" name="turno" id="turno"
+                                        <td><input type="text" class="form-control texto-blanco" name="turno" id="turno"
                                                 value="{{ $data['turno'] }}" readonly></td>
-                                        <td><input type="text" class="form-control" name="cliente" id="cliente"
+                                        <td><input type="text" class="form-control texto-blanco" name="cliente" id="cliente"
                                                 value="{{ $data['cliente'] }}" readonly></td>
                                     </tr>
                                 </tbody>
@@ -216,9 +216,9 @@
                                                     </select>
                                                 </div>
                                             </td>
-                                            <td><input type="text" class="form-control" name="operacion" id="operacion" required></td>
-                                            <td><input type="text" class="form-control" name="cantidad_auditada" id="cantidad_auditada" required></td>
-                                            <td><input type="text" class="form-control" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
+                                            <td><input type="text" class="form-control texto-blanco" name="operacion" id="operacion" required></td>
+                                            <td><input type="text" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
+                                            <td><input type="text" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
                                             <td class="tp-column d-none">
                                                 <select name="tp[]" id="tpSelect" class="form-control" multiple title="Por favor, selecciona una opción"> 
                                                     <option value="OTRO">OTRO</option>
@@ -314,33 +314,33 @@
                                                 @csrf
                                                 <input type="hidden" name="id" value="{{ $registro->id }}">
                                                 <td>
-                                                    <input type="text" class="form-control" name="nombre"
+                                                    <input type="text" class="form-control texto-blanco" name="nombre"
                                                         value="{{ $registro->nombre }}" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="operacion"
+                                                    <input type="text" class="form-control texto-blanco" name="operacion"
                                                         value="{{ $registro->operacion }}" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="cantidad_auditada"
+                                                    <input type="text" class="form-control texto-blanco" name="cantidad_auditada"
                                                         value="{{ $registro->cantidad_auditada }}" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="cantidad_rechazada"
+                                                    <input type="text" class="form-control texto-blanco" name="cantidad_rechazada"
                                                         value="{{ $registro->cantidad_rechazada }}" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="tp"
+                                                    <input type="text" class="form-control texto-blanco" name="tp"
                                                         value="{{ $registro->tp }}" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="ac"
+                                                    <input type="text" class="form-control texto-blanco" name="ac"
                                                         value="{{ $registro->ac }}" readonly>
                                                 </td>
                                                 @if ($data['area'] == 'AUDITORIA EN EMPAQUE')
                                                 @else
                                                     <td>
-                                                        <input type="text" class="form-control" name="pxp"
+                                                        <input type="text" class="form-control texto-blanco" name="pxp"
                                                             value="{{ $registro->pxp }}" readonly>
 
                                                     </td>
@@ -354,7 +354,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="observacion" class="col-sm-6 col-form-label">Observaciones:</label>
                                     <div class="col-sm-12">
-                                        <textarea class="form-control" name="observacion" id="observacion" rows="3" readonly>{{ $registro->observacion }}</textarea>
+                                        <textarea class="form-control texto-blanco" name="observacion" id="observacion" rows="3" readonly>{{ $registro->observacion }}</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -397,19 +397,19 @@
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="nombre"
+                                                    <input type="text" class="form-control texto-blanco" name="nombre"
                                                         value="{{ $registro->nombre }}" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="operacion"
+                                                    <input type="text" class="form-control texto-blanco" name="operacion"
                                                         value="{{ $registro->operacion }}" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="cantidad_auditada"
+                                                    <input type="text" class="form-control texto-blanco" name="cantidad_auditada"
                                                         value="{{ $registro->cantidad_auditada }}" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control" name="cantidad_rechazada"
+                                                    <input type="text" class="form-control texto-blanco" name="cantidad_rechazada"
                                                         value="{{ $registro->cantidad_rechazada }}" readonly>
                                                 </td>
                                                 <form action="{{ route('aseguramientoCalidad.formUpdateDeleteProceso') }}"
@@ -417,17 +417,17 @@
                                                     @csrf
                                                     <input type="hidden" name="id" value="{{ $registro->id }}">
                                                     <td>
-                                                        <input type="text" class="form-control" readonly
+                                                        <input type="text" class="form-control texto-blanco" readonly
                                                                value="{{ implode(', ', $registro->tpAseguramientoCalidad->pluck('tp')->toArray()) }}">
                                                     </td>
                                                     <td>
-                                                        <input type="text" class="form-control" name="ac"
+                                                        <input type="text" class="form-control texto-blanco" name="ac"
                                                         value="{{ $registro->ac }}" readonly>
                                                     </td>
                                                     @if ($data['area'] == 'AUDITORIA EN EMPAQUE')
                                                     @else
                                                         <td>
-                                                            <input type="text" class="form-control" name="pxp_text"
+                                                            <input type="text" class="form-control texto-blanco" name="pxp_text"
                                                                 id="pxp_text_{{ $registro->id }}"
                                                                 value="{{ $registro->pxp }}" readonly>
                                                             <input type="hidden" name="pxp"
@@ -461,7 +461,7 @@
                                             <label for="observacion"
                                                 class="col-sm-6 col-form-label">Observaciones:</label>
                                             <div class="col-sm-12">
-                                                <textarea class="form-control" name="observacion" id="observacion" rows="3" placeholder="comentarios"
+                                                <textarea class="form-control texto-blanco" name="observacion" id="observacion" rows="3" placeholder="comentarios"
                                                     required></textarea>
                                             </div>
                                         </div>
@@ -497,15 +497,15 @@
                             <tbody>
                                 @foreach ($registrosIndividual as $registro)
                                     <tr>
-                                        <td><input type="text" class="form-control" value="{{ $registro->nombre }}"
+                                        <td><input type="text" class="form-control texto-blanco" value="{{ $registro->nombre }}"
                                                 readonly></td>
-                                        <td><input type="text" class="form-control" 
+                                        <td><input type="text" class="form-control texto-blanco" 
                                             value="{{ $registro->cantidad_registros }}" readonly></td> 
-                                        <td><input type="text" class="form-control"
+                                        <td><input type="text" class="form-control texto-blanco"
                                                 value="{{ $registro->total_auditada }}" readonly></td>
-                                        <td><input type="text" class="form-control"
+                                        <td><input type="text" class="form-control texto-blanco"
                                                 value="{{ $registro->total_rechazada }}" readonly></td>
-                                        <td><input type="text" class="form-control"
+                                        <td><input type="text" class="form-control texto-blanco"
                                                 value="{{ $registro->total_rechazada != 0 ? round(($registro->total_rechazada / $registro->total_auditada) * 100, 2) : 0 }}"
                                                 readonly></td>
                                     </tr>
@@ -527,11 +527,11 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><input type="text" class="form-control" name="total_auditada"
+                                    <td><input type="text" class="form-control texto-blanco" name="total_auditada"
                                             id="total_auditada" value="{{ $total_auditada }}" readonly></td>
-                                    <td><input type="text" class="form-control" name="total_rechazada"
+                                    <td><input type="text" class="form-control texto-blanco" name="total_rechazada"
                                             id="total_rechazada" value="{{ $total_rechazada }}" readonly></td>
-                                    <td><input type="text" class="form-control" name="total_porcentaje"
+                                    <td><input type="text" class="form-control texto-blanco" name="total_porcentaje"
                                             id="total_porcentaje" value="{{ number_format($total_porcentaje, 2) }}"
                                             readonly></td>
                                 </tr>
@@ -577,6 +577,10 @@
                 min-width: 100px;
                 /* Ajusta el ancho mínimo para móviles */
             }
+        }
+
+        .texto-blanco {
+            color: white !important;
         }
     </style>
 

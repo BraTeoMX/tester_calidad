@@ -125,10 +125,10 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="text" class="form-control" name="estilo" id="estilo" readonly required />
+                                            <input type="text" class="form-control texto-blanco" name="estilo" id="estilo" readonly required />
                                         </td>
                                         <td>
-                                            <input type="text" class="form-control" name="cliente" id="cliente" readonly required />
+                                            <input type="text" class="form-control texto-blanco" name="cliente" id="cliente" readonly required />
                                         </td>
                                         
                                         <td>
@@ -151,10 +151,10 @@
                                                 @endif
                                             </select>
                                         </td>
-                                        <td><input type="text" class="form-control me-2" name="auditor" id="auditor"
-                                                value="{{ $auditorDato }}" readonly required /></td>
-                                        <td><input type="text" class="form-control me-2" name="turno" id="turno"
-                                                value="1" readonly required /></td>
+                                        <td><input type="text" class="form-control me-2 texto-blanco" name="auditor" id="auditor"
+                                            value="{{ $auditorDato }}" readonly  /></td>
+                                        <td><input type="text" class="form-control me-2 texto-blanco" name="turno" id="turno"
+                                                    value="1" readonly  /></td>                             
                                     </tr>
                                 </tbody>
                             </table>
@@ -571,6 +571,10 @@
             /* Azul claro */
             color: #333;
             /* Color del texto */
+        }
+
+        .texto-blanco {
+            color: white !important;
         }
     </style>
     <script>
