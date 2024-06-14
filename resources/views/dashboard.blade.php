@@ -122,7 +122,15 @@
                                         <i class="tim-icons icon-gift-2"></i>
                                     </span>
                                 </label>
+                                <label class="btn btn-sm btn-primary btn-simple" id="toggleAll">
+                                    <input type="checkbox" name="toggleAllOptions">
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Mostrar/Ocultar Todo</span>
+                                    <span class="d-block d-sm-none">
+                                        <i class="tim-icons icon-bullet-list-67"></i>
+                                    </span>
+                                </label>
                             </div>
+                            
                         </div>
                     </div>
                 </div>
@@ -159,7 +167,15 @@
                                         <i class="tim-icons icon-gift-2"></i>
                                     </span>
                                 </label>
+                                <label class="btn btn-sm btn-primary btn-simple" id="toggleAllModulos">
+                                    <input type="checkbox" name="toggleAllModulosOptions">
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Mostrar/Ocultar Todo</span>
+                                    <span class="d-block d-sm-none">
+                                        <i class="tim-icons icon-bullet-list-67"></i>
+                                    </span>
+                                </label>
                             </div>
+                            
                         </div>
                     </div>
                 </div>
@@ -172,9 +188,8 @@
             </div>
         </div>
     </div>
+
     <div class="row">
-
-
         <div class="col-lg-4">
             <div class="card card-chart">
                 <div class="card-header">
@@ -593,86 +608,86 @@
         var ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');
         var datasetsAQL = @json($datasetsAQL).map((dataset, index) => {
             return {
-            ...dataset,
-            borderColor: colores[index % colores.length],
-            backgroundColor: colores[index % colores.length]
+                ...dataset,
+                borderColor: colores[index % colores.length],
+                backgroundColor: colores[index % colores.length]
             };
         });
         var chartClienteAQL = new Chart(ctxClienteAQL, {
             type: 'line',
             data: {
-            labels: @json($fechasGrafica),
-            datasets: datasetsAQL
+                labels: @json($fechasGrafica),
+                datasets: datasetsAQL
             },
             options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            legend: {
-                display: true // Mostrar la leyenda
-            },
-            scales: {
-                xAxes: [{
-                type: 'time',
-                time: {
-                    unit: 'day',
-                    tooltipFormat: 'll',
-                    displayFormats: {
-                    day: 'YYYY-MM-DD'
-                    }
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    display: true // Mostrar la leyenda
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            tooltipFormat: 'll',
+                            displayFormats: {
+                                day: 'YYYY-MM-DD'
+                            }
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            callback: function(value, index, values) {
+                                return value + '%'; // Añadir el símbolo de porcentaje
+                            }
+                        }
+                    }]
                 }
-                }],
-                yAxes: [{
-                ticks: {
-                    beginAtZero: true,
-                    callback: function(value, index, values) {
-                    return value + '%'; // Añadir el símbolo de porcentaje
-                    }
-                }
-                }]
-            }
             }
         });
 
         var ctxClienteProcesos = document.getElementById('clienteChartProcesos').getContext('2d');
         var datasetsProceso = @json($datasetsProceso).map((dataset, index) => {
             return {
-            ...dataset,
-            borderColor: colores[index % colores.length],
-            backgroundColor: colores[index % colores.length]
+                ...dataset,
+                borderColor: colores[index % colores.length],
+                backgroundColor: colores[index % colores.length]
             };
         });
         var chartClienteProcesos = new Chart(ctxClienteProcesos, {
             type: 'line',
             data: {
-            labels: @json($fechasGrafica),
-            datasets: datasetsProceso
+                labels: @json($fechasGrafica),
+                datasets: datasetsProceso
             },
             options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            legend: {
-                display: true // Mostrar la leyenda
-            },
-            scales: {
-                xAxes: [{
-                type: 'time',
-                time: {
-                    unit: 'day',
-                    tooltipFormat: 'll',
-                    displayFormats: {
-                    day: 'YYYY-MM-DD'
-                    }
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    display: true // Mostrar la leyenda
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            tooltipFormat: 'll',
+                            displayFormats: {
+                                day: 'YYYY-MM-DD'
+                            }
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            callback: function(value, index, values) {
+                                return value + '%'; // Añadir el símbolo de porcentaje
+                            }
+                        }
+                    }]
                 }
-                }],
-                yAxes: [{
-                ticks: {
-                    beginAtZero: true,
-                    callback: function(value, index, values) {
-                    return value + '%'; // Añadir el símbolo de porcentaje
-                    }
-                }
-                }]
-            }
             }
         });
 
@@ -686,6 +701,19 @@
             $('#clienteChartAQL').hide();
             $('#clienteChartProcesos').show();
             chartClienteProcesos.update(); // Asegurarse de que la gráfica se actualice
+        });
+
+        $('#toggleAll').on('click', function() {
+            var showAll = $('#toggleAll input').prop('checked');
+            var toggleVisibility = function(chart) {
+                chart.data.datasets.forEach(function(dataset) {
+                    dataset.hidden = !showAll;
+                });
+                chart.update();
+            };
+
+            toggleVisibility(chartClienteAQL);
+            toggleVisibility(chartClienteProcesos);
         });
         });
     </script>
@@ -808,8 +836,21 @@
                 $('#moduloChartProcesos').show();
                 chartModuloProcesos.update();
             });
+
+            $('#toggleAllModulos').on('click', function() {
+                var showAll = $('#toggleAllModulos input').prop('checked');
+                var toggleVisibility = function(chart) {
+                    chart.data.datasets.forEach(function(dataset) {
+                        dataset.hidden = !showAll;
+                    });
+                    chart.update();
+                };
+
+                toggleVisibility(chartModuloAQL);
+                toggleVisibility(chartModuloProcesos);
+            });
         });
-    </script> 
+    </script>
     <!-- nothing-->
     <!-- nothing-->
     <script>

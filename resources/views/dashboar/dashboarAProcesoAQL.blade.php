@@ -109,6 +109,13 @@
                                         <i class="tim-icons icon-gift-2"></i>
                                     </span>
                                 </label>
+                                <label class="btn btn-sm btn-primary btn-simple" id="toggleAllClientes">
+                                    <input type="checkbox" name="toggleAllClientesOptions">
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Mostrar/Ocultar Todo</span>
+                                    <span class="d-block d-sm-none">
+                                        <i class="tim-icons icon-bullet-list-67"></i>
+                                    </span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -441,21 +448,21 @@
             }
 
             var colores = [
-                'rgba(75, 192, 192, 1)',   
-                'rgba(153, 102, 255, 1)', 
-                'rgba(255, 99, 132, 1)',  
-                'rgba(54, 162, 235, 1)',  
-                'rgba(255, 206, 86, 1)',  
-                'rgba(255, 159, 64, 1)',  
-                'rgba(199, 199, 199, 1)', 
-                'rgba(255, 99, 255, 1)',  
-                'rgba(99, 255, 132, 1)',  
-                'rgba(99, 132, 255, 1)',  
-                'rgba(132, 99, 255, 1)',  
-                'rgba(192, 75, 192, 1)',  
-                'rgba(235, 162, 54, 1)',  
-                'rgba(86, 255, 206, 1)',  
-                'rgba(64, 159, 255, 1)'   
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(255, 159, 64, 1)',
+                'rgba(199, 199, 199, 1)',
+                'rgba(255, 99, 255, 1)',
+                'rgba(99, 255, 132, 1)',
+                'rgba(99, 132, 255, 1)',
+                'rgba(132, 99, 255, 1)',
+                'rgba(192, 75, 192, 1)',
+                'rgba(235, 162, 54, 1)',
+                'rgba(86, 255, 206, 1)',
+                'rgba(64, 159, 255, 1)'
             ];
 
             var ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');
@@ -487,15 +494,15 @@
                                     return formatWeekLabel(value);
                                 },
                                 autoSkip: false,
-                                maxRotation: 0, // Para que las etiquetas sean horizontales
+                                maxRotation: 0,
                                 minRotation: 0,
-                                maxTicksLimit: 10, // Limita el número de ticks
+                                maxTicksLimit: 10
                             }
                         }],
                         yAxes: [{
                             ticks: {
                                 beginAtZero: true,
-                                stepSize: 0.2, // Ajusta el intervalo de los ticks
+                                stepSize: 0.2,
                                 callback: function(value) {
                                     return value % 1 === 0 ? Number(value.toFixed(2)) + '%' : '';
                                 }
@@ -541,15 +548,15 @@
                                     return formatWeekLabel(value);
                                 },
                                 autoSkip: false,
-                                maxRotation: 0, // Para que las etiquetas sean horizontales
+                                maxRotation: 0,
                                 minRotation: 0,
-                                maxTicksLimit: 10, // Limita el número de ticks
+                                maxTicksLimit: 10
                             }
                         }],
                         yAxes: [{
                             ticks: {
                                 beginAtZero: true,
-                                stepSize: 0.2, // Ajusta el intervalo de los ticks
+                                stepSize: 0.2,
                                 callback: function(value) {
                                     return value % 1 === 0 ? Number(value.toFixed(2)) + '%' : '';
                                 }
@@ -564,7 +571,7 @@
                         }
                     }
                 }
-            }); 
+            });
 
             $('#cliente0').on('click', function() {
                 $('#clienteChartAQL').show();
@@ -577,8 +584,22 @@
                 $('#clienteChartProcesos').show();
                 chartClienteProcesos.update();
             });
+
+            $('#toggleAllClientes').on('click', function() {
+                var showAll = $('#toggleAllClientes input').prop('checked');
+                var toggleVisibility = function(chart) {
+                    chart.data.datasets.forEach(function(dataset) {
+                        dataset.hidden = !showAll;
+                    });
+                    chart.update();
+                };
+
+                toggleVisibility(chartClienteAQL);
+                toggleVisibility(chartClienteProcesos);
+            });
         });
     </script>
+
 
 
     <!-- DataTables CSS -->

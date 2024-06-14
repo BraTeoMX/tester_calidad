@@ -124,12 +124,19 @@
                                         <i class="tim-icons icon-gift-2"></i>
                                     </span>
                                 </label>
+                                <label class="btn btn-sm btn-primary btn-simple" id="toggleAllClientes">
+                                    <input type="checkbox" name="toggleAllClientesOptions">
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Mostrar/Ocultar Todo</span>
+                                    <span class="d-block d-sm-none">
+                                        <i class="tim-icons icon-bullet-list-67"></i>
+                                    </span>
+                                </label>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="chart-area" style="height: 500px;"> <!-- Ajusta esta altura según tus necesidades -->
+                    <div class="chart-area" style="height: 500px;">
                         <canvas id="clienteChartAQL"></canvas>
                         <canvas id="clienteChartProcesos" style="display: none;"></canvas>
                     </div>
@@ -161,12 +168,19 @@
                                         <i class="tim-icons icon-gift-2"></i>
                                     </span>
                                 </label>
+                                <label class="btn btn-sm btn-primary btn-simple" id="toggleAllModulos">
+                                    <input type="checkbox" name="toggleAllModulosOptions">
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Mostrar/Ocultar Todo</span>
+                                    <span class="d-block d-sm-none">
+                                        <i class="tim-icons icon-bullet-list-67"></i>
+                                    </span>
+                                </label>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="chart-area" style="height: 500px;"> <!-- Ajusta esta altura según tus necesidades -->
+                    <div class="chart-area" style="height: 500px;">
                         <canvas id="moduloChartAQL"></canvas>
                         <canvas id="moduloChartProcesos" style="display: none;"></canvas>
                     </div>
@@ -570,127 +584,141 @@
     });
 </script>
 
-<script>
-    $(document).ready(function() {
-      // Lista de colores
-      var colores = [
-        'rgba(75, 192, 192, 1)',
-        'rgba(153, 102, 255, 1)',
-        'rgba(255, 99, 132, 1)',
-        'rgba(54, 162, 235, 1)',
-        'rgba(255, 206, 86, 1)',
-        'rgba(255, 159, 64, 1)',
-        'rgba(199, 199, 199, 1)',
-        'rgba(255, 99, 255, 1)',
-        'rgba(99, 255, 132, 1)',
-        'rgba(99, 132, 255, 1)',
-        'rgba(132, 99, 255, 1)',
-        'rgba(192, 75, 192, 1)',
-        'rgba(235, 162, 54, 1)',
-        'rgba(86, 255, 206, 1)',
-        'rgba(64, 159, 255, 1)'
-      ];
+    <script>
+        $(document).ready(function() {
+            // Lista de colores
+            var colores = [
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(255, 159, 64, 1)',
+                'rgba(199, 199, 199, 1)',
+                'rgba(255, 99, 255, 1)',
+                'rgba(99, 255, 132, 1)',
+                'rgba(99, 132, 255, 1)',
+                'rgba(132, 99, 255, 1)',
+                'rgba(192, 75, 192, 1)',
+                'rgba(235, 162, 54, 1)',
+                'rgba(86, 255, 206, 1)',
+                'rgba(64, 159, 255, 1)'
+            ];
 
-      // Inicializa las gráficas
-      var ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');
-      var datasetsAQL = @json($datasetsAQL).map((dataset, index) => {
-        return {
-          ...dataset,
-          borderColor: colores[index % colores.length],
-          backgroundColor: colores[index % colores.length]
-        };
-      });
-      var chartClienteAQL = new Chart(ctxClienteAQL, {
-        type: 'line',
-        data: {
-          labels: @json($fechasGrafica),
-          datasets: datasetsAQL
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          legend: {
-            display: true // Mostrar la leyenda
-          },
-          scales: {
-            xAxes: [{
-              type: 'time',
-              time: {
-                unit: 'day',
-                tooltipFormat: 'll',
-                displayFormats: {
-                  day: 'YYYY-MM-DD'
+            // Inicializa las gráficas de clientes
+            var ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');
+            var datasetsAQL = @json($datasetsAQL).map((dataset, index) => {
+                return {
+                    ...dataset,
+                    borderColor: colores[index % colores.length],
+                    backgroundColor: colores[index % colores.length]
+                };
+            });
+            var chartClienteAQL = new Chart(ctxClienteAQL, {
+                type: 'line',
+                data: {
+                    labels: @json($fechasGrafica),
+                    datasets: datasetsAQL
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: {
+                        display: true // Mostrar la leyenda
+                    },
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'll',
+                                displayFormats: {
+                                    day: 'YYYY-MM-DD'
+                                }
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function(value, index, values) {
+                                    return value + '%'; // Añadir el símbolo de porcentaje
+                                }
+                            }
+                        }]
+                    }
                 }
-              }
-            }],
-            yAxes: [{
-              ticks: {
-                beginAtZero: true,
-                callback: function(value, index, values) {
-                  return value + '%'; // Añadir el símbolo de porcentaje
-                }
-              }
-            }]
-          }
-        }
-      });
+            });
 
-      var ctxClienteProcesos = document.getElementById('clienteChartProcesos').getContext('2d');
-      var datasetsProceso = @json($datasetsProceso).map((dataset, index) => {
-        return {
-          ...dataset,
-          borderColor: colores[index % colores.length],
-          backgroundColor: colores[index % colores.length]
-        };
-      });
-      var chartClienteProcesos = new Chart(ctxClienteProcesos, {
-        type: 'line',
-        data: {
-          labels: @json($fechasGrafica),
-          datasets: datasetsProceso
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          legend: {
-            display: true // Mostrar la leyenda
-          },
-          scales: {
-            xAxes: [{
-              type: 'time',
-              time: {
-                unit: 'day',
-                tooltipFormat: 'll',
-                displayFormats: {
-                  day: 'YYYY-MM-DD'
+            var ctxClienteProcesos = document.getElementById('clienteChartProcesos').getContext('2d');
+            var datasetsProceso = @json($datasetsProceso).map((dataset, index) => {
+                return {
+                    ...dataset,
+                    borderColor: colores[index % colores.length],
+                    backgroundColor: colores[index % colores.length]
+                };
+            });
+            var chartClienteProcesos = new Chart(ctxClienteProcesos, {
+                type: 'line',
+                data: {
+                    labels: @json($fechasGrafica),
+                    datasets: datasetsProceso
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: {
+                        display: true // Mostrar la leyenda
+                    },
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'll',
+                                displayFormats: {
+                                    day: 'YYYY-MM-DD'
+                                }
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function(value, index, values) {
+                                    return value + '%'; // Añadir el símbolo de porcentaje
+                                }
+                            }
+                        }]
+                    }
                 }
-              }
-            }],
-            yAxes: [{
-              ticks: {
-                beginAtZero: true,
-                callback: function(value, index, values) {
-                  return value + '%'; // Añadir el símbolo de porcentaje
-                }
-              }
-            }]
-          }
-        }
-      });
+            });
 
-      $('#cliente0').on('click', function() {
-        $('#clienteChartAQL').show();
-        $('#clienteChartProcesos').hide();
-        chartClienteAQL.update(); // Asegurarse de que la gráfica se actualice
-      });
+            $('#cliente0').on('click', function() {
+                $('#clienteChartAQL').show();
+                $('#clienteChartProcesos').hide();
+                chartClienteAQL.update(); // Asegurarse de que la gráfica se actualice
+            });
 
-      $('#cliente1').on('click', function() {
-        $('#clienteChartAQL').hide();
-        $('#clienteChartProcesos').show();
-        chartClienteProcesos.update(); // Asegurarse de que la gráfica se actualice
-      });
-    });
-</script>
+            $('#cliente1').on('click', function() {
+                $('#clienteChartAQL').hide();
+                $('#clienteChartProcesos').show();
+                chartClienteProcesos.update(); // Asegurarse de que la gráfica se actualice
+            });
+
+            $('#toggleAllClientes').on('click', function() {
+                var showAll = $('#toggleAllClientes input').prop('checked');
+                var toggleVisibility = function(chart) {
+                    chart.data.datasets.forEach(function(dataset) {
+                        dataset.hidden = !showAll;
+                    });
+                    chart.update();
+                };
+
+                toggleVisibility(chartClienteAQL);
+                toggleVisibility(chartClienteProcesos);
+            });
+        });
+    </script>
+
     <script>
         $(document).ready(function() {
             var colores = [
@@ -809,8 +837,21 @@
                 $('#moduloChartProcesos').show();
                 chartModuloProcesos.update();
             });
+
+            $('#toggleAllModulos').on('click', function() {
+                var showAll = $('#toggleAllModulos input').prop('checked');
+                var toggleVisibility = function(chart) {
+                    chart.data.datasets.forEach(function(dataset) {
+                        dataset.hidden = !showAll;
+                    });
+                    chart.update();
+                };
+
+                toggleVisibility(chartModuloAQL);
+                toggleVisibility(chartModuloProcesos);
+            });
         });
-    </script> 
+    </script>
 
     <script>
         $(document).ready(function() {
