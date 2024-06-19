@@ -576,6 +576,14 @@
             min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+        .table32 th:nth-child(9) {
+            min-width: 200px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table32 th:nth-child(10) {
+            min-width: 200px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
 
 
         .table55 th:nth-child(1) {

@@ -330,7 +330,7 @@
                 </div>
                 {{--Fin del apartado del primer acordeon externo--}}
                 {{--Inicio del Segundo acordeon externo--}}
-                <div class="accordion" id="accordionExample">
+                {{--<div class="accordion" id="accordionExample">
                     <div class="card">
                         <div class="card-header" id="headingOne">
                             <h2 class="mb-0">
@@ -345,9 +345,9 @@
                             data-parent="#accordionExample">
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-6">--}}
                                         {{-- Inicio de Acordeon --}}
-                                        <div class="accordion" id="accordionExample5">
+                                        {{--<div class="accordion" id="accordionExample5">
                                             <div class="card">
                                                 <div class="card-header" id="headingOne5">
                                                     <h2 class="mb-0">
@@ -393,7 +393,6 @@
                                                                                 </td>
                                                                                 <td>{{ $proceso->modulo }}</td>
                                                                                 <td>{{ $proceso->op }}</td>
-                                                                                <!-- Agrega aquí el resto de las columnas que deseas mostrar -->
                                                                             </tr>
                                                                             @php
                                                                                 $valoresMostrados[$proceso->area][$proceso->modulo][$proceso->op] = true;
@@ -407,11 +406,11 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div>--}}
                                     <!-- Fin del acordeón 1 -->
-                                    <div class="col-md-6">
+                                    {{--<div class="col-md-6">--}}
                                         {{-- Inicio de Acordeon --}}
-                                        <div class="accordion" id="accordionExample6">
+                                        {{--<div class="accordion" id="accordionExample6">
                                             <div class="card">
                                                 <div class="card-header" id="headingOne6">
                                                     <h2 class="mb-0">
@@ -457,7 +456,6 @@
                                                                                 </td>
                                                                                 <td>{{ $proceso->modulo }}</td>
                                                                                 <td>{{ $proceso->op }}</td>
-                                                                                <!-- Agrega aquí el resto de las columnas que deseas mostrar -->
                                                                             </tr>
                                                                             @php
                                                                                 $valoresMostrados[$proceso->area][$proceso->modulo][$proceso->op] = true;
@@ -471,7 +469,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div>--}}
                                     <!-- Fin del acordeón 2 -->
                                 </div>
                             </div>

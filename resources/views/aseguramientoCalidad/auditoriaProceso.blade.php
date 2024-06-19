@@ -168,7 +168,7 @@
                         @if ($estatusFinalizar)
                         @else
                             <div class="table-responsive">
-                                <table class="table flex-container">
+                                <table class="table flex-container table32">
                                     <thead class="thead-primary">
                                         <tr>
                                             <th>NOMBRE</th>
@@ -291,7 +291,7 @@
                     @if ($mostrarRegistro)
                         @if ($estatusFinalizar)
                             <h2>Registro</h2>
-                            <table class="table">
+                            <table class="table table1">
                                 <thead class="thead-primary">
                                     <tr>
                                         <th>Nombre</th>
@@ -362,7 +362,7 @@
                             <div class="table-responsive">
                                 <h2>Registro</h2>
 
-                                <table class="table">
+                                <table class="table table1">
                                     <thead class="thead-primary">
                                         <tr>
                                             <th>Paro</th>
@@ -552,32 +552,38 @@
             /* Color del texto */
         }
 
-        .table th:nth-child(1) {
+        .table1 th:nth-child(2) {
             min-width: 180px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
 
-        .table th:nth-child(5) {
-            min-width: 200px;
+        .table1 th:nth-child(3) {
+            min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
 
-        .table th:nth-child(6) {
-            min-width: 200px;
+        .table1 th:nth-child(6) {
+            min-width: 250px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
 
-        .table th:nth-child(7) {
-            min-width: 70px;
+        .table1 th:nth-child(7) {
+            min-width: 100px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
 
         @media (max-width: 768px) {
-            .table th:nth-child(3) {
+            .table1 th:nth-child(2) {
                 min-width: 100px;
                 /* Ajusta el ancho mínimo para móviles */
             }
         }
+
+        .table32 th:nth-child(5) {
+            min-width: 200px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+
 
         .texto-blanco {
             color: white !important;
