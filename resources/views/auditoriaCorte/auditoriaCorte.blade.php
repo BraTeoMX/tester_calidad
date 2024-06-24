@@ -154,7 +154,7 @@
                             <div class="col-lg-3 col-md-6 col-sm-6 col-12 mb-3">
                                 <label for="temporada_id" class="col-sm-6 col-form-label">Temporada</label>
                                 <div class="col-sm-12">
-                                    <input type="text" class="form-control" name="temporada_id" id="temporada_id" placeholder="..." required/>
+                                    <input type="text" class="form-control texto-blanco" name="temporada_id" id="temporada_id" placeholder="..." required/>
                                 </div>
                             </div>
                         @endif
@@ -166,7 +166,7 @@
                             <div class="col-lg-3 col-md-6 col-sm-6 col-12 mb-3">
                                 <label for="color_id" class="col-sm-6 col-form-label">Color</label>
                                 <div class="col-sm-12">
-                                    <input type="text" class="form-control" name="color_id" id="color_id" placeholder="..." required/>
+                                    <input type="text" class="form-control texto-blanco" name="color_id" id="color_id" placeholder="..." required/>
                                 </div>
                             </div>
                         @endif
@@ -180,7 +180,7 @@
                         <div class="col-lg-3 col-md-6 col-sm-6 col-12 mb-3">
                             <label for="lienzo" class="col-sm-6 col-form-label">LIENZOS</label>
                             <div class="col-sm-12">
-                                <input type="text" class="form-control" name="lienzo" id="lienzo"
+                                <input type="text" class="form-control texto-blanco" name="lienzo" id="lienzo"
                                     placeholder="..." required/>
                             </div>
                         </div>
@@ -390,7 +390,7 @@
                                             <label for="yarda_orden" class="col-sm-6 col-form-label">Yardas en la orden</label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <div class="form-check form-check-inline">
-                                                    <input type="number" step="0.0001" class="form-control me-2"
+                                                    <input type="number" step="0.0001" class="form-control me-2 texto-blanco"
                                                         name="yarda_orden" id="yarda_orden" placeholder="..."
                                                         value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->yarda_orden : '' }}"
                                                         {{ isset($auditoriaMarcada) ? 'readonly' : '' }}
@@ -418,7 +418,7 @@
                                                         @for ($i = 1; $i <= 6; $i++)
                                                         <td>
                                                             @if (isset($auditoriaMarcada))
-                                                                <input type="text" class="form-control" value="{{ $auditoriaMarcada->{'talla'.$i} }}" readonly />
+                                                                <input type="text" class="form-control texto-blanco" value="{{ $auditoriaMarcada->{'talla'.$i} }}" readonly />
                                                             @else
                                                                 <select name="talla{{ $i }}" class="form-control">
                                                                     <option value="">Selecciona una talla</option>
@@ -436,7 +436,7 @@
                                                         <td># Bultos</td>
                                                         @for ($i = 1; $i <= 6; $i++)
                                                         <td>
-                                                            <input type="number" class="form-control" name="bulto{{ $i }}"
+                                                            <input type="number" class="form-control texto-blanco" name="bulto{{ $i }}"
                                                                 value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->{'bulto'.$i} : '' }}"
                                                                 {{ isset($auditoriaMarcada) ? 'readonly' : '' }} />
                                                         </td>
@@ -446,7 +446,7 @@
                                                         <td>Total Piezas</td>
                                                         @for ($i = 1; $i <= 6; $i++)
                                                         <td>
-                                                            <input type="number" class="form-control" name="total_pieza{{ $i }}"
+                                                            <input type="number" class="form-control texto-blanco" name="total_pieza{{ $i }}"
                                                                 value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->{'total_pieza'.$i} : '' }}"
                                                                 {{ isset($auditoriaMarcada) ? 'readonly' : '' }} />
                                                         </td>
@@ -464,7 +464,7 @@
                                                         @for ($i = 1; $i <= 6; $i++)
                                                         <td>
                                                             @if (isset($auditoriaMarcada))
-                                                                <input type="text" class="form-control" value="{{ $auditoriaMarcada->{'talla_parcial'.$i} }}" readonly />
+                                                                <input type="text" class="form-control texto-blanco" value="{{ $auditoriaMarcada->{'talla_parcial'.$i} }}" readonly />
                                                             @else
                                                                 <select name="talla_parcial{{ $i }}" class="form-control">
                                                                     <option value="">Selecciona una talla</option>
@@ -482,7 +482,7 @@
                                                         <td># Bultos</td>
                                                         @for ($i = 1; $i <= 6; $i++)
                                                         <td>
-                                                            <input type="number" class="form-control" name="bulto_parcial{{ $i }}"
+                                                            <input type="number" class="form-control texto-blanco" name="bulto_parcial{{ $i }}"
                                                                 value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->{'bulto_parcial'.$i} : '' }}"
                                                                 {{ isset($auditoriaMarcada) ? 'readonly' : '' }} />
                                                         </td>
@@ -492,7 +492,7 @@
                                                         <td>Total Piezas</td>
                                                         @for ($i = 1; $i <= 6; $i++)
                                                         <td>
-                                                            <input type="number"  class="form-control" name="total_pieza_parcial{{ $i }}"
+                                                            <input type="number"  class="form-control texto-blanco" name="total_pieza_parcial{{ $i }}"
                                                                 value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->{'total_pieza_parcial'.$i} : '' }}"
                                                                 {{ isset($auditoriaMarcada) ? 'readonly' : '' }} />
                                                         </td>
@@ -505,7 +505,7 @@
                                     <hr>
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
-                                            <label for="largo_trazo" class="col-sm-3 col-form-label">Largo Trazo </label>
+                                            <label for="largo_trazo" class="col-sm-3 col-form-label texto-blanco">Largo Trazo </label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <input type="number" step="0.0001" class="form-control me-2"
                                                     name="largo_trazo" id="largo_trazo" placeholder="..."
@@ -515,7 +515,7 @@
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
-                                            <label for="ancho_trazo" class="col-sm-3 col-form-label">Ancho Trazo </label>
+                                            <label for="ancho_trazo" class="col-sm-3 col-form-label texto-blanco">Ancho Trazo </label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <input type="number" step="0.0001" class="form-control me-2"
                                                     name="ancho_trazo" id="ancho_trazo" placeholder="..."
@@ -593,7 +593,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="auditor" class="col-sm-6 col-form-label">AUDITOR</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="auditor" id="auditor"
+                                                <input type="text" class="form-control me-2 texto-blanco" name="auditor" id="auditor"
                                                     value="{{ $auditorDato }}" readonly required />
                                                 <input type="hidden" name="auditor" value="{{ $auditorDato }}">
                                             </div>
@@ -622,7 +622,7 @@
                                                     <label class="label-tache" for="codigo_material_estatus2">✖ </label>
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input type="text" class="form-control me-2"
+                                                    <input type="text" class="form-control me-2 texto-blanco"
                                                         name="codigo_material" id="codigo_material" placeholder="..."
                                                         value="{{ isset($auditoriaTendido) ? $auditoriaTendido->codigo_material : '' }}"
                                                         required />
@@ -652,7 +652,7 @@
                                                         <label class="label-tache" for="codigo_color_estatus2">✖ </label>
                                                     </div>
                                                     <div class="form-check form-check-inline">
-                                                        <input type="text" class="form-control me-2" name="codigo_color" id="codigo_color"
+                                                        <input type="text" class="form-control me-2 texto-blanco" name="codigo_color" id="codigo_color"
                                                                placeholder="..." value="{{ $encabezadoAuditoriaCorte->color_id }}" readonly required />
                                                         <input type="hidden" name="codigo_color" value="{{ $encabezadoAuditoriaCorte->color_id }}">
                                                     </div>
@@ -710,7 +710,7 @@
                                                     <label class="label-tache" for="cantidad_lienzo_estatus2">✖ </label>
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input type="text" class="form-control me-2" name="cantidad_lienzo" id="cantidad_lienzo"
+                                                    <input type="text" class="form-control me-2 texto-blanco" name="cantidad_lienzo" id="cantidad_lienzo"
                                                            value="{{ $encabezadoAuditoriaCorte->lienzo }}" readonly required />
                                                     <input type="hidden" name="cantidad_lienzo" value="{{ $encabezadoAuditoriaCorte->lienzo }}">
                                                 </div>
@@ -737,7 +737,7 @@
                                                     <label class="label-tache" for="longitud_tendido_estatus2">✖ </label>
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input type="text" class="form-control me-2" name="longitud_tendido" id="longitud_tendido"
+                                                    <input type="text" class="form-control me-2 texto-blanco" name="longitud_tendido" id="longitud_tendido"
                                                            value="{{ $auditoriaMarcada->largo_trazo }}" readonly required />
                                                     <input type="hidden" name="longitud_tendido" value="{{ $auditoriaMarcada->largo_trazo }}">
                                                 </div>
@@ -764,7 +764,7 @@
                                                     <label class="label-tache" for="ancho_tendido_estatus2">✖ </label>
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input type="text" class="form-control me-2" name="ancho_tendido" id="ancho_tendido"
+                                                    <input type="text" class="form-control me-2 texto-blanco" name="ancho_tendido" id="ancho_tendido"
                                                            value="{{ $auditoriaMarcada->ancho_trazo }}" readonly required />
                                                     <input type="hidden" name="ancho_tendido" value="{{ $auditoriaMarcada->ancho_trazo }}">
                                                 </div>
@@ -862,7 +862,7 @@
                                                     <label class="label-tache" for="tono_estatus2">✖ </label>
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input type="text" class="form-control me-2"
+                                                    <input type="text" class="form-control me-2 texto-blanco"
                                                         name="tono" id="tono" placeholder="..."
                                                         value="{{ isset($auditoriaTendido) ? $auditoriaTendido->tono : '' }}"
                                                         required />
@@ -954,7 +954,7 @@
                                                 16. Velocidad:
                                             </label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2"
+                                                <input type="text" class="form-control me-2 texto-blanco"
                                                     name="velocidad" id="velocidad" placeholder="..."
                                                     value="{{ isset($auditoriaTendido) ? $auditoriaTendido->velocidad : '' }}"
                                                     required />
@@ -969,7 +969,6 @@
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <select name="accion_correctiva" id="accion_correctiva" class="form-control me-2" required>
                                                     <option value="">Selecciona una opción</option>
-                                                    <option value="NINGUNO">NINGUNO</option>
                                                     @foreach ($CategoriaAccionCorrectiva as $categoria)
                                                         <option value="{{ $categoria->accion_correctiva }}" {{ isset($auditoriaTendido) && $auditoriaTendido->accion_correctiva == $categoria->accion_correctiva ? 'selected' : '' }}>
                                                             {{ $categoria->accion_correctiva }}
@@ -996,7 +995,7 @@
                                                 <div class="col-sm-6">
                                                     @if (isset($auditoriaTendido))
                                                         @foreach (explode(',', trim($auditoriaTendido->nombre)) as $nombre)
-                                                            <input type="text" class="form-control mb-2" value="{{ $nombre }}" readonly />
+                                                            <input type="text" class="form-control mb-2  texto-blanco" value="{{ $nombre }}" readonly />
                                                         @endforeach
                                                     @else
                                                         <select class="form-control" name="nombre[]" id="nombre" multiple>
@@ -1019,7 +1018,7 @@
                                             <label for="mesa" class="col-sm-6 col-form-label">MESA</label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 @if (isset($auditoriaTendido))
-                                                    <input type="text" class="form-control" value="{{ $auditoriaTendido->mesa }}" readonly />
+                                                    <input type="text" class="form-control texto-blanco" value="{{ $auditoriaTendido->mesa }}" readonly />
                                                 @else
                                                     <select name="mesa" id="mesa" class="form-control" title="Por favor, selecciona una opción" required>
                                                         <option value="">Selecciona una opción</option>
@@ -1036,7 +1035,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="auditor" class="col-sm-6 col-form-label">AUDITOR</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="auditor" id="auditor"
+                                                <input type="text" class="form-control me-2 texto-blanco" name="auditor" id="auditor"
                                                     value="{{ $auditorDato }}" readonly required />
                                                 <input type="hidden" name="auditor" value="{{ $auditorDato }}">
                                             </div>
@@ -1066,7 +1065,7 @@
                                                     @endif
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input type="text" class="form-control me-2"
+                                                    <input type="text" class="form-control me-2 texto-blanco"
                                                         name="codigo_material" id="codigo_material" placeholder="..."
                                                         value="{{ isset($auditoriaTendido) ? $auditoriaTendido->codigo_material : '' }}"
                                                         {{ isset($auditoriaTendido) ? 'readonly' : '' }}
@@ -1097,7 +1096,7 @@
                                                         @endif
                                                     </div>
                                                     <div class="form-check form-check-inline">
-                                                        <input type="text" class="form-control me-2" name="codigo_color" id="codigo_color"
+                                                        <input type="text" class="form-control me-2 texto-blanco" name="codigo_color" id="codigo_color"
                                                             placeholder="..." value="{{ $encabezadoAuditoriaCorte->color_id }}" readonly required />
                                                         <input type="hidden" name="codigo_color" value="{{ $encabezadoAuditoriaCorte->color_id }}">
                                                     </div>
@@ -1127,7 +1126,7 @@
                                                 </div>
                                                 <div class="form-check form-check-inline">
                                                     @if (isset($auditoriaTendido))
-                                                        <input type="text" class="form-control" value="{{ $auditoriaTendido->informacion_trazo }}" readonly />
+                                                        <input type="text" class="form-control texto-blanco" value="{{ $auditoriaTendido->informacion_trazo }}" readonly />
                                                     @else
                                                         <select name="informacion_trazo" id="informacion_trazo" class="form-control" title="Por favor, selecciona una opción">
                                                             <option value="">Selecciona una opción</option>
@@ -1160,7 +1159,7 @@
                                                     @endif
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input type="text" class="form-control me-2" name="cantidad_lienzo" id="cantidad_lienzo"
+                                                    <input type="text" class="form-control me-2 texto-blanco" name="cantidad_lienzo" id="cantidad_lienzo"
                                                         value="{{ $encabezadoAuditoriaCorte->lienzo }}" readonly required />
                                                     <input type="hidden" name="cantidad_lienzo" value="{{ $encabezadoAuditoriaCorte->lienzo }}">
                                                 </div>
@@ -1188,7 +1187,7 @@
                                                     @endif
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input type="text" class="form-control me-2" name="longitud_tendido" id="longitud_tendido"
+                                                    <input type="text" class="form-control me-2 texto-blanco" name="longitud_tendido" id="longitud_tendido"
                                                         value="{{ $auditoriaMarcada->largo_trazo }}" readonly required />
                                                     <input type="hidden" name="longitud_tendido" value="{{ $auditoriaMarcada->largo_trazo }}">
                                                 </div>
@@ -1216,7 +1215,7 @@
                                                     @endif
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input type="text" class="form-control me-2" name="ancho_tendido" id="ancho_tendido"
+                                                    <input type="text" class="form-control me-2 texto-blanco" name="ancho_tendido" id="ancho_tendido"
                                                         value="{{ $auditoriaMarcada->ancho_trazo }}" readonly required />
                                                     <input type="hidden" name="ancho_tendido" value="{{ $auditoriaMarcada->ancho_trazo }}">
                                                 </div>
@@ -1245,7 +1244,7 @@
                                                 </div>
                                                 <div class="form-check form-check-inline">
                                                     @if (isset($auditoriaTendido))
-                                                        <input type="text" class="form-control" value="{{ $auditoriaTendido->material_relajado }}" readonly />
+                                                        <input type="text" class="form-control texto-blanco" value="{{ $auditoriaTendido->material_relajado }}" readonly />
                                                     @else
                                                         <select name="material_relajado" id="material_relajado" class="form-control"
                                                             title="Por favor, selecciona una opción">
@@ -1322,7 +1321,7 @@
                                                     @endif
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input type="text" class="form-control me-2"
+                                                    <input type="text" class="form-control me-2 texto-blanco"
                                                         name="tono" id="tono" placeholder="..."
                                                         value="{{ isset($auditoriaTendido) ? $auditoriaTendido->tono : '' }}"
                                                         {{ isset($auditoriaTendido) ? 'readonly' : '' }}
@@ -1335,7 +1334,7 @@
                                             <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
                                                 <div class="form-check form-check-inline">
                                                     @if (isset($auditoriaTendido))
-                                                        <input type="text" class="form-control" value="{{ $auditoriaTendido->alineacion_tendido }}" readonly />
+                                                        <input type="text" class="form-control texto-blanco" value="{{ $auditoriaTendido->alineacion_tendido }}" readonly />
                                                     @else
                                                         <select name="alineacion_tendido" id="alineacion_tendido" class="form-control" title="Por favor, selecciona una opción">
                                                             <option value="">Selecciona una opción</option>
@@ -1351,7 +1350,7 @@
                                             <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
                                                 <div class="form-check form-check-inline">
                                                     @if (isset($auditoriaTendido))
-                                                        <input type="text" class="form-control" value="{{ $auditoriaTendido->arruga_tendido }}" readonly />
+                                                        <input type="text" class="form-control texto-blanco" value="{{ $auditoriaTendido->arruga_tendido }}" readonly />
                                                     @else
                                                         <select name="arruga_tendido" id="arruga_tendido" class="form-control" title="Por favor, selecciona una opción"> 
                                                             <option value="">Selecciona una opción</option>
@@ -1367,7 +1366,7 @@
                                             <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
                                                 @if (isset($auditoriaTendido))
                                                     @foreach (explode(',', trim($auditoriaTendido->defecto_material)) as $defecto)
-                                                        <input type="text" class="form-control mb-2" value="{{ $defecto }}" readonly />
+                                                        <input type="text" class="form-control mb-2  texto-blanco" value="{{ $defecto }}" readonly />
                                                     @endforeach
                                                 @else
                                                     <select name="defecto_material[]" id="defecto_material" class="form-control" multiple>
@@ -1404,7 +1403,7 @@
                                             <label for="bio_tension" class="col-sm-6 col-form-label">15. Parametro de Brio Tension:</label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 @if (isset($auditoriaTendido))
-                                                    <input type="text" class="form-control" value="{{ $auditoriaTendido->bio_tension }}" readonly />
+                                                    <input type="text" class="form-control texto-blanco" value="{{ $auditoriaTendido->bio_tension }}" readonly />
                                                 @else
                                                     <select class="form-control me-2" name="bio_tension" id="bio_tension" required>
                                                         <option value="">Selecciona una opcion</option>
@@ -1417,7 +1416,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="velocidad" class="col-sm-6 col-form-label">16. Velocidad:</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2"
+                                                <input type="text" class="form-control me-2 texto-blanco"
                                                     name="velocidad" id="velocidad" placeholder="..."
                                                     value="{{ isset($auditoriaTendido) ? $auditoriaTendido->velocidad : '' }}"
                                                     {{ isset($auditoriaTendido) ? 'readonly' : '' }}
@@ -1431,11 +1430,10 @@
                                             <label for="accion_correctiva" class="col-sm-6 col-form-label">Accion correctiva</label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 @if (isset($auditoriaTendido))
-                                                    <input type="text" class="form-control" value="{{ $auditoriaTendido->accion_correctiva }}" readonly />
+                                                    <input type="text" class="form-control texto-blanco" value="{{ $auditoriaTendido->accion_correctiva }}" readonly />
                                                 @else
                                                     <select name="accion_correctiva" id="accion_correctiva" class="form-control me-2" required>
                                                         <option value="">Selecciona una opción</option>
-                                                        <option value="NINGUNO">NINGUNO</option>
                                                         @foreach ($CategoriaAccionCorrectiva as $categoria)
                                                             <option value="{{ $categoria->accion_correctiva }}">{{ $categoria->accion_correctiva }}</option>
                                                         @endforeach
@@ -1508,7 +1506,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="auditor" class="col-sm-6 col-form-label">AUDITOR</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="auditor" id="auditor"
+                                                <input type="text" class="form-control me-2 texto-blanco" name="auditor" id="auditor"
                                                     value="{{ $auditorDato }}" readonly required />
                                                 <input type="hidden" name="auditor" value="{{ $auditorDato }}">
                                             </div>
@@ -1536,7 +1534,7 @@
                                                         <tr>
                                                             <th scope="row">Panel {{ $panel }}</th>
                                                             <td>
-                                                                <input type="text" class="form-control" name="simetria_pieza{{ $panel }}" id="simetria_pieza{{ $panel }}" placeholder="panel {{ $panel }}" value="{{ isset($Lectra) ? $Lectra->{'simetria_pieza'.$panel} : '' }}" />
+                                                                <input type="text" class="form-control texto-blanco" name="simetria_pieza{{ $panel }}" id="simetria_pieza{{ $panel }}" placeholder="panel {{ $panel }}" value="{{ isset($Lectra) ? $Lectra->{'simetria_pieza'.$panel} : '' }}" />
                                                             </td>
                                                             <!-- Panel X -->
                                                             <td>
@@ -1607,29 +1605,29 @@
                                             <label for="pieza_inspeccionada" class="col-sm-6 col-form-label">Piezas inspeccionadas</label> 
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 @if($encabezadoAuditoriaCorte->pieza >= 2 && $encabezadoAuditoriaCorte->pieza <= 8)
-                                                    <input type="text" class="form-control" readonly value="2" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="2" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 9 && $encabezadoAuditoriaCorte->pieza <= 15)
-                                                    <input type="text" class="form-control" readonly value="3" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="3" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 16 && $encabezadoAuditoriaCorte->pieza <= 25)
-                                                    <input type="text" class="form-control" readonly value="5" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="5" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 26 && $encabezadoAuditoriaCorte->pieza <= 50)
-                                                    <input type="text" class="form-control" readonly value="8" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="8" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 51 && $encabezadoAuditoriaCorte->pieza <= 90)
-                                                    <input type="text" class="form-control" readonly value="13" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="13" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 91 && $encabezadoAuditoriaCorte->pieza <= 150)
-                                                    <input type="text" class="form-control" readonly value="20" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="20" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 151 && $encabezadoAuditoriaCorte->pieza <= 280)
-                                                    <input type="text" class="form-control" readonly value="32" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="32" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 281 && $encabezadoAuditoriaCorte->pieza <= 500)
-                                                    <input type="text" class="form-control" readonly value="50" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="50" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 501 && $encabezadoAuditoriaCorte->pieza <= 1200)
-                                                    <input type="text" class="form-control" readonly value="80" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="80" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 1201 && $encabezadoAuditoriaCorte->pieza <= 3200)
-                                                    <input type="text" class="form-control" readonly value="125" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="125" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 3201 && $encabezadoAuditoriaCorte->pieza <= 10000)
-                                                    <input type="text" class="form-control" readonly value="200" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="200" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 10001 && $encabezadoAuditoriaCorte->pieza <= 35000)
-                                                    <input type="text" class="form-control" readonly value="315" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="315" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @endif
                                             </div> 
                                         </div>
@@ -1646,7 +1644,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="cantidad_defecto" class="col-sm-6 col-form-label">Cantidad de Defectos </label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="cantidad_defecto"
+                                                <input type="text" class="form-control me-2 texto-blanco" name="cantidad_defecto"
                                                        id="cantidad_defecto" placeholder="..."
                                                        value="{{ isset($Lectra) ? $Lectra->cantidad_defecto : '' }}"
                                                        required />
@@ -1655,7 +1653,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="porcentaje" class="col-sm-6 col-form-label">Porcentaje</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="porcentaje" id="porcentaje" placeholder="..."
+                                                <input type="text" class="form-control me-2 texto-blanco" name="porcentaje" id="porcentaje" placeholder="..."
                                                     value="{{ isset($calculoPorcentaje) ? $calculoPorcentaje : '' }}" readonly step="0.01"/>
                                                 <span>%</span>
                                             </div>
@@ -1664,7 +1662,7 @@
                                             <div class="col-sm-12">
                                                 <!-- Campo oculto para enviar el mensaje de validación al formulario -->
                                                 <input type="hidden" name="estado_validacion" id="estado_validacion" />
-                                                <input type="text" class="form-control" name="mensaje_validacion" readonly id="mensaje_validacion" 
+                                                <input type="text" class="form-control texto-blanco" name="mensaje_validacion" readonly id="mensaje_validacion" 
                                                 value="{{ isset($Lectra) ? $Lectra->estado_validacion : '' }}" readonly />
                                             </div>
                                         </div>
@@ -1921,7 +1919,7 @@
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 @if (isset($Lectra))
                                                     @foreach (explode(',', trim($Lectra->nombre)) as $nombre)
-                                                        <input type="text" class="form-control mb-2" value="{{ $nombre }}" readonly />
+                                                        <input type="text" class="form-control mb-2  texto-blanco" value="{{ $nombre }}" readonly />
                                                     @endforeach
                                                 @else
                                                     <select name="nombre[]" id="nombrel" class="form-control" multiple required>
@@ -1943,7 +1941,7 @@
                                             <label for="mesa" class="col-sm-6 col-form-label">Maquina Lectra:</label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 @if (isset($Lectra))
-                                                    <input type="text" class="form-control" value="{{ $Lectra->mesa }}" readonly />
+                                                    <input type="text" class="form-control texto-blanco" value="{{ $Lectra->mesa }}" readonly />
                                                 @else
                                                     <select name="mesa" id="mesa" class="form-control" title="Por favor, selecciona una opción">
                                                         <option value="">Selecciona una opción</option>
@@ -1956,7 +1954,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="auditor" class="col-sm-6 col-form-label">AUDITOR</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="auditor" id="auditor" value="{{ $auditorDato }}" readonly required />
+                                                <input type="text" class="form-control me-2 texto-blanco" name="auditor" id="auditor" value="{{ $auditorDato }}" readonly required />
                                                 <input type="hidden" name="auditor" value="{{ $auditorDato }}">
                                             </div>
                                         </div>
@@ -1978,19 +1976,19 @@
                                                         <tr>
                                                             <th scope="row">Panel {{ $panel }}</th>
                                                             <td>
-                                                                <input type="text" class="form-control" name="simetria_pieza{{ $panel }}" id="simetria_pieza{{ $panel }}" placeholder="panel {{ $panel }}" value="{{ isset($Lectra) ? $Lectra->{'simetria_pieza'.$panel} : '' }}" readonly />
+                                                                <input type="text" class="form-control texto-blanco" name="simetria_pieza{{ $panel }}" id="simetria_pieza{{ $panel }}" placeholder="panel {{ $panel }}" value="{{ isset($Lectra) ? $Lectra->{'simetria_pieza'.$panel} : '' }}" readonly />
                                                             </td>
                                                             <td>
-                                                                <input type="text" class="form-control" value="{{ isset($Lectra) ? $Lectra->{'panel'.$panel.'_x1'} : '' }}" readonly />
+                                                                <input type="text" class="form-control texto-blanco" value="{{ isset($Lectra) ? $Lectra->{'panel'.$panel.'_x1'} : '' }}" readonly />
                                                             </td>
                                                             <td>
-                                                                <input type="text" class="form-control" value="{{ isset($Lectra) ? $Lectra->{'panel'.$panel.'_x2'} : '' }}" readonly />
+                                                                <input type="text" class="form-control texto-blanco" value="{{ isset($Lectra) ? $Lectra->{'panel'.$panel.'_x2'} : '' }}" readonly />
                                                             </td>
                                                             <td>
-                                                                <input type="text" class="form-control" value="{{ isset($Lectra) ? $Lectra->{'panel'.$panel.'_y1'} : '' }}" readonly />
+                                                                <input type="text" class="form-control texto-blanco" value="{{ isset($Lectra) ? $Lectra->{'panel'.$panel.'_y1'} : '' }}" readonly />
                                                             </td>
                                                             <td>
-                                                                <input type="text" class="form-control" value="{{ isset($Lectra) ? $Lectra->{'panel'.$panel.'_y2'} : '' }}" readonly />
+                                                                <input type="text" class="form-control texto-blanco" value="{{ isset($Lectra) ? $Lectra->{'panel'.$panel.'_y2'} : '' }}" readonly />
                                                             </td>
                                                         </tr>
                                                     @endfor
@@ -2017,29 +2015,29 @@
                                             <label for="pieza_inspeccionada" class="col-sm-6 col-form-label">Piezas inspeccionadas</label> 
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 @if($encabezadoAuditoriaCorte->pieza >= 2 && $encabezadoAuditoriaCorte->pieza <= 8)
-                                                    <input type="text" class="form-control" readonly value="2" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="2" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 9 && $encabezadoAuditoriaCorte->pieza <= 15)
-                                                    <input type="text" class="form-control" readonly value="3" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="3" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 16 && $encabezadoAuditoriaCorte->pieza <= 25)
-                                                    <input type="text" class="form-control" readonly value="5" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="5" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 26 && $encabezadoAuditoriaCorte->pieza <= 50)
-                                                    <input type="text" class="form-control" readonly value="8" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="8" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 51 && $encabezadoAuditoriaCorte->pieza <= 90)
-                                                    <input type="text" class="form-control" readonly value="13" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="13" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 91 && $encabezadoAuditoriaCorte->pieza <= 150)
-                                                    <input type="text" class="form-control" readonly value="20" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="20" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 151 && $encabezadoAuditoriaCorte->pieza <= 280)
-                                                    <input type="text" class="form-control" readonly value="32" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="32" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 281 && $encabezadoAuditoriaCorte->pieza <= 500)
-                                                    <input type="text" class="form-control" readonly value="50" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="50" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 501 && $encabezadoAuditoriaCorte->pieza <= 1200)
-                                                    <input type="text" class="form-control" readonly value="80" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="80" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 1201 && $encabezadoAuditoriaCorte->pieza <= 3200)
-                                                    <input type="text" class="form-control" readonly value="125" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="125" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 3201 && $encabezadoAuditoriaCorte->pieza <= 10000)
-                                                    <input type="text" class="form-control" readonly value="200" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="200" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @elseif($encabezadoAuditoriaCorte->pieza >= 10001 && $encabezadoAuditoriaCorte->pieza <= 35000)
-                                                    <input type="text" class="form-control" readonly value="315" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
+                                                    <input type="text" class="form-control texto-blanco" readonly value="315" name="pieza_inspeccionada" id="pieza_inspeccionada_input">
                                                 @endif
                                             </div> 
                                         </div>
@@ -2047,7 +2045,7 @@
                                             <label for="nivel_aql" class="col-sm-6 col-form-label">Nivel AQL</label>
                                             <div class="col-sm-12">
                                                 @if (isset($Lectra))
-                                                    <input type="text" class="form-control" value="{{ $Lectra->nivel_aql }}" readonly />
+                                                    <input type="text" class="form-control texto-blanco" value="{{ $Lectra->nivel_aql }}" readonly />
                                                 @else
                                                     <select class="form-control" name="nivel_aql" id="nivel_aql">
                                                         <option value="1.0">1.0</option>
@@ -2060,7 +2058,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="cantidad_defecto" class="col-sm-6 col-form-label">Cantidad de Defectos</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="cantidad_defecto"
+                                                <input type="text" class="form-control me-2 texto-blanco" name="cantidad_defecto"
                                                     id="cantidad_defecto" placeholder="..."
                                                     value="{{ isset($Lectra) ? $Lectra->cantidad_defecto : '' }}"
                                                     readonly required />
@@ -2069,7 +2067,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="porcentaje" class="col-sm-6 col-form-label">Porcentaje</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="porcentaje" id="porcentaje" placeholder="..."
+                                                <input type="text" class="form-control me-2 texto-blanco" name="porcentaje" id="porcentaje" placeholder="..."
                                                     value="{{ isset($Lectra) ? $Lectra->porcentaje : '' }}" readonly step="0.01"/>
                                                 <span>%</span>
                                             </div>
@@ -2078,7 +2076,7 @@
                                             <div class="col-sm-12">
                                                 <!-- Campo oculto para enviar el mensaje de validación al formulario -->
                                                 <input type="hidden" name="estado_validacion" id="estado_validacion" />
-                                                <input type="text" class="form-control" name="mensaje_validacion" readonly id="mensaje_validacion" 
+                                                <input type="text" class="form-control texto-blanco" name="mensaje_validacion" readonly id="mensaje_validacion" 
                                                 value="{{ isset($Lectra) ? $Lectra->estado_validacion : '' }}" readonly />
                                             </div>
                                         </div>
@@ -2090,7 +2088,7 @@
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 @if (isset($Lectra))
                                                     @foreach (explode(',', trim($Lectra->defecto)) as $defecto)
-                                                        <input type="text" class="form-control mb-2" value="{{ $defecto }}" readonly />
+                                                        <input type="text" class="form-control mb-2  texto-blanco" value="{{ $defecto }}" readonly />
                                                     @endforeach
                                                 @else
                                                     <select name="defecto[]" id="defecto" class="form-control" multiple title="Por favor, selecciona una opción" required>
@@ -2161,7 +2159,7 @@
                                             @endphp
                                             <label for="mesa" class="col-sm-6 col-form-label">MESA</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="mesa" id="mesa" placeholder="..."
+                                                <input type="text" class="form-control me-2 texto-blanco" name="mesa" id="mesa" placeholder="..."
                                                     value="{{ isset($nombreMesa) ? $nombreMesa : '' }}" readonly />
                                             </div>
                                         </div>
@@ -2169,7 +2167,7 @@
                                             <label for="auditor" class="col-sm-6 col-form-label">AUDITOR</label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <div class="col-sm-12 d-flex align-items-center">
-                                                    <input type="text" class="form-control me-2" name="auditor" id="auditor"
+                                                    <input type="text" class="form-control me-2 texto-blanco" name="auditor" id="auditor"
                                                         value="{{ $auditorDato }}" readonly required />
                                                     <input type="hidden" name="auditor" value="{{ $auditorDato }}">
                                                 </div>
@@ -2195,7 +2193,7 @@
                                             <label for="cantidad_bulto" class="col-sm-6 col-form-label">2. Cantidad de Bultos</label>
                                             <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
                                                 <div class="form-check form-check-inline">
-                                                    <input type="text" class="form-control me-2" name="cantidad_bulto" id="cantidad_bulto" placeholder="..."
+                                                    <input type="text" class="form-control me-2 texto-blanco" name="cantidad_bulto" id="cantidad_bulto" placeholder="..."
                                                            value="{{ isset($calculoPorcentajeBulto) ? $calculoPorcentajeBulto : '' }}" readonly />
                                                 </div>
                                             </div>
@@ -2269,7 +2267,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="cantidad_defecto" class="col-sm-6 col-form-label">Cantidad de Defectos</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="cantidad_defecto"
+                                                <input type="text" class="form-control me-2 texto-blanco" name="cantidad_defecto"
                                                     id="cantidad_defecto_bulto" placeholder="..."
                                                     value="{{ isset($auditoriaBulto) ? $auditoriaBulto->cantidad_defecto : '' }}"
                                                     required />
@@ -2278,7 +2276,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="defecto" class="col-sm-6 col-form-label">Defectos </label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="defecto"
+                                                <input type="text" class="form-control me-2 texto-blanco" name="defecto"
                                                     id="defecto_bulto" placeholder="..."
                                                     value="{{ isset($auditoriaBulto) ? $auditoriaBulto->defecto : '' }}"
                                                     required />
@@ -2287,7 +2285,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="porcentaje" class="col-sm-6 col-form-label">Porcentaje</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="porcentaje"
+                                                <input type="text" class="form-control me-2 texto-blanco" name="porcentaje"
                                                     id="porcentaje_bulto" placeholder="..."
                                                     value="{{ isset($auditoriaBulto) ? $auditoriaBulto->porcentaje : '' }}"
                                                     readonly />
@@ -2346,10 +2344,10 @@
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 @if(isset($auditoriaBulto))
                                                     @foreach (explode(',', $auditoriaBulto->nombre) as $nombre)
-                                                        <input type="text" class="form-control me-2 mb-2" value="{{ trim($nombre) }}" readonly />
+                                                        <input type="text" class="form-control me-2 mb-2 texto-blanco" value="{{ trim($nombre) }}" readonly />
                                                     @endforeach
                                                 @else
-                                                    <input type="text" class="form-control me-2" value="No hay datos" readonly />
+                                                    <input type="text" class="form-control me-2 texto-blanco" value="No hay datos" readonly />
                                                 @endif
                                             </div>
                                         </div>
@@ -2365,7 +2363,7 @@
                                             @endphp
                                             <label for="mesa" class="col-sm-6 col-form-label">MESA</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="mesa" id="mesa" placeholder="..."
+                                                <input type="text" class="form-control me-2 texto-blanco" name="mesa" id="mesa" placeholder="..."
                                                     value="{{ isset($nombreMesa) ? $nombreMesa : '' }}" readonly />
                                             </div>
                                         </div>
@@ -2373,7 +2371,7 @@
                                             <label for="auditor" class="col-sm-6 col-form-label">AUDITOR</label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <div class="col-sm-12 d-flex align-items-center">
-                                                    <input type="text" class="form-control me-2" name="auditor" id="auditor"
+                                                    <input type="text" class="form-control me-2 texto-blanco" name="auditor" id="auditor"
                                                         value="{{ $auditorDato }}" readonly required />
                                                     <input type="hidden" name="auditor" value="{{ $auditorDato }}">
                                                 </div>
@@ -2399,7 +2397,7 @@
                                             <label for="cantidad_bulto" class="col-sm-6 col-form-label">2. Cantidad de Bultos</label>
                                             <div class="col-sm-12 d-flex align-items-center" style="margin-right: -5px;">
                                                 <div class="form-check form-check-inline">
-                                                    <input type="text" class="form-control me-2" name="cantidad_bulto" id="cantidad_bulto" placeholder="..."
+                                                    <input type="text" class="form-control me-2 texto-blanco" name="cantidad_bulto" id="cantidad_bulto" placeholder="..."
                                                            value="{{ isset($auditoriaBulto) ? $auditoriaBulto->cantidad_bulto : '' }}" readonly />
                                                 </div>
                                             </div>
@@ -2434,7 +2432,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="cantidad_defecto" class="col-sm-6 col-form-label">Cantidad de Defectos</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="cantidad_defecto"
+                                                <input type="text" class="form-control me-2 texto-blanco" name="cantidad_defecto"
                                                     id="cantidad_defecto_bulto" placeholder="..."
                                                     value="{{ isset($auditoriaBulto) ? $auditoriaBulto->cantidad_defecto : '' }}"
                                                     readonly />
@@ -2443,7 +2441,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="defecto" class="col-sm-6 col-form-label">Defectos </label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="defecto"
+                                                <input type="text" class="form-control me-2 texto-blanco" name="defecto"
                                                     id="defecto_bulto" placeholder="..."
                                                     value="{{ isset($auditoriaBulto) ? $auditoriaBulto->defecto : '' }}"
                                                     readonly />
@@ -2452,7 +2450,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="porcentaje" class="col-sm-6 col-form-label">Porcentaje</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="porcentaje"
+                                                <input type="text" class="form-control me-2 texto-blanco" name="porcentaje"
                                                     id="porcentaje_bulto" placeholder="..."
                                                     value="{{ isset($auditoriaBulto) ? $auditoriaBulto->porcentaje : '' }}"
                                                     readonly />
@@ -2494,7 +2492,7 @@
                                                     $supervisorCorteFinal = "DAVID"
                                                 @endphp
                                                 <div class="col-sm-12 d-flex align-items-center">
-                                                    <input type="text" class="form-control me-2" name="supervisor_corte" id="supervisor_corte"
+                                                    <input type="text" class="form-control me-2 texto-blanco" name="supervisor_corte" id="supervisor_corte"
                                                         value="{{ $supervisorCorteFinal }}" readonly />
                                                     <input type="hidden" name="supervisor_corte" value="{{ $supervisorCorteFinal }}">
                                                 </div>
@@ -2546,7 +2544,7 @@
                                                 $supervisorCorteFinal = "DAVID";
                                             @endphp
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2" name="supervisor_corte" id="supervisor_corte"
+                                                <input type="text" class="form-control me-2 texto-blanco" name="supervisor_corte" id="supervisor_corte"
                                                     value="{{ $supervisorCorteFinal }}" readonly />
                                                 <input type="hidden" name="supervisor_corte" value="{{ $supervisorCorteFinal }}">
                                             </div>
@@ -2626,7 +2624,9 @@
                 margin-right: 10px;
             }
 
-            
+            .texto-blanco {
+                color: white !important;
+            }
         </style>
         <!-- Script para abrir el acordeón correspondiente -->
         <script>
