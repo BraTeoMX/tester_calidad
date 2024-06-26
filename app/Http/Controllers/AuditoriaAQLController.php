@@ -145,7 +145,11 @@ class AuditoriaAQLController extends Controller
         $datoUnicoOP = JobAQL::where('prodid', $data['op'])
             ->first();
 
-
+        $selectPivoteOP = JobAQL::where('moduleid', $data['modulo'])
+            ->select('prodid')
+            ->distinct()
+            ->get();
+        //dd($data['modulo'], $selectPivoteOP);
 
         $fechaActual = Carbon::now()->toDateString();
 
@@ -269,7 +273,7 @@ class AuditoriaAQLController extends Controller
             'mesesEnEspanol' => $mesesEnEspanol,
             'pageSlug' => $pageSlug,
             'datoBultos' => $datoBultos,
-            'datoUnicoOP' => $datoUnicoOP,
+            'datoUnicoOP' => $datoUnicoOP, 'selectPivoteOP' => $selectPivoteOP,
             'data' => $data,
             'total_auditada' => $total_auditada,
             'total_rechazada' => $total_rechazada,
@@ -293,7 +297,7 @@ class AuditoriaAQLController extends Controller
 
 
 
-    public function formAltaProcesoAQL(Request $request)
+    public function formAltaProcesoAQL(Request $request) 
     {
         $pageSlug ='';
 

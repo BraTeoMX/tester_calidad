@@ -122,6 +122,14 @@
                     <div class="row align-items-center justify-content-between">
                         <div class="col">
                             <h3 class="card-title">{{ $data['area'] }}</h3>
+                            <select class="form-control" required title="Por favor, selecciona una opción">
+                                <option value="">Selecciona una opción</option>
+                                @foreach ($selectPivoteOP as $op)
+                                    <option value="{{ $op->prodid }}">
+                                        {{ $op->prodid }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-auto">
                             <h4>Fecha:
@@ -156,7 +164,7 @@
                                     <thead class="thead-primary">
                                         <tr>
                                             <th>MODULO</th>
-                                            <th>OP</th>
+                                            <th>OP</th> 
                                             <th>CLIENTE</th>
                                             <th>TEAM LEADER</th>
                                             <th>AUDITOR</th>
@@ -167,8 +175,16 @@
                                         <tr>
                                             <td><input type="text" class="form-control texto-blanco" name="modulo" id="modulo"
                                                     value="{{ $data['modulo'] }}" readonly></td>
-                                            <td><input type="text" class="form-control texto-blanco" name="op" id="op"
-                                                    value="{{ $data['op'] }}" readonly></td>
+                                            <td>
+                                                <select class="form-control texto-blanco" name="op" id="op" required title="Selecciona una OP">
+                                                    <option value="">Selecciona una opción</option>
+                                                    @foreach ($selectPivoteOP as $op)
+                                                        <option value="{{ $op->prodid }}" {{ $op->prodid == $data['op'] ? 'selected' : '' }}>
+                                                            {{ $op->prodid }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
                                             <td><input type="text" class="form-control texto-blanco" name="cliente" id="cliente"
                                                     value="{{ $datoUnicoOP->customername }}" readonly></td>
                                             <td><input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader"
@@ -618,6 +634,10 @@
     <script>
         $(document).ready(function() {
             $('#bulto').select2({
+                placeholder: 'Seleccione una o varias opciones',
+                allowClear: true,
+            });
+            $('#op').select2({
                 placeholder: 'Seleccione una o varias opciones',
                 allowClear: true,
             });
