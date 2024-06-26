@@ -762,11 +762,18 @@
                 }
             }
 
+            // Función para limpiar los inputs
+            function limpiarInputs() {
+                $('#cantidad_auditada').val('');
+                $('#cantidad_rechazada').val('');
+            }
+
             // Ejecutar la función cuando se cambie el valor del select de op
             $('#op').change(function() {
                 var selectedOp = $(this).val();
                 var modulo = $('#modulo').val();
                 cargarBultos(selectedOp, modulo);
+                limpiarInputs();
             });
 
             // Ejecutar la función al cargar la página si hay una opción seleccionada en op
@@ -775,4 +782,5 @@
             cargarBultos(initialOp, modulo);
         });
     </script>
+
 @endsection
