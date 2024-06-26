@@ -136,6 +136,8 @@ Route::post('/cambiarEstadoInicioParoAQL', [AuditoriaAQLController::class, 'camb
 Route::get('/RechazosParoAQL', [AuditoriaAQLController::class, 'RechazosParoAQL'])->name('auditoriaAQL.RechazosParoAQL');
 Route::post('/cargarOrdenesOP', [AuditoriaAQLController::class, 'metodoNombre'])->name('metodoNombre');
 Route::post('/categoria-tipo-problema-aql', [AuditoriaAQLController::class, 'storeCategoriaTipoProblemaAQL'])->name('categoria_tipo_problema_aql.store');
+Route::get('/get-bultos-by-op', [AuditoriaAQLController::class, 'getBultosByOp'])->name('getBultosByOp');
+
 
 
 

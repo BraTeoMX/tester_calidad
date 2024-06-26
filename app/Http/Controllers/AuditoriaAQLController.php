@@ -295,6 +295,19 @@ class AuditoriaAQLController extends Controller
             'nombreProcesoToAQLPlanta2' => $nombreProcesoToAQLPlanta2,]));
     }
 
+    public function getBultosByOp(Request $request)
+    {
+        $op = $request->input('op');
+        $modulo = $request->input('modulo');
+    
+        $datoBultos = JobAQL::where('prodid', $op)
+            ->where('moduleid', $modulo)
+            ->select('prodpackticketid', 'qty', 'itemid', 'colorname', 'inventsizeid')
+            ->distinct()
+            ->get();
+            
+        return response()->json($datoBultos);
+    }
 
 
     public function formAltaProcesoAQL(Request $request) 

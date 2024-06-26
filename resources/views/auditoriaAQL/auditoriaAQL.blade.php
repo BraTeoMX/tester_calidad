@@ -122,14 +122,6 @@
                     <div class="row align-items-center justify-content-between">
                         <div class="col">
                             <h3 class="card-title">{{ $data['area'] }}</h3>
-                            <select class="form-control" required title="Por favor, selecciona una opción">
-                                <option value="">Selecciona una opción</option>
-                                @foreach ($selectPivoteOP as $op)
-                                    <option value="{{ $op->prodid }}">
-                                        {{ $op->prodid }}
-                                    </option>
-                                @endforeach
-                            </select>
                         </div>
                         <div class="col-auto">
                             <h4>Fecha:
@@ -221,11 +213,6 @@
                                                 <td>
                                                     <select name="bulto" id="bulto" class="form-control" required title="Por favor, selecciona una opción">
                                                         <option value="">Selecciona una opción</option>
-                                                        @foreach ($datoBultos as $bulto)
-                                                            <option value="{{ $bulto->prodpackticketid }}" data-estilo="{{ $bulto->itemid }}" data-color="{{ $bulto->colorname }}" data-talla="{{ $bulto->inventsizeid }}" data-pieza="{{ $bulto->qty }}">
-                                                                {{ $bulto->prodpackticketid }}
-                                                            </option>
-                                                        @endforeach
                                                     </select>
                                                 </td>
                                                 <td><input type="text" class="form-control texto-blanco" name="pieza" id="pieza" readonly></td>
@@ -743,6 +730,49 @@
             $('#estilo').val(selectedOption.data('estilo'));
             $('#color').val(selectedOption.data('color'));
             $('#talla').val(selectedOption.data('talla'));
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            function cargarBultos(op, modulo) {
+                if (op) {
+                    $.ajax({
+                        url: '{{ route("getBultosByOp") }}', // Ruta al controlador que manejará la solicitud
+                        type: 'GET',
+                        data: { op: op, modulo: modulo },
+                        success: function(data) {
+                            $('#bulto').empty(); // Vacía el select de bultos
+                            $('#bulto').append('<option value="">Selecciona una opción</option>');
+                            
+                            $.each(data, function(key, value) {
+                                $('#bulto').append('<option value="'+ value.prodpackticketid +'" data-estilo="'+ value.itemid +'" data-color="'+ value.colorname +'" data-talla="'+ value.inventsizeid +'" data-pieza="'+ value.qty +'">'+ value.prodpackticketid +'</option>');
+                            });
+
+                            // Si hay un valor seleccionado en el select de bulto, seleccionarlo
+                            var selectedBulto = '{{ $data['bulto'] ?? '' }}';
+                            if (selectedBulto) {
+                                $('#bulto').val(selectedBulto);
+                            }
+                        }
+                    });
+                } else {
+                    $('#bulto').empty();
+                    $('#bulto').append('<option value="">Selecciona una opción</option>');
+                }
+            }
+
+            // Ejecutar la función cuando se cambie el valor del select de op
+            $('#op').change(function() {
+                var selectedOp = $(this).val();
+                var modulo = $('#modulo').val();
+                cargarBultos(selectedOp, modulo);
+            });
+
+            // Ejecutar la función al cargar la página si hay una opción seleccionada en op
+            var initialOp = $('#op').val();
+            var modulo = $('#modulo').val();
+            cargarBultos(initialOp, modulo);
         });
     </script>
 @endsection
