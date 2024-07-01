@@ -138,12 +138,12 @@
                                 @csrf
                                 <input type="hidden" name="finalizar_paro_modular" value="1">
                                 <input type="hidden" class="form-control" name="modulo" id="modulo" value="{{ $data['modulo'] }}">
-                                <input type="hidden" class="form-control" name="op" id="op" value="{{ $data['op'] }}">
+                                <input type="hidden" class="form-control" name="op" id="op1" value="{{ $data['op'] }}"> 
                                 <input type="hidden" class="form-control" name="area" id="area" value="{{ $data['area'] }}">
                                 <input type="hidden" class="form-control" name="team_leader" id="team_leader" value="{{ $data['team_leader'] }}">
 
 
-                                <button type="submit" class="btn btn-primary">Fin Paro Modular</button>
+                                <button type="submit" class="btn btn-primary">Fin Paro Modular</button> 
                             </form>
                         </div>
                     @else
