@@ -169,6 +169,11 @@ class AuditoriaProcesoController extends Controller
                                     ->pluck('itemid');
 
         //dd($request->all(), $data); 
+        // Obtener el estilo seleccionado
+        $estiloSeleccionado = $request->input('estilo', '');
+        // Actualizar $data con el nuevo estilo
+        $data['estilo'] = $estiloSeleccionado;
+
         $nombresPlanta1 = AuditoriaProceso::whereDate('aplicationdate', $fechaActual)
             ->where('prodpoolid', 'Intimark1') 
             ->where('moduleid', $data['modulo'])
@@ -259,7 +264,8 @@ class AuditoriaProcesoController extends Controller
             'total_porcentajeIndividual' => $total_porcentajeIndividual,
             'estatusFinalizar' => $estatusFinalizar,
             'mostrarRegistro' => $mostrarRegistro,
-            'estilos' => $estilos // Pasar los estilos únicos a la vista
+            'estilos' => $estilos, // Pasar los estilos únicos a la vista
+            'estiloSeleccionado' => $estiloSeleccionado,
             ]));
     }
 

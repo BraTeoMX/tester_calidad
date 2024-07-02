@@ -151,7 +151,7 @@
                                         <td><input type="text" class="form-control texto-blanco" name="modulo" id="modulo"
                                                 value="{{ $data['modulo'] }}" readonly></td>
                                         <td>
-                                            <select class="form-control texto-blanco" name="estilo" id="estilo" required>
+                                            <select class="form-control texto-blanco" name="estilo" id="estilo" required onchange="actualizarEstilo(this.value)">
                                                 <option value="">Selecciona una opción</option>
                                                 @foreach($estilos as $estilo)
                                                     <option value="{{ $estilo }}" {{ $estilo == $data['estilo'] ? 'selected' : '' }}>{{ $estilo }}</option>
@@ -787,4 +787,20 @@
         });
     </script>
 
+    <script>
+        function actualizarEstilo(nuevoEstilo) {
+            // Obtener la URL actual
+            let url = new URL(window.location.href);
+            let params = new URLSearchParams(url.search);
+        
+            // Actualizar el parámetro 'estilo'
+            params.set('estilo', nuevoEstilo);
+        
+            // Construir la nueva URL
+            url.search = params.toString();
+        
+            // Redirigir a la nueva URL
+            window.location.href = url.toString();
+        }
+    </script>
 @endsection
