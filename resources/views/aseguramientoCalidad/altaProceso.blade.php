@@ -618,7 +618,7 @@
                 var moduleid = $(this).val();
     
                 // Realizar solicitud AJAX para obtener el cliente correspondiente al módulo seleccionado
-                $.ajax({
+                $.ajax({ 
                     type: 'POST',
                     url: '{{ route("obtenerCliente1") }}',
                     data: {

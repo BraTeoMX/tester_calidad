@@ -352,7 +352,7 @@ class AuditoriaAQLController extends Controller
         $plantaBusqueda = AuditoriaProceso::where('moduleid', $request->modulo)
             ->pluck('prodpoolid')
             ->first();
-        //dd($plantaBusqueda);
+        dd($plantaBusqueda);
         $jefeProduccionBusqueda = CategoriaTeamLeader::where('nombre', $request->team_leader)
             ->where('jefe_produccion', 1)
             ->first();
