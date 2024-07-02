@@ -46,11 +46,11 @@ class AuditoriaProcesoController extends Controller
                 ->where('estatus', 1)
                 ->get(),
             'auditoriaProcesoIntimark1' =>  AuditoriaProceso::where('prodpoolid', 'Intimark1')
-                ->select('moduleid', 'itemid')
+                ->select('moduleid')
                 ->distinct()
                 ->get(),
             'auditoriaProcesoIntimark2' => AuditoriaProceso::where('prodpoolid', 'Intimark2')
-                ->select('moduleid', 'itemid')
+                ->select('moduleid')
                 ->distinct()
                 ->get(), 
             'playeraActual' => AseguramientoCalidad::where('estatus', NULL)
