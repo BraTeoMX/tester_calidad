@@ -214,6 +214,7 @@
                                                         data-parent="#accordionExample5">
                                                         <div class="card-body">
                                                             <div class="table-responsive">
+                                                                <input type="text" id="searchInput1" class="form-control mb-3" placeholder="Buscar Módulo o Estilo">
                                                                 <table class="table">
                                                                     <thead>
                                                                         <tr>
@@ -223,7 +224,7 @@
                                                                             <th>Gerente de Produccion</th>
                                                                         </tr>
                                                                     </thead>
-                                                                    <tbody>
+                                                                    <tbody id="tablaProcesos1">
                                                                         @foreach($procesoActual as $proceso)
                                                                             <tr>
                                                                                 <td>
@@ -242,7 +243,6 @@
                                                                                 <td>{{ $proceso->modulo }}</td>
                                                                                 <td>{{ $proceso->estilo }}</td>
                                                                                 <td>{{ $proceso->team_leader }}</td>
-
                                                                             </tr>
                                                                         @endforeach
                                                                     </tbody>
@@ -271,6 +271,7 @@
                                                         data-parent="#accordionExample6">
                                                         <div class="card-body">
                                                             <div class="table-responsive">
+                                                                <input type="text" id="searchInput2" class="form-control mb-3" placeholder="Buscar Módulo o Estilo">
                                                                 <table class="table">
                                                                     <thead>
                                                                         <tr>
@@ -279,7 +280,7 @@
                                                                             <th>Estilo</th>
                                                                         </tr>
                                                                     </thead>
-                                                                    <tbody>
+                                                                    <tbody id="tablaProcesos2">
                                                                         @foreach($procesoFinal as $proceso)
                                                                             <tr>
                                                                                 <td>
@@ -475,8 +476,9 @@
                                     
                                                     <div id="collapseThree5" class="collapse show" aria-labelledby="headingOne5"
                                                         data-parent="#accordionExample5">
-                                                        <div class="card-body">
+                                                        <div class="card-body"> 
                                                             <div class="table-responsive">
+                                                                <input type="text" id="searchInput3" class="form-control mb-3" placeholder="Buscar Módulo o Estilo">
                                                                 <table class="table">
                                                                     <thead>
                                                                         <tr>
@@ -485,7 +487,7 @@
                                                                             <th>Estilo</th>
                                                                         </tr>
                                                                     </thead>
-                                                                    <tbody>
+                                                                    <tbody id="tablaProcesos3">
                                                                         @foreach($empaqueActual as $proceso)
                                                                             <tr>
                                                                                 <td><button class="btn btn-primary">Acceder</button></td>
@@ -519,6 +521,7 @@
                                                         data-parent="#accordionExample6">
                                                         <div class="card-body">
                                                             <div class="table-responsive">
+                                                                <input type="text" id="searchInput4" class="form-control mb-3" placeholder="Buscar Módulo o Estilo">
                                                                 <table class="table">
                                                                     <thead>
                                                                         <tr>
@@ -527,7 +530,7 @@
                                                                             <th>Estilo</th>
                                                                         </tr>
                                                                     </thead>
-                                                                    <tbody>
+                                                                    <tbody id="tablaProcesos4">
                                                                         @foreach($empaqueFinal as $proceso)
                                                                             <tr>
                                                                                 <td><button class="btn btn-primary">Acceder</button></td>
@@ -636,7 +639,45 @@
     </script>
 
 
+    <script>
+        $(document).ready(function() {
+            $('#searchInput1').on('keyup', function() {
+                var value = $(this).val().toLowerCase();
+                $('#tablaProcesos1 tr').filter(function() {
+                    var modulo = $(this).find('td:eq(1)').text().toLowerCase();
+                    var estilo = $(this).find('td:eq(2)').text().toLowerCase();
+                    $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
+                });
+            });
 
+            $('#searchInput2').on('keyup', function() {
+                var value = $(this).val().toLowerCase();
+                $('#tablaProcesos2 tr').filter(function() {
+                    var modulo = $(this).find('td:eq(1)').text().toLowerCase();
+                    var estilo = $(this).find('td:eq(2)').text().toLowerCase();
+                    $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
+                });
+            });
+
+            $('#searchInput3').on('keyup', function() {
+                var value = $(this).val().toLowerCase();
+                $('#tablaProcesos3 tr').filter(function() {
+                    var modulo = $(this).find('td:eq(1)').text().toLowerCase();
+                    var estilo = $(this).find('td:eq(2)').text().toLowerCase();
+                    $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
+                });
+            });
+
+            $('#searchInput4').on('keyup', function() {
+                var value = $(this).val().toLowerCase();
+                $('#tablaProcesos4 tr').filter(function() {
+                    var modulo = $(this).find('td:eq(1)').text().toLowerCase();
+                    var estilo = $(this).find('td:eq(2)').text().toLowerCase();
+                    $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
+                });
+            });
+        });
+    </script>
 
 
 

@@ -462,6 +462,7 @@
                                     @csrf
                                     <input type="hidden" name="area" value="{{ $data['area'] }}">
                                     <input type="hidden" name="modulo" value="{{ $data['modulo'] }}">
+                                    <input type="hidden" name="estilo" value="{{ $data['estilo'] }}">
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label for="observacion"

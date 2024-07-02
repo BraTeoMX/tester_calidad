@@ -495,6 +495,7 @@ class AuditoriaProcesoController extends Controller
         // Obtener el ID seleccionado desde el formulario
         $area = $request->input('area');
         $modulo = $request->input('modulo');
+        $estilo = $request->input('estilo');
         $observacion = $request->input('observacion');
         $estatus=1;
         //dd($request->all(), $area);
@@ -506,6 +507,7 @@ class AuditoriaProcesoController extends Controller
         AseguramientoCalidad::whereDate('created_at', $fechaActual)
         ->where('modulo', $modulo)
         ->where('area', $area)
+        ->where('estilo', $estilo)
         ->update(['observacion' => $observacion, 'estatus' => $estatus]);
         
 
