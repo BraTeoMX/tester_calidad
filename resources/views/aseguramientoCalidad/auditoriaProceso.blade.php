@@ -150,8 +150,14 @@
                                     <tr>
                                         <td><input type="text" class="form-control texto-blanco" name="modulo" id="modulo"
                                                 value="{{ $data['modulo'] }}" readonly></td>
-                                        <td><input type="text" class="form-control texto-blanco" name="estilo" id="estilo"
-                                                value="{{ $data['estilo'] }}" readonly></td>
+                                        <td>
+                                            <select class="form-control texto-blanco" name="estilo" id="estilo" required>
+                                                <option value="">Selecciona una opción</option>
+                                                @foreach($estilos as $estilo)
+                                                    <option value="{{ $estilo }}" {{ $estilo == $data['estilo'] ? 'selected' : '' }}>{{ $estilo }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
                                         <td><input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader"
                                                 value="{{ $data['team_leader'] }}" readonly></td>
                                         <td><input type="text" class="form-control texto-blanco" name="auditor" id="auditor"

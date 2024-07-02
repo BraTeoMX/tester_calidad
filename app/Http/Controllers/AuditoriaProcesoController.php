@@ -126,32 +126,34 @@ class AuditoriaProcesoController extends Controller
     }
 
     public function obtenerItemId(Request $request) 
-{
-    $moduleid = $request->input('moduleid');
-    $auditoriaProceso = AuditoriaProceso::where('moduleid', $moduleid)->first();
-    $itemid = $auditoriaProceso ? $auditoriaProceso->itemid : null;
-    
-    return response()->json([
-        'itemid' => $itemid,
-    ]);
-}
+    {
+        $moduleid = $request->input('moduleid');
+        $auditoriaProceso = AuditoriaProceso::where('moduleid', $moduleid)
+                                            ->distinct('itemid')
+                                            ->pluck('itemid');
+        
+        return response()->json([
+            'itemids' => $auditoriaProceso,
+        ]);
+    }
 
     public function obtenerCliente1(Request $request) 
-{
-    $moduleid = $request->input('moduleid');
-    $auditoriaProceso = AuditoriaProceso::where('moduleid', $moduleid)->first();
+    {
+        $moduleid = $request->input('moduleid');
+        $auditoriaProceso = AuditoriaProceso::where('moduleid', $moduleid)->first();
 
-    return response()->json([
-        'cliente' => $auditoriaProceso->customername ?? ''
-    ]);
-}
+        return response()->json([
+            'cliente' => $auditoriaProceso->customername ?? ''
+        ]);
+    }
 
 
 
     public function auditoriaProceso(Request $request)
     {
-        
         $pageSlug ='';
+        $fechaActual = Carbon::now()->toDateString();
+        //$fechaActual = Carbon::now()->subDay()->toDateString();
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
@@ -161,14 +163,21 @@ class AuditoriaProcesoController extends Controller
         // Asegurarse de que la variable $data esté definida
         $data = $data ?? [];
 
+        // Obtener los estilos únicos relacionados con el módulo seleccionado
+        $estilos = AuditoriaProceso::where('moduleid', $data['modulo'])
+                                    ->distinct('itemid')
+                                    ->pluck('itemid');
+
         //dd($request->all(), $data); 
-        $nombresPlanta1 = AuditoriaProceso::where('prodpoolid', 'Intimark1') 
+        $nombresPlanta1 = AuditoriaProceso::whereDate('aplicationdate', $fechaActual)
+            ->where('prodpoolid', 'Intimark1') 
             ->where('moduleid', $data['modulo'])
             ->select('name')
             ->distinct()
             ->get();
 
-        $nombresPlanta2 = AuditoriaProceso::where('prodpoolid', 'Intimark2')
+        $nombresPlanta2 = AuditoriaProceso::whereDate('aplicationdate', $fechaActual)
+            ->where('prodpoolid', 'Intimark2')
             ->where('moduleid', $data['modulo'])
             ->select('name')
             ->distinct()
@@ -183,20 +192,23 @@ class AuditoriaProcesoController extends Controller
             ->where('estado', 1)    
             ->get();
         //dd($utilityPlanta1->all(), $utilityPlanta2);
-        $fechaActual = Carbon::now()->toDateString();
+        //$fechaActual = Carbon::now()->toDateString();
 
         $mostrarRegistro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
             ->where('modulo', $data['modulo'])
+            ->where('estilo', $data['estilo'])
             ->where('area', $data['area'])
             ->get();
         $estatusFinalizar = AseguramientoCalidad::whereDate('created_at', $fechaActual)
-        ->where('modulo', $data['modulo'])
-        ->where('area', $data['area'])
-        ->where('estatus', 1)
-        ->exists();
+            ->where('modulo', $data['modulo'])
+            ->where('estilo', $data['estilo'])
+            ->where('area', $data['area'])
+            ->where('estatus', 1)
+            ->exists();
 
         $registros = AseguramientoCalidad::whereDate('created_at', $fechaActual)
             ->where('modulo', $data['modulo'])
+            ->where('estilo', $data['estilo'])
             ->where('area', $data['area'])
             ->selectRaw('COALESCE(SUM(cantidad_auditada), 0) as total_auditada, COALESCE(SUM(cantidad_rechazada), 0) as total_rechazada')
             ->first();
@@ -207,6 +219,7 @@ class AuditoriaProcesoController extends Controller
 
         $registrosIndividual = AseguramientoCalidad::whereDate('created_at', $fechaActual)
             ->where('modulo', $data['modulo'])
+            ->where('estilo', $data['estilo'])
             ->where('area', $data['area'])
             ->selectRaw('nombre, COUNT(*) as cantidad_registros, SUM(cantidad_auditada) as total_auditada, SUM(cantidad_rechazada) as total_rechazada') 
             ->groupBy('nombre')
@@ -245,7 +258,9 @@ class AuditoriaProcesoController extends Controller
             'total_rechazadaIndividual' => $total_rechazadaIndividual,
             'total_porcentajeIndividual' => $total_porcentajeIndividual,
             'estatusFinalizar' => $estatusFinalizar,
-            'mostrarRegistro' => $mostrarRegistro]));
+            'mostrarRegistro' => $mostrarRegistro,
+            'estilos' => $estilos // Pasar los estilos únicos a la vista
+            ]));
     }
 
 
@@ -253,8 +268,8 @@ class AuditoriaProcesoController extends Controller
     public function getModules()
     {
         $auditorPlanta = Auth::user()->Planta;
-    $modules = AuditoriaProceso::select('moduleid')
-        ->distinct();
+        $modules = AuditoriaProceso::select('moduleid')
+            ->distinct();
 
     if ($auditorPlanta == 'Planta1') {
         $modules->where('prodpoolid', 'Intimark1');
@@ -316,8 +331,13 @@ class AuditoriaProcesoController extends Controller
             'turno' => $request->turno,
             'cliente' => $request->cliente,
         ];
-        //dd($data, $request->all());
-        return redirect()->route('aseguramientoCalidad.auditoriaProceso', $data)->with('cambio-estatus', 'Iniciando en modulo: '. $data['modulo'])->with('pageSlug', $pageSlug);
+
+        // Obtener los estilos únicos relacionados con el módulo seleccionado
+        $estilos = AuditoriaProceso::where('moduleid', $request->modulo)
+                                    ->distinct('itemid')
+                                    ->pluck('itemid');
+
+        return redirect()->route('aseguramientoCalidad.auditoriaProceso', array_merge($data, ['estilos' => $estilos]))->with('cambio-estatus', 'Iniciando en modulo: '. $data['modulo'])->with('pageSlug', $pageSlug);
     }
 
     public function formRegistroAuditoriaProceso(Request $request)

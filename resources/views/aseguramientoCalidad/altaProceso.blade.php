@@ -89,7 +89,7 @@
                                     <tr>
                                         <th>AREA</th>
                                         <th>MODULO</th>
-                                        <th>ESTILO</th>
+                                        <th>ESTILO</th> 
                                         <th>CLIENTE</th>
                                         <th>TEAM-LEADER</th>
                                         <th>AUDITOR</th>
@@ -124,7 +124,9 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="text" class="form-control texto-blanco" name="estilo" id="estilo" readonly required />
+                                            <select class="form-control texto-blanco" name="estilo" id="estilo" required>
+                                                <option value="">Selecciona una opción</option>
+                                            </select>
                                         </td>
                                         <td>
                                             <input type="text" class="form-control texto-blanco" name="cliente" id="cliente" readonly required />
@@ -576,12 +578,12 @@
             color: white !important;
         }
     </style>
-    <script>
+    <script> 
         $(document).ready(function() {
-            // Manejar la selección del módulo para actualizar el input de estilo
+            // Manejar la selección del módulo para actualizar el select de estilo
             $('#modulo').change(function() {
                 var moduleid = $(this).val();
-                $('#estilo').val(''); // Limpiar el input anterior
+                $('#estilo').html(''); // Limpiar el select anterior
     
                 $.ajax({
                     url: '{{ route("obtenerItemId") }}',
@@ -592,10 +594,14 @@
                     },
                     success: function(response) {
                         console.log(response); // Verificar los datos recibidos
-                        if (response.itemid) {
-                            $('#estilo').val(response.itemid); // Establecer el itemid en el input
+                        if (response.itemids && response.itemids.length > 0) {
+                            var options = '<option value="">Selecciona una opción</option>';
+                            $.each(response.itemids, function(index, itemid) {
+                                options += '<option value="' + itemid + '">' + itemid + '</option>';
+                            });
+                            $('#estilo').html(options);
                         } else {
-                            $('#estilo').val('No se encontró estilo'); // Mensaje si no hay itemid
+                            $('#estilo').html('<option value="">No se encontraron estilos</option>');
                         }
                     },
                     error: function(xhr, status, error) {
@@ -627,7 +633,7 @@
                 });
             });
         });
-    </script>    
+    </script>
 
 
 
