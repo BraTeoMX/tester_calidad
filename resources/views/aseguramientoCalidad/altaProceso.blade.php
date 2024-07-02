@@ -135,7 +135,7 @@
                                                 title="Por favor, selecciona una opción">
                                                 <option value="" selected>Selecciona una opción</option>
                                                 <!-- Agrega el atributo selected aquí -->
-                                                @if ($auditorPlanta == 'Planta1')
+                                                @if ($auditorPlanta == 'Planta1') 
                                                     @foreach ($teamLeaderPlanta1 as $teamLeader)
                                                         <option value="{{ $teamLeader->nombre }}">
                                                             {{ $teamLeader->nombre }}

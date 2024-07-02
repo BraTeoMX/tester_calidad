@@ -53,18 +53,6 @@ class AuditoriaProcesoController extends Controller
                 ->select('moduleid', 'itemid')
                 ->distinct()
                 ->get(), 
-            'procesoActual' => AseguramientoCalidad::where('estatus', NULL)
-                ->where('area', 'AUDITORIA EN PROCESO')
-                ->whereDate('created_at', $fechaActual)
-                ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente')
-                ->distinct()
-                ->get(),
-            'procesoFinal' => AseguramientoCalidad::where('estatus', 1)
-                ->where('area', 'AUDITORIA EN PROCESO')
-                ->whereDate('created_at', $fechaActual)
-                ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente')
-                ->distinct()
-                ->get(),
             'playeraActual' => AseguramientoCalidad::where('estatus', NULL)
                 ->where('area', 'AUDITORIA EN PROCESO PLAYERA')
                 ->whereDate('created_at', $fechaActual)
@@ -105,11 +93,36 @@ class AuditoriaProcesoController extends Controller
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
+        $fechaActual = Carbon::now()->toDateString();
+        $auditorPlanta = Auth::user()->Planta;
+        if($auditorPlanta == "Planta1"){
+            $datoPlanta = "Intimark1";
+        }else{
+            $datoPlanta = "Intimark2";
+        }
+        //dd($auditorPlanta, $datoPlanta);
+
+        $procesoActual = AseguramientoCalidad::where('estatus', NULL) 
+            ->where('area', 'AUDITORIA EN PROCESO')
+            ->where('planta', $datoPlanta)
+            ->whereDate('created_at', $fechaActual)
+            ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente')
+            ->distinct()
+            ->get();
+        $procesoFinal =  AseguramientoCalidad::where('estatus', 1) 
+            ->where('area', 'AUDITORIA EN PROCESO')
+            ->where('planta', $datoPlanta)
+            ->whereDate('created_at', $fechaActual)
+            ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente')
+            ->distinct()
+            ->get();
 
         
         return view('aseguramientoCalidad.altaProceso', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
-            'pageSlug' => $pageSlug]));
+            'pageSlug' => $pageSlug,
+            'procesoActual' => $procesoActual,
+            'procesoFinal' => $procesoFinal]));
     }
 
     public function obtenerItemId(Request $request) 

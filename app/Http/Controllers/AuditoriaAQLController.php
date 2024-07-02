@@ -52,18 +52,6 @@ class AuditoriaAQLController extends Controller
                 ->distinct()
                 ->orderBy('moduleid', 'asc')
                 ->get(),
-            'procesoActualAQL' => AuditoriaAQL::where('estatus', NULL)
-                ->where('area', 'AUDITORIA AQL')
-                ->whereDate('created_at', $fechaActual)
-                ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente')
-                ->distinct()
-                ->get(),
-            'procesoFinalAQL' => AuditoriaAQL::where('estatus', 1)
-                ->where('area', 'AUDITORIA AQL')
-                ->whereDate('created_at', $fechaActual)
-                ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente')
-                ->distinct()
-                ->get(),
             'playeraActualAQL' => AuditoriaAQL::where('estatus', NULL)
                 ->where('area', 'AUDITORIA AQL PLAYERA')
                 ->whereDate('created_at', $fechaActual)
@@ -96,7 +84,7 @@ class AuditoriaAQLController extends Controller
         return response()->json($ordenesOPFiltradas);
     }
 
-    public function altaAQL(Request $request)
+    public function altaAQL(Request $request) 
     {
         $pageSlug ='';
         $categorias = $this->cargarCategorias();
@@ -107,10 +95,33 @@ class AuditoriaAQLController extends Controller
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
 
+        $fechaActual = Carbon::now()->toDateString();
+        $auditorPlanta = Auth::user()->Planta;
+        if($auditorPlanta == "Planta1"){
+            $datoPlanta = "Intimark1";
+        }else{
+            $datoPlanta = "Intimark2";
+        }
 
+        $procesoActualAQL =AuditoriaAQL::where('estatus', NULL)
+            ->where('area', 'AUDITORIA AQL')
+            ->where('planta', $datoPlanta)
+            ->whereDate('created_at', $fechaActual)
+            ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente')
+            ->distinct()
+            ->get();
+        $procesoFinalAQL = AuditoriaAQL::where('estatus', 1)
+            ->where('area', 'AUDITORIA AQL')
+            ->where('planta', $datoPlanta)
+            ->whereDate('created_at', $fechaActual)
+            ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente')
+            ->distinct()
+            ->get();
         return view('auditoriaAQL.altaAQL', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol,
-            'pageSlug' => $pageSlug]));
+            'pageSlug' => $pageSlug,
+            'procesoActualAQL' => $procesoActualAQL,
+            'procesoFinalAQL' => $procesoFinalAQL]));
     }
 
     public function obtenerItemId(Request $request)
