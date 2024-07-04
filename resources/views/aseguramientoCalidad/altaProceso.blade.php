@@ -84,8 +84,8 @@
                     <form method="POST" action="{{ route('aseguramientoCalidad.formAltaProceso') }}">
                         @csrf
                         <div class="table-responsive">
-                            <table class="table">
-                                <thead class="thead-primary">
+                            <table class="table table10">
+                                <thead class="thead-primary"> 
                                     <tr>
                                         <th>AREA</th>
                                         <th>MODULO</th>
@@ -579,6 +579,38 @@
 
         .texto-blanco {
             color: white !important;
+        }
+
+        .table10 th:nth-child(1) {
+            min-width: 150px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table10 th:nth-child(2) {
+            min-width: 50px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+
+        .table10 th:nth-child(3) {
+            min-width: 150px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table10 th:nth-child(4) {
+            min-width: 150px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table10 th:nth-child(5) {
+            min-width: 150px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+
+        .table10 th:nth-child(6) {
+            min-width: 150px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+
+        .table10 th:nth-child(7) {
+            min-width: 50px;
+            /* Ajusta el ancho mínimo según tu necesidad */
         }
     </style>
     <script> 

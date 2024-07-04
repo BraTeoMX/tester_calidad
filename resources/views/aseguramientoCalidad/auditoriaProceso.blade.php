@@ -432,19 +432,10 @@
                                                     </td>
                                                     @if ($data['area'] == 'AUDITORIA EN EMPAQUE')
                                                     @else
-                                                        <td>
+                                                        <td> 
                                                             <input type="text" class="form-control texto-blanco" name="pxp_text"
-                                                                id="pxp_text_{{ $registro->id }}"
                                                                 value="{{ $registro->pxp }}" readonly>
-                                                            <input type="hidden" name="pxp"
-                                                                id="pxp_hidden_{{ $registro->id }}"
-                                                                value="{{ $registro->pxp }}">
-                                                        </td>
-                                                        <script>
-                                                            document.getElementById('pxp_text_{{ $registro->id }}').addEventListener('input', function() {
-                                                                document.getElementById('pxp_hidden_{{ $registro->id }}').value = this.value;
-                                                            });
-                                                        </script>
+                                                        </td> 
                                                     @endif
                                                     <td>
                                                         <button type="submit" name="action" value="delete"
@@ -575,6 +566,10 @@
         }
 
         .table1 th:nth-child(7) {
+            min-width: 100px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table1 th:nth-child(8) {
             min-width: 100px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }

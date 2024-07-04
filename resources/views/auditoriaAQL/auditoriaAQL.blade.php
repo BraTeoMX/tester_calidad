@@ -283,7 +283,7 @@
                     @if ($mostrarRegistro)
                         @if ($estatusFinalizar)
                             <h2>Registro</h2>
-                            <table class="table table56">
+                            <table class="table table566">
                                 <thead class="thead-primary">
                                     <tr>
                                         <th>PARO</th>
@@ -362,7 +362,7 @@
                             <div class="table-responsive">
                                 <h2>Registro</h2>
 
-                                <table class="table table55">
+                                <table class="table table56">
                                     <thead class="thead-primary">
                                         <tr>
                                             <th>PARO</th>
@@ -594,6 +594,26 @@
             /* Ajusta el ancho mínimo según tu necesidad */
         }
 
+        .table56 th:nth-child(1) {
+            min-width: 50px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table56 th:nth-child(2) {
+            min-width: 100px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table56 th:nth-child(5) {
+            min-width: 150px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table56 th:nth-child(6) {
+            min-width: 150px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table56 th:nth-child(9) {
+            min-width: 200px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
 
         /* Estilo general para el contenedor de la tabla */
         .contenedor-tabla {
