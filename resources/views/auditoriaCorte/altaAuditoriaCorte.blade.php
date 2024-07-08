@@ -111,7 +111,7 @@
                     <!-- Desde aquí inicia la edición del código para mostrar el contenido -->
                     <div class="table-responsive">
                         <table class="table">
-                            <thead class="thead-primary">
+                            <thead class="thead-primary table-01">
                                 <tr>
                                     <th>Color</th>
                                     <th>Material</th>
@@ -200,6 +200,27 @@
         thead.thead-primary {
             background-color: #59666e54; /* Azul claro */
             color: #333; /* Color del texto */
+        }
+
+        .table-01 th:nth-child(1) {
+            min-width: 100px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table-01 th:nth-child(2) {
+            min-width: 200px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table-01 th:nth-child(3) {
+            min-width: 100px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table-01 th:nth-child(4) {
+            min-width: 100px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table-01 th:nth-child(5) {
+            min-width: 200px;
+            /* Ajusta el ancho mínimo según tu necesidad */
         }
     </style>
 
