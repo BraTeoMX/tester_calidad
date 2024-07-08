@@ -203,11 +203,11 @@
         }
 
         .table-01 th:nth-child(1) {
-            min-width: 100px;
+            min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
         .table-01 th:nth-child(2) {
-            min-width: 200px;
+            min-width: 220px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
         .table-01 th:nth-child(3) {
@@ -215,11 +215,11 @@
             /* Ajusta el ancho mínimo según tu necesidad */
         }
         .table-01 th:nth-child(4) {
-            min-width: 100px;
+            min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
         .table-01 th:nth-child(5) {
-            min-width: 200px;
+            min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
     </style>
