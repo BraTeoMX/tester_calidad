@@ -559,7 +559,7 @@
                                             <div class="row"> 
                                                 <label for="nombre" class="col-sm-6 col-form-label">NOMBRE(S) TENDEDOR(RES)</label>
                                                 <div class="col-sm-6">
-                                                    <select class="form-control" name="nombre[]" id="nombre" multiple>
+                                                    <select class="form-control" name="nombre[]" id="nombre" multiple required>
                                                         <option value="">Selecciona una opción</option>
                                                         @foreach ($CategoriaTecnico as $nombre)
                                                             <option value="{{ $nombre->nombre }}" {{ isset($auditoriaTendido) && in_array(trim($nombre->nombre), explode(',', trim($auditoriaTendido->nombre))) ? 'selected' : '' }}>
@@ -900,6 +900,7 @@
                                                 <div class="form-check form-check-inline">
                                                     <select name="defecto_material[]" id="defecto_material" class="form-control" multiple>
                                                         <option value="">Selecciona una opción</option>
+                                                        <option value="OTRO">OTRO</option>
                                                         @foreach ($CategoriaDefectoCorte as $defectoMaterial)
                                                             <option value="{{ $defectoMaterial->nombre }}"
                                                                 {{ isset($auditoriaTendido) && in_array(trim($defectoMaterial->nombre), explode(',', trim($auditoriaTendido->defecto_material))) ? 'selected' : '' }}>
@@ -908,7 +909,30 @@
                                                     </select>
                                                 </div>
                                             </div>
-                                        </div>                                        
+                                        </div>
+                                        <!-- Modal -->
+                                        <div class="modal fade" id="otroDefectoModal" tabindex="-1" role="dialog" aria-labelledby="otroDefectoModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="modal-content bg-dark text-white">
+                                                    <div class="modal-header">
+                                                    <h5 class="modal-title" id="otroDefectoModalLabel">Agregar Nuevo Defecto de Material</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                    <div class="form-group">
+                                                        <label for="nuevoDefecto">Nuevo Defecto</label>
+                                                        <input type="text" class="form-control" id="nuevoDefecto">
+                                                    </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                                    <button type="button" class="btn btn-primary" id="guardarNuevoDefecto">Guardar</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>         
                                         <div class="col-md-6 mb-3">
                                             <label for="yarda_marcada" class="col-sm-6 col-form-label">14. Yardas en la
                                                 marcada</label>
@@ -1889,11 +1913,11 @@
                                     <hr>
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
-                                            <label for="defecto" class="col-sm-6 col-form-label">Defectos </label>
+                                            <label for="defecto" class="col-sm-6 col-form-label">Defectos</label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <select name="defecto[]" id="defecto" class="form-control" multiple title="Por favor, selecciona una opción" required>
                                                     <option value="">Selecciona una opción</option>
-                                                    <option value="ninguno">Ninguno</option>
+                                                    <option value="OTRO">OTRO</option>
                                                     @foreach ($CategoriaDefectoCorteTendido as $corteTendido)
                                                         <option value="{{ $corteTendido->nombre }}"
                                                             {{ isset($Lectra) && in_array(trim($corteTendido->nombre), explode(',', trim($Lectra->defecto))) ? 'selected' : '' }}>
@@ -1903,6 +1927,30 @@
                                             </div>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Modal para el nuevo select -->
+                                    <div class="modal fade" id="otroDefectoCorteModal" tabindex="-1" role="dialog" aria-labelledby="otroDefectoCorteModalLabel" aria-hidden="true">
+                                      <div class="modal-dialog" role="document">
+                                        <div class="modal-content bg-dark text-white">
+                                          <div class="modal-header">
+                                            <h5 class="modal-title" id="otroDefectoCorteModalLabel">Agregar Nuevo Defecto de Corte</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                              <span aria-hidden="true">&times;</span>
+                                            </button>
+                                          </div>
+                                          <div class="modal-body">
+                                            <div class="form-group">
+                                              <label for="nuevoDefectoCorte">Nuevo Defecto</label>
+                                              <input type="text" class="form-control" id="nuevoDefectoCorte">
+                                            </div>
+                                          </div>
+                                          <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                            <button type="button" class="btn btn-primary" id="guardarNuevoDefectoCorte">Guardar</button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>                                    
                                     <div>
                                         <button type="submit" class="btn-verde-xd">Guardar</button>
                                         @if($mostrarFinalizarLectra)
@@ -2728,5 +2776,87 @@
             });
     </script>
 
+    <script>
+        $(document).ready(function() {
+            // Función para el primer select
+            $('#defecto_material').change(function() {
+                if ($(this).val().includes('OTRO')) {
+                    $('#otroDefectoModal').modal('show');
+                }
+            });
+        
+            $('#guardarNuevoDefecto').click(function() {
+                var nuevoDefecto = $('#nuevoDefecto').val();
+                if (nuevoDefecto) {
+                    $.ajax({
+                        url: '{{ route("auditoriaCorte.agregarDefecto") }}',
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            nombre: nuevoDefecto,
+                            area: 'tendido',
+                            estado: 1
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                // Agregar el nuevo defecto al select
+                                $('#defecto_material').append(new Option(nuevoDefecto, nuevoDefecto));
+                                $('#defecto_material').val($('#defecto_material').val().filter(item => item !== 'OTRO')); // Quitar la opción "OTRO"
+                                $('#defecto_material').val([...$('#defecto_material').val(), nuevoDefecto]); // Seleccionar el nuevo defecto
+                                $('#defecto_material').trigger('change'); // Disparar el evento de cambio para que se actualice la selección
+                                $('#otroDefectoModal').modal('hide');
+                                $('#nuevoDefecto').val(''); // Limpiar el input del modal
+                            } else {
+                                alert('Error al agregar el defecto');
+                            }
+                        },
+                        error: function() {
+                            alert('Error en la solicitud AJAX');
+                        }
+                    });
+                }
+            });
+        
+            // Función para el segundo select
+            $('#defecto').change(function() {
+                if ($(this).val().includes('OTRO')) {
+                    $('#otroDefectoCorteModal').modal('show');
+                }
+            });
+        
+            $('#guardarNuevoDefectoCorte').click(function() {
+                var nuevoDefectoCorte = $('#nuevoDefectoCorte').val();
+                if (nuevoDefectoCorte) {
+                    $.ajax({
+                        url: '{{ route("auditoriaCorte.agregarDefecto") }}',
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            nombre: nuevoDefectoCorte,
+                            area: 'tendido',
+                            estado: 1
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                // Agregar el nuevo defecto al select
+                                $('#defecto').append(new Option(nuevoDefectoCorte, nuevoDefectoCorte));
+                                $('#defecto').val($('#defecto').val().filter(item => item !== 'OTRO')); // Quitar la opción "OTRO"
+                                $('#defecto').val([...$('#defecto').val(), nuevoDefectoCorte]); // Seleccionar el nuevo defecto
+                                $('#defecto').trigger('change'); // Disparar el evento de cambio para que se actualice la selección
+                                $('#otroDefectoCorteModal').modal('hide');
+                                $('#nuevoDefectoCorte').val(''); // Limpiar el input del modal
+                            } else {
+                                alert('Error al agregar el defecto');
+                            }
+                        },
+                        error: function() {
+                            alert('Error en la solicitud AJAX');
+                        }
+                    });
+                }
+            });
+        });
+        </script>
+        
 
     @endsection

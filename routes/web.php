@@ -89,6 +89,8 @@ Route::post('/formAuditoriaTendido', [AuditoriaCorteController::class, 'formAudi
 Route::post('/formLectra', [AuditoriaCorteController::class, 'formLectra'])->name('auditoriaCorte.formLectra');
 Route::post('/formAuditoriaBulto', [AuditoriaCorteController::class, 'formAuditoriaBulto'])->name('auditoriaCorte.formAuditoriaBulto');
 Route::post('/formAuditoriaFinal', [AuditoriaCorteController::class, 'formAuditoriaFinal'])->name('auditoriaCorte.formAuditoriaFinal');
+Route::post('/auditoriaCorte/agregarDefecto', [AuditoriaCorteController::class, 'agregarDefecto'])->name('auditoriaCorte.agregarDefecto');
+
 //fin aprtado Auditoria Corte
 
 //Inicio apartado para seccion Evaluacion corte

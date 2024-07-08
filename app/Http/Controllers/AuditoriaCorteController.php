@@ -821,4 +821,15 @@ class AuditoriaCorteController extends Controller
         return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
+    public function agregarDefecto(Request $request)
+    {
+        $nuevoDefecto = new CategoriaDefectoCorte();
+        $nuevoDefecto->nombre = $request->nombre;
+        $nuevoDefecto->area = $request->area;
+        $nuevoDefecto->estado = $request->estado;
+        $nuevoDefecto->save();
+
+        return response()->json(['success' => true]);
+    }
+
 }
