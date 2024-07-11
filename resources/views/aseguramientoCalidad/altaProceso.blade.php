@@ -586,7 +586,7 @@
             /* Ajusta el ancho mínimo según tu necesidad */
         }
         .table10 th:nth-child(2) {
-            min-width: 50px;
+            min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
 
@@ -595,7 +595,7 @@
             /* Ajusta el ancho mínimo según tu necesidad */
         }
         .table10 th:nth-child(4) {
-            min-width: 150px;
+            min-width: 180px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
         .table10 th:nth-child(5) {
