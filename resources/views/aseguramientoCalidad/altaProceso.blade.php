@@ -562,10 +562,12 @@
     </div>
  
     <script>
-        $('#modulo').select2({
-                placeholder: 'Seleccione una o varias opciones',
-                allowClear: true,
+        $(document).ready(function() {
+            $('#modulo').select2({
+                placeholder: 'Seleccione una opción',
+                allowClear: true
             });
+        });
 
     </script>
 
@@ -582,11 +584,11 @@
         }
 
         .table10 th:nth-child(1) {
-            min-width: 150px;
+            min-width: 180px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
         .table10 th:nth-child(2) {
-            min-width: 150px;
+            min-width: 130px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
 
