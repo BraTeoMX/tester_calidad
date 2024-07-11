@@ -283,7 +283,7 @@
                     @if ($mostrarRegistro)
                         @if ($estatusFinalizar)
                             <h2>Registro</h2>
-                            <table class="table table566">
+                            <table class="table table56">
                                 <thead class="thead-primary">
                                     <tr>
                                         <th>PARO</th>
@@ -362,7 +362,7 @@
                             <div class="table-responsive">
                                 <h2>Registro</h2>
 
-                                <table class="table table56">
+                                <table class="table table56"> 
                                     <thead class="thead-primary">
                                         <tr>
                                             <th>PARO</th>
