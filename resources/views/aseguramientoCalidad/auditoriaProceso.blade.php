@@ -222,7 +222,14 @@
                                                     </select>
                                                 </div>
                                             </td>
-                                            <td><input type="text" class="form-control texto-blanco" name="operacion" id="operacion" required></td>
+                                            <td>
+                                                <select name="operacion" id="operacion" class="form-control" required title="Por favor, selecciona una opción">
+                                                    <option value="">Selecciona una opción</option>        
+                                                    @foreach ($operacionNombre as $nombre)
+                                                        <option value="{{ $nombre->oprname }}">{{ $nombre->oprname }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
                                             <td><input type="text" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
                                             <td><input type="text" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
                                             <td class="tp-column d-none">
@@ -726,6 +733,11 @@
                 placeholder: 'Seleccione una o varias opciones',
                 allowClear: true,
                 multiple: true
+            });
+
+            $('#operacion').select2({
+                placeholder: 'Seleccione una operacion',
+                allowClear: true,
             });
 
             $('#tpSelect').on('change', function() {

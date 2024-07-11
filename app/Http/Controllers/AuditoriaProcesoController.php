@@ -10,10 +10,12 @@ use App\Models\AseguramientoCalidad;
 use App\Models\CategoriaTeamLeader;  
 use App\Models\CategoriaTipoProblema; 
 use App\Models\CategoriaAccionCorrectiva;
-use App\Models\CategoriaUtility; 
+use App\Models\CategoriaUtility;
+use App\Models\JobOperacion;
 use App\Models\TpAseguramientoCalidad; 
 use Illuminate\Support\Facades\Mail;
 use App\Mail\NotificacionParo;
+
 
 use App\Models\EvaluacionCorte;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
@@ -244,7 +246,7 @@ class AuditoriaProcesoController extends Controller
         
         $total_porcentajeIndividual = $total_auditadaIndividual != 0 ? ($total_rechazadaIndividual / $total_auditadaIndividual) * 100 : 0;
         
-        
+        $operacionNombre = JobOperacion::where('moduleid', $data['modulo'])->get();
 
         
         return view('aseguramientoCalidad.auditoriaProceso', array_merge($categorias, [
@@ -266,6 +268,7 @@ class AuditoriaProcesoController extends Controller
             'mostrarRegistro' => $mostrarRegistro,
             'estilos' => $estilos, // Pasar los estilos únicos a la vista
             'estiloSeleccionado' => $estiloSeleccionado,
+            'operacionNombre' => $operacionNombre,
             ]));
     }
 
