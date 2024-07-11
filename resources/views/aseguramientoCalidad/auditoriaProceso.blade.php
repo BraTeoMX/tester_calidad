@@ -135,7 +135,7 @@
                         <input type="hidden" class="form-control" name="area" id="area"
                             value="{{ $data['area'] }}">
                         <div class="table-responsive">
-                            <table class="table">
+                            <table class="table table-200">
                                 <thead class="thead-primary">
                                     <tr>
                                         <th>MODULO</th>
@@ -589,6 +589,31 @@
 
         .texto-blanco {
             color: white !important;
+        }
+
+        .table-200 th:nth-child(1) {
+            min-width: 100px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table-200 th:nth-child(2) {
+            min-width: 150px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table-200 th:nth-child(3) {
+            min-width: 180px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table-200 th:nth-child(4) {
+            min-width: 150px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table-200 th:nth-child(5) {
+            min-width: 50px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table-200 th:nth-child(6) {
+            min-width: 180px;
+            /* Ajusta el ancho mínimo según tu necesidad */
         }
     </style>
 
