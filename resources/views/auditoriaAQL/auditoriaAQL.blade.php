@@ -153,7 +153,7 @@
                                 value="{{ $data['area'] }}">
                             <div class="table-responsive">
                                 <table class="table">
-                                    <thead class="thead-primary">
+                                    <thead class="thead-primary table-100">
                                         <tr>
                                             <th>MODULO</th>
                                             <th>OP</th> 
@@ -560,6 +560,26 @@
             /* Color del texto */
         }
 
+        .table-100 th:nth-child(1) {
+            min-width: 80px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table-100 th:nth-child(2) {
+            min-width: 180px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table-100 th:nth-child(3) {
+            min-width: 200px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table-100 th:nth-child(4) {
+            min-width: 130px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table-100 th:nth-child(5) {
+            min-width: 150px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
         .table32 th:nth-child(1) {
             min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
