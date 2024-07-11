@@ -273,6 +273,7 @@ class AuditoriaAQLController extends Controller
 
         $nombreProcesoToAQL = AuditoriaProceso::where('moduleid', $data['modulo'])
             ->select('name')
+            ->distinct()
             ->get()
             ->toArray();
 

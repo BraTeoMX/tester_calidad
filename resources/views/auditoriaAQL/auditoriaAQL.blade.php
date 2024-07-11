@@ -237,7 +237,7 @@
                                                 </td>
                                                 <td class="ac-column"><input type="text" class="form-control" name="ac" id="ac"></td>
                                                 <td class="nombre-column">
-                                                    <select name="nombre" id="nombre" class="form-control">
+                                                    <select name="nombre" id="nombre" class="form-control"> 
                                                         <option value="">Selecciona una opción</option>
                                                         @if($auditorPlanta == 'Planta1')
                                                             @foreach($nombreProcesoToAQLPlanta1 as $opcion)
@@ -248,7 +248,7 @@
                                                                 <option value="{{ $opcion['nombre'] ?? $opcion['name'] }}">{{ $opcion['nombre'] ?? $opcion['name'] }}</option>
                                                             @endforeach
                                                         @endif
-                                                    </select>
+                                                    </select> 
                                                 </td>
                                             </tr>
                                         </tbody>
