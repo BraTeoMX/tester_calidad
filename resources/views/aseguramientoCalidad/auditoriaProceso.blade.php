@@ -174,7 +174,7 @@
                         @if ($estatusFinalizar)
                         @else
                             <div class="table-responsive">
-                                <table class="table flex-container table32">
+                                <table class="table flex-container table932">
                                     <thead class="thead-primary">
                                         <tr>
                                             <th>NOMBRE</th>
@@ -588,8 +588,32 @@
             }
         }
 
-        .table32 th:nth-child(5) {
+        .table932 th:nth-child(1) {
             min-width: 200px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table932 th:nth-child(2) {
+            min-width: 200px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table932 th:nth-child(3) {
+            min-width: 80px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table932 th:nth-child(4) {
+            min-width: 80px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table932 th:nth-child(5) {
+            min-width: 220px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table932 th:nth-child(6) {
+            min-width: 200px;
+            /* Ajusta el ancho mínimo según tu necesidad */
+        }
+        .table932 th:nth-child(7) {
+            min-width: 80px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
 
