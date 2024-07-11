@@ -232,8 +232,8 @@
                                             </td>
                                             <td><input type="text" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
                                             <td><input type="text" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
-                                            <td class="tp-column d-none">
-                                                <select name="tp[]" id="tpSelect" class="form-control" multiple title="Por favor, selecciona una opción"> 
+                                            <td class="tp-column d-none w-100"> 
+                                                <select name="tp[]" id="tpSelect" class="form-control w-100" multiple title="Por favor, selecciona una opción"> 
                                                     <option value="OTRO">OTRO</option>
                                                     @if ($data['area'] == 'AUDITORIA EN PROCESO')
                                                         @foreach ($categoriaTPProceso as $proceso)
@@ -249,7 +249,7 @@
                                                         @endforeach
                                                     @endif
                                                 </select>
-                                            </td>
+                                            </td>                                            
                                             <td class="ac-column d-none">
                                                 <select name="ac" id="ac" class="form-control" title="Por favor, selecciona una opción">
                                                     <option value="">Selecciona una opción</option>
@@ -646,6 +646,18 @@
             min-width: 180px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
+        .tp-column {
+            width: 100%;
+        }
+
+        .select2-container {
+            width: 100% !important;
+        }
+
+        .select2-selection--multiple {
+            width: 100% !important;
+        }
     </style>
 
     <script>
@@ -756,21 +768,22 @@
             $('#tpSelect').select2({
                 placeholder: 'Seleccione una o varias opciones',
                 allowClear: true,
-                multiple: true
+                multiple: true,
+                width: 'resolve'  // Esto asegura que select2 tomará el 100% del ancho del contenedor
             });
-
+    
             $('#operacion').select2({
                 placeholder: 'Seleccione una operacion',
                 allowClear: true,
             });
-
+    
             $('#tpSelect').on('change', function() {
                 let selectedOptions = $(this).val();
                 if (selectedOptions.includes('OTRO')) {
                     $('#nuevoConceptoModal').modal('show');
                 }
             });
-
+    
             $('#guardarNuevoConcepto').on('click', function() {
                 let nuevoConcepto = $('#nuevoConceptoInput').val();
                 if (nuevoConcepto) {
@@ -782,7 +795,7 @@
                     @elseif($data['area'] == 'AUDITORIA EN EMPAQUE')
                         area = 'empaque';
                     @endif
-
+    
                     fetch('{{ route('categoria_tipo_problema.store') }}', {
                         method: 'POST',
                         headers: {
@@ -810,7 +823,7 @@
                     alert('Por favor, introduce un concepto válido');
                 }
             });
-
+    
             $('#nuevoConceptoModal').on('hidden.bs.modal', function () {
                 $('#nuevoConceptoInput').val('');
                 let selectedOptions = $('#tpSelect').val();
@@ -820,7 +833,7 @@
                     $('#tpSelect').val(selectedOptions).trigger('change');
                 }
             });
-
+    
             function updateColumnsVisibility() {
                 const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
                 if (isNaN(cantidadRechazada) || cantidadRechazada === 0) {
@@ -833,16 +846,17 @@
                     $('#tpSelect, #ac').prop('required', true);
                 }
             }
-
+    
             // Inicializar la visibilidad de las columnas al cargar la página
             updateColumnsVisibility();
-
+    
             // Actualizar la visibilidad de las columnas al cambiar el valor de cantidad_rechazada
             $('#cantidad_rechazada').on('input', function() {
                 updateColumnsVisibility();
             });
         });
     </script>
+    
 
     <script>
         function actualizarEstilo(nuevoEstilo) {
