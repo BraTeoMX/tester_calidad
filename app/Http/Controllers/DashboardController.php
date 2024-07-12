@@ -117,7 +117,7 @@ class DashboardController extends Controller
                 'teamLeaders', 'porcentajesErrorTeamLeader'));
     }
 
-    public function dashboarAProcesoAQL(Request $request) 
+    public function dashboarAProcesoAQL(Request $request)
     {
         $title = "";
         if($request->fecha_fin){

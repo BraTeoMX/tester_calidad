@@ -130,7 +130,7 @@
                                     </span>
                                 </label>
                             </div>
-                            
+
                         </div>
                     </div>
                 </div>
@@ -175,7 +175,7 @@
                                     </span>
                                 </label>
                             </div>
-                            
+
                         </div>
                     </div>
                 </div>
@@ -225,17 +225,17 @@
         <div class="col-lg-4">
             <div class="card card-chart">
                 <div class="card-header">
-                    <h3 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> Segundas / Terceras</h3>
-                    <h5 class="card-title">AQL :      45 % </h5>
-                    <h5 class="card-title">PROCESOS : 45 % </h5>
+                    <h2 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> Segundas / Terceras</h2>
                 </div>
                 <div class="card-body">
                     <div class="chart-area">
-                        <canvas id="CountryChart"></canvas>
+                        <canvas id="SegundasTerceras"></canvas>
                     </div>
                 </div>
             </div>
         </div>
+
+
         <div class="col-lg-4">
             <div class="card card-chart">
                 <div class="card-header">
@@ -429,7 +429,7 @@
         </div>
     </div>
 
-    <div class="row"> 
+    <div class="row">
         <div class="col-lg-6 col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
@@ -457,11 +457,11 @@
                 <h3 class="card-title"></h3>
                 </div>
                 <div class="card-body">
-                    
+
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
 
 
     <style>
@@ -857,7 +857,7 @@
         $(document).ready(function() {
             let myNewChart;
             let chartInitialized = false;
-    
+
             const colorsAQL = [
                 {
                     backgroundColor: 'rgba(128, 0, 0, 0.8)', // Color fuerte y sólido (Rojo oscuro)
@@ -887,20 +887,20 @@
                     borderColor: 'rgba(173, 216, 230, 1)'
                 }
             ];
-    
+
             function createChart(data, tipo) {
                 const canvas = document.getElementById('newChart');
                 const ctx = canvas.getContext('2d');
-    
+
                 if (myNewChart) {
                     myNewChart.destroy();
                 }
-    
+
                 const colors = tipo === 'TpAuditoriaAQL' ? colorsAQL : colorsProceso;
-    
+
                 const datasets = data.map((item, index) => {
                     const color = colors[index % colors.length]; // Ciclar a través de los colores si hay más de 3 defectos
-    
+
                     return {
                         label: item.defecto,
                         data: [item.cantidad],
@@ -909,7 +909,7 @@
                         borderWidth: 1
                     };
                 });
-    
+
                 myNewChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
@@ -932,7 +932,7 @@
                     }
                 });
             }
-    
+
             function fetchChartData(tipo) {
                 $.ajax({
                     url: 'obtener_top_defectos',
@@ -953,14 +953,14 @@
                     }
                 });
             }
-    
+
             // Asegurar que los eventos solo se enlacen una vez
             if (!chartInitialized) {
                 $('#top3-1, #top3-2').change(function() {
                     let tipo = $(this).attr('id') === 'top3-1' ? 'TpAuditoriaAQL' : 'TpAseguramientoCalidad';
                     fetchChartData(tipo);
                 });
-    
+
                 // Llamar una vez al cargar la página
                 fetchChartData('TpAuditoriaAQL');
                 chartInitialized = true;

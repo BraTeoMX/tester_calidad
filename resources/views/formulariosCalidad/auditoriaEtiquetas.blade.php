@@ -504,76 +504,64 @@
             });
         });
     </script>
-    <script>
-        $(document).ready(function() {
-            // Manejar clic en cualquier opción del dropdown
-            $('#accordion').on('click', '.dropdown-item', function() {
-                // Obtener el valor de la opción seleccionada
-                var selectedOption = $(this).attr('value');
-                // Obtener el texto del botón de alternancia más cercano (dropdown-toggle)
-                var status = $(this).text().trim();
-                // Obtener el ID de la fila correspondiente
-                var rowId = $(this).data('row-id');
-                var tipoBusqueda = $('#tipoBusqueda').val();
-                // Obtener los datos de las filas de la tabla dentro del acordeón actual
-                var datosAEnviar = [];
-                var acordeon = $(this).closest('.card');
-                acordeon.find('tbody tr').each(function(index, fila) {
-                    var orden = $(fila).find('td:nth-child(2)').text().trim();
-                    var estilo = $(fila).find('td:nth-child(3)').text().trim();
-                    var color = $(fila).find('td:nth-child(4)').text().trim();
-                    var talla = $(fila).find('td:nth-child(5)').text().trim();
-                    var cantidad = $(fila).find('td:nth-child(6)').text().trim();
-                    var tipoDefecto = $(fila).find('.select-container select').val();
-                    var muestreo = $(fila).find('.tamañoMuestra').text().trim();
-                    var defectos = $(fila).find('.cantidadInput')
-                        .val(); // Agregar el campo defectos
-                    var id = $(fila).find('td:nth-child(11)').text().trim();
-                    // Agregar los datos de la fila al arreglo datosAEnviar
-                    datosAEnviar.push({
-                        id: id,
-                        orden: orden,
-                        estilo: estilo,
-                        color: color,
-                        talla: talla,
-                        cantidad: cantidad,
-                        muestreo: muestreo,
-                        defectos: defectos, // Agregar el campo defectos
-                        tipoDefecto: tipoDefecto, // Agregar el campo tipoDefecto
-                        tipoBusqueda: tipoBusqueda
-                    });
-                });
-                // Obtener la orden seleccionada
-                var ordenSeleccionada = $('#ordenSelect').val();
-
-                // Armar los datos a enviar al servidor
-                var datosAEnviar = {
-                    _token: '{{ csrf_token() }}',
-                    orden: ordenSeleccionada,
-                    datos: datosAEnviar, // Datos de las filas de la tabla
-                    status: status, // Status seleccionado del dropdown
-                    rowId: rowId, // ID de la fila seleccionada
-                    tipoBusqueda: tipoBusqueda
-                };
-
-                // Realizar la solicitud AJAX para enviar los datos al servidor
-                $.ajax({
-                    url: '/actualizarStatus',
-                    type: 'PUT', // Cambiado a PUT
-                    data: datosAEnviar,
-                    tipoBusqueda,
-                    dataType: 'json',
-                    success: function(response) {
-                        // Manejar la respuesta del servidor
-                        alert(response.mensaje); // Mostrar mensaje de éxito al usuario
-                    },
-                    error: function(error) {
-                        // Manejar errores
-                        alert('Error al actualizar el status. Por favor, inténtalo de nuevo.');
-                        console.error('Error al actualizar el status: ', error);
-                    }
-                });
+    <script>$(document).ready(function() {
+        // Manejar clic en cualquier opción del dropdown
+        $('#accordion').on('click', '.dropdown-item', function() {
+            // Obtener el valor de la opción seleccionada
+            var selectedOption = $(this).attr('value');
+            // Obtener el texto del botón de alternancia (dropdown-toggle)
+            var status = $(this).text().trim();
+            // Obtener el ID de la fila correspondiente
+            var rowId = $(this).data('row-id');
+            var tipoBusqueda = $('#tipoBusqueda').val();
+    
+            // Obtener los datos de la fila modificada
+            var fila = $(this).closest('tr'); // Obtener la fila actual
+            var datosFila = {
+                id: fila.find('td:nth-child(11)').text().trim(),
+                orden: fila.find('td:nth-child(2)').text().trim(),
+                estilo: fila.find('td:nth-child(3)').text().trim(),
+                color: fila.find('td:nth-child(4)').text().trim(),
+                talla: fila.find('td:nth-child(5)').text().trim(),
+                cantidad: fila.find('td:nth-child(6)').text().trim(),
+                tipoDefecto: fila.find('.select-container select').val(),
+                muestreo: fila.find('.tamañoMuestra').text().trim(),
+                defectos: fila.find('.cantidadInput').val(),
+                tipoBusqueda: tipoBusqueda
+            };
+    
+            // Obtener la orden seleccionada
+            var ordenSeleccionada = $('#ordenSelect').val();
+    
+            // Armar los datos a enviar al servidor
+            var datosAEnviar = {
+                _token: $('meta[name="csrf-token"]').attr('content'), // Obtener el token CSRF del meta tag
+                orden: ordenSeleccionada,
+                datos: [datosFila], // Enviar solo los datos de la fila modificada
+                status: status,
+                rowId: rowId,
+                tipoBusqueda: tipoBusqueda
+            };
+    
+            // Realizar la solicitud AJAX para enviar los datos al servidor
+            $.ajax({
+                url: '/actualizarStatus',
+                type: 'PUT',
+                data: datosAEnviar,
+                dataType: 'json',
+                success: function(response) {
+                    // Manejar la respuesta del servidor
+                    alert(response.mensaje);
+                    // Opcional: actualizar visualmente el estado en la interfaz
+                    $(this).closest('.dropup').find('.dropdown-toggle').text(status);
+                },
+                error: function(error) {
+                    // Manejar errores
+                    alert('Error al actualizar el status. Por favor, inténtalo de nuevo.');
+                    console.error('Error al actualizar el status: ', error);
+                }
             });
         });
+    });    
     </script>
 @endsection

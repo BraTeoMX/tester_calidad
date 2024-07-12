@@ -7,6 +7,8 @@ use App\Models\Cat_DefEtiquetas;
 use App\Models\ReporteAuditoriaEtiqueta;
 use Illuminate\Http\Request;
 use App\Models\DatosAXOV;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class DatosAuditoriaEtiquetas extends Controller
@@ -242,136 +244,155 @@ class DatosAuditoriaEtiquetas extends Controller
     }
     public function guardarInformacion(Request $request)
     {
-        // Obtener los datos enviados desde el frontend
         $datos = $request->input('datos');
-        $contador = count($datos);
 
         try {
+            // Validar datos
+            if (!is_array($datos)) {
+                throw new \Exception('Datos inválidos, se esperaba un array.');
+            }
+
             // Iterar sobre los datos recibidos
-            for ($i = 0; $i < $contador; $i++) {
+            foreach ($datos as $dato) {
+                // Verificar si existe el índice 'tipoDefecto' antes de acceder a él
+                if (isset($dato['tipoDefecto'])) {
+                    $tipoDefecto = is_array($dato['tipoDefecto'])
+                        ? implode(', ', $dato['tipoDefecto'])
+                        : $dato['tipoDefecto'];
+                } else {
+                    $tipoDefecto = 'N/A'; // Valor por defecto si no existe
+                }
+
                 // Buscar si existe un registro con el mismo ID en ReporteAuditoriaEtiqueta
-                $registroExistente = ReporteAuditoriaEtiqueta::find($datos[$i]['id']);
+                $registroExistente = ReporteAuditoriaEtiqueta::find($dato['id']);
                 if ($registroExistente) {
                     // Si existe un registro en ReporteAuditoriaEtiqueta, actualizar sus atributos
                     $registroExistente->Status = 'Update';
-                    $registroExistente->Defectos = $datos[$i]['defectos'] ?? 'N/A';
-                    $registroExistente->Tipo_Defectos = $datos[$i]['tipoDefecto'] ?? 'N/A';
+                    $registroExistente->Defectos = $dato['defectos'];
+                    $registroExistente->Tipo_Defectos = $tipoDefecto;
                     $registroExistente->save();
                 } else {
                     // Si no existe, crear un nuevo registro en ReporteAuditoriaEtiqueta
                     $reporte = new ReporteAuditoriaEtiqueta();
-                    $reporte->id = $datos[$i]['id'] ?? 'N/A';
-                    $reporte->Orden = $datos[$i]['orden'] ?? 'N/A';
-                    $reporte->Estilos = $datos[$i]['estilo'] ?? 'N/A';
-                    $reporte->Cantidad = $datos[$i]['cantidad'] ?? 'N/A';
-                    $reporte->Muestreo = $datos[$i]['muestreo'] ?? 'N/A';
-                    $reporte->Defectos = $datos[$i]['defectos'] ?? 'N/A';
-                    $reporte->Tipo_Defectos = $datos[$i]['tipoDefecto'] ?? 'N/A';
-                    $reporte->Talla = $datos[$i]['talla'] ?? 'N/A';
-                    $reporte->Color = $datos[$i]['color'] ?? 'N/A';
+                    $reporte->id = $dato['id'];
+                    $reporte->Orden = $dato['orden'];
+                    $reporte->Estilos = $dato['estilo'];
+                    $reporte->Cantidad = $dato['cantidad'];
+                    $reporte->Muestreo = $dato['muestreo'];
+                    $reporte->Defectos = $dato['defectos'];
+                    $reporte->Tipo_Defectos = $tipoDefecto;
+                    $reporte->Talla = $dato['talla'];
+                    $reporte->Color = $dato['color'];
                     $reporte->Status = 'Guardado';
                     $reporte->save();
                 }
 
                 // Obtener el tipo de búsqueda del registro actual
-                $tipoBusqueda = $datos[$i]['tipoBusqueda'];
+                $tipoBusqueda = $dato['tipoBusqueda'];
 
                 // Determinar el modelo y el campo de búsqueda según el tipo
                 if ($tipoBusqueda === 'OC') {
                     $modelo = ModelsDatosAuditoriaEtiquetas::class;
                     $campoBusqueda = 'OrdenCompra';
                 } else {
-                    $modelo = DatosAXOV::class;
                     $campoBusqueda = $tipoBusqueda; // OP, PO, OV
+                    $modelo = DatosAXOV::class;
                 }
 
-                // Buscar si existe un registro en el modelo correspondiente
-                $registroExistenteModel = $modelo::find($datos[$i]['id']);
+                try {
+                    // Buscar todos los registros en el modelo correspondiente que coincidan con el tipo de búsqueda y el estilo
+                    $registrosExistentesModel = $modelo::where($campoBusqueda, $dato['orden'])
+                        ->where('Estilo', $dato['estilo'])
+                        ->get();
 
-                if ($registroExistenteModel) {
-                    // Si existe un registro, actualizar solo su atributo 'status'
-                    $registroExistenteModel->status = 'Iniciado';
-                    $registroExistenteModel->save();
+                    if ($registrosExistentesModel->isNotEmpty()) {
+                        // Si existen registros, actualizar solo su atributo 'status'
+                        foreach ($registrosExistentesModel as $registroExistenteModel) {
+                            $registroExistenteModel->status = 'Iniciado';
+                            $registroExistenteModel->save();
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Error al buscar o actualizar registros en el modelo ' . $modelo . ': ' . $e->getMessage());
+                    throw $e; // Volver a lanzar la excepción para que sea atrapada por el catch exterior
                 }
             }
 
             // Retornar una respuesta JSON indicando el éxito
             return response()->json(['mensaje' => 'Los datos han sido actualizados correctamente'], 200);
         } catch (\Exception $e) {
-            // Retornar una respuesta JSON con el mensaje de error
-            return response()->json(['error' => 'Error al actualizar los datos: ' . $e->getMessage()], 500);
+            Log::error('Error al guardar los datos: ' . $e->getMessage() . ' en la línea ' . $e->getLine());
+            return response()->json(['error' => 'Error interno del servidor.'], 500);
         }
     }
     public function actualizarStatus(Request $request)
-    {
-        try {
-            // Obtener los datos enviados desde el frontend
-            $datos = $request->input('datos');
-            // Obtener el status del dropdown
-            $status = $request->input('status');
+{
+    try {
+        // Obtener los datos enviados desde el frontend
+        $datos = $request->input('datos');
+        // Obtener el status del dropdown
+        $status = $request->input('status');
+        $rowId = $request->input('rowId');
 
-            $contador = count($datos);
-            $rowId = $request->input('rowId');
+        $contador = count($datos);
 
-            // Iterar sobre los datos recibidos
-            for ($i = 0; $i < $contador; $i++) {
-                // Obtener el ID de la fila seleccionada
-
-
-                $registroExistente = ReporteAuditoriaEtiqueta::where('id', $rowId)->first();
-                if ($registroExistente) {
-                    if ($datos[$i]['id'] == $rowId) {
-                        ReporteAuditoriaEtiqueta::WHERE('id', $rowId)
-                            ->update([
-                                'Status' => $status,
-                                'Defectos' => $datos[$i]['defectos'] ?? 'N/A',
-                                'Tipo_Defectos' => $datos[$i]['tipoDefecto'] ?? 'N/A'
-                            ]);
-                    }
-                } else {
-                    // Si no existe, crear un nuevo registro en ReporteAuditoriaEtiqueta
-                    $registroExistente = new ReporteAuditoriaEtiqueta();
-                    $registroExistente->id = $rowId;
-                    $registroExistente->Orden = $datos[$i]['orden'] ?? 'N/A';
-                    $registroExistente->Estilos = $datos[$i]['estilo'] ?? 'N/A';
-                    $registroExistente->Cantidad = $datos[$i]['cantidad'] ?? 'N/A';
-                    $registroExistente->Muestreo = $datos[$i]['muestreo'] ?? 'N/A';
-                    $registroExistente->Defectos = $datos[$i]['defectos'] ?? 'N/A';
-                    $registroExistente->Tipo_Defectos = $datos[$i]['tipoDefecto'] ?? 'N/A';
-                    $registroExistente->Talla = $datos[$i]['talla'] ?? 'N/A';
-                    $registroExistente->Color = $datos[$i]['color'] ?? 'N/A';
-                    $registroExistente->Status = $status;
-                    $registroExistente->save();
-                }
-
-                /////////////////////////////////////////////////////
-                // Obtener el tipo de búsqueda del registro actual
-                $tipoBusqueda = $datos[$i]['tipoBusqueda'];
-
-                // Determinar el modelo y el campo de búsqueda según el tipo
-                if ($tipoBusqueda === 'OC') {
-                    $modelo = ModelsDatosAuditoriaEtiquetas::class;
-                    $campoBusqueda = 'OrdenCompra';
-                } else {
-                    $modelo = DatosAXOV::class;
-                    $campoBusqueda = $tipoBusqueda; // OP, PO, OV
-                }
-
-                // Buscar si existe un registro en el modelo correspondiente
-                $statusupdate = $modelo::find($rowId);
-
-                if ($statusupdate) {
-                    $statusupdate->update([
-                        'status' => $status
+        // Iterar sobre los datos recibidos
+        for ($i = 0; $i < $contador; $i++) {
+            // Buscar si existe un registro con el mismo ID en ReporteAuditoriaEtiqueta
+            $registroExistente = ReporteAuditoriaEtiqueta::find($rowId);
+            if ($registroExistente) {
+                if ($datos[$i]['id'] == $rowId) {
+                    // Actualizar el registro existente
+                    $registroExistente->update([
+                        'Status' => $status,
+                        'Defectos' => $datos[$i]['defectos'] ?? 'N/A',
+                        'Tipo_Defectos' => $datos[$i]['tipoDefecto'] ?? 'N/A'
                     ]);
                 }
+            } else {
+                // Si no existe, crear un nuevo registro en ReporteAuditoriaEtiqueta
+                $registroExistente = new ReporteAuditoriaEtiqueta();
+                $registroExistente->id = $rowId;
+                $registroExistente->Orden = $datos[$i]['orden'] ?? 'N/A';
+                $registroExistente->Estilos = $datos[$i]['estilo'] ?? 'N/A';
+                $registroExistente->Cantidad = $datos[$i]['cantidad'] ?? 'N/A';
+                $registroExistente->Muestreo = $datos[$i]['muestreo'] ?? 'N/A';
+                $registroExistente->Defectos = $datos[$i]['defectos'] ?? 'N/A';
+                $registroExistente->Tipo_Defectos = $datos[$i]['tipoDefecto'] ?? 'N/A';
+                $registroExistente->Talla = $datos[$i]['talla'] ?? 'N/A';
+                $registroExistente->Color = $datos[$i]['color'] ?? 'N/A';
+                $registroExistente->Status = $status;
+                $registroExistente->save();
             }
 
-            // Retornar una respuesta JSON indicando el éxito
-            return response()->json(['mensaje' => 'Los datos han sido actualizados correctamente'], 200);
-        } catch (\Exception $e) {
-            // Retornar una respuesta JSON con el mensaje de error
-            return response()->json(['error' => 'Error al actualizar los datos: ' . $e->getMessage()], 500);
+            // Obtener el tipo de búsqueda del registro actual
+            $tipoBusqueda = $datos[$i]['tipoBusqueda'];
+
+            // Determinar el modelo y el campo de búsqueda según el tipo
+            if ($tipoBusqueda === 'OC') {
+                $modelo = ModelsDatosAuditoriaEtiquetas::class;
+                $campoBusqueda = 'OrdenCompra';
+            } else {
+                $modelo = DatosAXOV::class;
+                $campoBusqueda = $tipoBusqueda; // OP, PO, OV
+            }
+
+            // Buscar si existe un registro en el modelo correspondiente
+            $registroExistenteModel = $modelo::where($campoBusqueda, $datos[$i]['id'])->first();
+
+            if ($registroExistenteModel) {
+                // Actualizar solo el atributo 'status'
+                $registroExistenteModel->update(['status' => $status]);
+            }
         }
+
+        // Retornar una respuesta JSON indicando el éxito
+        return response()->json(['mensaje' => 'Los datos han sido actualizados correctamente'], 200);
+    } catch (\Exception $e) {
+        Log::error('Error al actualizar los datos: ' . $e->getMessage() . ' en la línea ' . $e->getLine());
+        // Retornar una respuesta JSON con el mensaje de error
+        return response()->json(['error' => 'Error al actualizar los datos: ' . $e->getMessage()], 500);
     }
+}
+
 }
