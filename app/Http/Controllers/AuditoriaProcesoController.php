@@ -246,7 +246,20 @@ class AuditoriaProcesoController extends Controller
         
         $total_porcentajeIndividual = $total_auditadaIndividual != 0 ? ($total_rechazadaIndividual / $total_auditadaIndividual) * 100 : 0;
         
-        $operacionNombre = JobOperacion::where('moduleid', $data['modulo'])->get();
+        $excluidos = [
+            "APP SCREEN:    /    /", 
+            "APPROVED     /    /", 
+            "APPROVED / /",
+            "APPROVED //",
+            "OFF LINE", 
+            "ON CUT", 
+            "ON LINE", 
+            "OUT CUT"
+        ];
+        
+        $operacionNombre = JobOperacion::where('moduleid', $data['modulo'])
+            ->whereNotIn('oprname', $excluidos)
+            ->get();
 
         
         return view('aseguramientoCalidad.auditoriaProceso', array_merge($categorias, [
