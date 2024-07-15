@@ -72,14 +72,14 @@
                         </div>
                         <div class="col-sm-6">
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-                                <label class="btn btn-sm btn-primary btn-simple active" id="btnAQL">
+                                <label class="btn btn-sm btn-success btn-simple active" id="btnAQL">
                                     <input type="radio" name="options" checked>
                                     <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-app text-success"></i> AQL</span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-single-02"></i>
                                     </span>
                                 </label>
-                                <label class="btn btn-sm btn-primary btn-simple" id="btnProcesos">
+                                <label class="btn btn-sm btn-info btn-simple" id="btnProcesos">
                                     <input type="radio" class="d-none d-sm-none" name="options">
                                     <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-vector text-primary"></i> Procesos</span>
                                     <span class="d-block d-sm-none">
@@ -477,10 +477,11 @@
 @endsection
 
 @push('js')
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/highcharts-3d.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
-    <script src="https://code.highcharts.com/themes/dark-unica.js"></script>
+    <script src="{{ asset('js/highcharts/highcharts.js') }}"></script>
+    <script src="{{ asset('js/highcharts/highcharts-3d.js') }}"></script>
+    <script src="{{ asset('js/highcharts/exporting.js') }}"></script>
+    <script src="{{ asset('js/highcharts/dark-unica.js') }}"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Datos para las gráficas
