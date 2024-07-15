@@ -66,20 +66,22 @@
                 <div class="card-header ">
                     <div class="row">
                         <div class="col-sm-6 text-left">
-                            <h2 class="card-title"><a href="{{ route('dashboar.dashboarAProcesoAQL') }}">Intimark Mensual General</a></h2>
+                            <h2 class="card-title">
+                                <a href="{{ route('dashboar.dashboarAProcesoAQL') }}">Intimark Mensual General</a>
+                            </h2>
                         </div>
                         <div class="col-sm-6">
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-                                <label class="btn btn-sm btn-primary btn-simple active" id="0">
+                                <label class="btn btn-sm btn-primary btn-simple active" id="btnAQL">
                                     <input type="radio" name="options" checked>
                                     <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-app text-success"></i> AQL</span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-single-02"></i>
                                     </span>
                                 </label>
-                                <label class="btn btn-sm btn-primary btn-simple" id="1">
+                                <label class="btn btn-sm btn-primary btn-simple" id="btnProcesos">
                                     <input type="radio" class="d-none d-sm-none" name="options">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"> <i class="tim-icons icon-vector text-primary"></i> Procesos</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-vector text-primary"></i> Procesos</span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-gift-2"></i>
                                     </span>
@@ -89,9 +91,9 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="chart-area">
-                        <canvas id="chartAQL"></canvas>
-                        <canvas id="chartProcesos" style="display: none;"></canvas>
+                    <div class="chart-area" style="height: 500px;">
+                        <div id="chartAQLContainer"></div>
+                        <div id="chartProcesosContainer" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -468,117 +470,123 @@
         .chart-area {
           height: 500px; /* Ajusta esta altura según tus necesidades */
         }
+        
+        #chartAQLContainer, #chartProcesosContainer {
+            width: 100%;
+            height: 100%;
+        }
       </style>
 @endsection
 
 @push('js')
-    <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-3d.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/themes/dark-unica.js"></script>
     <script>
-        $(document).ready(function() {
-            // Inicializa las gráficas
-            var ctxAQL = document.getElementById('chartAQL').getContext('2d');
-            var chartAQL = new Chart(ctxAQL, {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($fechas) !!},
-                    datasets: [{
-                        label: 'AQL',
-                        data: {!! json_encode($porcentajesAQL) !!},
-                        borderColor: '#f96332',
-                        backgroundColor: 'rgba(249, 99, 50, 0.4)',
-                        fill: true,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    legend: {
-                        display: false // Ocultar la leyenda
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'time',
-                            time: {
-                                unit: 'day',
-                                tooltipFormat: 'll',
-                                displayFormats: {
-                                    day: 'DD-MM-YYYY'
-                                }
-                            },
-                            ticks: {
-                                autoSkip: false,
-                                maxRotation: 90,
-                                minRotation: 45
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                callback: function(value, index, values) {
-                                    return value + '%'; // Añadir el símbolo de porcentaje
-                                }
-                            }
-                        }]
+        document.addEventListener('DOMContentLoaded', function () {
+            // Datos para las gráficas
+            const fechas = @json($fechas);
+            const porcentajesAQL = @json($porcentajesAQL);
+            const porcentajesProceso = @json($porcentajesProceso);
+        
+            // Función para convertir los datos y manejar valores nulos o cero
+            function prepareData(data) {
+                return data.map(value => value === null ? null : parseFloat(value));
+            }
+        
+            // Configuración común para ambas gráficas
+            const commonOptions = {
+                chart: {
+                    type: 'areaspline',
+                    backgroundColor: '#27293D',
+                    events: {
+                        load: function() {
+                            this.reflow();
+                        }
                     }
-                }
-            });
-
-            var ctxProcesos = document.getElementById('chartProcesos').getContext('2d');
-            var chartProcesos = new Chart(ctxProcesos, {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($fechas) !!},
-                    datasets: [{
-                        label: 'Procesos',
-                        data: {!! json_encode($porcentajesProceso) !!},
-                        borderColor: '#1f8ef1',
-                        backgroundColor: 'rgba(31, 142, 241, 0.4)',
-                        fill: true,
-                    }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    legend: {
-                        display: false // Ocultar la leyenda
+                title: {
+                    text: 'Intimark Mensual General',
+                    style: { color: '#ffffff' }
+                },
+                xAxis: {
+                    categories: fechas,
+                    tickmarkPlacement: 'on',
+                    title: { enabled: false },
+                    labels: { style: { color: '#ffffff' } }
+                },
+                yAxis: {
+                    title: {
+                        text: 'Porcentaje',
+                        style: { color: '#ffffff' }
                     },
-                    scales: {
-                        xAxes: [{
-                            type: 'time',
-                            time: {
-                                unit: 'day',
-                                tooltipFormat: 'll',
-                                displayFormats: {
-                                    day: 'DD-MM-YYYY'
-                                }
-                            },
-                            ticks: {
-                                autoSkip: false,
-                                maxRotation: 90,
-                                minRotation: 45
+                    labels: {
+                        formatter: function () {
+                            return this.value + '%';
+                        },
+                        style: { color: '#ffffff' }
+                    },
+                    gridLineColor: '#707073'
+                },
+                tooltip: {
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}%</b><br/>',
+                    valueDecimals: 2
+                },
+                plotOptions: {
+                    areaspline: {
+                        fillOpacity: 0.5,
+                        marker: {
+                            radius: 2
+                        },
+                        lineWidth: 1,
+                        states: {
+                            hover: {
+                                lineWidth: 1
                             }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                callback: function(value, index, values) {
-                                    return value + '%'; // Añadir el símbolo de porcentaje
-                                }
-                            }
-                        }]
+                        },
+                        threshold: null
                     }
+                },
+                colors: ['#7cb5ec'],
+                legend: {
+                    itemStyle: { color: '#ffffff' }
                 }
+            };
+        
+            // Gráfica AQL
+            const chartAQL = Highcharts.chart('chartAQLContainer', Highcharts.merge(commonOptions, {
+                series: [{
+                    name: 'AQL',
+                    data: prepareData(porcentajesAQL)
+                }]
+            }));
+        
+            // Gráfica Procesos
+            const chartProcesos = Highcharts.chart('chartProcesosContainer', Highcharts.merge(commonOptions, {
+                series: [{
+                    name: 'Procesos',
+                    data: prepareData(porcentajesProceso)
+                }]
+            }));
+        
+            // Funcionalidad de los botones
+            document.getElementById('btnAQL').addEventListener('click', function() {
+                document.getElementById('chartAQLContainer').style.display = 'block';
+                document.getElementById('chartProcesosContainer').style.display = 'none';
+                chartAQL.reflow();
             });
-
-            // Manejar el cambio de gráficos
-            $('#0').on('click', function() {
-                $('#chartAQL').show();
-                $('#chartProcesos').hide();
+        
+            document.getElementById('btnProcesos').addEventListener('click', function() {
+                document.getElementById('chartAQLContainer').style.display = 'none';
+                document.getElementById('chartProcesosContainer').style.display = 'block';
+                chartProcesos.reflow();
             });
-
-            $('#1').on('click', function() {
-                $('#chartAQL').hide();
-                $('#chartProcesos').show();
+        
+            // Ajuste responsivo
+            window.addEventListener('resize', function() {
+                chartAQL.reflow();
+                chartProcesos.reflow();
             });
         });
     </script>
