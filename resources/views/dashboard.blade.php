@@ -60,7 +60,7 @@
     </div>
 
 
-    <div class="row">
+    <div class="row"> 
         <div class="col-12">
             <div class="card card-chart">
                 <div class="card-header ">
@@ -98,7 +98,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> 
     <!-- Graficas -->
     <div class="row">
         <div class="col-12">
@@ -132,14 +132,13 @@
                                     </span>
                                 </label>
                             </div>
-
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="chart-area" style="height: 500px;"> <!-- Ajusta esta altura según tus necesidades -->
-                        <canvas id="clienteChartAQL"></canvas>
-                        <canvas id="clienteChartProcesos" style="display: none;"></canvas>
+                    <div class="chart-area" style="height: 500px;">
+                        <div id="clienteChartAQL"></div>
+                        <div id="clienteChartProcesos" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -177,14 +176,13 @@
                                     </span>
                                 </label>
                             </div>
-
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="chart-area" style="height: 500px;"> <!-- Ajusta esta altura según tus necesidades -->
-                        <canvas id="moduloChartAQL"></canvas>
-                        <canvas id="moduloChartProcesos" style="display: none;"></canvas>
+                    <div class="chart-area" style="height: 500px;">
+                        <div id="moduloChartAQL"></div>
+                        <div id="moduloChartProcesos" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -489,12 +487,12 @@
             const fechas = @json($fechas);
             const porcentajesAQL = @json($porcentajesAQL);
             const porcentajesProceso = @json($porcentajesProceso);
-        
+    
             // Función para convertir los datos y manejar valores nulos o cero
             function prepareData(data) {
                 return data.map(value => value === null ? null : parseFloat(value));
             }
-        
+    
             // Configuración común para ambas gráficas
             const commonOptions = {
                 chart: {
@@ -507,8 +505,7 @@
                     }
                 },
                 title: {
-                    text: 'Intimark Mensual General',
-                    style: { color: '#ffffff' }
+                    text: null
                 },
                 xAxis: {
                     categories: fechas,
@@ -548,41 +545,44 @@
                         threshold: null
                     }
                 },
-                colors: ['#7cb5ec'],
                 legend: {
                     itemStyle: { color: '#ffffff' }
                 }
             };
-        
+    
             // Gráfica AQL
             const chartAQL = Highcharts.chart('chartAQLContainer', Highcharts.merge(commonOptions, {
                 series: [{
                     name: 'AQL',
-                    data: prepareData(porcentajesAQL)
+                    data: prepareData(porcentajesAQL),
+                    color: '#00F0BA', // Color de la línea y el fondo de la línea
+                    showInLegend: false // Ocultar nombre en la leyenda
                 }]
             }));
-        
+    
             // Gráfica Procesos
             const chartProcesos = Highcharts.chart('chartProcesosContainer', Highcharts.merge(commonOptions, {
                 series: [{
                     name: 'Procesos',
-                    data: prepareData(porcentajesProceso)
+                    data: prepareData(porcentajesProceso),
+                    color: '#E146A1', // Color de la línea y el fondo de la línea
+                    showInLegend: false // Ocultar nombre en la leyenda
                 }]
             }));
-        
+    
             // Funcionalidad de los botones
             document.getElementById('btnAQL').addEventListener('click', function() {
                 document.getElementById('chartAQLContainer').style.display = 'block';
                 document.getElementById('chartProcesosContainer').style.display = 'none';
                 chartAQL.reflow();
             });
-        
+    
             document.getElementById('btnProcesos').addEventListener('click', function() {
                 document.getElementById('chartAQLContainer').style.display = 'none';
                 document.getElementById('chartProcesosContainer').style.display = 'block';
                 chartProcesos.reflow();
             });
-        
+    
             // Ajuste responsivo
             window.addEventListener('resize', function() {
                 chartAQL.reflow();
@@ -592,270 +592,255 @@
     </script>
 
     <script>
-        $(document).ready(function() {
-        // Lista de colores
-        var colores = [
-            'rgba(75, 192, 192, 1)',
-            'rgba(153, 102, 255, 1)',
-            'rgba(255, 99, 132, 1)',
-            'rgba(54, 162, 235, 1)',
-            'rgba(255, 206, 86, 1)',
-            'rgba(255, 159, 64, 1)',
-            'rgba(199, 199, 199, 1)',
-            'rgba(255, 99, 255, 1)',
-            'rgba(99, 255, 132, 1)',
-            'rgba(99, 132, 255, 1)',
-            'rgba(132, 99, 255, 1)',
-            'rgba(192, 75, 192, 1)',
-            'rgba(235, 162, 54, 1)',
-            'rgba(86, 255, 206, 1)',
-            'rgba(64, 159, 255, 1)'
-        ];
+        document.addEventListener('DOMContentLoaded', function () {
+            // Datos para las gráficas
+            const fechasGrafica = @json($fechasGrafica);
+            const datasetsAQL = @json($datasetsAQL);
+            const datasetsProceso = @json($datasetsProceso);
 
-        // Inicializa las gráficas
-        var ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');
-        var datasetsAQL = @json($datasetsAQL).map((dataset, index) => {
-            return {
-                ...dataset,
-                borderColor: colores[index % colores.length],
-                backgroundColor: colores[index % colores.length]
-            };
-        });
-        var chartClienteAQL = new Chart(ctxClienteAQL, {
-            type: 'line',
-            data: {
-                labels: @json($fechasGrafica),
-                datasets: datasetsAQL
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                legend: {
-                    display: true // Mostrar la leyenda
-                },
-                scales: {
-                    xAxes: [{
-                        type: 'time',
-                        time: {
-                            unit: 'day',
-                            tooltipFormat: 'll',
-                            displayFormats: {
-                                day: 'YYYY-MM-DD'
-                            }
-                        }
-                    }],
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true,
-                            callback: function(value, index, values) {
-                                return value + '%'; // Añadir el símbolo de porcentaje
-                            }
-                        }
-                    }]
-                }
-            }
-        });
+            // Lista de colores
+            const colores = [
+                '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB', '#FFCE56',
+                '#FF9F40', '#C7C7C7', '#FF63FF', '#63FF84', '#6384FF',
+                '#8463FF', '#C04BC0', '#EBA236', '#56FFCE', '#40AFFF'
+            ];
 
-        var ctxClienteProcesos = document.getElementById('clienteChartProcesos').getContext('2d');
-        var datasetsProceso = @json($datasetsProceso).map((dataset, index) => {
-            return {
-                ...dataset,
-                borderColor: colores[index % colores.length],
-                backgroundColor: colores[index % colores.length]
-            };
-        });
-        var chartClienteProcesos = new Chart(ctxClienteProcesos, {
-            type: 'line',
-            data: {
-                labels: @json($fechasGrafica),
-                datasets: datasetsProceso
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                legend: {
-                    display: true // Mostrar la leyenda
-                },
-                scales: {
-                    xAxes: [{
-                        type: 'time',
-                        time: {
-                            unit: 'day',
-                            tooltipFormat: 'll',
-                            displayFormats: {
-                                day: 'YYYY-MM-DD'
-                            }
-                        }
-                    }],
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true,
-                            callback: function(value, index, values) {
-                                return value + '%'; // Añadir el símbolo de porcentaje
-                            }
-                        }
-                    }]
-                }
-            }
-        });
-
-        $('#cliente0').on('click', function() {
-            $('#clienteChartAQL').show();
-            $('#clienteChartProcesos').hide();
-            chartClienteAQL.update(); // Asegurarse de que la gráfica se actualice
-        });
-
-        $('#cliente1').on('click', function() {
-            $('#clienteChartAQL').hide();
-            $('#clienteChartProcesos').show();
-            chartClienteProcesos.update(); // Asegurarse de que la gráfica se actualice
-        });
-
-        $('#toggleAll').on('click', function() {
-            var showAll = $('#toggleAll input').prop('checked');
-            var toggleVisibility = function(chart) {
-                chart.data.datasets.forEach(function(dataset) {
-                    dataset.hidden = !showAll;
+            // Función para preparar datasets para Highcharts
+            function prepareDatasets(datasets) {
+                return datasets.map((dataset, index) => {
+                    return {
+                        name: dataset.label,
+                        data: dataset.data.map((value, i) => [new Date(fechasGrafica[i]).getTime(), parseFloat(value)]),
+                        color: colores[index % colores.length],
+                        //showInLegend: false // Ocultar nombre en la leyenda
+                    };
                 });
-                chart.update();
+            }
+
+            // Configuración común para ambas gráficas
+            const commonOptions = {
+                chart: {
+                    type: 'spline', // Cambiado a 'spline' para curvas suaves
+                    backgroundColor: '#27293D',
+                    events: {
+                        load: function() {
+                            this.reflow();
+                        }
+                    }
+                },
+                // Eliminar el título de la gráfica
+                title: {
+                    text: null
+                },
+                xAxis: {
+                    type: 'datetime',
+                    labels: {
+                        style: { color: '#ffffff' }
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: 'Porcentaje',
+                        style: { color: '#ffffff' }
+                    },
+                    labels: {
+                        formatter: function () {
+                            return this.value + '%';
+                        },
+                        style: { color: '#ffffff' }
+                    },
+                    gridLineColor: '#707073'
+                },
+                tooltip: {
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}%</b><br/>',
+                    valueDecimals: 2
+                },
+                plotOptions: {
+                    spline: { // Opciones específicas para 'spline'
+                        marker: {
+                            radius: 2
+                        },
+                        lineWidth: 1,
+                        states: {
+                            hover: {
+                                lineWidth: 1
+                            }
+                        },
+                        threshold: null
+                    }
+                },
+                legend: {
+                    itemStyle: { color: '#ffffff' }
+                }
             };
 
-            toggleVisibility(chartClienteAQL);
-            toggleVisibility(chartClienteProcesos);
-        });
+            // Gráfica AQL
+            const chartClienteAQL = Highcharts.chart('clienteChartAQL', Highcharts.merge(commonOptions, {
+                series: prepareDatasets(datasetsAQL)
+            }));
+
+            // Gráfica Procesos
+            const chartClienteProcesos = Highcharts.chart('clienteChartProcesos', Highcharts.merge(commonOptions, {
+                series: prepareDatasets(datasetsProceso)
+            }));
+
+            // Funcionalidad de los botones
+            document.getElementById('cliente0').addEventListener('click', function() {
+                document.getElementById('clienteChartAQL').style.display = 'block';
+                document.getElementById('clienteChartProcesos').style.display = 'none';
+                chartClienteAQL.reflow();
+            });
+
+            document.getElementById('cliente1').addEventListener('click', function() {
+                document.getElementById('clienteChartAQL').style.display = 'none';
+                document.getElementById('clienteChartProcesos').style.display = 'block';
+                chartClienteProcesos.reflow();
+            });
+
+            document.getElementById('toggleAll').addEventListener('click', function() {
+                const showAll = document.getElementById('toggleAll').querySelector('input').checked;
+                const toggleVisibility = function(chart) {
+                    chart.series.forEach(function(series) {
+                        series.setVisible(showAll, false);
+                    });
+                    chart.redraw();
+                };
+
+                toggleVisibility(chartClienteAQL);
+                toggleVisibility(chartClienteProcesos);
+            });
+
+            // Ajuste responsivo
+            window.addEventListener('resize', function() {
+                chartClienteAQL.reflow();
+                chartClienteProcesos.reflow();
+            });
         });
     </script>
 
     <script>
-        $(document).ready(function() {
-            var colores = [
-                'rgba(75, 192, 192, 1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(255, 159, 64, 1)',
-                'rgba(199, 199, 199, 1)',
-                'rgba(255, 99, 255, 1)',
-                'rgba(99, 255, 132, 1)',
-                'rgba(99, 132, 255, 1)',
-                'rgba(132, 99, 255, 1)',
-                'rgba(192, 75, 192, 1)',
-                'rgba(235, 162, 54, 1)',
-                'rgba(86, 255, 206, 1)',
-                'rgba(64, 159, 255, 1)'
+        document.addEventListener('DOMContentLoaded', function () {
+            // Datos para las gráficas
+            const fechasGraficaModulos = @json($fechasGraficaModulos);
+            const datasetsAQLModulos = @json($datasetsAQLModulos);
+            const datasetsProcesoModulos = @json($datasetsProcesoModulos);
+
+            // Lista de colores
+            const colores = [
+                '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB', '#FFCE56',
+                '#FF9F40', '#C7C7C7', '#FF63FF', '#63FF84', '#6384FF',
+                '#8463FF', '#C04BC0', '#EBA236', '#56FFCE', '#40AFFF'
             ];
 
-            // Inicializa las gráficas de módulos
-            var ctxModuloAQL = document.getElementById('moduloChartAQL').getContext('2d');
-            var datasetsAQLModulos = @json($datasetsAQLModulos).map((dataset, index) => {
-                return {
-                    ...dataset,
-                    borderColor: colores[index % colores.length],
-                    backgroundColor: colores[index % colores.length]
-                };
-            });
-            var chartModuloAQL = new Chart(ctxModuloAQL, {
-                type: 'line',
-                data: {
-                    labels: @json($fechasGraficaModulos),
-                    datasets: datasetsAQLModulos
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    legend: {
-                        display: true
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'time',
-                            time: {
-                                unit: 'day',
-                                tooltipFormat: 'll',
-                                displayFormats: {
-                                    day: 'YYYY-MM-DD'
-                                }
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                callback: function(value, index, values) {
-                                    return value + '%';
-                                }
-                            }
-                        }]
+            // Función para preparar datasets para Highcharts
+            function prepareDatasets(datasets) {
+                return datasets.map((dataset, index) => {
+                    return {
+                        name: dataset.label,
+                        data: dataset.data.map((value, i) => [new Date(fechasGraficaModulos[i]).getTime(), parseFloat(value)]),
+                        color: colores[index % colores.length],
+                        //showInLegend: false // Ocultar nombre en la leyenda
+                    };
+                });
+            }
+
+            // Configuración común para ambas gráficas
+            const commonOptions = {
+                chart: {
+                    type: 'spline', // Cambiado a 'spline' para curvas suaves
+                    backgroundColor: '#27293D',
+                    events: {
+                        load: function() {
+                            this.reflow();
+                        }
                     }
-                }
-            });
-
-            var ctxModuloProcesos = document.getElementById('moduloChartProcesos').getContext('2d');
-            var datasetsProcesoModulos = @json($datasetsProcesoModulos).map((dataset, index) => {
-                return {
-                    ...dataset,
-                    borderColor: colores[index % colores.length],
-                    backgroundColor: colores[index % colores.length]
-                };
-            });
-            var chartModuloProcesos = new Chart(ctxModuloProcesos, {
-                type: 'line',
-                data: {
-                    labels: @json($fechasGraficaModulos),
-                    datasets: datasetsProcesoModulos
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    legend: {
-                        display: true
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'time',
-                            time: {
-                                unit: 'day',
-                                tooltipFormat: 'll',
-                                displayFormats: {
-                                    day: 'YYYY-MM-DD'
-                                }
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                callback: function(value, index, values) {
-                                    return value + '%';
-                                }
-                            }
-                        }]
+                // Eliminar el título de la gráfica
+                title: {
+                    text: null
+                },
+                xAxis: {
+                    type: 'datetime',
+                    labels: {
+                        style: { color: '#ffffff' }
                     }
+                },
+                yAxis: {
+                    title: {
+                        text: 'Porcentaje',
+                        style: { color: '#ffffff' }
+                    },
+                    labels: {
+                        formatter: function () {
+                            return this.value + '%';
+                        },
+                        style: { color: '#ffffff' }
+                    },
+                    gridLineColor: '#707073'
+                },
+                tooltip: {
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}%</b><br/>',
+                    valueDecimals: 2
+                },
+                plotOptions: {
+                    spline: { // Opciones específicas para 'spline'
+                        marker: {
+                            radius: 2
+                        },
+                        lineWidth: 1,
+                        states: {
+                            hover: {
+                                lineWidth: 1
+                            }
+                        },
+                        threshold: null
+                    }
+                },
+                legend: {
+                    itemStyle: { color: '#ffffff' }
                 }
+            };
+
+            // Gráfica AQL
+            const chartModuloAQL = Highcharts.chart('moduloChartAQL', Highcharts.merge(commonOptions, {
+                series: prepareDatasets(datasetsAQLModulos)
+            }));
+
+            // Gráfica Procesos
+            const chartModuloProcesos = Highcharts.chart('moduloChartProcesos', Highcharts.merge(commonOptions, {
+                series: prepareDatasets(datasetsProcesoModulos)
+            }));
+
+            // Funcionalidad de los botones
+            document.getElementById('modulo0').addEventListener('click', function() {
+                document.getElementById('moduloChartAQL').style.display = 'block';
+                document.getElementById('moduloChartProcesos').style.display = 'none';
+                chartModuloAQL.reflow();
             });
 
-            $('#modulo0').on('click', function() {
-                $('#moduloChartAQL').show();
-                $('#moduloChartProcesos').hide();
-                chartModuloAQL.update();
+            document.getElementById('modulo1').addEventListener('click', function() {
+                document.getElementById('moduloChartAQL').style.display = 'none';
+                document.getElementById('moduloChartProcesos').style.display = 'block';
+                chartModuloProcesos.reflow();
             });
 
-            $('#modulo1').on('click', function() {
-                $('#moduloChartAQL').hide();
-                $('#moduloChartProcesos').show();
-                chartModuloProcesos.update();
-            });
-
-            $('#toggleAllModulos').on('click', function() {
-                var showAll = $('#toggleAllModulos input').prop('checked');
-                var toggleVisibility = function(chart) {
-                    chart.data.datasets.forEach(function(dataset) {
-                        dataset.hidden = !showAll;
+            document.getElementById('toggleAllModulos').addEventListener('click', function() {
+                const showAll = document.getElementById('toggleAllModulos').querySelector('input').checked;
+                const toggleVisibility = function(chart) {
+                    chart.series.forEach(function(series) {
+                        series.setVisible(showAll, false);
                     });
-                    chart.update();
+                    chart.redraw();
                 };
 
                 toggleVisibility(chartModuloAQL);
                 toggleVisibility(chartModuloProcesos);
+            });
+
+            // Ajuste responsivo
+            window.addEventListener('resize', function() {
+                chartModuloAQL.reflow();
+                chartModuloProcesos.reflow();
             });
         });
     </script>
