@@ -215,7 +215,7 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-area">
-                        <canvas id="newChart" style="width: 100%; height: 400px;"></canvas>
+                        <canvas id="newChart" style="width: 100%; height: 500px;"></canvas>
                     </div>
                 </div>
             </div>
@@ -469,7 +469,7 @@
           height: 500px; /* Ajusta esta altura según tus necesidades */
         }
         
-        #chartAQLContainer, #chartProcesosContainer {
+        #chartAQLContainer, #chartProcesosContainer, #clienteChartAQL, #clienteChartProcesos, #moduloChartAQL, #moduloChartProcesos{
             width: 100%;
             height: 100%;
         }

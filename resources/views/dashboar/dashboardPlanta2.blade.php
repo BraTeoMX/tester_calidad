@@ -471,6 +471,10 @@
         .chart-area {
           height: 500px; /* Ajusta esta altura según tus necesidades */
         }
+        #chartAQLContainer, #chartProcesosContainer, #clienteChartAQL, #clienteChartProcesos, #moduloChartAQL, #moduloChartProcesos{
+            width: 100%;
+            height: 100%;
+        }
       </style>
 @endsection
 
