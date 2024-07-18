@@ -1,5 +1,12 @@
 @extends('layouts.app', ['pageSlug' => 'Etiquetas', 'titlePage' => __('Etiquetas')])
 @section('content')
+
+    <head>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    </head>
+
     <div class="content">
         <div class="container-fluid">
             <div class="card">
@@ -276,6 +283,7 @@
                 var ordenSeleccionada = $('#ordenSelect').val();
                 var tipoBusqueda = $('#tipoBusqueda').val();
                 var estilo = $(this).find('span:first').text().split(':')[1].trim();
+
                 $.ajax({
                     url: '/buscarDatosAuditoriaPorEstilo',
                     type: 'GET',
@@ -290,7 +298,6 @@
                         $('#miTabla tbody').empty();
                         // Mostrar resultados en la tabla
                         $.each(data, function(index, item) {
-                            var ordenSeleccionada = $('#ordenSelect').val();
                             var campos = {
                                 OC: {
                                     Orden: 'OrdenCompra',
@@ -333,24 +340,6 @@
                                 }
                             }
 
-                            // Verificar si el tamaño de muestra está en el rango de 2 a 20
-                            var tamañoMuestra = parseInt(item.tamaño_muestra);
-                            var inputHTML =
-                                '<input type="number" class="form-control cantidadInput" id="cantidadInput_' +
-                                index + '_acordeon_' + estilo +
-                                '" value="0">'; // Modificado: agregado '_acordeon_' + estilo
-                            // Verificar si el tamaño de muestra está en el rango específico
-                            if (tamañoMuestra == 32 || tamañoMuestra == 50 ||
-                                tamañoMuestra == 80 || tamañoMuestra == 125 ||
-                                tamañoMuestra == 200 || tamañoMuestra == 315 ||
-                                tamañoMuestra == 500 || tamañoMuestra == 800 ||
-                                tamañoMuestra == 2000) {
-                                inputHTML =
-                                    '<td style="text-align: center;"><input type="number" class="form-control cantidadInput" id="cantidadInput_' +
-                                    index + '_acordeon_' + estilo +
-                                    '" value="0"></td>'; // Modificado: agregado '_acordeon_' + estilo
-                            }
-                            // Agregar fila a la tabla
                             var fila = '<tr>' +
                                 '<td>' + (index + 1) + '</td>' +
                                 '<td style="text-align: center;">' + ordenSeleccionada +
@@ -370,11 +359,8 @@
                                 '<input type="number" class="form-control cantidadInput" id="cantidadInput_' +
                                 index + '_acordeon_' + estilo + '" value="0">' +
                                 '</td>' +
-                                '<td class="select-container" style="text-align: center;">' +
-                                '<select class="form-control select2-multiple" id="tipoDefectos_' +
-                                item.id + '" multiple="multiple">' +
-                                // ID único basado en item.id
-                                '</select>' +
+                                '<td class="select-container" style="text-align: center;" id="select_container_' +
+                                index + '_acordeon_' + estilo + '">' +
                                 '</td>' +
                                 '<td>' +
                                 '<div class="dropup-center dropup">' +
@@ -399,55 +385,50 @@
                                 '</tr>';
 
                             $('#miTabla tbody').append(fila);
-                            cargarOpcionesSelect(item, index);
                         });
 
-                        function cargarOpcionesSelect(item,
-                        index) { // Nueva función para cargar opciones
-                            $.ajax({
-                                url: '/obtenerTiposDefectos',
-                                type: 'GET',
-                                dataType: 'json',
-                                success: function(options) {
-                                    var $select = $('#tipoDefectos_' + item
-                                    .id); // Seleccionar el select correcto usando el ID único
-
-                                    // Agregar opciones al select
-                                    $.each(options, function(key, value) {
-                                        var $option = $('<option>', {
-                                            value: value.Defectos,
-                                            text: value.Defectos
-                                        });
-
-                                        // Preseleccionar la opción si ya existe en item.Tipo_Defectos
-                                        if (item.Tipo_Defectos && item
-                                            .Tipo_Defectos.includes(value
-                                                .Defectos)) {
-                                            $option.prop('selected', true);
-                                        }
-
-                                        $select.append($option);
-                                    });
-
-                                    // Inicializar Select2 después de cargar las opciones
-                                    $select.select2({
-                                        placeholder: 'Selecciona tipos de defecto',
-                                        allowClear: true
-                                    });
-                                },
-                                error: function(error) {
-                                    console.error(
-                                        'Error al cargar opciones del select: ',
-                                        error);
-                                }
-                            });
-                        }
+                        cargarOpcionesSelect(estilo, data);
                     },
                     error: function(error) {
                         console.error('Error al buscar datos de auditoría por estilo: ', error);
                     }
                 });
             });
+
+            function cargarOpcionesSelect(estilo, data) {
+                $.ajax({
+                    url: '/obtenerTiposDefectos',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(options) {
+                        $.each(data, function(index, item) {
+                            var selectHTML =
+                                '<select class="form-control" id="tipoDefectos_' +
+                                index + '">';
+                            $.each(options, function(key, value) {
+                                selectHTML +=
+                                    '<option value="' +
+                                    value.Defectos + '">' +
+                                    value
+                                    .Defectos + '</option>';
+                            });
+                            selectHTML += '</select>';
+                            // Identificar select-container con un id único
+                            var selectContainerId =
+                                'select_container_' + index;
+                            $('.select-container', '#collapse' +
+                                index).attr('id',
+                                selectContainerId).html(
+                                selectHTML);
+                        });
+                    },
+                    error: function(error) {
+                        console.error(
+                            'Error al cargar opciones del select: ',
+                            error);
+                    }
+                });
+            }
         });
     </script>
     <script>
@@ -504,64 +485,66 @@
             });
         });
     </script>
-    <script>$(document).ready(function() {
-        // Manejar clic en cualquier opción del dropdown
-        $('#accordion').on('click', '.dropdown-item', function() {
-            // Obtener el valor de la opción seleccionada
-            var selectedOption = $(this).attr('value');
-            // Obtener el texto del botón de alternancia (dropdown-toggle)
-            var status = $(this).text().trim();
-            // Obtener el ID de la fila correspondiente
-            var rowId = $(this).data('row-id');
-            var tipoBusqueda = $('#tipoBusqueda').val();
-    
-            // Obtener los datos de la fila modificada
-            var fila = $(this).closest('tr'); // Obtener la fila actual
-            var datosFila = {
-                id: fila.find('td:nth-child(11)').text().trim(),
-                orden: fila.find('td:nth-child(2)').text().trim(),
-                estilo: fila.find('td:nth-child(3)').text().trim(),
-                color: fila.find('td:nth-child(4)').text().trim(),
-                talla: fila.find('td:nth-child(5)').text().trim(),
-                cantidad: fila.find('td:nth-child(6)').text().trim(),
-                tipoDefecto: fila.find('.select-container select').val(),
-                muestreo: fila.find('.tamañoMuestra').text().trim(),
-                defectos: fila.find('.cantidadInput').val(),
-                tipoBusqueda: tipoBusqueda
-            };
-    
-            // Obtener la orden seleccionada
-            var ordenSeleccionada = $('#ordenSelect').val();
-    
-            // Armar los datos a enviar al servidor
-            var datosAEnviar = {
-                _token: $('meta[name="csrf-token"]').attr('content'), // Obtener el token CSRF del meta tag
-                orden: ordenSeleccionada,
-                datos: [datosFila], // Enviar solo los datos de la fila modificada
-                status: status,
-                rowId: rowId,
-                tipoBusqueda: tipoBusqueda
-            };
-    
-            // Realizar la solicitud AJAX para enviar los datos al servidor
-            $.ajax({
-                url: '/actualizarStatus',
-                type: 'PUT',
-                data: datosAEnviar,
-                dataType: 'json',
-                success: function(response) {
-                    // Manejar la respuesta del servidor
-                    alert(response.mensaje);
-                    // Opcional: actualizar visualmente el estado en la interfaz
-                    $(this).closest('.dropup').find('.dropdown-toggle').text(status);
-                },
-                error: function(error) {
-                    // Manejar errores
-                    alert('Error al actualizar el status. Por favor, inténtalo de nuevo.');
-                    console.error('Error al actualizar el status: ', error);
-                }
+    <script>
+        $(document).ready(function() {
+            // Manejar clic en cualquier opción del dropdown
+            $('#accordion').on('click', '.dropdown-item', function() {
+                // Obtener el valor de la opción seleccionada
+                var selectedOption = $(this).attr('value');
+                // Obtener el texto del botón de alternancia (dropdown-toggle)
+                var status = $(this).text().trim();
+                // Obtener el ID de la fila correspondiente
+                var rowId = $(this).data('row-id');
+                var tipoBusqueda = $('#tipoBusqueda').val();
+
+                // Obtener los datos de la fila modificada
+                var fila = $(this).closest('tr'); // Obtener la fila actual
+                var datosFila = {
+                    id: fila.find('td:nth-child(11)').text().trim(),
+                    orden: fila.find('td:nth-child(2)').text().trim(),
+                    estilo: fila.find('td:nth-child(3)').text().trim(),
+                    color: fila.find('td:nth-child(4)').text().trim(),
+                    talla: fila.find('td:nth-child(5)').text().trim(),
+                    cantidad: fila.find('td:nth-child(6)').text().trim(),
+                    tipoDefecto: fila.find('.select-container select').val(),
+                    muestreo: fila.find('.tamañoMuestra').text().trim(),
+                    defectos: fila.find('.cantidadInput').val(),
+                    tipoBusqueda: tipoBusqueda
+                };
+
+                // Obtener la orden seleccionada
+                var ordenSeleccionada = $('#ordenSelect').val();
+
+                // Armar los datos a enviar al servidor
+                var datosAEnviar = {
+                    _token: $('meta[name="csrf-token"]').attr(
+                        'content'), // Obtener el token CSRF del meta tag
+                    orden: ordenSeleccionada,
+                    datos: [datosFila], // Enviar solo los datos de la fila modificada
+                    status: status,
+                    rowId: rowId,
+                    tipoBusqueda: tipoBusqueda
+                };
+
+                // Realizar la solicitud AJAX para enviar los datos al servidor
+                $.ajax({
+                    url: '/actualizarStatus',
+                    type: 'PUT',
+                    data: datosAEnviar,
+                    dataType: 'json',
+                    success: function(response) {
+                        // Manejar la respuesta del servidor
+                        alert(response.mensaje);
+                        // Opcional: actualizar visualmente el estado en la interfaz
+                        $(this).closest('.dropup').find('.dropdown-toggle').text(status);
+                    },
+                    error: function(error) {
+                        // Manejar errores
+                        alert('Error al actualizar el status. Por favor, inténtalo de nuevo.');
+                        console.error('Error al actualizar el status: ', error);
+                    }
+                });
             });
         });
-    });    
     </script>
 @endsection
