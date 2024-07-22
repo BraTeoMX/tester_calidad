@@ -880,14 +880,6 @@
                 updateColumnsVisibility();
             });
     
-            // Validar el formulario al enviarlo
-            $('form').on('submit', function(event) {
-                checkContainerValidity();
-                if ($('#selectedOptionsContainer').hasClass('is-invalid')) {
-                    event.preventDefault();
-                    alert('Por favor, selecciona al menos una opción.');
-                }
-            });
         });
     </script>
     
