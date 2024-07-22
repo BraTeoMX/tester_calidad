@@ -222,7 +222,7 @@
                                                 <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
                                                 <td><input type="text" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
                                                 <td class="tp-column"> 
-                                                    <select name="tp[]" id="tpSelectAQL" class="form-control" required multiple title="Por favor, selecciona una opción">
+                                                    <select id="tpSelectAQL" class="form-control w-100" multiple title="Por favor, selecciona una opción">
                                                         <option value="OTRO">OTRO</option>
                                                         @if ($data['area'] == 'AUDITORIA AQL')
                                                             @foreach ($categoriaTPProceso as $proceso)
@@ -234,6 +234,7 @@
                                                             @endforeach
                                                         @endif
                                                     </select>
+                                                    <div id="selectedOptionsContainerAQL" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
                                                 </td>
                                                 <td class="ac-column"><input type="text" class="form-control" name="ac" id="ac"></td>
                                                 <td class="nombre-column">
@@ -660,14 +661,6 @@
     </style>
     <script>
         $(document).ready(function() {
-            $('#bulto').select2({
-                placeholder: 'Seleccione una o varias opciones',
-                allowClear: true,
-            });
-            $('#op').select2({
-                placeholder: 'Seleccione una o varias opciones',
-                allowClear: true,
-            });
             $('#tpSelectAQL').select2({
                 placeholder: 'Seleccione una o varias opciones',
                 allowClear: true,
@@ -678,6 +671,14 @@
                 let selectedOptions = $(this).val();
                 if (selectedOptions.includes('OTRO')) {
                     $('#nuevoConceptoModalAQL').modal('show');
+                } else {
+                    // Agregar opciones seleccionadas al contenedor
+                    selectedOptions.forEach(option => {
+                        if (option !== 'OTRO') {
+                            addSelectedOptionAQL(option);
+                        }
+                    });
+                    $(this).val(null).trigger('change'); // Reiniciar el select
                 }
             });
 
@@ -704,8 +705,7 @@
                     }).then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            let newOption = new Option(nuevoConcepto.toUpperCase(), nuevoConcepto.toUpperCase(), true, true);
-                            $('#tpSelectAQL').append(newOption).trigger('change');
+                            addSelectedOptionAQL(nuevoConcepto.toUpperCase());
                             $('#nuevoConceptoModalAQL').modal('hide');
                         } else {
                             alert('Error al guardar el nuevo concepto');
@@ -728,34 +728,50 @@
                     $('#tpSelectAQL').val(selectedOptions).trigger('change');
                 }
             });
-        });
-    </script>
 
-    <script>
-        $(document).ready(function() {
-            // Función para mostrar/ocultar columnas según el valor de cantidad_rechazada
-            function updateColumnsVisibility() {
-                const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
-                if (isNaN(cantidadRechazada) || cantidadRechazada === 0) { // Ocultar si es 0 o NaN
-                    $('#ac-column-header, #nombre-column-header, #tp-column-header').hide();
-                    $('.ac-column, .nombre-column, .tp-column').hide();
-                    $('#ac, #nombre, #tpSelectAQL').prop('required', false);
+            function addSelectedOptionAQL(optionText) {
+                let container = $('#selectedOptionsContainerAQL');
+                let newOption = $('<div class="selected-option">').text(optionText);
+                let hiddenInput = $('<input type="hidden" name="tp[]" />').val(optionText);
+                newOption.append(hiddenInput);
+                let removeButton = $('<button type="button" class="btn btn-danger btn-sm ml-2">').text('Eliminar');
+                removeButton.on('click', function() {
+                    newOption.remove();
+                    checkContainerValidityAQL();
+                });
+                newOption.append(removeButton);
+                container.append(newOption);
+                checkContainerValidityAQL();
+            }
+
+            function checkContainerValidityAQL() {
+                let container = $('#selectedOptionsContainerAQL');
+                if (container.children('.selected-option').length === 0) {
+                    container.addClass('is-invalid');
                 } else {
-                    $('#ac-column-header, #nombre-column-header, #tp-column-header').show();
-                    $('.ac-column, .nombre-column, .tp-column').show();
-                    $('#ac, #nombre, #tpSelectAQL').prop('required', true);
+                    container.removeClass('is-invalid');
                 }
             }
 
-            // Inicializar la visibilidad de las columnas al cargar la página
-            updateColumnsVisibility();
+            function updateColumnsVisibilityAQL() {
+                const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
+                if (isNaN(cantidadRechazada) || cantidadRechazada === 0) {
+                    $('#ac-column-header, #nombre-column-header, #tp-column-header').hide();
+                    $('.ac-column, .nombre-column, .tp-column').hide();
+                    $('#ac, #nombre, #selectedOptionsContainerAQL').prop('required', false);
+                } else {
+                    $('#ac-column-header, #nombre-column-header, #tp-column-header').show();
+                    $('.ac-column, .nombre-column, .tp-column').show();
+                    $('#ac, #nombre, #selectedOptionsContainerAQL').prop('required', true);
+                }
+            }
 
-            // Actualizar la visibilidad de las columnas al cambiar el valor de cantidad_rechazada
+            updateColumnsVisibilityAQL();
+
             $('#cantidad_rechazada').on('input', function() {
-                updateColumnsVisibility();
+                updateColumnsVisibilityAQL();
             });
 
-            // Actualizar los valores de los campos según la opción seleccionada en el select "bulto"
             $('#bulto').change(function() {
                 var selectedOption = $(this).find(':selected');
                 $('#pieza').val(selectedOption.data('pieza'));
@@ -764,13 +780,13 @@
                 $('#talla').val(selectedOption.data('talla'));
             });
 
-            // Actualizar los valores de los campos al cargar la página si una opción está seleccionada por defecto
             var selectedOption = $('#bulto').find(':selected');
             $('#pieza').val(selectedOption.data('pieza'));
             $('#estilo').val(selectedOption.data('estilo'));
             $('#color').val(selectedOption.data('color'));
             $('#talla').val(selectedOption.data('talla'));
         });
+
     </script>
 
     <script>

@@ -232,8 +232,8 @@
                                             </td>
                                             <td><input type="text" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
                                             <td><input type="text" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
-                                            <td class="tp-column d-none w-100"> 
-                                                <select name="tp[]" id="tpSelect" class="form-control w-100" multiple title="Por favor, selecciona una opción"> 
+                                            <td class="tp-column d-none w-100">
+                                                <select id="tpSelect" class="form-control w-100" multiple title="Por favor, selecciona una opción">
                                                     <option value="OTRO">OTRO</option>
                                                     @if ($data['area'] == 'AUDITORIA EN PROCESO')
                                                         @foreach ($categoriaTPProceso as $proceso)
@@ -249,7 +249,8 @@
                                                         @endforeach
                                                     @endif
                                                 </select>
-                                            </td>                                            
+                                                <div id="selectedOptionsContainer" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
+                                            </td>
                                             <td class="ac-column d-none">
                                                 <select name="ac" id="ac" class="form-control" title="Por favor, selecciona una opción">
                                                     <option value="">Selecciona una opción</option>
@@ -765,25 +766,30 @@
     <!-- Nuevo script para manejar la visibilidad de las columnas y select2 -->
     <script>
         $(document).ready(function() {
+            // Inicializar el select2
             $('#tpSelect').select2({
                 placeholder: 'Seleccione una o varias opciones',
                 allowClear: true,
                 multiple: true,
-                width: 'resolve'  // Esto asegura que select2 tomará el 100% del ancho del contenedor
+                width: 'resolve'
             });
     
-            $('#operacion').select2({
-                placeholder: 'Seleccione una operacion',
-                allowClear: true,
-            });
-    
+            // Manejador de cambio del select
             $('#tpSelect').on('change', function() {
                 let selectedOptions = $(this).val();
-                if (selectedOptions.includes('OTRO')) {
-                    $('#nuevoConceptoModal').modal('show');
+                // Agregar una opción seleccionada a la lista de seleccionados
+                if (selectedOptions.length > 0) {
+                    let lastSelectedOption = selectedOptions[selectedOptions.length - 1];
+                    if (lastSelectedOption === 'OTRO') {
+                        $('#nuevoConceptoModal').modal('show');
+                    } else {
+                        addSelectedOption(lastSelectedOption);
+                        $(this).val(null).trigger('change'); // Reiniciar el select
+                    }
                 }
             });
     
+            // Manejador del botón de guardar del modal
             $('#guardarNuevoConcepto').on('click', function() {
                 let nuevoConcepto = $('#nuevoConceptoInput').val();
                 if (nuevoConcepto) {
@@ -809,8 +815,7 @@
                     }).then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            let newOption = new Option(nuevoConcepto.toUpperCase(), nuevoConcepto.toUpperCase(), true, true);
-                            $('#tpSelect').append(newOption).trigger('change');
+                            addSelectedOption(nuevoConcepto.toUpperCase());
                             $('#nuevoConceptoModal').modal('hide');
                         } else {
                             alert('Error al guardar el nuevo concepto');
@@ -824,26 +829,46 @@
                 }
             });
     
+            // Ocultar el modal y reiniciar el input del nuevo concepto
             $('#nuevoConceptoModal').on('hidden.bs.modal', function () {
                 $('#nuevoConceptoInput').val('');
-                let selectedOptions = $('#tpSelect').val();
-                let index = selectedOptions.indexOf('OTRO');
-                if (index > -1) {
-                    selectedOptions.splice(index, 1);
-                    $('#tpSelect').val(selectedOptions).trigger('change');
-                }
             });
+    
+            // Función para agregar una opción seleccionada a la lista de seleccionados
+            function addSelectedOption(optionText) {
+                let container = $('#selectedOptionsContainer');
+                let newOption = $('<div class="selected-option">').text(optionText);
+                let hiddenInput = $('<input type="hidden" name="tp[]" />').val(optionText);
+                newOption.append(hiddenInput);
+                let removeButton = $('<button type="button" class="btn btn-danger btn-sm ml-2">').text('Eliminar');
+                removeButton.on('click', function() {
+                    newOption.remove();
+                    checkContainerValidity();
+                });
+                newOption.append(removeButton);
+                container.append(newOption);
+                checkContainerValidity();
+            }
+    
+            function checkContainerValidity() {
+                let container = $('#selectedOptionsContainer');
+                if (container.children('.selected-option').length === 0) {
+                    container.addClass('is-invalid');
+                } else {
+                    container.removeClass('is-invalid');
+                }
+            }
     
             function updateColumnsVisibility() {
                 const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
                 if (isNaN(cantidadRechazada) || cantidadRechazada === 0) {
                     $('#tp-column-header, #ac-column-header').addClass('d-none');
                     $('.tp-column, .ac-column').addClass('d-none');
-                    $('#tpSelect, #ac').prop('required', false);
+                    $('#selectedOptionsContainer, #ac').prop('required', false);
                 } else {
                     $('#tp-column-header, #ac-column-header').removeClass('d-none');
                     $('.tp-column, .ac-column').removeClass('d-none');
-                    $('#tpSelect, #ac').prop('required', true);
+                    $('#selectedOptionsContainer, #ac').prop('required', true);
                 }
             }
     
@@ -853,6 +878,15 @@
             // Actualizar la visibilidad de las columnas al cambiar el valor de cantidad_rechazada
             $('#cantidad_rechazada').on('input', function() {
                 updateColumnsVisibility();
+            });
+    
+            // Validar el formulario al enviarlo
+            $('form').on('submit', function(event) {
+                checkContainerValidity();
+                if ($('#selectedOptionsContainer').hasClass('is-invalid')) {
+                    event.preventDefault();
+                    alert('Por favor, selecciona al menos una opción.');
+                }
             });
         });
     </script>
