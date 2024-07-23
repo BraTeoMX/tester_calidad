@@ -157,7 +157,7 @@ class DashboardPlanta1Controller extends Controller
 
         //dd($dataModuloAQLGeneral, $dataModuloProcesoGeneral, $dataModuloAQLPlanta1, $dataModuloAQLPlanta2, $dataModuloProcesoPlanta1, $dataModuloProcesoPlanta2);
 
-        // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO'
+        // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO' 
         $topDefectosAQL = TpAuditoriaAQL::select('tp', DB::raw('count(*) as total'))
             ->where('tp', '!=', 'NINGUNO')
             ->groupBy('tp')
