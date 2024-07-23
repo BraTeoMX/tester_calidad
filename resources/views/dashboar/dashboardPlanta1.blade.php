@@ -991,14 +991,40 @@
                     backgroundColor: '#27293D',
                 },
                 title: {
-                    text: titulo
+                    text: titulo,
+                    style: {
+                        color: '#FFFFFF'
+                    }
                 },
                 xAxis: {
-                    categories: tp
+                    categories: ['Defectos'],
+                    title: {
+                        style: {
+                            color: '#FFFFFF'
+                        }
+                    },
+                    labels: {
+                        style: {
+                            color: '#FFFFFF'
+                        }
+                    }
                 },
                 yAxis: {
                     title: {
-                        text: 'Número de defectos'
+                        text: 'Número de defectos',
+                        style: {
+                            color: '#FFFFFF'
+                        }
+                    },
+                    labels: {
+                        style: {
+                            color: '#FFFFFF'
+                        }
+                    }
+                },
+                legend: {
+                    itemStyle: {
+                        color: '#FFFFFF'
                     }
                 },
                 series: [
@@ -1020,7 +1046,8 @@
                 ],
                 plotOptions: {
                     column: {
-                        colorByPoint: false // Cambia a false ya que estamos asignando colores manualmente
+                        colorByPoint: false, // Cambia a false ya que estamos asignando colores manualmente
+                        borderColor: '#27293D'
                     }
                 }
             });
