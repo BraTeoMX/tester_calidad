@@ -150,6 +150,16 @@
                                     <tr>
                                         <td><input type="text" class="form-control texto-blanco" name="modulo" id="modulo"
                                                 value="{{ $data['modulo'] }}" readonly></td>
+                                        @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+                                        <td>
+                                            <select class="form-control texto-blanco" name="estilo" id="estilo" required onchange="actualizarEstilo(this.value)">
+                                                <option value="">Selecciona una opción</option>
+                                                @foreach($estilosEmpaque as $estilo)
+                                                    <option value="{{ $estilo }}" {{ $estilo == $data['estilo'] ? 'selected' : '' }}>{{ $estilo }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        @else
                                         <td>
                                             <select class="form-control texto-blanco" name="estilo" id="estilo" required onchange="actualizarEstilo(this.value)">
                                                 <option value="">Selecciona una opción</option>
@@ -158,6 +168,7 @@
                                                 @endforeach
                                             </select>
                                         </td>
+                                        @endif
                                         <td><input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader"
                                                 value="{{ $data['team_leader'] }}" readonly></td>
                                         <td><input type="text" class="form-control texto-blanco" name="auditor" id="auditor"
@@ -165,7 +176,7 @@
                                         <td><input type="text" class="form-control texto-blanco" name="turno" id="turno"
                                                 value="{{ $data['turno'] }}" readonly></td>
                                         <td><input type="text" class="form-control texto-blanco" name="cliente" id="cliente"
-                                                value="{{ $data['cliente'] }}" readonly></td>
+                                            value="{{ $data['cliente'] }}" readonly></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -178,7 +189,11 @@
                                     <thead class="thead-primary">
                                         <tr>
                                             <th>NOMBRE</th>
-                                            <th>OPERACION</th>
+                                            @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+
+                                            @else
+                                                <th>OPERACION</th>
+                                            @endif
                                             <th>PIEZAS AUDITADAS</th>
                                             <th>PIEZAS RECHAZADAS</th>
                                             <th id="tp-column-header" class="d-none">TIPO DE PROBLEMA</th>
@@ -222,6 +237,9 @@
                                                     </select>
                                                 </div>
                                             </td>
+                                            @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+
+                                            @else
                                             <td>
                                                 <select name="operacion" id="operacion" class="form-control" required title="Por favor, selecciona una opción">
                                                     <option value="">Selecciona una opción</option>        
@@ -230,6 +248,7 @@
                                                     @endforeach
                                                 </select>
                                             </td>
+                                            @endif
                                             <td><input type="text" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
                                             <td><input type="text" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
                                             <td class="tp-column d-none w-100">
@@ -309,7 +328,10 @@
                                 <thead class="thead-primary">
                                     <tr>
                                         <th>Nombre</th>
+                                        @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+                                        @else
                                         <th>Operacion </th>
+                                        @endif
                                         <th>Piezas Auditadas</th>
                                         <th>Piezas Rechazadas</th>
                                         <th>Tipo de Problema </th>
@@ -331,10 +353,14 @@
                                                     <input type="text" class="form-control texto-blanco" name="nombre"
                                                         value="{{ $registro->nombre }}" readonly>
                                                 </td>
+                                                @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+
+                                                @else
                                                 <td>
                                                     <input type="text" class="form-control texto-blanco" name="operacion"
                                                         value="{{ $registro->operacion }}" readonly>
                                                 </td>
+                                                @endif
                                                 <td>
                                                     <input type="text" class="form-control texto-blanco" name="cantidad_auditada"
                                                         value="{{ $registro->cantidad_auditada }}" readonly>
@@ -381,7 +407,11 @@
                                         <tr>
                                             <th>Paro</th>
                                             <th>Nombre</th>
+                                            @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+
+                                            @else
                                             <th>Operacion </th>
+                                            @endif
                                             <th>Piezas Auditadas</th>
                                             <th>Piezas Rechazadas</th>
                                             <th>Tipo de Problema </th>
@@ -414,10 +444,14 @@
                                                     <input type="text" class="form-control texto-blanco" name="nombre"
                                                         value="{{ $registro->nombre }}" readonly>
                                                 </td>
+                                                @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+
+                                                @else
                                                 <td>
                                                     <input type="text" class="form-control texto-blanco" name="operacion"
                                                         value="{{ $registro->operacion }}" readonly>
                                                 </td>
+                                                @endif
                                                 <td>
                                                     <input type="text" class="form-control texto-blanco" name="cantidad_auditada"
                                                         value="{{ $registro->cantidad_auditada }}" readonly>
@@ -662,6 +696,16 @@
     </style>
 
     <script>
+        $(document).ready(function() {
+            // Inicializar el select2
+            $('#operacion').select2({
+                placeholder: 'Seleccione una opcion',
+                allowClear: true,
+                width: 'resolve'
+            });
+        });
+    </script>
+    <script>
         function showOtherOptions() {
             var select = document.getElementById("nombre");
             var otroOptions = document.getElementById("otroOptions");
@@ -896,8 +940,27 @@
             // Construir la nueva URL
             url.search = params.toString();
         
-            // Redirigir a la nueva URL
-            window.location.href = url.toString();
+            // Realizar la solicitud AJAX para obtener el cliente correspondiente al estilo seleccionado
+            $.ajax({
+                type: 'POST',
+                url: '{{ route("obtenerCliente1") }}',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    itemid: nuevoEstilo
+                },
+                success: function(response) {
+                    console.log(response); // Verificar los datos recibidos
+                    // Actualizar el valor del campo "cliente" con el cliente obtenido de la respuesta AJAX
+                    $('#cliente').val(response.cliente);
+    
+                    // Actualizar la URL para reflejar el cambio en el estilo y cliente
+                    window.history.pushState({}, '', url.toString());
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
+            });
         }
     </script>
+    
 @endsection

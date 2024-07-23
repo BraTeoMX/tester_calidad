@@ -140,8 +140,8 @@ class DashboardPlanta1Controller extends Controller
         //dd($dataGrafica, $clientesGrafica, $datasetsAQL, $datasetsProceso);
         //apartado para mostrar datos de gerente de prodduccion, en este caso por dia AseguramientoCalidad y AuditoriaAQL
         // Obtención y cálculo de datos generales para AQL y Proceso
-        $dataModuloAQLGeneral = $this->getDataModuloAQL($fechaActual);
-        $dataModuloProcesoGeneral = $this->getDataModuloProceso($fechaActual);
+        $dataModuloAQLGeneral = $this->getDataModuloAQL($fechaActual); 
+        $dataModuloProcesoGeneral = $this->getDataModuloProceso($fechaActual); 
 
         // Obtención y cálculo de datos por planta para Auditoria AQL
         $dataModuloAQLPlanta1 = $this->getDataModuloAQL($fechaActual, 'Intimark1');

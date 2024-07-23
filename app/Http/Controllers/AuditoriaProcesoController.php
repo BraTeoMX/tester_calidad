@@ -127,7 +127,7 @@ class AuditoriaProcesoController extends Controller
             'procesoFinal' => $procesoFinal]));
     }
 
-    public function obtenerItemId(Request $request) 
+    public function obtenerItemId(Request $request)  
     {
         $moduleid = $request->input('moduleid');
         $auditoriaProceso = AuditoriaProceso::where('moduleid', $moduleid)
@@ -139,10 +139,19 @@ class AuditoriaProcesoController extends Controller
         ]);
     }
 
-    public function obtenerCliente1(Request $request) 
+    public function obtenerTodosLosEstilosUnicos(Request $request)
     {
-        $moduleid = $request->input('moduleid');
-        $auditoriaProceso = AuditoriaProceso::where('moduleid', $moduleid)->first();
+        $auditoriaProceso = AuditoriaProceso::distinct('itemid')->pluck('itemid');
+        
+        return response()->json([
+            'itemids' => $auditoriaProceso,
+        ]);
+    }
+
+    public function obtenerCliente1(Request $request)  
+    {
+        $itemid = $request->input('itemid');
+        $auditoriaProceso = AuditoriaProceso::where('itemid', $itemid)->first();
 
         return response()->json([
             'cliente' => $auditoriaProceso->customername ?? ''
@@ -171,6 +180,8 @@ class AuditoriaProcesoController extends Controller
                                     ->pluck('itemid');
 
         //dd($request->all(), $data); 
+        // Obtener los estilos únicos relacionados con el módulo seleccionado
+        $estilosEmpaque = AuditoriaProceso::distinct('itemid')->pluck('itemid');
         // Obtener el estilo seleccionado
         $estiloSeleccionado = $request->input('estilo', '');
         // Actualizar $data con el nuevo estilo
@@ -203,19 +214,19 @@ class AuditoriaProcesoController extends Controller
 
         $mostrarRegistro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
             ->where('modulo', $data['modulo'])
-            ->where('estilo', $data['estilo'])
+            //->where('estilo', $data['estilo'])
             ->where('area', $data['area'])
             ->get();
         $estatusFinalizar = AseguramientoCalidad::whereDate('created_at', $fechaActual)
             ->where('modulo', $data['modulo'])
-            ->where('estilo', $data['estilo'])
+            //->where('estilo', $data['estilo'])
             ->where('area', $data['area'])
             ->where('estatus', 1)
             ->exists();
 
         $registros = AseguramientoCalidad::whereDate('created_at', $fechaActual)
             ->where('modulo', $data['modulo'])
-            ->where('estilo', $data['estilo'])
+            //->where('estilo', $data['estilo'])
             ->where('area', $data['area'])
             ->selectRaw('COALESCE(SUM(cantidad_auditada), 0) as total_auditada, COALESCE(SUM(cantidad_rechazada), 0) as total_rechazada')
             ->first();
@@ -282,6 +293,7 @@ class AuditoriaProcesoController extends Controller
             'estilos' => $estilos, // Pasar los estilos únicos a la vista
             'estiloSeleccionado' => $estiloSeleccionado,
             'operacionNombre' => $operacionNombre,
+            'estilosEmpaque' => $estilosEmpaque
             ]));
     }
 

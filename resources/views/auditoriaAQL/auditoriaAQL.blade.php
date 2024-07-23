@@ -661,6 +661,16 @@
     </style>
     <script>
         $(document).ready(function() {
+            // Inicializar el select2
+            $('#bulto').select2({
+                placeholder: 'Seleccione una opcion',
+                allowClear: true,
+                width: 'resolve'
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
             $('#tpSelectAQL').select2({
                 placeholder: 'Seleccione una o varias opciones',
                 allowClear: true,

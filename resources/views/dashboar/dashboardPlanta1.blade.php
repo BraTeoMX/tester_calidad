@@ -356,7 +356,7 @@
     </div>
 
 
-    <div class="row">
+    <div class="row"> 
         <div class="col-lg-6 col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
@@ -431,7 +431,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> 
 
     <div class="row"> 
         <div class="col-lg-6 col-md-12">
@@ -459,6 +459,19 @@
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
                 <h3 class="card-title"></h3>
+                </div>
+                <div class="card-body">
+                    
+                </div>
+            </div>
+        </div>
+    </div> 
+
+    <div class="row"> 
+        <div class="col-md-12">
+            <div class="card ">
+                <div class="card-header card-header-success card-header-icon">
+                    <h3 class="card-title"><i class="tim-icons icon-notes text-success"></i> Lista por dia</h3>
                 </div>
                 <div class="card-body">
                     
