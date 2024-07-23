@@ -447,7 +447,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content bg-dark text-white">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalAQLLabel{{ $item['modulo'] }}">Detalles AQL para Módulo {{ $item['modulo'] }}</h5>
+                    <h5 class="modal-title text-white" id="modalAQLLabel{{ $item['modulo'] }}">Detalles AQL para Módulo {{ $item['modulo'] }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -497,7 +497,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content bg-dark text-white">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalProcesoLabel{{ $item['modulo'] }}">Detalles de Proceso para Módulo {{ $item['modulo'] }}</h5>
+                    <h5 class="modal-title text-white" id="modalProcesoLabel{{ $item['modulo'] }}">Detalles de Proceso para Módulo {{ $item['modulo'] }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
