@@ -104,7 +104,7 @@ class AuditoriaProcesoController extends Controller
         }
         //dd($auditorPlanta, $datoPlanta);
 
-        $procesoActual = AseguramientoCalidad::where('estatus', NULL) 
+        $procesoActual = AseguramientoCalidad::where('estatus', NULL)  
             ->where('area', 'AUDITORIA EN PROCESO')
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
@@ -119,12 +119,29 @@ class AuditoriaProcesoController extends Controller
             ->distinct()
             ->get();
 
+        //
+        $empaqueActual = AseguramientoCalidad::where('estatus', NULL)
+                ->where('area', 'AUDITORIA EN EMPAQUE')
+                ->where('planta', $datoPlanta)
+                ->whereDate('created_at', $fechaActual)
+                ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente')
+                ->distinct()
+                ->get();
+        $empaqueFinal = AseguramientoCalidad::where('estatus', 1)
+                ->where('area', 'AUDITORIA EN EMPAQUE')
+                ->where('planta', $datoPlanta)
+                ->whereDate('created_at', $fechaActual)
+                ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente')
+                ->distinct()
+                ->get();
         
         return view('aseguramientoCalidad.altaProceso', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
             'pageSlug' => $pageSlug,
             'procesoActual' => $procesoActual,
-            'procesoFinal' => $procesoFinal]));
+            'procesoFinal' => $procesoFinal,
+            'empaqueActual' => $empaqueActual,
+            'empaqueFinal' => $empaqueFinal]));
     }
 
     public function obtenerItemId(Request $request)  
