@@ -203,21 +203,21 @@ class AuditoriaProcesoController extends Controller
         $estiloSeleccionado = $request->input('estilo', '');
         // Actualizar $data con el nuevo estilo
         $data['estilo'] = $estiloSeleccionado;
-
-        $nombresPlanta1 = AuditoriaProceso::whereDate('aplicationdate', $fechaActual)
-            ->where('prodpoolid', 'Intimark1') 
+ 
+        $nombresPlanta1 = AuditoriaProceso::where('prodpoolid', 'Intimark1')
             ->where('moduleid', $data['modulo'])
+            ->whereNotIn('name', ['831A-EMPAQUE P2 T1','830A-EMPAQUE P1 T1', 'VIRTUAL P2T1 02', 'VIRTUAL P2T1 01'])
             ->select('name')
             ->distinct()
             ->get();
 
-        $nombresPlanta2 = AuditoriaProceso::whereDate('aplicationdate', $fechaActual)
-            ->where('prodpoolid', 'Intimark2')
+        $nombresPlanta2 = AuditoriaProceso::where('prodpoolid', 'Intimark2')
             ->where('moduleid', $data['modulo'])
+            ->whereNotIn('name', ['831A-EMPAQUE P2 T1','830A-EMPAQUE P1 T1', 'VIRTUAL P2T1 02', 'VIRTUAL P2T1 01'])
             ->select('name')
             ->distinct()
             ->get();
-
+ 
 
         $utilityPlanta1 = CategoriaUtility::where('planta', 'Intimark1') 
             ->where('estado', 1)

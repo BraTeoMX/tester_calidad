@@ -212,7 +212,7 @@
                                                 <select name="nombre" id="nombre" class="form-control" required title="Por favor, selecciona una opción" onchange="showOtherOptions()">
                                                     <option value="">Selecciona una opción</option>
                                                     <option value="OTRO">OTRO</option>
-                                                    <option value="UTILITY">UTILITY</option>
+                                                    <option value="UTILITY">UTILITY</option> 
                                                     @if ($auditorPlanta == 'Planta1')
                                                         @foreach ($nombresPlanta1 as $nombre)
                                                             <option value="{{ $nombre->name }}">{{ $nombre->name }}</option>
@@ -222,7 +222,7 @@
                                                             <option value="{{ $nombre->name }}">{{ $nombre->name }}</option>
                                                         @endforeach
                                                     @endif
-                                                </select>
+                                                </select> 
                                                 <div id="otroOptions" style="display: none;">
                                                     <select name="modulo_adicional" id="module" class="form-control" onchange="loadNames()">
                                                         <option value="">Selecciona un módulo</option>
