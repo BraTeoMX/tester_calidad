@@ -505,6 +505,11 @@ class DashboardPlanta2Controller extends Controller
             $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
             $promedioMinutosEntero = ceil($promedioMinutos);
 
+            $detalles = AuditoriaAQL::where('modulo', $modulo)
+                ->whereDate('created_at', $fecha)
+                ->where('planta', 'Intimark2')
+                ->get();
+
             $dataModuloAQL[] = [
                 'modulo' => $modulo,
                 'modulos_unicos' => $modulosUnicos,
@@ -514,6 +519,7 @@ class DashboardPlanta2Controller extends Controller
                 'sumaMinutos' => $sumaMinutos,
                 'promedioMinutosEntero' => $promedioMinutosEntero,
                 'conteParoModular' => $conteParoModular,
+                'detalles' => $detalles
             ];
         }
 
@@ -588,6 +594,11 @@ class DashboardPlanta2Controller extends Controller
             $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
             $promedioMinutosEntero = ceil($promedioMinutos);
 
+            $detalles = AseguramientoCalidad::where('modulo', $modulo)
+                ->whereDate('created_at', $fecha)
+                ->where('planta', 'Intimark2')
+                ->get();
+
             $dataModuloProceso[] = [
                 'modulo' => $modulo,
                 'modulos_unicos' => $modulosUnicos,
@@ -597,6 +608,7 @@ class DashboardPlanta2Controller extends Controller
                 'conteoMinutos' => $conteoMinutos,
                 'sumaMinutos' => $sumaMinutos,
                 'promedioMinutosEntero' => $promedioMinutosEntero,
+                'detalles' => $detalles
             ];
         }
 
