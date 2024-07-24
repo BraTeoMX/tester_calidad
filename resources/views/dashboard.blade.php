@@ -193,17 +193,17 @@
         <div class="col-lg-4">
             <div class="card card-chart">
                 <div class="card-header">
-                    <h3 class="card-title"><i class="tim-icons icon-bell-55 text-primary"></i> Top 3 Defectos</h3>
+                    <h3 class="card-title"><i class="tim-icons icon-bell-55 text-primary"></i> Top 3 (Defectos)</h3>
                     <div class="col-sm-15">
                         <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-                            <label class="btn btn-sm btn-primary btn-simple active" id="top3-1">
+                            <label class="btn btn-sm btn-primary btn-simple active" id="top3-1" onclick="mostrarGrafica('AQL')">
                                 <input type="radio" name="clienteOptions" checked>
                                 <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
                                 <span class="d-block d-sm-none">
                                     <i class="tim-icons icon-single-02"></i>
                                 </span>
                             </label>
-                            <label class="btn btn-sm btn-primary btn-simple" id="top3-2">
+                            <label class="btn btn-sm btn-primary btn-simple" id="top3-2" onclick="mostrarGrafica('Procesos')">
                                 <input type="radio" class="d-none d-sm-none" name="clienteOptions">
                                 <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Procesos</span>
                                 <span class="d-block d-sm-none">
@@ -213,9 +213,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="height: 400px;">
                     <div class="chart-area">
-                        <canvas id="newChart" style="width: 100%; height: 500px;"></canvas>
+                        <div id="chartContainer"></div>
                     </div>
                 </div>
             </div>
@@ -848,118 +848,104 @@
     <!-- nothing-->
     <!-- nothing-->
     <script>
-        $(document).ready(function() {
-            let myNewChart;
-            let chartInitialized = false;
+        const topDefectosAQL = @json($topDefectosAQL);
+        const topDefectosProceso = @json($topDefectosProceso);
+        // Lista de colores
+        const colores = [
+            '#F03C3C', '#F0E23C', '#3C8EF0', '#36A2EB', '#FFCE56',
+        ];
 
-            const colorsAQL = [
-                {
-                    backgroundColor: 'rgba(128, 0, 0, 0.8)', // Color fuerte y sólido (Rojo oscuro)
-                    borderColor: 'rgba(128, 0, 0, 1)'
+        function prepararDatos(datos) {
+            const tp = datos.map(d => d.tp);
+            const total = datos.map(d => d.total);
+
+            return {
+                tp,
+                total,
+            };
+        }
+
+        function crearGrafica(datos, titulo) {
+            const { tp, total } = prepararDatos(datos);
+
+            Highcharts.chart('chartContainer', {
+                chart: {
+                    type: 'column',
+                    backgroundColor: '#27293D',
                 },
-                {
-                    backgroundColor: 'rgba(255, 165, 0, 0.6)', // Color intermedio (Naranja)
-                    borderColor: 'rgba(255, 165, 0, 1)'
-                },
-                {
-                    backgroundColor: 'rgba(255, 255, 0, 0.4)', // Color claro (Amarillo claro)
-                    borderColor: 'rgba(255, 255, 0, 1)'
-                }
-            ];
-
-            const colorsProceso = [
-                {
-                    backgroundColor: 'rgba(0, 0, 139, 0.8)', // Color fuerte y sólido (Azul oscuro)
-                    borderColor: 'rgba(0, 0, 139, 1)'
-                },
-                {
-                    backgroundColor: 'rgba(34, 139, 34, 0.6)', // Color intermedio (Verde)
-                    borderColor: 'rgba(34, 139, 34, 1)'
-                },
-                {
-                    backgroundColor: 'rgba(173, 216, 230, 0.4)', // Color claro (Celeste)
-                    borderColor: 'rgba(173, 216, 230, 1)'
-                }
-            ];
-
-            function createChart(data, tipo) {
-                const canvas = document.getElementById('newChart');
-                const ctx = canvas.getContext('2d');
-
-                if (myNewChart) {
-                    myNewChart.destroy();
-                }
-
-                const colors = tipo === 'TpAuditoriaAQL' ? colorsAQL : colorsProceso;
-
-                const datasets = data.map((item, index) => {
-                    const color = colors[index % colors.length]; // Ciclar a través de los colores si hay más de 3 defectos
-
-                    return {
-                        label: item.defecto,
-                        data: [item.cantidad],
-                        backgroundColor: color.backgroundColor,
-                        borderColor: color.borderColor,
-                        borderWidth: 1
-                    };
-                });
-
-                myNewChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Defectos'],
-                        datasets: datasets
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            yAxes: [{
-                                ticks: {
-                                    beginAtZero: true
-                                }
-                            }]
-                        },
-                        legend: {
-                            display: true
-                        }
+                title: {
+                    text: titulo,
+                    style: {
+                        color: '#FFFFFF'
                     }
-                });
-            }
-
-            function fetchChartData(tipo) {
-                $.ajax({
-                    url: 'obtener_top_defectos',
-                    method: 'GET',
-                    data: {
-                        tipo: tipo
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            createChart(response.data, tipo);
-                        } else {
-                            console.error(response.error);
+                },
+                xAxis: {
+                    categories: ['Defectos'],
+                    title: {
+                        style: {
+                            color: '#FFFFFF'
                         }
                     },
-                    error: function() {
-                        console.error('Error en la solicitud AJAX.');
+                    labels: {
+                        style: {
+                            color: '#FFFFFF'
+                        }
                     }
-                });
-            }
+                },
+                yAxis: {
+                    title: {
+                        text: 'Número de defectos',
+                        style: {
+                            color: '#FFFFFF'
+                        }
+                    },
+                    labels: {
+                        style: {
+                            color: '#FFFFFF'
+                        }
+                    }
+                },
+                legend: {
+                    itemStyle: {
+                        color: '#FFFFFF'
+                    }
+                },
+                series: [
+                    {
+                        name: tp[0],
+                        data: [total[0]],
+                        color: colores[0],
+                    },
+                    {
+                        name: tp[1],
+                        data: [total[1]],
+                        color: colores[1],
+                    },
+                    {
+                        name: tp[2],
+                        data: [total[2]],
+                        color: colores[2],
+                    }
+                ],
+                plotOptions: {
+                    column: {
+                        colorByPoint: false, // Cambia a false ya que estamos asignando colores manualmente
+                        borderColor: '#27293D'
+                    }
+                }
+            });
+        }
 
-            // Asegurar que los eventos solo se enlacen una vez
-            if (!chartInitialized) {
-                $('#top3-1, #top3-2').change(function() {
-                    let tipo = $(this).attr('id') === 'top3-1' ? 'TpAuditoriaAQL' : 'TpAseguramientoCalidad';
-                    fetchChartData(tipo);
-                });
-
-                // Llamar una vez al cargar la página
-                fetchChartData('TpAuditoriaAQL');
-                chartInitialized = true;
+        function mostrarGrafica(tipo) {
+            if (tipo === 'AQL') {
+                crearGrafica(topDefectosAQL, 'Top 3 Defectos AQL');
+            } else {
+                crearGrafica(topDefectosProceso, 'Top 3 Defectos Procesos');
             }
-        });
+        }
+
+        // Mostrar la gráfica AQL por defecto
+        mostrarGrafica('AQL');
     </script>
 
 @endpush

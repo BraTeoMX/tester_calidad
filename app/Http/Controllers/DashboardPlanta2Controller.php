@@ -154,16 +154,20 @@ class DashboardPlanta2Controller extends Controller
         //dd($dataModuloAQLGeneral, $dataModuloProcesoGeneral, $dataModuloAQLPlanta1, $dataModuloAQLPlanta2, $dataModuloProcesoPlanta1, $dataModuloProcesoPlanta2);
 
         // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO'
-        $topDefectosAQL = TpAuditoriaAQL::select('tp', DB::raw('count(*) as total'))
-            ->where('tp', '!=', 'NINGUNO')
-            ->groupBy('tp')
+        $topDefectosAQL = TpAuditoriaAQL::select('tp_auditoria_aql.tp', DB::raw('count(*) as total'))
+            ->join('auditoria_aql', 'tp_auditoria_aql.auditoria_aql_id', '=', 'auditoria_aql.id')
+            ->where('tp_auditoria_aql.tp', '!=', 'NINGUNO')
+            ->where('auditoria_aql.planta', '=', 'Intimark2')
+            ->groupBy('tp_auditoria_aql.tp')
             ->orderBy('total', 'desc')
             ->limit(3)
             ->get();
-        // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO'
-        $topDefectosProceso = TpAseguramientoCalidad::select('tp', DB::raw('count(*) as total'))
-            ->where('tp', '!=', 'NINGUNO')
-            ->groupBy('tp')
+
+        $topDefectosProceso = TpAseguramientoCalidad::select('tp_aseguramiento_calidad.tp', DB::raw('count(*) as total'))
+            ->join('aseguramientos_calidad', 'tp_aseguramiento_calidad.aseguramiento_calidad_id', '=', 'aseguramientos_calidad.id')
+            ->where('tp_aseguramiento_calidad.tp', '!=', 'NINGUNO')
+            ->where('aseguramientos_calidad.planta', '=', 'Intimark2')
+            ->groupBy('tp_aseguramiento_calidad.tp')
             ->orderBy('total', 'desc')
             ->limit(3)
             ->get();
