@@ -1129,7 +1129,10 @@ class DashboardController extends Controller
 
         return view('dashboar.detalleXModulo', compact('title', 'clienteBusqueda', 'semanas', 'datosCombinados', 'promediosGenerales'));
     }
+public function segungdas_terceras (){
 
+
+}
 
 
 }
