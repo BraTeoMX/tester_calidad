@@ -123,6 +123,8 @@ Route::get('/names-by-module', [AuditoriaProcesoController::class, 'getNamesByMo
 Route::get('/utilities', [AuditoriaProcesoController::class, 'getUtilities'])->name('utilities.getUtilities');
 Route::post('/cambiarEstadoInicioParo', [AuditoriaProcesoController::class, 'cambiarEstadoInicioParo'])->name('aseguramientoCalidad.cambiarEstadoInicioParo');
 Route::post('/categoria-tipo-problema', [AuditoriaProcesoController::class, 'storeCategoriaTipoProblema'])->name('categoria_tipo_problema.store');
+Route::post('/obtenerTodosLosEstilosUnicos', [AuditoriaProcesoController::class, 'obtenerTodosLosEstilosUnicos'])->name('obtenerTodosLosEstilosUnicos');
+
 
 
 

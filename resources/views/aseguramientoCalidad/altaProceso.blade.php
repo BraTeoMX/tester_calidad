@@ -81,7 +81,7 @@
                 </div>
                 <hr>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('aseguramientoCalidad.formAltaProceso') }}">
+                    <form method="POST" action="{{ route('aseguramientoCalidad.formAltaProceso') }}"> 
                         @csrf
                         <div class="table-responsive">
                             <table class="table table10">
@@ -161,7 +161,7 @@
                             </table>
                         </div>
                         <button type="submit" class="btn btn-success">Iniciar</button>
-                    </form>
+                    </form> 
                     <hr>
                     <!--Desde aqui inicia la edicion del codigo para mostrar el contenido-->
 
@@ -227,7 +227,7 @@
                                                                     <tbody id="tablaProcesos1">
                                                                         @foreach($procesoActual as $proceso)
                                                                             <tr>
-                                                                                <td>
+                                                                                <td> 
                                                                                     <form method="POST" action="{{ route('aseguramientoCalidad.formAltaProceso') }}">
                                                                                         @csrf
                                                                                         <input type="hidden" name="area" value="{{ $proceso->area }}">
@@ -490,7 +490,18 @@
                                                                     <tbody id="tablaProcesos3">
                                                                         @foreach($empaqueActual as $proceso)
                                                                             <tr>
-                                                                                <td><button class="btn btn-primary">Acceder</button></td>
+                                                                                <form method="POST" action="{{ route('aseguramientoCalidad.formAltaProceso') }}">
+                                                                                    @csrf
+                                                                                    <input type="hidden" name="area" value="{{ $proceso->area }}">
+                                                                                    <input type="hidden" name="modulo" value="{{ $proceso->modulo }}">
+                                                                                    <input type="hidden" name="cliente" value="{{ $proceso->cliente }}">
+                                                                                    <input type="hidden" name="estilo" value="{{ $proceso->estilo }}">
+                                                                                    <input type="hidden" name="team_leader" value="{{ $proceso->team_leader }}">
+                                                                                    <input type="hidden" name="auditor" value="{{ $proceso->auditor }}">
+                                                                                    <input type="hidden" name="turno" value="{{ $proceso->turno }}">
+                                                                                    <td><button class="btn btn-primary">Acceder</button></td>
+                                                                                </form>
+                                                                                
                                                                                 <td>{{ $proceso->modulo }}</td>
                                                                                 <td>{{ $proceso->estilo }}</td>
                                                                             </tr>
@@ -567,6 +578,10 @@
                 placeholder: 'Seleccione una opción',
                 allowClear: true
             });
+            $('#estilo').select2({
+                placeholder: 'Seleccione una opción',
+                allowClear: true
+            });
         });
 
     </script>
@@ -615,49 +630,75 @@
             /* Ajusta el ancho mínimo según tu necesidad */
         }
     </style>
-    <script> 
+    <script>
         $(document).ready(function() {
-            // Manejar la selección del módulo para actualizar el select de estilo
             $('#modulo').change(function() {
                 var moduleid = $(this).val();
                 $('#estilo').html(''); // Limpiar el select anterior
     
-                $.ajax({
-                    url: '{{ route("obtenerItemId") }}',
-                    type: 'POST',
-                    data: {
-                        '_token': '{{ csrf_token() }}',
-                        'moduleid': moduleid
-                    },
-                    success: function(response) {
-                        console.log(response); // Verificar los datos recibidos
-                        if (response.itemids && response.itemids.length > 0) {
-                            var options = '<option value="">Selecciona una opción</option>';
-                            $.each(response.itemids, function(index, itemid) {
-                                options += '<option value="' + itemid + '">' + itemid + '</option>';
-                            });
-                            $('#estilo').html(options);
-                        } else {
-                            $('#estilo').html('<option value="">No se encontraron estilos</option>');
+                if (moduleid === '830A' || moduleid === '831A') {
+                    // Realizar solicitud AJAX para obtener todos los estilos únicos
+                    $.ajax({
+                        url: '{{ route("obtenerTodosLosEstilosUnicos") }}',
+                        type: 'POST',
+                        data: {
+                            '_token': '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            console.log(response); // Verificar los datos recibidos
+                            if (response.itemids && response.itemids.length > 0) {
+                                var options = '<option value="">Selecciona una opción</option>';
+                                $.each(response.itemids, function(index, itemid) {
+                                    options += '<option value="' + itemid + '">' + itemid + '</option>';
+                                });
+                                $('#estilo').html(options);
+                            } else {
+                                $('#estilo').html('<option value="">No se encontraron estilos</option>');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(error);
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error(error);
-                    }
-                });
+                    });
+                } else {
+                    // Realizar solicitud AJAX para obtener los estilos según el módulo seleccionado
+                    $.ajax({
+                        url: '{{ route("obtenerItemId") }}',
+                        type: 'POST',
+                        data: {
+                            '_token': '{{ csrf_token() }}',
+                            'moduleid': moduleid
+                        },
+                        success: function(response) {
+                            console.log(response); // Verificar los datos recibidos
+                            if (response.itemids && response.itemids.length > 0) {
+                                var options = '<option value="">Selecciona una opción</option>';
+                                $.each(response.itemids, function(index, itemid) {
+                                    options += '<option value="' + itemid + '">' + itemid + '</option>';
+                                });
+                                $('#estilo').html(options);
+                            } else {
+                                $('#estilo').html('<option value="">No se encontraron estilos</option>');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(error);
+                        }
+                    });
+                }
             });
     
-            // Manejar la selección del módulo para actualizar el input de cliente
-            $('#modulo').change(function() {
-                var moduleid = $(this).val();
+            // Manejar la selección del estilo para actualizar el input de cliente
+            $('#estilo').change(function() {
+                var itemid = $(this).val();
     
-                // Realizar solicitud AJAX para obtener el cliente correspondiente al módulo seleccionado
+                // Realizar solicitud AJAX para obtener el cliente correspondiente al estilo seleccionado
                 $.ajax({ 
                     type: 'POST',
                     url: '{{ route("obtenerCliente1") }}',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        moduleid: moduleid
+                        itemid: itemid
                     },
                     success: function(response) {
                         console.log(response); // Verificar los datos recibidos

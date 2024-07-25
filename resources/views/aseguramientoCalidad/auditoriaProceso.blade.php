@@ -150,6 +150,16 @@
                                     <tr>
                                         <td><input type="text" class="form-control texto-blanco" name="modulo" id="modulo"
                                                 value="{{ $data['modulo'] }}" readonly></td>
+                                        @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+                                        <td>
+                                            <select class="form-control texto-blanco" name="estilo" id="estilo" required onchange="actualizarEstilo(this.value)">
+                                                <option value="">Selecciona una opción</option>
+                                                @foreach($estilosEmpaque as $estilo)
+                                                    <option value="{{ $estilo }}" {{ $estilo == $data['estilo'] ? 'selected' : '' }}>{{ $estilo }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        @else
                                         <td>
                                             <select class="form-control texto-blanco" name="estilo" id="estilo" required onchange="actualizarEstilo(this.value)">
                                                 <option value="">Selecciona una opción</option>
@@ -158,6 +168,7 @@
                                                 @endforeach
                                             </select>
                                         </td>
+                                        @endif
                                         <td><input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader"
                                                 value="{{ $data['team_leader'] }}" readonly></td>
                                         <td><input type="text" class="form-control texto-blanco" name="auditor" id="auditor"
@@ -165,7 +176,7 @@
                                         <td><input type="text" class="form-control texto-blanco" name="turno" id="turno"
                                                 value="{{ $data['turno'] }}" readonly></td>
                                         <td><input type="text" class="form-control texto-blanco" name="cliente" id="cliente"
-                                                value="{{ $data['cliente'] }}" readonly></td>
+                                            value="{{ $data['cliente'] }}" readonly></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -178,7 +189,11 @@
                                     <thead class="thead-primary">
                                         <tr>
                                             <th>NOMBRE</th>
-                                            <th>OPERACION</th>
+                                            @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+
+                                            @else
+                                                <th>OPERACION</th>
+                                            @endif
                                             <th>PIEZAS AUDITADAS</th>
                                             <th>PIEZAS RECHAZADAS</th>
                                             <th id="tp-column-header" class="d-none">TIPO DE PROBLEMA</th>
@@ -197,7 +212,7 @@
                                                 <select name="nombre" id="nombre" class="form-control" required title="Por favor, selecciona una opción" onchange="showOtherOptions()">
                                                     <option value="">Selecciona una opción</option>
                                                     <option value="OTRO">OTRO</option>
-                                                    <option value="UTILITY">UTILITY</option>
+                                                    <option value="UTILITY">UTILITY</option> 
                                                     @if ($auditorPlanta == 'Planta1')
                                                         @foreach ($nombresPlanta1 as $nombre)
                                                             <option value="{{ $nombre->name }}">{{ $nombre->name }}</option>
@@ -207,7 +222,7 @@
                                                             <option value="{{ $nombre->name }}">{{ $nombre->name }}</option>
                                                         @endforeach
                                                     @endif
-                                                </select>
+                                                </select> 
                                                 <div id="otroOptions" style="display: none;">
                                                     <select name="modulo_adicional" id="module" class="form-control" onchange="loadNames()">
                                                         <option value="">Selecciona un módulo</option>
@@ -222,6 +237,9 @@
                                                     </select>
                                                 </div>
                                             </td>
+                                            @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+
+                                            @else
                                             <td>
                                                 <select name="operacion" id="operacion" class="form-control" required title="Por favor, selecciona una opción">
                                                     <option value="">Selecciona una opción</option>        
@@ -230,10 +248,11 @@
                                                     @endforeach
                                                 </select>
                                             </td>
+                                            @endif
                                             <td><input type="text" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
                                             <td><input type="text" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
-                                            <td class="tp-column d-none w-100"> 
-                                                <select name="tp[]" id="tpSelect" class="form-control w-100" multiple title="Por favor, selecciona una opción"> 
+                                            <td class="tp-column d-none w-100">
+                                                <select id="tpSelect" class="form-control w-100" multiple title="Por favor, selecciona una opción">
                                                     <option value="OTRO">OTRO</option>
                                                     @if ($data['area'] == 'AUDITORIA EN PROCESO')
                                                         @foreach ($categoriaTPProceso as $proceso)
@@ -249,7 +268,8 @@
                                                         @endforeach
                                                     @endif
                                                 </select>
-                                            </td>                                            
+                                                <div id="selectedOptionsContainer" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
+                                            </td>
                                             <td class="ac-column d-none">
                                                 <select name="ac" id="ac" class="form-control" title="Por favor, selecciona una opción">
                                                     <option value="">Selecciona una opción</option>
@@ -308,7 +328,10 @@
                                 <thead class="thead-primary">
                                     <tr>
                                         <th>Nombre</th>
+                                        @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+                                        @else
                                         <th>Operacion </th>
+                                        @endif
                                         <th>Piezas Auditadas</th>
                                         <th>Piezas Rechazadas</th>
                                         <th>Tipo de Problema </th>
@@ -330,10 +353,14 @@
                                                     <input type="text" class="form-control texto-blanco" name="nombre"
                                                         value="{{ $registro->nombre }}" readonly>
                                                 </td>
+                                                @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+
+                                                @else
                                                 <td>
                                                     <input type="text" class="form-control texto-blanco" name="operacion"
                                                         value="{{ $registro->operacion }}" readonly>
                                                 </td>
+                                                @endif
                                                 <td>
                                                     <input type="text" class="form-control texto-blanco" name="cantidad_auditada"
                                                         value="{{ $registro->cantidad_auditada }}" readonly>
@@ -380,7 +407,11 @@
                                         <tr>
                                             <th>Paro</th>
                                             <th>Nombre</th>
+                                            @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+
+                                            @else
                                             <th>Operacion </th>
+                                            @endif
                                             <th>Piezas Auditadas</th>
                                             <th>Piezas Rechazadas</th>
                                             <th>Tipo de Problema </th>
@@ -413,10 +444,14 @@
                                                     <input type="text" class="form-control texto-blanco" name="nombre"
                                                         value="{{ $registro->nombre }}" readonly>
                                                 </td>
+                                                @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+
+                                                @else
                                                 <td>
                                                     <input type="text" class="form-control texto-blanco" name="operacion"
                                                         value="{{ $registro->operacion }}" readonly>
                                                 </td>
+                                                @endif
                                                 <td>
                                                     <input type="text" class="form-control texto-blanco" name="cantidad_auditada"
                                                         value="{{ $registro->cantidad_auditada }}" readonly>
@@ -661,6 +696,16 @@
     </style>
 
     <script>
+        $(document).ready(function() {
+            // Inicializar el select2
+            $('#operacion').select2({
+                placeholder: 'Seleccione una opcion',
+                allowClear: true,
+                width: 'resolve'
+            });
+        });
+    </script>
+    <script>
         function showOtherOptions() {
             var select = document.getElementById("nombre");
             var otroOptions = document.getElementById("otroOptions");
@@ -765,25 +810,30 @@
     <!-- Nuevo script para manejar la visibilidad de las columnas y select2 -->
     <script>
         $(document).ready(function() {
+            // Inicializar el select2
             $('#tpSelect').select2({
                 placeholder: 'Seleccione una o varias opciones',
                 allowClear: true,
                 multiple: true,
-                width: 'resolve'  // Esto asegura que select2 tomará el 100% del ancho del contenedor
+                width: 'resolve'
             });
     
-            $('#operacion').select2({
-                placeholder: 'Seleccione una operacion',
-                allowClear: true,
-            });
-    
+            // Manejador de cambio del select
             $('#tpSelect').on('change', function() {
                 let selectedOptions = $(this).val();
-                if (selectedOptions.includes('OTRO')) {
-                    $('#nuevoConceptoModal').modal('show');
+                // Agregar una opción seleccionada a la lista de seleccionados
+                if (selectedOptions.length > 0) {
+                    let lastSelectedOption = selectedOptions[selectedOptions.length - 1];
+                    if (lastSelectedOption === 'OTRO') {
+                        $('#nuevoConceptoModal').modal('show');
+                    } else {
+                        addSelectedOption(lastSelectedOption);
+                        $(this).val(null).trigger('change'); // Reiniciar el select
+                    }
                 }
             });
     
+            // Manejador del botón de guardar del modal
             $('#guardarNuevoConcepto').on('click', function() {
                 let nuevoConcepto = $('#nuevoConceptoInput').val();
                 if (nuevoConcepto) {
@@ -809,8 +859,7 @@
                     }).then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            let newOption = new Option(nuevoConcepto.toUpperCase(), nuevoConcepto.toUpperCase(), true, true);
-                            $('#tpSelect').append(newOption).trigger('change');
+                            addSelectedOption(nuevoConcepto.toUpperCase());
                             $('#nuevoConceptoModal').modal('hide');
                         } else {
                             alert('Error al guardar el nuevo concepto');
@@ -824,26 +873,46 @@
                 }
             });
     
+            // Ocultar el modal y reiniciar el input del nuevo concepto
             $('#nuevoConceptoModal').on('hidden.bs.modal', function () {
                 $('#nuevoConceptoInput').val('');
-                let selectedOptions = $('#tpSelect').val();
-                let index = selectedOptions.indexOf('OTRO');
-                if (index > -1) {
-                    selectedOptions.splice(index, 1);
-                    $('#tpSelect').val(selectedOptions).trigger('change');
-                }
             });
+    
+            // Función para agregar una opción seleccionada a la lista de seleccionados
+            function addSelectedOption(optionText) {
+                let container = $('#selectedOptionsContainer');
+                let newOption = $('<div class="selected-option">').text(optionText);
+                let hiddenInput = $('<input type="hidden" name="tp[]" />').val(optionText);
+                newOption.append(hiddenInput);
+                let removeButton = $('<button type="button" class="btn btn-danger btn-sm ml-2">').text('Eliminar');
+                removeButton.on('click', function() {
+                    newOption.remove();
+                    checkContainerValidity();
+                });
+                newOption.append(removeButton);
+                container.append(newOption);
+                checkContainerValidity();
+            }
+    
+            function checkContainerValidity() {
+                let container = $('#selectedOptionsContainer');
+                if (container.children('.selected-option').length === 0) {
+                    container.addClass('is-invalid');
+                } else {
+                    container.removeClass('is-invalid');
+                }
+            }
     
             function updateColumnsVisibility() {
                 const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
                 if (isNaN(cantidadRechazada) || cantidadRechazada === 0) {
                     $('#tp-column-header, #ac-column-header').addClass('d-none');
                     $('.tp-column, .ac-column').addClass('d-none');
-                    $('#tpSelect, #ac').prop('required', false);
+                    $('#selectedOptionsContainer, #ac').prop('required', false);
                 } else {
                     $('#tp-column-header, #ac-column-header').removeClass('d-none');
                     $('.tp-column, .ac-column').removeClass('d-none');
-                    $('#tpSelect, #ac').prop('required', true);
+                    $('#selectedOptionsContainer, #ac').prop('required', true);
                 }
             }
     
@@ -854,6 +923,7 @@
             $('#cantidad_rechazada').on('input', function() {
                 updateColumnsVisibility();
             });
+    
         });
     </script>
     
@@ -870,8 +940,27 @@
             // Construir la nueva URL
             url.search = params.toString();
         
-            // Redirigir a la nueva URL
-            window.location.href = url.toString();
+            // Realizar la solicitud AJAX para obtener el cliente correspondiente al estilo seleccionado
+            $.ajax({
+                type: 'POST',
+                url: '{{ route("obtenerCliente1") }}',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    itemid: nuevoEstilo
+                },
+                success: function(response) {
+                    console.log(response); // Verificar los datos recibidos
+                    // Actualizar el valor del campo "cliente" con el cliente obtenido de la respuesta AJAX
+                    $('#cliente').val(response.cliente);
+    
+                    // Actualizar la URL para reflejar el cambio en el estilo y cliente
+                    window.history.pushState({}, '', url.toString());
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
+            });
         }
     </script>
+    
 @endsection

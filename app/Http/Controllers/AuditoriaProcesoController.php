@@ -104,7 +104,7 @@ class AuditoriaProcesoController extends Controller
         }
         //dd($auditorPlanta, $datoPlanta);
 
-        $procesoActual = AseguramientoCalidad::where('estatus', NULL) 
+        $procesoActual = AseguramientoCalidad::where('estatus', NULL)  
             ->where('area', 'AUDITORIA EN PROCESO')
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
@@ -119,15 +119,32 @@ class AuditoriaProcesoController extends Controller
             ->distinct()
             ->get();
 
+        //
+        $empaqueActual = AseguramientoCalidad::where('estatus', NULL)
+                ->where('area', 'AUDITORIA EN EMPAQUE')
+                ->where('planta', $datoPlanta)
+                ->whereDate('created_at', $fechaActual)
+                ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente')
+                ->distinct()
+                ->get();
+        $empaqueFinal = AseguramientoCalidad::where('estatus', 1)
+                ->where('area', 'AUDITORIA EN EMPAQUE')
+                ->where('planta', $datoPlanta)
+                ->whereDate('created_at', $fechaActual)
+                ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente')
+                ->distinct()
+                ->get();
         
         return view('aseguramientoCalidad.altaProceso', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
             'pageSlug' => $pageSlug,
             'procesoActual' => $procesoActual,
-            'procesoFinal' => $procesoFinal]));
+            'procesoFinal' => $procesoFinal,
+            'empaqueActual' => $empaqueActual,
+            'empaqueFinal' => $empaqueFinal]));
     }
 
-    public function obtenerItemId(Request $request) 
+    public function obtenerItemId(Request $request)  
     {
         $moduleid = $request->input('moduleid');
         $auditoriaProceso = AuditoriaProceso::where('moduleid', $moduleid)
@@ -139,10 +156,19 @@ class AuditoriaProcesoController extends Controller
         ]);
     }
 
-    public function obtenerCliente1(Request $request) 
+    public function obtenerTodosLosEstilosUnicos(Request $request)
     {
-        $moduleid = $request->input('moduleid');
-        $auditoriaProceso = AuditoriaProceso::where('moduleid', $moduleid)->first();
+        $auditoriaProceso = AuditoriaProceso::distinct('itemid')->pluck('itemid');
+        
+        return response()->json([
+            'itemids' => $auditoriaProceso,
+        ]);
+    }
+
+    public function obtenerCliente1(Request $request)  
+    {
+        $itemid = $request->input('itemid');
+        $auditoriaProceso = AuditoriaProceso::where('itemid', $itemid)->first();
 
         return response()->json([
             'cliente' => $auditoriaProceso->customername ?? ''
@@ -171,25 +197,27 @@ class AuditoriaProcesoController extends Controller
                                     ->pluck('itemid');
 
         //dd($request->all(), $data); 
+        // Obtener los estilos únicos relacionados con el módulo seleccionado
+        $estilosEmpaque = AuditoriaProceso::distinct('itemid')->pluck('itemid');
         // Obtener el estilo seleccionado
         $estiloSeleccionado = $request->input('estilo', '');
         // Actualizar $data con el nuevo estilo
         $data['estilo'] = $estiloSeleccionado;
-
-        $nombresPlanta1 = AuditoriaProceso::whereDate('aplicationdate', $fechaActual)
-            ->where('prodpoolid', 'Intimark1') 
+ 
+        $nombresPlanta1 = AuditoriaProceso::where('prodpoolid', 'Intimark1')
             ->where('moduleid', $data['modulo'])
+            ->whereNotIn('name', ['831A-EMPAQUE P2 T1','830A-EMPAQUE P1 T1', 'VIRTUAL P2T1 02', 'VIRTUAL P2T1 01'])
             ->select('name')
             ->distinct()
             ->get();
 
-        $nombresPlanta2 = AuditoriaProceso::whereDate('aplicationdate', $fechaActual)
-            ->where('prodpoolid', 'Intimark2')
+        $nombresPlanta2 = AuditoriaProceso::where('prodpoolid', 'Intimark2')
             ->where('moduleid', $data['modulo'])
+            ->whereNotIn('name', ['831A-EMPAQUE P2 T1','830A-EMPAQUE P1 T1', 'VIRTUAL P2T1 02', 'VIRTUAL P2T1 01'])
             ->select('name')
             ->distinct()
             ->get();
-
+ 
 
         $utilityPlanta1 = CategoriaUtility::where('planta', 'Intimark1') 
             ->where('estado', 1)
@@ -203,19 +231,19 @@ class AuditoriaProcesoController extends Controller
 
         $mostrarRegistro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
             ->where('modulo', $data['modulo'])
-            ->where('estilo', $data['estilo'])
+            //->where('estilo', $data['estilo'])
             ->where('area', $data['area'])
             ->get();
         $estatusFinalizar = AseguramientoCalidad::whereDate('created_at', $fechaActual)
             ->where('modulo', $data['modulo'])
-            ->where('estilo', $data['estilo'])
+            //->where('estilo', $data['estilo'])
             ->where('area', $data['area'])
             ->where('estatus', 1)
             ->exists();
 
         $registros = AseguramientoCalidad::whereDate('created_at', $fechaActual)
             ->where('modulo', $data['modulo'])
-            ->where('estilo', $data['estilo'])
+            //->where('estilo', $data['estilo'])
             ->where('area', $data['area'])
             ->selectRaw('COALESCE(SUM(cantidad_auditada), 0) as total_auditada, COALESCE(SUM(cantidad_rechazada), 0) as total_rechazada')
             ->first();
@@ -282,6 +310,7 @@ class AuditoriaProcesoController extends Controller
             'estilos' => $estilos, // Pasar los estilos únicos a la vista
             'estiloSeleccionado' => $estiloSeleccionado,
             'operacionNombre' => $operacionNombre,
+            'estilosEmpaque' => $estilosEmpaque
             ]));
     }
 

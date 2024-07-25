@@ -997,35 +997,6 @@ class DashboardController extends Controller
 
         return response()->json($results);
     }
-    public function Top3Defectos(Request $request)
-    {
-        $tipoModelo = $request->input('tipo');
-
-        if (!in_array($tipoModelo, ['TpAuditoriaAQL', 'TpAseguramientoCalidad'])) {
-            return Response::json(['success' => false, 'error' => 'Tipo de modelo inválido'], 400);
-        }
-
-        $modelo = $tipoModelo === 'TpAuditoriaAQL' ? TpAuditoriaAQL::query() : TpAseguramientoCalidad::query();
-
-        // Consulta para usar la columna 'tp'
-        $defectos = $modelo->select('tp AS defecto', DB::raw('COUNT(*) as cantidad'))
-            ->where('tp', '!=', 'NINGUNO')
-            ->groupBy('tp')
-            ->orderByDesc('cantidad')
-            ->limit(3)
-            ->get();
-
-        // Formateo de resultados (ajustado para usar 'defecto' como alias)
-        $data = [];
-        foreach ($defectos as $defecto) {
-            $data[] = [
-                'defecto' => $defecto->defecto, // Usamos el alias 'defecto'
-                'cantidad' => $defecto->cantidad
-            ];
-        }
-
-        return Response::json(['success' => true, 'data' => $data]);
-    }
 
     public function detalleXModulo(Request $request)
     {

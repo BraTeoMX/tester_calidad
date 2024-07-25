@@ -140,8 +140,8 @@ class DashboardPlanta1Controller extends Controller
         //dd($dataGrafica, $clientesGrafica, $datasetsAQL, $datasetsProceso);
         //apartado para mostrar datos de gerente de prodduccion, en este caso por dia AseguramientoCalidad y AuditoriaAQL
         // Obtención y cálculo de datos generales para AQL y Proceso
-        $dataModuloAQLGeneral = $this->getDataModuloAQL($fechaActual);
-        $dataModuloProcesoGeneral = $this->getDataModuloProceso($fechaActual);
+        $dataModuloAQLGeneral = $this->getDataModuloAQL($fechaActual); 
+        $dataModuloProcesoGeneral = $this->getDataModuloProceso($fechaActual); 
 
         // Obtención y cálculo de datos por planta para Auditoria AQL
         $dataModuloAQLPlanta1 = $this->getDataModuloAQL($fechaActual, 'Intimark1');
@@ -157,17 +157,21 @@ class DashboardPlanta1Controller extends Controller
 
         //dd($dataModuloAQLGeneral, $dataModuloProcesoGeneral, $dataModuloAQLPlanta1, $dataModuloAQLPlanta2, $dataModuloProcesoPlanta1, $dataModuloProcesoPlanta2);
 
-        // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO'
-        $topDefectosAQL = TpAuditoriaAQL::select('tp', DB::raw('count(*) as total'))
-            ->where('tp', '!=', 'NINGUNO')
-            ->groupBy('tp')
+        // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO' 
+        $topDefectosAQL = TpAuditoriaAQL::select('tp_auditoria_aql.tp', DB::raw('count(*) as total'))
+            ->join('auditoria_aql', 'tp_auditoria_aql.auditoria_aql_id', '=', 'auditoria_aql.id')
+            ->where('tp_auditoria_aql.tp', '!=', 'NINGUNO')
+            ->where('auditoria_aql.planta', '=', 'Intimark1')
+            ->groupBy('tp_auditoria_aql.tp')
             ->orderBy('total', 'desc')
             ->limit(3)
             ->get();
-        // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO'
-        $topDefectosProceso = TpAseguramientoCalidad::select('tp', DB::raw('count(*) as total'))
-            ->where('tp', '!=', 'NINGUNO')
-            ->groupBy('tp')
+
+        $topDefectosProceso = TpAseguramientoCalidad::select('tp_aseguramiento_calidad.tp', DB::raw('count(*) as total'))
+            ->join('aseguramientos_calidad', 'tp_aseguramiento_calidad.aseguramiento_calidad_id', '=', 'aseguramientos_calidad.id')
+            ->where('tp_aseguramiento_calidad.tp', '!=', 'NINGUNO')
+            ->where('aseguramientos_calidad.planta', '=', 'Intimark1')
+            ->groupBy('tp_aseguramiento_calidad.tp')
             ->orderBy('total', 'desc')
             ->limit(3)
             ->get();
@@ -511,6 +515,11 @@ class DashboardPlanta1Controller extends Controller
             $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
             $promedioMinutosEntero = ceil($promedioMinutos);
 
+            $detalles = AuditoriaAQL::where('modulo', $modulo)
+                ->whereDate('created_at', $fecha)
+                ->where('planta', 'Intimark1')
+                ->get();
+
             $dataModuloAQL[] = [
                 'modulo' => $modulo,
                 'modulos_unicos' => $modulosUnicos,
@@ -520,7 +529,10 @@ class DashboardPlanta1Controller extends Controller
                 'sumaMinutos' => $sumaMinutos,
                 'promedioMinutosEntero' => $promedioMinutosEntero,
                 'conteParoModular' => $conteParoModular,
+                'detalles' => $detalles,
             ];
+
+            
         }
 
         return $dataModuloAQL;
@@ -594,6 +606,11 @@ class DashboardPlanta1Controller extends Controller
             $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
             $promedioMinutosEntero = ceil($promedioMinutos);
 
+            $detalles = AseguramientoCalidad::where('modulo', $modulo)
+                ->whereDate('created_at', $fecha)
+                ->where('planta', 'Intimark1')
+                ->get();
+
             $dataModuloProceso[] = [
                 'modulo' => $modulo,
                 'modulos_unicos' => $modulosUnicos,
@@ -603,7 +620,11 @@ class DashboardPlanta1Controller extends Controller
                 'conteoMinutos' => $conteoMinutos,
                 'sumaMinutos' => $sumaMinutos,
                 'promedioMinutosEntero' => $promedioMinutosEntero,
+                'detalles' => $detalles,
             ];
+
+            
+
         }
 
         return $dataModuloProceso;
