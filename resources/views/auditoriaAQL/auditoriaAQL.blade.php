@@ -674,7 +674,7 @@
             $('#tpSelectAQL').select2({
                 placeholder: 'Seleccione una o varias opciones',
                 allowClear: true,
-                multiple: true
+                width: 'resolve'
             });
 
             $('#tpSelectAQL').on('change', function() {
@@ -688,6 +688,8 @@
                             addSelectedOptionAQL(option);
                         }
                     });
+                    // Cerrar el select manualmente
+                    $(this).select2('close'); 
                     $(this).val(null).trigger('change'); // Reiniciar el select
                 }
             });
@@ -796,6 +798,8 @@
             $('#color').val(selectedOption.data('color'));
             $('#talla').val(selectedOption.data('talla'));
         });
+
+
 
     </script>
 

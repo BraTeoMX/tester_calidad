@@ -252,7 +252,7 @@
                                             <td><input type="text" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
                                             <td><input type="text" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
                                             <td class="tp-column d-none w-100">
-                                                <select id="tpSelect" class="form-control w-100" multiple title="Por favor, selecciona una opción">
+                                                <select id="tpSelect" class="form-control w-100" multiple title="Por favor, selecciona una opción"> 
                                                     <option value="OTRO">OTRO</option>
                                                     @if ($data['area'] == 'AUDITORIA EN PROCESO')
                                                         @foreach ($categoriaTPProceso as $proceso)
@@ -808,7 +808,7 @@
 
     </script>
     <!-- Nuevo script para manejar la visibilidad de las columnas y select2 -->
-    <script>
+    <script> 
         $(document).ready(function() {
             // Inicializar el select2
             $('#tpSelect').select2({
