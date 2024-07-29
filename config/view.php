@@ -28,7 +28,7 @@ return [
     |
     */
 
-    'compiled' => false,
+    'compiled' => true,
 
 
 ];
