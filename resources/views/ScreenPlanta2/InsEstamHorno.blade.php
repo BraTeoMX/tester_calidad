@@ -28,28 +28,28 @@
                                 <h4 class="card-title mb-3">{{ __('Informacion General.') }}</h4>
                             </div>
                         </div>
-                        <div class="col-md-2">
-                            <label for="ordenSelect">Seleccion de op:</label>
+                        <div class="col-md-3">
+                            <label for="ordenSelect">Seleccione OP:</label>
                             <select class="form-control" id="ordenSelect" name="ordenSelect" required>
                                 <!-- Las opciones se cargarán dinámicamente aquí -->
                             </select>
                         </div>
                         <div class="col-md-3">
                             <form class="form-inline">
-                                <label class="my-1 mr-2" for="tipoPanel" name="tipoPanel">Tipo Panel</label>
-                                <select class="custom-select my-1 mr-sm-2" id="tipoPanel" name="tipoPanel">
+                                <label class="my-1 mr-3" for="tipoPanel" name="tipoPanel">Tipo Panel</label>
+                                <select class="custom-select my-1 mr-sm-3" id="tipoPanel" name="tipoPanel">
                                     <option selected>Panel</option>
                                     <option value="Manga">M</option>
                                     <option value="Bolsa">B</option>
                                     <option value="Delantero">D</option>
                                     <option value="Trasero">T</option>
                                 </select>
-                                <input type="text" class="form-control my-1 mr-sm-2" id="otraTipoMaquina"
+                                <input type="text" class="form-control my-1 mr-sm-3" id="otraTipoMaquina"
                                     name="otraTipoMaquina" placeholder="Especificar otra máquina" style="display: none;">
                             </form>
                         </div>
-                        <div class="col-md-2">
-                            <label for="clienteSelect">Seleccion de cliente:</label>
+                        <div class="col-md-3">
+                            <label for="clienteSelect">Seleccione cliente:</label>
                             <select class="form-control" id="clienteSelect" name="clienteSelect" required>
                                 <!-- Las opciones se cargarán dinámicamente aquí -->
                             </select>
@@ -108,6 +108,8 @@
                             <input type="number" class="form-control" id="inputpiezasxbulto" name="inputpiezasxbulto"
                                 required>
                         </div>
+                        <br>
+                        <br>
                         <div class="col-md-2">
                             <label for="fibraSelect">Seleccion de tipo de fibra:</label>
                             <select class="form-control" id="fibraSelect" name="fibraSelect[]" required>
@@ -256,25 +258,25 @@
         $(document).ready(function() {
             // Inicializar Select2 para el cliente
             $('#clienteSelect').select2({
-                placeholder: 'Seleccione un cliente',
+                placeholder: 'Seleccione Cliente',
                 allowClear: true
             });
             $('#estiloSelect').select2({
-                placeholder: 'Seleccione un estilo',
+                placeholder: 'Seleccione Estilo',
                 allowClear: true
             });
             // Inicializar Select2 para la orden
             $('#ordenSelect').select2({
-                placeholder: 'Seleccione una orden',
+                placeholder: 'Seleccione OP',
                 allowClear: true
             });
             // Inicializar Select2 para la orden
             $('#tecnicosSelect').select2({
-                placeholder: 'Seleccione un tecnico',
+                placeholder: 'Seleccione Tenico',
                 allowClear: true
             });
             $('#tecnicaSelect').select2({
-                placeholder: 'Seleccione una tecnica',
+                placeholder: 'Seleccione Tecnica',
                 allowClear: true,
                 multiple: true
             });
@@ -307,18 +309,18 @@
                     $.each(selectedOptions, function(index, fibra) {
                         var porcentajeInput = $('<input>', {
                             type: 'number',
-                            class: 'porcentajeInput form-control mr-2',
+                            class: 'porcentajeInput form-control mr-3',
                             name: 'porcentajeInput[]',
                             placeholder: '% para ' + fibra,
                             min: 0,
                             max: 100,
                             required: true,
-                            style: 'width: 150px;' // Ajusta el ancho según tus preferencias
+                            style: 'width: 100px;' // Ajusta el ancho según tus preferencias
                         });
                         // Etiqueta para el nombre de la fibra
                         var etiquetaFibra = $('<label>', {
                             text: fibra + ': ',
-                            class: 'mr-2'
+                            class: 'mr-3'
                         });
                         // Contenedor individual para cada fibra
                         var contenedorFibra = $('<div>', {
@@ -333,13 +335,6 @@
                     });
                     // Agregar el contenedor de inputs en línea al contenedor general
                     contenedorInputs.append(contenedorInputsEnLinea);
-
-                    // Evento de cambio en el input de porcentaje
-                    inputs.forEach(function(input) {
-                        input.on('input', function() {
-                            // No hacer nada aquí
-                        });
-                    });
                     // Evento al salir del último input
                     inputs[inputs.length - 1].on('blur', function() {
                         // Actualizar la suma de los porcentajes al salir del último input
