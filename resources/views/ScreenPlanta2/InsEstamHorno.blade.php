@@ -38,7 +38,7 @@
                             <form class="form-inline">
                                 <label class="my-1 mr-2" for="tipoPanel" name="tipoPanel">Tipo Panel</label>
                                 <select class="custom-select my-1 mr-sm-2" id="tipoPanel" name="tipoPanel">
-                                    <option selected>Seleccione Panel</option>
+                                    <option selected>Panel</option>
                                     <option value="Manga">M</option>
                                     <option value="Bolsa">B</option>
                                     <option value="Delantero">D</option>
@@ -81,7 +81,7 @@
                                 <label class="my-1 mr-2" for="inputTipoMaquina" name="inputTipoMaquina">Tipo Maquina</label>
                                 <br>
                                 <select class="custom-select my-1 mr-sm-2" id="inputTipoMaquina" name="inputTipoMaquina">
-                                    <option selected>Seleccione maquina</option>
+                                    <option selected>Maquina</option>
                                     <option value="Oval1">Oval1</option>
                                     <option value="Oval2">Oval2</option>
                                     <option value="Eco">Eco</option>
