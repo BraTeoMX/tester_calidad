@@ -5677,3 +5677,33 @@
 #27 {main}
 "} 
 [2024-07-29 17:45:45] local.INFO: Datos de /viewTable:  
+[2024-07-29 17:53:14] local.INFO: Datos de /viewTable:  
+[2024-07-29 17:53:25] local.INFO: Datos de /viewTable:  
+[2024-07-29 17:57:50] local.INFO: Datos de /viewTable:  
+[2024-07-29 18:12:39] local.INFO: Datos de /viewTable:  
+[2024-07-29 18:13:19] local.INFO: Datos de /viewTable: [{"id":2,"Auditor":"Gerardo Vergara Mendoza","Descripcion":"dasdas","Cliente":"asdas","Estilo":"asdas","OP_Defec":"sadsad","Maquina":"Oval2","Tecnico":"Jorge Arturo Ayala Palacios","Corte":"dasd","Color":"sad","Talla":"M","Piezas_Auditar":"22","Tipo_Problema":"Descentrado","Num_Problemas":"3","Ac_Correctiva":"AS.AVISO A SUPERVISOR","Status":"Nuevo"}] 
+[2024-07-29 18:13:36] local.INFO: Datos de /viewTable:  
+[2024-07-29 18:14:08] local.INFO: Datos de /viewTable: [{"id":3,"Auditor":"Gerardo Vergara Mendoza","Cliente":"INTIMARK S DE RL DE CV","Estilo":"IM3922","OP_Defec":"OP0043960","Tecnico":"Jorge Arturo Ayala Palacios","Color":"4f32","Num_Grafico":"3d2","Piezas_Auditar":"55","Tipo_Problema":"N/A","Num_Problemas":"0","Ac_Correctiva":"N/A","Status":"Nuevo"}] 
+[2024-07-29 18:14:22] local.INFO: Datos de /viewTable:  
+[2024-07-29 18:15:22] local.INFO: Datos de /viewTable: [{"id":4,"Auditor":"Gerardo Vergara Mendoza","Cliente":"INTIMARK S DE RL DE CV","Estilo":"IM3922","OP_Defec":"OP0043960","Panel":null,"Tecnico":"Jorge Arturo Ayala Palacios","Color":"3f4","Num_Grafico":"2f2","Tipo_Maquina":"Oval2","LeyendaSprint":"f42f","Tecnica":"Base Agua","Piezas_Auditar":"54","Fibras":"Polyester","Porcen_Fibra":"100","Hora":"12:00","Bulto":"43","Talla":"3x","Tipo_Problema":"Descentrado, Arte Equivocado (Otros)","Num_Problemas":"2, 1","Ac_Correctiva":"AS.AVISO A SUPERVISOR, MA.MAQUINA EN ALTO","Status":"Nuevo"}] 
+[2024-07-29 18:15:35] local.INFO: Datos de /viewTable:  
+[2024-07-29 18:20:22] local.INFO: Datos recibidos en SendScreenPrint: {"addRowClicked":"true","Auditor":"Gerardo Vergara Mendoza","Cliente":"INTIMARK S DE RL DE CV","Estilo":"IM3922","OP_Defec":"OP0043960","Tecnico":"Jose Luis Lopez Gomez","Color":"dsd33d","Num_Grafico":"d3dsa","Tecnica":"Base Agua","Fibras":"Polyester","Porcen_Fibra":"100","Piezas_Auditar":"54","Tipo_Problema":["Descentrado"],"Num_Problemas":["1"],"Ac_Correctiva":["AS.AVISO A SUPERVISOR"]} 
+[2024-07-29 18:20:26] local.INFO: Datos de /viewTable: [{"id":22,"Auditor":"Gerardo Vergara Mendoza","Cliente":"INTIMARK S DE RL DE CV","Estilo":"IM3922","OP_Defec":"OP0043960","Tecnico":"Jose Luis Lopez Gomez","Color":"dsd33d","Num_Grafico":"d3dsa","Tecnica":"Base Agua","Fibras":"Polyester","Porcen_Fibra":"100","Piezas_Auditar":"54","Tipo_Problema":"Descentrado","Num_Problemas":"1","Ac_Correctiva":"AS.AVISO A SUPERVISOR","Status":"Nuevo"}] 
+[2024-07-30 13:01:19] local.INFO: Datos de /viewTable:  
+[2024-07-30 13:33:16] local.INFO: Datos de /viewTable:  
+[2024-07-31 12:43:56] local.INFO: Datos de /viewTable:  
+[2024-07-31 12:44:01] local.INFO: Datos de /viewTable:  
+[2024-07-31 12:46:47] local.INFO: Datos de /viewTable:  
+[2024-07-31 12:48:05] local.INFO: Datos de /viewTable:  
+[2024-07-31 12:48:25] local.INFO: Datos de /viewTable:  
+[2024-07-31 12:50:51] local.INFO: Datos de /viewTable:  
+[2024-07-31 12:54:50] local.INFO: Datos de /viewTable:  
+[2024-07-31 12:55:00] local.INFO: Datos de /viewTable:  
+[2024-07-31 12:59:47] local.INFO: Datos de /viewTable:  
+[2024-07-31 13:00:59] local.INFO: Datos de /viewTable:  
+[2024-07-31 13:01:13] local.INFO: Datos de /viewTable:  
+[2024-07-31 13:01:27] local.INFO: Datos de /viewTable:  
+[2024-07-31 13:01:49] local.INFO: Datos de /viewTable:  
+[2024-07-31 13:03:00] local.INFO: Datos de /viewTable:  
+[2024-07-31 13:03:35] local.INFO: Datos de /viewTable:  
+[2024-07-31 13:05:42] local.INFO: Datos de /viewTable:  

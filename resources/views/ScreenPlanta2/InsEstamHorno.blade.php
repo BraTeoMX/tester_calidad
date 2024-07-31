@@ -34,12 +34,11 @@
                                 <!-- Las opciones se cargarán dinámicamente aquí -->
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <form class="form-inline">
-                                <label class="my-1 mr-2" for="tipoPanel" name="tipoPanel">Tipo de
-                                    Panel</label>
+                                <label class="my-1 mr-2" for="tipoPanel" name="tipoPanel">Tipo Panel</label>
                                 <select class="custom-select my-1 mr-sm-2" id="tipoPanel" name="tipoPanel">
-                                    <option selected>Seleccion tipo de Panel</option>
+                                    <option selected>Seleccione Panel</option>
                                     <option value="Manga">M</option>
                                     <option value="Bolsa">B</option>
                                     <option value="Delantero">D</option>
@@ -77,12 +76,12 @@
                             <label for="inputGrafico">Ingresa # de Grafico:</label>
                             <input class="form-control" id="inputGrafico" name="inputGrafico" required>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <form class="form-inline">
-                                <label class="my-1 mr-2" for="inputTipoMaquina" name="inputTipoMaquina">Tipo de
-                                    Maquina</label>
+                                <label class="my-1 mr-2" for="inputTipoMaquina" name="inputTipoMaquina">Tipo Maquina</label>
+                                <br>
                                 <select class="custom-select my-1 mr-sm-2" id="inputTipoMaquina" name="inputTipoMaquina">
-                                    <option selected>Seleccion tipo de maquina</option>
+                                    <option selected>Seleccione maquina</option>
                                     <option value="Oval1">Oval1</option>
                                     <option value="Oval2">Oval2</option>
                                     <option value="Eco">Eco</option>
