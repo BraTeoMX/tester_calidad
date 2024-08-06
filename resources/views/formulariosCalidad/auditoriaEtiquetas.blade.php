@@ -5,6 +5,7 @@
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     </head>
 
     <div class="content">
@@ -29,7 +30,7 @@
                             </div>
                             <br>
                         </div>
-                        <div class="col-md-1">
+                        <div class="col-md-3">
                             <label for="tipoBusqueda">Tipo de búsqueda:</label>
                             <select class="form-control" id="tipoBusqueda" name="tipoBusqueda">
                                 <option selected>Selecciona un tipo de busqueda</option>
@@ -39,12 +40,12 @@
                                 <option value="OV">OV</option>
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label for="ordenSelect">Selecciona No/Orden:</label>
                             <select class="form-control" id="ordenSelect" name="ordenSelect" required>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <button type="button" class="btn btn-success" id="Buscar">
                                 Buscar
                             </button>
@@ -96,7 +97,7 @@
     </style>
 
     <script>
-        $(document).ready(function() {
+      //  $(document).ready(function() {
             // Inicializar Select2 para la orden
             $('#ordenSelect').select2({
                 placeholder: 'Seleccione una orden',
@@ -180,17 +181,22 @@
                                         key +
                                         '" aria-expanded="true" aria-controls="collapse' +
                                         key + '">';
+
                                     accordion +=
-                                        '<span style="font-size: 20px;">' +
-                                        'Estilo: ' + value.Estilos + '</span>';
-                                    accordion +=
+                                    '<span style="font-size: 20px;">' +
+                                        'Estilo: ' + value.Estilos + '</span>'+
                                         '<span style="font-size: 18px;" id="status_' +
                                         key +
                                         '">' +
                                         'Status: ' +
                                         data.status[key] +
                                         // Mostrar el estado de la auditoría
-                                        '</span>';
+                                        '</span>' +
+                                        '<span style="font-size: 18px;" id="status_' +
+                                        key +
+                                        '">' + '</span>'+
+                                        '<span style="font-size: 20px;">' +
+                                        'No. de Orden: ' + data.orden + '</span>';
                                     accordion += '</button>';
                                     accordion += '</h2>';
                                     accordion += '</div>';
@@ -208,11 +214,11 @@
                                     accordion += '<thead class="text-primary">';
                                     accordion += '<tr>';
                                     accordion +=
-                                        '<th style="text-align: left; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: .1%;">#</th>';
-                                    accordion +=
+                                        '<th style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: .1%;">#</th>';
+                                  /*  accordion +=
                                         '<th style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: .1%;">No/Orden</th>';
                                     accordion +=
-                                        '<th style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: .1%;">Estilos</th>';
+                                        '<th style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: .1%;">Estilos</th>';*/
                                     accordion +=
                                         '<th style="text-align: center; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; width: .1%;">Color</th>';
                                     accordion +=
@@ -263,7 +269,7 @@
                     }
                 });
             });
-        });
+      //  });
     </script>
     <script>
         $(document).ready(function() {
@@ -340,12 +346,13 @@
                                 }
                             }
 
-                            var fila = '<tr>' +
-                                '<td>' + (index + 1) + '</td>' +
-                                '<td style="text-align: center;">' + ordenSeleccionada +
+                            var fila =
+                                '<tr>' +
+                                '<td style="text-align: center; ">' + (index + 1) + '</td>' +
+                             /*   '<td style="text-align: center;">' + ordenSeleccionada +
                                 '</td>' +
                                 '<td style="text-align: center;">' + (item.Estilos ||
-                                    item.Estilo) + '</td>' +
+                                    item.Estilo) + '</td>' +*/
                                 '<td style="text-align: center;">' + (item[campos
                                     .Color] || 'N/A') + '</td>' +
                                 '<td style="text-align: center;">' + (item[campos
@@ -363,13 +370,13 @@
                                 index + '_acordeon_' + estilo + '">' +
                                 '</td>' +
                                 '<td>' +
-                                '<div class="dropup-center dropup">' +
+                                '<div class="dropbottom-center dropbottom">' +
                                 '<button id="dropdownToggle_' + index + '_acordeon_' +
                                 estilo +
                                 '" class="btn btn-danger dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">' +
                                 'Opciones' +
                                 '</button>' +
-                                '<ul class="dropdown-menu" aria-labelledby="dropdownToggle_' +
+                                '<ul class="dropdown-menu  " aria-labelledby="dropdownToggle_' +
                                 index + '_acordeon_' + estilo + '">' +
                                 '<li><a class="dropdown-item text-success" value="Aprobado" data-row-id="' +
                                 item.id + '">Aprobado</a></li>' +
@@ -382,7 +389,12 @@
                                 '</td>' +
                                 '<td style="display: none;">' + (item.id ? item.id :
                                     'N/A') + '</td>' +
-                                '</tr>';
+                                '</tr>' /*+
+                                '<tr>' +
+                                        '<td style=display: none>'+
+                                        '<input type="hidden" id="estilo1" name="estilo1" value='+ estilo +'>'+
+                                        '</td>'+
+                                        '</tr>'*/;
 
                             $('#miTabla tbody').append(fila);
                         });
@@ -403,8 +415,9 @@
                     success: function(options) {
                         $.each(data, function(index, item) {
                             var selectHTML =
-                                '<select class="form-control" id="tipoDefectos_' +
-                                index + '">';
+
+                                '<select class="form-control" select2-multiple" id="tipoDefectos_' +
+                                index + '"  multiple="multiple" >';
                             $.each(options, function(key, value) {
                                 selectHTML +=
                                     '<option value="' +
@@ -432,18 +445,20 @@
         });
     </script>
     <script>
-        $(document).on('click', '#Saved', function() {
+      /*  $(document).on('click', '#Saved', function() {
             var ordenSeleccionada = $('#ordenSelect').val();
             var tipoBusqueda = $('#tipoBusqueda').val();
+            var estilo = $('#estilo').val();
+
             // Obtener los datos del acordeón
             var datosAEnviar = [];
             var acordeon = $(this).closest('.card');
             acordeon.find('tbody tr').each(function(index, fila) {
-                var orden = $(fila).find('td:nth-child(2)').text().trim();
-                var estilo = $(fila).find('td:nth-child(3)').text().trim();
-                var color = $(fila).find('td:nth-child(4)').text().trim();
-                var talla = $(fila).find('td:nth-child(5)').text().trim();
-                var cantidad = $(fila).find('td:nth-child(6)').text().trim();
+                var orden = ordenSeleccionada;
+                var estilo = estilo;
+                var color = $(fila).find('td:nth-child(2)').text().trim();
+                var talla = $(fila).find('td:nth-child(3)').text().trim();
+                var cantidad = $(fila).find('td:nth-child(4)').text().trim();
                 var tipoDefecto = $(fila).find('.select-container select').val();
                 var muestreo = $(fila).find('.tamañoMuestra').text().trim();
                 var defectos = $(fila).find('.cantidadInput').val(); // Agregar el campo defectos
@@ -463,6 +478,7 @@
 
                 });
             });
+
             // Realizar la solicitud AJAX para guardar los datos
             $.ajax({
                 url: '/guardarInformacion',
@@ -483,12 +499,13 @@
                     console.error('Error al guardar los datos: ', error);
                 }
             });
-        });
+        }); */
     </script>
     <script>
         $(document).ready(function() {
             // Manejar clic en cualquier opción del dropdown
             $('#accordion').on('click', '.dropdown-item', function() {
+
                 // Obtener el valor de la opción seleccionada
                 var selectedOption = $(this).attr('value');
                 // Obtener el texto del botón de alternancia (dropdown-toggle)
@@ -497,35 +514,43 @@
                 var rowId = $(this).data('row-id');
                 var tipoBusqueda = $('#tipoBusqueda').val();
 
+                 // Obtener la orden seleccionada
+                 var ordenSeleccionada = $('#ordenSelect').val();
+                 var estilo1 = $('#estilo1').val();
                 // Obtener los datos de la fila modificada
                 var fila = $(this).closest('tr'); // Obtener la fila actual
-                var datosFila = {
-                    id: fila.find('td:nth-child(11)').text().trim(),
-                    orden: fila.find('td:nth-child(2)').text().trim(),
-                    estilo: fila.find('td:nth-child(3)').text().trim(),
-                    color: fila.find('td:nth-child(4)').text().trim(),
-                    talla: fila.find('td:nth-child(5)').text().trim(),
-                    cantidad: fila.find('td:nth-child(6)').text().trim(),
-                    tipoDefecto: fila.find('.select-container select').val(),
-                    muestreo: fila.find('.tamañoMuestra').text().trim(),
-                    defectos: fila.find('.cantidadInput').val(),
-                    tipoBusqueda: tipoBusqueda
-                };
+//                var datosFila = {
+                    id= fila.find('td:nth-child(9)').text().trim();
+                    color= fila.find('td:nth-child(2)').text().trim();
+                    talla= fila.find('td:nth-child(3)').text().trim();
+                    cantidad= fila.find('td:nth-child(4)').text().trim();
+                    if (fila.find('.select-container select').val() !== null && fila.find('.select-container select').val().length > 0) {
+                        var tipoDefecto =  fila.find('.select-container select').val().join(',');
+                    }
+                    //tipoDefecto= fila.find('.select-container select').val();
+                    muestreo= fila.find('.tamañoMuestra').text().trim();
+                    defectos= fila.find('.cantidadInput').val();
 
-                // Obtener la orden seleccionada
-                var ordenSeleccionada = $('#ordenSelect').val();
+  //              };
 
                 // Armar los datos a enviar al servidor
                 var datosAEnviar = {
                     _token: $('meta[name="csrf-token"]').attr(
                         'content'), // Obtener el token CSRF del meta tag
                     orden: ordenSeleccionada,
-                    datos: [datosFila], // Enviar solo los datos de la fila modificada
+                    estilo: estilo1,
+                    id: id,
+                    color: color,
+                    talla: talla,
+                    cantidad: cantidad,
+                    tipoDefecto: tipoDefecto,
+                    muestreo: muestreo,
+                    defectos: defectos,
+                    //datos: [datosFila], // Enviar solo los datos de la fila modificada
                     status: status,
                     rowId: rowId,
                     tipoBusqueda: tipoBusqueda
                 };
-
                 // Realizar la solicitud AJAX para enviar los datos al servidor
                 $.ajax({
                     url: '/actualizarStatus',
