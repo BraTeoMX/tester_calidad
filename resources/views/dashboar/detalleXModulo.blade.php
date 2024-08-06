@@ -510,7 +510,7 @@
 
     <script>
         $(document).ready(function() {
-            // Verifica si la tabla ya está inicializada antes de inicializarla nuevamente
+            // Verifica si la tabla ya está inicializada antes de inicializarla nuevamente   
 
             if (!$.fn.dataTable.isDataTable('#tablaDinamico')) {
                 $('#tablaDinamico').DataTable({
