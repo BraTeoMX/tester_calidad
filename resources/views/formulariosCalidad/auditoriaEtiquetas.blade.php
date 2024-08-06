@@ -184,7 +184,7 @@
 
                                     accordion +=
                                     '<span style="font-size: 20px;">' +
-                                        'Estilo: ' + value.Estilos + '</span>'+
+                                        'Estilo : ' + value.Estilos + '</span>'+
                                         '<span style="font-size: 18px;" id="status_' +
                                         key +
                                         '">' +
