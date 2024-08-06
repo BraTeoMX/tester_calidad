@@ -520,6 +520,17 @@
                     pageLength: 10,
                     autoWidth: false,
                     responsive: true,
+                    initComplete: function () {
+                        var api = this.api();
+
+                        // Personaliza el filtro de búsqueda para aceptar múltiples términos
+                        $('#tablaDinamico_filter input')
+                            .unbind()
+                            .bind('keyup', function(e) {
+                                var searchTerm = this.value.split(' ').join('|');
+                                api.search(searchTerm, true, false).draw();
+                            });
+                    }
                 });
             }
 

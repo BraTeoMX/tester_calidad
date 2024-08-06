@@ -396,92 +396,35 @@
 
     <script>
         $(document).ready(function() {
-            // Verifica si la tabla ya está inicializada antes de inicializarla nuevamente
-            if (!$.fn.dataTable.isDataTable('#tablaDefectoProceso')) {
-                $('#tablaDefectoProceso').DataTable({
-                    lengthChange: false,
-                    searching: true,
-                    paging: true,
-                    pageLength: 5,
-                    autoWidth: false,
-                    responsive: true,
-                    columnDefs: [
-                        {
-                            targets: 2, // Índice de la columna a excluir (0-indexed, es decir, la tercera columna es índice 2)
-                            searchable: false, // Excluir de la búsqueda
-                            orderable: false, // Excluir del ordenamiento
+            const tableIds = ['#tablaDefectoProceso', '#tablaDefectoPlayera', '#tablaDefectoEmpaque', '#tablaUtility', '#tablaResponsable', '#tablaTecnico'];
+            
+            tableIds.forEach(tableId => {
+                if (!$.fn.dataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable({
+                        lengthChange: false,
+                        searching: true,
+                        paging: true,
+                        pageLength: 5,
+                        autoWidth: false,
+                        responsive: true,
+                        columnDefs: [
+                            {
+                                targets: -1,
+                                searchable: false,
+                                orderable: false,
+                            },
+                        ],
+                        language: {
+                            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
                         },
-                    ],
-                });
-            }
-        
-            if (!$.fn.dataTable.isDataTable('#tablaDefectoPlayera')) {
-                $('#tablaDefectoPlayera').DataTable({
-                    lengthChange: false,
-                    searching: true,
-                    paging: true,
-                    pageLength: 5,
-                    autoWidth: false,
-                    responsive: true,
-                    columnDefs: [
-                        {
-                            targets: 2, // Índice de la columna a excluir (0-indexed, es decir, la tercera columna es índice 2)
-                            searchable: false, // Excluir de la búsqueda
-                            orderable: false, // Excluir del ordenamiento
-                        },
-                    ],
-                });
-            }
-        
-            if (!$.fn.dataTable.isDataTable('#tablaDefectoEmpaque')) {
-                $('#tablaDefectoEmpaque').DataTable({
-                    lengthChange: false,
-                    searching: true,
-                    paging: true,
-                    pageLength: 5,
-                    autoWidth: false,
-                    responsive: true,
-                    columnDefs: [
-                        {
-                            targets: 2, // Índice de la columna a excluir (0-indexed, es decir, la tercera columna es índice 2)
-                            searchable: false, // Excluir de la búsqueda
-                            orderable: false, // Excluir del ordenamiento
-                        },
-                    ],
-                });
-            }
-        
-            if (!$.fn.dataTable.isDataTable('#tablaUtility')) {
-                $('#tablaUtility').DataTable({
-                    lengthChange: false,
-                    searching: true,
-                    paging: true,
-                    pageLength: 5,
-                    autoWidth: false,
-                    responsive: true,
-                });
-            }
-        
-            if (!$.fn.dataTable.isDataTable('#tablaResponsable')) {
-                $('#tablaResponsable').DataTable({
-                    lengthChange: false,
-                    searching: true,
-                    paging: true,
-                    pageLength: 5,
-                    autoWidth: false,
-                    responsive: true,
-                });
-            }
-            if (!$.fn.dataTable.isDataTable('#tablaTecnico')) {
-                $('#tablaTecnico').DataTable({
-                    lengthChange: false,
-                    searching: true,
-                    paging: true,
-                    pageLength: 5,
-                    autoWidth: false,
-                    responsive: true,
-                });
-            }
+                        initComplete: function(settings, json) {
+                            if ($('body').hasClass('dark-mode')) {
+                                $(tableId + '_wrapper').addClass('dark-mode');
+                            }
+                        }
+                    });
+                }
+            });
         });
     </script>
     <script>
