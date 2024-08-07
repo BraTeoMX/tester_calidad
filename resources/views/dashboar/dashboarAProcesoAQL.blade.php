@@ -343,14 +343,29 @@
                 const [year, week] = value.split('-');
                 return `Semana: ${week}, Año: ${year}`;
             }
-
+    
             Highcharts.setOptions({
                 lang: {
                     thousandsSep: ',',
                     decimalPoint: '.'
                 }
             });
-
+    
+            // Función para obtener el valor máximo y ajustar el rango
+            function getMaxValue(data) {
+                let max = Math.max(...data);
+                // Aumentar el máximo en un valor para dejar espacio en la gráfica
+                return Math.ceil(max / 10) * 5; // Ajustar para que sea un múltiplo de 10
+            }
+    
+            // Datos de ejemplo (reemplaza esto con los datos reales)
+            let porcentajesAQL = {!! json_encode($porcentajesAQL->map(function($value) { return (float)$value; })) !!};
+            let porcentajesProceso = {!! json_encode($porcentajesProceso->map(function($value) { return (float)$value; })) !!};
+    
+            // Calcular el máximo y ajustar el rango
+            let maxAQL = getMaxValue(porcentajesAQL);
+            let maxProceso = getMaxValue(porcentajesProceso);
+    
             var chartOptions = {
                 chart: {
                     type: 'spline',  // Cambiado de 'line' a 'spline'
@@ -365,7 +380,7 @@
                         formatter: function() {
                             return formatWeekLabel(this.value);
                         },
-                        rotation: 0 // Ajuste aquí para que los labels se muestren horizontalmente
+                        rotation: 0 // Mostrar labels horizontalmente
                     }
                 },
                 yAxis: {
@@ -373,7 +388,7 @@
                         text: 'Porcentaje'
                     },
                     min: 0,
-                    max: 2,
+                    max: Math.max(maxAQL, maxProceso), // Establecer el máximo en función de los datos
                     tickInterval: 2,
                     labels: {
                         formatter: function() {
@@ -398,36 +413,36 @@
                     }
                 }
             };
-
+    
             var chartAQL = Highcharts.chart('chartAQL', Highcharts.merge(chartOptions, {
                 title: {
                     text: 'AQL'
                 },
                 series: [{
                     name: 'AQL',
-                    data: {!! json_encode($porcentajesAQL->map(function($value) { return (float)$value; })) !!},
+                    data: porcentajesAQL,
                     color: '#f96332',
                     fillOpacity: 0.4
                 }]
             }));
-
+    
             var chartProcesos = Highcharts.chart('chartProcesos', Highcharts.merge(chartOptions, {
                 title: {
                     text: 'Procesos'
                 },
                 series: [{
                     name: 'Procesos',
-                    data: {!! json_encode($porcentajesProceso->map(function($value) { return (float)$value; })) !!},
+                    data: porcentajesProceso,
                     color: '#1f8ef1',
                     fillOpacity: 0.4
                 }]
             }));
-
+    
             $('#0').on('click', function() {
                 $('#chartAQL').show();
                 $('#chartProcesos').hide();
             });
-
+    
             $('#1').on('click', function() {
                 $('#chartAQL').hide();
                 $('#chartProcesos').show();
