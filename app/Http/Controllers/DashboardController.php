@@ -136,7 +136,7 @@ class DashboardController extends Controller
             $currentWeek->addWeek();
         }
 
-        // Calcular porcentajes AQL y Proceso para cada semana
+        // Calcular porcentajes AQL y Proceso para cada semana 
         $porcentajesAQL = $semanas->map(function($semana) {
             list($year, $week) = explode('-', $semana);
             return $this->calcularPorcentajePorSemana(AuditoriaAQL::class, $year, $week);
