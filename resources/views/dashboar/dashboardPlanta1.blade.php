@@ -69,7 +69,7 @@
                     <div class="row">
                         <div class="col-sm-6 text-left">
                             <h2 class="card-title">
-                                <a href="{{ route('dashboar.dashboarAProcesoAQL') }}">Intimark Mensual General</a>
+                                <a href="{{ route('dashboar.dashboardPlanta1Detalle') }}">Intimark Mensual General</a>
                             </h2>
                         </div>
                         <div class="col-sm-6">
