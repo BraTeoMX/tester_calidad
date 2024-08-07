@@ -801,72 +801,68 @@
         });
     </script>
 
+@endpush
 
+@push('js')
+    <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
     <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <!-- DataTables JavaScript -->
-    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
     <script>
         $(document).ready(function() {
-            // Verifica si la tabla ya está inicializada antes de inicializarla nuevamente
-            if (!$.fn.dataTable.isDataTable('#tablaClientes')) {
-                $('#tablaClientes').DataTable({
-                    lengthChange: false,
-                    searching: false,
-                    paging: true,
-                    pageLength: 5,
-                    autoWidth: false,
-                    responsive: true,
-                });
-            }
-        
-            if (!$.fn.dataTable.isDataTable('#tablaDinamico')) {
-                $('#tablaDinamico').DataTable({
-                    lengthChange: false,
-                    searching: false,
-                    paging: true,
-                    pageLength: 5,
-                    autoWidth: false,
-                    responsive: true,
-                });
-            }
-        
-            if (!$.fn.dataTable.isDataTable('#tablaDinamico2')) {
-                $('#tablaDinamico2').DataTable({
-                    lengthChange: false,
-                    searching: false,
-                    paging: true,
-                    pageLength: 5,
-                    autoWidth: false,
-                    responsive: true,
-                });
-            }
-        
-            if (!$.fn.dataTable.isDataTable('#tablaDinamico3')) {
-                $('#tablaDinamico3').DataTable({
-                    lengthChange: false,
-                    searching: false,
-                    paging: true,
-                    pageLength: 5,
-                    autoWidth: false,
-                    responsive: true,
-                });
-            }
-        
-            if (!$.fn.dataTable.isDataTable('#tablaDinamico4')) {
-                $('#tablaDinamico4').DataTable({
-                    lengthChange: false,
-                    searching: false,
-                    paging: true,
-                    pageLength: 5,
-                    autoWidth: false,
-                    responsive: true,
-                });
-            }
+            const tableIds = ['#tablaDinamico', '#tablaDinamico2', '#tablaDinamico3', '#tablaDinamico4', '#tablaClientes'];
+            
+            tableIds.forEach(tableId => {
+                if (!$.fn.dataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable({
+                        lengthChange: false,
+                        searching: true,
+                        paging: true,
+                        pageLength: 10,
+                        autoWidth: false,
+                        responsive: true,
+                        columnDefs: [
+                            {
+                                searchable: false,
+                                orderable: false,
+                            },
+                        ],
+                        language: {
+                            "sProcessing":     "Procesando...",
+                            "sLengthMenu":     "Mostrar _MENU_ registros",
+                            "sZeroRecords":    "No se encontraron resultados",
+                            "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                            "sInfo":           "Registros _START_ - _END_ de _TOTAL_ mostrados",
+                            "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                            "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                            "sInfoPostFix":    "",
+                            "sSearch":         "Buscar:",
+                            "sUrl":            "",
+                            "sInfoThousands":  ",",
+                            "sLoadingRecords": "Cargando...",
+                            "oPaginate": {
+                                "sFirst":    "Primero",
+                                "sLast":     "Último",
+                                "sNext":     "Siguiente",
+                                "sPrevious": "Anterior"
+                            },
+                            "oAria": {
+                                "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                            }
+                        },
+                        initComplete: function(settings, json) {
+                            if ($('body').hasClass('dark-mode')) {
+                                $(tableId + '_wrapper').addClass('dark-mode');
+                            }
+                        }
+                    });
+                }
+            });
         });
     </script>
     
