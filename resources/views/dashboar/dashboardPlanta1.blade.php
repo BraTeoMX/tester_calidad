@@ -24,11 +24,11 @@
                             <tbody>
                                 <tr>
                                     <td>Porcentaje General :</td>
-                                    <td>{{ $generalAQL }}%</td>
+                                    <td>{{ $generalAQL }}%</td> 
                                 </tr>
                                 <tr>
                                     <td>Planta I :</td>
-                                    <td>{{ $generalAQLPlanta1 }}%</td>
+                                    <td>{{ $generalAQLPlanta1 }}%</td> 
                                 </tr>
                             </tbody>
                         </table>
@@ -283,8 +283,8 @@
                             </tbody>
                             <tr style="background: #1d1c1c;">
                               <td>GENERAL</td>
-                              <td>{{ number_format($totalGeneral['totalPorcentajeErrorProceso'], 2) }}%</td>
-                              <td>{{ number_format($totalGeneral['totalPorcentajeErrorAQL'], 2) }}%</td>
+                              <td>{{ number_format($generalProcesoPlanta1, 2) }}%</td>
+                              <td>{{ number_format($generalAQLPlanta1, 2) }}%</td>
                             </tr>
                         </table>
                     </div>
@@ -299,7 +299,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table tablesorter" id="">
+                        <table class="table tablesorter" id="tablaResponsables">
                             <thead class="text-primary">
                                 <tr>
                                     <th>Gerentes Produccion</th>
@@ -329,7 +329,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table tablesorter">
+                        <table class="table tablesorter" id="tablaModulos">
                             <thead class="text-primary">
                                 <tr>
                                     <th>Modulo</th>
@@ -362,7 +362,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table tablesorter" id="">
+                        <table class="table tablesorter" id="tablaAQLGeneral">
                             <thead class=" text-primary">
                                 <tr>
                                     <th>Modulo (AQL)</th>
@@ -403,7 +403,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table tablesorter" id="">
+                        <table class="table tablesorter" id="tablaProcesoGeneral">
                             <thead class=" text-primary">
                                 <tr>
                                     <th>Modulo (Proceso)</th>
@@ -451,7 +451,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <table class="table">
+                    <table class="table table-responsive" id="tablaAQLDetalle">
                         <thead>
                             <tr>
                                 <th>PARO</th>
@@ -501,7 +501,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <table class="table">
+                    <table class="table table-responsive" id="tablaProcesoDetalle">
                         <thead>
                             <tr>
                                 <th>PARO</th>
@@ -523,7 +523,6 @@
                                     <td>{{ $registro->cantidad_auditada }}</td>
                                     <td>{{ $registro->cantidad_rechazada }}</td>
                                     <td>{{ implode(', ', $registro->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
-                                    <td>{{ $registro->tp }}</td>
                                     <td>{{ $registro->ac }}</td>
                                     <td>{{ $registro->pxp }}</td>
                                 </tr>
@@ -1064,4 +1063,69 @@
         // Mostrar la gráfica AQL por defecto
         mostrarGrafica('AQL');
     </script>
+@endpush
+
+@push('js')
+    <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <!-- DataTables JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            const tableIds = ['#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaResponsables', '#tablaModulos', '#tablaClientes', '#tablaAQLDetalle', '#tablaProcesoDetalle'];
+            
+            tableIds.forEach(tableId => {
+                if (!$.fn.dataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable({
+                        lengthChange: false,
+                        searching: true,
+                        paging: true,
+                        pageLength: 5,
+                        autoWidth: false,
+                        responsive: true,
+                        columnDefs: [
+                            {
+                                searchable: false,
+                                orderable: false,
+                            },
+                        ],
+                        language: {
+                            "sProcessing":     "Procesando...",
+                            "sLengthMenu":     "Mostrar _MENU_ registros",
+                            "sZeroRecords":    "No se encontraron resultados",
+                            "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                            "sInfo":           "Registros _START_ - _END_ de _TOTAL_ mostrados",
+                            "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                            "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                            "sInfoPostFix":    "",
+                            "sSearch":         "Buscar:",
+                            "sUrl":            "",
+                            "sInfoThousands":  ",",
+                            "sLoadingRecords": "Cargando...",
+                            "oPaginate": {
+                                "sFirst":    "Primero",
+                                "sLast":     "Último",
+                                "sNext":     "Siguiente",
+                                "sPrevious": "Anterior"
+                            },
+                            "oAria": {
+                                "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                            }
+                        },
+                        initComplete: function(settings, json) {
+                            if ($('body').hasClass('dark-mode')) {
+                                $(tableId + '_wrapper').addClass('dark-mode');
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+    
 @endpush

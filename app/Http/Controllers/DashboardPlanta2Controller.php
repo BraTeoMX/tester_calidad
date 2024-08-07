@@ -56,10 +56,6 @@ class DashboardPlanta2Controller extends Controller
         $generalProceso = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual);
         $generalAQL = calcularPorcentaje(AuditoriaAQL::class, $fechaActual);
 
-        // Planta 1 Ixtlahuaca
-        $generalProcesoPlanta1 = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark1');
-        $generalAQLPlanta1 = calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark1');
-
         // Planta 2 San Bartolo
         $generalProcesoPlanta2 = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark2');
         $generalAQLPlanta2 = calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark2');
@@ -231,9 +227,7 @@ class DashboardPlanta2Controller extends Controller
             'dataGerentesProcesoPlanta2',
             'generalProceso',
             'generalAQL',
-            'generalAQLPlanta1',
             'generalAQLPlanta2',
-            'generalProcesoPlanta1',
             'generalProcesoPlanta2',
             'dataGeneral',
             'totalGeneral',

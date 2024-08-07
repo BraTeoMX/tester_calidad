@@ -43,7 +43,7 @@ class DashboardPlanta1Controller extends Controller
 
         function calcularPorcentaje($modelo, $fecha, $planta = null)
         {
-            $query = $modelo::whereDate('created_at', $fecha)->where('planta', "Intimark1");
+            $query = $modelo::whereDate('created_at', $fecha);
             if ($planta) {
                 $query->where('planta', $planta);
             }
@@ -53,16 +53,12 @@ class DashboardPlanta1Controller extends Controller
         }
 
         // Información General
-        $generalProceso = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark1');
-        $generalAQL = calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark1');
+        $generalProceso = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual);
+        $generalAQL = calcularPorcentaje(AuditoriaAQL::class, $fechaActual);
 
         // Planta 1 Ixtlahuaca
         $generalProcesoPlanta1 = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark1');
         $generalAQLPlanta1 = calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark1');
-
-        // Planta 2 San Bartolo
-        $generalProcesoPlanta2 = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark2');
-        $generalAQLPlanta2 = calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark2');
 
         // Nueva consulta para obtener datos por fecha
         $fechas = collect();
@@ -242,9 +238,7 @@ class DashboardPlanta1Controller extends Controller
             'generalProceso',
             'generalAQL',
             'generalAQLPlanta1',
-            'generalAQLPlanta2',
             'generalProcesoPlanta1',
-            'generalProcesoPlanta2',
             'dataGeneral',
             'totalGeneral',
             'dataPlanta1',
