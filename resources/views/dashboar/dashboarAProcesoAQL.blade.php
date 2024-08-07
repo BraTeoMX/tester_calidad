@@ -351,20 +351,13 @@
                 }
             });
     
-            // Función para obtener el valor máximo y ajustar el rango
-            function getMaxValue(data) {
-                let max = Math.max(...data);
-                // Aumentar el máximo en un valor para dejar espacio en la gráfica
-                return Math.ceil(max / 10) * 5; // Ajustar para que sea un múltiplo de 10
-            }
+            // Encuentra el valor máximo de los datos
+            var maxAQL = Math.max(...{!! json_encode($porcentajesAQL->map(function($value) { return (float)$value; })) !!});
+            var maxProcesos = Math.max(...{!! json_encode($porcentajesProceso->map(function($value) { return (float)$value; })) !!});
     
-            // Datos de ejemplo (reemplaza esto con los datos reales)
-            let porcentajesAQL = {!! json_encode($porcentajesAQL->map(function($value) { return (float)$value; })) !!};
-            let porcentajesProceso = {!! json_encode($porcentajesProceso->map(function($value) { return (float)$value; })) !!};
-    
-            // Calcular el máximo y ajustar el rango
-            let maxAQL = getMaxValue(porcentajesAQL);
-            let maxProceso = getMaxValue(porcentajesProceso);
+            // Añade un margen al máximo
+            var margen = 2;
+            var maxYValue = Math.max(maxAQL, maxProcesos) + margen;
     
             var chartOptions = {
                 chart: {
@@ -380,7 +373,7 @@
                         formatter: function() {
                             return formatWeekLabel(this.value);
                         },
-                        rotation: 0 // Mostrar labels horizontalmente
+                        rotation: 0 // Ajuste aquí para que los labels se muestren horizontalmente
                     }
                 },
                 yAxis: {
@@ -388,7 +381,7 @@
                         text: 'Porcentaje'
                     },
                     min: 0,
-                    max: Math.max(maxAQL, maxProceso), // Establecer el máximo en función de los datos
+                    max: maxYValue, // Ajuste dinámico del valor máximo
                     tickInterval: 2,
                     labels: {
                         formatter: function() {
@@ -420,7 +413,7 @@
                 },
                 series: [{
                     name: 'AQL',
-                    data: porcentajesAQL,
+                    data: {!! json_encode($porcentajesAQL->map(function($value) { return (float)$value; })) !!},
                     color: '#f96332',
                     fillOpacity: 0.4
                 }]
@@ -432,7 +425,7 @@
                 },
                 series: [{
                     name: 'Procesos',
-                    data: porcentajesProceso,
+                    data: {!! json_encode($porcentajesProceso->map(function($value) { return (float)$value; })) !!},
                     color: '#1f8ef1',
                     fillOpacity: 0.4
                 }]
@@ -448,7 +441,7 @@
                 $('#chartProcesos').show();
             });
         });
-    </script>
+    </script>    
 
     <script>
         $(document).ready(function() {
