@@ -59,14 +59,18 @@
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
                                 <label class="btn btn-sm btn-primary btn-simple active" id="0">
                                     <input type="radio" name="options" checked>
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-app text-success"></i>&nbsp; AQL</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">
+                                        <i class="tim-icons icon-app text-success"></i>&nbsp; AQL
+                                    </span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-single-02"></i>
                                     </span>
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="1">
                                     <input type="radio" class="d-none d-sm-none" name="options">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"> <i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">
+                                        <i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos
+                                    </span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-gift-2"></i>
                                     </span>
@@ -76,9 +80,9 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="chart-area">
-                        <canvas id="chartAQL"></canvas>
-                        <canvas id="chartProcesos" style="display: none;"></canvas>
+                    <div class="chart-area" style="height: 500px;">
+                        <div id="chartAQL" ></div>
+                        <div id="chartProcesos" style="none;"></div>
                     </div>
                 </div>
             </div>
@@ -308,13 +312,31 @@
 
     <style>
         .chart-area {
-          height: 500px; /* Ajusta esta altura según tus necesidades */
+            height: 500px; /* Altura ajustable */
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #chartAQL, #chartProcesos {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: none; /* Por defecto no se muestra */
+        }
+
+        #chartAQL {
+            display: block; /* Mostrar por defecto el primer gráfico */
         }
       </style>
 @endsection
 
-@push('js')
-    <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
+@push('js') 
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-3d.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/themes/dark-unica.js"></script>
     <script>
         $(document).ready(function() {
             function formatWeekLabel(value) {
@@ -322,111 +344,84 @@
                 return `Semana: ${week}, Año: ${year}`;
             }
 
-            var ctxAQL = document.getElementById('chartAQL').getContext('2d');
-            var chartAQL = new Chart(ctxAQL, {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($semanas) !!},
-                    datasets: [{
-                        label: 'AQL',
-                        data: {!! json_encode($porcentajesAQL) !!},
-                        borderColor: '#f96332',
-                        backgroundColor: 'rgba(249, 99, 50, 0.4)',
-                        fill: true,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    legend: {
-                        display: false
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'category',
-                            labels: {!! json_encode($semanas) !!},
-                            ticks: {
-                                callback: function(value, index, values) {
-                                    return formatWeekLabel(value);
-                                },
-                                autoSkip: false,
-                                maxRotation: 0, // Para que las etiquetas sean horizontales
-                                minRotation: 0,
-                                maxTicksLimit: 10, // Limita el número de ticks
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 0.2, // Ajusta el intervalo de los ticks
-                                callback: function(value) {
-                                    return value % 1 === 0 ? Number(value.toFixed(2)) + '%' : '';
-                                }
-                            }
-                        }]
-                    },
-                    tooltips: {
-                        callbacks: {
-                            label: function(tooltipItem, data) {
-                                return data.datasets[tooltipItem.datasetIndex].label + ': ' + Number(tooltipItem.yLabel.toFixed(2)) + '%';
-                            }
-                        }
-                    }
+            Highcharts.setOptions({
+                lang: {
+                    thousandsSep: ',',
+                    decimalPoint: '.'
                 }
             });
 
-            var ctxProcesos = document.getElementById('chartProcesos').getContext('2d');
-            var chartProcesos = new Chart(ctxProcesos, {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($semanas) !!},
-                    datasets: [{
-                        label: 'Procesos',
-                        data: {!! json_encode($porcentajesProceso) !!},
-                        borderColor: '#1f8ef1',
-                        backgroundColor: 'rgba(31, 142, 241, 0.4)',
-                        fill: true,
-                    }]
+            var chartOptions = {
+                chart: {
+                    type: 'spline',  // Cambiado de 'line' a 'spline'
+                    backgroundColor: 'transparent'
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    legend: {
-                        display: false
+                title: {
+                    text: ''  // Título se establecerá individualmente para cada gráfica
+                },
+                xAxis: {
+                    categories: {!! json_encode($semanas) !!},
+                    labels: {
+                        formatter: function() {
+                            return formatWeekLabel(this.value);
+                        },
+                        rotation: 0 // Ajuste aquí para que los labels se muestren horizontalmente
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: 'Porcentaje'
                     },
-                    scales: {
-                        xAxes: [{
-                            type: 'category',
-                            labels: {!! json_encode($semanas) !!},
-                            ticks: {
-                                callback: function(value, index, values) {
-                                    return formatWeekLabel(value);
-                                },
-                                autoSkip: false,
-                                maxRotation: 0, // Para que las etiquetas sean horizontales
-                                minRotation: 0,
-                                maxTicksLimit: 10, // Limita el número de ticks
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 0.2, // Ajusta el intervalo de los ticks
-                                callback: function(value) {
-                                    return value % 1 === 0 ? Number(value.toFixed(2)) + '%' : '';
-                                }
-                            }
-                        }]
-                    },
-                    tooltips: {
-                        callbacks: {
-                            label: function(tooltipItem, data) {
-                                return data.datasets[tooltipItem.datasetIndex].label + ': ' + Number(tooltipItem.yLabel.toFixed(2)) + '%';
+                    min: 0,
+                    max: 2,
+                    tickInterval: 2,
+                    labels: {
+                        formatter: function() {
+                            return this.value + '%';
+                        }
+                    }
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.y:.2f}%</b>'
+                },
+                plotOptions: {
+                    spline: {
+                        marker: {
+                            enabled: true
+                        },
+                        lineWidth: 2,
+                        states: {
+                            hover: {
+                                lineWidth: 3
                             }
                         }
                     }
                 }
-            });
+            };
+
+            var chartAQL = Highcharts.chart('chartAQL', Highcharts.merge(chartOptions, {
+                title: {
+                    text: 'AQL'
+                },
+                series: [{
+                    name: 'AQL',
+                    data: {!! json_encode($porcentajesAQL->map(function($value) { return (float)$value; })) !!},
+                    color: '#f96332',
+                    fillOpacity: 0.4
+                }]
+            }));
+
+            var chartProcesos = Highcharts.chart('chartProcesos', Highcharts.merge(chartOptions, {
+                title: {
+                    text: 'Procesos'
+                },
+                series: [{
+                    name: 'Procesos',
+                    data: {!! json_encode($porcentajesProceso->map(function($value) { return (float)$value; })) !!},
+                    color: '#1f8ef1',
+                    fillOpacity: 0.4
+                }]
+            }));
 
             $('#0').on('click', function() {
                 $('#chartAQL').show();

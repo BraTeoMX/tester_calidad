@@ -137,7 +137,7 @@ class DashboardController extends Controller
         }
 
         // Calcular porcentajes AQL y Proceso para cada semana 
-        $porcentajesAQL = $semanas->map(function($semana) {
+        $porcentajesAQL = $semanas->map(function($semana) { 
             list($year, $week) = explode('-', $semana);
             return $this->calcularPorcentajePorSemana(AuditoriaAQL::class, $year, $week);
         });
@@ -145,7 +145,8 @@ class DashboardController extends Controller
         $porcentajesProceso = $semanas->map(function($semana) {
             list($year, $week) = explode('-', $semana);
             return $this->calcularPorcentajePorSemana(AseguramientoCalidad::class, $year, $week);
-        });
+        }); 
+        //dd($porcentajesAQL, $porcentajesProceso);
         // Datos para las gráficas de clientes
         $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
         $clientesGrafica = collect($dataGrafica['clientesUnicos'])->toArray();
