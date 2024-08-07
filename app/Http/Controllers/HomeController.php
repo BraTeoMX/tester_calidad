@@ -94,15 +94,12 @@ class HomeController extends Controller
 
             // Datos generales
             $dataGeneral = $this->obtenerDatosClientesPorFiltro($fechaActual);
-            $totalGeneral = $this->calcularTotales($dataGeneral['dataCliente']);
 
             // Datos planta Intimark1
             $dataPlanta1 = $this->obtenerDatosClientesPorFiltro($fechaActual, 'Intimark1');
-            $totalPlanta1 = $this->calcularTotales($dataPlanta1['dataCliente']);
 
             // Datos planta Intimark2
             $dataPlanta2 = $this->obtenerDatosClientesPorFiltro($fechaActual, 'Intimark2');
-            $totalPlanta2 = $this->calcularTotales($dataPlanta2['dataCliente']);
 
             // Datos para las gráficas usando el rango de fechas
             $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
@@ -231,7 +228,7 @@ class HomeController extends Controller
                                     'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
                                     'dataGerentesAQLGeneral', 'dataGerentesProcesoGeneral', 'dataGerentesAQLPlanta1', 'dataGerentesAQLPlanta2', 'dataGerentesProcesoPlanta1', 'dataGerentesProcesoPlanta2',
                                     'generalProceso', 'generalAQL', 'generalAQLPlanta1', 'generalAQLPlanta2','generalProcesoPlanta1', 'generalProcesoPlanta2',
-                                    'dataGeneral', 'totalGeneral', 'dataPlanta1', 'totalPlanta1', 'dataPlanta2', 'totalPlanta2',
+                                    'dataGeneral', 'dataPlanta1', 'dataPlanta2',
                                     'dataGerentesGeneral', 'dataModulosGeneral',
                                     'fechas', 'porcentajesAQL', 'porcentajesProceso',
                                     'fechasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica',
@@ -391,30 +388,6 @@ class HomeController extends Controller
         return [
             'clientesUnicos' => $clientesUnicos,
             'dataCliente' => $dataCliente
-        ];
-    }
-
-    private function calcularTotales($dataClientes)
-    {
-        $totalAuditadaAQL = array_sum(array_map(function ($data) {
-            return AuditoriaAQL::where('cliente', $data['cliente'])->sum('cantidad_auditada');
-        }, $dataClientes));
-
-        $totalRechazadaAQL = array_sum(array_map(function ($data) {
-            return AuditoriaAQL::where('cliente', $data['cliente'])->sum('cantidad_rechazada');
-        }, $dataClientes));
-
-        $totalAuditadaProceso = array_sum(array_map(function ($data) {
-            return AseguramientoCalidad::where('cliente', $data['cliente'])->sum('cantidad_auditada');
-        }, $dataClientes));
-
-        $totalRechazadaProceso = array_sum(array_map(function ($data) {
-            return AseguramientoCalidad::where('cliente', $data['cliente'])->sum('cantidad_rechazada');
-        }, $dataClientes));
-
-        return [
-            'totalPorcentajeErrorAQL' => ($totalAuditadaAQL != 0) ? ($totalRechazadaAQL / $totalAuditadaAQL) * 100 : 0,
-            'totalPorcentajeErrorProceso' => ($totalAuditadaProceso != 0) ? ($totalRechazadaProceso / $totalAuditadaProceso) * 100 : 0,
         ];
     }
 
