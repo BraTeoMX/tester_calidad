@@ -337,10 +337,10 @@
 @endsection
 
 @push('js') 
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/highcharts-3d.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
-    <script src="https://code.highcharts.com/themes/dark-unica.js"></script>
+    <script src="{{ asset('js/highcharts/highcharts.js') }}"></script>
+    <script src="{{ asset('js/highcharts/highcharts-3d.js') }}"></script>
+    <script src="{{ asset('js/highcharts/exporting.js') }}"></script>
+    <script src="{{ asset('js/highcharts/dark-unica.js') }}"></script>
     <script>
         $(document).ready(function() {
             function formatWeekLabel(value) {
@@ -462,7 +462,7 @@
 
             var chartOptionsBase = {
                 chart: {
-                    type: 'spline',  // Cambiado de 'line' a 'spline'
+                    type: 'spline',
                     backgroundColor: 'transparent'
                 },
                 xAxis: {
@@ -531,25 +531,36 @@
             $('#cliente0').on('click', function() {
                 $('#clienteChartAQL').show();
                 $('#clienteChartProcesos').hide();
+                chartClienteAQL.reflow();
             });
 
             $('#cliente1').on('click', function() {
                 $('#clienteChartAQL').hide();
                 $('#clienteChartProcesos').show();
+                chartClienteProcesos.reflow();
             });
 
-            $('#toggleAllClientes').on('click', function() {
-                var showAll = $('#toggleAllClientes input').prop('checked');
-                
-                var toggleVisibility = function(chart) {
-                    chart.series.forEach(function(series) {
-                        series.setVisible(showAll, false); // false para no redibujar cada vez
-                    });
-                    chart.redraw(); // Redibujar después de cambiar la visibilidad de todas las series
-                };
+            function toggleVisibility(charts, showAll) {
+                charts.forEach(function(chart) {
+                    if (chart && chart.series) {
+                        chart.series.forEach(function(series) {
+                            series.setVisible(showAll, false);
+                        });
+                        chart.redraw();
+                    }
+                });
+            }
 
-                toggleVisibility(chartClienteAQL);
-                toggleVisibility(chartClienteProcesos);
+            $('#toggleAllClientes').on('click', function() {
+                var showAll = $(this).find('input').prop('checked');
+                var activeChart = $('#clienteChartAQL').is(':visible') ? chartClienteAQL : chartClienteProcesos;
+                toggleVisibility([activeChart], showAll);
+            });
+
+            // Ajuste responsivo
+            window.addEventListener('resize', function() {
+                chartClienteAQL.reflow();
+                chartClienteProcesos.reflow();
             });
         });
     </script>
