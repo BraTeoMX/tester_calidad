@@ -136,7 +136,7 @@
                 </div>
             </div>
         </div>
-    </div>    
+    </div>
 
     <div class="row">
         <div class="col-lg-4">
@@ -447,112 +447,112 @@
         });
     </script>    
 
-<script>
-    $(document).ready(function() {
-        function formatWeekLabel(value) {
-            const [year, week] = value.split('-');
-            return `Semana: ${week}, Año: ${year}`;
-        }
-
-        var colores = [
-            '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB', '#FFCE56',
-            '#FF9F40', '#C7C7C7', '#FF63FF', '#63FF84', '#6384FF',
-            '#8463FF', '#C04BC0', '#EBA236', '#56FFCE', '#409FFF'
-        ];
-
-        var chartOptionsBase = {
-            chart: {
-                type: 'spline',  // Cambiado de 'line' a 'spline'
-                backgroundColor: 'transparent'
-            },
-            xAxis: {
-                categories: {!! json_encode($semanasGrafica) !!},
-                labels: {
-                    formatter: function() {
-                        return formatWeekLabel(this.value);
-                    },
-                    rotation: 0
-                }
-            },
-            yAxis: {
-                title: {
-                    text: 'Porcentaje'
-                },
-                min: 0,
-                tickInterval: 0.2,
-                labels: {
-                    formatter: function() {
-                        return this.value % 1 === 0 ? this.value.toFixed(2) + '%' : '';
-                    }
-                }
-            },
-            tooltip: {
-                pointFormat: '{series.name}: <b>{point.y:.2f}%</b>'
-            },
-            plotOptions: {
-                line: {
-                    marker: {
-                        enabled: true
-                    }
-                }
+    <script>
+        $(document).ready(function() {
+            function formatWeekLabel(value) {
+                const [year, week] = value.split('-');
+                return `Semana: ${week}, Año: ${year}`;
             }
-        };
 
-        var datasetsAQL = @json($datasetsAQL).map((dataset, index) => {
-            return {
-                name: dataset.label,
-                data: dataset.data,
-                color: colores[index % colores.length]
-            };
-        });
+            var colores = [
+                '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB', '#FFCE56',
+                '#FF9F40', '#C7C7C7', '#FF63FF', '#63FF84', '#6384FF',
+                '#8463FF', '#C04BC0', '#EBA236', '#56FFCE', '#409FFF'
+            ];
 
-        var chartClienteAQL = Highcharts.chart('clienteChartAQL', Highcharts.merge(chartOptionsBase, {
-            title: {
-                text: 'Errores por Cliente - AQL'
-            },
-            series: datasetsAQL
-        }));
-
-        var datasetsProceso = @json($datasetsProceso).map((dataset, index) => {
-            return {
-                name: dataset.label,
-                data: dataset.data,
-                color: colores[index % colores.length]
-            };
-        });
-
-        var chartClienteProcesos = Highcharts.chart('clienteChartProcesos', Highcharts.merge(chartOptionsBase, {
-            title: {
-                text: 'Errores por Cliente - Procesos'
-            },
-            series: datasetsProceso
-        }));
-
-        $('#cliente0').on('click', function() {
-            $('#clienteChartAQL').show();
-            $('#clienteChartProcesos').hide();
-        });
-
-        $('#cliente1').on('click', function() {
-            $('#clienteChartAQL').hide();
-            $('#clienteChartProcesos').show();
-        });
-
-        $('#toggleAllClientes').on('click', function() {
-            var showAll = $('#toggleAllClientes input').prop('checked');
-            
-            var toggleVisibility = function(chart) {
-                chart.series.forEach(function(series) {
-                    series.setVisible(showAll, false); // false para no redibujar cada vez
-                });
-                chart.redraw(); // Redibujar después de cambiar la visibilidad de todas las series
+            var chartOptionsBase = {
+                chart: {
+                    type: 'spline',  // Cambiado de 'line' a 'spline'
+                    backgroundColor: 'transparent'
+                },
+                xAxis: {
+                    categories: {!! json_encode($semanasGrafica) !!},
+                    labels: {
+                        formatter: function() {
+                            return formatWeekLabel(this.value);
+                        },
+                        rotation: 0
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: 'Porcentaje'
+                    },
+                    min: 0,
+                    tickInterval: 0.2,
+                    labels: {
+                        formatter: function() {
+                            return this.value % 1 === 0 ? this.value.toFixed(2) + '%' : '';
+                        }
+                    }
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.y:.2f}%</b>'
+                },
+                plotOptions: {
+                    line: {
+                        marker: {
+                            enabled: true
+                        }
+                    }
+                }
             };
 
-            toggleVisibility(chartClienteAQL);
-            toggleVisibility(chartClienteProcesos);
+            var datasetsAQL = @json($datasetsAQL).map((dataset, index) => {
+                return {
+                    name: dataset.label,
+                    data: dataset.data,
+                    color: colores[index % colores.length]
+                };
+            });
+
+            var chartClienteAQL = Highcharts.chart('clienteChartAQL', Highcharts.merge(chartOptionsBase, {
+                title: {
+                    text: 'Errores por Cliente - AQL'
+                },
+                series: datasetsAQL
+            }));
+
+            var datasetsProceso = @json($datasetsProceso).map((dataset, index) => {
+                return {
+                    name: dataset.label,
+                    data: dataset.data,
+                    color: colores[index % colores.length]
+                };
+            });
+
+            var chartClienteProcesos = Highcharts.chart('clienteChartProcesos', Highcharts.merge(chartOptionsBase, {
+                title: {
+                    text: 'Errores por Cliente - Procesos'
+                },
+                series: datasetsProceso
+            }));
+
+            $('#cliente0').on('click', function() {
+                $('#clienteChartAQL').show();
+                $('#clienteChartProcesos').hide();
+            });
+
+            $('#cliente1').on('click', function() {
+                $('#clienteChartAQL').hide();
+                $('#clienteChartProcesos').show();
+            });
+
+            $('#toggleAllClientes').on('click', function() {
+                var showAll = $('#toggleAllClientes input').prop('checked');
+                
+                var toggleVisibility = function(chart) {
+                    chart.series.forEach(function(series) {
+                        series.setVisible(showAll, false); // false para no redibujar cada vez
+                    });
+                    chart.redraw(); // Redibujar después de cambiar la visibilidad de todas las series
+                };
+
+                toggleVisibility(chartClienteAQL);
+                toggleVisibility(chartClienteProcesos);
+            });
         });
-    });
-</script>
+    </script>
 
 @endpush
 
