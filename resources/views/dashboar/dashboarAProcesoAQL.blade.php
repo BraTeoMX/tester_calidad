@@ -95,20 +95,24 @@
                 <div class="card-header">
                     <div class="row">
                         <div class="col-sm-6 text-left">
-                            <h2 class="card-title">Errores por Cliente en seleccion de rango: </h2>
+                            <h2 class="card-title">Errores por Cliente en selección de rango:</h2>
                         </div>
                         <div class="col-sm-6">
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
                                 <label class="btn btn-sm btn-primary btn-simple active" id="cliente0">
                                     <input type="radio" name="clienteOptions" checked>
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-app text-success"></i>&nbsp; AQL</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">
+                                        <i class="tim-icons icon-app text-success"></i>&nbsp; AQL
+                                    </span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-single-02"></i>
                                     </span>
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="cliente1">
                                     <input type="radio" class="d-none d-sm-none" name="clienteOptions">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"> <i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">
+                                        <i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos
+                                    </span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-gift-2"></i>
                                     </span>
@@ -125,14 +129,14 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="chart-area" style="height: 500px;"> <!-- Ajusta esta altura según tus necesidades -->
-                        <canvas id="clienteChartAQL"></canvas>
-                        <canvas id="clienteChartProcesos" style="display: none;"></canvas>
+                    <div class="chart-area" style="height: 500px;">
+                        <div id="clienteChartAQL"></div>
+                        <div id="clienteChartProcesos" style="display: none;"></div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </div>    
 
     <div class="row">
         <div class="col-lg-4">
@@ -443,165 +447,112 @@
         });
     </script>    
 
-    <script>
-        $(document).ready(function() {
-            function formatWeekLabel(value) {
-                const [year, week] = value.split('-');
-                return `Semana: ${week}, Año: ${year}`;
+<script>
+    $(document).ready(function() {
+        function formatWeekLabel(value) {
+            const [year, week] = value.split('-');
+            return `Semana: ${week}, Año: ${year}`;
+        }
+
+        var colores = [
+            '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB', '#FFCE56',
+            '#FF9F40', '#C7C7C7', '#FF63FF', '#63FF84', '#6384FF',
+            '#8463FF', '#C04BC0', '#EBA236', '#56FFCE', '#409FFF'
+        ];
+
+        var chartOptionsBase = {
+            chart: {
+                type: 'spline',  // Cambiado de 'line' a 'spline'
+                backgroundColor: 'transparent'
+            },
+            xAxis: {
+                categories: {!! json_encode($semanasGrafica) !!},
+                labels: {
+                    formatter: function() {
+                        return formatWeekLabel(this.value);
+                    },
+                    rotation: 0
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Porcentaje'
+                },
+                min: 0,
+                tickInterval: 0.2,
+                labels: {
+                    formatter: function() {
+                        return this.value % 1 === 0 ? this.value.toFixed(2) + '%' : '';
+                    }
+                }
+            },
+            tooltip: {
+                pointFormat: '{series.name}: <b>{point.y:.2f}%</b>'
+            },
+            plotOptions: {
+                line: {
+                    marker: {
+                        enabled: true
+                    }
+                }
             }
+        };
 
-            var colores = [
-                'rgba(75, 192, 192, 1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(255, 159, 64, 1)',
-                'rgba(199, 199, 199, 1)',
-                'rgba(255, 99, 255, 1)',
-                'rgba(99, 255, 132, 1)',
-                'rgba(99, 132, 255, 1)',
-                'rgba(132, 99, 255, 1)',
-                'rgba(192, 75, 192, 1)',
-                'rgba(235, 162, 54, 1)',
-                'rgba(86, 255, 206, 1)',
-                'rgba(64, 159, 255, 1)'
-            ];
-
-            var ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');
-            var datasetsAQL = @json($datasetsAQL).map((dataset, index) => {
-                return {
-                    ...dataset,
-                    borderColor: colores[index % colores.length],
-                    backgroundColor: colores[index % colores.length]
-                };
-            });
-            var chartClienteAQL = new Chart(ctxClienteAQL, {
-                type: 'line',
-                data: {
-                    labels: @json($semanasGrafica),
-                    datasets: datasetsAQL
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    legend: {
-                        display: true
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'category',
-                            labels: @json($semanasGrafica),
-                            ticks: {
-                                callback: function(value, index, values) {
-                                    return formatWeekLabel(value);
-                                },
-                                autoSkip: false,
-                                maxRotation: 0,
-                                minRotation: 0,
-                                maxTicksLimit: 10
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 0.2,
-                                callback: function(value) {
-                                    return value % 1 === 0 ? Number(value.toFixed(2)) + '%' : '';
-                                }
-                            }
-                        }]
-                    },
-                    tooltips: {
-                        callbacks: {
-                            label: function(tooltipItem, data) {
-                                return data.datasets[tooltipItem.datasetIndex].label + ': ' + Number(tooltipItem.yLabel.toFixed(2)) + '%';
-                            }
-                        }
-                    }
-                }
-            });
-
-            var ctxClienteProcesos = document.getElementById('clienteChartProcesos').getContext('2d');
-            var datasetsProceso = @json($datasetsProceso).map((dataset, index) => {
-                return {
-                    ...dataset,
-                    borderColor: colores[index % colores.length],
-                    backgroundColor: colores[index % colores.length]
-                };
-            });
-            var chartClienteProcesos = new Chart(ctxClienteProcesos, {
-                type: 'line',
-                data: {
-                    labels: @json($semanasGrafica),
-                    datasets: datasetsProceso
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    legend: {
-                        display: true
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'category',
-                            labels: @json($semanasGrafica),
-                            ticks: {
-                                callback: function(value, index, values) {
-                                    return formatWeekLabel(value);
-                                },
-                                autoSkip: false,
-                                maxRotation: 0,
-                                minRotation: 0,
-                                maxTicksLimit: 10
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 0.2,
-                                callback: function(value) {
-                                    return value % 1 === 0 ? Number(value.toFixed(2)) + '%' : '';
-                                }
-                            }
-                        }]
-                    },
-                    tooltips: {
-                        callbacks: {
-                            label: function(tooltipItem, data) {
-                                return data.datasets[tooltipItem.datasetIndex].label + ': ' + Number(tooltipItem.yLabel.toFixed(2)) + '%';
-                            }
-                        }
-                    }
-                }
-            });
-
-            $('#cliente0').on('click', function() {
-                $('#clienteChartAQL').show();
-                $('#clienteChartProcesos').hide();
-                chartClienteAQL.update();
-            });
-
-            $('#cliente1').on('click', function() {
-                $('#clienteChartAQL').hide();
-                $('#clienteChartProcesos').show();
-                chartClienteProcesos.update();
-            });
-
-            $('#toggleAllClientes').on('click', function() {
-                var showAll = $('#toggleAllClientes input').prop('checked');
-                var toggleVisibility = function(chart) {
-                    chart.data.datasets.forEach(function(dataset) {
-                        dataset.hidden = !showAll;
-                    });
-                    chart.update();
-                };
-
-                toggleVisibility(chartClienteAQL);
-                toggleVisibility(chartClienteProcesos);
-            });
+        var datasetsAQL = @json($datasetsAQL).map((dataset, index) => {
+            return {
+                name: dataset.label,
+                data: dataset.data,
+                color: colores[index % colores.length]
+            };
         });
-    </script>
+
+        var chartClienteAQL = Highcharts.chart('clienteChartAQL', Highcharts.merge(chartOptionsBase, {
+            title: {
+                text: 'Errores por Cliente - AQL'
+            },
+            series: datasetsAQL
+        }));
+
+        var datasetsProceso = @json($datasetsProceso).map((dataset, index) => {
+            return {
+                name: dataset.label,
+                data: dataset.data,
+                color: colores[index % colores.length]
+            };
+        });
+
+        var chartClienteProcesos = Highcharts.chart('clienteChartProcesos', Highcharts.merge(chartOptionsBase, {
+            title: {
+                text: 'Errores por Cliente - Procesos'
+            },
+            series: datasetsProceso
+        }));
+
+        $('#cliente0').on('click', function() {
+            $('#clienteChartAQL').show();
+            $('#clienteChartProcesos').hide();
+        });
+
+        $('#cliente1').on('click', function() {
+            $('#clienteChartAQL').hide();
+            $('#clienteChartProcesos').show();
+        });
+
+        $('#toggleAllClientes').on('click', function() {
+            var showAll = $('#toggleAllClientes input').prop('checked');
+            
+            var toggleVisibility = function(chart) {
+                chart.series.forEach(function(series) {
+                    series.setVisible(showAll, false); // false para no redibujar cada vez
+                });
+                chart.redraw(); // Redibujar después de cambiar la visibilidad de todas las series
+            };
+
+            toggleVisibility(chartClienteAQL);
+            toggleVisibility(chartClienteProcesos);
+        });
+    });
+</script>
 
 @endpush
 
