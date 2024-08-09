@@ -105,20 +105,24 @@
                 <div class="card-header">
                     <div class="row">
                         <div class="col-sm-6 text-left">
-                            <h2 class="card-title">Indicador por Cliente en seleccion de rango: </h2>
+                            <h2 class="card-title">Indicador por Cliente en selección de rango:</h2>
                         </div>
                         <div class="col-sm-6">
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
                                 <label class="btn btn-sm btn-primary btn-simple active" id="cliente0">
                                     <input type="radio" name="clienteOptions" checked>
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-app text-success"></i>&nbsp; AQL</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">
+                                        <i class="tim-icons icon-app text-success"></i>&nbsp; AQL
+                                    </span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-single-02"></i>
                                     </span>
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="cliente1">
                                     <input type="radio" class="d-none d-sm-none" name="clienteOptions">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"> <i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">
+                                        <i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos
+                                    </span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-gift-2"></i>
                                     </span>
@@ -136,14 +140,16 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-area" style="height: 500px;">
-                        <canvas id="clienteChartAQL"></canvas>
-                        <canvas id="clienteChartProcesos" style="display: none;"></canvas>
+                        <div id="clienteChartAQL"></div>
+                        <div id="clienteChartProcesos" style="display: none;"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
     <div class="row">
+        <!-- Gráficos por Módulo -->
         <div class="col-12">
             <div class="card card-chart">
                 <div class="card-header">
@@ -155,20 +161,64 @@
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
                                 <label class="btn btn-sm btn-primary btn-simple active" id="modulo0">
                                     <input type="radio" name="moduloOptions" checked>
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-single-02"></i>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">
+                                        <i class="tim-icons icon-app text-success"></i>&nbsp; AQL
                                     </span>
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="modulo1">
-                                    <input type="radio" class="d-none d-sm-none" name="moduloOptions">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Procesos</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-gift-2"></i>
+                                    <input type="radio" name="moduloOptions">
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">
+                                        <i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos
                                     </span>
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="toggleAllModulos">
                                     <input type="checkbox" name="toggleAllModulosOptions">
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Mostrar/Ocultar Todo</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="height: 500px;">
+                        <div id="moduloChartAQL"></div>
+                        <div id="moduloChartProcesos" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-chart">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-sm-6 text-left">
+                            <h2 class="card-title">Indicador por Supervisor en selección de rango:</h2>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+                                <label class="btn btn-sm btn-primary btn-simple active" id="supervisor0">
+                                    <input type="radio" name="supervisorOptions" checked>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">
+                                        <i class="tim-icons icon-app text-success"></i>&nbsp; AQL
+                                    </span>
+                                    <span class="d-block d-sm-none">
+                                        <i class="tim-icons icon-single-02"></i>
+                                    </span>
+                                </label>
+                                <label class="btn btn-sm btn-primary btn-simple" id="supervisor1">
+                                    <input type="radio" class="d-none d-sm-none" name="supervisorOptions">
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">
+                                        <i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos
+                                    </span>
+                                    <span class="d-block d-sm-none">
+                                        <i class="tim-icons icon-gift-2"></i>
+                                    </span>
+                                </label>
+                                <label class="btn btn-sm btn-primary btn-simple" id="toggleAllSupervisores">
+                                    <input type="checkbox" name="toggleAllSupervisoresOptions">
                                     <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Mostrar/Ocultar Todo</span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-bullet-list-67"></i>
@@ -180,13 +230,13 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-area" style="height: 500px;">
-                        <canvas id="moduloChartAQL"></canvas>
-                        <canvas id="moduloChartProcesos" style="display: none;"></canvas>
+                        <div id="supervisorChartAQL"></div>
+                        <div id="supervisorChartProcesos" style="display: none;"></div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>    
+    </div>
 
     <div class="row">
         <div class="col-lg-4">
@@ -380,17 +430,22 @@
             display: none; /* Por defecto no se muestra */
         }
 
+        #clienteChartAQL, #clienteChartProcesos, #moduloChartProcesos, #moduloChartAQL, #supervisorChartAQL, #supervisorChartProcesos {
+            width: 100%;
+            height: 100%;
+        }
+
         #chartAQL {
             display: block; /* Mostrar por defecto el primer gráfico */
         }
-    </style>
+      </style>
 @endsection
 
 @push('js') 
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/highcharts-3d.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
-    <script src="https://code.highcharts.com/themes/dark-unica.js"></script>
+    <script src="{{ asset('js/highcharts/highcharts.js') }}"></script>
+    <script src="{{ asset('js/highcharts/highcharts-3d.js') }}"></script>
+    <script src="{{ asset('js/highcharts/exporting.js') }}"></script>
+    <script src="{{ asset('js/highcharts/dark-unica.js') }}"></script>
     <script>
         $(document).ready(function() {
             function formatWeekLabel(value) {
@@ -505,156 +560,231 @@
             }
 
             var colores = [
-                'rgba(75, 192, 192, 1)',   
-                'rgba(153, 102, 255, 1)', 
-                'rgba(255, 99, 132, 1)',  
-                'rgba(54, 162, 235, 1)',  
-                'rgba(255, 206, 86, 1)',  
-                'rgba(255, 159, 64, 1)',  
-                'rgba(199, 199, 199, 1)', 
-                'rgba(255, 99, 255, 1)',  
-                'rgba(99, 255, 132, 1)',  
-                'rgba(99, 132, 255, 1)',  
-                'rgba(132, 99, 255, 1)',  
-                'rgba(192, 75, 192, 1)',  
-                'rgba(235, 162, 54, 1)',  
-                'rgba(86, 255, 206, 1)',  
-                'rgba(64, 159, 255, 1)'   
+                '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB', '#FFCE56',
+                '#FF9F40', '#C7C7C7', '#FF63FF', '#63FF84', '#6384FF',
+                '#8463FF', '#C04BC0', '#EBA236', '#56FFCE', '#409FFF'
             ];
 
-            var ctxClienteAQL = document.getElementById('clienteChartAQL').getContext('2d');
+            var chartOptionsBase = {
+                chart: {
+                    type: 'spline',
+                    backgroundColor: 'transparent'
+                },
+                xAxis: {
+                    categories: {!! json_encode($semanasGrafica) !!},
+                    labels: {
+                        formatter: function() {
+                            return formatWeekLabel(this.value);
+                        },
+                        rotation: 0
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: 'Porcentaje'
+                    },
+                    min: 0,
+                    tickInterval: 0.2,
+                    labels: {
+                        formatter: function() {
+                            return this.value % 1 === 0 ? this.value.toFixed(2) + '%' : '';
+                        }
+                    }
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.y:.2f}%</b>'
+                },
+                plotOptions: {
+                    line: {
+                        marker: {
+                            enabled: true
+                        }
+                    }
+                }
+            };
+
             var datasetsAQL = @json($datasetsAQL).map((dataset, index) => {
                 return {
-                    ...dataset,
-                    borderColor: colores[index % colores.length],
-                    backgroundColor: colores[index % colores.length]
+                    name: dataset.label,
+                    data: dataset.data,
+                    color: colores[index % colores.length]
                 };
-            });
-            var chartClienteAQL = new Chart(ctxClienteAQL, {
-                type: 'line',
-                data: {
-                    labels: @json($semanasGrafica),
-                    datasets: datasetsAQL
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    legend: {
-                        display: true
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'category',
-                            labels: @json($semanasGrafica),
-                            ticks: {
-                                callback: function(value, index, values) {
-                                    return formatWeekLabel(value);
-                                },
-                                autoSkip: false,
-                                maxRotation: 0,
-                                minRotation: 0,
-                                maxTicksLimit: 10
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 0.2,
-                                callback: function(value) {
-                                    return value % 1 === 0 ? Number(value.toFixed(2)) + '%' : '';
-                                }
-                            }
-                        }]
-                    },
-                    tooltips: {
-                        callbacks: {
-                            label: function(tooltipItem, data) {
-                                return data.datasets[tooltipItem.datasetIndex].label + ': ' + Number(tooltipItem.yLabel.toFixed(2)) + '%';
-                            }
-                        }
-                    }
-                }
             });
 
-            var ctxClienteProcesos = document.getElementById('clienteChartProcesos').getContext('2d');
+            var chartClienteAQL = Highcharts.chart('clienteChartAQL', Highcharts.merge(chartOptionsBase, {
+                title: {
+                    text: 'Indicador por Cliente - AQL'
+                },
+                series: datasetsAQL
+            }));
+
             var datasetsProceso = @json($datasetsProceso).map((dataset, index) => {
                 return {
-                    ...dataset,
-                    borderColor: colores[index % colores.length],
-                    backgroundColor: colores[index % colores.length]
+                    name: dataset.label,
+                    data: dataset.data,
+                    color: colores[index % colores.length]
                 };
             });
-            var chartClienteProcesos = new Chart(ctxClienteProcesos, {
-                type: 'line',
-                data: {
-                    labels: @json($semanasGrafica),
-                    datasets: datasetsProceso
+
+            var chartClienteProcesos = Highcharts.chart('clienteChartProcesos', Highcharts.merge(chartOptionsBase, {
+                title: {
+                    text: 'Indicador por Cliente - Procesos'
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    legend: {
-                        display: true
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'category',
-                            labels: @json($semanasGrafica),
-                            ticks: {
-                                callback: function(value, index, values) {
-                                    return formatWeekLabel(value);
-                                },
-                                autoSkip: false,
-                                maxRotation: 0,
-                                minRotation: 0,
-                                maxTicksLimit: 10
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 0.2,
-                                callback: function(value) {
-                                    return value % 1 === 0 ? Number(value.toFixed(2)) + '%' : '';
-                                }
-                            }
-                        }]
-                    },
-                    tooltips: {
-                        callbacks: {
-                            label: function(tooltipItem, data) {
-                                return data.datasets[tooltipItem.datasetIndex].label + ': ' + Number(tooltipItem.yLabel.toFixed(2)) + '%';
-                            }
-                        }
-                    }
-                }
-            });
+                series: datasetsProceso
+            }));
 
             $('#cliente0').on('click', function() {
                 $('#clienteChartAQL').show();
                 $('#clienteChartProcesos').hide();
-                chartClienteAQL.update();
+                chartClienteAQL.reflow();
             });
 
             $('#cliente1').on('click', function() {
                 $('#clienteChartAQL').hide();
                 $('#clienteChartProcesos').show();
-                chartClienteProcesos.update();
+                chartClienteProcesos.reflow();
             });
+
+            function toggleVisibility(charts, showAll) {
+                charts.forEach(function(chart) {
+                    if (chart && chart.series) {
+                        chart.series.forEach(function(series) {
+                            series.setVisible(showAll, false);
+                        });
+                        chart.redraw();
+                    }
+                });
+            }
 
             $('#toggleAllClientes').on('click', function() {
-                var showAll = $('#toggleAllClientes input').prop('checked');
-                var toggleVisibility = function(chart) {
-                    chart.data.datasets.forEach(function(dataset) {
-                        dataset.hidden = !showAll;
-                    });
-                    chart.update();
-                };
+                var showAll = $(this).find('input').prop('checked');
+                var activeChart = $('#clienteChartAQL').is(':visible') ? chartClienteAQL : chartClienteProcesos;
+                toggleVisibility([activeChart], showAll);
+            });
 
-                toggleVisibility(chartClienteAQL);
-                toggleVisibility(chartClienteProcesos);
+            // Ajuste responsivo
+            window.addEventListener('resize', function() {
+                chartClienteAQL.reflow();
+                chartClienteProcesos.reflow();
             });
         });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            // Función para formatear el label de la semana
+            function formatWeekLabel(value) {
+                const [year, week] = value.split('-');
+                return `Semana: ${week}, Año: ${year}`;
+            }
+
+            var colores = [
+                '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB', '#FFCE56',
+                '#FF9F40', '#C7C7C7', '#FF63FF', '#63FF84', '#6384FF',
+                '#8463FF', '#C04BC0', '#EBA236', '#56FFCE', '#409FFF'
+            ];
+
+            var chartOptionsBase = {
+                chart: {
+                    type: 'spline',
+                    backgroundColor: 'transparent'
+                },
+                xAxis: {
+                    categories: {!! json_encode($semanasGrafica) !!},
+                    labels: {
+                        formatter: function() {
+                            return formatWeekLabel(this.value);
+                        },
+                        rotation: 0
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: 'Porcentaje'
+                    },
+                    min: 0,
+                    tickInterval: 0.2,
+                    labels: {
+                        formatter: function() {
+                            return this.value % 1 === 0 ? this.value.toFixed(2) + '%' : '';
+                        }
+                    }
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.y:.2f}%</b>'
+                },
+                plotOptions: {
+                    line: {
+                        marker: {
+                            enabled: true
+                        }
+                    }
+                }
+            };
+
+            // Gráficos para Módulo
+            var datasetsModuloAQL = @json($datasetsAQLModulos).map((dataset, index) => ({
+                name: dataset.label,
+                data: dataset.data,
+                color: colores[index % colores.length]
+            }));
+
+            var chartModuloAQL = Highcharts.chart('moduloChartAQL', Highcharts.merge(chartOptionsBase, {
+                title: {
+                    text: 'Indicador por Módulo - AQL'
+                },
+                series: datasetsModuloAQL
+            }));
+
+            var datasetsModuloProceso = @json($datasetsProcesoModulos).map((dataset, index) => ({
+                name: dataset.label,
+                data: dataset.data,
+                color: colores[index % colores.length]
+            }));
+
+            var chartModuloProcesos = Highcharts.chart('moduloChartProcesos', Highcharts.merge(chartOptionsBase, {
+                title: {
+                    text: 'Indicador por Módulo - Procesos'
+                },
+                series: datasetsModuloProceso
+            }));
+
+            $('#modulo0').on('click', function() {
+                $('#moduloChartAQL').show();
+                $('#moduloChartProcesos').hide();
+                chartModuloAQL.reflow();
+            });
+
+            $('#modulo1').on('click', function() {
+                $('#moduloChartAQL').hide();
+                $('#moduloChartProcesos').show();
+                chartModuloProcesos.reflow();
+            });
+
+            $('#toggleAllModulos').on('click', function() {
+                var showAll = $(this).find('input').prop('checked');
+                var activeChart = $('#moduloChartAQL').is(':visible') ? chartModuloAQL : chartModuloProcesos;
+                toggleVisibility([activeChart], showAll);
+            });
+
+            // Ajuste responsivo para los gráficos de módulo
+            window.addEventListener('resize', function() {
+                chartModuloAQL.reflow();
+                chartModuloProcesos.reflow();
+            });
+
+            function toggleVisibility(charts, showAll) {
+                charts.forEach(function(chart) {
+                    if (chart && chart.series) {
+                        chart.series.forEach(function(series) {
+                            series.setVisible(showAll, false);
+                        });
+                        chart.redraw();
+                    }
+                });
+            }
+        });
+
     </script>
 
     <script>
@@ -665,143 +795,115 @@
             }
 
             var colores = [
-                'rgba(75, 192, 192, 1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(255, 159, 64, 1)',
-                'rgba(199, 199, 199, 1)',
-                'rgba(255, 99, 255, 1)',
-                'rgba(99, 255, 132, 1)',
-                'rgba(99, 132, 255, 1)',
-                'rgba(132, 99, 255, 1)',
-                'rgba(192, 75, 192, 1)',
-                'rgba(235, 162, 54, 1)',
-                'rgba(86, 255, 206, 1)',
-                'rgba(64, 159, 255, 1)'
+                '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB', '#FFCE56',
+                '#FF9F40', '#C7C7C7', '#FF63FF', '#63FF84', '#6384FF',
+                '#8463FF', '#C04BC0', '#EBA236', '#56FFCE', '#409FFF'
             ];
 
-            // Inicializa las gráficas de módulos
-            var ctxModuloAQL = document.getElementById('moduloChartAQL').getContext('2d');
-            var datasetsAQLModulos = @json($datasetsAQLModulos).map((dataset, index) => {
-                return {
-                    ...dataset,
-                    borderColor: colores[index % colores.length],
-                    backgroundColor: colores[index % colores.length]
-                };
-            });
-            var chartModuloAQL = new Chart(ctxModuloAQL, {
-                type: 'line',
-                data: {
-                    labels: @json($semanasGraficaModulos),
-                    datasets: datasetsAQLModulos
+            var chartOptionsBase = {
+                chart: {
+                    type: 'spline',
+                    backgroundColor: 'transparent'
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    legend: {
-                        display: true
+                xAxis: {
+                    categories: {!! json_encode($semanasGrafica) !!},
+                    labels: {
+                        formatter: function() {
+                            return formatWeekLabel(this.value);
+                        },
+                        rotation: 0
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: 'Porcentaje'
                     },
-                    scales: {
-                        xAxes: [{
-                            type: 'category',
-                            labels: @json($semanasGraficaModulos),
-                            ticks: {
-                                callback: function(value, index, values) {
-                                    return formatWeekLabel(value);
-                                },
-                                autoSkip: false,
-                                maxRotation: 0,
-                                minRotation: 0,
-                                maxTicksLimit: 10
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                callback: function(value, index, values) {
-                                    return value + '%';
-                                }
-                            }
-                        }]
+                    min: 0,
+                    tickInterval: 0.2,
+                    labels: {
+                        formatter: function() {
+                            return this.value % 1 === 0 ? this.value.toFixed(2) + '%' : '';
+                        }
+                    }
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.y:.2f}%</b>'
+                },
+                plotOptions: {
+                    line: {
+                        marker: {
+                            enabled: true
+                        }
                     }
                 }
-            });
+            };
 
-            var ctxModuloProcesos = document.getElementById('moduloChartProcesos').getContext('2d');
-            var datasetsProcesoModulos = @json($datasetsProcesoModulos).map((dataset, index) => {
+            var datasetsAQLSupervisor = @json($datasetsAQLSupervisor).map((dataset, index) => {
                 return {
-                    ...dataset,
-                    borderColor: colores[index % colores.length],
-                    backgroundColor: colores[index % colores.length]
+                    name: dataset.label,
+                    data: dataset.data,
+                    color: colores[index % colores.length]
                 };
             });
-            var chartModuloProcesos = new Chart(ctxModuloProcesos, {
-                type: 'line',
-                data: {
-                    labels: @json($semanasGraficaModulos),
-                    datasets: datasetsProcesoModulos
+
+            var chartSupervisorAQL = Highcharts.chart('supervisorChartAQL', Highcharts.merge(chartOptionsBase, {
+                title: {
+                    text: 'Indicador por Supervisor - AQL'
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    legend: {
-                        display: true
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'category',
-                            labels: @json($semanasGraficaModulos),
-                            ticks: {
-                                callback: function(value, index, values) {
-                                    return formatWeekLabel(value);
-                                },
-                                autoSkip: false,
-                                maxRotation: 0,
-                                minRotation: 0,
-                                maxTicksLimit: 10
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                callback: function(value, index, values) {
-                                    return value + '%';
-                                }
-                            }
-                        }]
-                    }
-                }
-            });
+                series: datasetsAQLSupervisor
+            }));
 
-            $('#modulo0').on('click', function() {
-                $('#moduloChartAQL').show();
-                $('#moduloChartProcesos').hide();
-                chartModuloAQL.update();
-            });
-
-            $('#modulo1').on('click', function() {
-                $('#moduloChartAQL').hide();
-                $('#moduloChartProcesos').show();
-                chartModuloProcesos.update();
-            });
-
-            $('#toggleAllModulos').on('click', function() {
-                var showAll = $('#toggleAllModulos input').prop('checked');
-                var toggleVisibility = function(chart) {
-                    chart.data.datasets.forEach(function(dataset) {
-                        dataset.hidden = !showAll;
-                    });
-                    chart.update();
+            var datasetsProcesoSupervisor = @json($datasetsProcesoSupervisor).map((dataset, index) => {
+                return {
+                    name: dataset.label,
+                    data: dataset.data,
+                    color: colores[index % colores.length]
                 };
+            });
 
-                toggleVisibility(chartModuloAQL);
-                toggleVisibility(chartModuloProcesos);
+            var chartSupervisorProcesos = Highcharts.chart('supervisorChartProcesos', Highcharts.merge(chartOptionsBase, {
+                title: {
+                    text: 'Indicador por Supervisor - Procesos'
+                },
+                series: datasetsProcesoSupervisor
+            }));
+
+            $('#supervisor0').on('click', function() {
+                $('#supervisorChartAQL').show();
+                $('#supervisorChartProcesos').hide();
+                chartSupervisorAQL.reflow();
+            });
+
+            $('#supervisor1').on('click', function() {
+                $('#supervisorChartAQL').hide();
+                $('#supervisorChartProcesos').show();
+                chartSupervisorProcesos.reflow();
+            });
+
+            function toggleVisibility(charts, showAll) {
+                charts.forEach(function(chart) {
+                    if (chart && chart.series) {
+                        chart.series.forEach(function(series) {
+                            series.setVisible(showAll, false);
+                        });
+                        chart.redraw();
+                    }
+                });
+            }
+
+            $('#toggleAllSupervisores').on('click', function() {
+                var showAll = $(this).find('input').prop('checked');
+                var activeChart = $('#supervisorChartAQL').is(':visible') ? chartSupervisorAQL : chartSupervisorProcesos;
+                toggleVisibility([activeChart], showAll);
+            });
+
+            // Ajuste responsivo
+            window.addEventListener('resize', function() {
+                chartSupervisorAQL.reflow();
+                chartSupervisorProcesos.reflow();
             });
         });
     </script>
-
 @endpush
 
 @push('js')

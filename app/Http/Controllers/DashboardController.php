@@ -117,7 +117,7 @@ class DashboardController extends Controller
                 'teamLeaders', 'porcentajesErrorTeamLeader'));
     }
 
-    public function dashboarAProcesoAQL(Request $request)
+    public function dashboarAProcesoAQL(Request $request) 
     {
         $title = "";
         if($request->fecha_fin){
@@ -164,6 +164,52 @@ class DashboardController extends Controller
             return [
                 'label' => $clienteData['cliente'],
                 'data' => $clienteData['porcentajesErrorProceso'],
+                'borderColor' => 'rgba(153, 102, 255, 1)',
+                'borderWidth' => 1,
+                'fill' => false
+            ];
+        })->toArray();
+
+        // Datos para las gráficas de módulos
+        $dataGraficaModulo = $this->obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin);
+        $modulosGrafica = collect($dataGraficaModulo['modulosUnicos'])->toArray();
+
+        $datasetsAQLModulos = collect($dataGraficaModulo['dataModulo'])->map(function ($moduloData) {
+            return [
+                'label' => $moduloData['modulo'],
+                'data' => $moduloData['porcentajesErrorAQL'],
+                'borderColor' => 'rgba(75, 192, 192, 1)',
+                'borderWidth' => 1,
+                'fill' => false
+            ];
+        })->toArray();
+
+        $datasetsProcesoModulos = collect($dataGraficaModulo['dataModulo'])->map(function ($moduloData) {
+            return [
+                'label' => $moduloData['modulo'],
+                'data' => $moduloData['porcentajesErrorProceso'],
+                'borderColor' => 'rgba(153, 102, 255, 1)',
+                'borderWidth' => 1,
+                'fill' => false
+            ];
+        })->toArray();
+
+        // Datos para las gráficas de supervisor antes team leader
+        $dataGraficaSupervisor = $this->obtenerDatosTeamLeaderPorRangoFechas($fechaInicio, $fechaFin);
+        $teamLeadersGrafica = collect($dataGraficaSupervisor['teamLeadersUnicos'])->toArray();
+        $datasetsAQLSupervisor = collect($dataGraficaSupervisor['dataTeamLeader'])->map(function ($teamLeaderData) {
+            return [
+                'label' => $teamLeaderData['team_leader'],
+                'data' => $teamLeaderData['porcentajesErrorAQL'],
+                'borderColor' => 'rgba(75, 192, 192, 1)',
+                'borderWidth' => 1,
+                'fill' => false
+            ];
+        })->toArray();
+        $datasetsProcesoSupervisor = collect($dataGraficaSupervisor['dataTeamLeader'])->map(function ($teamLeaderData) {
+            return [
+                'label' => $teamLeaderData['team_leader'],
+                'data' => $teamLeaderData['porcentajesErrorProceso'],
                 'borderColor' => 'rgba(153, 102, 255, 1)',
                 'borderWidth' => 1,
                 'fill' => false
@@ -254,7 +300,8 @@ class DashboardController extends Controller
             'dataGerentesGeneral', 'dataModulosGeneral', 'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2',
             'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2', 'topDefectosAQL', 'topDefectosProceso',
             'fechaInicio', 'fechaFin', 'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
-            'fechaInicioFormateada', 'fechaFinFormateada'));
+            'fechaInicioFormateada', 'fechaFinFormateada', 'datasetsAQLModulos', 'datasetsProcesoModulos',
+            'datasetsAQLSupervisor', 'datasetsProcesoSupervisor'));
     }
 
     private function calcularPorcentajePorSemana($modelo, $year, $week)
@@ -359,6 +406,196 @@ class DashboardController extends Controller
         return [
             'clientesUnicos' => $clientesUnicos,
             'dataCliente' => $dataCliente,
+        ];
+    }
+
+    private function obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin, $planta = null)
+    {
+        $modulosUnicos = collect();
+        $dataModulo = [];
+
+        // Iterar sobre cada semana en el rango
+        $period = CarbonPeriod::create($fechaInicio, '1 week', $fechaFin)->toArray();
+        $semanasStr = array_map(function ($date) {
+            return $date->format('Y-W');
+        }, $period);
+
+        foreach ($period as $week) {
+            $startOfWeek = $week->startOfWeek()->toDateString();
+            $endOfWeek = $week->endOfWeek()->toDateString();
+
+            // Obtener módulos únicos para la semana actual
+            $queryAQL = AuditoriaAQL::whereNotNull('modulo')->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
+            $queryProceso = AseguramientoCalidad::whereNotNull('modulo')->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
+
+            if ($planta) {
+                $queryAQL->where('planta', $planta);
+                $queryProceso->where('planta', $planta);
+            }
+
+            $modulosAQL = $queryAQL->pluck('modulo');
+            $modulosProceso = $queryProceso->pluck('modulo');
+            $modulosDelDia = $modulosAQL->merge($modulosProceso)->unique();
+
+            $modulosUnicos = $modulosUnicos->merge($modulosDelDia)->unique();
+
+            foreach ($modulosDelDia as $modulo) {
+                // Inicializar los datos del módulo si no existen
+                if (!isset($dataModulo[$modulo])) {
+                    $dataModulo[$modulo] = [
+                        'modulo' => $modulo,
+                        'semanas' => $semanasStr,
+                        'porcentajesErrorAQL' => array_fill(0, count($semanasStr), 0),
+                        'porcentajesErrorProceso' => array_fill(0, count($semanasStr), 0)
+                    ];
+                }
+
+                // Obtener datos de AQL
+                $sumaAuditadaAQL = AuditoriaAQL::where('modulo', $modulo)
+                    ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_auditada');
+                $sumaRechazadaAQL = AuditoriaAQL::where('modulo', $modulo)
+                    ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_rechazada');
+
+                $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
+
+                // Obtener datos de Procesos
+                $sumaAuditadaProceso = AseguramientoCalidad::where('modulo', $modulo)
+                    ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_auditada');
+                $sumaRechazadaProceso = AseguramientoCalidad::where('modulo', $modulo)
+                    ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_rechazada');
+
+                $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
+
+                // Encontrar el índice correspondiente a la semana
+                $index = array_search($week->format('Y-W'), $semanasStr);
+
+                // Agregar datos al array dataModulo
+                $dataModulo[$modulo]['porcentajesErrorAQL'][$index] = $porcentajeErrorAQL;
+                $dataModulo[$modulo]['porcentajesErrorProceso'][$index] = $porcentajeErrorProceso;
+
+                // Agregar también las claves porcentajeErrorProceso y porcentajeErrorAQL al nivel superior
+                $dataModulo[$modulo]['porcentajeErrorAQL'] = array_sum($dataModulo[$modulo]['porcentajesErrorAQL']) / count($dataModulo[$modulo]['porcentajesErrorAQL']);
+                $dataModulo[$modulo]['porcentajeErrorProceso'] = array_sum($dataModulo[$modulo]['porcentajesErrorProceso']) / count($dataModulo[$modulo]['porcentajesErrorProceso']);
+            }
+        }
+
+        // Convertir dataModulo a la estructura esperada
+        $dataModulo = array_values($dataModulo);
+
+        return [
+            'modulosUnicos' => $modulosUnicos,
+            'dataModulo' => $dataModulo,
+        ];
+    }
+
+    private function obtenerDatosTeamLeaderPorRangoFechas($fechaInicio, $fechaFin, $planta = null)
+    {
+        $teamLeadersUnicos = collect();
+        $dataTeamLeader = [];
+
+        // Iterar sobre cada semana en el rango
+        $period = CarbonPeriod::create($fechaInicio, '1 week', $fechaFin)->toArray();
+        $semanasStr = array_map(function ($date) {
+            return $date->format('Y-W');
+        }, $period);
+
+        foreach ($period as $week) {
+            $startOfWeek = $week->startOfWeek()->toDateString();
+            $endOfWeek = $week->endOfWeek()->toDateString();
+
+            // Obtener team leaders únicos para la semana actual
+            $queryAQL = AuditoriaAQL::whereNotNull('team_leader')->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
+            $queryProceso = AseguramientoCalidad::whereNotNull('team_leader')->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
+
+            if ($planta) {
+                $queryAQL->where('planta', $planta);
+                $queryProceso->where('planta', $planta);
+            }
+
+            $teamLeadersAQL = $queryAQL->pluck('team_leader');
+            $teamLeadersProceso = $queryProceso->pluck('team_leader');
+            $teamLeadersDelDia = $teamLeadersAQL->merge($teamLeadersProceso)->unique();
+
+            $teamLeadersUnicos = $teamLeadersUnicos->merge($teamLeadersDelDia)->unique();
+
+            foreach ($teamLeadersDelDia as $teamLeader) {
+                // Inicializar los datos del team leader si no existen
+                if (!isset($dataTeamLeader[$teamLeader])) {
+                    $dataTeamLeader[$teamLeader] = [
+                        'team_leader' => $teamLeader,
+                        'semanas' => $semanasStr,
+                        'porcentajesErrorAQL' => array_fill(0, count($semanasStr), 0),
+                        'porcentajesErrorProceso' => array_fill(0, count($semanasStr), 0)
+                    ];
+                }
+
+                // Obtener datos de AQL
+                $sumaAuditadaAQL = AuditoriaAQL::where('team_leader', $teamLeader)
+                    ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_auditada');
+                $sumaRechazadaAQL = AuditoriaAQL::where('team_leader', $teamLeader)
+                    ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_rechazada');
+
+                $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
+
+                // Obtener datos de Procesos
+                $sumaAuditadaProceso = AseguramientoCalidad::where('team_leader', $teamLeader)
+                    ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_auditada');
+                $sumaRechazadaProceso = AseguramientoCalidad::where('team_leader', $teamLeader)
+                    ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_rechazada');
+
+                $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
+
+                // Encontrar el índice correspondiente a la semana
+                $index = array_search($week->format('Y-W'), $semanasStr);
+
+                // Agregar datos al array dataTeamLeader
+                $dataTeamLeader[$teamLeader]['porcentajesErrorAQL'][$index] = $porcentajeErrorAQL;
+                $dataTeamLeader[$teamLeader]['porcentajesErrorProceso'][$index] = $porcentajeErrorProceso;
+
+                // Agregar también las claves porcentajeErrorProceso y porcentajeErrorAQL al nivel superior
+                $dataTeamLeader[$teamLeader]['porcentajeErrorAQL'] = array_sum($dataTeamLeader[$teamLeader]['porcentajesErrorAQL']) / count($dataTeamLeader[$teamLeader]['porcentajesErrorAQL']);
+                $dataTeamLeader[$teamLeader]['porcentajeErrorProceso'] = array_sum($dataTeamLeader[$teamLeader]['porcentajesErrorProceso']) / count($dataTeamLeader[$teamLeader]['porcentajesErrorProceso']);
+            }
+        }
+
+        // Convertir dataTeamLeader a la estructura esperada
+        $dataTeamLeader = array_values($dataTeamLeader);
+
+        return [
+            'teamLeadersUnicos' => $teamLeadersUnicos,
+            'dataTeamLeader' => $dataTeamLeader,
         ];
     }
 
