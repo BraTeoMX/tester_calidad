@@ -18,14 +18,10 @@ class DatosAuditoriaEtiquetas extends Controller
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
-        $Proveedor = ModelsDatosAuditoriaEtiquetas::select('Proveedor')
-            ->distinct()
-            ->get();
         return view('formulariosCalidad.auditoriaEtiquetas', compact('mesesEnEspanol'));
     }
     public function NoOrdenes()
     {
-
         $ordenes = ModelsDatosAuditoriaEtiquetas::select('OrdenCompra')
             ->distinct()
             ->get();
@@ -97,73 +93,82 @@ class DatosAuditoriaEtiquetas extends Controller
 
     private function obtenerEstadoAuditoria($orden, $estilo)
     {
-        // Realizar una unión (JOIN) entre los modelos
-        $registros = ModelsDatosAuditoriaEtiquetas::select('auditoria_etiquetas.status') // Seleccionar solo la columna 'status'
-            ->leftJoin('datos_auditoriasov', function ($join) use ($orden) {
-                $join->on('auditoria_etiquetas.Estilos', '=', 'datos_auditoriasov.Estilos') // Unir por la columna 'Estilos'
-                    ->where(function ($query) use ($orden) {
-                        $query->where('datos_auditoriasov.op', $orden)
-                            ->orWhere('datos_auditoriasov.cpo', $orden)
-                            ->orWhere('datos_auditoriasov.salesid', $orden);
-                    });
-            })
-            ->where('auditoria_etiquetas.OrdenCompra', $orden) // Filtrar por la orden en el modelo principal
-            ->orWhere(function ($query) use ($orden) { // Filtrar por la orden en el modelo secundario
-                $query->where('datos_auditoriasov.op', $orden)
-                    ->orWhere('datos_auditoriasov.cpo', $orden)
-                    ->orWhere('datos_auditoriasov.salesid', $orden);
-            })
-            ->where('auditoria_etiquetas.Estilos', $estilo) // Filtrar por el estilo
-            ->get();
+        try {
+            // Evaluar el estado en el modelo 'ModelsDatosAuditoriaEtiquetas'
+            $registrosEtiquetas = ModelsDatosAuditoriaEtiquetas::where('OrdenCompra', $orden)
+                ->where('Estilos', $estilo)
+                ->pluck('status');
 
-        // Si no se encontraron registros, la auditoría no ha sido iniciada
-        if ($registros->isEmpty()) {
-            return 'No iniciada';
-        }
+            // Evaluar el estado en el modelo 'DatosAXOV'
+            $registrosAXOV = DatosAXOV::where(function ($query) use ($orden) {
+                    $query->where('op', $orden)
+                          ->orWhere('cpo', $orden)
+                          ->orWhere('salesid', $orden);
+                })
+                ->where('Estilos', $estilo)
+                ->pluck('status');
 
-        // Verificar los diferentes estados de auditoría (lógica similar a la original)
-        $todosNulos = true;
-        $todosIniciados = true;
-        $alMenosUnoEnProceso = false;
-        $todosFinalizados = true;
+            // Unir los estados de ambos modelos
+            $todosEstados = $registrosEtiquetas->merge($registrosAXOV);
 
-        foreach ($registros as $registro) {
-            if ($registro->status !== null) {
-                $todosNulos = false;
+            // Si no se encontraron registros, la auditoría no ha sido iniciada
+            if ($todosEstados->isEmpty()) {
+                return 'No iniciada';
             }
 
-            if ($registro->status == 'Iniciado' ) {
-                $todosIniciados = true;
+            // Verificar los diferentes estados de auditoría
+            $todosNulos = true;
+            $todosIniciados = true;
+            $alMenosUnoEnProceso = false;
+            $todosFinalizados = true;
+
+            $estadosEnProceso = ['Guardado', 'Update', 'Iniciado', 'Aprobado', 'Aprobado Condicionalmente', 'Rechazado'];
+            $estadosFinalizados = ['Aprobado', 'Aprobado Condicionalmente', 'Rechazado'];
+
+            foreach ($todosEstados as $status) {
+                if ($status !== null) {
+                    $todosNulos = false;
+                }
+
+                if ($status === 'Iniciado') {
+                    $todosIniciados = true;
+                }
+
+                if (in_array($status, $estadosEnProceso)) {
+                    $alMenosUnoEnProceso = true;
+                }
+
+                if (!in_array($status, $estadosFinalizados)) {
+                    $todosFinalizados = false;
+                }
             }
 
-            if ($registro->status === 'Guardado' || $registro->status === 'Update' || $registro->status === 'Iniciado' || $registro->status === 'Aprobado' || $registro->status === 'Aprobado Condicionalmente' || $registro->status === 'Rechazado') {
-                $alMenosUnoEnProceso = true;
+            // Determinar el estado de la auditoría
+            if ($todosNulos) {
+                return 'No iniciada';
+            } elseif ($todosFinalizados) {
+                return 'Auditoría Finalizada';
+            } elseif ($alMenosUnoEnProceso) {
+                return 'En Proceso de auditoría';
+            } elseif ($todosIniciados) {
+                return 'Auditoría Iniciada';
             }
 
-            if ($registro->status !== 'Aprobado' && $registro->status !== 'Aprobado Condicionalmente' && $registro->status !== 'Rechazado') {
-                $todosFinalizados = false;
-            }
-        }
-
-        // Determinar el estado de la auditoría
-        if ($todosNulos) {
-            return 'No iniciada';
-        } elseif ($todosIniciados) {
-            return 'Auditoría Iniciada';
-        } elseif ($alMenosUnoEnProceso) {
-            return 'En Proceso de auditoría';
-        } elseif ($todosFinalizados) {
-            return 'Auditoría Finalizada';
+        } catch (\Exception $e) {
+            // Manejar excepciones y errores
+            Log::error('Error en la obtención del estado de la auditoría: ' . $e->getMessage());
+            return 'Error al obtener el estado de la auditoría';
         }
     }
+
     public function buscarDatosAuditoriaPorEstilo(Request $request)
     {
         $estilo = $request->input('estilo');
         $orden = $request->input('orden');
         $tipoBusqueda = $request->input('tipoBusqueda');
-
+Log::info($estilo);
         // Definir el campo de búsqueda y el modelo según el tipo
-        if ($tipoBusqueda === 'OC') {
+        if ($tipoBusqueda == 'OC') {
             $campoBusqueda = 'OrdenCompra';
             $modelo = ModelsDatosAuditoriaEtiquetas::class;
             $selectCampos = ['id', 'OrdenCompra', 'Estilos', 'Cantidad', 'Talla', 'Color'];
