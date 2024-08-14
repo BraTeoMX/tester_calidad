@@ -239,6 +239,132 @@
     </div>
 
     <div class="row">
+        @php
+            function formatWeekLabel($value) {
+                list($year, $week) = explode('-', $value);
+                return "Semana: $week, Año: $year";
+            }
+        @endphp
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Datos por Cliente en Selección de Rango en tabla</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped" id="clientesDetalleTabla">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                @foreach ($semanasGrafica as $semana)
+                                    <th colspan="2">{{ formatWeekLabel($semana) }}</th> <!-- Colspan 2 para AQL y Proceso -->
+                                @endforeach
+                            </tr>
+                            <tr>
+                                <th></th>
+                                @foreach ($semanasGrafica as $semana)
+                                    <th>AQL</th>
+                                    <th>Proceso</th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($clientesGrafica as $index => $cliente)
+                                <tr>
+                                    <td>{{ $cliente }}</td>
+                                    @foreach ($semanasGrafica as $semana)
+                                        <td>{{ number_format($datasetsAQL[$index]['data'][$loop->index], 2) }}%</td>
+                                        <td>{{ number_format($datasetsProceso[$index]['data'][$loop->index], 2) }}%</td>
+                                    @endforeach
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Datos por Modulo en Selección de Rango en tabla</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped" id="clientesDetalleTabla">
+                        <thead>
+                            <tr>
+                                <th>Modulo</th>
+                                @foreach ($semanasGrafica as $semana)
+                                    <th colspan="2">{{ formatWeekLabel($semana) }}</th> <!-- Colspan 2 para AQL y Proceso -->
+                                @endforeach
+                            </tr>
+                            <tr>
+                                <th></th>
+                                @foreach ($semanasGrafica as $semana)
+                                    <th>AQL</th>
+                                    <th>Proceso</th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($modulosGrafica as $index => $modulo)
+                                <tr>
+                                    <td>{{ $modulo }}</td>
+                                    @foreach ($semanasGrafica as $semana)
+                                        <td>{{ number_format($datasetsAQLModulos[$index]['data'][$loop->index], 2) }}%</td>
+                                        <td>{{ number_format($datasetsProcesoModulos[$index]['data'][$loop->index], 2) }}%</td>
+                                    @endforeach
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Datos por Supervisor en Selección de Rango en tabla</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped" id="clientesDetalleTabla">
+                        <thead>
+                            <tr>
+                                <th>Supevisor</th>
+                                @foreach ($semanasGrafica as $semana)
+                                    <th colspan="2">{{ formatWeekLabel($semana) }}</th> <!-- Colspan 2 para AQL y Proceso -->
+                                @endforeach
+                            </tr>
+                            <tr>
+                                <th></th>
+                                @foreach ($semanasGrafica as $semana)
+                                    <th>AQL</th>
+                                    <th>Proceso</th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($teamLeadersGrafica as $index => $team_leader)
+                                <tr>
+                                    <td>{{ $team_leader }}</td>
+                                    @foreach ($semanasGrafica as $semana)
+                                        <td>{{ number_format($datasetsAQLSupervisor[$index]['data'][$loop->index], 2) }}%</td>
+                                        <td>{{ number_format($datasetsProcesoSupervisor[$index]['data'][$loop->index], 2) }}%</td>
+                                    @endforeach
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>    
+
+    <div class="row">
         <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
@@ -602,7 +728,7 @@
                     }
                 }
             };
-
+ 
             var datasetsAQL = @json($datasetsAQL).map((dataset, index) => {
                 return {
                     name: dataset.label,
@@ -917,7 +1043,7 @@
 
     <script>
         $(document).ready(function() {
-            const tableIds = ['#tablaDinamico', '#tablaDinamico2', '#tablaDinamico3', '#tablaDinamico4', '#tablaClientes'];
+            const tableIds = ['#tablaDinamico', '#tablaDinamico2', '#tablaDinamico3', '#tablaDinamico4', '#tablaClientes', '#clientesDetalleTabla'];
             
             tableIds.forEach(tableId => {
                 if (!$.fn.dataTable.isDataTable(tableId)) {

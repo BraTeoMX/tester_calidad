@@ -243,7 +243,7 @@ class DashboardPlanta1DetalleController extends Controller
             'dataGerentesGeneral', 'dataModulosGeneral', 'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2',
             'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2', 'topDefectosAQL', 'topDefectosProceso',
             'fechaInicio', 'fechaFin', 'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
-            'fechaInicioFormateada', 'fechaFinFormateada',
+            'fechaInicioFormateada', 'fechaFinFormateada', 'modulosGrafica', 'teamLeadersGrafica',
             'semanasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos',
             'datasetsAQLSupervisor', 'datasetsProcesoSupervisor'));
     }
