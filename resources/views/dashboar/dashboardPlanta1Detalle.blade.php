@@ -300,10 +300,11 @@
         </div>
     </div>
 
-    <!-- Después de la tabla de Clientes --> 
+    <!-- Después de la tabla de Clientes -->  
+    <!-- Modal de Clientes -->
     @foreach ($clientesGrafica as $index => $cliente)
     <div class="modal fade" id="modalDetalle{{ $index }}" tabindex="-1" role="dialog" aria-labelledby="modalDetalleLabel{{ $index }}" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-dialog modal-fullscreen" role="document"> <!-- Cambiado a modal-fullscreen -->
             <div class="modal-content bg-dark text-white">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalDetalleLabel{{ $index }}">Detalles para {{ $cliente }}</h5>
@@ -314,7 +315,7 @@
                 <div class="modal-body">
                     <!-- Tabla AQL -->
                     <h6>Detalles AQL</h6>
-                    <table class="table table-striped table-sm table-responsive">
+                    <table class="table table-striped table-sm table-responsive" id="modalClienteAQLDetalle">
                         <thead>
                             <tr>
                                 <th>PARO</th>
@@ -331,25 +332,25 @@
                         </thead>
                         <tbody>
                             @foreach ($detallesClientes[$cliente]['aql'] as $detalle)
-                                <tr>
-                                    <td>{{ $detalle->minutos_paro }}</td>
-                                    <td>{{ $detalle->bulto }}</td>
-                                    <td>{{ $detalle->pieza }}</td>
-                                    <td>{{ $detalle->talla }}</td>
-                                    <td>{{ $detalle->color }}</td>
-                                    <td>{{ $detalle->estilo }}</td>
-                                    <td>{{ $detalle->cantidad_auditada }}</td>
-                                    <td>{{ $detalle->cantidad_rechazada }}</td>
-                                    <td>{{ implode(', ', $detalle->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
-                                    <td>{{ $detalle->created_at->format('H:i:s') }}</td>
-                                </tr>
+                            <tr>
+                                <td>{{ $detalle->minutos_paro }}</td>
+                                <td>{{ $detalle->bulto }}</td>
+                                <td>{{ $detalle->pieza }}</td>
+                                <td>{{ $detalle->talla }}</td>
+                                <td>{{ $detalle->color }}</td>
+                                <td>{{ $detalle->estilo }}</td>
+                                <td>{{ $detalle->cantidad_auditada }}</td>
+                                <td>{{ $detalle->cantidad_rechazada }}</td>
+                                <td>{{ implode(', ', $detalle->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
+                                <td>{{ $detalle->created_at->format('H:i:s') }}</td>
+                            </tr>
                             @endforeach
                         </tbody>
                     </table>
 
                     <!-- Tabla Proceso -->
                     <h6 class="mt-4">Detalles de Proceso</h6>
-                    <table class="table table-striped table-sm table-responsive">
+                    <table class="table table-striped table-sm table-responsive" id="modalClienteProcesoDetalle">
                         <thead>
                             <tr>
                                 <th>PARO</th>
@@ -364,16 +365,16 @@
                         </thead>
                         <tbody>
                             @foreach ($detallesClientes[$cliente]['proceso'] as $detalle)
-                                <tr>
-                                    <td>{{ $detalle->minutos_paro }}</td>
-                                    <td>{{ $detalle->nombre }}</td>
-                                    <td>{{ $detalle->operacion }}</td>
-                                    <td>{{ $detalle->cantidad_auditada }}</td>
-                                    <td>{{ $detalle->cantidad_rechazada }}</td>
-                                    <td>{{ implode(', ', $detalle->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
-                                    <td>{{ $detalle->ac }}</td>
-                                    <td>{{ $detalle->pxp }}</td>
-                                </tr>
+                            <tr>
+                                <td>{{ $detalle->minutos_paro }}</td>
+                                <td>{{ $detalle->nombre }}</td>
+                                <td>{{ $detalle->operacion }}</td>
+                                <td>{{ $detalle->cantidad_auditada }}</td>
+                                <td>{{ $detalle->cantidad_rechazada }}</td>
+                                <td>{{ implode(', ', $detalle->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
+                                <td>{{ $detalle->ac }}</td>
+                                <td>{{ $detalle->pxp }}</td>
+                            </tr>
                             @endforeach
                         </tbody>
                     </table>
@@ -382,6 +383,7 @@
         </div>
     </div>
     @endforeach
+
 
     <div class="row">
         <div class="col-12">
@@ -439,88 +441,90 @@
         </div>
     </div>
     
-    <!-- Después de la tabla de Modulo -->
+    <!-- Después de la tabla de Modulo --> 
+    <!-- Modal de Módulos -->
     @foreach ($modulosGrafica as $moduloIndex => $modulo)
-        <div class="modal fade" id="modalDetalleModulo{{ $moduloIndex }}" tabindex="-1" role="dialog" aria-labelledby="modalDetalleModuloLabel{{ $moduloIndex }}" aria-hidden="true">
-            <div class="modal-dialog modal-xl" role="document">
-                <div class="modal-content bg-dark text-white">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modalDetalleModuloLabel{{ $moduloIndex }}">Detalles para Módulo: {{ $modulo }}</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Tabla AQL -->
-                        <h6>Detalles AQL</h6>
-                        <table class="table table-striped table-sm table-responsive">
-                            <thead>
-                                <tr>
-                                    <th>PARO</th>
-                                    <th># BULTO</th>
-                                    <th>PIEZAS</th>
-                                    <th>TALLA</th>
-                                    <th>COLOR</th>
-                                    <th>ESTILO</th>
-                                    <th>PIEZAS INSPECCIONADAS</th>
-                                    <th>PIEZAS RECHAZADAS</th>
-                                    <th>TIPO DE DEFECTO</th>
-                                    <th>Hora</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($detallesModulos[$modulo]['aql'] as $detalle)
-                                    <tr>
-                                        <td>{{ $detalle->minutos_paro }}</td>
-                                        <td>{{ $detalle->bulto }}</td>
-                                        <td>{{ $detalle->pieza }}</td>
-                                        <td>{{ $detalle->talla }}</td>
-                                        <td>{{ $detalle->color }}</td>
-                                        <td>{{ $detalle->estilo }}</td>
-                                        <td>{{ $detalle->cantidad_auditada }}</td>
-                                        <td>{{ $detalle->cantidad_rechazada }}</td>
-                                        <td>{{ implode(', ', $detalle->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
-                                        <td>{{ $detalle->created_at->format('H:i:s') }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-    
-                        <!-- Tabla Proceso -->
-                        <h6 class="mt-4">Detalles de Proceso</h6>
-                        <table class="table table-striped table-sm table-responsive">
-                            <thead>
-                                <tr>
-                                    <th>PARO</th>
-                                    <th>Nombre</th>
-                                    <th>Operacion</th>
-                                    <th>Piezas Auditadas</th>
-                                    <th>Piezas Rechazadas</th>
-                                    <th>Tipo de Problema</th>
-                                    <th>Accion Correctiva</th>
-                                    <th>pxp</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($detallesModulos[$modulo]['proceso'] as $detalle)
-                                    <tr>
-                                        <td>{{ $detalle->minutos_paro }}</td>
-                                        <td>{{ $detalle->nombre }}</td>
-                                        <td>{{ $detalle->operacion }}</td>
-                                        <td>{{ $detalle->cantidad_auditada }}</td>
-                                        <td>{{ $detalle->cantidad_rechazada }}</td>
-                                        <td>{{ implode(', ', $detalle->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
-                                        <td>{{ $detalle->ac }}</td>
-                                        <td>{{ $detalle->pxp }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+    <div class="modal fade" id="modalDetalleModulo{{ $moduloIndex }}" tabindex="-1" role="dialog" aria-labelledby="modalDetalleModuloLabel{{ $moduloIndex }}" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen" role="document"> <!-- Cambiado a modal-fullscreen -->
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalDetalleModuloLabel{{ $moduloIndex }}">Detalles para Módulo: {{ $modulo }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Tabla AQL -->
+                    <h6>Detalles AQL</h6>
+                    <table class="table table-striped table-sm table-responsive" >
+                        <thead>
+                            <tr>
+                                <th>PARO</th>
+                                <th># BULTO</th>
+                                <th>PIEZAS</th>
+                                <th>TALLA</th>
+                                <th>COLOR</th>
+                                <th>ESTILO</th>
+                                <th>PIEZAS INSPECCIONADAS</th>
+                                <th>PIEZAS RECHAZADAS</th>
+                                <th>TIPO DE DEFECTO</th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($detallesModulos[$modulo]['aql'] as $detalle)
+                            <tr>
+                                <td>{{ $detalle->minutos_paro }}</td>
+                                <td>{{ $detalle->bulto }}</td>
+                                <td>{{ $detalle->pieza }}</td>
+                                <td>{{ $detalle->talla }}</td>
+                                <td>{{ $detalle->color }}</td>
+                                <td>{{ $detalle->estilo }}</td>
+                                <td>{{ $detalle->cantidad_auditada }}</td>
+                                <td>{{ $detalle->cantidad_rechazada }}</td>
+                                <td>{{ implode(', ', $detalle->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
+                                <td>{{ $detalle->created_at->format('H:i:s') }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+
+                    <!-- Tabla Proceso -->
+                    <h6 class="mt-4">Detalles de Proceso</h6>
+                    <table class="table table-striped table-sm table-responsive">
+                        <thead>
+                            <tr>
+                                <th>PARO</th>
+                                <th>Nombre</th>
+                                <th>Operacion</th>
+                                <th>Piezas Auditadas</th>
+                                <th>Piezas Rechazadas</th>
+                                <th>Tipo de Problema</th>
+                                <th>Accion Correctiva</th>
+                                <th>pxp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($detallesModulos[$modulo]['proceso'] as $detalle)
+                            <tr>
+                                <td>{{ $detalle->minutos_paro }}</td>
+                                <td>{{ $detalle->nombre }}</td>
+                                <td>{{ $detalle->operacion }}</td>
+                                <td>{{ $detalle->cantidad_auditada }}</td>
+                                <td>{{ $detalle->cantidad_rechazada }}</td>
+                                <td>{{ implode(', ', $detalle->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
+                                <td>{{ $detalle->ac }}</td>
+                                <td>{{ $detalle->pxp }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
+    </div>
     @endforeach
+
 
     <div class="row">
         <div class="col-12">
@@ -578,10 +582,11 @@
         </div>
     </div>    
 
-    <!-- Después de la tabla de Supervisor -->
+    <!-- Después de la tabla de Supervisor --> 
+    <!-- Modal de Supervisores -->
     @foreach ($teamLeadersGrafica as $supervisorIndex => $team_leader)
     <div class="modal fade" id="modalDetalleSupervisor{{ $supervisorIndex }}" tabindex="-1" role="dialog" aria-labelledby="modalDetalleSupervisorLabel{{ $supervisorIndex }}" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-dialog modal-fullscreen" role="document"> <!-- Cambiado a modal-fullscreen -->
             <div class="modal-content bg-dark text-white">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalDetalleSupervisorLabel{{ $supervisorIndex }}">Detalles para Supervisor: {{ $team_leader }}</h5>
@@ -609,18 +614,18 @@
                         </thead>
                         <tbody>
                             @foreach ($detallesSupervisores[$team_leader]['aql'] as $detalle)
-                                <tr>
-                                    <td>{{ $detalle->minutos_paro }}</td>
-                                    <td>{{ $detalle->bulto }}</td>
-                                    <td>{{ $detalle->pieza }}</td>
-                                    <td>{{ $detalle->talla }}</td>
-                                    <td>{{ $detalle->color }}</td>
-                                    <td>{{ $detalle->estilo }}</td>
-                                    <td>{{ $detalle->cantidad_auditada }}</td>
-                                    <td>{{ $detalle->cantidad_rechazada }}</td>
-                                    <td>{{ implode(', ', $detalle->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
-                                    <td>{{ $detalle->created_at->format('H:i:s') }}</td>
-                                </tr>
+                            <tr>
+                                <td>{{ $detalle->minutos_paro }}</td>
+                                <td>{{ $detalle->bulto }}</td>
+                                <td>{{ $detalle->pieza }}</td>
+                                <td>{{ $detalle->talla }}</td>
+                                <td>{{ $detalle->color }}</td>
+                                <td>{{ $detalle->estilo }}</td>
+                                <td>{{ $detalle->cantidad_auditada }}</td>
+                                <td>{{ $detalle->cantidad_rechazada }}</td>
+                                <td>{{ implode(', ', $detalle->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
+                                <td>{{ $detalle->created_at->format('H:i:s') }}</td>
+                            </tr>
                             @endforeach
                         </tbody>
                     </table>
@@ -642,16 +647,16 @@
                         </thead>
                         <tbody>
                             @foreach ($detallesSupervisores[$team_leader]['proceso'] as $detalle)
-                                <tr>
-                                    <td>{{ $detalle->minutos_paro }}</td>
-                                    <td>{{ $detalle->nombre }}</td>
-                                    <td>{{ $detalle->operacion }}</td>
-                                    <td>{{ $detalle->cantidad_auditada }}</td>
-                                    <td>{{ $detalle->cantidad_rechazada }}</td>
-                                    <td>{{ implode(', ', $detalle->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
-                                    <td>{{ $detalle->ac }}</td>
-                                    <td>{{ $detalle->pxp }}</td>
-                                </tr>
+                            <tr>
+                                <td>{{ $detalle->minutos_paro }}</td>
+                                <td>{{ $detalle->nombre }}</td>
+                                <td>{{ $detalle->operacion }}</td>
+                                <td>{{ $detalle->cantidad_auditada }}</td>
+                                <td>{{ $detalle->cantidad_rechazada }}</td>
+                                <td>{{ implode(', ', $detalle->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
+                                <td>{{ $detalle->ac }}</td>
+                                <td>{{ $detalle->pxp }}</td>
+                            </tr>
                             @endforeach
                         </tbody>
                     </table>
@@ -874,6 +879,65 @@
             border-radius: 0;
         }
 
+        .modal-fullscreen {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .modal-fullscreen .modal-dialog {
+            width: 100% !important;
+            max-width: none !important;
+            height: 100% !important;
+            margin: 0 !important;
+        }
+
+        .modal-fullscreen .modal-content {
+            height: 100vh !important;
+            min-height: 100vh !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        .modal-fullscreen .modal-header {
+            padding: 0.5rem 1rem !important;
+            flex-shrink: 0 !important;
+        }
+
+        .modal-fullscreen .modal-body {
+            flex: 1 1 auto !important;
+            overflow-y: auto !important;
+            padding: 1rem !important;
+        }
+
+        .modal-fullscreen .modal-footer {
+            flex-shrink: 0 !important;
+            padding: 0.5rem 1rem !important;
+        }
+
+        /* Asegura que el modal esté en la parte superior */
+        .modal {
+            top: 0 !important;
+        }
+
+        /* Estilos para la barra de desplazamiento en el modal-body */
+        .modal-fullscreen .modal-body::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .modal-fullscreen .modal-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .modal-fullscreen .modal-body::-webkit-scrollbar-thumb {
+            background: #888;
+        }
+
+        .modal-fullscreen .modal-body::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
       </style>
 @endsection
 
@@ -1354,7 +1418,8 @@
     <script>
         $(document).ready(function() {
             const tableIds = ['#tablaDinamico', '#tablaDinamico2', '#tablaDinamico3', '#tablaDinamico4', '#tablaClientes', 
-                    '#clientesDetalleTabla', '#moduloDetalleTabla', '#supervisorDetalleTabla',];
+                    '#clientesDetalleTabla', '#moduloDetalleTabla', '#supervisorDetalleTabla',
+                    '#modalClienteAQLDetalle', '#modalClienteProcesoDetalle'];
             
             tableIds.forEach(tableId => {
                 if (!$.fn.dataTable.isDataTable(tableId)) {
