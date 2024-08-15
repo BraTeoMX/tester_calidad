@@ -249,8 +249,8 @@
                                                 </select>
                                             </td>
                                             @endif
-                                            <td><input type="text" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
-                                            <td><input type="text" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
+                                            <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
+                                            <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
                                             <td class="tp-column d-none w-100">
                                                 <select id="tpSelect" class="form-control w-100" multiple title="Por favor, selecciona una opción"> 
                                                     <option value="OTRO">OTRO</option>

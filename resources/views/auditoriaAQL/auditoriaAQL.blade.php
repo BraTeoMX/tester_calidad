@@ -220,7 +220,7 @@
                                                 <td><input type="text" class="form-control texto-blanco" name="color" id="color" readonly></td>
                                                 <td><input type="text" class="form-control texto-blanco" name="talla" id="talla" readonly></td>
                                                 <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
-                                                <td><input type="text" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
+                                                <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
                                                 <td class="tp-column"> 
                                                     <select id="tpSelectAQL" class="form-control w-100" multiple title="Por favor, selecciona una opción">
                                                         <option value="OTRO">OTRO</option>

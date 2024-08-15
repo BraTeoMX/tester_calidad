@@ -237,15 +237,76 @@ class DashboardPlanta2DetalleController extends Controller
             ];
         })->toArray();
 
-         
+        // Añade esto después de calcular $dataGeneral, $dataGraficaModulos, y $dataGraficaSupervisor
+        $detallesClientes = $this->obtenerDetallesClientes($clientesGrafica, $fechaInicio, $fechaFin);
+        $detallesModulos = $this->obtenerDetallesModulos($modulosGrafica, $fechaInicio, $fechaFin);
+        $detallesSupervisores = $this->obtenerDetallesSupervisores($teamLeadersGrafica, $fechaInicio, $fechaFin);
+
+
         return view('dashboar.dashboardPlanta2Detalle', compact('title', 'semanas', 'porcentajesAQL', 'porcentajesProceso',
             'semanasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica', 'dataGeneral', 'totalGeneral',
             'dataGerentesGeneral', 'dataModulosGeneral', 'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2',
             'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2', 'topDefectosAQL', 'topDefectosProceso',
             'fechaInicio', 'fechaFin', 'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
-            'fechaInicioFormateada', 'fechaFinFormateada',
+            'fechaInicioFormateada', 'fechaFinFormateada','modulosGrafica', 'teamLeadersGrafica',
             'semanasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos','datasetsAQLModulos', 'datasetsProcesoModulos',
-            'datasetsAQLSupervisor', 'datasetsProcesoSupervisor'));
+            'datasetsAQLSupervisor', 'datasetsProcesoSupervisor',
+            'detallesClientes', 'detallesModulos', 'detallesSupervisores'));
+    }
+
+    private function obtenerDetallesClientes($clientesGrafica, $fechaInicio, $fechaFin)
+    {
+        $detalles = [];
+        foreach ($clientesGrafica as $cliente) {
+            $detallesAQL = AuditoriaAQL::where('cliente', $cliente)
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->get();
+            $detallesProceso = AseguramientoCalidad::where('cliente', $cliente)
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->get();
+            $detalles[$cliente] = [
+                'aql' => $detallesAQL,
+                'proceso' => $detallesProceso
+            ];
+        }
+        return $detalles;
+    }
+
+    private function obtenerDetallesModulos($modulosGrafica, $fechaInicio, $fechaFin)
+    {
+        $detalles = [];
+        foreach ($modulosGrafica as $modulo) {
+            $detallesAQL = AuditoriaAQL::where('modulo', $modulo)
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->get();
+            $detallesProceso = AseguramientoCalidad::where('modulo', $modulo)
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->get();
+            $detalles[$modulo] = [
+                'aql' => $detallesAQL,
+                'proceso' => $detallesProceso
+            ];
+        }
+        return $detalles;
+    }
+
+    private function obtenerDetallesSupervisores($teamLeadersGrafica, $fechaInicio, $fechaFin)
+    {
+        $detalles = [];
+        foreach ($teamLeadersGrafica as $supervisor) {
+            $detallesAQL = AuditoriaAQL::where('team_leader', $supervisor)
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->get();
+            $detallesProceso = AseguramientoCalidad::where('team_leader', $supervisor)
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->get();
+            $detalles[$supervisor] = [
+                'aql' => $detallesAQL,
+                'proceso' => $detallesProceso
+            ];
+        }
+        //dd($teamLeadersGrafica, $fechaInicio, $fechaFin, $detalles);
+        return $detalles;
     }
 
     private function calcularPorcentajePorSemana($modelo, $year, $week, $planta)
