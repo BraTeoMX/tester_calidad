@@ -270,10 +270,26 @@
                         <tbody>
                             @foreach ($clientesGrafica as $index => $cliente)
                                 <tr>
-                                    <td>{{ $cliente }}</td>
-                                    @foreach ($semanasGrafica as $semana)
-                                        <td>{{ number_format($datasetsAQL[$index]['data'][$loop->index], 2) }}%</td>
-                                        <td>{{ number_format($datasetsProceso[$index]['data'][$loop->index], 2) }}%</td>
+                                    <td>
+                                        <a href="#" data-toggle="modal" data-target="#modalDetalle{{ $index }}" class="cliente-detalle">
+                                            {{ $cliente }}
+                                        </a>
+                                    </td>
+                                    @foreach ($semanasGrafica as $index => $semana)
+                                        <td>
+                                            @php
+                                                $weekData = collect($datasetsAQL)->firstWhere('label', $cliente);
+                                                $aqlValue = $weekData && isset($weekData['data'][$index]) ? number_format($weekData['data'][$index], 2) : '0.00';
+                                            @endphp
+                                            {{ $aqlValue }}%
+                                        </td>
+                                        <td>
+                                            @php
+                                                $weekData = collect($datasetsProceso)->firstWhere('label', $cliente);
+                                                $procesoValue = $weekData && isset($weekData['data'][$index]) ? number_format($weekData['data'][$index], 2) : '0.00';
+                                            @endphp
+                                            {{ $procesoValue }}%
+                                        </td>
                                     @endforeach
                                 </tr>
                             @endforeach
@@ -283,6 +299,89 @@
             </div>
         </div>
     </div>
+
+    <!-- Después de la tabla de Clientes -->
+    @foreach ($clientesGrafica as $index => $cliente)
+    <div class="modal fade" id="modalDetalle{{ $index }}" tabindex="-1" role="dialog" aria-labelledby="modalDetalleLabel{{ $index }}" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalDetalleLabel{{ $index }}">Detalles para {{ $cliente }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Tabla AQL -->
+                    <h6>Detalles AQL</h6>
+                    <table class="table table-striped table-sm table-responsive">
+                        <thead>
+                            <tr>
+                                <th>PARO</th>
+                                <th># BULTO</th>
+                                <th>PIEZAS</th>
+                                <th>TALLA</th>
+                                <th>COLOR</th>
+                                <th>ESTILO</th>
+                                <th>PIEZAS INSPECCIONADAS</th>
+                                <th>PIEZAS RECHAZADAS</th>
+                                <th>TIPO DE DEFECTO</th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($detallesClientes[$cliente]['aql'] as $detalle)
+                                <tr>
+                                    <td>{{ $detalle->minutos_paro }}</td>
+                                    <td>{{ $detalle->bulto }}</td>
+                                    <td>{{ $detalle->pieza }}</td>
+                                    <td>{{ $detalle->talla }}</td>
+                                    <td>{{ $detalle->color }}</td>
+                                    <td>{{ $detalle->estilo }}</td>
+                                    <td>{{ $detalle->cantidad_auditada }}</td>
+                                    <td>{{ $detalle->cantidad_rechazada }}</td>
+                                    <td>{{ implode(', ', $detalle->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
+                                    <td>{{ $detalle->created_at->format('H:i:s') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+
+                    <!-- Tabla Proceso -->
+                    <h6 class="mt-4">Detalles de Proceso</h6>
+                    <table class="table table-striped table-sm table-responsive">
+                        <thead>
+                            <tr>
+                                <th>PARO</th>
+                                <th>Nombre</th>
+                                <th>Operacion</th>
+                                <th>Piezas Auditadas</th>
+                                <th>Piezas Rechazadas</th>
+                                <th>Tipo de Problema</th>
+                                <th>Accion Correctiva</th>
+                                <th>pxp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($detallesClientes[$cliente]['proceso'] as $detalle)
+                                <tr>
+                                    <td>{{ $detalle->minutos_paro }}</td>
+                                    <td>{{ $detalle->nombre }}</td>
+                                    <td>{{ $detalle->operacion }}</td>
+                                    <td>{{ $detalle->cantidad_auditada }}</td>
+                                    <td>{{ $detalle->cantidad_rechazada }}</td>
+                                    <td>{{ implode(', ', $detalle->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
+                                    <td>{{ $detalle->ac }}</td>
+                                    <td>{{ $detalle->pxp }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endforeach
 
     <div class="row">
         <div class="col-12">
@@ -310,10 +409,26 @@
                         <tbody>
                             @foreach ($modulosGrafica as $index => $modulo)
                                 <tr>
-                                    <td>{{ $modulo }}</td>
-                                    @foreach ($semanasGrafica as $semana)
-                                        <td>{{ number_format($datasetsAQLModulos[$index]['data'][$loop->index], 2) }}%</td>
-                                        <td>{{ number_format($datasetsProcesoModulos[$index]['data'][$loop->index], 2) }}%</td>
+                                    <td>
+                                        <a href="#" data-toggle="modal" data-target="#modalDetalle{{ $index }}" class="cliente-detalle">
+                                            {{ $modulo }}
+                                        </a>
+                                    </td>
+                                    @foreach ($semanasGrafica as $index => $semana)
+                                        <td>
+                                            @php
+                                                $weekData = collect($datasetsAQLModulos)->firstWhere('label', $modulo);
+                                                $aqlValue = $weekData && isset($weekData['data'][$index]) ? number_format($weekData['data'][$index], 2) : '0.00';
+                                            @endphp
+                                            {{ $aqlValue }}%
+                                        </td>
+                                        <td>
+                                            @php
+                                                $weekData = collect($datasetsProcesoModulos)->firstWhere('label', $modulo);
+                                                $procesoValue = $weekData && isset($weekData['data'][$index]) ? number_format($weekData['data'][$index], 2) : '0.00';
+                                            @endphp
+                                            {{ $procesoValue }}%
+                                        </td>
                                     @endforeach
                                 </tr>
                             @endforeach
@@ -323,6 +438,88 @@
             </div>
         </div>
     </div>
+
+    @foreach ($modulosGrafica as $index => $modulo)
+    <div class="modal fade" id="modalDetalleModulo{{ $index }}" tabindex="-1" role="dialog" aria-labelledby="modalDetalleModuloLabel{{ $index }}" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalDetalleModuloLabel{{ $index }}">Detalles para Módulo: {{ $modulo }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Tabla AQL -->
+                    <h6>Detalles AQL</h6>
+                    <table class="table table-striped table-sm table-responsive">
+                        <thead>
+                            <tr>
+                                <th>PARO</th>
+                                <th># BULTO</th>
+                                <th>PIEZAS</th>
+                                <th>TALLA</th>
+                                <th>COLOR</th>
+                                <th>ESTILO</th>
+                                <th>PIEZAS INSPECCIONADAS</th>
+                                <th>PIEZAS RECHAZADAS</th>
+                                <th>TIPO DE DEFECTO</th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($detallesModulos[$modulo]['aql'] as $detalle)
+                                <tr>
+                                    <td>{{ $detalle->minutos_paro }}</td>
+                                    <td>{{ $detalle->bulto }}</td>
+                                    <td>{{ $detalle->pieza }}</td>
+                                    <td>{{ $detalle->talla }}</td>
+                                    <td>{{ $detalle->color }}</td>
+                                    <td>{{ $detalle->estilo }}</td>
+                                    <td>{{ $detalle->cantidad_auditada }}</td>
+                                    <td>{{ $detalle->cantidad_rechazada }}</td>
+                                    <td>{{ implode(', ', $detalle->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
+                                    <td>{{ $detalle->created_at->format('H:i:s') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+
+                    <!-- Tabla Proceso -->
+                    <h6 class="mt-4">Detalles de Proceso</h6>
+                    <table class="table table-striped table-sm table-responsive">
+                        <thead>
+                            <tr>
+                                <th>PARO</th>
+                                <th>Nombre</th>
+                                <th>Operacion</th>
+                                <th>Piezas Auditadas</th>
+                                <th>Piezas Rechazadas</th>
+                                <th>Tipo de Problema</th>
+                                <th>Accion Correctiva</th>
+                                <th>pxp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($detallesModulos[$modulo]['proceso'] as $detalle)
+                                <tr>
+                                    <td>{{ $detalle->minutos_paro }}</td>
+                                    <td>{{ $detalle->nombre }}</td>
+                                    <td>{{ $detalle->operacion }}</td>
+                                    <td>{{ $detalle->cantidad_auditada }}</td>
+                                    <td>{{ $detalle->cantidad_rechazada }}</td>
+                                    <td>{{ implode(', ', $detalle->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
+                                    <td>{{ $detalle->ac }}</td>
+                                    <td>{{ $detalle->pxp }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endforeach
 
     <div class="row">
         <div class="col-12">
@@ -350,10 +547,26 @@
                         <tbody>
                             @foreach ($teamLeadersGrafica as $index => $team_leader)
                                 <tr>
-                                    <td>{{ $team_leader }}</td>
-                                    @foreach ($semanasGrafica as $semana)
-                                        <td>{{ number_format($datasetsAQLSupervisor[$index]['data'][$loop->index], 2) }}%</td>
-                                        <td>{{ number_format($datasetsProcesoSupervisor[$index]['data'][$loop->index], 2) }}%</td>
+                                    <td>
+                                        <a href="#" data-toggle="modal" data-target="#modalDetalle{{ $index }}" class="cliente-detalle">
+                                            {{ $team_leader }}
+                                        </a>
+                                    </td>
+                                    @foreach ($semanasGrafica as $index => $semana)
+                                        <td>
+                                            @php
+                                                $weekData = collect($datasetsAQLSupervisor)->firstWhere('label', $team_leader);
+                                                $aqlValue = $weekData && isset($weekData['data'][$index]) ? number_format($weekData['data'][$index], 2) : '0.00';
+                                            @endphp
+                                            {{ $aqlValue }}%
+                                        </td>
+                                        <td>
+                                            @php
+                                                $weekData = collect($datasetsProcesoSupervisor)->firstWhere('label', $team_leader);
+                                                $procesoValue = $weekData && isset($weekData['data'][$index]) ? number_format($weekData['data'][$index], 2) : '0.00';
+                                            @endphp
+                                            {{ $procesoValue }}%
+                                        </td>
                                     @endforeach
                                 </tr>
                             @endforeach
@@ -363,6 +576,88 @@
             </div>
         </div>
     </div>    
+
+    @foreach ($teamLeadersGrafica as $index => $team_leader)
+    <div class="modal fade" id="modalDetalleSupervisor{{ $index }}" tabindex="-1" role="dialog" aria-labelledby="modalDetalleSupervisorLabel{{ $index }}" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalDetalleSupervisorLabel{{ $index }}">Detalles para Supervisor: {{ $team_leader }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Tabla AQL -->
+                    <h6>Detalles AQL</h6>
+                    <table class="table table-striped table-sm table-responsive">
+                        <thead>
+                            <tr>
+                                <th>PARO</th>
+                                <th># BULTO</th>
+                                <th>PIEZAS</th>
+                                <th>TALLA</th>
+                                <th>COLOR</th>
+                                <th>ESTILO</th>
+                                <th>PIEZAS INSPECCIONADAS</th>
+                                <th>PIEZAS RECHAZADAS</th>
+                                <th>TIPO DE DEFECTO</th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($detallesSupervisores[$team_leader]['aql'] as $detalle)
+                                <tr>
+                                    <td>{{ $detalle->minutos_paro }}</td>
+                                    <td>{{ $detalle->bulto }}</td>
+                                    <td>{{ $detalle->pieza }}</td>
+                                    <td>{{ $detalle->talla }}</td>
+                                    <td>{{ $detalle->color }}</td>
+                                    <td>{{ $detalle->estilo }}</td>
+                                    <td>{{ $detalle->cantidad_auditada }}</td>
+                                    <td>{{ $detalle->cantidad_rechazada }}</td>
+                                    <td>{{ implode(', ', $detalle->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
+                                    <td>{{ $detalle->created_at->format('H:i:s') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+
+                    <!-- Tabla Proceso -->
+                    <h6 class="mt-4">Detalles de Proceso</h6>
+                    <table class="table table-striped table-sm table-responsive">
+                        <thead>
+                            <tr>
+                                <th>PARO</th>
+                                <th>Nombre</th>
+                                <th>Operacion</th>
+                                <th>Piezas Auditadas</th>
+                                <th>Piezas Rechazadas</th>
+                                <th>Tipo de Problema</th>
+                                <th>Accion Correctiva</th>
+                                <th>pxp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($detallesSupervisores[$team_leader]['proceso'] as $detalle)
+                                <tr>
+                                    <td>{{ $detalle->minutos_paro }}</td>
+                                    <td>{{ $detalle->nombre }}</td>
+                                    <td>{{ $detalle->operacion }}</td>
+                                    <td>{{ $detalle->cantidad_auditada }}</td>
+                                    <td>{{ $detalle->cantidad_rechazada }}</td>
+                                    <td>{{ implode(', ', $detalle->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
+                                    <td>{{ $detalle->ac }}</td>
+                                    <td>{{ $detalle->pxp }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endforeach 
 
     <div class="row">
         <div class="col-lg-4">
