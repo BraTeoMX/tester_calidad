@@ -250,8 +250,8 @@
                 <div class="card-header"> 
                     <h4 class="card-title">Datos por Cliente en Selección de Rango en tabla</h4>
                 </div>
-                <div class="card-body">
-                    <table class="table table-striped table-responsive" id="clientesDetalleTabla">
+                <div class="card-body table-responsive">
+                    <table class="table table-striped" id="clientesDetalleTabla">
                         <thead>
                             <tr>
                                 <th>Cliente</th>
@@ -306,19 +306,18 @@
     <div class="modal fade" id="modalDetalle{{ $index }}" tabindex="-1" role="dialog" aria-labelledby="modalDetalleLabel{{ $index }}" aria-hidden="true">
         <div class="modal-dialog modal-fullscreen" role="document"> <!-- Cambiado a modal-fullscreen -->
             <div class="modal-content bg-dark text-white">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalDetalleLabel{{ $index }}">Detalles para {{ $cliente }}</h5>
+                <div class="modal-header text-white">
+                    <h5 class="modal-title text-white" id="modalDetalleLabel{{ $index }}">Detalles para {{ $cliente }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body table-responsive">
                     <!-- Tabla AQL -->
                     <h6>Detalles AQL</h6>
-                    <table class="table table-striped table-sm table-responsive" id="modalClienteAQLDetalle">
+                    <table class="table table-striped table-sm" id="modalClienteAQLDetalle{{ $index }}">
                         <thead>
                             <tr>
-                                <th>PARO</th>
                                 <th># BULTO</th>
                                 <th>PIEZAS</th>
                                 <th>TALLA</th>
@@ -326,23 +325,18 @@
                                 <th>ESTILO</th>
                                 <th>PIEZAS INSPECCIONADAS</th>
                                 <th>PIEZAS RECHAZADAS</th>
-                                <th>TIPO DE DEFECTO</th>
-                                <th>Hora</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($detallesClientes[$cliente]['aql'] as $detalle)
                             <tr>
-                                <td>{{ $detalle->minutos_paro }}</td>
-                                <td>{{ $detalle->bulto }}</td>
-                                <td>{{ $detalle->pieza }}</td>
-                                <td>{{ $detalle->talla }}</td>
-                                <td>{{ $detalle->color }}</td>
-                                <td>{{ $detalle->estilo }}</td>
-                                <td>{{ $detalle->cantidad_auditada }}</td>
-                                <td>{{ $detalle->cantidad_rechazada }}</td>
-                                <td>{{ implode(', ', $detalle->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
-                                <td>{{ $detalle->created_at->format('H:i:s') }}</td>
+                                <td>{{ $detalle->bulto ?? 'N/A' }}</td>
+                                <td>{{ $detalle->pieza ?? 'N/A' }}</td>
+                                <td>{{ $detalle->talla ?? 'N/A' }}</td>
+                                <td>{{ $detalle->color ?? 'N/A' }}</td>
+                                <td>{{ $detalle->estilo ?? 'N/A' }}</td>
+                                <td>{{ $detalle->cantidad_auditada ?? 'N/A' }}</td>
+                                <td>{{ $detalle->cantidad_rechazada ?? 'N/A' }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -350,30 +344,22 @@
 
                     <!-- Tabla Proceso -->
                     <h6 class="mt-4">Detalles de Proceso</h6>
-                    <table class="table table-striped table-sm table-responsive" id="modalClienteProcesoDetalle">
+                    <table class="table table-striped table-sm" id="modalClienteProcesoDetalle{{ $index }}">
                         <thead>
                             <tr>
-                                <th>PARO</th>
                                 <th>Nombre</th>
                                 <th>Operacion</th>
                                 <th>Piezas Auditadas</th>
                                 <th>Piezas Rechazadas</th>
-                                <th>Tipo de Problema</th>
-                                <th>Accion Correctiva</th>
-                                <th>pxp</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($detallesClientes[$cliente]['proceso'] as $detalle)
                             <tr>
-                                <td>{{ $detalle->minutos_paro }}</td>
-                                <td>{{ $detalle->nombre }}</td>
-                                <td>{{ $detalle->operacion }}</td>
-                                <td>{{ $detalle->cantidad_auditada }}</td>
-                                <td>{{ $detalle->cantidad_rechazada }}</td>
-                                <td>{{ implode(', ', $detalle->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
-                                <td>{{ $detalle->ac }}</td>
-                                <td>{{ $detalle->pxp }}</td>
+                                <td>{{ $detalle->nombre ?? 'N/A' }}</td>
+                                <td>{{ $detalle->operacion ?? 'N/A' }}</td>
+                                <td>{{ $detalle->cantidad_auditada ?? 'N/A' }}</td>
+                                <td>{{ $detalle->cantidad_rechazada ?? 'N/A' }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -391,8 +377,8 @@
                 <div class="card-header">
                     <h4 class="card-title">Datos por Modulo en Selección de Rango en tabla</h4>
                 </div>
-                <div class="card-body">
-                    <table class="table table-striped table-responsive" id="moduloDetalleTabla">
+                <div class="card-body table-responsive">
+                    <table class="table table-striped" id="moduloDetalleTabla">
                         <thead>
                             <tr>
                                 <th>Modulo</th>
@@ -453,13 +439,12 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body table-responsive">
                     <!-- Tabla AQL -->
                     <h6>Detalles AQL</h6>
-                    <table class="table table-striped table-sm table-responsive" >
+                    <table class="table table-striped table-sm" id="modalModuloAQLDetalle{{ $moduloIndex }}">
                         <thead>
                             <tr>
-                                <th>PARO</th>
                                 <th># BULTO</th>
                                 <th>PIEZAS</th>
                                 <th>TALLA</th>
@@ -467,23 +452,18 @@
                                 <th>ESTILO</th>
                                 <th>PIEZAS INSPECCIONADAS</th>
                                 <th>PIEZAS RECHAZADAS</th>
-                                <th>TIPO DE DEFECTO</th>
-                                <th>Hora</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($detallesModulos[$modulo]['aql'] as $detalle)
+                            @foreach ($detallesClientes[$cliente]['aql'] as $detalle)
                             <tr>
-                                <td>{{ $detalle->minutos_paro }}</td>
-                                <td>{{ $detalle->bulto }}</td>
-                                <td>{{ $detalle->pieza }}</td>
-                                <td>{{ $detalle->talla }}</td>
-                                <td>{{ $detalle->color }}</td>
-                                <td>{{ $detalle->estilo }}</td>
-                                <td>{{ $detalle->cantidad_auditada }}</td>
-                                <td>{{ $detalle->cantidad_rechazada }}</td>
-                                <td>{{ implode(', ', $detalle->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
-                                <td>{{ $detalle->created_at->format('H:i:s') }}</td>
+                                <td>{{ $detalle->bulto ?? 'N/A' }}</td>
+                                <td>{{ $detalle->pieza ?? 'N/A' }}</td>
+                                <td>{{ $detalle->talla ?? 'N/A' }}</td>
+                                <td>{{ $detalle->color ?? 'N/A' }}</td>
+                                <td>{{ $detalle->estilo ?? 'N/A' }}</td>
+                                <td>{{ $detalle->cantidad_auditada ?? 'N/A' }}</td>
+                                <td>{{ $detalle->cantidad_rechazada ?? 'N/A' }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -491,30 +471,22 @@
 
                     <!-- Tabla Proceso -->
                     <h6 class="mt-4">Detalles de Proceso</h6>
-                    <table class="table table-striped table-sm table-responsive">
+                    <table class="table table-striped table-sm" id="modalModuloProcesoDetalle{{ $moduloIndex }}">
                         <thead>
                             <tr>
-                                <th>PARO</th>
                                 <th>Nombre</th>
                                 <th>Operacion</th>
                                 <th>Piezas Auditadas</th>
                                 <th>Piezas Rechazadas</th>
-                                <th>Tipo de Problema</th>
-                                <th>Accion Correctiva</th>
-                                <th>pxp</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($detallesModulos[$modulo]['proceso'] as $detalle)
+                            @foreach ($detallesClientes[$cliente]['proceso'] as $detalle)
                             <tr>
-                                <td>{{ $detalle->minutos_paro }}</td>
-                                <td>{{ $detalle->nombre }}</td>
-                                <td>{{ $detalle->operacion }}</td>
-                                <td>{{ $detalle->cantidad_auditada }}</td>
-                                <td>{{ $detalle->cantidad_rechazada }}</td>
-                                <td>{{ implode(', ', $detalle->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
-                                <td>{{ $detalle->ac }}</td>
-                                <td>{{ $detalle->pxp }}</td>
+                                <td>{{ $detalle->nombre ?? 'N/A' }}</td>
+                                <td>{{ $detalle->operacion ?? 'N/A' }}</td>
+                                <td>{{ $detalle->cantidad_auditada ?? 'N/A' }}</td>
+                                <td>{{ $detalle->cantidad_rechazada ?? 'N/A' }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -532,8 +504,8 @@
                 <div class="card-header">
                     <h4 class="card-title">Datos por Supervisor en Selección de Rango en tabla</h4>
                 </div>
-                <div class="card-body">
-                    <table class="table table-striped table-responsive" id="supervisorDetalleTabla">
+                <div class="card-body table-responsive">
+                    <table class="table table-striped" id="supervisorDetalleTabla">
                         <thead>
                             <tr>
                                 <th>Supevisor</th>
@@ -594,13 +566,12 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body table-responsive">
                     <!-- Tabla AQL -->
                     <h6>Detalles AQL</h6>
-                    <table class="table table-striped table-sm table-responsive">
+                    <table class="table table-striped table-sm" id="modalSupervisorAQLDetalle{{ $supervisorIndex }}">
                         <thead>
                             <tr>
-                                <th>PARO</th>
                                 <th># BULTO</th>
                                 <th>PIEZAS</th>
                                 <th>TALLA</th>
@@ -608,23 +579,18 @@
                                 <th>ESTILO</th>
                                 <th>PIEZAS INSPECCIONADAS</th>
                                 <th>PIEZAS RECHAZADAS</th>
-                                <th>TIPO DE DEFECTO</th>
-                                <th>Hora</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($detallesSupervisores[$team_leader]['aql'] as $detalle)
+                            @foreach ($detallesClientes[$cliente]['aql'] as $detalle)
                             <tr>
-                                <td>{{ $detalle->minutos_paro }}</td>
-                                <td>{{ $detalle->bulto }}</td>
-                                <td>{{ $detalle->pieza }}</td>
-                                <td>{{ $detalle->talla }}</td>
-                                <td>{{ $detalle->color }}</td>
-                                <td>{{ $detalle->estilo }}</td>
-                                <td>{{ $detalle->cantidad_auditada }}</td>
-                                <td>{{ $detalle->cantidad_rechazada }}</td>
-                                <td>{{ implode(', ', $detalle->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
-                                <td>{{ $detalle->created_at->format('H:i:s') }}</td>
+                                <td>{{ $detalle->bulto ?? 'N/A' }}</td>
+                                <td>{{ $detalle->pieza ?? 'N/A' }}</td>
+                                <td>{{ $detalle->talla ?? 'N/A' }}</td>
+                                <td>{{ $detalle->color ?? 'N/A' }}</td>
+                                <td>{{ $detalle->estilo ?? 'N/A' }}</td>
+                                <td>{{ $detalle->cantidad_auditada ?? 'N/A' }}</td>
+                                <td>{{ $detalle->cantidad_rechazada ?? 'N/A' }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -632,30 +598,22 @@
 
                     <!-- Tabla Proceso -->
                     <h6 class="mt-4">Detalles de Proceso</h6>
-                    <table class="table table-striped table-sm table-responsive">
+                    <table class="table table-striped table-sm" id="modalSupervisorProcesoDetalle{{ $supervisorIndex }}">
                         <thead>
                             <tr>
-                                <th>PARO</th>
                                 <th>Nombre</th>
                                 <th>Operacion</th>
                                 <th>Piezas Auditadas</th>
                                 <th>Piezas Rechazadas</th>
-                                <th>Tipo de Problema</th>
-                                <th>Accion Correctiva</th>
-                                <th>pxp</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($detallesSupervisores[$team_leader]['proceso'] as $detalle)
+                            @foreach ($detallesClientes[$cliente]['proceso'] as $detalle)
                             <tr>
-                                <td>{{ $detalle->minutos_paro }}</td>
-                                <td>{{ $detalle->nombre }}</td>
-                                <td>{{ $detalle->operacion }}</td>
-                                <td>{{ $detalle->cantidad_auditada }}</td>
-                                <td>{{ $detalle->cantidad_rechazada }}</td>
-                                <td>{{ implode(', ', $detalle->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
-                                <td>{{ $detalle->ac }}</td>
-                                <td>{{ $detalle->pxp }}</td>
+                                <td>{{ $detalle->nombre ?? 'N/A' }}</td>
+                                <td>{{ $detalle->operacion ?? 'N/A' }}</td>
+                                <td>{{ $detalle->cantidad_auditada ?? 'N/A' }}</td>
+                                <td>{{ $detalle->cantidad_rechazada ?? 'N/A' }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -1418,9 +1376,20 @@
     <script>
         $(document).ready(function() {
             const tableIds = ['#tablaDinamico', '#tablaDinamico2', '#tablaDinamico3', '#tablaDinamico4', '#tablaClientes', 
-                    '#clientesDetalleTabla', '#moduloDetalleTabla', '#supervisorDetalleTabla',
-                    '#modalClienteAQLDetalle', '#modalClienteProcesoDetalle'];
-            
+                    '#clientesDetalleTabla', '#moduloDetalleTabla', '#supervisorDetalleTabla'];
+            @foreach ($clientesGrafica as $index => $cliente)
+                tableIds.push('#modalClienteAQLDetalle{{ $index }}');
+                tableIds.push('#modalClienteProcesoDetalle{{ $index }}');
+            @endforeach
+            @foreach ($modulosGrafica as $moduloIndex => $modulo)
+                tableIds.push('#modalModuloAQLDetalle{{ $moduloIndex }}');
+                tableIds.push('#modalModuloProcesoDetalle{{ $moduloIndex }}');
+            @endforeach
+            @foreach ($teamLeadersGrafica as $supervisorIndex => $team_leader)
+                tableIds.push('#modalSupervisorAQLDetalle{{ $supervisorIndex }}');
+                tableIds.push('#modalSupervisorProcesoDetalle{{ $supervisorIndex }}');
+            @endforeach
+
             tableIds.forEach(tableId => {
                 if (!$.fn.dataTable.isDataTable(tableId)) {
                     $(tableId).DataTable({
