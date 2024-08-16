@@ -180,7 +180,7 @@
                                 <div id="collapse${index}" class="collapse" aria-labelledby="heading${index}" data-parent="#accordion">
                                     <div class="card-body">
                                         <!-- Contenido de la auditoría para el estilo -->
-
+                      <div class="table-responsive">
                     <table class="table table-sm" id="miTabla">
                         <thead>
                               <tr>
@@ -201,6 +201,7 @@
                                 <!-- Las filas del cuerpo (tbody) se generarán dinámicamente aquí -->
                             </tbody>
                     </table>
+                </div>
                                     </div>
                                 </div>
                             </div>`;
