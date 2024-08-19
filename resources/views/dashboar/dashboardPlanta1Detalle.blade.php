@@ -932,6 +932,11 @@
             display: inline-block;
             margin-left: 10px;
         }
+        .scrollable-menu {
+            height: auto;
+            max-height: 200px;
+            overflow-x: hidden;
+        }
         .custom-checkbox {
             display: block;
             padding: 3px 20px;
@@ -1405,6 +1410,7 @@
 @endpush
 
 @push('js')
+    <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap5.min.css">
@@ -1414,26 +1420,29 @@
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         $(document).ready(function() {
-            const tableIds = [
-                @foreach ($clientesGrafica as $index => $cliente)
-                    '#modalClienteAQLDetalle{{ $index }}',
-                    '#modalClienteProcesoDetalle{{ $index }}',
-                @endforeach
-                @foreach ($modulosGrafica as $moduloIndex => $modulo)
-                    '#modalModuloAQLDetalle{{ $moduloIndex }}',
-                    '#modalModuloProcesoDetalle{{ $moduloIndex }}',
-                @endforeach
-                @foreach ($teamLeadersGrafica as $supervisorIndex => $team_leader)
-                    '#modalSupervisorAQLDetalle{{ $supervisorIndex }}',
-                    '#modalSupervisorProcesoDetalle{{ $supervisorIndex }}',
-                @endforeach
-            ];
+            const staticTableIds = ['#tablaDinamico', '#tablaDinamico2', '#tablaDinamico3', '#tablaDinamico4', '#tablaClientes', 
+                    '#clientesDetalleTabla', '#moduloDetalleTabla', '#supervisorDetalleTabla'];
+            
+            let dynamicTableIds = [];
 
-            tableIds.forEach(initializeTable);
+            @foreach ($clientesGrafica as $index => $cliente)
+                dynamicTableIds.push('#modalClienteAQLDetalle{{ $index }}');
+                dynamicTableIds.push('#modalClienteProcesoDetalle{{ $index }}');
+            @endforeach
+            @foreach ($modulosGrafica as $moduloIndex => $modulo)
+                dynamicTableIds.push('#modalModuloAQLDetalle{{ $moduloIndex }}');
+                dynamicTableIds.push('#modalModuloProcesoDetalle{{ $moduloIndex }}');
+            @endforeach
+            @foreach ($teamLeadersGrafica as $supervisorIndex => $team_leader)
+                dynamicTableIds.push('#modalSupervisorAQLDetalle{{ $supervisorIndex }}');
+                dynamicTableIds.push('#modalSupervisorProcesoDetalle{{ $supervisorIndex }}');
+            @endforeach
+
+            const allTableIds = [...staticTableIds, ...dynamicTableIds];
 
             function initializeTable(tableId) {
                 if (!$.fn.dataTable.isDataTable(tableId)) {
@@ -1441,36 +1450,46 @@
                         lengthChange: false,
                         searching: true,
                         paging: true,
-                        pageLength: 10,
+                        pageLength: dynamicTableIds.includes(tableId) ? 9 : 10,
                         autoWidth: false,
                         responsive: true,
-                        language: {
-                            "sProcessing":     "Procesando...",
-                            "sLengthMenu":     "Mostrar _MENU_ registros",
-                            "sZeroRecords":    "No se encontraron resultados",
-                            "sEmptyTable":     "Ningún dato disponible en esta tabla",
-                            "sInfo":           "Registros _START_ - _END_ de _TOTAL_ mostrados",
-                            "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
-                            "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-                            "sInfoPostFix":    "",
-                            "sSearch":         "Buscar:",
-                            "sUrl":            "",
-                            "sInfoThousands":  ",",
-                            "sLoadingRecords": "Cargando...",
-                            "oPaginate": {
-                                "sFirst":    "Primero",
-                                "sLast":     "Último",
-                                "sNext":     "Siguiente",
-                                "sPrevious": "Anterior"
+                        columnDefs: [
+                            {
+                                searchable: false,
+                                orderable: false,
                             },
-                            "oAria": {
-                                "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-                                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                            }
-                        },
-                        //asi es para seleccionar una serie de columnas personalizadas
+                        ],
+                        language: {
+                                "sProcessing":     "Procesando...",
+                                "sLengthMenu":     "Mostrar _MENU_ registros",
+                                "sZeroRecords":    "No se encontraron resultados",
+                                "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                                "sInfo":           "Registros _START_ - _END_ de _TOTAL_ mostrados",
+                                "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                                "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                                "sInfoPostFix":    "",
+                                "sSearch":         "Buscar:",
+                                "sUrl":            "",
+                                "sInfoThousands":  ",",
+                                "sLoadingRecords": "Cargando...",
+                                "oPaginate": {
+                                    "sFirst":    "Primero",
+                                    "sLast":     "Último",
+                                    "sNext":     "Siguiente",
+                                    "sPrevious": "Anterior"
+                                },
+                                "oAria": {
+                                    "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                                }
+                            },
                         initComplete: function(settings, json) {
-                            initializeDataTableFilters(tableId, [0, 1, 4, 5], 'filter-dropdown-' + tableId.replace('#', ''));
+                            if ($('body').hasClass('dark-mode')) {
+                                $(tableId + '_wrapper').addClass('dark-mode');
+                            }
+                            if (dynamicTableIds.includes(tableId)) {
+                                initializeDataTableFilters(tableId, [0, 1, 4], 'filter-dropdown-' + tableId.replace('#', ''));
+                            }
                         }
                     });
                 }
@@ -1482,7 +1501,7 @@
                 columnIndices.forEach((columnIndex, index) => {
                     var filterDropdown = $(
                         `<div class="dropdown filter-dropdown">
-                            <button class="btn btn-primary dropdown-toggle filter-button" type="button" id="${dropdownIdPrefix}Button${index}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <button class="btn btn-primary dropdown-toggle filter-button" type="button" id="${dropdownIdPrefix}Button${index}" data-bs-toggle="dropdown" aria-expanded="false">
                                 Filtrar
                             </button>
                             <div class="dropdown-menu" aria-labelledby="${dropdownIdPrefix}Button${index}" id="${dropdownIdPrefix}${index}"></div>
@@ -1515,19 +1534,25 @@
                         table.column(columnIndex).search(searchTerm, true, false).draw();
                     }
 
-                    // Manejadores de eventos
+                    // Manejador para los checkboxes individuales
                     $('#' + dropdownIdPrefix + index).on('change', '.filter-checkbox', updateTable);
+
+                    // Manejador para "Seleccionar todo"
                     $('#' + dropdownIdPrefix + index).on('click', '.select-all', function(e) {
                         e.preventDefault();
                         $('#' + dropdownIdPrefix + index + ' .filter-checkbox').prop('checked', true);
                         updateTable();
                     });
+
+                    // Manejador para "Deseleccionar todo"
                     $('#' + dropdownIdPrefix + index).on('click', '.deselect-all', function(e) {
                         e.preventDefault();
                         $('#' + dropdownIdPrefix + index + ' .filter-checkbox').prop('checked', false);
                         updateTable();
                     });
-                    $('#' + dropdownIdPrefix + index).on('click', function(e) {
+
+                    // Evitar que el dropdown se cierre al hacer clic
+                    $('#' + dropdownIdPrefix + index).on('click', 'a', function(e) {
                         e.stopPropagation();
                     });
 
@@ -1535,6 +1560,8 @@
                     updateTable();
                 });
             }
+
+            allTableIds.forEach(initializeTable);
         });
     </script>
 @endpush
