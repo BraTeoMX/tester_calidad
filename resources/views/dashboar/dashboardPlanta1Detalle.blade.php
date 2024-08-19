@@ -318,6 +318,8 @@
                     <table class="table table-striped table-sm" id="modalClienteAQLDetalle{{ $index }}">
                         <thead>
                             <tr>
+                                <th>MODULO</th>
+                                <th>SUPERVISOR</th>
                                 <th># BULTO</th>
                                 <th>PIEZAS</th>
                                 <th>TALLA</th>
@@ -330,6 +332,8 @@
                         <tbody>
                             @foreach ($detallesClientes[$cliente]['aql'] as $detalle)
                             <tr>
+                                <td>{{ $detalle->modulo ?? 'N/A' }}</td>
+                                <td>{{ $detalle->team_leader ?? 'N/A' }}</td>
                                 <td>{{ $detalle->bulto ?? 'N/A' }}</td>
                                 <td>{{ $detalle->pieza ?? 'N/A' }}</td>
                                 <td>{{ $detalle->talla ?? 'N/A' }}</td>
@@ -347,6 +351,9 @@
                     <table class="table table-striped table-sm" id="modalClienteProcesoDetalle{{ $index }}">
                         <thead>
                             <tr>
+                                <th>Modulo</th>
+                                <th>Supervisor</th>
+                                <th>Estilo</th>
                                 <th>Nombre</th>
                                 <th>Operacion</th>
                                 <th>Piezas Auditadas</th>
@@ -356,6 +363,9 @@
                         <tbody>
                             @foreach ($detallesClientes[$cliente]['proceso'] as $detalle)
                             <tr>
+                                <td>{{ $detalle->modulo ?? 'N/A' }}</td> 
+                                <td>{{ $detalle->team_leader ?? 'N/A' }}</td> 
+                                <td>{{ $detalle->estilo ?? 'N/A' }}</td> 
                                 <td>{{ $detalle->nombre ?? 'N/A' }}</td>
                                 <td>{{ $detalle->operacion ?? 'N/A' }}</td>
                                 <td>{{ $detalle->cantidad_auditada ?? 'N/A' }}</td>
@@ -434,7 +444,7 @@
         <div class="modal-dialog modal-fullscreen" role="document"> <!-- Cambiado a modal-fullscreen -->
             <div class="modal-content bg-dark text-white">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalDetalleModuloLabel{{ $moduloIndex }}">Detalles para Módulo: {{ $modulo }}</h5>
+                    <h5 class="modal-title text-white" id="modalDetalleModuloLabel{{ $moduloIndex }}">Detalles para Módulo: {{ $modulo }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -445,6 +455,8 @@
                     <table class="table table-striped table-sm" id="modalModuloAQLDetalle{{ $moduloIndex }}">
                         <thead>
                             <tr>
+                                <th>CLIENTE</th>
+                                <th>SUPERVISOR</th>
                                 <th># BULTO</th>
                                 <th>PIEZAS</th>
                                 <th>TALLA</th>
@@ -455,8 +467,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($detallesClientes[$cliente]['aql'] as $detalle)
+                            @foreach ($detallesModulos[$modulo]['aql'] as $detalle)
                             <tr>
+                                <td>{{ $detalle->cliente ?? 'N/A' }}</td>
+                                <td>{{ $detalle->team_leader ?? 'N/A' }}</td>
                                 <td>{{ $detalle->bulto ?? 'N/A' }}</td>
                                 <td>{{ $detalle->pieza ?? 'N/A' }}</td>
                                 <td>{{ $detalle->talla ?? 'N/A' }}</td>
@@ -474,6 +488,9 @@
                     <table class="table table-striped table-sm" id="modalModuloProcesoDetalle{{ $moduloIndex }}">
                         <thead>
                             <tr>
+                                <th>Cliente</th>
+                                <th>Supervisor</th>
+                                <th>Estilo</th>
                                 <th>Nombre</th>
                                 <th>Operacion</th>
                                 <th>Piezas Auditadas</th>
@@ -481,8 +498,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($detallesClientes[$cliente]['proceso'] as $detalle)
+                            @foreach ($detallesModulos[$modulo]['proceso'] as $detalle)
                             <tr>
+                                <td>{{ $detalle->cliente ?? 'N/A' }}</td>
+                                <td>{{ $detalle->team_leader ?? 'N/A' }}</td>
+                                <td>{{ $detalle->estilo ?? 'N/A' }}</td>
                                 <td>{{ $detalle->nombre ?? 'N/A' }}</td>
                                 <td>{{ $detalle->operacion ?? 'N/A' }}</td>
                                 <td>{{ $detalle->cantidad_auditada ?? 'N/A' }}</td>
@@ -561,7 +581,7 @@
         <div class="modal-dialog modal-fullscreen" role="document"> <!-- Cambiado a modal-fullscreen -->
             <div class="modal-content bg-dark text-white">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalDetalleSupervisorLabel{{ $supervisorIndex }}">Detalles para Supervisor: {{ $team_leader }}</h5>
+                    <h5 class="modal-title text-white" id="modalDetalleSupervisorLabel{{ $supervisorIndex }}">Detalles para Supervisor: {{ $team_leader }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -572,6 +592,8 @@
                     <table class="table table-striped table-sm" id="modalSupervisorAQLDetalle{{ $supervisorIndex }}">
                         <thead>
                             <tr>
+                                <th>CLIENTE</th>
+                                <th>MODULO</th>
                                 <th># BULTO</th>
                                 <th>PIEZAS</th>
                                 <th>TALLA</th>
@@ -582,8 +604,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($detallesClientes[$cliente]['aql'] as $detalle)
+                            @foreach ($detallesSupervisores[$team_leader]['aql'] as $detalle)
                             <tr>
+                                <td>{{ $detalle->cliente ?? 'N/A' }}</td>
+                                <td>{{ $detalle->modulo ?? 'N/A' }}</td>
                                 <td>{{ $detalle->bulto ?? 'N/A' }}</td>
                                 <td>{{ $detalle->pieza ?? 'N/A' }}</td>
                                 <td>{{ $detalle->talla ?? 'N/A' }}</td>
@@ -601,6 +625,9 @@
                     <table class="table table-striped table-sm" id="modalSupervisorProcesoDetalle{{ $supervisorIndex }}">
                         <thead>
                             <tr>
+                                <th>Cliente</th>
+                                <th>Modulo</th>
+                                <th>Estilo</th>
                                 <th>Nombre</th>
                                 <th>Operacion</th>
                                 <th>Piezas Auditadas</th>
@@ -608,8 +635,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($detallesClientes[$cliente]['proceso'] as $detalle)
+                            @foreach ($detallesSupervisores[$team_leader]['proceso'] as $detalle)
                             <tr>
+                                <td>{{ $detalle->cliente ?? 'N/A' }}</td>
+                                <td>{{ $detalle->modulo ?? 'N/A' }}</td>
+                                <td>{{ $detalle->estilo ?? 'N/A' }}</td>
                                 <td>{{ $detalle->nombre ?? 'N/A' }}</td>
                                 <td>{{ $detalle->operacion ?? 'N/A' }}</td>
                                 <td>{{ $detalle->cantidad_auditada ?? 'N/A' }}</td>
@@ -897,6 +927,16 @@
         }
         
       </style>
+      <style>
+        .filter-dropdown {
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .custom-checkbox {
+            display: block;
+            padding: 3px 20px;
+        }
+    </style>
 @endsection
 
 @push('js') 
@@ -1365,46 +1405,45 @@
 @endpush
 
 @push('js')
-    <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap5.min.css">
     <!-- DataTables JavaScript -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         $(document).ready(function() {
-            const tableIds = ['#tablaDinamico', '#tablaDinamico2', '#tablaDinamico3', '#tablaDinamico4', '#tablaClientes', 
-                    '#clientesDetalleTabla', '#moduloDetalleTabla', '#supervisorDetalleTabla'];
-            @foreach ($clientesGrafica as $index => $cliente)
-                tableIds.push('#modalClienteAQLDetalle{{ $index }}');
-                tableIds.push('#modalClienteProcesoDetalle{{ $index }}');
-            @endforeach
-            @foreach ($modulosGrafica as $moduloIndex => $modulo)
-                tableIds.push('#modalModuloAQLDetalle{{ $moduloIndex }}');
-                tableIds.push('#modalModuloProcesoDetalle{{ $moduloIndex }}');
-            @endforeach
-            @foreach ($teamLeadersGrafica as $supervisorIndex => $team_leader)
-                tableIds.push('#modalSupervisorAQLDetalle{{ $supervisorIndex }}');
-                tableIds.push('#modalSupervisorProcesoDetalle{{ $supervisorIndex }}');
-            @endforeach
+            const tableIds = [
+                @foreach ($clientesGrafica as $index => $cliente)
+                    '#modalClienteAQLDetalle{{ $index }}',
+                    '#modalClienteProcesoDetalle{{ $index }}',
+                @endforeach
+                @foreach ($modulosGrafica as $moduloIndex => $modulo)
+                    '#modalModuloAQLDetalle{{ $moduloIndex }}',
+                    '#modalModuloProcesoDetalle{{ $moduloIndex }}',
+                @endforeach
+                @foreach ($teamLeadersGrafica as $supervisorIndex => $team_leader)
+                    '#modalSupervisorAQLDetalle{{ $supervisorIndex }}',
+                    '#modalSupervisorProcesoDetalle{{ $supervisorIndex }}',
+                @endforeach
+            ];
 
-            tableIds.forEach(tableId => {
+            tableIds.forEach(initializeTable);
+
+            function initializeTable(tableId) {
                 if (!$.fn.dataTable.isDataTable(tableId)) {
-                    $(tableId).DataTable({
+                    const table = $(tableId).DataTable({
                         lengthChange: false,
                         searching: true,
                         paging: true,
                         pageLength: 10,
                         autoWidth: false,
                         responsive: true,
-                        columnDefs: [
-                            {
-                                searchable: false,
-                                orderable: false,
-                            },
-                        ],
                         language: {
                             "sProcessing":     "Procesando...",
                             "sLengthMenu":     "Mostrar _MENU_ registros",
@@ -1429,15 +1468,73 @@
                                 "sSortDescending": ": Activar para ordenar la columna de manera descendente"
                             }
                         },
+                        //asi es para seleccionar una serie de columnas personalizadas
                         initComplete: function(settings, json) {
-                            if ($('body').hasClass('dark-mode')) {
-                                $(tableId + '_wrapper').addClass('dark-mode');
-                            }
+                            initializeDataTableFilters(tableId, [0, 1, 4, 5], 'filter-dropdown-' + tableId.replace('#', ''));
                         }
                     });
                 }
-            });
+            }
+
+            function initializeDataTableFilters(tableId, columnIndices, dropdownIdPrefix) {
+                var table = $(tableId).DataTable();
+
+                columnIndices.forEach((columnIndex, index) => {
+                    var filterDropdown = $(
+                        `<div class="dropdown filter-dropdown">
+                            <button class="btn btn-primary dropdown-toggle filter-button" type="button" id="${dropdownIdPrefix}Button${index}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Filtrar
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="${dropdownIdPrefix}Button${index}" id="${dropdownIdPrefix}${index}"></div>
+                        </div>`
+                    );
+                    $(tableId + ' thead th').eq(columnIndex).append(filterDropdown);
+                    var uniqueValues = table.column(columnIndex).data().unique().sort();
+                    var dropdownContent = `
+                        <a class="dropdown-item select-all" href="#">Seleccionar todo</a>
+                        <a class="dropdown-item deselect-all" href="#">Deseleccionar todo</a>
+                        <div class="dropdown-divider"></div>
+                    `;
+                    uniqueValues.each(function(d) {
+                        dropdownContent += `
+                            <a class="dropdown-item custom-checkbox">
+                                <input type="checkbox" class="filter-checkbox" id="${dropdownIdPrefix}${index}-${d}" value="${d}" checked>
+                                <label for="${dropdownIdPrefix}${index}-${d}">${d}</label>
+                            </a>`;
+                    });
+
+                    $('#' + dropdownIdPrefix + index).addClass('scrollable-menu').html(dropdownContent);
+
+                    // Función para actualizar la tabla
+                    function updateTable() {
+                        var selectedValues = [];
+                        $('#' + dropdownIdPrefix + index + ' .filter-checkbox:checked').each(function() {
+                            selectedValues.push($.fn.dataTable.util.escapeRegex($(this).val()));
+                        });
+                        var searchTerm = selectedValues.length ? '^(' + selectedValues.join('|') + ')$' : '';
+                        table.column(columnIndex).search(searchTerm, true, false).draw();
+                    }
+
+                    // Manejadores de eventos
+                    $('#' + dropdownIdPrefix + index).on('change', '.filter-checkbox', updateTable);
+                    $('#' + dropdownIdPrefix + index).on('click', '.select-all', function(e) {
+                        e.preventDefault();
+                        $('#' + dropdownIdPrefix + index + ' .filter-checkbox').prop('checked', true);
+                        updateTable();
+                    });
+                    $('#' + dropdownIdPrefix + index).on('click', '.deselect-all', function(e) {
+                        e.preventDefault();
+                        $('#' + dropdownIdPrefix + index + ' .filter-checkbox').prop('checked', false);
+                        updateTable();
+                    });
+                    $('#' + dropdownIdPrefix + index).on('click', function(e) {
+                        e.stopPropagation();
+                    });
+
+                    // Aplicar el filtro inicial
+                    updateTable();
+                });
+            }
         });
     </script>
-    
 @endpush
