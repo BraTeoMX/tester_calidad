@@ -1410,7 +1410,6 @@
 @endpush
 
 @push('js')
-    <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap5.min.css">
@@ -1488,7 +1487,9 @@
                                 $(tableId + '_wrapper').addClass('dark-mode');
                             }
                             if (dynamicTableIds.includes(tableId)) {
-                                initializeDataTableFilters(tableId, [0, 1, 4], 'filter-dropdown-' + tableId.replace('#', ''));
+                                var totalColumns = $(tableId).find('thead th').length;
+                                var allColumns = Array.from({length: totalColumns}, (_, i) => i);
+                                initializeDataTableFilters(tableId, allColumns, 'filter-dropdown-' + tableId.replace('#', ''));
                             }
                         }
                     });
@@ -1501,7 +1502,7 @@
                 columnIndices.forEach((columnIndex, index) => {
                     var filterDropdown = $(
                         `<div class="dropdown filter-dropdown">
-                            <button class="btn btn-primary dropdown-toggle filter-button" type="button" id="${dropdownIdPrefix}Button${index}" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button class="btn btn-secondary dropdown-toggle filter-button" type="button" id="${dropdownIdPrefix}Button${index}" data-bs-toggle="dropdown" aria-expanded="false">
                                 Filtrar
                             </button>
                             <div class="dropdown-menu" aria-labelledby="${dropdownIdPrefix}Button${index}" id="${dropdownIdPrefix}${index}"></div>
