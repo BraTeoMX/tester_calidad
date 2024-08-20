@@ -455,6 +455,7 @@
                         <thead>
                             <tr>
                                 <th>PARO</th>
+                                <th>CLIENTE</th>
                                 <th># BULTO</th>
                                 <th>PIEZAS</th>
                                 <th>TALLA</th>
@@ -470,6 +471,7 @@
                             @foreach ($item['detalles'] as $registro)
                                 <tr>
                                     <td>{{ $registro->minutos_paro }}</td>
+                                    <td>{{ $registro->cliente }}</td>
                                     <td>{{ $registro->bulto }}</td>
                                     <td>{{ $registro->pieza }}</td>
                                     <td>{{ $registro->talla }}</td>
@@ -505,6 +507,7 @@
                         <thead>
                             <tr>
                                 <th>PARO</th>
+                                <th>CLIENTE</th>
                                 <th>Nombre</th>
                                 <th>Operacion</th>
                                 <th>Piezas Auditadas</th>
@@ -518,6 +521,7 @@
                             @foreach ($item['detalles'] as $registro)
                                 <tr>
                                     <td>{{ $registro->minutos_paro }}</td>
+                                    <td>{{ $registro->cliente }}</td>
                                     <td>{{ $registro->nombre }}</td>
                                     <td>{{ $registro->operacion }}</td>
                                     <td>{{ $registro->cantidad_auditada }}</td>
