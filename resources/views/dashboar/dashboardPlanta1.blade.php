@@ -1095,7 +1095,6 @@
                         lengthChange: false,
                         searching: true,
                         paging: true,
-                        pageLength: 5,
                         autoWidth: false,
                         responsive: true,
                         dom: 'Bfrtip',  // Añadido para mostrar los botones
