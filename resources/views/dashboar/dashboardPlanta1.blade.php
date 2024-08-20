@@ -1066,13 +1066,24 @@
 @endpush
 
 @push('js')
-    <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap5.min.css">
+
     <!-- DataTables JavaScript -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- DataTables Buttons JavaScript -->
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+
 
     <script>
         $(document).ready(function() {
@@ -1087,6 +1098,24 @@
                         pageLength: 5,
                         autoWidth: false,
                         responsive: true,
+                        dom: 'Bfrtip',  // Añadido para mostrar los botones
+                        buttons: [
+                            {
+                                extend: 'excelHtml5',
+                                text: 'Exportar a Excel',
+                                className: 'btn btn-success'
+                            },
+                            {
+                                extend: 'pdfHtml5',
+                                text: 'Exportar a PDF',
+                                className: 'btn btn-danger'
+                            },
+                            {
+                                extend: 'print',
+                                text: 'Imprimir',
+                                className: 'btn btn-primary'
+                            }
+                        ],
                         columnDefs: [
                             {
                                 searchable: false,
@@ -1127,5 +1156,6 @@
             });
         });
     </script>
+    
     
 @endpush

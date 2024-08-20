@@ -36,7 +36,10 @@ class DashboardPlanta1Controller extends Controller
     public function dashboardPanta1()
     {
         $title = "";
-        $fechaActual = Carbon::now()->toDateString();
+        //$fechaActual = Carbon::now()->toDateString();
+        //$fechaActual = date('15/08/2024');
+        $fechaActual = Carbon::create(2024, 8, 15);
+        //dd($fechaActual, $fechaEspecifica);
         $fechaInicio = Carbon::now()->subMonth()->toDateString(); // Cambia el rango de fechas según necesites
         $fechaFin = Carbon::now()->toDateString();
 
