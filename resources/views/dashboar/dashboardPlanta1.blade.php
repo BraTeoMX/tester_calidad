@@ -358,7 +358,7 @@
         <div class="col-lg-6 col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
-                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general</h3>
+                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general</h3> 
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -366,14 +366,20 @@
                             <thead class=" text-primary">
                                 <tr>
                                     <th>Modulo (AQL)</th>
+                                    <th>Estilo</th>
                                     <th>Numero de Operarios</th>
                                     <th>Cantidad Paro</th>
                                     <th>Minutos Paro</th>
                                     <th>Promedio Minutos Paro</th>
                                     <th>Cantidad Paro Modular</th>
+                                    <th>Total piezas por Bulto</th> 
+                                    <th>Total Bulto</th> 
+                                    <th>Total Bulto Rechazados</th> 
                                     <th>Cantidad Auditados</th>
                                     <th>Cantidad Defectos</th>
                                     <th>% Error AQL</th>
+                                    <th>Defectos</th>
+                                    <th>Accion Correctiva</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -384,14 +390,20 @@
                                                 {{ $item['modulo'] }}
                                             </button>
                                         </td>
+                                        <td>{{ $item['estilosUnicos'] }}</td>
                                         <td>{{ $item['conteoOperario'] }}</td>
                                         <td>{{ $item['conteoMinutos'] }}</td>
                                         <td>{{ $item['sumaMinutos'] }}</td>
                                         <td>{{ $item['promedioMinutosEntero'] }}</td>
                                         <td>{{ $item['conteParoModular'] }}</td>
-                                        <td>{{ $item['sumaRechazadaAQL'] }}</td> 
+                                        <td>{{ $item['sumaPiezasBulto'] }}</td> 
+                                        <td>{{ $item['cantidadBultosEncontrados'] }}</td> 
+                                        <td>{{ $item['cantidadBultosRechazados'] }}</td> 
                                         <td>{{ $item['sumaAuditadaAQL'] }}</td> 
+                                        <td>{{ $item['sumaRechazadaAQL'] }}</td> 
                                         <td>{{ number_format($item['porcentaje_error_aql'], 2) }}%</td>
+                                        <td>{{ $item['defectosUnicos'] }}</td>
+                                        <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -411,6 +423,8 @@
                             <thead class=" text-primary">
                                 <tr>
                                     <th>Modulo (Proceso)</th>
+                                    <th>Estilo</th>
+                                    <th>Recorridos</th>
                                     <th>Numero de Operarios</th>
                                     <th>Numero de Utility</th>
                                     <th>Cantidad Paro</th>
@@ -419,6 +433,8 @@
                                     <th>Cantidad Auditados</th>
                                     <th>Cantidad Defectos</th>
                                     <th>% Error Proceso</th>
+                                    <th>DEFECTOS</th>
+                                    <th>ACCION CORRECTIVA</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -429,6 +445,8 @@
                                                 {{ $item['modulo'] }}
                                             </button>
                                         </td>
+                                        <td>{{ $item['estilosUnicos'] }}</td>
+                                        <td>{{ $item['cantidadRecorridos'] }}</td>
                                         <td>{{ $item['conteoOperario'] }}</td>
                                         <td>{{ $item['conteoUtility'] }}</td>
                                         <td>{{ $item['conteoMinutos'] }}</td>
@@ -437,6 +455,8 @@
                                         <td>{{ $item['sumaAuditadaProceso'] }}</td> 
                                         <td>{{ $item['sumaRechazadaProceso'] }}</td> 
                                         <td>{{ number_format($item['porcentaje_error_proceso'], 2) }}%</td>
+                                        <td>{{ $item['defectosUnicos'] }}</td>
+                                        <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>

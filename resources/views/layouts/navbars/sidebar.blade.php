@@ -10,6 +10,12 @@
                         <i class="tim-icons icon-chart-pie-36"></i>
                         <p>{{ __('Dashboard') }}</p>
                     </a>
+                </li> 
+                <li class="nav-item{{ $pageSlug == 'dashboardPorDia' ? ' active' : '' }}">
+                    <a class="nav-link" href="{{ route('dashboar.dashboardPanta1PorDia') }}">
+                        <i class="tim-icons icon-chart-pie-36"></i>
+                        <p>{{ __('Consulta por Dia') }}</p>
+                    </a>
                 </li>
             @endif
 

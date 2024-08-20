@@ -414,7 +414,7 @@ class AuditoriaAQLController extends Controller
         if ((($conteoParos == 1) && ($request->cantidad_rechazada > 0)) || (($conteoParos == 3) && ($request->cantidad_rechazada > 0))) {
             $nuevoRegistro->paro_modular = 1;
         }
-
+        $nuevoRegistro->ac = $request->ac;
         $nuevoRegistro->save();
 
          // Obtener el ID del nuevo registro

@@ -15,7 +15,7 @@ use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\DB; // Importa la clase DB
 
 
-class DashboardPlanta1Controller extends Controller
+class DashboardPlanta1PorDiaController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -33,13 +33,18 @@ class DashboardPlanta1Controller extends Controller
      * @return \Illuminate\View\View
      */
 
-    public function dashboardPanta1()
+    public function dashboardPanta1PorDia(Request $request)
     {
         $title = "";
         //$fechaActual = Carbon::now()->toDateString();
         //$fechaActual = date('15/08/2024');
-        $fechaActual = Carbon::create(2024, 8, 19);
+        //$fechaActual = Carbon::create(2024, 8, 19);
         //dd($fechaActual, $fechaEspecifica);
+        // Verifica si hay una fecha en la solicitud; si la hay, la convierte en un objeto Carbon, si no, usa la fecha actual
+        $fechaActual = $request->has('fecha_inicio') 
+            ? Carbon::parse($request->input('fecha_inicio')) 
+            : Carbon::now();  // Aquí no se usa toDateString(), así que $fechaActual es un objeto Carbon
+        //dd($fechaActual);
         $fechaInicio = Carbon::now()->subMonth()->toDateString(); // Cambia el rango de fechas según necesites
         $fechaFin = Carbon::now()->toDateString();
 
@@ -222,8 +227,8 @@ class DashboardPlanta1Controller extends Controller
         // Convertir la colección a un array si es necesario
         $clientesUnicosArrayBusqueda = $clientesUnicosBusqueda->values()->all();
 
-        return view('dashboar.dashboardPlanta1', compact(
-            'title',
+        return view('dashboar.dashboardPanta1PorDia', compact(
+            'title', 'fechaActual',
             'topDefectosAQL',
             'topDefectosProceso',
             'dataModuloAQLPlanta1',
