@@ -1098,7 +1098,7 @@
                     $(tableId).DataTable({
                         lengthChange: false,
                         searching: true,
-                        paging: true,
+                        paging: false,
                         autoWidth: false,
                         responsive: true,
                         dom: 'Bfrtip',  // Añadido para mostrar los botones
