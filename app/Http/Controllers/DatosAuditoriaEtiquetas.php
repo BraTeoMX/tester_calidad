@@ -166,7 +166,7 @@ class DatosAuditoriaEtiquetas extends Controller
         $estilo = $request->input('estilo');
         $orden = $request->input('orden');
         $tipoBusqueda = $request->input('tipoBusqueda');
-Log::info($estilo);
+
         // Definir el campo de búsqueda y el modelo según el tipo
         if ($tipoBusqueda == 'OC') {
             $campoBusqueda = 'OrdenCompra';
@@ -183,7 +183,7 @@ Log::info($estilo);
             $modelo = DatosAXOV::class;
             $selectCampos = ['id', $campoBusqueda, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
         }
-
+Log::info('Estilo seleccionado: '. $estilo);
         // Buscar datos relacionados con el estilo especificado y la orden de compra
         $datos = $modelo::where('Estilos', $estilo)
             ->where($campoBusqueda, $orden)
@@ -247,93 +247,7 @@ Log::info($estilo);
 
         return response()->json($tiposDefectos);
     }
-    public function guardarInformacion(Request $request)
-{
-    $datos = $request->input('datos');
-
-    Log::info('Datos recibidos:', ['datos' => $datos]);
-
-    try {
-        // Validar datos
-        if (!is_array($datos)) {
-            throw new \Exception('Datos inválidos, se esperaba un array.');
-        }
-
-        // Iterar sobre los datos recibidos
-        foreach ($datos as $dato) {
-            Log::info('Procesando dato:', ['dato' => $dato]);
-
-            // Verificar si existe el índice 'tipoDefecto' antes de acceder a él
-            $tipoDefecto = isset($dato['tipoDefecto'])
-                ? (is_array($dato['tipoDefecto']) ? implode(', ', $dato['tipoDefecto']) : $dato['tipoDefecto'])
-                : 'N/A';
-
-            // Buscar si existe un registro con el mismo ID en ReporteAuditoriaEtiqueta
-            $registroExistente = ReporteAuditoriaEtiqueta::find($dato['id']);
-            if ($registroExistente) {
-                // Si existe un registro en ReporteAuditoriaEtiqueta, actualizar sus atributos
-                $registroExistente->Status = 'Update';
-                $registroExistente->Defectos = $dato['defectos'];
-                $registroExistente->Tipo_Defectos = $tipoDefecto;
-                $registroExistente->save();
-            } else {
-                // Si no existe, crear un nuevo registro en ReporteAuditoriaEtiqueta
-                $reporte = new ReporteAuditoriaEtiqueta();
-                $reporte->id = $dato['id'];
-                $reporte->Orden = $dato['orden'];
-                $reporte->Estilos = $dato['estilo'];
-                $reporte->Cantidad = $dato['cantidad'];
-                $reporte->Muestreo = $dato['muestreo'];
-                $reporte->Defectos = $dato['defectos'];
-                $reporte->Tipo_Defectos = $tipoDefecto;
-                $reporte->Talla = $dato['talla'];
-                $reporte->Color = $dato['color'];
-                $reporte->Status = 'Guardado';
-                $reporte->save();
-            }
-
-            // Obtener el tipo de búsqueda del registro actual
-            $tipoBusqueda = $dato['tipoBusqueda'];
-
-            // Determinar el modelo y el campo de búsqueda según el tipo
-            if ($tipoBusqueda === 'OC') {
-                $modelo = ModelsDatosAuditoriaEtiquetas::class;
-                $campoBusqueda = 'OrdenCompra';
-            } else {
-                $campoBusqueda = $tipoBusqueda; // OP, PO, OV
-                $modelo = DatosAXOV::class;
-            }
-
-            try {
-                Log::info('Buscando registros en el modelo:', ['modelo' => $modelo, 'campoBusqueda' => $campoBusqueda, 'valor' => $dato['orden'], 'estilo' => $dato['estilo']]);
-
-                // Buscar todos los registros en el modelo correspondiente que coincidan con el tipo de búsqueda y el estilo
-                $registrosExistentesModel = $modelo::where($campoBusqueda, $dato['orden'])
-                    ->where('Estilos', $dato['estilo'])
-                    ->get();
-
-                if ($registrosExistentesModel->isNotEmpty()) {
-                    // Si existen registros, actualizar solo su atributo 'status'
-                    foreach ($registrosExistentesModel as $registroExistenteModel) {
-                        $registroExistenteModel->status = 'Iniciado';
-                        $registroExistenteModel->save();
-                    }
-                }
-            } catch (\Exception $e) {
-                Log::error('Error al buscar o actualizar registros en el modelo ' . $modelo . ': ' . $e->getMessage());
-                throw $e; // Volver a lanzar la excepción para que sea atrapada por el catch exterior
-            }
-        }
-
-        // Retornar una respuesta JSON indicando el éxito
-        return response()->json(['mensaje' => 'Los datos han sido actualizados correctamente'], 200);
-    } catch (\Exception $e) {
-        Log::error('Error al guardar los datos: ' . $e->getMessage() . ' en la línea ' . $e->getLine());
-        return response()->json(['error' => 'Error interno del servidor.'], 500);
-    }
-}
-
-public function actualizarStatus(Request $request)
+    public function actualizarStatus(Request $request)
 {
     try {
         // Obtener los datos enviados desde el frontend
@@ -341,14 +255,19 @@ public function actualizarStatus(Request $request)
         $status = $request->input('status');
         $rowId = $request->input('rowId');
 
-        Log::info($datos);
-        Log::info($status);
+        // Registrar los datos iniciales para depuración
+        Log::info('Datos recibidos: ' . json_encode($datos));
+        Log::info('Status recibido: ' . $status);
+        Log::info('Row ID recibido: ' . $rowId);
 
         if (!is_array($datos) || empty($datos)) {
             throw new \Exception('Datos inválidos, se esperaba un array no vacío.');
         }
 
         foreach ($datos as $dato) {
+            // Log detallado de cada dato individual
+            Log::info('Procesando dato: ' . json_encode($dato));
+
             // Validar la existencia de campos necesarios
             if (!isset($dato['id']) || !isset($dato['tipoBusqueda'])) {
                 throw new \Exception('Datos incompletos: falta id o tipoBusqueda.');
@@ -358,22 +277,48 @@ public function actualizarStatus(Request $request)
             if (is_array($dato['tipoDefecto'])) {
                 $dato['tipoDefecto'] = implode(', ', $dato['tipoDefecto']);
             }
+            Log::info('Tipo Defecto después de conversión: ' . $dato['tipoDefecto']);
+
+            // Convertir el array defectos en una cadena separada por comas
+            if (is_array($dato['defectos'])) {
+                // Suponiendo que cada elemento es un objeto con una clave "cantidad"
+                $defectos = array_map(function($defecto) {
+                    return $defecto['cantidad']; // Extraer solo la cantidad
+                }, $dato['defectos']);
+
+                $dato['defectos'] = implode(', ', $defectos); // Convertir array en string separado por comas
+            }
+            Log::info('Defectos después de conversión: ' . $dato['defectos']);
+
+            // Log de los datos antes de intentar guardar
+            Log::info('Datos a guardar o actualizar: ' . json_encode([
+                'Orden' => $dato['orden'] ?? 'N/A',
+                'Estilos' => $dato['estilo'] ?? 'N/A',
+                'Cantidad' => $dato['cantidad'] ?? 'N/A',
+                'Muestreo' => $dato['muestreo'] ?? 'N/A',
+                'Defectos' => $dato['defectos'] ?? '', // Ahora es una cadena separada por comas
+                'Tipo_Defectos' => $dato['tipoDefecto'] ?? 'N/A',
+                'Talla' => $dato['talla'] ?? 'N/A',
+                'Color' => $dato['color'] ?? 'N/A',
+                'Status' => $status
+            ]));
 
             // Buscar o crear registro en ReporteAuditoriaEtiqueta
-            ReporteAuditoriaEtiqueta::updateOrCreate(
+            $reporte = ReporteAuditoriaEtiqueta::updateOrCreate(
                 ['id' => $rowId],
                 [
                     'Orden' => $dato['orden'] ?? 'N/A',
                     'Estilos' => $dato['estilo'] ?? 'N/A',
                     'Cantidad' => $dato['cantidad'] ?? 'N/A',
                     'Muestreo' => $dato['muestreo'] ?? 'N/A',
-                    'Defectos' => $dato['defectos'] ?? 'N/A',
+                    'Defectos' => $dato['defectos'] ?? '', // Guardar como cadena separada por comas
                     'Tipo_Defectos' => $dato['tipoDefecto'] ?? 'N/A',
                     'Talla' => $dato['talla'] ?? 'N/A',
                     'Color' => $dato['color'] ?? 'N/A',
                     'Status' => $status
                 ]
             );
+            Log::info('Reporte guardado/actualizado con ID: ' . $reporte->id);
 
             // Obtener el tipo de búsqueda del registro actual
             $tipoBusqueda = $dato['tipoBusqueda'];
@@ -389,10 +334,12 @@ public function actualizarStatus(Request $request)
 
             // Buscar si existe un registro en el modelo correspondiente
             $registroExistenteModel = $modelo::where($campoBusqueda, $dato['id'])->first();
+            Log::info('Registro existente encontrado: ' . json_encode($registroExistenteModel));
 
             if ($registroExistenteModel) {
                 // Actualizar solo el atributo 'status'
                 $registroExistenteModel->update(['status' => $status]);
+                Log::info('Status actualizado en el modelo: ' . $modelo);
             } else {
                 // Registro no encontrado en el modelo específico, loguear advertencia
                 Log::warning('Registro no encontrado en ' . $modelo . ' con ' . $campoBusqueda . ': ' . $dato['id']);
@@ -407,6 +354,7 @@ public function actualizarStatus(Request $request)
         return response()->json(['error' => 'Error al actualizar los datos: ' . $e->getMessage()], 500);
     }
 }
+
 
 
 }

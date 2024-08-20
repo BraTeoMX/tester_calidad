@@ -32,7 +32,7 @@
                                 <option value="OV">OV</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <label for="ordenSelect">Selecciona No/Orden:</label>
                             <select class="form-control" id="ordenSelect" name="ordenSelect" required>
                             </select>
@@ -67,12 +67,14 @@
             // Cachear los selectores para reutilizarlos
             var $ordenSelect = $('#ordenSelect');
             var $tipoBusqueda = $('#tipoBusqueda');
+            var ajaxRequest; // Variable para almacenar la solicitud AJAX actual
 
             // Inicializar Select2 para la orden
             $ordenSelect.select2({
                 placeholder: 'Seleccione una orden',
                 allowClear: true
             });
+
             // Mapeo de rutas y campos a mostrar
             var rutas = {
                 OC: '/NoOrdenes',
@@ -86,32 +88,44 @@
                 PO: 'cpo',
                 OV: 'salesid'
             };
+
             // Manejar el cambio de tipo de búsqueda
             $tipoBusqueda.change(function() {
                 var tipoBusqueda = $(this).val();
                 var url = rutas[tipoBusqueda] || rutas.OC;
                 var campoMostrar = campos[tipoBusqueda];
-                $.ajax({
+
+                // Limpiar y restablecer el select de orden antes de cargar nuevas opciones
+                $ordenSelect.html('<option disabled selected>Seleccione una orden</option>').val(null).trigger('change');
+
+                // Cancelar cualquier solicitud AJAX anterior si está en progreso
+                if (ajaxRequest && ajaxRequest.readyState != 4) {
+                    ajaxRequest.abort();
+                }
+
+                // Realizar nueva solicitud AJAX
+                ajaxRequest = $.ajax({
                     url: url,
                     type: 'GET',
                     dataType: 'json',
                     success: function(data) {
-                        // Crear una plantilla para la opción predeterminada
-                        var opciones = $(
-                            '<option disabled selected>Seleccione una orden</option>');
+                        // Crear nuevas opciones usando los datos recibidos
+                        var opciones = $('<option disabled selected>Seleccione una orden</option>');
 
-                        // Crear las nuevas opciones usando la plantilla
                         $.each(data, function(key, value) {
                             opciones = opciones.add($('<option>', {
                                 value: value[campoMostrar],
                                 text: value[campoMostrar]
                             }));
                         });
+
                         // Reemplazar las opciones del select
                         $ordenSelect.html(opciones);
                     },
                     error: function(error) {
-                        console.error('Error al cargar opciones de ordenes: ', error);
+                        if (error.statusText !== 'abort') { // Ignorar errores de solicitud abortada
+                            console.error('Error al cargar opciones de ordenes: ', error);
+                        }
                     }
                 });
             });
@@ -166,20 +180,20 @@
                                 <div id="collapse${index}" class="collapse" aria-labelledby="heading${index}" data-parent="#accordion">
                                     <div class="card-body">
                                         <!-- Contenido de la auditoría para el estilo -->
-                                        Aquí va el contenido de la auditoría para el estilo ${estilo.Estilos}.
+                      <div class="table-responsive">
                     <table class="table table-sm" id="miTabla">
                         <thead>
                               <tr>
-                                    <th></th>
-                                    <th style="text-align: center;">Color</th>
-                                    <th style="text-align: center;">Talla</th>
-                                    <th style="text-align: center;">Cantidad</th>
-                                    <th style="text-align: center;">Tamaño
+                                    <th style="width: 0.5%;""></th>
+                                    <th style="text-align: center; width: 1%">Color</th>
+                                    <th style="text-align: center; width: 1%">Talla</th>
+                                    <th style="text-align: center; width: 1%;">Cantidad</th>
+                                    <th style="text-align: center; width: 1%;">Tamaño
                                         <br>Muestra</th>
-                                    <th style="text-align: center;"Tipos
+                                    <th style="text-align: center; width: 25%;">Tipos
                                         <br>Defectos</th>
-                                    <th style="text-align: center;"># Defectos</th>
-                                    <th style="text-align: center;">Acciones
+                                    <th style="text-align: center; width: 10%;"># Defectos</th>
+                                    <th style="text-align: center;  width: auto;">Acciones
                                         <br>Correctivas</th>
                              </tr>
                         </thead>
@@ -187,6 +201,7 @@
                                 <!-- Las filas del cuerpo (tbody) se generarán dinámicamente aquí -->
                             </tbody>
                     </table>
+                </div>
                                     </div>
                                 </div>
                             </div>`;
@@ -201,123 +216,237 @@
             });
         });
     </script>
-    <script>
-   $(document).ready(function() {
-    // Evento para cuando se despliega el accordion
-    $('#accordion').on('show.bs.collapse', function(event) {
-        let estiloText = $(event.target).closest('.card').find('.btn-link').text();
-        let estilo = estiloText.match(/Estilo:\s*([^\s-]+)/)[1].trim(); // Obtener solo el estilo
-        let orden = $('#ordenSelect').val();
-        let tipoBusqueda = $('#tipoBusqueda').val();
+  <script>
+    $(document).ready(function() {
+        // Función para generar un ID único
+        function generateUniqueId(prefix) {
+            return prefix + '_' + Math.random().toString(36).substr(2, 9);
+        }
 
-        $.ajax({
-            url: '/buscarDatosAuditoriaPorEstilo',
-            type: 'GET',
-            data: {
-                estilo: estilo,
-                orden: orden,
-                tipoBusqueda: tipoBusqueda
-            },
-            dataType: 'json',
-            success: function(data) {
-                // Limpiar tabla antes de agregar resultados
-                $('#miTabla tbody').empty();
-                // Mostrar resultados en la tabla
-                $.each(data, function(index, item) {
-                    var ordenSeleccionada = $('#ordenSelect').val();
-                    var campos = {
-                        OC: {
-                            Orden: 'OrdenCompra',
-                            Color: 'Color',
-                            Talla: 'Talla',
-                            Cantidad: 'Cantidad'
-                        },
-                        OP: {
-                            Orden: 'op',
-                            Color: 'inventcolorid',
-                            Talla: 'sizename',
-                            Cantidad: 'qty'
-                        },
-                        PO: {
-                            Orden: 'cpo',
-                            Color: 'inventcolorid',
-                            Talla: 'sizename',
-                            Cantidad: 'qty'
-                        },
-                        OV: {
-                            Orden: 'salesid',
-                            Color: 'inventcolorid',
-                            Talla: 'sizename',
-                            Cantidad: 'qty'
-                        },
-                    }[tipoBusqueda];
+        $('#accordion').on('shown.bs.collapse', function(event) { // Cambiado a 'shown.bs.collapse'
+            let target = $(event.target);
+            let estiloText = $(event.target).closest('.card').find('.btn-link').text();
+            let estilo = estiloText.match(/Estilo:\s*([^\s]+)/)[1].trim();
+            let orden = $('#ordenSelect').val();
+            let tipoBusqueda = $('#tipoBusqueda').val();
 
-                    // Formatear la cantidad (si es necesario)
-                    var cantidadFormateada = item[campos.Cantidad];
-                    if (typeof cantidadFormateada === 'string') {
-                        var puntoIndex = cantidadFormateada.indexOf('.');
-                        if (puntoIndex !== -1) {
-                            var parteDecimal = cantidadFormateada.substring(puntoIndex + 1);
-                            if (parteDecimal.length > 2) {
-                                parteDecimal = parteDecimal.substring(0, 2);
+            $.ajax({
+                url: '/buscarDatosAuditoriaPorEstilo',
+                type: 'GET',
+                data: {
+                    estilo: estilo,
+                    orden: orden,
+                    tipoBusqueda: tipoBusqueda
+                },
+                dataType: 'json',
+                success: function(data) {
+                    $('#miTabla tbody').empty();
+
+                    $.each(data, function(index, item) {
+                        var campos = {
+                            OC: {
+                                Orden: 'OrdenCompra',
+                                Color: 'Color',
+                                Talla: 'Talla',
+                                Cantidad: 'Cantidad'
+                            },
+                            OP: {
+                                Orden: 'op',
+                                Color: 'inventcolorid',
+                                Talla: 'sizename',
+                                Cantidad: 'qty'
+                            },
+                            PO: {
+                                Orden: 'cpo',
+                                Color: 'inventcolorid',
+                                Talla: 'sizename',
+                                Cantidad: 'qty'
+                            },
+                            OV: {
+                                Orden: 'salesid',
+                                Color: 'inventcolorid',
+                                Talla: 'sizename',
+                                Cantidad: 'qty'
+                            },
+                        }[tipoBusqueda];
+
+                        var uniqueId = generateUniqueId('input');
+
+                        // Formatear la cantidad
+                        var cantidadFormateada = item[campos.Cantidad];
+                        if (typeof cantidadFormateada === 'string') {
+                            var puntoIndex = cantidadFormateada.indexOf('.');
+                            if (puntoIndex !== -1) {
+                                var parteDecimal = cantidadFormateada.substring(puntoIndex + 1);
+                                if (parteDecimal.length > 2) {
+                                    parteDecimal = parteDecimal.substring(0, 2);
+                                }
+                                cantidadFormateada = cantidadFormateada.substring(0, puntoIndex + 1) + parteDecimal;
                             }
-                            cantidadFormateada = cantidadFormateada.substring(0, puntoIndex + 1) + parteDecimal;
                         }
-                    }
 
-                    // Verificar si el tamaño de muestra está en el rango específico
-                    var tamañoMuestra = parseInt(item.tamaño_muestra);
-                    var inputHTML = '<input type="number" class="form-control cantidadInput" id="cantidadInput_' +
-                                    index + '_acordeon_' + estilo + '" value="0">';
+                        // Agregar fila a la tabla con IDs únicos
+                        var fila = `<tr>
+                                        <td style="text-align: center;">${(index + 1)} </td>
+                                        <td style="text-align: center;">${item[campos.Color] || 'N/A'}</td>
+                                        <td style="text-align: center;">${item[campos.Talla] || 'N/A'}</td>
+                                        <td style="text-align: center;">${cantidadFormateada}</td>
+                                        <td style="text-align: center;"><span class="tamañoMuestra">${item.tamaño_muestra ? item.tamaño_muestra : 'N/A'}</span></td>
+                                        <td style="text-align: center;">
+                                            <select class="form-control tipoProblemasSelect" id="tipoProblemas_${uniqueId}" multiple="multiple"></select>
+                                        </td>
+                                        <td class="cantidadContainer" style="text-align: center;">
+                                            <!-- Los inputs de cantidad se generarán dinámicamente aquí -->
+                                        </td>
+                                        <td class="select-container" style="text-align: center;">
+                                            <div class="btn-group dropleft">
+                                                <button id="dropdownToggle_${uniqueId}" class="btn btn-danger dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
+                                                    Opciones
+                                                </button>
+                                                <ul class="dropdown-menu" aria-labelledby="dropdownToggle_${uniqueId}">
+                                                    <li><a class="dropdown-item text-success" value="Aprobado" data-row-id="${item.id}">Aprobado</a></li>
+                                                    <li><a class="dropdown-item text-warning" value="Aprobado Condicionalmente" data-row-id="${item.id}">Aprobado Condicionalmente</a></li>
+                                                    <li><a class="dropdown-item text-danger" value="Rechazado" data-row-id="${item.id}">Rechazado</a></li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>`;
 
-                    if (tamañoMuestra == 32 || tamañoMuestra == 50 || tamañoMuestra == 80 ||
-                        tamañoMuestra == 125 || tamañoMuestra == 200 || tamañoMuestra == 315 ||
-                        tamañoMuestra == 500 || tamañoMuestra == 800 || tamañoMuestra == 2000) {
-                        inputHTML = '<td style="text-align: center;"><input type="number" class="form-control cantidadInput" id="cantidadInput_' +
-                                    index + '_acordeon_' + estilo + '" value="0"></td>';
-                    }
+                        $('#miTabla tbody').append(fila);
 
-                    // Agregar fila a la tabla
-                    var fila = '<tr>' +
-                                '<td style="text-align: center;">' + (index + 1) + '</td>' +
-                                '<td style="text-align: center;">' + (item[campos.Color] || 'N/A') + '</td>' +
-                                '<td style="text-align: center;">' + (item[campos.Talla] || 'N/A') + '</td>' +
-                                '<td style="text-align: center;">' + cantidadFormateada + '</td>' +
-                                '<td style="text-align: center;"><span class="tamañoMuestra">' + (item.tamaño_muestra ? item.tamaño_muestra : 'N/A') + '</span></td>' +
-                                '<td style="text-align: center; position: relative;">' + inputHTML + '</td>' +
-                                '<td class="select-container" style="text-align: center;">' +
-                                '<div class="btn-group dropleft">' +
-                                '<button id="dropdownToggle" class="btn btn-danger dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">' +
-                                'Opciones' +
-                                '</button>' +
-                                '<ul class="dropdown-menu" aria-labelledby="dropdownToggle">' +
-                                '<li><a class="dropdown-item text-success" value="Aprobado" data-row-id="' +
-                                item.id + '">Aprobado</a></li>' +
-                                '<li><a class="dropdown-item text-warning" value="Aprobado Condicionalmente" data-row-id="' +
-                                item.id + '">Aprobado Condicionalmente</a></li>' +
-                                '<li><a class="dropdown-item text-danger" value="Rechazado" data-row-id="' +
-                                item.id + '">Rechazado</a></li>' +
-                                '</ul>' +
-                                '</div>' +
-                                '</td>' +
-                                '</tr>';
+                        // Inicializar select2 para los select dinámicos dentro del acordeón
+                        target.find('select.tipoProblemasSelect').each(function() {
+                            $(this).select2({
+                                placeholder: 'Seleccione tipo de problema',
+                                ajax: {
+                                    url: '/obtenerTiposDefectos',
+                                    dataType: 'json',
+                                    processResults: function(data) {
+                                        return {
+                                            results: $.map(data, function(item) {
+                                                return {
+                                                    id: item.Defectos,
+                                                    text: item.Defectos
+                                                };
+                                            })
+                                        };
+                                    }
+                                }
+                            });
+                        });
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error al buscar datos de auditoría:', error);
+                }
+            });
+        });
 
-                    $('#miTabla tbody').append(fila);
+        // Evento delegado para manejar la selección de problemas
+        $('#accordion').on('select2:select select2:unselect', '.tipoProblemasSelect', function(e) {
+            var $select = $(this);
+            var selectedOptions = $select.val(); // Obtener las opciones seleccionadas
+
+            var $row = $select.closest('tr'); // Obtener la fila correspondiente
+            var $cantidadContainer = $row.find('.cantidadContainer'); // Div contenedor de los inputs de cantidad
+
+            // Limpiar los inputs de cantidad anteriores
+            $cantidadContainer.empty();
+
+            if (selectedOptions && selectedOptions.length > 0) {
+                // Generar inputs de cantidad dinámicamente
+                $.each(selectedOptions, function(index, value) {
+                    var inputId = generateUniqueId('cantidadInput');
+                    var inputHtml = `
+                        <div class="cantidad-group" style="margin-bottom: 5px;">
+                            <label for="${inputId}" style="margin-right: 10px;">${value}:</label>
+                            <input type="number" class="form-control cantidadInput" id="${inputId}" value="0">
+                        </div>`;
+                    $cantidadContainer.append(inputHtml);
                 });
-            },
-            error: function(xhr, status, error) {
-                console.error('Error al buscar datos de auditoría:', error);
             }
         });
-    });
 
-    // Evento delegado para el clic en elementos .dropdown-item dentro de #accordion
-    $('#accordion').on('click', '.dropdown-item', function() {
-        var selectedOption = $(this).text();
-        // Encontrar el botón de alternancia más cercano (dropdown-toggle) dentro del mismo grupo (btn-group)
-        var dropdownToggle = $(this).closest('.btn-group').find('.dropdown-toggle');
-        dropdownToggle.text(selectedOption);
+        // Evento delegado para el clic en elementos .dropdown-item dentro de #accordion
+        $('#accordion').on('click', '.dropdown-item', function() {
+            var selectedOption = $(this).text();
+            var dropdownToggle = $(this).closest('.btn-group').find('.dropdown-toggle');
+            dropdownToggle.text(selectedOption);
+        });
     });
-});
     </script>
+ <script>
+    $(document).ready(function() {
+        // Manejar clic en cualquier opción del dropdown
+        $('#accordion').on('click', '.dropdown-item', function() {
+            var $dropdownItem = $(this);
+            var selectedOption = $dropdownItem.attr('value');
+            var status = $dropdownItem.text().trim();
+            var rowId = $dropdownItem.data('row-id');
+            var tipoBusqueda = $('#tipoBusqueda').val();
+            // Obtener los datos de la fila modificada
+            var fila = $dropdownItem.closest('tr'); // Obtener la fila actual
+            var  tipoBusqueda = tipoBusqueda;
+            var orden = $('#ordenSelect').val();
+            var estiloText = $(event.target).closest('.card').find('.btn-link').text();
+            var estilo = estiloText.match(/Estilo:\s*([^\s]+)/)[1].trim();
+            var color = fila.find('td:nth-child(2)').text().trim();
+            var  talla = fila.find('td:nth-child(3)').text().trim();
+            var  cantidad = fila.find('td:nth-child(4)').text().trim();
+            var muestreo = fila.find('.tamañoMuestra').text().trim();
+            var tipoDefecto = fila.find('.tipoProblemasSelect').val();
+            var defectos = [];
+            // Obtener todos los valores de los inputs de defectos
+            fila.find('.cantidadContainer .cantidadInput').each(function() {
+               defectos.push({
+                    cantidad: $(this).val()
+                });
+            });
+
+            var datosFila = {
+                tipoBusqueda: tipoBusqueda,
+                orden: orden,
+                estilo: estilo,
+                id: rowId,
+                color: color,
+                talla: talla,
+                cantidad: cantidad,
+                muestreo: muestreo,
+                tipoDefecto: tipoDefecto,
+                defectos: defectos,
+                status: status
+            };
+            // Armar los datos a enviar al servidor
+            var datosAEnviar = {
+                _token: $('meta[name="csrf-token"]').attr('content'), // Obtener el token CSRF del meta tag
+                datos: [datosFila],
+                status: status,
+                rowId: rowId,
+                tipoBusqueda: tipoBusqueda
+            };
+
+            // Realizar la solicitud AJAX para enviar los datos al servidor
+            $.ajax({
+                url: '/actualizarStatus',
+                type: 'PUT',
+                data: JSON.stringify(datosAEnviar), // Enviar como JSON
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function(response) {
+                    // Manejar la respuesta del servidor
+                    alert(response.mensaje);
+                    // Actualizar visualmente el estado en la interfaz
+                    $dropdownItem.closest('.btn-group').find('.dropdown-toggle').text(status);
+                },
+                error: function(xhr, status, error) {
+                    // Manejar errores
+                    alert('Error al actualizar el status. Por favor, inténtalo de nuevo.');
+                    console.error('Error al actualizar el status: ', error);
+                }
+            });
+        });
+    });
+    </script>
+
+
 @endsection
