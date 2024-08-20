@@ -371,6 +371,8 @@
                                     <th>Minutos Paro</th>
                                     <th>Promedio Minutos Paro</th>
                                     <th>Cantidad Paro Modular</th>
+                                    <th>Cantidad Auditados</th>
+                                    <th>Cantidad Defectos</th>
                                     <th>% Error AQL</th>
                                 </tr>
                             </thead>
@@ -387,6 +389,8 @@
                                         <td>{{ $item['sumaMinutos'] }}</td>
                                         <td>{{ $item['promedioMinutosEntero'] }}</td>
                                         <td>{{ $item['conteParoModular'] }}</td>
+                                        <td>{{ $item['sumaRechazadaAQL'] }}</td> 
+                                        <td>{{ $item['sumaAuditadaAQL'] }}</td> 
                                         <td>{{ number_format($item['porcentaje_error_aql'], 2) }}%</td>
                                     </tr>
                                 @endforeach
@@ -412,6 +416,8 @@
                                     <th>Cantidad Paro</th>
                                     <th>Minutos Paro</th>
                                     <th>Promedio Minutos Paro</th>
+                                    <th>Cantidad Auditados</th>
+                                    <th>Cantidad Defectos</th>
                                     <th>% Error Proceso</th>
                                 </tr>
                             </thead>
@@ -427,7 +433,9 @@
                                         <td>{{ $item['conteoUtility'] }}</td>
                                         <td>{{ $item['conteoMinutos'] }}</td>
                                         <td>{{ $item['sumaMinutos'] }}</td>
-                                        <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                        <td>{{ $item['promedioMinutosEntero'] }}</td> 
+                                        <td>{{ $item['sumaAuditadaProceso'] }}</td> 
+                                        <td>{{ $item['sumaRechazadaProceso'] }}</td> 
                                         <td>{{ number_format($item['porcentaje_error_proceso'], 2) }}%</td>
                                     </tr>
                                 @endforeach
@@ -451,7 +459,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <table class="table table-responsive" id="tablaAQLDetalle">
+                    <table class="table table-responsive" id="tablaAQLDetalle{{ $item['modulo'] }}">
                         <thead>
                             <tr>
                                 <th>PARO</th>
@@ -503,7 +511,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <table class="table table-responsive" id="tablaProcesoDetalle">
+                    <table class="table table-responsive" id="tablaProcesoDetalle{{ $item['modulo'] }}">
                         <thead>
                             <tr>
                                 <th>PARO</th>
@@ -1091,9 +1099,90 @@
 
     <script>
         $(document).ready(function() {
-            const tableIds = ['#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaResponsables', '#tablaModulos', '#tablaClientes', '#tablaAQLDetalle', '#tablaProcesoDetalle'];
-            
-            tableIds.forEach(tableId => {
+    // Inicializa DataTables en las tablas que ya están en el DOM
+    const initializeDataTables = () => {
+        const tableIds = [
+            '#tablaAQLGeneral', '#tablaProcesoGeneral'
+        ];
+
+        tableIds.forEach(tableId => {
+            if (!$.fn.dataTable.isDataTable(tableId)) {
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: false,
+                    autoWidth: false,
+                    responsive: true,
+                    dom: 'Bfrtip',
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            text: 'Exportar a Excel',
+                            className: 'btn btn-success'
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: 'Exportar a PDF',
+                            className: 'btn btn-danger'
+                        },
+                        {
+                            extend: 'print',
+                            text: 'Imprimir',
+                            className: 'btn btn-primary'
+                        }
+                    ],
+                    columnDefs: [
+                        {
+                            searchable: false,
+                            orderable: false,
+                        },
+                    ],
+                    language: {
+                        "sProcessing":     "Procesando...",
+                        "sLengthMenu":     "Mostrar _MENU_ registros",
+                        "sZeroRecords":    "No se encontraron resultados",
+                        "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                        "sInfo":           "Registros _START_ - _END_ de _TOTAL_ mostrados",
+                        "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                        "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                        "sInfoPostFix":    "",
+                        "sSearch":         "Buscar:",
+                        "sUrl":            "",
+                        "sInfoThousands":  ",",
+                        "sLoadingRecords": "Cargando...",
+                        "oPaginate": {
+                            "sFirst":    "Primero",
+                            "sLast":     "Último",
+                            "sNext":     "Siguiente",
+                            "sPrevious": "Anterior"
+                        },
+                        "oAria": {
+                            "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                            "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                        }
+                    },
+                    initComplete: function(settings, json) {
+                        if ($('body').hasClass('dark-mode')) {
+                            $(tableId + '_wrapper').addClass('dark-mode');
+                        }
+                    }
+                });
+            }
+        });
+    };
+
+    // Inicializa DataTables para las tablas visibles al cargar la página
+    initializeDataTables();
+
+    // Inicializa DataTables cuando se abre un modal específico
+    $('body').on('shown.bs.modal', function (e) {
+        const modal = $(e.target);
+        const tableIds = [
+            '#tablaAQLGeneral', '#tablaProcesoGeneral'
+        ];
+
+        tableIds.forEach(tableId => {
+            if ($(modal).find(tableId).length) {
                 if (!$.fn.dataTable.isDataTable(tableId)) {
                     $(tableId).DataTable({
                         lengthChange: false,
@@ -1101,7 +1190,7 @@
                         paging: false,
                         autoWidth: false,
                         responsive: true,
-                        dom: 'Bfrtip',  // Añadido para mostrar los botones
+                        dom: 'Bfrtip',
                         buttons: [
                             {
                                 extend: 'excelHtml5',
@@ -1156,9 +1245,9 @@
                         }
                     });
                 }
-            });
+            }
         });
+    });
+});
     </script>
-    
-    
 @endpush

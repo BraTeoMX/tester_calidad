@@ -527,6 +527,8 @@ class DashboardPlanta1Controller extends Controller
                 'promedioMinutosEntero' => $promedioMinutosEntero,
                 'conteParoModular' => $conteParoModular,
                 'detalles' => $detalles,
+                'sumaRechazadaAQL' => $sumaRechazadaAQL,
+                'sumaAuditadaAQL' => $sumaAuditadaAQL, 
             ];
 
             
@@ -618,6 +620,10 @@ class DashboardPlanta1Controller extends Controller
                 'sumaMinutos' => $sumaMinutos,
                 'promedioMinutosEntero' => $promedioMinutosEntero,
                 'detalles' => $detalles,
+                'sumaRechazadaProceso' => $sumaRechazadaProceso,
+                'sumaAuditadaProceso' => $sumaAuditadaProceso, 
+
+
             ];
 
             
