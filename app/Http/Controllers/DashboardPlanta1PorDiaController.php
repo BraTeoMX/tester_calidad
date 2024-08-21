@@ -68,33 +68,10 @@ class DashboardPlanta1PorDiaController extends Controller
         $generalProcesoPlanta1 = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark1');
         $generalAQLPlanta1 = calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark1');
 
-        // Nueva consulta para obtener datos por fecha
-        $fechas = collect();
-        $period = Carbon::parse($fechaInicio)->daysUntil(Carbon::parse($fechaFin));
-
-        foreach ($period as $date) {
-            $fechas->push($date->format('Y-m-d'));
-        }
-
-        $plantaIxtlahuaca = 'Intimark1';
-        $porcentajesAQL = $fechas->map(function ($fecha) use ($plantaIxtlahuaca) {
-            return calcularPorcentaje(AuditoriaAQL::class, $fecha, $plantaIxtlahuaca);
-        });
         
-        $porcentajesProceso = $fechas->map(function ($fecha) use ($plantaIxtlahuaca) {
-            return calcularPorcentaje(AseguramientoCalidad::class, $fecha, $plantaIxtlahuaca);
-        });
-
-
         // Obtención y cálculo de datos generales para AQL y Proceso
         $dataGerentesAQLGeneral = $this->getDataGerentesProduccionAQL($fechaActual, 'Intimark1');
         $dataGerentesProcesoGeneral = $this->getDataGerentesProduccionProceso($fechaActual, 'Intimark1');
-
-        // Obtención y cálculo de datos por planta para gerentes de producción
-        $dataGerentesAQLPlanta1 = $this->getDataGerentesProduccionAQL($fechaActual, 'Intimark1');
-        $dataGerentesAQLPlanta2 = $this->getDataGerentesProduccionAQL($fechaActual, 'Intimark2');
-        $dataGerentesProcesoPlanta1 = $this->getDataGerentesProduccionProceso($fechaActual, 'Intimark1');
-        $dataGerentesProcesoPlanta2 = $this->getDataGerentesProduccionProceso($fechaActual, 'Intimark2');
 
         // Combinar los datos
         $dataGerentesGeneral = $this->combineDataGerentes($dataGerentesAQLGeneral, $dataGerentesProcesoGeneral);
@@ -113,39 +90,15 @@ class DashboardPlanta1PorDiaController extends Controller
         $dataPlanta2 = $this->obtenerDatosClientesPorFiltro($fechaActual, 'Intimark2');
         $totalPlanta2 = $this->calcularTotales($dataPlanta2['dataCliente']);
 
-        // Datos para las gráficas usando el rango de fechas
-        $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
-        $clientesGrafica = collect($dataGrafica['clientesUnicos'])->toArray();
-        if (!empty($dataGrafica['dataCliente']) && !empty($dataGrafica['dataCliente'][0]['fechas'])) {
-            $fechasGrafica = collect($dataGrafica['dataCliente'][0]['fechas'])->toArray();
-        } else {
-            $fechasGrafica = []; // Inicializar en un array vacío
-        }
 
-        $datasetsAQL = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
-            return [
-                'label' => $clienteData['cliente'],
-                'data' => $clienteData['porcentajesErrorAQL'],
-                'borderColor' => 'rgba(75, 192, 192, 1)',
-                'borderWidth' => 1,
-                'fill' => false
-            ];
-        })->toArray();
-
-        $datasetsProceso = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
-            return [
-                'label' => $clienteData['cliente'],
-                'data' => $clienteData['porcentajesErrorProceso'],
-                'borderColor' => 'rgba(153, 102, 255, 1)',
-                'borderWidth' => 1,
-                'fill' => false
-            ];
-        })->toArray();
         //dd($dataGrafica, $clientesGrafica, $datasetsAQL, $datasetsProceso);
         //apartado para mostrar datos de gerente de prodduccion, en este caso por dia AseguramientoCalidad y AuditoriaAQL
         // Obtención y cálculo de datos generales para AQL y Proceso
-        $dataModuloAQLGeneral = $this->getDataModuloAQL($fechaActual); 
-        $dataModuloProcesoGeneral = $this->getDataModuloProceso($fechaActual); 
+        $dataModuloAQLGeneral = $this->getDataModuloAQL($fechaActual, 'Intimark1', null);  
+        $dataModuloProcesoGeneral = $this->getDataModuloProceso($fechaActual);  
+
+        // Para obtener los datos con tiempo_extra = 1
+        $dataModuloAQLGeneralTE = $this->getDataModuloAQL($fechaActual, 'Intimark1', 1);
 
         // Obtención y cálculo de datos por planta para Auditoria AQL
         $dataModuloAQLPlanta1 = $this->getDataModuloAQL($fechaActual, 'Intimark1');
@@ -159,110 +112,10 @@ class DashboardPlanta1PorDiaController extends Controller
         $dataModulosGeneral = $this->combineDataModulos($dataModuloAQLGeneral, $dataModuloProcesoGeneral);
 
 
-        //dd($dataModuloAQLGeneral, $dataModuloProcesoGeneral, $dataModuloAQLPlanta1, $dataModuloAQLPlanta2, $dataModuloProcesoPlanta1, $dataModuloProcesoPlanta2);
-
-        // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO' 
-        $topDefectosAQL = TpAuditoriaAQL::select('tp_auditoria_aql.tp', DB::raw('count(*) as total'))
-            ->join('auditoria_aql', 'tp_auditoria_aql.auditoria_aql_id', '=', 'auditoria_aql.id')
-            ->where('tp_auditoria_aql.tp', '!=', 'NINGUNO')
-            ->where('auditoria_aql.planta', '=', 'Intimark1')
-            ->groupBy('tp_auditoria_aql.tp')
-            ->orderBy('total', 'desc')
-            ->limit(3)
-            ->get();
-
-        $topDefectosProceso = TpAseguramientoCalidad::select('tp_aseguramiento_calidad.tp', DB::raw('count(*) as total'))
-            ->join('aseguramientos_calidad', 'tp_aseguramiento_calidad.aseguramiento_calidad_id', '=', 'aseguramientos_calidad.id')
-            ->where('tp_aseguramiento_calidad.tp', '!=', 'NINGUNO')
-            ->where('aseguramientos_calidad.planta', '=', 'Intimark1')
-            ->groupBy('tp_aseguramiento_calidad.tp')
-            ->orderBy('total', 'desc')
-            ->limit(3)
-            ->get();
-
-        //dd($gerentesProduccionAQL, $gerentesProduccionProceso, $gerentesProduccion, $data);
-        //dd($gerentesProduccionAQL, $gerentesProduccionProceso, $gerentesProduccion, $data);
-        $dataGraficaModulos = $this->obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin);
-        $modulosGrafica = collect($dataGraficaModulos['modulosUnicos'])->toArray();
-        if (!empty($dataGraficaModulos['dataModulo']) && !empty($dataGraficaModulos['dataModulo'][0]['fechas'])) {
-            $fechasGraficaModulos = collect($dataGraficaModulos['dataModulo'][0]['fechas'])->toArray();
-        } else {
-            $fechasGraficaModulos = []; // Inicializar en un array vacío
-        }
-
-        $datasetsAQLModulos = collect($dataGraficaModulos['dataModulo'])->map(function ($moduloData) {
-            return [
-                'label' => $moduloData['modulo'],
-                'data' => $moduloData['porcentajesErrorAQL'],
-                'borderColor' => 'rgba(75, 192, 192, 1)',
-                'borderWidth' => 1,
-                'fill' => false
-            ];
-        })->toArray();
-
-        $datasetsProcesoModulos = collect($dataGraficaModulos['dataModulo'])->map(function ($moduloData) {
-            return [
-                'label' => $moduloData['modulo'],
-                'data' => $moduloData['porcentajesErrorProceso'],
-                'borderColor' => 'rgba(153, 102, 255, 1)',
-                'borderWidth' => 1,
-                'fill' => false
-            ];
-        })->toArray();
-
-
-        // Obtener los clientes únicos de AseguramientoCalidad 
-        $clientesAseguramientoBusqueda = AseguramientoCalidad::select('cliente')
-        ->distinct()
-        ->pluck('cliente');
-
-        // Obtener los clientes únicos de AuditoriaAQL
-        $clientesAuditoriaBusqueda = AuditoriaAQL::select('cliente')
-        ->distinct()
-        ->pluck('cliente');
-
-        // Combinar ambas listas y eliminar duplicados
-        $clientesUnicosBusqueda = $clientesAseguramientoBusqueda->merge($clientesAuditoriaBusqueda)->unique();
-
-        // Convertir la colección a un array si es necesario
-        $clientesUnicosArrayBusqueda = $clientesUnicosBusqueda->values()->all();
-
         return view('dashboar.dashboardPanta1PorDia', compact(
-            'title', 'fechaActual',
-            'topDefectosAQL',
-            'topDefectosProceso',
-            'dataModuloAQLPlanta1',
-            'dataModuloAQLPlanta2',
-            'dataModuloProcesoPlanta1',
-            'dataModuloProcesoPlanta2',
-            'dataModuloAQLGeneral',
-            'dataModuloProcesoGeneral',
-            'dataGerentesAQLGeneral',
-            'dataGerentesProcesoGeneral',
-            'dataGerentesAQLPlanta1',
-            'dataGerentesAQLPlanta2',
-            'dataGerentesProcesoPlanta1',
-            'dataGerentesProcesoPlanta2',
-            'generalProceso',
-            'generalAQL',
-            'generalAQLPlanta1',
-            'generalProcesoPlanta1',
-            'dataGeneral',
-            'totalGeneral',
-            'dataPlanta1',
-            'totalPlanta1',
-            'dataPlanta2',
-            'totalPlanta2',
-            'dataGerentesGeneral',
-            'dataModulosGeneral',
-            'fechas',
-            'porcentajesAQL',
-            'porcentajesProceso',
-            'fechasGrafica',
-            'datasetsAQL',
-            'datasetsProceso',
-            'clientesGrafica',
-            'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica', 'clientesUnicosArrayBusqueda'
+            'title', 'fechaActual', 'dataModuloAQLGeneral',
+            'dataModuloProcesoGeneral', 'generalAQL', 'generalAQLPlanta1',
+            'generalProceso', 'generalProcesoPlanta1', 
         ));
     }
 
@@ -452,12 +305,15 @@ class DashboardPlanta1PorDiaController extends Controller
 
 
 
-    private function getDataModuloAQL($fecha, $planta = null)
+    private function getDataModuloAQL($fecha, $planta = null, $tiempoExtra = null)
     {
-        $query = AuditoriaAQL::whereDate('created_at', $fecha)->where('planta', 'Intimark1');
+        $query = AuditoriaAQL::whereDate('created_at', $fecha)->where('planta', $planta)->where('tiempo_extra', $tiempoExtra);
 
         if (!is_null($planta)) {
             $query->where('planta', $planta);
+        }
+        if (!is_null($tiempoExtra)) {
+            $query->where('tiempo_extra', $tiempoExtra);
         }
 
         $modulosAQL = $query->select('modulo')
@@ -468,7 +324,6 @@ class DashboardPlanta1PorDiaController extends Controller
         $dataModuloAQL = [];
         foreach ($modulosAQL as $modulo) {
             $queryModulo = AuditoriaAQL::where('modulo', $modulo)
-                ->where('planta', 'Intimark1')
                 ->whereDate('created_at', $fecha);
 
             if (!is_null($planta)) {
@@ -477,41 +332,34 @@ class DashboardPlanta1PorDiaController extends Controller
 
             $modulosUnicos = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->distinct()
                 ->count('modulo');
 
             $sumaAuditadaAQL = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->sum('cantidad_auditada');
 
             $sumaRechazadaAQL = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->sum('cantidad_rechazada');
 
             $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
 
             $conteoOperario = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->distinct()
                 ->count('nombre');
 
             $conteoMinutos = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->count('minutos_paro');
 
             $conteParoModular = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->count('minutos_paro_modular');
 
             $sumaMinutos = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->sum('minutos_paro');
 
             $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
@@ -519,35 +367,29 @@ class DashboardPlanta1PorDiaController extends Controller
 
             $detalles = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->get();
             //dd($detalles);
             $sumaPiezasBulto = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->sum('pieza');
             //dd($sumaPiezasBulto);
             $cantidadBultosEncontrados = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->count();
             //dd($cantidadBultosEncontrados);
             $cantidadBultosRechazados = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->where('cantidad_rechazada', '>', 0)
                 ->count();
             //dd($cantidadBultosRechazados);
             $estilosUnicos = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->distinct()
                 ->pluck('estilo')
                 ->implode(', ');
             //dd($estilosUnicos);
             $defectosUnicos = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->whereHas('tpAuditoriaAQL', function ($query) {
                     $query->where('tp', '!=', 'NINGUNO');
                 })
@@ -563,7 +405,6 @@ class DashboardPlanta1PorDiaController extends Controller
             //dd($defectosUnicos);
             $accionesCorrectivasUnicos = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->distinct()
                 ->pluck('ac')
                 ->implode(', ');
@@ -572,7 +413,6 @@ class DashboardPlanta1PorDiaController extends Controller
 
             $operariosUnicos = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->distinct()
                 ->pluck('nombre')
                 ->implode(', ');
@@ -580,10 +420,16 @@ class DashboardPlanta1PorDiaController extends Controller
             $operariosUnicos = $operariosUnicos ?: 'N/A';
             $sumaReparacionRechazo = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
-                ->where('planta', 'Intimark1')
                 ->sum('reparacion_rechazo');
             $sumaReparacionRechazo = $sumaReparacionRechazo ?: 'N/A';
             //dd();
+            $piezasRechazadasUnicas = AuditoriaAQL::where('modulo', $modulo)
+                    ->whereDate('created_at', $fecha)
+                    ->where('cantidad_rechazada', '>', 0)
+                    ->distinct()
+                    ->pluck('pieza')
+                    ->implode(', ');
+            $piezasRechazadasUnicas = $piezasRechazadasUnicas ?: 'N/A';
             $dataModuloAQL[] = [
                 'modulo' => $modulo,
                 'modulos_unicos' => $modulosUnicos,
@@ -604,6 +450,7 @@ class DashboardPlanta1PorDiaController extends Controller
                 'accionesCorrectivasUnicos' => $accionesCorrectivasUnicos,
                 'operariosUnicos' => $operariosUnicos,
                 'sumaReparacionRechazo' => $sumaReparacionRechazo,
+                'piezasRechazadasUnicas' => $piezasRechazadasUnicas
             ];
 
             

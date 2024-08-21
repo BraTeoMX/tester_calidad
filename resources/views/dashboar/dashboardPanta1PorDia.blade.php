@@ -106,6 +106,7 @@
                                     <th>Accion Correctiva</th>
                                     <th>Operario Responsable</th>
                                     <th>Reparacion Piezas</th>
+                                    <th>Piezas de Bulto Rechazado</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -132,6 +133,7 @@
                                         <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
                                         <td>{{ $item['operariosUnicos'] }}</td>
                                         <td>{{ $item['sumaReparacionRechazo'] }}</td>
+                                        <td>{{ $item['piezasRechazadasUnicas'] }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>

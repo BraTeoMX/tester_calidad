@@ -377,7 +377,7 @@
                                             <th>TIPO DE DEFECTO</th>
                                             <th>Eliminar </th>
                                             <th>Hora</th>
-                                            <th>Reparación Piezas</th> <!-- Nueva columna -->
+                                            <th>Reparación Piezas</th> <!-- Nueva columna --> 
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -444,12 +444,14 @@
                                                     </td>
                                                 </form>
                                                 <td>
-                                                    @if($registro->fin_paro == NULL)
-                                                        <input type="number" class="form-control texto-blanco" name="reparacion_rechazo_visible" placeholder="Ingrese cantidad" id="reparacion_rechazo_visible_{{ $registro->id }}" onchange="document.getElementById('reparacion_rechazo_{{ $registro->id }}').value = this.value;">
-                                                    @else
-                                                        <input type="text" class="form-control texto-blanco" value="{{ $registro->reparacion_rechazo }}" readonly>
+                                                    @if($registro->inicio_paro == NULL)
+                                                        -
+                                                    @elseif($registro->fin_paro != NULL)
+                                                        <input type="text" class="form-control texto-blanco" value="{{$registro->reparacion_rechazo}}" readonly>
+                                                    @elseif($registro->fin_paro == NULL)
+                                                        <input type="number" class="form-control texto-blanco" name="reparacion_rechazo_visible" placeholder="Ingrese cantidad" id="reparacion_rechazo_visible_{{ $registro->id }}" onchange="document.getElementById('reparacion_rechazo_{{ $registro->id }}').value = this.value;">                                              
                                                     @endif
-                                                </td>
+                                                </td> 
                                             </tr>
                                         @endforeach
                                     </tbody>
