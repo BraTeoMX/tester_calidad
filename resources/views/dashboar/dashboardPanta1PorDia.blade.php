@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageSlug' => 'dashboard', 'titlePage' => __('Dashboard')])
+@extends('layouts.app', ['pageSlug' => 'dashboardPorDia', 'titlePage' => __('Dashboard')])
 
 @section('content')
 
@@ -104,6 +104,7 @@
                                     <th>% Error AQL</th>
                                     <th>Defectos</th>
                                     <th>Accion Correctiva</th>
+                                    <th>Operario Responsable</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -128,6 +129,7 @@
                                         <td>{{ number_format($item['porcentaje_error_aql'], 2) }}%</td>
                                         <td>{{ $item['defectosUnicos'] }}</td>
                                         <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
+                                        <td>{{ $item['operariosUnicos'] }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -194,7 +196,7 @@
     <!-- Modales para AQL -->
     @foreach ($dataModuloAQLGeneral as $item)
     <div class="modal fade" id="modalAQL{{ $item['modulo'] }}" tabindex="-1" role="dialog" aria-labelledby="modalAQLLabel{{ $item['modulo'] }}" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
             <div class="modal-content bg-dark text-white">
                 <div class="modal-header">
                     <h5 class="modal-title text-white" id="modalAQLLabel{{ $item['modulo'] }}">Detalles AQL para Módulo {{ $item['modulo'] }}</h5>
@@ -246,7 +248,7 @@
     <!-- Modales para Proceso -->
     @foreach ($dataModuloProcesoGeneral as $item)
     <div class="modal fade" id="modalProceso{{ $item['modulo'] }}" tabindex="-1" role="dialog" aria-labelledby="modalProcesoLabel{{ $item['modulo'] }}" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
             <div class="modal-content bg-dark text-white">
                 <div class="modal-header">
                     <h5 class="modal-title text-white" id="modalProcesoLabel{{ $item['modulo'] }}">Detalles de Proceso para Módulo {{ $item['modulo'] }}</h5>

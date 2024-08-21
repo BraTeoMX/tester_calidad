@@ -492,6 +492,7 @@ class AuditoriaAQLController extends Controller
     {
         $pageSlug ='';
         $id = $request->idCambio;
+        $reparacionRechazo = $request->reparacion_rechazo;
 
         $registro = AuditoriaAQL::find($id);
 
@@ -571,6 +572,7 @@ class AuditoriaAQLController extends Controller
 
             // Almacenar la duración en minutos
             $registro->minutos_paro = $minutosParo;
+            $registro->reparacion_rechazo = $reparacionRechazo;
 
             $registro->save();
         }
