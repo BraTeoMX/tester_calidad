@@ -578,6 +578,12 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->implode(', ');
             //dd($accionesCorrectivasUnicos);
             $operariosUnicos = $operariosUnicos ?: 'N/A';
+            $sumaReparacionRechazo = AuditoriaAQL::where('modulo', $modulo)
+                ->whereDate('created_at', $fecha)
+                ->where('planta', 'Intimark1')
+                ->sum('reparacion_rechazo');
+            $sumaReparacionRechazo = $sumaReparacionRechazo ?: 'N/A';
+            //dd();
             $dataModuloAQL[] = [
                 'modulo' => $modulo,
                 'modulos_unicos' => $modulosUnicos,
@@ -597,6 +603,7 @@ class DashboardPlanta1PorDiaController extends Controller
                 'defectosUnicos' => $defectosUnicos,
                 'accionesCorrectivasUnicos' => $accionesCorrectivasUnicos,
                 'operariosUnicos' => $operariosUnicos,
+                'sumaReparacionRechazo' => $sumaReparacionRechazo,
             ];
 
             
