@@ -202,6 +202,19 @@
                             </tbody>
                     </table>
                 </div>
+                <div class="col-md-2">
+                <button type="button" class="button insertarFila" data-index="${index}">
+                    <span class="button__text">Añadir</span>
+                    <span class="button__icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" stroke-width="2"
+                            stroke-linejoin="round" stroke-linecap="round" stroke="currentColor" height="24"
+                            fill="none" class="svg">
+                            <line y2="19" y1="5" x2="12" x1="12"></line>
+                            <line y2="12" y1="12" x2="19" x1="5"></line>
+                        </svg>
+                    </span>
+                </button>
+            </div>
                                     </div>
                                 </div>
                             </div>`;
@@ -313,7 +326,7 @@
                                     </tr>`;
 
                         $('#miTabla tbody').append(fila);
-
+                                Numid = index + 1;
                         // Inicializar select2 para los select dinámicos dentro del acordeón
                         target.find('select.tipoProblemasSelect').each(function() {
                             $(this).select2({
@@ -365,13 +378,6 @@
                     $cantidadContainer.append(inputHtml);
                 });
             }
-        });
-
-        // Evento delegado para el clic en elementos .dropdown-item dentro de #accordion
-        $('#accordion').on('click', '.dropdown-item', function() {
-            var selectedOption = $(this).text();
-            var dropdownToggle = $(this).closest('.btn-group').find('.dropdown-toggle');
-            dropdownToggle.text(selectedOption);
         });
     });
     </script>
@@ -447,6 +453,141 @@
         });
     });
     </script>
+<script>
+    $(document).ready(function() {
+        // Función para generar un ID único
+        function generateUniqueId(prefix) {
+            return prefix + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Evento delegado para el botón de añadir filas dinámicamente dentro del acordeón
+        $(document).on('click', '.insertarFila', function() {
+            var uniqueId = generateUniqueId('input');
+            Numid++;
+            var nuevaFila = `<tr>
+                                <td style="text-align: center;">${Numid}</td>
+                                <td style="text-align: center;">
+                                    <input type="text" class="form-control" id="color_${uniqueId}" value="">
+                                </td>
+                                <td style="text-align: center;">
+                                    <input type="text" class="form-control" id="talla_${uniqueId}" value="">
+                                </td>
+                                <td style="text-align: center;">
+                                    <input type="text" class="form-control" id="cantidad_${uniqueId}" value="">
+                                </td>
+                                <td style="text-align: center;">
+                                    <input type="text" class="form-control" id="muestra_${uniqueId}" value="">
+                                </td>
+                                <td style="text-align: center;">
+                                    <select class="form-control tipoProblemasSelect" id="tipoProblemas_${uniqueId}" multiple="multiple"></select>
+                                </td>
+                                <td class="cantidadContainer" style="text-align: center;">
+                                    <!-- Inputs de cantidad generados dinámicamente aquí -->
+                                </td>
+                                <td style="text-align: center;">
+                                    <div class="btn-group dropleft">
+                                        <button class="btn btn-danger dropdown-toggle" type="button" id="dropdownMenu_${uniqueId}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            Opciones
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenu_${uniqueId}">
+                                            <li><a class="dropdown-item2 text-success" value="Aprobado" data-row-id="${uniqueId}">Aprobado</a></li>
+                                            <li><a class="dropdown-item2 text-warning" value="Aprobado Condicionalmente" data-row-id="${uniqueId}">Aprobado Condicionalmente</a></li>
+                                            <li><a class="dropdown-item2 text-danger" value="Rechazado" data-row-id="${uniqueId}">Rechazado</a></li>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>`;
+
+            // Añadir la fila a la tabla del acordeón correspondiente
+            $('#miTabla tbody').append(nuevaFila);
+
+            // Inicializar select2 en la nueva fila
+            $('#tipoProblemas_' + uniqueId).select2({
+                placeholder: 'Seleccione tipo de problema',
+                ajax: {
+                    url: '/obtenerTiposDefectos',
+                    dataType: 'json',
+                    processResults: function(data) {
+                        return {
+                            results: $.map(data, function(item) {
+                                return {
+                                    id: item.Defectos,
+                                    text: item.Defectos
+                                };
+                            })
+                        };
+                    }
+                }
+            });
+        });
+
+        // Nuevo script para manejar clics en el dropdown de opciones generado dinámicamente
+        $('#accordion').on('click', '.dropdown-item2', function(event) {
+            var $dropdownItem = $(this);
+            var selectedOption = $dropdownItem.attr('value');
+            var status = $dropdownItem.text().trim();
+            var uniqueId = $dropdownItem.data('row-id');
+
+            // Obtener los datos de la fila específica
+            var fila = $dropdownItem.closest('tr');
+            var orden = $('#ordenSelect').val(); // Valor del select de orden
+            var estiloText = $(event.target).closest('.card').find('.btn-link').text();
+            var estilo = estiloText.match(/Estilo:\s*([^\s]+)/)[1].trim();
+            var color = fila.find(`#color_${uniqueId}`).val().trim();
+            var talla = fila.find(`#talla_${uniqueId}`).val().trim();
+            var cantidad = fila.find(`#cantidad_${uniqueId}`).val().trim();
+            var muestreo = fila.find(`#muestra_${uniqueId}`).val().trim();
+            var tipoDefecto = fila.find(`#tipoProblemas_${uniqueId}`).val(); // Valor del select múltiple
+            var defectos = [];
+
+            // Obtener todos los valores de los inputs de defectos generados dinámicamente
+            fila.find('.cantidadContainer .cantidadInput').each(function() {
+                defectos.push({
+                    cantidad: $(this).val()
+                });
+            });
+
+            // Preparar los datos para enviar al servidor
+            var datosFila = {
+                orden: orden,
+                estilo: estilo,
+                color: color,
+                talla: talla,
+                cantidad: cantidad,
+                muestreo: muestreo,
+                tipoDefecto: tipoDefecto,
+                defectos: defectos
+            };
+
+            var datosAEnviar = {
+                _token: $('meta[name="csrf-token"]').attr('content'), // Obtener el token CSRF del meta tag
+                datos: [datosFila],
+                status: status
+            };
+
+            // Realizar la solicitud AJAX para guardar los datos en el servidor
+            $.ajax({
+                url: '/saveFila',
+                type: 'POST',
+                data: JSON.stringify(datosAEnviar), // Enviar los datos como JSON
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function(response) {
+                    // Manejar la respuesta del servidor
+                    alert(response.mensaje);
+                    // Actualizar visualmente el estado en la interfaz
+                    $dropdownItem.closest('.btn-group').find('.dropdown-toggle').text(status);
+                },
+                error: function(xhr, status, error) {
+                    // Manejar errores
+                    alert('Error al guardar los datos. Por favor, inténtalo de nuevo.');
+                    console.error('Error al guardar los datos: ', error);
+                }
+            });
+        });
+    });
+    </script>
+
 
 
 @endsection

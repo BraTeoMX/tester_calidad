@@ -354,7 +354,61 @@ Log::info('Estilo seleccionado: '. $estilo);
         return response()->json(['error' => 'Error al actualizar los datos: ' . $e->getMessage()], 500);
     }
 }
+public function saveFila(Request $request)
+{
+    Log::info('Datos para el saveFila: ' . json_encode($request->all()));
 
+    try {
+        // Obtener el primer elemento de 'datos', que es un array
+        $datos = $request->input('datos')[0];
+        $status = $request->input('status');
 
+        // Convertir el array tipoDefecto en string si es necesario
+        if (is_array($datos['tipoDefecto'])) {
+            $datos['tipoDefecto'] = implode(', ', $datos['tipoDefecto']);
+        }
+        Log::info('Tipo Defecto después de conversión: ' . $datos['tipoDefecto']);
+
+        // Convertir el array defectos en una cadena separada por comas
+        if (is_array($datos['defectos'])) {
+            // Suponiendo que cada elemento es un objeto con una clave "cantidad"
+            $defectos = array_map(function($defecto) {
+                return $defecto['cantidad']; // Extraer solo la cantidad
+            }, $datos['defectos']);
+
+            $datos['defectos'] = implode(', ', $defectos); // Convertir array en string separado por comas
+        }
+        Log::info('Defectos después de conversión: ' . $datos['defectos']);
+
+        // Crear el nuevo registro en la base de datos
+        $nuevoReporte = ReporteAuditoriaEtiqueta::create([
+            'Orden' => $datos['orden'],
+            'Estilos' => $datos['estilo'],
+            'Cantidad' => $datos['cantidad'],
+            'Muestreo' => $datos['muestreo'],
+            'Defectos' => $datos['defectos'], // Almacenar defectos como string
+            'Tipo_Defectos' => $datos['tipoDefecto'], // Almacenar tipos de defectos como string
+            'Talla' => $datos['talla'],
+            'Color' => $datos['color'],
+            'Status' => $status
+        ]);
+
+        Log::info('Registro guardado exitosamente: ' . json_encode($nuevoReporte));
+
+        // Responder con éxito
+        return response()->json([
+            'mensaje' => 'Registro guardado exitosamente',
+            'registro' => $nuevoReporte
+        ], 200);
+    } catch (\Exception $e) {
+        // Manejar errores
+        Log::error('Error al guardar el registro: ' . $e->getMessage());
+
+        return response()->json([
+            'mensaje' => 'Error al guardar el registro: ' . $e->getMessage(),
+        ], 500);
+    }
+}
 
 }
+
