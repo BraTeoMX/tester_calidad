@@ -377,6 +377,7 @@
                                             <th>TIPO DE DEFECTO</th>
                                             <th>Eliminar </th>
                                             <th>Hora</th>
+                                            <th>Reparación Piezas</th> <!-- Nueva columna -->
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -388,11 +389,13 @@
                                                     @elseif($registro->fin_paro != NULL)
                                                         {{$registro->minutos_paro}}
                                                     @elseif($registro->fin_paro == NULL)
-                                                        <form method="POST" action="{{ route('auditoriaAQL.cambiarEstadoInicioParoAQL') }}">
+                                                        <form method="POST" action="{{ route('auditoriaAQL.cambiarEstadoInicioParoAQL') }}" onsubmit="return validateReparacionRechazo({{ $registro->id }});">
                                                             @csrf
                                                             <input type="hidden" name="idCambio" value="{{ $registro->id }}">
-                                                            <button type="submit" class="btn btn-primary">Fin Paro AQL</button>
-                                                        </form>
+                                                            <!-- Campo oculto para reparacion_rechazo -->
+                                                            <input type="hidden" name="reparacion_rechazo" id="reparacion_rechazo_{{ $registro->id }}" value="">
+                                                            <button type="submit" class="btn btn-primary" id="fin_paro_aql_{{ $registro->id }}">Fin Paro AQL</button>
+                                                        </form>                                                    
                                                     @endif
                                                 </td>
                                                 <td>
@@ -440,6 +443,13 @@
                                                         {{ $registro->created_at->format('H:i:s') }}
                                                     </td>
                                                 </form>
+                                                <td>
+                                                    @if($registro->fin_paro == NULL)
+                                                        <input type="number" class="form-control texto-blanco" name="reparacion_rechazo_visible" placeholder="Ingrese cantidad" id="reparacion_rechazo_visible_{{ $registro->id }}" onchange="document.getElementById('reparacion_rechazo_{{ $registro->id }}').value = this.value;">
+                                                    @else
+                                                        <input type="text" class="form-control texto-blanco" value="{{ $registro->reparacion_rechazo }}" readonly>
+                                                    @endif
+                                                </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -659,6 +669,20 @@
             color: white !important;
         }
     </style>
+    <script>
+        function validateReparacionRechazo(id) {
+            // Obtener el valor del input
+            var reparacionRechazo = document.getElementById('reparacion_rechazo_visible_' + id).value;
+    
+            // Verificar si el valor es mayor a 0
+            if (reparacionRechazo > 0) {
+                return true; // Permitir el envío del formulario
+            } else {
+                alert('Por favor, ingrese un valor mayor a 0 en "Reparación Piezas" antes de finalizar el paro.');
+                return false; // Prevenir el envío del formulario
+            }
+        }
+    </script>
     <script>
         $(document).ready(function() {
             // Inicializar el select2

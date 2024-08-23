@@ -15,8 +15,11 @@ use App\Http\Controllers\AuditoriaAQLController;
 use App\Http\Controllers\Maquila;
 use App\Http\Controllers\viewlistaFormularios;
 use App\Http\Controllers\DashboardController;
+
 use App\Http\Controllers\DashboardPlanta1Controller;
+use App\Http\Controllers\DashboardPlanta1PorDiaController;
 use App\Http\Controllers\DashboardPlanta2Controller;
+
 use App\Http\Controllers\DashboardPlanta1DetalleController;
 use App\Http\Controllers\DashboardPlanta2DetalleController;
 use App\Http\Controllers\reporteriaInternaController;
@@ -262,6 +265,8 @@ Route::get('/detallePorCliente', [DashboardController::class, 'detallePorCliente
 Route::get('/dashboardPanta1', [DashboardPlanta1Controller::class, 'dashboardPanta1'])->name('dashboar.dashboardPlanta1');
 Route::get('/dashboardPlanta1Detalle', [DashboardPlanta1DetalleController::class, 'dashboardPlanta1Detalle'])->name('dashboar.dashboardPlanta1Detalle');
 Route::get('/detalleXModuloPlanta1', [DashboardPlanta1DetalleController::class, 'detalleXModuloPlanta1'])->name('dashboar.detalleXModuloPlanta1');
+//dashboard Planta 1 consulta por dia
+Route::get('/dashboardPanta1PorDia', [DashboardPlanta1PorDiaController::class, 'dashboardPanta1PorDia'])->name('dashboar.dashboardPanta1PorDia');
 //dashboard Planta 2
 Route::get('/dashboardPanta2', [DashboardPlanta2Controller::class, 'dashboardPanta2'])->name('dashboar.dashboardPlanta2');
 Route::get('/dashboardPlanta2Detalle', [DashboardPlanta2DetalleController::class, 'dashboardPlanta2Detalle'])->name('dashboar.dashboardPlanta2Detalle');

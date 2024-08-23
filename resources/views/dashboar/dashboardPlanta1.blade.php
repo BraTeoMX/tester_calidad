@@ -358,7 +358,7 @@
         <div class="col-lg-6 col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
-                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general</h3>
+                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general</h3> 
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -366,12 +366,20 @@
                             <thead class=" text-primary">
                                 <tr>
                                     <th>Modulo (AQL)</th>
+                                    <th>Estilo</th>
                                     <th>Numero de Operarios</th>
                                     <th>Cantidad Paro</th>
                                     <th>Minutos Paro</th>
                                     <th>Promedio Minutos Paro</th>
                                     <th>Cantidad Paro Modular</th>
+                                    <th>Total piezas por Bulto</th> 
+                                    <th>Total Bulto</th> 
+                                    <th>Total Bulto Rechazados</th> 
+                                    <th>Cantidad Auditados</th>
+                                    <th>Cantidad Defectos</th>
                                     <th>% Error AQL</th>
+                                    <th>Defectos</th>
+                                    <th>Accion Correctiva</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -382,12 +390,20 @@
                                                 {{ $item['modulo'] }}
                                             </button>
                                         </td>
+                                        <td>{{ $item['estilosUnicos'] }}</td>
                                         <td>{{ $item['conteoOperario'] }}</td>
                                         <td>{{ $item['conteoMinutos'] }}</td>
                                         <td>{{ $item['sumaMinutos'] }}</td>
                                         <td>{{ $item['promedioMinutosEntero'] }}</td>
                                         <td>{{ $item['conteParoModular'] }}</td>
+                                        <td>{{ $item['sumaPiezasBulto'] }}</td> 
+                                        <td>{{ $item['cantidadBultosEncontrados'] }}</td> 
+                                        <td>{{ $item['cantidadBultosRechazados'] }}</td> 
+                                        <td>{{ $item['sumaAuditadaAQL'] }}</td> 
+                                        <td>{{ $item['sumaRechazadaAQL'] }}</td> 
                                         <td>{{ number_format($item['porcentaje_error_aql'], 2) }}%</td>
+                                        <td>{{ $item['defectosUnicos'] }}</td>
+                                        <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -407,12 +423,18 @@
                             <thead class=" text-primary">
                                 <tr>
                                     <th>Modulo (Proceso)</th>
+                                    <th>Estilo</th>
+                                    <th>Recorridos</th>
                                     <th>Numero de Operarios</th>
                                     <th>Numero de Utility</th>
                                     <th>Cantidad Paro</th>
                                     <th>Minutos Paro</th>
                                     <th>Promedio Minutos Paro</th>
+                                    <th>Cantidad Auditados</th>
+                                    <th>Cantidad Defectos</th>
                                     <th>% Error Proceso</th>
+                                    <th>DEFECTOS</th>
+                                    <th>ACCION CORRECTIVA</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -423,12 +445,18 @@
                                                 {{ $item['modulo'] }}
                                             </button>
                                         </td>
+                                        <td>{{ $item['estilosUnicos'] }}</td>
+                                        <td>{{ $item['cantidadRecorridos'] }}</td>
                                         <td>{{ $item['conteoOperario'] }}</td>
                                         <td>{{ $item['conteoUtility'] }}</td>
                                         <td>{{ $item['conteoMinutos'] }}</td>
                                         <td>{{ $item['sumaMinutos'] }}</td>
-                                        <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                        <td>{{ $item['promedioMinutosEntero'] }}</td> 
+                                        <td>{{ $item['sumaAuditadaProceso'] }}</td> 
+                                        <td>{{ $item['sumaRechazadaProceso'] }}</td> 
                                         <td>{{ number_format($item['porcentaje_error_proceso'], 2) }}%</td>
+                                        <td>{{ $item['defectosUnicos'] }}</td>
+                                        <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -451,10 +479,11 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <table class="table table-responsive" id="tablaAQLDetalle">
+                    <table class="table table-responsive" id="tablaAQLDetalle{{ $item['modulo'] }}">
                         <thead>
                             <tr>
                                 <th>PARO</th>
+                                <th>CLIENTE</th>
                                 <th># BULTO</th>
                                 <th>PIEZAS</th>
                                 <th>TALLA</th>
@@ -470,6 +499,7 @@
                             @foreach ($item['detalles'] as $registro)
                                 <tr>
                                     <td>{{ $registro->minutos_paro }}</td>
+                                    <td>{{ $registro->cliente }}</td>
                                     <td>{{ $registro->bulto }}</td>
                                     <td>{{ $registro->pieza }}</td>
                                     <td>{{ $registro->talla }}</td>
@@ -501,10 +531,11 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <table class="table table-responsive" id="tablaProcesoDetalle">
+                    <table class="table table-responsive" id="tablaProcesoDetalle{{ $item['modulo'] }}">
                         <thead>
                             <tr>
                                 <th>PARO</th>
+                                <th>CLIENTE</th>
                                 <th>Nombre</th>
                                 <th>Operacion</th>
                                 <th>Piezas Auditadas</th>
@@ -518,6 +549,7 @@
                             @foreach ($item['detalles'] as $registro)
                                 <tr>
                                     <td>{{ $registro->minutos_paro }}</td>
+                                    <td>{{ $registro->cliente }}</td>
                                     <td>{{ $registro->nombre }}</td>
                                     <td>{{ $registro->operacion }}</td>
                                     <td>{{ $registro->cantidad_auditada }}</td>
@@ -1066,27 +1098,136 @@
 @endpush
 
 @push('js')
-    <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap5.min.css">
+
     <!-- DataTables JavaScript -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
+    <!-- DataTables Buttons JavaScript -->
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+
+
     <script>
         $(document).ready(function() {
-            const tableIds = ['#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaResponsables', '#tablaModulos', '#tablaClientes', '#tablaAQLDetalle', '#tablaProcesoDetalle'];
-            
-            tableIds.forEach(tableId => {
+    // Inicializa DataTables en las tablas que ya están en el DOM
+    const initializeDataTables = () => {
+        const tableIds = [
+            '#tablaAQLGeneral', '#tablaProcesoGeneral'
+        ];
+
+        tableIds.forEach(tableId => {
+            if (!$.fn.dataTable.isDataTable(tableId)) {
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: false,
+                    autoWidth: false,
+                    responsive: true,
+                    dom: 'Bfrtip',
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            text: 'Exportar a Excel',
+                            className: 'btn btn-success'
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: 'Exportar a PDF',
+                            className: 'btn btn-danger'
+                        },
+                        {
+                            extend: 'print',
+                            text: 'Imprimir',
+                            className: 'btn btn-primary'
+                        }
+                    ],
+                    columnDefs: [
+                        {
+                            searchable: false,
+                            orderable: false,
+                        },
+                    ],
+                    language: {
+                        "sProcessing":     "Procesando...",
+                        "sLengthMenu":     "Mostrar _MENU_ registros",
+                        "sZeroRecords":    "No se encontraron resultados",
+                        "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                        "sInfo":           "Registros _START_ - _END_ de _TOTAL_ mostrados",
+                        "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                        "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                        "sInfoPostFix":    "",
+                        "sSearch":         "Buscar:",
+                        "sUrl":            "",
+                        "sInfoThousands":  ",",
+                        "sLoadingRecords": "Cargando...",
+                        "oPaginate": {
+                            "sFirst":    "Primero",
+                            "sLast":     "Último",
+                            "sNext":     "Siguiente",
+                            "sPrevious": "Anterior"
+                        },
+                        "oAria": {
+                            "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                            "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                        }
+                    },
+                    initComplete: function(settings, json) {
+                        if ($('body').hasClass('dark-mode')) {
+                            $(tableId + '_wrapper').addClass('dark-mode');
+                        }
+                    }
+                });
+            }
+        });
+    };
+
+    // Inicializa DataTables para las tablas visibles al cargar la página
+    initializeDataTables();
+
+    // Inicializa DataTables cuando se abre un modal específico
+    $('body').on('shown.bs.modal', function (e) {
+        const modal = $(e.target);
+        const tableIds = [
+            '#tablaAQLGeneral', '#tablaProcesoGeneral'
+        ];
+
+        tableIds.forEach(tableId => {
+            if ($(modal).find(tableId).length) {
                 if (!$.fn.dataTable.isDataTable(tableId)) {
                     $(tableId).DataTable({
                         lengthChange: false,
                         searching: true,
-                        paging: true,
-                        pageLength: 5,
+                        paging: false,
                         autoWidth: false,
                         responsive: true,
+                        dom: 'Bfrtip',
+                        buttons: [
+                            {
+                                extend: 'excelHtml5',
+                                text: 'Exportar a Excel',
+                                className: 'btn btn-success'
+                            },
+                            {
+                                extend: 'pdfHtml5',
+                                text: 'Exportar a PDF',
+                                className: 'btn btn-danger'
+                            },
+                            {
+                                extend: 'print',
+                                text: 'Imprimir',
+                                className: 'btn btn-primary'
+                            }
+                        ],
                         columnDefs: [
                             {
                                 searchable: false,
@@ -1124,8 +1265,9 @@
                         }
                     });
                 }
-            });
+            }
         });
+    });
+});
     </script>
-    
 @endpush
