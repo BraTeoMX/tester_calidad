@@ -50,10 +50,12 @@ class AuditoriaProcesoController extends Controller
             'auditoriaProcesoIntimark1' =>  AuditoriaProceso::where('prodpoolid', 'Intimark1')
                 ->select('moduleid')
                 ->distinct()
+                ->orderBy('moduleid', 'asc')  // Ordenar de menor a mayor
                 ->get(),
             'auditoriaProcesoIntimark2' => AuditoriaProceso::where('prodpoolid', 'Intimark2')
                 ->select('moduleid')
                 ->distinct()
+                ->orderBy('moduleid', 'asc')  // Ordenar de menor a mayor
                 ->get(), 
             'playeraActual' => AseguramientoCalidad::where('estatus', NULL)
                 ->where('area', 'AUDITORIA EN PROCESO PLAYERA')
@@ -245,11 +247,24 @@ class AuditoriaProcesoController extends Controller
             ->where('modulo', $data['modulo'])
             //->where('estilo', $data['estilo'])
             ->where('area', $data['area'])
+            ->where('tiempo_extra', null)
             ->selectRaw('COALESCE(SUM(cantidad_auditada), 0) as total_auditada, COALESCE(SUM(cantidad_rechazada), 0) as total_rechazada')
             ->first();
         $total_auditada = $registros->total_auditada ?? 0;
         $total_rechazada = $registros->total_rechazada ?? 0;
         $total_porcentaje = $total_auditada != 0 ? ($total_rechazada / $total_auditada) * 100 : 0;
+
+        // Para obtener los valores cuando tiempo_extra es 1
+        $registrosTE = AseguramientoCalidad::whereDate('created_at', $fechaActual)
+            ->where('modulo', $data['modulo'])
+            ->where('area', $data['area'])
+            ->where('tiempo_extra', 1)
+            ->selectRaw('COALESCE(SUM(cantidad_auditada), 0) as total_auditadaTE, COALESCE(SUM(cantidad_rechazada), 0) as total_rechazadaTE')
+            ->first();
+
+        $total_auditadaTE = $registrosTE->total_auditadaTE ?? 0;
+        $total_rechazadaTE = $registrosTE->total_rechazadaTE ?? 0;
+        $total_porcentajeTE = $total_auditadaTE != 0 ? ($total_rechazadaTE / $total_auditadaTE) * 100 : 0;
 
 
         $registrosIndividual = AseguramientoCalidad::whereDate('created_at', $fechaActual)
@@ -310,7 +325,11 @@ class AuditoriaProcesoController extends Controller
             'estilos' => $estilos, // Pasar los estilos únicos a la vista
             'estiloSeleccionado' => $estiloSeleccionado,
             'operacionNombre' => $operacionNombre,
-            'estilosEmpaque' => $estilosEmpaque
+            'estilosEmpaque' => $estilosEmpaque,
+            'total_auditadaTE' => $total_auditadaTE,
+            'total_rechazadaTE' => $total_rechazadaTE,
+            'total_porcentajeTE' => $total_porcentajeTE,
+
             ]));
     }
 

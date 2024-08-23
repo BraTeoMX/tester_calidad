@@ -158,7 +158,7 @@
                                             <th>MODULO</th>
                                             <th>OP</th> 
                                             <th>CLIENTE</th>
-                                            <th>TEAM LEADER</th>
+                                            <th>SUPERVISOR</th>
                                             <th>AUDITOR</th>
                                             <th>TURNO</th>
                                         </tr>
@@ -487,7 +487,7 @@
                     @endif
                     <hr>
                     <div class="table-responsive">
-                        <h2>Piezas auditadas por dia</h2>
+                        <h2>Piezas auditadas por dia - TURNO NORMAL</h2>
                         <table class="table">
                             <thead class="thead-primary">
                                 <tr>
@@ -523,13 +523,6 @@
                                 <tr>
                                     <td><input type="text" class="form-control texto-blanco"
                                         value="{{ $registro->total_pieza }}" readonly></td>
-                                        {{--
-                                        <td><input type="text" class="form-control texto-blanco"
-                                                value="{{ $registro->total_rechazada }}" readonly></td>
-                                        <td><input type="text" class="form-control texto-blanco"
-                                                value="{{ $registro->total_rechazada != 0 ? number_format(($registro->total_rechazada / $registro->total_pieza) * 100, 2) : 0 }}"
-                                                readonly></td>
-                                        --}}
                                 </tr>
                             @endforeach
                         </tbody>
@@ -559,6 +552,75 @@
                             </tbody>
                         </table>
                     </div>
+                    <hr><hr>
+                    <!-- Apartado para mostrar turno extra"-->
+                    <div class="table-responsive">  
+                        <h2>Piezas auditadas por dia - TIEMPO EXTRA</h2>
+                        <table class="table">
+                            <thead class="thead-primary">
+                                <tr>
+                                    <th>Total de piezas Muestra Auditadas </th>
+                                    <th>Total de piezas Muestra Rechazadas</th>
+                                    <th>Porcentaje AQL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($registrosIndividualTE as $registro)
+                                    <tr>
+                                        <td><input type="text" class="form-control texto-blanco"
+                                                value="{{ $registro->total_auditada }}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco"
+                                                value="{{ $registro->total_rechazada }}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco"
+                                                value="{{ $registro->total_rechazada != 0 ? number_format(($registro->total_rechazada / $registro->total_auditada) * 100, 2) : 0 }}"
+                                                readonly></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <hr>
+                    <table class="table contenedor-tabla">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Total de piezas en bultos Auditados</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($registrosIndividualPiezaTE as $registro)
+                                <tr>
+                                    <td><input type="text" class="form-control texto-blanco"
+                                        value="{{ $registro->total_pieza }}" readonly></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+
+                    <hr>
+                    <div class="table-responsive">
+                        <h2>Total por Bultos </h2>
+                        <table class="table">
+                            <thead class="thead-primary">
+                                <tr>
+                                    <th>total de Bultos Auditados</th>
+                                    <th>total de Bultos Rechazados</th> 
+                                    <th>Porcentaje Total</th> 
+                                </tr> 
+                            </thead> 
+                            <tbody> 
+                                <tr> 
+                                    <td><input type="text" class="form-control texto-blanco" name="conteo_bulto" 
+                                            id="conteo_bulto" value="{{ $conteoBultosTE }}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" name="total_rechazada" 
+                                            id="total_rechazada" value="{{ $conteoPiezaConRechazoTE }}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" name="total_porcentaje" 
+                                            id="total_porcentaje" value="{{ number_format($porcentajeBultoTE, 2) }}" 
+                                            readonly></td> 
+                                </tr> 
+                            </tbody> 
+                        </table> 
+                    </div> 
+
                     <!--Fin de la edicion del codigo para mostrar el contenido-->
                 </div>
             </div>

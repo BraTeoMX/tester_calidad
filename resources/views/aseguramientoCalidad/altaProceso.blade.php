@@ -91,19 +91,15 @@
                                         <th>MODULO</th>
                                         <th>ESTILO</th> 
                                         <th>CLIENTE</th>
-                                        <th>TEAM-LEADER</th>
+                                        <th>SUPERVISOR</th>
                                         <th>AUDITOR</th>
                                         <th>TURNO</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td>
-                                            <select name="area" id="area" class="form-control" required>
-                                                <option value="">Selecciona una opción</option>
-                                                <option value="AUDITORIA EN PROCESO">AUDITORIA EN PROCESO</option>
-                                                <option value="AUDITORIA EN EMPAQUE">AUDITORIA EN EMPAQUE</option>
-                                            </select>
+                                        <td><input type="text" class="form-control me-2 texto-blanco" name="area" id="area"
+                                            value="AUDITORIA EN PROCESO" readonly  />
                                         </td>
                                         <td>
                                             <select name="modulo" id="modulo" class="form-control" required title="Por favor, selecciona una opción">

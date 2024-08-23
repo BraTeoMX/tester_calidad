@@ -90,7 +90,7 @@
                                         <th>AREA</th>
                                         <th>MODULO</th>
                                         <th>OP</th>
-                                        <th>TEAM LEADER</th>
+                                        <th>SUPERVISOR</th>
                                         <th>AUDITOR</th>
                                         <th>TURNO</th>
                                     </tr>

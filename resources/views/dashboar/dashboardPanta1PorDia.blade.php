@@ -82,7 +82,7 @@
         <div class="col-lg-6 col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
-                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general</h3> 
+                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Turno Normal</h3> 
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -145,7 +145,7 @@
         <div class="col-lg-6 col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
-                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general</h3>
+                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Turno Normal</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -165,6 +165,7 @@
                                     <th>% Error Proceso</th>
                                     <th>DEFECTOS</th>
                                     <th>ACCION CORRECTIVA</th>
+                                    <th>Operarios</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -187,6 +188,7 @@
                                         <td>{{ number_format($item['porcentaje_error_proceso'], 2) }}%</td>
                                         <td>{{ $item['defectosUnicos'] }}</td>
                                         <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
+                                        <td>{{ $item['operariosUnicos'] }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -297,7 +299,227 @@
     </div>
     @endforeach
 
-
+    <!--
+    <div class="row">  
+        <div class="col-lg-6 col-md-12">
+            <div class="card ">
+                <div class="card-header card-header-success card-header-icon">
+                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Tiempo Extra</h3> 
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table tablesorter" id="tablaAQLGeneral">
+                            <thead class=" text-primary">
+                                <tr>
+                                    <th>Modulo (AQL)</th>
+                                    <th>Estilo</th>
+                                    <th>Numero de Operarios</th>
+                                    <th>Cantidad Paro</th>
+                                    <th>Minutos Paro</th>
+                                    <th>Promedio Minutos Paro</th>
+                                    <th>Cantidad Paro Modular</th>
+                                    <th>Total piezas por Bulto</th> 
+                                    <th>Total Bulto</th> 
+                                    <th>Total Bulto Rechazados</th> 
+                                    <th>Cantidad Auditados</th>
+                                    <th>Cantidad Defectos</th>
+                                    <th>% Error AQL</th>
+                                    <th>Defectos</th>
+                                    <th>Accion Correctiva</th>
+                                    <th>Operario Responsable</th>
+                                    <th>Reparacion Piezas</th>
+                                    <th>Piezas de Bulto Rechazado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($dataModuloAQLGeneralTE as $item)
+                                    <tr>
+                                        <td>
+                                            <button type="button" class="btn btn-link" data-toggle="modal" data-target="#modalAQLTE{{ $item['modulo'] }}">
+                                                {{ $item['modulo'] }}
+                                            </button>
+                                        </td>
+                                        <td>{{ $item['estilosUnicos'] }}</td>
+                                        <td>{{ $item['conteoOperario'] }}</td>
+                                        <td>{{ $item['conteoMinutos'] }}</td>
+                                        <td>{{ $item['sumaMinutos'] }}</td>
+                                        <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                        <td>{{ $item['conteParoModular'] }}</td>
+                                        <td>{{ $item['sumaPiezasBulto'] }}</td> 
+                                        <td>{{ $item['cantidadBultosEncontrados'] }}</td> 
+                                        <td>{{ $item['cantidadBultosRechazados'] }}</td> 
+                                        <td>{{ $item['sumaAuditadaAQL'] }}</td> 
+                                        <td>{{ $item['sumaRechazadaAQL'] }}</td> 
+                                        <td>{{ number_format($item['porcentaje_error_aql'], 2) }}%</td>
+                                        <td>{{ $item['defectosUnicos'] }}</td>
+                                        <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
+                                        <td>{{ $item['operariosUnicos'] }}</td>
+                                        <td>{{ $item['sumaReparacionRechazo'] }}</td>
+                                        <td>{{ $item['piezasRechazadasUnicas'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-12">
+            <div class="card ">
+                <div class="card-header card-header-success card-header-icon">
+                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Tiempo Extra</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table tablesorter" id="tablaProcesoGeneral">
+                            <thead class=" text-primary">
+                                <tr>
+                                    <th>Modulo (Proceso)</th>
+                                    <th>Estilo</th>
+                                    <th>Recorridos</th>
+                                    <th>Numero de Operarios</th>
+                                    <th>Numero de Utility</th>
+                                    <th>Cantidad Paro</th>
+                                    <th>Minutos Paro</th>
+                                    <th>Promedio Minutos Paro</th>
+                                    <th>Cantidad Auditados</th>
+                                    <th>Cantidad Defectos</th>
+                                    <th>% Error Proceso</th>
+                                    <th>DEFECTOS</th>
+                                    <th>ACCION CORRECTIVA</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($dataModuloProcesoGeneralTE as $item)
+                                    <tr>
+                                        <td>
+                                            <button type="button" class="btn btn-link" data-toggle="modal" data-target="#modalProcesoTE{{ $item['modulo'] }}">
+                                                {{ $item['modulo'] }}
+                                            </button>
+                                        </td>
+                                        <td>{{ $item['estilosUnicos'] }}</td>
+                                        <td>{{ $item['cantidadRecorridos'] }}</td>
+                                        <td>{{ $item['conteoOperario'] }}</td>
+                                        <td>{{ $item['conteoUtility'] }}</td>
+                                        <td>{{ $item['conteoMinutos'] }}</td>
+                                        <td>{{ $item['sumaMinutos'] }}</td>
+                                        <td>{{ $item['promedioMinutosEntero'] }}</td> 
+                                        <td>{{ $item['sumaAuditadaProceso'] }}</td> 
+                                        <td>{{ $item['sumaRechazadaProceso'] }}</td> 
+                                        <td>{{ number_format($item['porcentaje_error_proceso'], 2) }}%</td>
+                                        <td>{{ $item['defectosUnicos'] }}</td>
+                                        <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>  -->
+    <!-- Modales para AQL -->
+    <!--
+    @foreach ($dataModuloAQLGeneralTE as $item)
+    <div class="modal fade" id="modalAQLTE{{ $item['modulo'] }}" tabindex="-1" role="dialog" aria-labelledby="modalAQLLabel{{ $item['modulo'] }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title text-white" id="modalAQLLabel{{ $item['modulo'] }}">Detalles AQL para Módulo {{ $item['modulo'] }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-responsive" id="tablaAQLDetalle{{ $item['modulo'] }}">
+                        <thead>
+                            <tr>
+                                <th>PARO</th>
+                                <th>CLIENTE</th>
+                                <th># BULTO</th>
+                                <th>PIEZAS</th>
+                                <th>TALLA</th>
+                                <th>COLOR</th>
+                                <th>ESTILO</th>
+                                <th>PIEZAS INSPECCIONADAS</th>
+                                <th>PIEZAS RECHAZADAS</th>
+                                <th>TIPO DE DEFECTO</th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($item['detalles'] as $registro)
+                                <tr>
+                                    <td>{{ $registro->minutos_paro }}</td>
+                                    <td>{{ $registro->cliente }}</td>
+                                    <td>{{ $registro->bulto }}</td>
+                                    <td>{{ $registro->pieza }}</td>
+                                    <td>{{ $registro->talla }}</td>
+                                    <td>{{ $registro->color }}</td>
+                                    <td>{{ $registro->estilo }}</td>
+                                    <td>{{ $registro->cantidad_auditada }}</td>
+                                    <td>{{ $registro->cantidad_rechazada }}</td>
+                                    <td>{{ implode(', ', $registro->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
+                                    <td>{{ $registro->created_at->format('H:i:s') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endforeach
+    -->
+    <!-- Modales para Proceso -->
+    <!-- 
+    @foreach ($dataModuloProcesoGeneralTE as $item)
+    <div class="modal fade" id="modalProcesoTE{{ $item['modulo'] }}" tabindex="-1" role="dialog" aria-labelledby="modalProcesoLabel{{ $item['modulo'] }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title text-white" id="modalProcesoLabel{{ $item['modulo'] }}">Detalles de Proceso para Módulo {{ $item['modulo'] }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-responsive" id="tablaProcesoDetalle{{ $item['modulo'] }}">
+                        <thead>
+                            <tr>
+                                <th>PARO</th>
+                                <th>CLIENTE</th>
+                                <th>Nombre</th>
+                                <th>Operacion</th>
+                                <th>Piezas Auditadas</th>
+                                <th>Piezas Rechazadas</th>
+                                <th>Tipo de Problema</th>
+                                <th>Accion Correctiva</th>
+                                <th>pxp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($item['detalles'] as $registro)
+                                <tr>
+                                    <td>{{ $registro->minutos_paro }}</td>
+                                    <td>{{ $registro->cliente }}</td>
+                                    <td>{{ $registro->nombre }}</td>
+                                    <td>{{ $registro->operacion }}</td>
+                                    <td>{{ $registro->cantidad_auditada }}</td>
+                                    <td>{{ $registro->cantidad_rechazada }}</td>
+                                    <td>{{ implode(', ', $registro->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
+                                    <td>{{ $registro->ac }}</td>
+                                    <td>{{ $registro->pxp }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endforeach
+    -->
 @endsection
 
 

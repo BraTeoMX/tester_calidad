@@ -140,7 +140,7 @@
                                     <tr>
                                         <th>MODULO</th>
                                         <th>ESTILO</th>
-                                        <th>TEAM LEADER</th>
+                                        <th>SUPERVISOR</th>
                                         <th>AUDITOR</th>
                                         <th>TURNO</th>
                                         <th>CLIENTE</th>
@@ -556,7 +556,7 @@
 
                     <hr>
                     <div class="table-responsive">
-                        <h2>Total General </h2>
+                        <h2>Total General - Turno Normal</h2>
                         <table class="table">
                             <thead class="thead-primary">
                                 <tr>
@@ -579,6 +579,29 @@
                         </table>
                     </div>
                     <!--Fin de la edicion del codigo para mostrar el contenido-->
+                    <div class="table-responsive">
+                        <h2>Total General - Tiempo Extra </h2>
+                        <table class="table">
+                            <thead class="thead-primary">
+                                <tr>
+                                    <th>Total de Piezas Auditadas</th>
+                                    <th>Total de Piezas Rechazados</th>
+                                    <th>Porcentaje Rechazo Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="text" class="form-control texto-blanco" name="total_auditada"
+                                            id="total_auditada" value="{{ $total_auditadaTE }}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" name="total_rechazada"
+                                            id="total_rechazada" value="{{ $total_rechazadaTE }}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" name="total_porcentaje"
+                                            id="total_porcentaje" value="{{ number_format($total_porcentajeTE, 2) }}"
+                                            readonly></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

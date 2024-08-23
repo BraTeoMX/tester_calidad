@@ -184,16 +184,18 @@ class AuditoriaAQLController extends Controller
         $total_porcentaje = $total_auditada != 0 ? ($total_rechazada / $total_auditada) * 100 : 0;
 
 
-        $registrosIndividual = AuditoriaAQL::whereDate('created_at', $fechaActual)
+        $registrosIndividual = AuditoriaAQL::whereDate('created_at', $fechaActual) 
             ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
+            ->where('tiempo_extra', null)
             ->selectRaw('SUM(cantidad_auditada) as total_auditada, SUM(cantidad_rechazada) as total_rechazada')
             ->get();
 
         //apartado para suma de piezas por cada bulto
-        $registrosIndividualPieza = AuditoriaAQL::whereDate('created_at', $fechaActual)
+        $registrosIndividualPieza = AuditoriaAQL::whereDate('created_at', $fechaActual) 
             ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
+            ->where('tiempo_extra', null)
             ->selectRaw('SUM(pieza) as total_pieza, SUM(cantidad_rechazada) as total_rechazada')
             ->get();
         // Inicializa las variables para evitar errores
@@ -210,18 +212,60 @@ class AuditoriaAQLController extends Controller
         $conteoBultos = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
+            ->where('tiempo_extra', null)
             ->count();
         //conteo de registros del dia respecto a los rechazos
         $conteoPiezaConRechazo = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
             ->where('cantidad_rechazada', '>', 0)
+            ->where('tiempo_extra', null)
             ->count('pieza');
         $porcentajeBulto = $conteoBultos != 0 ? ($conteoPiezaConRechazo / $conteoBultos) * 100: 0;
         // Calcula el porcentaje total
         $total_porcentajeIndividual = $total_auditadaIndividual != 0 ? ($total_rechazadaIndividual / $total_auditadaIndividual) * 100 : 0;
 
+        //apartado para mostrar Tiempo Extra
+        $registrosIndividualTE = AuditoriaAQL::whereDate('created_at', $fechaActual) 
+            ->where('area', $data['area'])
+            ->where('modulo', $data['modulo'])
+            ->where('tiempo_extra', 1)
+            ->selectRaw('SUM(cantidad_auditada) as total_auditada, SUM(cantidad_rechazada) as total_rechazada')
+            ->get();
 
+        //apartado para suma de piezas por cada bulto
+        $registrosIndividualPiezaTE = AuditoriaAQL::whereDate('created_at', $fechaActual) 
+            ->where('area', $data['area'])
+            ->where('modulo', $data['modulo'])
+            ->where('tiempo_extra', 1)
+            ->selectRaw('SUM(pieza) as total_pieza, SUM(cantidad_rechazada) as total_rechazada')
+            ->get();
+        // Inicializa las variables para evitar errores
+        $total_auditadaIndividualTE = 0;
+        $total_rechazadaIndividualTE = 0;
+
+        // Calcula la suma total solo si hay registros individuales
+        if ($registrosIndividualTE->isNotEmpty()) {
+            $total_auditadaIndividualTE = $registrosIndividualTE->sum('total_auditada');
+            $total_rechazadaIndividualTE = $registrosIndividualTE->sum('total_rechazada');
+        }
+        //dd($registros, $fechaActual);
+         //conteo de registros del dia respecto a la cantidad de bultos, que es lo mismo a los bultos
+        $conteoBultosTE = AuditoriaAQL::whereDate('created_at', $fechaActual)
+            ->where('area', $data['area'])
+            ->where('modulo', $data['modulo'])
+            ->where('tiempo_extra', 1)
+            ->count();
+        //conteo de registros del dia respecto a los rechazos
+        $conteoPiezaConRechazoTE = AuditoriaAQL::whereDate('created_at', $fechaActual)
+            ->where('area', $data['area'])
+            ->where('modulo', $data['modulo'])
+            ->where('cantidad_rechazada', '>', 0)
+            ->where('tiempo_extra', 1)
+            ->count('pieza');
+        $porcentajeBultoTE = $conteoBultosTE != 0 ? ($conteoPiezaConRechazoTE / $conteoBultosTE) * 100: 0;
+        // Calcula el porcentaje total
+        $total_porcentajeIndividualTE = $total_auditadaIndividualTE != 0 ? ($total_rechazadaIndividualTE / $total_auditadaIndividualTE) * 100 : 0;
 
         //dd($finParoModular);
         $registrosOriginales = AuditoriaAQL::whereDate('created_at', $fechaActual)
@@ -304,7 +348,13 @@ class AuditoriaAQLController extends Controller
             'finParoModular1' => $finParoModular1,
             'finParoModular2' => $finParoModular2,
             'nombreProcesoToAQLPlanta1' => $nombreProcesoToAQLPlanta1,
-            'nombreProcesoToAQLPlanta2' => $nombreProcesoToAQLPlanta2,]));
+            'nombreProcesoToAQLPlanta2' => $nombreProcesoToAQLPlanta2,
+            'registrosIndividualTE' => $registrosIndividualTE,
+            'registrosIndividualPiezaTE' => $registrosIndividualPiezaTE,
+            'conteoBultosTE' => $conteoBultosTE,
+            'conteoPiezaConRechazoTE' => $conteoPiezaConRechazoTE,
+            'porcentajeBultoTE' => $porcentajeBultoTE,
+            ]));
     }
 
     public function getBultosByOp(Request $request)
