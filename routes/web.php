@@ -15,8 +15,8 @@ use App\Http\Controllers\AuditoriaAQLController;
 use App\Http\Controllers\Maquila;
 use App\Http\Controllers\viewlistaFormularios;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\DashboardPlanta1Controller; 
-use App\Http\Controllers\DashboardPlanta2Controller; 
+use App\Http\Controllers\DashboardPlanta1Controller;
+use App\Http\Controllers\DashboardPlanta2Controller;
 use App\Http\Controllers\DashboardPlanta1DetalleController;
 use App\Http\Controllers\DashboardPlanta2DetalleController;
 use App\Http\Controllers\reporteriaInternaController;
@@ -58,7 +58,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('profile', ['as' => 'profile.edit', 'uses' => 'App\Http\Controllers\ProfileController@edit']);
     Route::put('profile', ['as' => 'profile.update', 'uses' => 'App\Http\Controllers\ProfileController@update']);
     Route::put('profile/password', ['as' => 'profile.password', 'uses' => 'App\Http\Controllers\ProfileController@password']);
-    
+
     // Añade aquí el resto de tus rutas protegidas
 });
 
@@ -241,8 +241,8 @@ Route::get('/NoOV', [DatosAuditoriaEtiquetas::class, 'NoOV']);
 Route::get('/buscarEstilos', [DatosAuditoriaEtiquetas::class, 'buscarEstilos']);
 Route::get('/buscarDatosAuditoriaPorEstilo', [DatosAuditoriaEtiquetas::class, 'buscarDatosAuditoriaPorEstilo']);
 Route::get('/obtenerTiposDefectos', [DatosAuditoriaEtiquetas::class, 'obtenerTiposDefectos']);
-Route::post('/guardarInformacion', [DatosAuditoriaEtiquetas::class, 'guardarInformacion']);
 Route::put('/actualizarStatus', [DatosAuditoriaEtiquetas::class, 'actualizarStatus']);
+Route::post ('/saveFila', [DatosAuditoriaEtiquetas::class, 'saveFila']);
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Apartado para detalles dashboard
 Route::get('/buscadorDinamico', [DashboardController::class, 'buscadorDinamico'])->name('dashboar.buscadorDinamico');
@@ -257,14 +257,14 @@ Route::get('/detalleXModulo', [DashboardController::class, 'detalleXModulo'])->n
 
 Route::get('/dashboarAProcesoAQL', [DashboardController::class, 'dashboarAProcesoAQL'])->name('dashboar.dashboarAProcesoAQL');
 Route::get('/detallePorGerente', [DashboardController::class, 'detallePorGerente'])->name('dashboar.detallePorGerente');
-Route::get('/detallePorCliente', [DashboardController::class, 'detallePorCliente'])->name('dashboar.detallePorCliente'); 
+Route::get('/detallePorCliente', [DashboardController::class, 'detallePorCliente'])->name('dashboar.detallePorCliente');
 //dashboard Planta 1
-Route::get('/dashboardPanta1', [DashboardPlanta1Controller::class, 'dashboardPanta1'])->name('dashboar.dashboardPlanta1'); 
-Route::get('/dashboardPlanta1Detalle', [DashboardPlanta1DetalleController::class, 'dashboardPlanta1Detalle'])->name('dashboar.dashboardPlanta1Detalle'); 
+Route::get('/dashboardPanta1', [DashboardPlanta1Controller::class, 'dashboardPanta1'])->name('dashboar.dashboardPlanta1');
+Route::get('/dashboardPlanta1Detalle', [DashboardPlanta1DetalleController::class, 'dashboardPlanta1Detalle'])->name('dashboar.dashboardPlanta1Detalle');
 Route::get('/detalleXModuloPlanta1', [DashboardPlanta1DetalleController::class, 'detalleXModuloPlanta1'])->name('dashboar.detalleXModuloPlanta1');
 //dashboard Planta 2
-Route::get('/dashboardPanta2', [DashboardPlanta2Controller::class, 'dashboardPanta2'])->name('dashboar.dashboardPlanta2'); 
-Route::get('/dashboardPlanta2Detalle', [DashboardPlanta2DetalleController::class, 'dashboardPlanta2Detalle'])->name('dashboar.dashboardPlanta2Detalle'); 
+Route::get('/dashboardPanta2', [DashboardPlanta2Controller::class, 'dashboardPanta2'])->name('dashboar.dashboardPlanta2');
+Route::get('/dashboardPlanta2Detalle', [DashboardPlanta2DetalleController::class, 'dashboardPlanta2Detalle'])->name('dashboar.dashboardPlanta2Detalle');
 Route::get('/detalleXModuloPlanta2', [DashboardPlanta2DetalleController::class, 'detalleXModuloPlanta2'])->name('dashboar.detalleXModuloPlanta2');
 
 Route::get('/reporteriaInterna',[reporteriaInternaController::class, 'reporteriaInterna'])->name('reporteriaInterna.reporteriaInterna')->middleware('checkrole');
