@@ -598,10 +598,11 @@ class DashboardPlanta1PorDiaController extends Controller
             $operariosUnicos = AseguramientoCalidad::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
                 ->where('tiempo_extra', $tiempoExtra)
+                ->where('cantidad_rechazada','>', 0)
                 ->distinct()
                 ->pluck('nombre')
                 ->implode(', ');
-
+            $operariosUnicos = $operariosUnicos ?: 'N/A';
             $dataModuloProceso[] = [
                 'modulo' => $modulo,
                 'modulos_unicos' => $modulosUnicos,
