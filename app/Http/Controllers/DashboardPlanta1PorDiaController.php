@@ -451,6 +451,13 @@ class DashboardPlanta1PorDiaController extends Controller
                     ->pluck('pieza')
                     ->implode(', ');
             $piezasRechazadasUnicas = $piezasRechazadasUnicas ?: 'N/A';
+
+            $sumaParoModular = AuditoriaAQL::where('modulo', $modulo)
+                ->whereDate('created_at', $fecha)
+                ->where('tiempo_extra', $tiempoExtra)
+                ->sum('minutos_paro_modular');
+            $sumaParoModular = $sumaParoModular ?: 'N/A';
+
             $dataModuloAQL[] = [
                 'modulo' => $modulo,
                 'modulos_unicos' => $modulosUnicos,
@@ -471,7 +478,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 'accionesCorrectivasUnicos' => $accionesCorrectivasUnicos,
                 'operariosUnicos' => $operariosUnicos,
                 'sumaReparacionRechazo' => $sumaReparacionRechazo,
-                'piezasRechazadasUnicas' => $piezasRechazadasUnicas
+                'piezasRechazadasUnicas' => $piezasRechazadasUnicas, 
+                'sumaParoModular' => $sumaParoModular,
             ];
 
             

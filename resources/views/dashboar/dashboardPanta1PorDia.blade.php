@@ -96,6 +96,7 @@
                                     <th>Minutos Paro</th>
                                     <th>Promedio Minutos Paro</th>
                                     <th>Cantidad Paro Modular</th>
+                                    <th>Minutos Paro Modular</th>
                                     <th>Total piezas por Bulto</th> 
                                     <th>Total Bulto</th> 
                                     <th>Total Bulto Rechazados</th> 
@@ -123,6 +124,7 @@
                                         <td>{{ $item['sumaMinutos'] }}</td>
                                         <td>{{ $item['promedioMinutosEntero'] }}</td>
                                         <td>{{ $item['conteParoModular'] }}</td>
+                                        <td>{{ $item['sumaParoModular'] }}</td>
                                         <td>{{ $item['sumaPiezasBulto'] }}</td> 
                                         <td>{{ $item['cantidadBultosEncontrados'] }}</td> 
                                         <td>{{ $item['cantidadBultosRechazados'] }}</td> 
