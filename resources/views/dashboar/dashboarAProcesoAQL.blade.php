@@ -1,6 +1,6 @@
 @extends('layouts.app', ['pageSlug' => 'dashboard'])
 
-@section('content') 
+@section('content')
     <div class="row">
         <div class="col-md-12">
             <!--Desde aqui inicia la edicion del codigo para mostrar el contenido-->
@@ -21,7 +21,7 @@
                 </div>
                 <button type="submit" class="btn btn-secondary">Mostrar datos</button>
             </form>
-            
+
             <script>
                 document.addEventListener("DOMContentLoaded", function() {
                     // Obtener los parámetros de la URL
@@ -43,11 +43,11 @@
                 });
 
             </script>
-            <hr>     
+            <hr>
         </div>
     </div>
 
-    <div class="row"> 
+    <div class="row">
         <div class="col-12">
             <div class="card card-chart">
                 <div class="card-header ">
@@ -275,7 +275,7 @@
                         <table class="table tablesorter" id="tablaDinamico">
                             <thead class="text-primary">
                                 <tr>
-                                    <th>Gerentes Produccion</th>
+                                    <th>Supervisor</th>
                                     <th>% Error AQL</th>
                                     <th>% Error Proceso</th>
                                 </tr>
@@ -410,7 +410,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         #chartAQL, #chartProcesos {
             position: absolute;
             width: 100%;
@@ -431,7 +431,7 @@
       </style>
 @endsection
 
-@push('js') 
+@push('js')
     <script src="{{ asset('js/highcharts/highcharts.js') }}"></script>
     <script src="{{ asset('js/highcharts/highcharts-3d.js') }}"></script>
     <script src="{{ asset('js/highcharts/exporting.js') }}"></script>
@@ -442,22 +442,22 @@
                 const [year, week] = value.split('-');
                 return `Semana: ${week}, Año: ${year}`;
             }
-    
+
             Highcharts.setOptions({
                 lang: {
                     thousandsSep: ',',
                     decimalPoint: '.'
                 }
             });
-    
+
             // Encuentra el valor máximo de los datos
             var maxAQL = Math.max(...{!! json_encode($porcentajesAQL->map(function($value) { return (float)$value; })) !!});
             var maxProcesos = Math.max(...{!! json_encode($porcentajesProceso->map(function($value) { return (float)$value; })) !!});
-    
+
             // Añade un margen al máximo
             var margen = 2;
             var maxYValue = Math.max(maxAQL, maxProcesos) + margen;
-    
+
             var chartOptions = {
                 chart: {
                     type: 'spline',  // Cambiado de 'line' a 'spline'
@@ -505,7 +505,7 @@
                     }
                 }
             };
-    
+
             var chartAQL = Highcharts.chart('chartAQL', Highcharts.merge(chartOptions, {
                 title: {
                     text: 'AQL'
@@ -517,7 +517,7 @@
                     fillOpacity: 0.4
                 }]
             }));
-    
+
             var chartProcesos = Highcharts.chart('chartProcesos', Highcharts.merge(chartOptions, {
                 title: {
                     text: 'Procesos'
@@ -529,18 +529,18 @@
                     fillOpacity: 0.4
                 }]
             }));
-    
+
             $('#0').on('click', function() {
                 $('#chartAQL').show();
                 $('#chartProcesos').hide();
             });
-    
+
             $('#1').on('click', function() {
                 $('#chartAQL').hide();
                 $('#chartProcesos').show();
             });
         });
-    </script>    
+    </script>
 
     <script>
         $(document).ready(function() {
@@ -908,7 +908,7 @@
     <script>
         $(document).ready(function() {
             const tableIds = ['#tablaDinamico', '#tablaDinamico2', '#tablaDinamico3', '#tablaDinamico4', '#tablaClientes'];
-            
+
             tableIds.forEach(tableId => {
                 if (!$.fn.dataTable.isDataTable(tableId)) {
                     $(tableId).DataTable({
@@ -958,5 +958,5 @@
             });
         });
     </script>
-    
+
 @endpush

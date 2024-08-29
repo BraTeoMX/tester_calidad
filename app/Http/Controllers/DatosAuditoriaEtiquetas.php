@@ -10,6 +10,7 @@ use App\Models\DatosAXOV;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\Console\Input\Input;
 
 class DatosAuditoriaEtiquetas extends Controller
 {
@@ -354,61 +355,124 @@ Log::info('Estilo seleccionado: '. $estilo);
         return response()->json(['error' => 'Error al actualizar los datos: ' . $e->getMessage()], 500);
     }
 }
-public function saveFila(Request $request)
+public function obtenerDatosInventario(Request $request)
 {
-    Log::info('Datos para el saveFila: ' . json_encode($request->all()));
+    // Obtén los parámetros enviados desde el frontend
+    $orden = $request->input('orden');
+    $estilo = $request->input('estilo');
+    $NewEstilos = $request->input('nuevosEstilos');
 
-    try {
-        // Obtener el primer elemento de 'datos', que es un array
-        $datos = $request->input('datos')[0];
-        $status = $request->input('status');
+    // Log de los datos recibidos
+    Log::info("Datos extendidos - Orden: " . $orden . " - Estilo: " . $estilo . " - Nuevos Estilos: " . $NewEstilos);
 
-        // Convertir el array tipoDefecto en string si es necesario
-        if (is_array($datos['tipoDefecto'])) {
-            $datos['tipoDefecto'] = implode(', ', $datos['tipoDefecto']);
-        }
-        Log::info('Tipo Defecto después de conversión: ' . $datos['tipoDefecto']);
-
-        // Convertir el array defectos en una cadena separada por comas
-        if (is_array($datos['defectos'])) {
-            // Suponiendo que cada elemento es un objeto con una clave "cantidad"
-            $defectos = array_map(function($defecto) {
-                return $defecto['cantidad']; // Extraer solo la cantidad
-            }, $datos['defectos']);
-
-            $datos['defectos'] = implode(', ', $defectos); // Convertir array en string separado por comas
-        }
-        Log::info('Defectos después de conversión: ' . $datos['defectos']);
-
-        // Crear el nuevo registro en la base de datos
-        $nuevoReporte = ReporteAuditoriaEtiqueta::create([
-            'Orden' => $datos['orden'],
-            'Estilos' => $datos['estilo'],
-            'Cantidad' => $datos['cantidad'],
-            'Muestreo' => $datos['muestreo'],
-            'Defectos' => $datos['defectos'], // Almacenar defectos como string
-            'Tipo_Defectos' => $datos['tipoDefecto'], // Almacenar tipos de defectos como string
-            'Talla' => $datos['talla'],
-            'Color' => $datos['color'],
-            'Status' => $status
-        ]);
-
-        Log::info('Registro guardado exitosamente: ' . json_encode($nuevoReporte));
-
-        // Responder con éxito
-        return response()->json([
-            'mensaje' => 'Registro guardado exitosamente',
-            'registro' => $nuevoReporte
-        ], 200);
-    } catch (\Exception $e) {
-        // Manejar errores
-        Log::error('Error al guardar el registro: ' . $e->getMessage());
-
-        return response()->json([
-            'mensaje' => 'Error al guardar el registro: ' . $e->getMessage(),
-        ], 500);
+    // Verifica que se reciban todos los parámetros
+    if (!$orden || !$estilo || !$NewEstilos) {
+        return response()->json(['error' => 'Parámetros inválidos'], 400);
     }
+
+    // Si NewEstilos contiene múltiples valores separados por coma, conviértelos en un array
+    $NewEstilosArray = explode(',', $NewEstilos);
+
+    // Consulta a SQL Server
+    $placeholders = implode(',', array_fill(0, count($NewEstilosArray), '?'));
+    $query = "
+    SELECT
+        PRD.PRODID,
+        INV.INVENTREFID,
+        INV.ITEMID,
+        PRO.ITEMID AS ITEMIDII,
+        INV.ITEMNAME,
+        CASE
+            WHEN CHARINDEX('-', PRD.BOMID) > 0 THEN SUBSTRING(PRD.BOMID, 1, CHARINDEX('-', PRD.BOMID) - 1)
+            ELSE PRD.BOMID
+        END AS OV,
+        CASE
+            WHEN CHARINDEX('-', PRD.BOMID) > 0 THEN SUBSTRING(PRD.BOMID, CHARINDEX('-', PRD.BOMID) + 1, LEN(PRD.BOMID))
+            ELSE ''
+        END AS LT,
+        BACK.INVENTSIZEID,
+        BACK.INVENTCOLORID,
+        BACK.REQUESTQTY,
+        YEAR(INV.CREATEDDATETIME) AS YEAR
+    FROM
+        [INVENTQUALITYORDERTABLE] INV
+    INNER JOIN [PRODBOM] PRD ON INV.ITEMID = PRD.ITEMID
+    INNER JOIN [PRODTABLE] PRO ON PRD.PRODID = PRO.PRODID
+    INNER JOIN [BACKLOGTABLE_AT] BACK ON
+        (CASE
+            WHEN CHARINDEX('-', PRD.BOMID) > 0 THEN SUBSTRING(PRD.BOMID, 1, CHARINDEX('-', PRD.BOMID) - 1)
+            ELSE PRD.BOMID
+        END) = BACK.SALESID
+    WHERE
+        INV.CREATEDDATETIME >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - 1, 0)
+        AND INV.CREATEDDATETIME < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) + 1, 0)
+        AND INV.INVENTREFID != ''
+        AND (CASE
+                WHEN CHARINDEX('-', PRD.BOMID) > 0 THEN SUBSTRING(PRD.BOMID, 1, CHARINDEX('-', PRD.BOMID) - 1)
+                ELSE PRD.BOMID
+            END) != ''
+        AND (CASE
+                WHEN CHARINDEX('-', PRD.BOMID) > 0 THEN SUBSTRING(PRD.BOMID, CHARINDEX('-', PRD.BOMID) + 1, LEN(PRD.BOMID))
+                ELSE ''
+            END) != ''
+        AND BACK.REQUESTQTY != 0.0000000000000000
+        AND PRD.PRODID = ?
+        AND PRO.ITEMID = ?
+        AND INV.ITEMID IN ($placeholders)
+    ORDER BY INV.ITEMID DESC;
+    ";
+
+    $params = array_merge([$orden, $estilo], $NewEstilosArray);
+
+    // Ejecuta la consulta
+    $resultados = DB::connection('sqlsrv')->select($query, $params);
+
+    // Determinar el tamaño de la muestra para cada resultado
+    foreach ($resultados as &$resultado) {
+        $cantidad = $resultado->REQUESTQTY;
+        if ($cantidad >= 2 && $cantidad <= 8) {
+            $resultado->tamaño_muestra = '2';
+        } elseif ($cantidad >= 9 && $cantidad <= 15) {
+            $resultado->tamaño_muestra = '3';
+        } elseif ($cantidad >= 16 && $cantidad <= 25) {
+            $resultado->tamaño_muestra = '5';
+        } elseif ($cantidad >= 26 && $cantidad <= 50) {
+            $resultado->tamaño_muestra = '8';
+        } elseif ($cantidad >= 51 && $cantidad <= 90) {
+            $resultado->tamaño_muestra = '13';
+        } elseif ($cantidad >= 91 && $cantidad <= 150) {
+            $resultado->tamaño_muestra = '20';
+        } elseif ($cantidad >= 151 && $cantidad <= 280) {
+            $resultado->tamaño_muestra = '32';
+        } elseif ($cantidad >= 281 && $cantidad <= 500) {
+            $resultado->tamaño_muestra = '50';
+        } elseif ($cantidad >= 501 && $cantidad <= 1200) {
+            $resultado->tamaño_muestra = '80';
+        } elseif ($cantidad >= 1201 && $cantidad <= 3200) {
+            $resultado->tamaño_muestra = '125';
+        } elseif ($cantidad >= 3201 && $cantidad <= 10000) {
+            $resultado->tamaño_muestra = '200';
+        } elseif ($cantidad >= 10001 && $cantidad <= 35000) {
+            $resultado->tamaño_muestra = '315';
+        } elseif ($cantidad >= 35001 && $cantidad <= 150000) {
+            $resultado->tamaño_muestra = '500';
+        } elseif ($cantidad >= 150001 && $cantidad <= 5000000) {
+            $resultado->tamaño_muestra = '800';
+        } elseif ($cantidad > 5000000) {
+            $resultado->tamaño_muestra = '2000';
+        }
+    }
+
+    // Log de los resultados de la consulta
+    Log::info("Datos extendidos del select: " . print_r($resultados, true));
+
+    // Retornamos los resultados como JSON
+    return response()->json($resultados);
 }
+
+
+
+
 
 }
 

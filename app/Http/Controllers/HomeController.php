@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
-use App\Models\AseguramientoCalidad;  
-use App\Models\AuditoriaAQL;  
-use App\Models\TpAseguramientoCalidad;  
-use App\Models\TpAuditoriaAQL;  
-use Carbon\Carbon; // Asegúrate de importar la clase Carbon  
-use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon  
+use App\Models\AseguramientoCalidad;
+use App\Models\AuditoriaAQL;
+use App\Models\TpAseguramientoCalidad;
+use App\Models\TpAuditoriaAQL;
+use Carbon\Carbon; // Asegúrate de importar la clase Carbon
+use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\DB; // Importa la clase DB
+use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
 {
@@ -33,7 +34,7 @@ class HomeController extends Controller
         $fechaActual = Carbon::now()->toDateString();
         $fechaInicio = Carbon::now()->subMonth()->toDateString(); // Cambia el rango de fechas según necesites
         $fechaFin = Carbon::now()->toDateString();
-
+        $SegundasTerceras = '';
 
         // Verifica si el usuario tiene los roles 'Administrador' o 'Gerente de Calidad'
         if (Auth::check() && (Auth::user()->hasRole('Administrador') || Auth::user()->hasRole('Gerente de Calidad'))) {
@@ -47,15 +48,15 @@ class HomeController extends Controller
                               ->first();
                 return $data->cantidad_auditada != 0 ? number_format(($data->cantidad_rechazada / $data->cantidad_auditada) * 100, 2) : 0;
             }
-            
+
             // Información General
             $generalProceso = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual);
             $generalAQL = calcularPorcentaje(AuditoriaAQL::class, $fechaActual);
-            
+
             // Planta 1 Ixtlahuaca
             $generalProcesoPlanta1 = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark1');
             $generalAQLPlanta1 = calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark1');
-            
+
             // Planta 2 San Bartolo
             $generalProcesoPlanta2 = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark2');
             $generalAQLPlanta2 = calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark2');
@@ -89,7 +90,7 @@ class HomeController extends Controller
 
             // Combinar los datos
             $dataGerentesGeneral = $this->combineDataGerentes($dataGerentesAQLGeneral, $dataGerentesProcesoGeneral);
- 
+
 
 
             // Datos generales
@@ -133,7 +134,7 @@ class HomeController extends Controller
             // Obtención y cálculo de datos generales para AQL y Proceso
             $dataModuloAQLGeneral = $this->getDataModuloAQL($fechaActual);
             $dataModuloProcesoGeneral = $this->getDataModuloProceso($fechaActual);
-            
+
             // Obtención y cálculo de datos por planta para Auditoria AQL
             $dataModuloAQLPlanta1 = $this->getDataModuloAQL($fechaActual, 'Intimark1');
             $dataModuloAQLPlanta2 = $this->getDataModuloAQL($fechaActual, 'Intimark2');
@@ -189,7 +190,7 @@ class HomeController extends Controller
             })->toArray();
 
 
-            // Obtener los clientes únicos de AseguramientoCalidad 
+            // Obtener los clientes únicos de AseguramientoCalidad
             $clientesAseguramientoBusqueda = AseguramientoCalidad::select('cliente')
             ->distinct()
             ->pluck('cliente');
@@ -205,7 +206,7 @@ class HomeController extends Controller
             // Convertir la colección a un array si es necesario
             $clientesUnicosArrayBusqueda = $clientesUnicosBusqueda->values()->all();
 
-            // Obtener los modulos únicos de AseguramientoCalidad 
+            // Obtener los modulos únicos de AseguramientoCalidad
             //$modulosAseguramientoBusqueda = AseguramientoCalidad::select('modulo')
             //->distinct()
             //->pluck('modulo');
@@ -221,8 +222,6 @@ class HomeController extends Controller
             // Convertir la colección a un array si es necesario
             //$modulosUnicosArrayBusqueda = $modulosUnicosBusqueda->values()->all();
             //dd($clientesUnicosArrayBusqueda);
-
-
             return view('dashboard', compact('title', 'topDefectosAQL', 'topDefectosProceso',
                                     'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2', 'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2',
                                     'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
@@ -233,12 +232,61 @@ class HomeController extends Controller
                                     'fechas', 'porcentajesAQL', 'porcentajesProceso',
                                     'fechasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica',
                                     'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica',
-                                    'clientesUnicosArrayBusqueda')); 
+                                    'clientesUnicosArrayBusqueda','SegundasTerceras'));
         } else {
             // Si el usuario no tiene esos roles, redirige a listaFormularios
             return redirect()->route('viewlistaFormularios');
         }
     }
+    public function segundas_terceras()
+    {
+        $SegundasTerceras = DB::connection('sqlsrv')->select("
+        SELECT
+        ptt.OPRMODULEID_AT,
+        back.CATEGORYNAME,
+        ptt.PRODID,
+        pp.PRODTICKETID,
+        p.ITEMID,
+        inv.INVENTSIZEID,
+        inv.INVENTCOLORID,
+        ptt.QTY,
+        ptt.QUALITY,
+        CASE
+            WHEN ptt.QUALITY = 1 THEN 'Segunda'
+            WHEN ptt.QUALITY = 2 THEN 'Tercera'
+            ELSE 'N/A'
+        END AS Calidad,
+        CASE
+            WHEN ptt.QUALITY = 2 THEN 'N/A'
+            ELSE ptt.QUALITYCODEID
+        END AS QUALITYCODEID,
+        ISNULL(pqt.DESCRIPTION, 'N/A') AS DescripcionCalidad,
+        CASE
+            WHEN pqt.QUALITYCODEID BETWEEN 'A' AND 'G' THEN 'Segunda por Material'
+            WHEN pqt.QUALITYCODEID BETWEEN 'H' AND 'O' THEN 'Segunda por Costura'
+            ELSE 'N/A'
+        END AS [TipoSegunda],
+        inv.CONFIGID,
+        p.PRODPOOLID,
+        back.CUSTOMERNAME,
+        back.DIVISIONNAME,
+        back.ITEMNAME,
+        CONVERT(VARCHAR(10), ptt.TRANSDATE, 120) AS TRANSDATE
+    FROM [PRODTICKETTRANSTABLE_AT] ptt
+    INNER JOIN [PRODTABLE] p ON ptt.PRODID = p.PRODID
+    INNER JOIN [PRODTICKETSTABLE_AT] pp ON ptt.PRODTICKETID_AT = pp.PRODTICKETID
+    INNER JOIN [INVENTDIM] inv ON pp.INVENTDIMID = inv.INVENTDIMID
+    INNER JOIN [BACKLOGTABLE_AT] back ON p.INVENTREFID = back.SALESID AND inv.INVENTSIZEID = back.INVENTSIZEID AND p.ITEMID = back.ITEMID
+    LEFT JOIN [PACKINGQUALITYCODETABLE_AT] pqt ON ptt.QUALITYCODEID = pqt.QUALITYCODEID
+    WHERE ptt.TRANSDATE >= CAST(CAST(YEAR(GETDATE()) AS VARCHAR(4)) + '-' + CAST(MONTH(GETDATE()) AS VARCHAR(2)) + '-01' AS DATE)
+      AND ptt.TRANSDATE < DATEADD(MONTH, 1, CAST(CAST(YEAR(GETDATE()) AS VARCHAR(4)) + '-' + CAST(MONTH(GETDATE()) AS VARCHAR(2)) + '-01' AS DATE))
+      AND ptt.QUALITY IN (1, 2)
+
+        ");
+        Log::info("Datos SegundasTerceras del select: " . print_r($SegundasTerceras, true));
+        return response()->json($SegundasTerceras);
+    }
+
 
     private function obtenerDatosClientesPorFiltro($fechaActual, $planta = null)
     {
@@ -423,7 +471,7 @@ class HomeController extends Controller
             $sumaAuditadaAQL = AuditoriaAQL::where('modulo', $modulo)
                                 ->whereDate('created_at', $fecha)
                                 ->sum('cantidad_auditada');
-                                
+
             $sumaRechazadaAQL = AuditoriaAQL::where('modulo', $modulo)
                                 ->whereDate('created_at', $fecha)
                                 ->sum('cantidad_rechazada');
@@ -434,7 +482,7 @@ class HomeController extends Controller
                                 ->whereDate('created_at', $fecha)
                                 ->distinct()
                                 ->count('nombre');
-                                
+
             $conteoMinutos = AuditoriaAQL::where('modulo', $modulo)
                                 ->whereDate('created_at', $fecha)
                                 ->count('minutos_paro');

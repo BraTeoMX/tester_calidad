@@ -33,7 +33,7 @@
         <div class="col-lg-6 col-md-12">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
-                    <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Auditoria de Procesos</h3>
+                    <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Auditoria de Procesos por dia</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -60,7 +60,7 @@
     </div>
 
 
-    <div class="row"> 
+    <div class="row">
         <div class="col-12">
             <div class="card card-chart">
                 <div class="card-header ">
@@ -98,7 +98,7 @@
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
     <!-- Graficas -->
     <div class="row">
         <div class="col-12">
@@ -265,8 +265,8 @@
                             <thead class=" text-primary">
                                 <tr>
                                     <th>Cliente</th>
-                                    <th>% Error Proceso</th>
                                     <th>% Error AQL</th>
+                                    <th>% Error Proceso</th>
                                     <!-- Aquí puedes agregar más encabezados si es necesario -->
                                 </tr>
                             </thead>
@@ -274,8 +274,8 @@
                               @foreach ($dataGeneral['dataCliente'] as $clienteData)
                               <tr class="{{ $clienteData['porcentajeErrorProceso'] > 9 && $clienteData['porcentajeErrorProceso'] <= 15 ? 'error-bajo' : ($clienteData['porcentajeErrorProceso'] > 15 ? 'error-alto' : '') }}">
                                 <td>{{ $clienteData['cliente'] }}</td>
-                                <td>{{ number_format($clienteData['porcentajeErrorProceso'], 2) }}%</td>
                                 <td>{{ number_format($clienteData['porcentajeErrorAQL'], 2) }}%</td>
+                                <td>{{ number_format($clienteData['porcentajeErrorProceso'], 2) }}%</td>
                               </tr>
                               @endforeach
                             </tbody>
@@ -300,7 +300,7 @@
                         <table class="table tablesorter" id="tablaResponsables">
                             <thead class="text-primary">
                                 <tr>
-                                    <th>Gerentes Produccion</th>
+                                    <th>Supervisor</th>
                                     <th>% Error AQL</th>
                                     <th>% Error Proceso</th>
                                 </tr>
@@ -429,46 +429,13 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-lg-6 col-md-12">
-            <div class="card ">
-                <div class="card-header card-header-success card-header-icon">
-                     <h3 class="card-title"><i class="tim-icons icon-zoom-split text-success"></i> Seleccion de Cliente por Modulo</h3>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('dashboar.detalleXModulo') }}" method="GET">
-                        <div class="form-group">
-                            <label for="clienteBusqueda">Seleccione un cliente:</label>
-                            <select class="form-control" name="clienteBusqueda" id="clienteBusqueda" required>
-                                <option value="">Seleccione un cliente</option>
-                                @foreach ($clientesUnicosArrayBusqueda as $cliente)
-                                    <option value="{{ $cliente }}">{{ $cliente }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Buscar</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6 col-md-12">
-            <div class="card ">
-                <div class="card-header card-header-success card-header-icon">
-                <h3 class="card-title"></h3>
-                </div>
-                <div class="card-body">
-
-                </div>
-            </div>
-        </div>
-    </div>
 
 
     <style>
         .chart-area {
           height: 500px; /* Ajusta esta altura según tus necesidades */
         }
-        
+
         #chartAQLContainer, #chartProcesosContainer, #clienteChartAQL, #clienteChartProcesos, #moduloChartAQL, #moduloChartProcesos{
             width: 100%;
             height: 100%;
@@ -488,12 +455,12 @@
             const fechas = @json($fechas);
             const porcentajesAQL = @json($porcentajesAQL);
             const porcentajesProceso = @json($porcentajesProceso);
-    
+
             // Función para convertir los datos y manejar valores nulos o cero
             function prepareData(data) {
                 return data.map(value => value === null ? null : parseFloat(value));
             }
-    
+
             // Configuración común para ambas gráficas
             const commonOptions = {
                 chart: {
@@ -550,7 +517,7 @@
                     itemStyle: { color: '#ffffff' }
                 }
             };
-    
+
             // Gráfica AQL
             const chartAQL = Highcharts.chart('chartAQLContainer', Highcharts.merge(commonOptions, {
                 series: [{
@@ -560,7 +527,7 @@
                     showInLegend: false // Ocultar nombre en la leyenda
                 }]
             }));
-    
+
             // Gráfica Procesos
             const chartProcesos = Highcharts.chart('chartProcesosContainer', Highcharts.merge(commonOptions, {
                 series: [{
@@ -570,20 +537,20 @@
                     showInLegend: false // Ocultar nombre en la leyenda
                 }]
             }));
-    
+
             // Funcionalidad de los botones
             document.getElementById('btnAQL').addEventListener('click', function() {
                 document.getElementById('chartAQLContainer').style.display = 'block';
                 document.getElementById('chartProcesosContainer').style.display = 'none';
                 chartAQL.reflow();
             });
-    
+
             document.getElementById('btnProcesos').addEventListener('click', function() {
                 document.getElementById('chartAQLContainer').style.display = 'none';
                 document.getElementById('chartProcesosContainer').style.display = 'block';
                 chartProcesos.reflow();
             });
-    
+
             // Ajuste responsivo
             window.addEventListener('resize', function() {
                 chartAQL.reflow();
@@ -962,7 +929,7 @@
     <script>
         $(document).ready(function() {
             const tableIds = ['#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaResponsables', '#tablaModulos', '#tablaResponsable', '#tablaClientes'];
-            
+
             tableIds.forEach(tableId => {
                 if (!$.fn.dataTable.isDataTable(tableId)) {
                     $(tableId).DataTable({
@@ -1012,5 +979,131 @@
             });
         });
     </script>
-    
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script>
+    $(document).ready(function() {
+        $.ajax({
+            url: '/SegundasTerceras',
+            method: 'GET',
+            success: function(data) {
+                // Procesa los datos recibidos
+                let groupedData = {};
+                data.forEach(function(item) {
+                    var qty = parseFloat(item.QTY); // Convertir QTY a número
+                    let monthYear = item.TRANSDATE.substring(0, 7); // Obtener mes y año
+                    if (!groupedData[monthYear]) {
+                        groupedData[monthYear] = { Segunda: 0, Tercera: 0, Modulos: {} };
+                    }
+                    if (item.Calidad === 'Segunda') {
+                        groupedData[monthYear].Segunda += qty;
+                    } else if (item.Calidad === 'Tercera') {
+                        groupedData[monthYear].Tercera += qty;
+                    }
+                    if (!groupedData[monthYear].Modulos[item.OPRMODULEID_AT]) {
+                        groupedData[monthYear].Modulos[item.OPRMODULEID_AT] = { Segunda: 0, Tercera: 0 };
+                    }
+                    if (item.Calidad === 'Segunda') {
+                        groupedData[monthYear].Modulos[item.OPRMODULEID_AT].Segunda += qty;
+                    } else if (item.Calidad === 'Tercera') {
+                        groupedData[monthYear].Modulos[item.OPRMODULEID_AT].Tercera += qty;
+                    }
+                });
+
+                let categories = Object.keys(groupedData);
+                let segundaData = categories.map(monthYear => groupedData[monthYear].Segunda);
+                let terceraData = categories.map(monthYear => groupedData[monthYear].Tercera);
+
+                // Genera la gráfica de barras
+                Highcharts.chart('SegundasTercerasChart', {
+                    chart: {
+                        type: 'column'
+                    },
+                    title: {
+                        text: 'Segundas / Terceras'
+                    },
+                    xAxis: {
+                        categories: categories,
+                        title: {
+                            text: 'Mes y Año'
+                        }
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: {
+                            text: 'Cantidad'
+                        }
+                    },
+                    series: [{
+                        name: 'Segunda',
+                        data: segundaData
+                    }, {
+                        name: 'Tercera',
+                        data: terceraData
+                    }],
+                    plotOptions: {
+                        series: {
+                            cursor: 'pointer',
+                            point: {
+                                events: {
+                                    click: function() {
+                                        let monthYear = this.category;
+                                        let modulos = groupedData[monthYear].Modulos;
+                                        let modulosCategories = Object.keys(modulos);
+                                        let modulosSegundaData = modulosCategories.map(modulo => modulos[modulo].Segunda);
+                                        let modulosTerceraData = modulosCategories.map(modulo => modulos[modulo].Tercera);
+
+                                        Highcharts.chart('SegundasTercerasChart', {
+                                            chart: {
+                                                type: 'column'
+                                            },
+                                            title: {
+                                                text: 'Segundas / Terceras por Módulo en ' + monthYear
+                                            },
+                                            xAxis: {
+                                                categories: modulosCategories,
+                                                title: {
+                                                    text: 'Módulo'
+                                                }
+                                            },
+                                            yAxis: {
+                                                min: 0,
+                                                title: {
+                                                    text: 'Cantidad'
+                                                }
+                                            },
+                                            series: [{
+                                                name: 'Segunda',
+                                                data: modulosSegundaData
+                                            }, {
+                                                name: 'Tercera',
+                                                data: modulosTerceraData
+                                            }],
+                                            plotOptions: {
+                                                series: {
+                                                    cursor: 'pointer',
+                                                    point: {
+                                                        events: {
+                                                            click: function() {
+                                                                // Aquí puedes agregar más detalles o acciones al hacer clic en un módulo específico
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            },
+            error: function(error) {
+                console.error('Error al obtener los datos:', error);
+            }
+        });
+    });
+</script>
+
+
 @endpush

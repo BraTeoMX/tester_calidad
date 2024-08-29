@@ -42,6 +42,12 @@
                                 Buscar
                             </button>
                         </div>
+                        <div class="cl-toggle-switch">
+                          <label class="cl-switch">
+                            <input type="checkbox" id="consultarDataBtn">
+                            <span>Consultar Data extra</span>
+                          </label>
+                        </div>
                     </div>
                     <br>
                 </div>
@@ -59,9 +65,13 @@
                 <div id="accordion" name="accordion" style="margin-top: 1px;">
                     <!-- Los acordeones se generarán dinámicamente aquí -->
                 </div>
+                <div id="accordionnew" name="accordionnew" style="margin-top: 1px;">
+                    <!-- Los acordeones se generarán dinámicamente aquí -->
+                </div>
             </div>
         </div>
     </div>
+
     <script>
         $(document).ready(function() {
             // Cachear los selectores para reutilizarlos
@@ -202,19 +212,6 @@
                             </tbody>
                     </table>
                 </div>
-                <div class="col-md-2">
-                <button type="button" class="button insertarFila" data-index="${index}">
-                    <span class="button__text">Añadir</span>
-                    <span class="button__icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" stroke-width="2"
-                            stroke-linejoin="round" stroke-linecap="round" stroke="currentColor" height="24"
-                            fill="none" class="svg">
-                            <line y2="19" y1="5" x2="12" x1="12"></line>
-                            <line y2="12" y1="12" x2="19" x1="5"></line>
-                        </svg>
-                    </span>
-                </button>
-            </div>
                                     </div>
                                 </div>
                             </div>`;
@@ -455,138 +452,215 @@
     </script>
 <script>
     $(document).ready(function() {
-        // Función para generar un ID único
-        function generateUniqueId(prefix) {
-            return prefix + '_' + Math.random().toString(36).substr(2, 9);
-        }
+        var $toggleSwitch = $('#consultarDataBtn');
+        var nuevosEstilos = '';
+        var $accordionew = $('#accordionnew');
 
-        // Evento delegado para el botón de añadir filas dinámicamente dentro del acordeón
-        $(document).on('click', '.insertarFila', function() {
-            var uniqueId = generateUniqueId('input');
-            Numid++;
-            var nuevaFila = `<tr>
-                                <td style="text-align: center;">${Numid}</td>
-                                <td style="text-align: center;">
-                                    <input type="text" class="form-control" id="color_${uniqueId}" value="">
-                                </td>
-                                <td style="text-align: center;">
-                                    <input type="text" class="form-control" id="talla_${uniqueId}" value="">
-                                </td>
-                                <td style="text-align: center;">
-                                    <input type="text" class="form-control" id="cantidad_${uniqueId}" value="">
-                                </td>
-                                <td style="text-align: center;">
-                                    <input type="text" class="form-control" id="muestra_${uniqueId}" value="">
-                                </td>
-                                <td style="text-align: center;">
-                                    <select class="form-control tipoProblemasSelect" id="tipoProblemas_${uniqueId}" multiple="multiple"></select>
-                                </td>
-                                <td class="cantidadContainer" style="text-align: center;">
-                                    <!-- Inputs de cantidad generados dinámicamente aquí -->
-                                </td>
-                                <td style="text-align: center;">
-                                    <div class="btn-group dropleft">
-                                        <button class="btn btn-danger dropdown-toggle" type="button" id="dropdownMenu_${uniqueId}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            Opciones
+        // Evento para activar/desactivar la búsqueda de datos extra
+        $toggleSwitch.change(function() {
+            if ($(this).is(':checked')) {
+                // Solicitar al usuario los nuevos estilos a buscar
+                nuevosEstilos = prompt('Ingrese los nuevos estilos separados por comas (ej: Estilo1, Estilo2, Estilo3):');
+
+                // Verificar que el usuario haya ingresado algo
+                if (!nuevosEstilos) {
+                    alert('Debe ingresar al menos un estilo.');
+                    $toggleSwitch.prop('checked', false); // Desactivar el switch si no se ingresa nada
+                    return;
+                }
+
+                // Limpiar espacios en blanco alrededor de los estilos
+                nuevosEstilos = nuevosEstilos.split(',').map(function(estilo) {
+                    return estilo.trim();
+                }).join(',');
+
+                // Mostrar un mensaje de carga si el toggle está activado
+                $('#accordionnew').html('<p>Cargando datos adicionales...</p>');
+            } else {
+                // Si el toggle se desactiva, limpiar el contenedor de resultados
+                $('#accordionnew').empty();
+            }
+        });
+
+        // Evento para manejar la expansión del acordeón
+        $('#accordion').on('shown.bs.collapse', function(event) {
+            console.log('Acordeón expandido');
+
+            if ($toggleSwitch.is(':checked')) {
+                let target = $(event.target);
+                let estiloText = target.closest('.card').find('.btn-link').text();
+                let estiloMatch = estiloText.match(/Estilo:\s*([^\s]+)/);
+
+                if (!estiloMatch) {
+                    alert('No se pudo obtener el estilo correctamente.');
+                    return;
+                }
+
+                let estilo = estiloMatch[1].trim();
+                let orden = $('#ordenSelect').val();
+
+                // Asegurarnos que la orden y el estilo sean válidos antes de proceder
+                if (!orden || !estilo) {
+                    alert('Por favor, seleccione una orden y un estilo válidos.');
+                    $('#accordionnew').html('');
+                    return;
+                }
+
+                alert('Orden: ' + orden + '\nEstilo: ' + estilo + '\nNuevos Estilos: ' + nuevosEstilos);
+
+                // Desactivar el botón mientras se realiza la solicitud
+                $toggleSwitch.prop('disabled', true);
+
+                // Realizar la solicitud AJAX
+                $.ajax({
+                    url: '/datosinventario',
+                    type: 'GET',
+                    data: {
+                        orden: orden,
+                        estilo: estilo,
+                        nuevosEstilos: nuevosEstilos
+                    },
+                    success: function(response) {
+                        // Limpiar el contenido del acordeón
+                        $accordionew.empty();
+
+                        // Agrupar los datos por ITEMID
+                        var groupedData = {};
+                        $.each(response, function(index, item) {
+                            if (!groupedData[item.ITEMID]) {
+                                groupedData[item.ITEMID] = [];
+                            }
+                            groupedData[item.ITEMID].push(item);
+                        });
+
+                        // Generar dinámicamente los acordeones
+                        $.each(groupedData, function(itemID, items) {
+                            var estado = items[0].status || 'N/A';
+
+                            // Crear el HTML para el acordeón
+                            var acordeonNewHtml = `
+                            <div class="card">
+                                <div class="card-header" id="headingNew${itemID}" style="background-color: rgb(170, 42, 176) !important; text-align: center;">
+                                    <h5 class="mb-0">
+                                        <button class="btn btn-link" style="background-color: rgb(170, 42, 176) !important; color: white; font-size: 17px;" data-toggle="collapse" data-target="#collapsenew${itemID}" aria-expanded="true" aria-controls="collapsenew${itemID}">
+                                            Estilo: ${itemID}
+                                            <br>
+                                            Estado: ${estado}
                                         </button>
-                                        <div class="dropdown-menu" aria-labelledby="dropdownMenu_${uniqueId}">
-                                            <li><a class="dropdown-item2 text-success" value="Aprobado" data-row-id="${uniqueId}">Aprobado</a></li>
-                                            <li><a class="dropdown-item2 text-warning" value="Aprobado Condicionalmente" data-row-id="${uniqueId}">Aprobado Condicionalmente</a></li>
-                                            <li><a class="dropdown-item2 text-danger" value="Rechazado" data-row-id="${uniqueId}">Rechazado</a></li>
+                                    </h5>
+                                </div>
+                                <div id="collapsenew${itemID}" class="collapse" aria-labelledby="headingNew${itemID}" data-parent="#accordionnew">
+                                    <div class="card-body">
+                                        <!-- Contenido de la auditoría para el estilo -->
+                                        <div class="table-responsive">
+                                            <table class="table table-sm" id="miTablaNew">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align: center;">#</th>
+                                                        <th style="text-align: center;">Color</th>
+                                                        <th style="text-align: center;">Talla</th>
+                                                        <th style="text-align: center;">Cantidad</th>
+                                                        <th style="text-align: center;">Tamaño Muestra</th>
+                                                        <th style="text-align: center;">Tipos Defectos</th>
+                                                        <th style="text-align: center;"># Defectos</th>
+                                                        <th style="text-align: center;">Acciones Correctivas</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${items.map((item, index) => {
+                                                        var cantidadFormateada = parseFloat(item.REQUESTQTY).toFixed(2);
+                                                        return `
+                                                            <tr>
+                                                                <td style="text-align: center;">${index + 1}</td>
+                                                                <td style="text-align: center;">${item.INVENTCOLORID}</td>
+                                                                <td style="text-align: center;">${item.INVENTSIZEID}</td>
+                                                                <td style="text-align: center;">${cantidadFormateada}</td>
+                                                                <td style="text-align: center;"><span class="tamañoMuestra">${item.tamaño_muestra ? item.tamaño_muestra : 'N/A'}</span></td>
+                                                                <td style="text-align: center;">
+                                                                    <select class="form-control tipoProblemasSelectNew" id="tipoProblemasNew${itemID}" multiple="multiple"></select>
+                                                                </td>
+                                                                <td class="cantidadContainerNew" style="text-align: center;">
+                                                                    <!-- Los inputs de cantidad se generarán dinámicamente aquí -->
+                                                                </td>
+                                                                <td style="text-align: center;">${item.acciones_correctivas}</td>
+                                                            </tr>
+                                                        `;
+                                                    }).join('')}
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
-                                </td>
-                            </tr>`;
-
-            // Añadir la fila a la tabla del acordeón correspondiente
-            $('#miTabla tbody').append(nuevaFila);
-
-            // Inicializar select2 en la nueva fila
-            $('#tipoProblemas_' + uniqueId).select2({
-                placeholder: 'Seleccione tipo de problema',
-                ajax: {
-                    url: '/obtenerTiposDefectos',
-                    dataType: 'json',
-                    processResults: function(data) {
-                        return {
-                            results: $.map(data, function(item) {
-                                return {
-                                    id: item.Defectos,
-                                    text: item.Defectos
-                                };
-                            })
-                        };
+                                </div>
+                            </div>`;
+                            // Agregar el acordeón al contenedor
+                            $accordionew.append(acordeonNewHtml);
+                            itemID = itemID;
+                            // Inicializar select2 para los select dinámicos dentro del acordeón
+                            $accordionew.find('select.tipoProblemasSelectNew').each(function() {
+                            $(this).select2({
+                                placeholder: 'Seleccione tipo de problema',
+                                ajax: {
+                                    url: '/obtenerTiposDefectos',
+                                    dataType: 'json',
+                                    processResults: function(data) {
+                                        return {
+                                            results: $.map(data, function(item) {
+                                                return {
+                                                    id: item.Defectos,
+                                                    text: item.Defectos
+                                                };
+                                            })
+                                        };
+                                    }
+                                }
+                            });
+                        });
+                     });
+                    },
+                    error: function(xhr, status, error) {
+                        $('#accordionnew').html('<p>Ocurrió un error al consultar los datos.</p>');
+                        console.error(error);
+                    },
+                    complete: function() {
+                        // Reactivar el botón después de que la solicitud se complete
+                        $toggleSwitch.prop('disabled', false);
                     }
-                }
-            });
-        });
-
-        // Nuevo script para manejar clics en el dropdown de opciones generado dinámicamente
-        $('#accordion').on('click', '.dropdown-item2', function(event) {
-            var $dropdownItem = $(this);
-            var selectedOption = $dropdownItem.attr('value');
-            var status = $dropdownItem.text().trim();
-            var uniqueId = $dropdownItem.data('row-id');
-
-            // Obtener los datos de la fila específica
-            var fila = $dropdownItem.closest('tr');
-            var orden = $('#ordenSelect').val(); // Valor del select de orden
-            var estiloText = $(event.target).closest('.card').find('.btn-link').text();
-            var estilo = estiloText.match(/Estilo:\s*([^\s]+)/)[1].trim();
-            var color = fila.find(`#color_${uniqueId}`).val().trim();
-            var talla = fila.find(`#talla_${uniqueId}`).val().trim();
-            var cantidad = fila.find(`#cantidad_${uniqueId}`).val().trim();
-            var muestreo = fila.find(`#muestra_${uniqueId}`).val().trim();
-            var tipoDefecto = fila.find(`#tipoProblemas_${uniqueId}`).val(); // Valor del select múltiple
-            var defectos = [];
-
-            // Obtener todos los valores de los inputs de defectos generados dinámicamente
-            fila.find('.cantidadContainer .cantidadInput').each(function() {
-                defectos.push({
-                    cantidad: $(this).val()
                 });
-            });
+            }
+        });
+        // Evento delegado para manejar la selección de problemas
+        $('#accordionnew').on('select2:select select2:unselect', '.tipoProblemasSelectNew', function(e) {
+            var $select = $(this);
+            var selectedOptions = $select.val(); // Obtener las opciones seleccionadas
 
-            // Preparar los datos para enviar al servidor
-            var datosFila = {
-                orden: orden,
-                estilo: estilo,
-                color: color,
-                talla: talla,
-                cantidad: cantidad,
-                muestreo: muestreo,
-                tipoDefecto: tipoDefecto,
-                defectos: defectos
-            };
+            var $row = $select.closest('tr'); // Obtener la fila correspondiente
+            var $cantidadContainerNew = $row.find('.cantidadContainerNew'); // Div contenedor de los inputs de cantidad
+            var $itemID;
+            // Limpiar los inputs de cantidad anteriores
+            $cantidadContainerNew.empty();
 
-            var datosAEnviar = {
-                _token: $('meta[name="csrf-token"]').attr('content'), // Obtener el token CSRF del meta tag
-                datos: [datosFila],
-                status: status
-            };
+            if (selectedOptions && selectedOptions.length > 0) {
+                // Generar inputs de cantidad dinámicamente
+                $.each(selectedOptions, function(index, value) {
 
-            // Realizar la solicitud AJAX para guardar los datos en el servidor
-            $.ajax({
-                url: '/saveFila',
-                type: 'POST',
-                data: JSON.stringify(datosAEnviar), // Enviar los datos como JSON
-                contentType: 'application/json',
-                dataType: 'json',
-                success: function(response) {
-                    // Manejar la respuesta del servidor
-                    alert(response.mensaje);
-                    // Actualizar visualmente el estado en la interfaz
-                    $dropdownItem.closest('.btn-group').find('.dropdown-toggle').text(status);
-                },
-                error: function(xhr, status, error) {
-                    // Manejar errores
-                    alert('Error al guardar los datos. Por favor, inténtalo de nuevo.');
-                    console.error('Error al guardar los datos: ', error);
-                }
-            });
+                    var inputHtmlNews = `
+                        <div class="cantidad-group" style="margin-bottom: 5px;">
+                            <label for="${itemID}" style="margin-right: 10px;">${value}:</label>
+                            <input type="number" class="form-control cantidadInputNew" id="${itemID}" value="0">
+                        </div>`;
+                    $cantidadContainerNew.append(inputHtmlNews);
+                });
+            }
         });
     });
-    </script>
+</script>
+
+
+
+
+
+
+
 
 
 

@@ -245,7 +245,7 @@ Route::get('/buscarEstilos', [DatosAuditoriaEtiquetas::class, 'buscarEstilos']);
 Route::get('/buscarDatosAuditoriaPorEstilo', [DatosAuditoriaEtiquetas::class, 'buscarDatosAuditoriaPorEstilo']);
 Route::get('/obtenerTiposDefectos', [DatosAuditoriaEtiquetas::class, 'obtenerTiposDefectos']);
 Route::put('/actualizarStatus', [DatosAuditoriaEtiquetas::class, 'actualizarStatus']);
-Route::post ('/saveFila', [DatosAuditoriaEtiquetas::class, 'saveFila']);
+Route::get('/datosinventario', [DatosAuditoriaEtiquetas::class, 'obtenerDatosInventario']);
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Apartado para detalles dashboard
 Route::get('/buscadorDinamico', [DashboardController::class, 'buscadorDinamico'])->name('dashboar.buscadorDinamico');
@@ -288,5 +288,6 @@ Route::post('/altaYbaja/defecto-empaque', [AltaYBajaController::class, 'crearDef
 Route::post('/altaYbaja/gestion-utility', [AltaYBajaController::class, 'crearUtility'])->name('crearUtility');
 Route::post('/altaYbaja/gestion-responsable', [AltaYBajaController::class, 'crearResponsable'])->name('crearResponsable');
 Route::post('/altaYbaja/gestion-tecnico', [AltaYBajaController::class, 'crearTecnico'])->name('crearTecnico');
-
+//////////////////////////////////////
+Route::get('/SegundasTerceras', [HomeController::class, 'segundas_terceras']);
 

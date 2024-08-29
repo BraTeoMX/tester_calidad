@@ -24,11 +24,11 @@
                             <tbody>
                                 <tr>
                                     <td>Porcentaje General :</td>
-                                    <td>{{ $generalAQL }}%</td> 
+                                    <td>{{ $generalAQL }}%</td>
                                 </tr>
                                 <tr>
                                     <td>Planta I :</td>
-                                    <td>{{ $generalAQLPlanta1 }}%</td> 
+                                    <td>{{ $generalAQLPlanta1 }}%</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -62,7 +62,7 @@
     </div>
 
 
-    <div class="row"> 
+    <div class="row">
         <div class="col-12">
             <div class="card card-chart">
                 <div class="card-header ">
@@ -100,7 +100,7 @@
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
     <!-- Graficas -->
     <div class="row">
         <div class="col-12">
@@ -190,69 +190,7 @@
             </div>
         </div>
     </div>
-    
-    <div class="row">
-        <div class="col-lg-4">
-            <div class="card card-chart">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="tim-icons icon-bell-55 text-primary"></i> Top 3 (Defectos)</h3>
-                    <div class="col-sm-15">
-                        <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-                            <label class="btn btn-sm btn-primary btn-simple active" id="top3-1" onclick="mostrarGrafica('AQL')">
-                                <input type="radio" name="clienteOptions" checked>
-                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
-                                <span class="d-block d-sm-none">
-                                    <i class="tim-icons icon-single-02"></i>
-                                </span>
-                            </label>
-                            <label class="btn btn-sm btn-primary btn-simple" id="top3-2" onclick="mostrarGrafica('Procesos')">
-                                <input type="radio" class="d-none d-sm-none" name="clienteOptions">
-                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Procesos</span>
-                                <span class="d-block d-sm-none">
-                                    <i class="tim-icons icon-gift-2"></i>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body" style="height: 400px;">
-                    <div class="chart-area">
-                        <div id="chartContainer"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-
-        <div class="col-lg-4">
-            <div class="card card-chart">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> Segundas / Terceras</h3>
-                    <h5 class="card-title">AQL :      45 % </h5>
-                    <h5 class="card-title">PROCESOS : 45 % </h5>
-                </div>
-                <div class="card-body">
-                    <div class="chart-area">
-                        <canvas id="CountryChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card card-chart">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="tim-icons icon-send text-info"></i> Incidencias</h3>
-                    <h5 class="card-title">AQL :      45 % </h5>
-                    <h5 class="card-title">PROCESOS : 45 % </h5>
-                </div>
-                <div class="card-body">
-                    <div class="chart-area">
-                        <canvas id="chartLineGreen"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     <div class="row">
         <div class="col-lg-4">
             <div class="card ">
@@ -354,11 +292,11 @@
     </div>
 
 
-    <div class="row">  
+    <div class="row">
         <div class="col-lg-6 col-md-12">
             <div class="card ">
                 <div class="card-header card-header-success card-header-icon">
-                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general</h3> 
+                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -372,9 +310,9 @@
                                     <th>Minutos Paro</th>
                                     <th>Promedio Minutos Paro</th>
                                     <th>Cantidad Paro Modular</th>
-                                    <th>Total piezas por Bulto</th> 
-                                    <th>Total Bulto</th> 
-                                    <th>Total Bulto Rechazados</th> 
+                                    <th>Total piezas por Bulto</th>
+                                    <th>Total Bulto</th>
+                                    <th>Total Bulto Rechazados</th>
                                     <th>Cantidad Auditados</th>
                                     <th>Cantidad Defectos</th>
                                     <th>% Error AQL</th>
@@ -396,11 +334,11 @@
                                         <td>{{ $item['sumaMinutos'] }}</td>
                                         <td>{{ $item['promedioMinutosEntero'] }}</td>
                                         <td>{{ $item['conteParoModular'] }}</td>
-                                        <td>{{ $item['sumaPiezasBulto'] }}</td> 
-                                        <td>{{ $item['cantidadBultosEncontrados'] }}</td> 
-                                        <td>{{ $item['cantidadBultosRechazados'] }}</td> 
-                                        <td>{{ $item['sumaAuditadaAQL'] }}</td> 
-                                        <td>{{ $item['sumaRechazadaAQL'] }}</td> 
+                                        <td>{{ $item['sumaPiezasBulto'] }}</td>
+                                        <td>{{ $item['cantidadBultosEncontrados'] }}</td>
+                                        <td>{{ $item['cantidadBultosRechazados'] }}</td>
+                                        <td>{{ $item['sumaAuditadaAQL'] }}</td>
+                                        <td>{{ $item['sumaRechazadaAQL'] }}</td>
                                         <td>{{ number_format($item['porcentaje_error_aql'], 2) }}%</td>
                                         <td>{{ $item['defectosUnicos'] }}</td>
                                         <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
@@ -451,9 +389,9 @@
                                         <td>{{ $item['conteoUtility'] }}</td>
                                         <td>{{ $item['conteoMinutos'] }}</td>
                                         <td>{{ $item['sumaMinutos'] }}</td>
-                                        <td>{{ $item['promedioMinutosEntero'] }}</td> 
-                                        <td>{{ $item['sumaAuditadaProceso'] }}</td> 
-                                        <td>{{ $item['sumaRechazadaProceso'] }}</td> 
+                                        <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                        <td>{{ $item['sumaAuditadaProceso'] }}</td>
+                                        <td>{{ $item['sumaRechazadaProceso'] }}</td>
                                         <td>{{ number_format($item['porcentaje_error_proceso'], 2) }}%</td>
                                         <td>{{ $item['defectosUnicos'] }}</td>
                                         <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
@@ -465,7 +403,7 @@
                 </div>
             </div>
         </div>
-    </div>  
+    </div>
 
     <!-- Modales para AQL -->
     @foreach ($dataModuloAQLGeneral as $item)
@@ -567,52 +505,6 @@
     </div>
     @endforeach
 
-    <div class="row"> 
-        <div class="col-lg-6 col-md-12">
-            <div class="card ">
-                <div class="card-header card-header-success card-header-icon">
-                     <h3 class="card-title"><i class="tim-icons icon-zoom-split text-success"></i> Seleccion de Cliente por Modulo</h3>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('dashboar.detalleXModuloPlanta1') }}" method="GET">
-                        <div class="form-group">
-                            <label for="clienteBusqueda">Seleccione un cliente:</label>
-                            <select class="form-control" name="clienteBusqueda" id="clienteBusqueda" required>
-                                <option value="">Seleccione un cliente</option>
-                                @foreach ($clientesUnicosArrayBusqueda as $cliente)
-                                    <option value="{{ $cliente }}">{{ $cliente }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Buscar</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6 col-md-12">
-            <div class="card ">
-                <div class="card-header card-header-success card-header-icon">
-                <h3 class="card-title"></h3>
-                </div>
-                <div class="card-body">
-                    
-                </div>
-            </div>
-        </div>
-    </div> 
-
-    <div class="row"> 
-        <div class="col-md-12">
-            <div class="card ">
-                <div class="card-header card-header-success card-header-icon">
-                    <h3 class="card-title"><i class="tim-icons icon-notes text-success"></i> Lista por dia</h3>
-                </div>
-                <div class="card-body">
-                    
-                </div>
-            </div>
-        </div>
-    </div> 
 
     <style>
         .chart-area {

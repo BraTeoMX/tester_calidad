@@ -72,7 +72,7 @@ class DashboardPlanta2Controller extends Controller
         $porcentajesAQL = $fechas->map(function ($fecha) use ($plantaSanBartolo) {
             return calcularPorcentaje(AuditoriaAQL::class, $fecha, $plantaSanBartolo);
         });
-        
+
         $porcentajesProceso = $fechas->map(function ($fecha) use ($plantaSanBartolo) {
             return calcularPorcentaje(AseguramientoCalidad::class, $fecha, $plantaSanBartolo);
         });
@@ -108,7 +108,13 @@ class DashboardPlanta2Controller extends Controller
         // Datos para las gráficas usando el rango de fechas
         $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
         $clientesGrafica = collect($dataGrafica['clientesUnicos'])->toArray();
-        $fechasGrafica = collect($dataGrafica['dataCliente'][0]['fechas'])->toArray();
+        // Verifica si $dataGrafica['dataCliente'] existe y no está vacío
+        if (!empty($dataGrafica['dataCliente']) && isset($dataGrafica['dataCliente'][0]['fechas'])) {
+            $fechasGrafica = collect($dataGrafica['dataCliente'][0]['fechas'])->toArray();
+        } else {
+            // Manejo de error o valor predeterminado si no hay datos
+            $fechasGrafica = [1]; // Puedes definir un valor por defecto, en este caso un array vacío
+        }
 
         $datasetsAQL = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
             return [
@@ -171,7 +177,17 @@ class DashboardPlanta2Controller extends Controller
         //dd($gerentesProduccionAQL, $gerentesProduccionProceso, $gerentesProduccion, $data);
         $dataGraficaModulos = $this->obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin);
         $modulosGrafica = collect($dataGraficaModulos['modulosUnicos'])->toArray();
-        $fechasGraficaModulos = collect($dataGraficaModulos['dataModulo'][0]['fechas'])->toArray();
+        $fechasGraficaModulos = [];
+
+        // Verifica si $dataGraficaModulos['dataModulo'] es un array y contiene elementos
+        if (is_array($dataGraficaModulos['dataModulo']) && !empty($dataGraficaModulos['dataModulo'])) {
+            $modulo = collect($dataGraficaModulos['dataModulo'])->first(); // Obtiene el primer elemento de forma segura
+
+            // Verifica si 'fechas' está definido en el primer elemento
+            if (isset($modulo['fechas'])) {
+                $fechasGraficaModulos = collect($modulo['fechas'])->toArray();
+            }
+        }
 
         $datasetsAQLModulos = collect($dataGraficaModulos['dataModulo'])->map(function ($moduloData) {
             return [
@@ -193,7 +209,7 @@ class DashboardPlanta2Controller extends Controller
             ];
         })->toArray();
 
-        // Obtener los clientes únicos de AseguramientoCalidad 
+        // Obtener los clientes únicos de AseguramientoCalidad
         $clientesAseguramientoBusqueda = AseguramientoCalidad::select('cliente')
         ->distinct()
         ->pluck('cliente');

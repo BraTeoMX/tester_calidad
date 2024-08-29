@@ -117,7 +117,7 @@ class DashboardController extends Controller
                 'teamLeaders', 'porcentajesErrorTeamLeader'));
     }
 
-    public function dashboarAProcesoAQL(Request $request) 
+    public function dashboarAProcesoAQL(Request $request)
     {
         $title = "";
         if($request->fecha_fin){
@@ -136,8 +136,8 @@ class DashboardController extends Controller
             $currentWeek->addWeek();
         }
 
-        // Calcular porcentajes AQL y Proceso para cada semana 
-        $porcentajesAQL = $semanas->map(function($semana) { 
+        // Calcular porcentajes AQL y Proceso para cada semana
+        $porcentajesAQL = $semanas->map(function($semana) {
             list($year, $week) = explode('-', $semana);
             return $this->calcularPorcentajePorSemana(AuditoriaAQL::class, $year, $week);
         });
@@ -145,7 +145,7 @@ class DashboardController extends Controller
         $porcentajesProceso = $semanas->map(function($semana) {
             list($year, $week) = explode('-', $semana);
             return $this->calcularPorcentajePorSemana(AseguramientoCalidad::class, $year, $week);
-        }); 
+        });
         //dd($porcentajesAQL, $porcentajesProceso);
         // Datos para las gráficas de clientes
         $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
@@ -1338,10 +1338,8 @@ class DashboardController extends Controller
 
         return view('dashboar.detalleXModulo', compact('title', 'clienteBusqueda', 'semanas', 'datosCombinados', 'promediosGenerales'));
     }
-public function segungdas_terceras (){
 
 
-}
 
 
 }
