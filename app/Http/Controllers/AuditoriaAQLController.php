@@ -141,6 +141,14 @@ class AuditoriaAQLController extends Controller
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
         $categorias = $this->cargarCategorias();
+        $detectarPlanta = Auth::user()->Planta;
+        if($detectarPlanta == 'Planta1'){
+            $detectarPlanta = "Intimark1";
+        }elseif($detectarPlanta == 'Planta2'){
+            $detectarPlanta = "Intimark2";
+        }
+
+        //dd($detectarPlanta);
         // Obtener los datos de la solicitud
         $data = $request->all();
         // Asegurarse de que la variable $data esté definida
@@ -303,27 +311,36 @@ class AuditoriaAQLController extends Controller
             ->pluck('customername')
             ->first();
 
-        $utilityPlanta1 = CategoriaUtility::where('planta', 'Intimark1')
-            ->where('estado', 1)
+        $utility = CategoriaUtility::where('estado', 1)
+            ->where('planta', $detectarPlanta)
             ->select('nombre')
             ->get()
             ->toArray();
-
-        $utilityPlanta2 = CategoriaUtility::where('planta', 'Intimark2')
-            ->where('estado', 1)
-            ->select('nombre')
-            ->get()
-            ->toArray();
-
-        $nombreProcesoToAQL = AuditoriaProceso::where('moduleid', $data['modulo'])
+        //dd($utility, $detectarPlanta);
+        $nombreProceso = AuditoriaProceso::where('moduleid', $data['modulo'])
             ->select('name')
             ->distinct()
             ->get()
             ->toArray();
+        //dd($nombreProcesoToAQL, $data['modulo']);
+        // Filtrar para omitir datos que comiencen con "1" o "2"
+        $nombreProceso = array_filter($nombreProceso, function($item) {
+            // Verifica si el valor de 'name' comienza con "1" o "2"
+            return !in_array(substr($item['name'], 0, 1), ['1', '2']);
+        });
 
-        // Fusionar los arrays
-        $nombreProcesoToAQLPlanta1 = array_merge($utilityPlanta1, $nombreProcesoToAQL);
-        $nombreProcesoToAQLPlanta2 = array_merge($utilityPlanta2, $nombreProcesoToAQL);
+        // Nueva consulta para obtener los nombres únicos agrupados por módulo
+        $nombrePorModulo = AuditoriaProceso::select('moduleid', 'name')
+            ->where('prodpoolid', $detectarPlanta)
+            ->distinct()
+            ->orderBy('moduleid')
+            ->get()
+            ->filter(function($item) {
+                // Verifica si el valor de 'name' comienza con "1" o "2"
+                return !in_array(substr($item->name, 0, 1), ['1', '2']);
+            })
+            ->groupBy('moduleid')
+            ->toArray();
         //dd($nombreProcesoToAQL, $utilityPlanta2, $utilityPlanta1, $nombreProcesoToAQLPlanta1, $nombreProcesoToAQLPlanta2);
         return view('auditoriaAQL.auditoriaAQL', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol,
@@ -347,13 +364,14 @@ class AuditoriaAQLController extends Controller
             'conteoParos' => $conteoParos,
             'finParoModular1' => $finParoModular1,
             'finParoModular2' => $finParoModular2,
-            'nombreProcesoToAQLPlanta1' => $nombreProcesoToAQLPlanta1,
-            'nombreProcesoToAQLPlanta2' => $nombreProcesoToAQLPlanta2,
+            'nombreProceso' => $nombreProceso,
+            'utility' => $utility,
             'registrosIndividualTE' => $registrosIndividualTE,
             'registrosIndividualPiezaTE' => $registrosIndividualPiezaTE,
             'conteoBultosTE' => $conteoBultosTE,
             'conteoPiezaConRechazoTE' => $conteoPiezaConRechazoTE,
             'porcentajeBultoTE' => $porcentajeBultoTE,
+            'nombrePorModulo' => $nombrePorModulo,
             ]));
     }
 

@@ -217,7 +217,7 @@
                                                                             <th>Accion</th>
                                                                             <th>Módulo</th>
                                                                             <th>Estilo</th>
-                                                                            <th>Gerente de Produccion</th>
+                                                                            <th>Supervisor</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody id="tablaProcesos1">

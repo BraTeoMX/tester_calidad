@@ -301,7 +301,6 @@
     </div>
     @endforeach
 
-    <!--
     <div class="row">  
         <div class="col-lg-6 col-md-12">
             <div class="card ">
@@ -310,7 +309,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table tablesorter" id="tablaAQLGeneral">
+                        <table class="table tablesorter" id="tablaAQLGeneralTE">
                             <thead class=" text-primary">
                                 <tr>
                                     <th>Modulo (AQL)</th>
@@ -373,7 +372,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table tablesorter" id="tablaProcesoGeneral">
+                        <table class="table tablesorter" id="tablaProcesoGeneralTE">
                             <thead class=" text-primary">
                                 <tr>
                                     <th>Modulo (Proceso)</th>
@@ -419,9 +418,8 @@
                 </div>
             </div>
         </div>
-    </div>  -->
+    </div>  
     <!-- Modales para AQL -->
-    <!--
     @foreach ($dataModuloAQLGeneralTE as $item)
     <div class="modal fade" id="modalAQLTE{{ $item['modulo'] }}" tabindex="-1" role="dialog" aria-labelledby="modalAQLLabel{{ $item['modulo'] }}" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
@@ -472,9 +470,7 @@
         </div>
     </div>
     @endforeach
-    -->
     <!-- Modales para Proceso -->
-    <!-- 
     @foreach ($dataModuloProcesoGeneralTE as $item)
     <div class="modal fade" id="modalProcesoTE{{ $item['modulo'] }}" tabindex="-1" role="dialog" aria-labelledby="modalProcesoLabel{{ $item['modulo'] }}" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
@@ -521,7 +517,6 @@
         </div>
     </div>
     @endforeach
-    -->
 @endsection
 
 
@@ -547,90 +542,11 @@
 
     <script>
         $(document).ready(function() {
-    // Inicializa DataTables en las tablas que ya están en el DOM
-    const initializeDataTables = () => {
-        const tableIds = [
-            '#tablaAQLGeneral', '#tablaProcesoGeneral'
-        ];
+            const tableIds = [
+                '#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaAQLGeneralTE', '#tablaProcesoGeneralTE'
+            ];
 
-        tableIds.forEach(tableId => {
-            if (!$.fn.dataTable.isDataTable(tableId)) {
-                $(tableId).DataTable({
-                    lengthChange: false,
-                    searching: true,
-                    paging: false,
-                    autoWidth: false,
-                    responsive: true,
-                    dom: 'Bfrtip',
-                    buttons: [
-                        {
-                            extend: 'excelHtml5',
-                            text: 'Exportar a Excel',
-                            className: 'btn btn-success'
-                        },
-                        {
-                            extend: 'pdfHtml5',
-                            text: 'Exportar a PDF',
-                            className: 'btn btn-danger'
-                        },
-                        {
-                            extend: 'print',
-                            text: 'Imprimir',
-                            className: 'btn btn-primary'
-                        }
-                    ],
-                    columnDefs: [
-                        {
-                            searchable: false,
-                            orderable: false,
-                        },
-                    ],
-                    language: {
-                        "sProcessing":     "Procesando...",
-                        "sLengthMenu":     "Mostrar _MENU_ registros",
-                        "sZeroRecords":    "No se encontraron resultados",
-                        "sEmptyTable":     "Ningún dato disponible en esta tabla",
-                        "sInfo":           "Registros _START_ - _END_ de _TOTAL_ mostrados",
-                        "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
-                        "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-                        "sInfoPostFix":    "",
-                        "sSearch":         "Buscar:",
-                        "sUrl":            "",
-                        "sInfoThousands":  ",",
-                        "sLoadingRecords": "Cargando...",
-                        "oPaginate": {
-                            "sFirst":    "Primero",
-                            "sLast":     "Último",
-                            "sNext":     "Siguiente",
-                            "sPrevious": "Anterior"
-                        },
-                        "oAria": {
-                            "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-                            "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                        }
-                    },
-                    initComplete: function(settings, json) {
-                        if ($('body').hasClass('dark-mode')) {
-                            $(tableId + '_wrapper').addClass('dark-mode');
-                        }
-                    }
-                });
-            }
-        });
-    };
-
-    // Inicializa DataTables para las tablas visibles al cargar la página
-    initializeDataTables();
-
-    // Inicializa DataTables cuando se abre un modal específico
-    $('body').on('shown.bs.modal', function (e) {
-        const modal = $(e.target);
-        const tableIds = [
-            '#tablaAQLGeneral', '#tablaProcesoGeneral'
-        ];
-
-        tableIds.forEach(tableId => {
-            if ($(modal).find(tableId).length) {
+            tableIds.forEach(tableId => {
                 if (!$.fn.dataTable.isDataTable(tableId)) {
                     $(tableId).DataTable({
                         lengthChange: false,
@@ -644,16 +560,6 @@
                                 extend: 'excelHtml5',
                                 text: 'Exportar a Excel',
                                 className: 'btn btn-success'
-                            },
-                            {
-                                extend: 'pdfHtml5',
-                                text: 'Exportar a PDF',
-                                className: 'btn btn-danger'
-                            },
-                            {
-                                extend: 'print',
-                                text: 'Imprimir',
-                                className: 'btn btn-primary'
                             }
                         ],
                         columnDefs: [
@@ -693,9 +599,36 @@
                         }
                     });
                 }
-            }
+            });
+            // Nuevo script para aplicar DataTables a las tablas dentro de los modales
+            $('[id^="modalAQL"]').on('shown.bs.modal', function () {
+                const modalId = $(this).attr('id');
+                const tableId = `#tablaAQLDetalle${modalId.replace('modalAQL', '')}`;
+
+                if (!$.fn.dataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable({
+                        lengthChange: false,
+                        searching: true,
+                        paging: true,
+                        autoWidth: false,
+                        responsive: true,
+                        dom: 'Bfrtip',
+                        buttons: [
+                            {
+                                extend: 'excelHtml5',
+                                text: 'Exportar a Excel',
+                                className: 'btn btn-success'
+                            }
+                        ],
+                        language: {
+                            // Traducciones omitidas por brevedad
+                        }
+                    });
+                }
+            });
         });
-    });
-});
+    </script>
+
+    <script>
     </script>
 @endpush

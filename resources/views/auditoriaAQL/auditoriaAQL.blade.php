@@ -234,21 +234,29 @@
                                                             @endforeach
                                                         @endif
                                                     </select>
-                                                    <div id="selectedOptionsContainerAQL" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
+                                                    <div id="selectedOptionsContainerAQL" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>  
                                                 </td>
                                                 <td class="ac-column"><input type="text" class="form-control" name="ac" id="ac"></td>
                                                 <td class="nombre-column">
-                                                    <select name="nombre" id="nombre" class="form-control"> 
-                                                        <option value="">Selecciona una opción</option>
-                                                        @if($auditorPlanta == 'Planta1')
-                                                            @foreach($nombreProcesoToAQLPlanta1 as $opcion)
-                                                                <option value="{{ $opcion['nombre'] ?? $opcion['name'] }}">{{ $opcion['nombre'] ?? $opcion['name'] }}</option>
+                                                    <select name="nombre" id="nombre-varios" class="form-control"> 
+                                                        <option value="">Selecciona una opción</option> 
+                                                        <!-- Mostrar los datos normales de $nombreProceso -->
+                                                        @foreach($nombreProceso as $opcion)
+                                                            <option value="{{ $opcion['name'] }}">{{ $opcion['name'] }}</option>
+                                                        @endforeach
+                                                        <!-- Separador o encabezado para los datos de $utility -->
+                                                        <option disabled>--- Utility ---</option>
+                                                        <!-- Mostrar los datos de $utility con un prefijo o identificación -->
+                                                        @foreach($utility as $opcion)
+                                                            <option value="{{ $opcion['nombre'] }}">{{ $opcion['nombre'] }}</option>
+                                                        @endforeach
+                                                        <!-- Separador o encabezado para los nombres agrupados por módulo -->
+                                                        @foreach($nombrePorModulo as $moduleid => $nombres)
+                                                            <option disabled>--- Módulo {{ $moduleid }} ---</option>
+                                                            @foreach($nombres as $opcion)
+                                                                <option value="{{ $opcion['name'] }}">{{ $opcion['name'] }}</option>
                                                             @endforeach
-                                                        @elseif($auditorPlanta == 'Planta2')
-                                                            @foreach($nombreProcesoToAQLPlanta2 as $opcion)
-                                                                <option value="{{ $opcion['nombre'] ?? $opcion['name'] }}">{{ $opcion['nombre'] ?? $opcion['name'] }}</option>
-                                                            @endforeach
-                                                        @endif
+                                                        @endforeach
                                                     </select> 
                                                 </td>
                                             </tr>
@@ -751,6 +759,15 @@
         $(document).ready(function() {
             // Inicializar el select2
             $('#bulto').select2({
+                placeholder: 'Seleccione una opcion',
+                allowClear: true,
+                width: 'resolve'
+            });
+        });
+
+        $(document).ready(function() {
+            // Inicializar el select2
+            $('#nombre-varios').select2({
                 placeholder: 'Seleccione una opcion',
                 allowClear: true,
                 width: 'resolve'

@@ -241,8 +241,9 @@
 
                                             @else
                                             <td>
-                                                <select name="operacion" id="operacion" class="form-control" required title="Por favor, selecciona una opción">
-                                                    <option value="">Selecciona una opción</option>        
+                                                <select name="operacion" id="operacion" class="form-control" required title="Por favor, selecciona una opción" onchange="cambiarAInput(this)">
+                                                    <option value="">Selecciona una opción</option>
+                                                    <option value="otra"> [OTRA OPERACION]</option>
                                                     @foreach ($operacionNombre as $nombre)
                                                         <option value="{{ $nombre->oprname }}">{{ $nombre->oprname }}</option>
                                                     @endforeach
@@ -986,4 +987,30 @@
         }
     </script>
     
+    <script>
+        function cambiarAInput(selectElement) {
+            // Verifica si se seleccionó "Otra operación"
+            if (selectElement.value === "otra") {
+                // Destruye el select2 para permitir la manipulación directa del select
+                $(selectElement).select2('destroy');
+
+                // Crear un nuevo input con los mismos atributos
+                const input = document.createElement("input");
+                input.type = "text";
+                input.name = selectElement.name;
+                input.id = selectElement.id;
+                input.className = selectElement.className;
+                input.required = true;
+                input.placeholder = "Ingresa la operación";
+
+                // Transformar el texto a mayúsculas mientras se escribe
+                input.addEventListener('input', function() {
+                    this.value = this.value.toUpperCase();
+                });
+
+                // Reemplazar el select por el input
+                selectElement.parentNode.replaceChild(input, selectElement);
+            }
+        }
+    </script>
 @endsection
