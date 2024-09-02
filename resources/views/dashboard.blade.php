@@ -228,9 +228,7 @@
                     <h2 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> Segundas / Terceras</h2>
                 </div>
                 <div class="card-body">
-                    <div class="chart-area">
-                        <canvas id="SegundasTerceras"></canvas>
-                    </div>
+                    <div id="SegundasTercerasChart"></div>
                 </div>
             </div>
         </div>
@@ -914,6 +912,54 @@
         // Mostrar la gráfica AQL por defecto
         mostrarGrafica('AQL');
     </script>
+<script>
+    $(document).ready(function() {
+        var data = @json($SegundasTerceras); // Pasar los datos desde el servidor
+
+        var segundas = 0;
+        var terceras = 0;
+
+        data.forEach(function(item) {
+            var qty = parseFloat(item.QTY); // Convertir QTY a número
+            if (item.Calidad === 'Segunda') {
+                segundas += qty;
+            } else if (item.Calidad === 'Tercera') {
+                terceras += qty;
+            }
+        });
+
+        Highcharts.chart('SegundasTercerasChart', {
+            chart: {
+                type: 'column',
+                backgroundColor: 'transparent' // Hacer el fondo transparente
+            },
+            title: {
+                text: 'Segundas y Terceras'
+            },
+            xAxis: {
+                categories: ['Segundas', 'Terceras']
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: 'Cantidad'
+                }
+            },
+            series: [{
+                name: 'Segundas',
+                data: [segundas],
+                color: '#7cb5ec' // Color para "Segundas"
+            }, {
+                name: 'Terceras',
+                data: [terceras],
+                color: '#434348' // Color para "Terceras"
+            }],
+            legend: {
+            enabled: true
+        }
+        });
+    });
+    </script>
 
 @endpush
 
@@ -979,131 +1025,8 @@
             });
         });
     </script>
-<script src="https://code.highcharts.com/highcharts.js"></script>
-<script>
-    $(document).ready(function() {
-        $.ajax({
-            url: '/SegundasTerceras',
-            method: 'GET',
-            success: function(data) {
-                // Procesa los datos recibidos
-                let groupedData = {};
-                data.forEach(function(item) {
-                    var qty = parseFloat(item.QTY); // Convertir QTY a número
-                    let monthYear = item.TRANSDATE.substring(0, 7); // Obtener mes y año
-                    if (!groupedData[monthYear]) {
-                        groupedData[monthYear] = { Segunda: 0, Tercera: 0, Modulos: {} };
-                    }
-                    if (item.Calidad === 'Segunda') {
-                        groupedData[monthYear].Segunda += qty;
-                    } else if (item.Calidad === 'Tercera') {
-                        groupedData[monthYear].Tercera += qty;
-                    }
-                    if (!groupedData[monthYear].Modulos[item.OPRMODULEID_AT]) {
-                        groupedData[monthYear].Modulos[item.OPRMODULEID_AT] = { Segunda: 0, Tercera: 0 };
-                    }
-                    if (item.Calidad === 'Segunda') {
-                        groupedData[monthYear].Modulos[item.OPRMODULEID_AT].Segunda += qty;
-                    } else if (item.Calidad === 'Tercera') {
-                        groupedData[monthYear].Modulos[item.OPRMODULEID_AT].Tercera += qty;
-                    }
-                });
 
-                let categories = Object.keys(groupedData);
-                let segundaData = categories.map(monthYear => groupedData[monthYear].Segunda);
-                let terceraData = categories.map(monthYear => groupedData[monthYear].Tercera);
 
-                // Genera la gráfica de barras
-                Highcharts.chart('SegundasTercerasChart', {
-                    chart: {
-                        type: 'column'
-                    },
-                    title: {
-                        text: 'Segundas / Terceras'
-                    },
-                    xAxis: {
-                        categories: categories,
-                        title: {
-                            text: 'Mes y Año'
-                        }
-                    },
-                    yAxis: {
-                        min: 0,
-                        title: {
-                            text: 'Cantidad'
-                        }
-                    },
-                    series: [{
-                        name: 'Segunda',
-                        data: segundaData
-                    }, {
-                        name: 'Tercera',
-                        data: terceraData
-                    }],
-                    plotOptions: {
-                        series: {
-                            cursor: 'pointer',
-                            point: {
-                                events: {
-                                    click: function() {
-                                        let monthYear = this.category;
-                                        let modulos = groupedData[monthYear].Modulos;
-                                        let modulosCategories = Object.keys(modulos);
-                                        let modulosSegundaData = modulosCategories.map(modulo => modulos[modulo].Segunda);
-                                        let modulosTerceraData = modulosCategories.map(modulo => modulos[modulo].Tercera);
-
-                                        Highcharts.chart('SegundasTercerasChart', {
-                                            chart: {
-                                                type: 'column'
-                                            },
-                                            title: {
-                                                text: 'Segundas / Terceras por Módulo en ' + monthYear
-                                            },
-                                            xAxis: {
-                                                categories: modulosCategories,
-                                                title: {
-                                                    text: 'Módulo'
-                                                }
-                                            },
-                                            yAxis: {
-                                                min: 0,
-                                                title: {
-                                                    text: 'Cantidad'
-                                                }
-                                            },
-                                            series: [{
-                                                name: 'Segunda',
-                                                data: modulosSegundaData
-                                            }, {
-                                                name: 'Tercera',
-                                                data: modulosTerceraData
-                                            }],
-                                            plotOptions: {
-                                                series: {
-                                                    cursor: 'pointer',
-                                                    point: {
-                                                        events: {
-                                                            click: function() {
-                                                                // Aquí puedes agregar más detalles o acciones al hacer clic en un módulo específico
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            },
-            error: function(error) {
-                console.error('Error al obtener los datos:', error);
-            }
-        });
-    });
-</script>
 
 
 @endpush

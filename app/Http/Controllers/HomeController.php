@@ -48,7 +48,6 @@ class HomeController extends Controller
                               ->first();
                 return $data->cantidad_auditada != 0 ? number_format(($data->cantidad_rechazada / $data->cantidad_auditada) * 100, 2) : 0;
             }
-
             // Información General
             $generalProceso = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual);
             $generalAQL = calcularPorcentaje(AuditoriaAQL::class, $fechaActual);
@@ -188,7 +187,49 @@ class HomeController extends Controller
                     'fill' => false
                 ];
             })->toArray();
+            $SegundasTerceras = DB::connection('sqlsrv')->select("
+            SELECT
+            ptt.OPRMODULEID_AT,
+            back.CATEGORYNAME,
+            ptt.PRODID,
+            pp.PRODTICKETID,
+            p.ITEMID,
+            inv.INVENTSIZEID,
+            inv.INVENTCOLORID,
+            ptt.QTY,
+            ptt.QUALITY,
+            CASE
+                WHEN ptt.QUALITY = 1 THEN 'Segunda'
+                WHEN ptt.QUALITY = 2 THEN 'Tercera'
+                ELSE 'N/A'
+            END AS Calidad,
+            CASE
+                WHEN ptt.QUALITY = 2 THEN 'N/A'
+                ELSE ptt.QUALITYCODEID
+            END AS QUALITYCODEID,
+            ISNULL(pqt.DESCRIPTION, 'N/A') AS DescripcionCalidad,
+            CASE
+                WHEN pqt.QUALITYCODEID BETWEEN 'A' AND 'G' THEN 'Segunda por Material'
+                WHEN pqt.QUALITYCODEID BETWEEN 'H' AND 'O' THEN 'Segunda por Costura'
+                ELSE 'N/A'
+            END AS [TipoSegunda],
+            inv.CONFIGID,
+            p.PRODPOOLID,
+            back.CUSTOMERNAME,
+            back.DIVISIONNAME,
+            back.ITEMNAME,
+            CONVERT(VARCHAR(10), ptt.TRANSDATE, 120) AS TRANSDATE
+        FROM [PRODTICKETTRANSTABLE_AT] ptt
+        INNER JOIN [PRODTABLE] p ON ptt.PRODID = p.PRODID
+        INNER JOIN [PRODTICKETSTABLE_AT] pp ON ptt.PRODTICKETID_AT = pp.PRODTICKETID
+        INNER JOIN [INVENTDIM] inv ON pp.INVENTDIMID = inv.INVENTDIMID
+        INNER JOIN [BACKLOGTABLE_AT] back ON p.INVENTREFID = back.SALESID AND inv.INVENTSIZEID = back.INVENTSIZEID AND p.ITEMID = back.ITEMID
+        LEFT JOIN [PACKINGQUALITYCODETABLE_AT] pqt ON ptt.QUALITYCODEID = pqt.QUALITYCODEID
+        WHERE ptt.TRANSDATE >= CAST(CAST(YEAR(GETDATE()) AS VARCHAR(4)) + '-' + CAST(MONTH(GETDATE()) AS VARCHAR(2)) + '-01' AS DATE)
+          AND ptt.TRANSDATE < DATEADD(MONTH, 1, CAST(CAST(YEAR(GETDATE()) AS VARCHAR(4)) + '-' + CAST(MONTH(GETDATE()) AS VARCHAR(2)) + '-01' AS DATE))
+          AND ptt.QUALITY IN (1, 2)
 
+            ");
 
             // Obtener los clientes únicos de AseguramientoCalidad
             $clientesAseguramientoBusqueda = AseguramientoCalidad::select('cliente')
@@ -238,56 +279,6 @@ class HomeController extends Controller
             return redirect()->route('viewlistaFormularios');
         }
     }
-    public function segundas_terceras()
-    {
-        $SegundasTerceras = DB::connection('sqlsrv')->select("
-        SELECT
-        ptt.OPRMODULEID_AT,
-        back.CATEGORYNAME,
-        ptt.PRODID,
-        pp.PRODTICKETID,
-        p.ITEMID,
-        inv.INVENTSIZEID,
-        inv.INVENTCOLORID,
-        ptt.QTY,
-        ptt.QUALITY,
-        CASE
-            WHEN ptt.QUALITY = 1 THEN 'Segunda'
-            WHEN ptt.QUALITY = 2 THEN 'Tercera'
-            ELSE 'N/A'
-        END AS Calidad,
-        CASE
-            WHEN ptt.QUALITY = 2 THEN 'N/A'
-            ELSE ptt.QUALITYCODEID
-        END AS QUALITYCODEID,
-        ISNULL(pqt.DESCRIPTION, 'N/A') AS DescripcionCalidad,
-        CASE
-            WHEN pqt.QUALITYCODEID BETWEEN 'A' AND 'G' THEN 'Segunda por Material'
-            WHEN pqt.QUALITYCODEID BETWEEN 'H' AND 'O' THEN 'Segunda por Costura'
-            ELSE 'N/A'
-        END AS [TipoSegunda],
-        inv.CONFIGID,
-        p.PRODPOOLID,
-        back.CUSTOMERNAME,
-        back.DIVISIONNAME,
-        back.ITEMNAME,
-        CONVERT(VARCHAR(10), ptt.TRANSDATE, 120) AS TRANSDATE
-    FROM [PRODTICKETTRANSTABLE_AT] ptt
-    INNER JOIN [PRODTABLE] p ON ptt.PRODID = p.PRODID
-    INNER JOIN [PRODTICKETSTABLE_AT] pp ON ptt.PRODTICKETID_AT = pp.PRODTICKETID
-    INNER JOIN [INVENTDIM] inv ON pp.INVENTDIMID = inv.INVENTDIMID
-    INNER JOIN [BACKLOGTABLE_AT] back ON p.INVENTREFID = back.SALESID AND inv.INVENTSIZEID = back.INVENTSIZEID AND p.ITEMID = back.ITEMID
-    LEFT JOIN [PACKINGQUALITYCODETABLE_AT] pqt ON ptt.QUALITYCODEID = pqt.QUALITYCODEID
-    WHERE ptt.TRANSDATE >= CAST(CAST(YEAR(GETDATE()) AS VARCHAR(4)) + '-' + CAST(MONTH(GETDATE()) AS VARCHAR(2)) + '-01' AS DATE)
-      AND ptt.TRANSDATE < DATEADD(MONTH, 1, CAST(CAST(YEAR(GETDATE()) AS VARCHAR(4)) + '-' + CAST(MONTH(GETDATE()) AS VARCHAR(2)) + '-01' AS DATE))
-      AND ptt.QUALITY IN (1, 2)
-
-        ");
-        Log::info("Datos SegundasTerceras del select: " . print_r($SegundasTerceras, true));
-        return response()->json($SegundasTerceras);
-    }
-
-
     private function obtenerDatosClientesPorFiltro($fechaActual, $planta = null)
     {
         $queryAQL = AuditoriaAQL::whereNotNull('cliente')->whereDate('created_at', $fechaActual);
