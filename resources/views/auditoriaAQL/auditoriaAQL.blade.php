@@ -132,7 +132,7 @@
                 </div>
                 <hr>
                 <div class="card-body">
-                    @if((($conteoParos == 2) && ($finParoModular1 == true)) || (($conteoParos == 4) && ($finParoModular2 == true)))
+                    @if((($conteoParos == 2) && ($finParoModular1 == true)) || (($conteoParos == 4) && ($finParoModular2 == true))) 
                         <div class="row">
                             <form method="POST" action="{{ route('auditoriaAQL.cambiarEstadoInicioParoAQL') }}">
                                 @csrf
@@ -390,7 +390,7 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($mostrarRegistro as $registro)
-                                            <tr>
+                                            <tr class="{{ $registro->tiempo_extra ? 'tiempo-extra' : '' }}">
                                                 <td>
                                                     @if($registro->inicio_paro == NULL)
                                                         -
@@ -739,6 +739,18 @@
 
         .texto-blanco {
             color: white !important;
+        }
+    </style>
+    <style>
+        .tiempo-extra {
+            background-color: #1d0f2c; /* Color gris claro */
+        }
+        
+        /* Asegúrate de que los textos permanezcan visibles */
+        .tiempo-extra input, 
+        .tiempo-extra .form-control, 
+        .tiempo-extra button {
+            color: #1d0f2c; 
         }
     </style>
     <script>

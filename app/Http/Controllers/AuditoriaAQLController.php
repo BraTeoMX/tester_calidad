@@ -141,7 +141,7 @@ class AuditoriaAQLController extends Controller
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
         $categorias = $this->cargarCategorias();
-        $detectarPlanta = Auth::user()->Planta;
+        $detectarPlanta = Auth::user()->Planta; 
         if($detectarPlanta == 'Planta1'){
             $detectarPlanta = "Intimark1";
         }elseif($detectarPlanta == 'Planta2'){
@@ -304,6 +304,7 @@ class AuditoriaAQLController extends Controller
             ->where('op', $data['op'])
             ->where('team_leader', $data['team_leader'])
             ->where('cantidad_rechazada', '>', 0)
+            ->where('tiempo_extra', null)
             ->count();
 
         //dd($conteoParos, $registrosOriginales, $registro2, $registro4, $evaluacionRegistro2, $evaluacionRegistro4, $finParoModular1, $finParoModular2);

@@ -192,7 +192,13 @@ class AuditoriaProcesoController extends Controller
         $data = $request->all();
         // Asegurarse de que la variable $data esté definida
         $data = $data ?? [];
-
+        
+        $detectarPlanta = Auth::user()->Planta;
+        if($detectarPlanta == 'Planta1'){
+            $detectarPlanta = "Intimark1";
+        }elseif($detectarPlanta == 'Planta2'){
+            $detectarPlanta = "Intimark2";
+        }
         // Obtener los estilos únicos relacionados con el módulo seleccionado
         $estilos = AuditoriaProceso::where('moduleid', $data['modulo'])
                                     ->distinct('itemid')
@@ -206,27 +212,18 @@ class AuditoriaProcesoController extends Controller
         // Actualizar $data con el nuevo estilo
         $data['estilo'] = $estiloSeleccionado;
  
-        $nombresPlanta1 = AuditoriaProceso::where('prodpoolid', 'Intimark1')
+        $nombresPlanta = AuditoriaProceso::where('prodpoolid', $detectarPlanta)
             ->where('moduleid', $data['modulo'])
             ->whereNotIn('name', ['831A-EMPAQUE P2 T1','830A-EMPAQUE P1 T1', 'VIRTUAL P2T1 02', 'VIRTUAL P2T1 01'])
+            ->where('name', 'not like', '1%')
+            ->where('name', 'not like', '2%')
             ->select('name')
             ->distinct()
             ->get();
 
-        $nombresPlanta2 = AuditoriaProceso::where('prodpoolid', 'Intimark2')
-            ->where('moduleid', $data['modulo'])
-            ->whereNotIn('name', ['831A-EMPAQUE P2 T1','830A-EMPAQUE P1 T1', 'VIRTUAL P2T1 02', 'VIRTUAL P2T1 01'])
-            ->select('name')
-            ->distinct()
-            ->get();
- 
-
-        $utilityPlanta1 = CategoriaUtility::where('planta', 'Intimark1') 
+        $utilityPlanta = CategoriaUtility::where('planta', 'Intimark1') 
             ->where('estado', 1)
-            ->get();
-
-        $utilityPlanta2 = CategoriaUtility::where('planta', 'Intimark2')
-            ->where('estado', 1)    
+            ->where('planta', $detectarPlanta)
             ->get();
         //dd($utilityPlanta1->all(), $utilityPlanta2);
         //$fechaActual = Carbon::now()->toDateString();
@@ -309,10 +306,8 @@ class AuditoriaProcesoController extends Controller
             'mesesEnEspanol' => $mesesEnEspanol, 
             'pageSlug' => $pageSlug,
             'data' => $data, 
-            'nombresPlanta1' => $nombresPlanta1, 
-            'nombresPlanta2' => $nombresPlanta2, 
-            'utilityPlanta1' => $utilityPlanta1, 
-            'utilityPlanta2' => $utilityPlanta2, 
+            'nombresPlanta' => $nombresPlanta, 
+            'utilityPlanta' => $utilityPlanta,
             'total_auditada' => $total_auditada, 
             'total_rechazada' => $total_rechazada,
             'total_porcentaje' => $total_porcentaje,

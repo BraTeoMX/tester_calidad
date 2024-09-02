@@ -213,15 +213,9 @@
                                                     <option value="">Selecciona una opción</option>
                                                     <option value="OTRO">OTRO</option>
                                                     <option value="UTILITY">UTILITY</option> 
-                                                    @if ($auditorPlanta == 'Planta1')
-                                                        @foreach ($nombresPlanta1 as $nombre)
-                                                            <option value="{{ $nombre->name }}">{{ $nombre->name }}</option>
-                                                        @endforeach
-                                                    @elseif($auditorPlanta == 'Planta2')
-                                                        @foreach ($nombresPlanta2 as $nombre)
-                                                            <option value="{{ $nombre->name }}">{{ $nombre->name }}</option>
-                                                        @endforeach
-                                                    @endif
+                                                    @foreach ($nombresPlanta as $nombre)
+                                                        <option value="{{ $nombre->name }}">{{ $nombre->name }}</option>
+                                                    @endforeach
                                                 </select> 
                                                 <div id="otroOptions" style="display: none;">
                                                     <select name="modulo_adicional" id="module" class="form-control" onchange="loadNames()">
