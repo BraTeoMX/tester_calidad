@@ -132,7 +132,7 @@
                 </div>
                 <hr>
                 <div class="card-body">
-                    @if((($conteoParos == 2) && ($finParoModular1 == true)) || (($conteoParos == 4) && ($finParoModular2 == true))) 
+                    @if((($conteoParos == 2) && ($finParoModular1 == true)) || (($conteoParos == 4) && ($finParoModular2 == true)))  
                         <div class="row">
                             <form method="POST" action="{{ route('auditoriaAQL.cambiarEstadoInicioParoAQL') }}">
                                 @csrf
@@ -224,17 +224,11 @@
                                                 <td class="tp-column"> 
                                                     <select id="tpSelectAQL" class="form-control w-100" multiple title="Por favor, selecciona una opción">
                                                         <option value="OTRO">OTRO</option>
-                                                        @if ($data['area'] == 'AUDITORIA AQL')
-                                                            @foreach ($categoriaTPProceso as $proceso)
-                                                                <option value="{{ $proceso->nombre }}">{{ $proceso->nombre }}</option>
-                                                            @endforeach
-                                                        @elseif($data['area'] == 'AUDITORIA AQL PLAYERA')
-                                                            @foreach ($categoriaTPPlayera as $playera)
-                                                                <option value="{{ $playera->nombre }}">{{ $playera->nombre }}</option>
-                                                            @endforeach
-                                                        @endif
+                                                        @foreach ($categoriaTPProceso as $proceso)
+                                                            <option value="{{ $proceso->nombre }}">{{ $proceso->nombre }}</option>
+                                                        @endforeach
                                                     </select>
-                                                    <div id="selectedOptionsContainerAQL" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>  
+                                                    <div id="selectedOptionsContainerAQL" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
                                                 </td>
                                                 <td class="ac-column"><input type="text" class="form-control" name="ac" id="ac"></td>
                                                 <td class="nombre-column">
@@ -788,6 +782,8 @@
     </script>
     <script>
         $(document).ready(function() {
+            let isUpdating = false;
+
             $('#tpSelectAQL').select2({
                 placeholder: 'Seleccione una o varias opciones',
                 allowClear: true,
@@ -795,31 +791,32 @@
             });
 
             $('#tpSelectAQL').on('change', function() {
-                let selectedOptions = $(this).val();
+                if (isUpdating) return;
+                isUpdating = true;
+
+                let selectedOptions = $(this).val() || [];
                 if (selectedOptions.includes('OTRO')) {
                     $('#nuevoConceptoModalAQL').modal('show');
                 } else {
-                    // Agregar opciones seleccionadas al contenedor
-                    selectedOptions.forEach(option => {
-                        if (option !== 'OTRO') {
-                            addSelectedOptionAQL(option);
-                        }
-                    });
-                    // Cerrar el select manualmente
-                    $(this).select2('close'); 
-                    $(this).val(null).trigger('change'); // Reiniciar el select
+                    updateSelectedOptions(selectedOptions);
                 }
+
+                $(this).val(null);
+                isUpdating = false;
             });
 
+            function updateSelectedOptions(options) {
+                options.forEach(option => {
+                    if (option !== 'OTRO') {
+                        addSelectedOptionAQL(option);
+                    }
+                });
+            }
+
             $('#guardarNuevoConceptoAQL').on('click', function() {
-                let nuevoConcepto = $('#nuevoConceptoInputAQL').val();
+                let nuevoConcepto = $('#nuevoConceptoInputAQL').val().trim().toUpperCase();
                 if (nuevoConcepto) {
-                    let area = '';
-                    @if ($data['area'] == 'AUDITORIA AQL')
-                        area = 'proceso';
-                    @elseif($data['area'] == 'AUDITORIA AQL PLAYERA')
-                        area = 'playera';
-                    @endif
+                    let area = '{{ $data['area'] == 'AUDITORIA AQL' ? 'proceso' : 'playera' }}';
 
                     fetch('{{ route('categoria_tipo_problema_aql.store') }}', {
                         method: 'POST',
@@ -828,13 +825,13 @@
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
                         body: JSON.stringify({
-                            nombre: nuevoConcepto.toUpperCase(),
+                            nombre: nuevoConcepto,
                             area: area
                         })
                     }).then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            addSelectedOptionAQL(nuevoConcepto.toUpperCase());
+                            addSelectedOptionAQL(nuevoConcepto);
                             $('#nuevoConceptoModalAQL').modal('hide');
                         } else {
                             alert('Error al guardar el nuevo concepto');
@@ -850,56 +847,40 @@
 
             $('#nuevoConceptoModalAQL').on('hidden.bs.modal', function () {
                 $('#nuevoConceptoInputAQL').val('');
-                let selectedOptions = $('#tpSelectAQL').val();
-                let index = selectedOptions.indexOf('OTRO');
-                if (index > -1) {
-                    selectedOptions.splice(index, 1);
-                    $('#tpSelectAQL').val(selectedOptions).trigger('change');
-                }
             });
 
             function addSelectedOptionAQL(optionText) {
                 let container = $('#selectedOptionsContainerAQL');
-                let newOption = $('<div class="selected-option">').text(optionText);
-                let hiddenInput = $('<input type="hidden" name="tp[]" />').val(optionText);
-                newOption.append(hiddenInput);
-                let removeButton = $('<button type="button" class="btn btn-danger btn-sm ml-2">').text('Eliminar');
-                removeButton.on('click', function() {
-                    newOption.remove();
+                if (container.find(`.selected-option:contains('${optionText}')`).length === 0) {
+                    let newOption = $('<div class="selected-option">').text(optionText);
+                    let hiddenInput = $('<input type="hidden" name="tp[]" />').val(optionText);
+                    newOption.append(hiddenInput);
+                    let removeButton = $('<button type="button" class="btn btn-danger btn-sm ml-2">').text('Eliminar');
+                    removeButton.on('click', function() {
+                        newOption.remove();
+                        checkContainerValidityAQL();
+                    });
+                    newOption.append(removeButton);
+                    container.append(newOption);
                     checkContainerValidityAQL();
-                });
-                newOption.append(removeButton);
-                container.append(newOption);
-                checkContainerValidityAQL();
+                }
             }
 
             function checkContainerValidityAQL() {
                 let container = $('#selectedOptionsContainerAQL');
-                if (container.children('.selected-option').length === 0) {
-                    container.addClass('is-invalid');
-                } else {
-                    container.removeClass('is-invalid');
-                }
+                container.toggleClass('is-invalid', container.children('.selected-option').length === 0);
             }
 
             function updateColumnsVisibilityAQL() {
                 const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
-                if (isNaN(cantidadRechazada) || cantidadRechazada === 0) {
-                    $('#ac-column-header, #nombre-column-header, #tp-column-header').hide();
-                    $('.ac-column, .nombre-column, .tp-column').hide();
-                    $('#ac, #nombre, #selectedOptionsContainerAQL').prop('required', false);
-                } else {
-                    $('#ac-column-header, #nombre-column-header, #tp-column-header').show();
-                    $('.ac-column, .nombre-column, .tp-column').show();
-                    $('#ac, #nombre, #selectedOptionsContainerAQL').prop('required', true);
-                }
+                const shouldShow = !isNaN(cantidadRechazada) && cantidadRechazada > 0;
+                $('#ac-column-header, #nombre-column-header, #tp-column-header').toggle(shouldShow);
+                $('.ac-column, .nombre-column, .tp-column').toggle(shouldShow);
+                $('#ac, #nombre, #selectedOptionsContainerAQL').prop('required', shouldShow);
             }
 
             updateColumnsVisibilityAQL();
-
-            $('#cantidad_rechazada').on('input', function() {
-                updateColumnsVisibilityAQL();
-            });
+            $('#cantidad_rechazada').on('input', updateColumnsVisibilityAQL);
 
             $('#bulto').change(function() {
                 var selectedOption = $(this).find(':selected');
@@ -907,13 +888,7 @@
                 $('#estilo').val(selectedOption.data('estilo'));
                 $('#color').val(selectedOption.data('color'));
                 $('#talla').val(selectedOption.data('talla'));
-            });
-
-            var selectedOption = $('#bulto').find(':selected');
-            $('#pieza').val(selectedOption.data('pieza'));
-            $('#estilo').val(selectedOption.data('estilo'));
-            $('#color').val(selectedOption.data('color'));
-            $('#talla').val(selectedOption.data('talla'));
+            }).trigger('change');
         });
 
 
