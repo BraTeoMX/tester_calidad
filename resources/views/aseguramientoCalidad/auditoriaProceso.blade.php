@@ -145,7 +145,7 @@
                             </form>
                         </div>
                     @else
-                        <form method="POST" action="{{ route('aseguramientoCalidad.formRegistroAuditoriaProceso') }}">
+                        <form id="miFormulario" method="POST" action="{{ route('aseguramientoCalidad.formRegistroAuditoriaProceso') }}">
                             @csrf
                             <input type="hidden" class="form-control" name="area" id="area"
                                 value="{{ $data['area'] }}">
@@ -278,7 +278,7 @@
                                                             @endforeach
                                                         @endif
                                                     </select>
-                                                    <div id="selectedOptionsContainer" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
+                                                    <div id="selectedOptionsContainer" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div> 
                                                 </td>
                                                 <td class="ac-column d-none">
                                                     <select name="ac" id="ac" class="form-control" title="Por favor, selecciona una opción">
@@ -851,7 +851,7 @@
                 multiple: true,
                 width: 'resolve'
             });
-    
+
             // Manejador de cambio del select
             $('#tpSelect').on('change', function() {
                 let selectedOptions = $(this).val();
@@ -866,7 +866,7 @@
                     }
                 }
             });
-    
+
             // Manejador del botón de guardar del modal
             $('#guardarNuevoConcepto').on('click', function() {
                 let nuevoConcepto = $('#nuevoConceptoInput').val();
@@ -879,7 +879,7 @@
                     @elseif($data['area'] == 'AUDITORIA EN EMPAQUE')
                         area = 'empaque';
                     @endif
-    
+
                     fetch('{{ route('categoria_tipo_problema.store') }}', {
                         method: 'POST',
                         headers: {
@@ -906,12 +906,12 @@
                     alert('Por favor, introduce un concepto válido');
                 }
             });
-    
+
             // Ocultar el modal y reiniciar el input del nuevo concepto
             $('#nuevoConceptoModal').on('hidden.bs.modal', function () {
                 $('#nuevoConceptoInput').val('');
             });
-    
+
             // Función para agregar una opción seleccionada a la lista de seleccionados
             function addSelectedOption(optionText) {
                 let container = $('#selectedOptionsContainer');
@@ -927,7 +927,8 @@
                 container.append(newOption);
                 checkContainerValidity();
             }
-    
+
+            // Verifica si el contenedor tiene opciones seleccionadas y ajusta la validez
             function checkContainerValidity() {
                 let container = $('#selectedOptionsContainer');
                 if (container.children('.selected-option').length === 0) {
@@ -936,7 +937,7 @@
                     container.removeClass('is-invalid');
                 }
             }
-    
+
             function updateColumnsVisibility() {
                 const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
                 if (isNaN(cantidadRechazada) || cantidadRechazada === 0) {
@@ -949,15 +950,25 @@
                     $('#selectedOptionsContainer, #ac').prop('required', true);
                 }
             }
-    
+
             // Inicializar la visibilidad de las columnas al cargar la página
             updateColumnsVisibility();
-    
+
             // Actualizar la visibilidad de las columnas al cambiar el valor de cantidad_rechazada
             $('#cantidad_rechazada').on('input', function() {
                 updateColumnsVisibility();
             });
-    
+
+            // Validación antes de enviar el formulario
+            $('#miFormulario').on('submit', function(event) {
+                let container = $('#selectedOptionsContainer');
+                if (container.children('.selected-option').length === 0) {
+                    // Mostrar un alert indicando que se debe seleccionar al menos una opción
+                    alert('Por favor, selecciona al menos un defecto antes de enviar el formulario.');
+                    event.preventDefault(); // Detener el envío del formulario
+                    $('#tpSelect').select2('open'); // Abrir el select2 para que el usuario vea dónde seleccionar
+                }
+            });
         });
     </script>  
     

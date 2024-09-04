@@ -147,7 +147,7 @@
                             </form>
                         </div>
                     @else
-                        <form method="POST" action="{{ route('auditoriaAQL.formRegistroAuditoriaProcesoAQL') }}">
+                        <form id="miFormularioAQL" method="POST" action="{{ route('auditoriaAQL.formRegistroAuditoriaProcesoAQL') }}">
                             @csrf
                             <input type="hidden" class="form-control" name="area" id="area"
                                 value="{{ $data['area'] }}">
@@ -869,7 +869,8 @@
 
             function checkContainerValidityAQL() {
                 let container = $('#selectedOptionsContainerAQL');
-                container.toggleClass('is-invalid', container.children('.selected-option').length === 0);
+                let isValid = container.children('.selected-option').length > 0;
+                container.toggleClass('is-invalid', !isValid);
             }
 
             function updateColumnsVisibilityAQL() {
@@ -890,6 +891,16 @@
                 $('#color').val(selectedOption.data('color'));
                 $('#talla').val(selectedOption.data('talla'));
             }).trigger('change');
+
+            // Validación al enviar el formulario
+            $('#miFormularioAQL').on('submit', function(e) {
+                let container = $('#selectedOptionsContainerAQL');
+                if (container.children('.selected-option').length === 0) {
+                    e.preventDefault();
+                    alert('Debe seleccionar al menos un defecto.');
+                    container.addClass('is-invalid');
+                }
+            });
         });
 
 
