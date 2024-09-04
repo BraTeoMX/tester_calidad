@@ -232,7 +232,7 @@
                                                 </td>
                                                 <td class="ac-column"><input type="text" class="form-control" name="ac" id="ac"></td>
                                                 <td class="nombre-column">
-                                                    <select name="nombre" id="nombre-varios" class="form-control"> 
+                                                    <select name="nombre" id="nombre-varios" class="form-control" required> 
                                                         <option value="">Selecciona una opción</option> 
                                                         <!-- Mostrar los datos normales de $nombreProceso -->
                                                         @foreach($nombreProceso as $opcion)
@@ -780,9 +780,10 @@
             });
         });
     </script>
-    <script>
+    <script> 
         $(document).ready(function() {
             let isUpdating = false;
+            let optionCount = 0;  // Para llevar un seguimiento de las opciones seleccionadas
 
             $('#tpSelectAQL').select2({
                 placeholder: 'Seleccione una o varias opciones',
@@ -798,27 +799,23 @@
                 if (selectedOptions.includes('OTRO')) {
                     $('#nuevoConceptoModalAQL').modal('show');
                 } else {
-                    updateSelectedOptions(selectedOptions);
+                    selectedOptions.forEach(option => {
+                        if (option !== 'OTRO') {
+                            addSelectedOptionAQL(option);
+                        }
+                    });
                 }
 
-                $(this).val(null);
+                $(this).val(null).trigger('change');
                 isUpdating = false;
             });
-
-            function updateSelectedOptions(options) {
-                options.forEach(option => {
-                    if (option !== 'OTRO') {
-                        addSelectedOptionAQL(option);
-                    }
-                });
-            }
 
             $('#guardarNuevoConceptoAQL').on('click', function() {
                 let nuevoConcepto = $('#nuevoConceptoInputAQL').val().trim().toUpperCase();
                 if (nuevoConcepto) {
-                    let area = '{{ $data['area'] == 'AUDITORIA AQL' ? 'proceso' : 'playera' }}';
+                    let area = '{{ $data["area"] == "AUDITORIA AQL" ? "proceso" : "playera" }}';
 
-                    fetch('{{ route('categoria_tipo_problema_aql.store') }}', {
+                    fetch('{{ route("categoria_tipo_problema_aql.store") }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -851,19 +848,23 @@
 
             function addSelectedOptionAQL(optionText) {
                 let container = $('#selectedOptionsContainerAQL');
-                if (container.find(`.selected-option:contains('${optionText}')`).length === 0) {
-                    let newOption = $('<div class="selected-option">').text(optionText);
-                    let hiddenInput = $('<input type="hidden" name="tp[]" />').val(optionText);
-                    newOption.append(hiddenInput);
-                    let removeButton = $('<button type="button" class="btn btn-danger btn-sm ml-2">').text('Eliminar');
-                    removeButton.on('click', function() {
-                        newOption.remove();
-                        checkContainerValidityAQL();
-                    });
-                    newOption.append(removeButton);
-                    container.append(newOption);
+                optionCount++;  // Incrementamos el contador de opciones seleccionadas
+
+                // Creamos un nuevo identificador único para cada opción seleccionada
+                let newOptionId = `selected-option-${optionCount}`;
+
+                let newOption = $('<div class="selected-option">').text(optionText);
+                newOption.attr('id', newOptionId);  // Asignamos el ID único
+                let hiddenInput = $('<input type="hidden" name="tp[]" />').val(optionText);
+                newOption.append(hiddenInput);
+                let removeButton = $('<button type="button" class="btn btn-danger btn-sm ml-2">').text('Eliminar');
+                removeButton.on('click', function() {
+                    newOption.remove();
                     checkContainerValidityAQL();
-                }
+                });
+                newOption.append(removeButton);
+                container.append(newOption);
+                checkContainerValidityAQL();
             }
 
             function checkContainerValidityAQL() {
@@ -893,7 +894,7 @@
 
 
 
-    </script>
+    </script> 
 
     <script>
         $(document).ready(function() {
