@@ -120,7 +120,9 @@ class DashboardController extends Controller
     public function dashboarAProcesoAQL(Request $request)
     {
         $title = "";
-        if($request->fecha_fin){
+
+        // Obtener la semana de inicio y la semana de fin directamente del Request
+        if ($request->fecha_fin) {
             $fechaInicio = Carbon::parse($request->input('fecha_inicio'))->startOfWeek();
             $fechaFin = Carbon::parse($request->input('fecha_fin'))->endOfWeek();
         } else {
@@ -146,7 +148,7 @@ class DashboardController extends Controller
             list($year, $week) = explode('-', $semana);
             return $this->calcularPorcentajePorSemana(AseguramientoCalidad::class, $year, $week);
         });
-        //dd($porcentajesAQL, $porcentajesProceso);
+
         // Datos para las gráficas de clientes
         $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
         $clientesGrafica = collect($dataGrafica['clientesUnicos'])->toArray();
@@ -250,6 +252,7 @@ class DashboardController extends Controller
             ->orderBy('total', 'desc')
             ->limit(3)
             ->get();
+
         //para textos
 
         // Obtener las fechas
@@ -275,8 +278,7 @@ class DashboardController extends Controller
             return response()->json(['error' => 'Formato de fecha de fin inválido'], 400);
         }
 
-        // Obtener el nombre del mes en español
-        $mesesEnEspanol = [
+        $mesesDelAño = [
             1 => 'Enero',
             2 => 'Febrero',
             3 => 'Marzo',
@@ -291,10 +293,11 @@ class DashboardController extends Controller
             12 => 'Diciembre'
         ];
 
-        // Formatear la fecha con el nombre del mes en español
-        $fechaInicioFormateada = $diaInicio . ' de ' . $mesesEnEspanol[$mesInicio] . ' ' . $añoInicio;
-        $fechaFinFormateada = $diaFin . ' de ' . $mesesEnEspanol[$mesFin] . ' ' . $añoFin;
-        //dd($fechaInicioFormateada, $fechaFinFormateada);
+        $nombreMesInicio = $mesesDelAño[$mesInicio] ?? '';
+        $nombreMesFin = $mesesDelAño[$mesFin] ?? '';
+        $fechaInicioFormateada = $diaInicio . ' de ' . $nombreMesInicio . ' de ' . $añoInicio . ' al ';
+        $fechaFinFormateada = $diaFin . ' de ' . $nombreMesFin . ' de ' . $añoFin;
+
         return view('dashboar.dashboarAProcesoAQL', compact('title', 'semanas', 'porcentajesAQL', 'porcentajesProceso',
             'semanasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica', 'dataGeneral', 'totalGeneral',
             'dataGerentesGeneral', 'dataModulosGeneral', 'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2',
