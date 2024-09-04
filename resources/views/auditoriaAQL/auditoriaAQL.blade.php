@@ -869,8 +869,7 @@
 
             function checkContainerValidityAQL() {
                 let container = $('#selectedOptionsContainerAQL');
-                let isValid = container.children('.selected-option').length > 0;
-                container.toggleClass('is-invalid', !isValid);
+                container.toggleClass('is-invalid', container.children('.selected-option').length === 0);
             }
 
             function updateColumnsVisibilityAQL() {
@@ -891,16 +890,6 @@
                 $('#color').val(selectedOption.data('color'));
                 $('#talla').val(selectedOption.data('talla'));
             }).trigger('change');
-
-            // Validación al enviar el formulario
-            $('#miFormularioAQL').on('submit', function(e) {
-                let container = $('#selectedOptionsContainerAQL');
-                if (container.children('.selected-option').length === 0) {
-                    e.preventDefault();
-                    alert('Debe seleccionar al menos un defecto.');
-                    container.addClass('is-invalid');
-                }
-            });
         });
 
 
