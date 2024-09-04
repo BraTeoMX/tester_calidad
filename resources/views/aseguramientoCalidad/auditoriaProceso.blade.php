@@ -145,7 +145,7 @@
                             </form>
                         </div>
                     @else
-                        <form id="miFormulario" method="POST" action="{{ route('aseguramientoCalidad.formRegistroAuditoriaProceso') }}">
+                        <form method="POST" action="{{ route('aseguramientoCalidad.formRegistroAuditoriaProceso') }}">
                             @csrf
                             <input type="hidden" class="form-control" name="area" id="area"
                                 value="{{ $data['area'] }}">
