@@ -851,11 +851,10 @@
                 multiple: true,
                 width: 'resolve'
             });
-
+    
             // Manejador de cambio del select
             $('#tpSelect').on('change', function() {
                 let selectedOptions = $(this).val();
-                // Agregar una opción seleccionada a la lista de seleccionados
                 if (selectedOptions.length > 0) {
                     let lastSelectedOption = selectedOptions[selectedOptions.length - 1];
                     if (lastSelectedOption === 'OTRO') {
@@ -866,7 +865,7 @@
                     }
                 }
             });
-
+    
             // Manejador del botón de guardar del modal
             $('#guardarNuevoConcepto').on('click', function() {
                 let nuevoConcepto = $('#nuevoConceptoInput').val();
@@ -879,7 +878,7 @@
                     @elseif($data['area'] == 'AUDITORIA EN EMPAQUE')
                         area = 'empaque';
                     @endif
-
+    
                     fetch('{{ route('categoria_tipo_problema.store') }}', {
                         method: 'POST',
                         headers: {
@@ -906,12 +905,12 @@
                     alert('Por favor, introduce un concepto válido');
                 }
             });
-
+    
             // Ocultar el modal y reiniciar el input del nuevo concepto
             $('#nuevoConceptoModal').on('hidden.bs.modal', function () {
                 $('#nuevoConceptoInput').val('');
             });
-
+    
             // Función para agregar una opción seleccionada a la lista de seleccionados
             function addSelectedOption(optionText) {
                 let container = $('#selectedOptionsContainer');
@@ -927,7 +926,7 @@
                 container.append(newOption);
                 checkContainerValidity();
             }
-
+    
             // Verifica si el contenedor tiene opciones seleccionadas y ajusta la validez
             function checkContainerValidity() {
                 let container = $('#selectedOptionsContainer');
@@ -937,7 +936,7 @@
                     container.removeClass('is-invalid');
                 }
             }
-
+    
             function updateColumnsVisibility() {
                 const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
                 
@@ -946,41 +945,43 @@
                     $('#tp-column-header, #ac-column-header').addClass('d-none');
                     $('.tp-column, .ac-column').addClass('d-none');
                     $('#selectedOptionsContainer, #ac').prop('required', false);
-
+    
                     // Quitar cualquier validación pendiente del contenedor
                     $('#selectedOptionsContainer').removeClass('is-invalid');
                     $('#selectedOptionsContainer').prop('required', false); // Asegurarse de que no sea obligatorio
-
+    
                 } else {
                     // Mostrar las columnas y volver a poner el "required"
                     $('#tp-column-header, #ac-column-header').removeClass('d-none');
                     $('.tp-column, .ac-column').removeClass('d-none');
                     $('#selectedOptionsContainer, #ac').prop('required', true);
-
+    
                     // Validar si hay opciones seleccionadas
                     checkContainerValidity();
                 }
             }
-
+    
             // Llamar a la función en cuanto se cargue la página para inicializar
             updateColumnsVisibility();
-
+    
             // Actualizar la visibilidad de las columnas al cambiar el valor de cantidad_rechazada
             $('#cantidad_rechazada').on('input', function() {
                 updateColumnsVisibility();
             });
-
+    
             // Modificar el comportamiento del submit
             $('#miFormulario').on('submit', function(event) {
                 const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
+                const selectedOptionsCount = $('#selectedOptionsContainer').children('.selected-option').length;
                 
                 if (cantidadRechazada > 0) {
-                    let container = $('#selectedOptionsContainer');
-                    if (container.children('.selected-option').length === 0) {
-                        // Mostrar un alert indicando que se debe seleccionar al menos una opción
+                    if (selectedOptionsCount === 0) {
                         alert('Por favor, selecciona al menos un defecto antes de enviar el formulario.');
                         event.preventDefault(); // Detener el envío del formulario
                         $('#tpSelect').select2('open'); // Abrir el select2 para que el usuario vea dónde seleccionar
+                    } else if (selectedOptionsCount !== cantidadRechazada) {
+                        alert(`El número de defectos seleccionados debe ser exactamente ${cantidadRechazada}.`);
+                        event.preventDefault(); // Detener el envío del formulario
                     }
                 } else {
                     // No validar el contenedor cuando la cantidad rechazada es 0
@@ -988,7 +989,7 @@
                 }
             });
         });
-    </script>   
+    </script>
     
 
     <script>
