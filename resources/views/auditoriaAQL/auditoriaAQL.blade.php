@@ -909,13 +909,21 @@
             $('#miFormularioAQL').on('submit', function(e) {
                 const cantidadRechazada = parseInt($('#cantidad_rechazada').val()) || 0;
                 let container = $('#selectedOptionsContainerAQL');
+                let selectedOptionsCount = container.children('.selected-option').length;
 
                 if (cantidadRechazada > 0) {
-                    if (container.children('.selected-option').length === 0) {
+                    if (selectedOptionsCount === 0) {
+                        // Si no hay opciones seleccionadas
                         e.preventDefault();
                         alert('Debe seleccionar al menos un defecto cuando la cantidad rechazada es mayor que 0.');
                         container.addClass('is-invalid');
+                    } else if (selectedOptionsCount !== cantidadRechazada) {
+                        // Si el número de opciones seleccionadas no coincide con la cantidad rechazada
+                        e.preventDefault();
+                        alert(`Debe seleccionar exactamente ${cantidadRechazada} defecto(s). Actualmente tiene ${selectedOptionsCount} seleccionado(s).`);
+                        container.addClass('is-invalid');
                     } else {
+                        // Si todo está correcto, remover la clase de error
                         container.removeClass('is-invalid');
                     }
                 } else {
