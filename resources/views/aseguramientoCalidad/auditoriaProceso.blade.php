@@ -145,7 +145,7 @@
                             </form>
                         </div>
                     @else
-                        <form method="POST" action="{{ route('aseguramientoCalidad.formRegistroAuditoriaProceso') }}">
+                        <form id="miFormulario" method="POST" action="{{ route('aseguramientoCalidad.formRegistroAuditoriaProceso') }}">
                             @csrf
                             <input type="hidden" class="form-control" name="area" id="area"
                                 value="{{ $data['area'] }}">
@@ -816,7 +816,7 @@
         }
         
     </script>
-    <script>
+    <script> 
         function resetForm() {
             var select = document.getElementById("nombre");
             var otroOptions = document.getElementById("otroOptions");
@@ -940,18 +940,29 @@
 
             function updateColumnsVisibility() {
                 const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
+                
                 if (isNaN(cantidadRechazada) || cantidadRechazada === 0) {
+                    // Ocultar las columnas y quitar el "required"
                     $('#tp-column-header, #ac-column-header').addClass('d-none');
                     $('.tp-column, .ac-column').addClass('d-none');
                     $('#selectedOptionsContainer, #ac').prop('required', false);
+
+                    // Quitar cualquier validación pendiente del contenedor
+                    $('#selectedOptionsContainer').removeClass('is-invalid');
+                    $('#selectedOptionsContainer').prop('required', false); // Asegurarse de que no sea obligatorio
+
                 } else {
+                    // Mostrar las columnas y volver a poner el "required"
                     $('#tp-column-header, #ac-column-header').removeClass('d-none');
                     $('.tp-column, .ac-column').removeClass('d-none');
                     $('#selectedOptionsContainer, #ac').prop('required', true);
+
+                    // Validar si hay opciones seleccionadas
+                    checkContainerValidity();
                 }
             }
 
-            // Inicializar la visibilidad de las columnas al cargar la página
+            // Llamar a la función en cuanto se cargue la página para inicializar
             updateColumnsVisibility();
 
             // Actualizar la visibilidad de las columnas al cambiar el valor de cantidad_rechazada
@@ -959,18 +970,25 @@
                 updateColumnsVisibility();
             });
 
-            // Validación antes de enviar el formulario
+            // Modificar el comportamiento del submit
             $('#miFormulario').on('submit', function(event) {
-                let container = $('#selectedOptionsContainer');
-                if (container.children('.selected-option').length === 0) {
-                    // Mostrar un alert indicando que se debe seleccionar al menos una opción
-                    alert('Por favor, selecciona al menos un defecto antes de enviar el formulario.');
-                    event.preventDefault(); // Detener el envío del formulario
-                    $('#tpSelect').select2('open'); // Abrir el select2 para que el usuario vea dónde seleccionar
+                const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
+                
+                if (cantidadRechazada > 0) {
+                    let container = $('#selectedOptionsContainer');
+                    if (container.children('.selected-option').length === 0) {
+                        // Mostrar un alert indicando que se debe seleccionar al menos una opción
+                        alert('Por favor, selecciona al menos un defecto antes de enviar el formulario.');
+                        event.preventDefault(); // Detener el envío del formulario
+                        $('#tpSelect').select2('open'); // Abrir el select2 para que el usuario vea dónde seleccionar
+                    }
+                } else {
+                    // No validar el contenedor cuando la cantidad rechazada es 0
+                    $('#selectedOptionsContainer').prop('required', false);
                 }
             });
         });
-    </script>  
+    </script>   
     
 
     <script>
