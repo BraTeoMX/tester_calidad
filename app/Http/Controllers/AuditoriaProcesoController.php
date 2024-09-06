@@ -304,7 +304,7 @@ class AuditoriaProcesoController extends Controller
         $registrosOriginales = AseguramientoCalidad::whereDate('created_at', $fechaActual)
             ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
-            ->where('team_leader', $data['team_leader'])
+            //->where('team_leader', $data['team_leader'])
             ->where('cantidad_rechazada', '>', 0)
             ->orderBy('created_at', 'asc') // Ordenar por created_at ascendente
             ->get();
@@ -325,7 +325,7 @@ class AuditoriaProcesoController extends Controller
         $conteoParos = AseguramientoCalidad::whereDate('created_at', $fechaActual)
             ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
-            ->where('team_leader', $data['team_leader'])
+            //->where('team_leader', $data['team_leader'])
             ->where('cantidad_rechazada', '>', 0)
             ->where('tiempo_extra', null)
             ->count();

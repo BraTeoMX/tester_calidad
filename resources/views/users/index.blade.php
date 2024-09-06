@@ -47,6 +47,10 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,600,700,800" rel="stylesheet" />
     <link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
+    <!-- Fonts and icons -->
+    <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
     <!-- Icons -->
     <link href="{{ asset('black') }}/css/nucleo-icons.css" rel="stylesheet" />
     <!-- CSS -->
@@ -69,18 +73,30 @@
                                 <p>{{ __('Dashboard') }}</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('dashboar.dashboardPanta1PorDia') }}">
+                                <i class="tim-icons icon-tap-02"></i>
+                                <p>{{ __('Consulta por Dia') }}</p>
+                            </a>
+                        </li>
                     @endif
 
                     @if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Gerente de Calidad')))
                         <li class="nav-item">
                             <a class="nav-link" data-toggle="collapse" href="#laravelExample" aria-expanded="true">
-                                <i class="fab fa-laravel"></i>
-                                <p>{{ __('Admin cuentas') }}
+                                <i class="material-icons">admin_panel_settings</i>
+                                <p>{{ __('Administrador') }}
                                     <b class="caret"></b>
                                 </p>
                             </a>
                             <div class="collapse" id="laravelExample">
                                 <ul class="nav">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('altaYbaja') }}">
+                                            <i class="tim-icons icon-support-17"></i>
+                                            <p>{{ __('Gestión de Categorías') }}</p>
+                                        </a>
+                                    </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href="{{ route('profile.edit') }}">
                                             <i class="tim-icons icon-single-02"></i>
@@ -99,7 +115,7 @@
                     @endif
                     <li class="nav-item">
                         <a class="nav-link" data-toggle="collapse" href="#laravelExamples" aria-expanded="true">
-                            <i class="fab fa-laravel"></i>
+                            <i class="material-icons">note_alt</i>
                             <p>{{ __('Formularios Calidad') }}
                                 <b class="caret"></b>
                             </p>
@@ -112,48 +128,43 @@
                                             auth()->user()->hasRole('Gerente de Calidad')) &&
                                         auth()->user()->Planta == 'Planta1')
                                     <li class="nav-item">
-                                        <a class="nav-link"
-                                            href="{{ route('formulariosCalidad.auditoriaEtiquetas') }}">
-                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                        <a class="nav-link" href="{{ route('formulariosCalidad.auditoriaEtiquetas') }}">
+                                            <i class="material-icons">edit_document</i>
                                             <p>{{ __('FCC-014') }}</p>
                                             <p style="text-align: center;">{{ __('AUDITORIA ETIQUETAS') }}</p>
-
                                         </a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link"
-                                            href="{{ route('auditoriaCorte.inicioAuditoriaCorte') }}">
-                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                        <a class="nav-link" href="{{ route('auditoriaCorte.inicioAuditoriaCorte') }}">
+                                            <i class="material-icons">edit_document</i>
                                             <p>{{ __('FCC-010') }}</p>
                                             <p style="text-align: center;">{{ __('AUDITORIA CORTE') }}</p>
                                         </a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link"
-                                            href="{{ route('evaluacionCorte.inicioEvaluacionCorte') }}">
-                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                        <a class="nav-link" href="{{ route('evaluacionCorte.inicioEvaluacionCorte') }}">
+                                            <i class="material-icons">edit_document</i>
                                             <p>{{ __('F-4') }}</p>
                                             <p style="text-align: center;">{{ __('EVALUACION DE CORTE') }}</p>
                                         </a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link"
-                                            href="{{ route('auditoriaProcesoCorte.altaProcesoCorte') }}">
-                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                        <a class="nav-link" href="{{ route('auditoriaProcesoCorte.altaProcesoCorte') }}">
+                                            <i class="material-icons">edit_document</i>
                                             <p>{{ __('FCC-04') }}</p>
                                             <p style="text-align: center;">{{ __('AUDITORIA PROCESO DE CORTE') }}</p>
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href="{{ route('aseguramientoCalidad.altaProceso') }}">
-                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <i class="material-icons">edit_document</i>
                                             <p>{{ __('FCC-001') }}</p>
                                             <p style="text-align: center;">{{ __('AUDITORIA DE PROCESOS') }}</p>
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href="{{ route('auditoriaAQL.altaAQL') }}">
-                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <i class="material-icons">edit_document</i>
                                             <p>{{ __('FCC-009-B') }}</p>
                                             <p style="text-align: center;">{{ __('AUDITORIA FINAL A.Q.L') }}</p>
                                         </a>
@@ -166,38 +177,48 @@
                                         auth()->user()->Planta == 'Planta2')
                                     <li class="nav-item">
                                         <a class="nav-link" href="{{ route('ScreenPlanta2.ScreenPrint') }}">
-                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <i class="material-icons">edit_document</i>
                                             <p>{{ __('Screen Print') }}</p>
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href="{{ route('ScreenPlanta2.InsEstamHorno') }}">
-                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <i class="material-icons">edit_document</i>
                                             <p>{{ __('Inspección Después De Horno') }}</p>
                                         </a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link"
-                                            href="{{ route('ScreenPlanta2.CalidadProcesoPlancha') }}">
-                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                        <a class="nav-link" href="{{ route('ScreenPlanta2.CalidadProcesoPlancha') }}">
+                                            <i class="material-icons">edit_document</i>
                                             <p>{{ __('Proceso Plancha') }}</p>
                                         </a>
                                     </li>
                                     <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('ScreenPlanta2.Maquila') }}">
+                                            <i class="material-icons">edit_document</i>
+                                            <p>{{ __('Maquila') }}</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
                                         <a class="nav-link" href="{{ route('aseguramientoCalidad.altaProceso') }}">
-                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <i class="material-icons">edit_document</i>
                                             <p>{{ __('FCC-001') }}</p>
                                             <p style="text-align: center;">{{ __('AUDITORIA DE PROCESOS') }}</p>
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href="{{ route('auditoriaAQL.altaAQL') }}">
-                                            <i class="tim-icons icon-bullet-list-67"></i>
+                                            <i class="material-icons">edit_document</i>
                                             <p>{{ __('FCC-009-B') }}</p>
                                             <p style="text-align: center;">{{ __('AUDITORIA FINAL A.Q.L') }}</p>
                                         </a>
                                     </li>
                                 @endif
+                                <li class="nav-item">
+                                    <p>&nbsp;</p>
+                                    <p>&nbsp;</p>
+                                    <p>&nbsp;</p>
+                                </li>
                             </ul>
                         </div>
                     </li>

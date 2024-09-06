@@ -1,81 +1,81 @@
 <?php return array (
-  'facade/ignition' =>
+  'facade/ignition' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Facade\\Ignition\\IgnitionServiceProvider',
     ),
-    'aliases' =>
+    'aliases' => 
     array (
       'Flare' => 'Facade\\Ignition\\Facades\\Flare',
     ),
   ),
-  'fruitcake/laravel-cors' =>
+  'fruitcake/laravel-cors' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Fruitcake\\Cors\\CorsServiceProvider',
     ),
   ),
-  'laravel-frontend-presets/black-dashboard' =>
+  'laravel-frontend-presets/black-dashboard' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'LaravelFrontendPresets\\BlackPreset\\BlackPresetServiceProvider',
     ),
   ),
-  'laravel/legacy-factories' =>
+  'laravel/legacy-factories' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Illuminate\\Database\\Eloquent\\LegacyFactoryServiceProvider',
     ),
   ),
-  'laravel/sail' =>
+  'laravel/sail' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Laravel\\Sail\\SailServiceProvider',
     ),
   ),
-  'laravel/sanctum' =>
+  'laravel/sanctum' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Laravel\\Sanctum\\SanctumServiceProvider',
     ),
   ),
-  'laravel/tinker' =>
+  'laravel/tinker' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Laravel\\Tinker\\TinkerServiceProvider',
     ),
   ),
-  'laravel/ui' =>
+  'laravel/ui' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Laravel\\Ui\\UiServiceProvider',
     ),
   ),
-  'nesbot/carbon' =>
+  'nesbot/carbon' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Carbon\\Laravel\\ServiceProvider',
     ),
   ),
-  'nunomaduro/collision' =>
+  'nunomaduro/collision' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
     ),
   ),
-  'spatie/laravel-permission' =>
+  'spatie/laravel-permission' => 
   array (
-    'providers' =>
+    'providers' => 
     array (
       0 => 'Spatie\\Permission\\PermissionServiceProvider',
     ),
