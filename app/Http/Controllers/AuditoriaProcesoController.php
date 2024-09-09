@@ -604,7 +604,7 @@ class AuditoriaProcesoController extends Controller
         return back()->with('success', 'Finalizacion aplicada correctamente.')->with('pageSlug', $pageSlug);
     }
 
-    public function cambiarEstadoInicioParo(Request $request)
+    public function cambiarEstadoInicioParo(Request $request) 
     {
         $pageSlug ='';
         $id = $request->idCambio;

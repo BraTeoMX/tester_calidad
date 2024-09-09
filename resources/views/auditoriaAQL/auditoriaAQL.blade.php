@@ -849,20 +849,31 @@
             function addSelectedOptionAQL(optionText) {
                 let container = $('#selectedOptionsContainerAQL');
                 optionCount++;
-    
                 let newOptionId = `selected-option-${optionCount}`;
-    
+                // Crear el div para la nueva opción
                 let newOption = $('<div class="selected-option">').text(optionText);
                 newOption.attr('id', newOptionId);
+                // Crear el input oculto
                 let hiddenInput = $('<input type="hidden" name="tp[]" />').val(optionText);
                 newOption.append(hiddenInput);
+                // Crear botón para eliminar
                 let removeButton = $('<button type="button" class="btn btn-danger btn-sm ml-2">').text('Eliminar');
                 removeButton.on('click', function() {
                     newOption.remove();
                     checkContainerValidityAQL();
                 });
                 newOption.append(removeButton);
+                // Crear botón para duplicar
+                let duplicateButton = $('<button type="button" class="btn btn-info btn-sm ml-2">').text('+');
+                duplicateButton.on('click', function() {
+                    // Llamar a la misma función para duplicar la opción
+                    addSelectedOptionAQL(optionText);
+                });
+                newOption.prepend(duplicateButton);  // Prepend para que el botón "+" aparezca al inicio
+
+                // Añadir la nueva opción al contenedor
                 container.append(newOption);
+
                 checkContainerValidityAQL();
             }
     
