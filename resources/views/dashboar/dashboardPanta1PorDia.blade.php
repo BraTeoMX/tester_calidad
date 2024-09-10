@@ -201,7 +201,7 @@
         </div>
     </div>  
 
-    <!-- Modales para AQL -->  
+    <!-- Modales para AQL -->   
     @foreach ($dataModuloAQLGeneral as $item)
     <div id="customModalAQL{{ $item['modulo'] }}" class="custom-modal">
         <div class="custom-modal-content">
@@ -681,37 +681,77 @@
                     });
                 }
             });
-            // Nuevo script para aplicar DataTables a las tablas dentro de los modales
-            $('[id^="modalAQL"]').on('shown.bs.modal', function () {
-                const modalId = $(this).attr('id');
-                const tableId = `#tablaAQLDetalle${modalId.replace('modalAQL', '')}`;
-
-                if (!$.fn.dataTable.isDataTable(tableId)) {
-                    $(tableId).DataTable({
-                        lengthChange: false,
-                        searching: true,
-                        paging: true,
-                        autoWidth: false,
-                        responsive: true,
-                        dom: 'Bfrtip',
-                        buttons: [
-                            {
-                                extend: 'excelHtml5',
-                                text: 'Exportar a Excel',
-                                className: 'btn btn-success'
-                            }
-                        ],
-                        language: {
-                            // Traducciones omitidas por brevedad
-                        }
-                    });
-                }
-            });
         });
     </script>
 
-    <script>
+<script>
+    $(document).ready(function() {
+        // Función para inicializar DataTable en tablas AQL
+        function initializeAQLDataTable(tableId) {
+            if (!$.fn.DataTable.isDataTable(tableId)) {
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 10,
+                    autoWidth: false,
+                    responsive: true,
+                    dom: 'Bfrtip',
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            text: 'Exportar a Excel',
+                            className: 'btn btn-success'
+                        }
+                    ],
+                    language: {
+                        "sProcessing":     "Procesando...",
+                        "sLengthMenu":     "Mostrar _MENU_ registros",
+                        "sZeroRecords":    "No se encontraron resultados",
+                        "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                        "sInfo":           "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                        "sInfoEmpty":      "Mostrando 0 a 0 de 0 registros",
+                        "sInfoFiltered":   "(filtrado de _MAX_ registros totales)",
+                        "sInfoPostFix":    "",
+                        "sSearch":         "Buscar:",
+                        "sUrl":            "",
+                        "sInfoThousands":  ",",
+                        "sLoadingRecords": "Cargando...",
+                        "oPaginate": {
+                            "sFirst":    "Primero",
+                            "sLast":     "Último",
+                            "sNext":     "Siguiente",
+                            "sPrevious": "Anterior"
+                        },
+                        "oAria": {
+                            "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                            "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                        }
+                    }
+                });
+            }
+        }
+
+        // Inicializar DataTables para todas las tablas AQL
+        $('table[id^="tablaAQLDetalle"]').each(function() {
+            initializeAQLDataTable('#' + $(this).attr('id'));
+        });
+
+        // Función para inicializar nuevas tablas AQL (por si se añaden dinámicamente)
+        function initializeNewAQLTables() {
+            $('table[id^="tablaAQLDetalle"]').each(function() {
+                if (!$.fn.DataTable.isDataTable('#' + $(this).attr('id'))) {
+                    initializeAQLDataTable('#' + $(this).attr('id'));
+                }
+            });
+        }
+
+        // Si estás usando algún evento para abrir modales, puedes llamar a initializeNewAQLTables() después de abrir el modal
+        // Por ejemplo:
+        // $(document).on('shown.bs.modal', '.modal', initializeNewAQLTables);
+    });
     </script>
+
     <script>
         let activeModalId = null;
 

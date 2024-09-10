@@ -416,7 +416,7 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->get()
                 ->pluck('tpAuditoriaAQL.*.tp')
                 ->flatten()
-                ->unique()
+                //->unique()
                 ->implode(', ');
             $defectosUnicos = $defectosUnicos ?: 'N/A';
             //dd($defectosUnicos);
