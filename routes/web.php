@@ -26,6 +26,7 @@ use App\Http\Controllers\reporteriaInternaController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AltaYBajaController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Segundas;
 
 /*
 |--------------------------------------------------------------------------
@@ -288,5 +289,5 @@ Route::post('/altaYbaja/defecto-empaque', [AltaYBajaController::class, 'crearDef
 Route::post('/altaYbaja/gestion-utility', [AltaYBajaController::class, 'crearUtility'])->name('crearUtility');
 Route::post('/altaYbaja/gestion-responsable', [AltaYBajaController::class, 'crearResponsable'])->name('crearResponsable');
 Route::post('/altaYbaja/gestion-tecnico', [AltaYBajaController::class, 'crearTecnico'])->name('crearTecnico');
-
-
+//Segundas
+Route::get('/Segundas', [Segundas::class, 'Segundas']);

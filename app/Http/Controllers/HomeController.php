@@ -9,7 +9,7 @@ use App\Models\TpAuditoriaAQL;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\DB; // Importa la clase DB
-use Illuminate\Support\Facades\Log;
+
 
 class HomeController extends Controller
 {
@@ -89,9 +89,6 @@ class HomeController extends Controller
 
             // Combinar los datos
             $dataGerentesGeneral = $this->combineDataGerentes($dataGerentesAQLGeneral, $dataGerentesProcesoGeneral);
-
-
-
             // Datos generales
             $dataGeneral = $this->obtenerDatosClientesPorFiltro($fechaActual);
 
@@ -162,7 +159,8 @@ class HomeController extends Controller
                 ->orderBy('total', 'desc')
                 ->limit(3)
                 ->get();
-
+                //Ontener Segundas y Teceras Generales
+            $SegundasTerceras = obtenerSegundasTerceras();
             //dd($gerentesProduccionAQL, $gerentesProduccionProceso, $gerentesProduccion, $data);
             $dataGraficaModulos = $this->obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin);
             $modulosGrafica = !empty($dataGraficaModulos['modulosUnicos']) ? collect($dataGraficaModulos['modulosUnicos'])->toArray() : [0];
@@ -187,50 +185,6 @@ class HomeController extends Controller
                     'fill' => false
                 ];
             })->toArray();
-            $SegundasTerceras = DB::connection('sqlsrv')->select("
-            SELECT
-            ptt.OPRMODULEID_AT,
-            back.CATEGORYNAME,
-            ptt.PRODID,
-            pp.PRODTICKETID,
-            p.ITEMID,
-            inv.INVENTSIZEID,
-            inv.INVENTCOLORID,
-            ptt.QTY,
-            ptt.QUALITY,
-            CASE
-                WHEN ptt.QUALITY = 1 THEN 'Segunda'
-                WHEN ptt.QUALITY = 2 THEN 'Tercera'
-                ELSE 'N/A'
-            END AS Calidad,
-            CASE
-                WHEN ptt.QUALITY = 2 THEN 'N/A'
-                ELSE ptt.QUALITYCODEID
-            END AS QUALITYCODEID,
-            ISNULL(pqt.DESCRIPTION, 'N/A') AS DescripcionCalidad,
-            CASE
-                WHEN pqt.QUALITYCODEID BETWEEN 'A' AND 'G' THEN 'Segunda por Material'
-                WHEN pqt.QUALITYCODEID BETWEEN 'H' AND 'O' THEN 'Segunda por Costura'
-                ELSE 'N/A'
-            END AS [TipoSegunda],
-            inv.CONFIGID,
-            p.PRODPOOLID,
-            back.CUSTOMERNAME,
-            back.DIVISIONNAME,
-            back.ITEMNAME,
-            CONVERT(VARCHAR(10), ptt.TRANSDATE, 120) AS TRANSDATE
-        FROM [PRODTICKETTRANSTABLE_AT] ptt
-        INNER JOIN [PRODTABLE] p ON ptt.PRODID = p.PRODID
-        INNER JOIN [PRODTICKETSTABLE_AT] pp ON ptt.PRODTICKETID_AT = pp.PRODTICKETID
-        INNER JOIN [INVENTDIM] inv ON pp.INVENTDIMID = inv.INVENTDIMID
-        INNER JOIN [BACKLOGTABLE_AT] back ON p.INVENTREFID = back.SALESID AND inv.INVENTSIZEID = back.INVENTSIZEID AND p.ITEMID = back.ITEMID
-        LEFT JOIN [PACKINGQUALITYCODETABLE_AT] pqt ON ptt.QUALITYCODEID = pqt.QUALITYCODEID
-        WHERE ptt.TRANSDATE >= CAST(CAST(YEAR(GETDATE()) AS VARCHAR(4)) + '-' + CAST(MONTH(GETDATE()) AS VARCHAR(2)) + '-01' AS DATE)
-          AND ptt.TRANSDATE < DATEADD(MONTH, 1, CAST(CAST(YEAR(GETDATE()) AS VARCHAR(4)) + '-' + CAST(MONTH(GETDATE()) AS VARCHAR(2)) + '-01' AS DATE))
-          AND ptt.QUALITY IN (1, 2)
-
-            ");
-
             // Obtener los clientes únicos de AseguramientoCalidad
             $clientesAseguramientoBusqueda = AseguramientoCalidad::select('cliente')
             ->distinct()
@@ -240,13 +194,10 @@ class HomeController extends Controller
             $clientesAuditoriaBusqueda = AuditoriaAQL::select('cliente')
             ->distinct()
             ->pluck('cliente');
-
             // Combinar ambas listas y eliminar duplicados
             $clientesUnicosBusqueda = $clientesAseguramientoBusqueda->merge($clientesAuditoriaBusqueda)->unique();
-
             // Convertir la colección a un array si es necesario
             $clientesUnicosArrayBusqueda = $clientesUnicosBusqueda->values()->all();
-
             // Obtener los modulos únicos de AseguramientoCalidad
             //$modulosAseguramientoBusqueda = AseguramientoCalidad::select('modulo')
             //->distinct()
@@ -263,7 +214,7 @@ class HomeController extends Controller
             // Convertir la colección a un array si es necesario
             //$modulosUnicosArrayBusqueda = $modulosUnicosBusqueda->values()->all();
             //dd($clientesUnicosArrayBusqueda);
-            return view('dashboard', compact('title', 'topDefectosAQL', 'topDefectosProceso',
+            return view('dashboard', compact('title', 'topDefectosAQL', 'topDefectosProceso','SegundasTerceras',
                                     'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2', 'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2',
                                     'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
                                     'dataGerentesAQLGeneral', 'dataGerentesProcesoGeneral', 'dataGerentesAQLPlanta1', 'dataGerentesAQLPlanta2', 'dataGerentesProcesoPlanta1', 'dataGerentesProcesoPlanta2',
@@ -273,7 +224,7 @@ class HomeController extends Controller
                                     'fechas', 'porcentajesAQL', 'porcentajesProceso',
                                     'fechasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica',
                                     'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica',
-                                    'clientesUnicosArrayBusqueda','SegundasTerceras'));
+                                    'clientesUnicosArrayBusqueda'));
         } else {
             // Si el usuario no tiene esos roles, redirige a listaFormularios
             return redirect()->route('viewlistaFormularios');

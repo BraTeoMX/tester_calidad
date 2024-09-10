@@ -39,6 +39,7 @@ class ComposerStaticInit0e05d79df1118f1d74ed57bf5b95f4f5
         'ce9671a430e4846b44e1c68c7611f9f5' => __DIR__ . '/..' . '/mockery/mockery/library/Mockery.php',
         'ec07570ca5a812141189b1fa81503674' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
         '377b22b161c09ed6e5152de788ca020a' => __DIR__ . '/..' . '/spatie/laravel-permission/src/helpers.php',
+        'b4e3f29b106af37a2bb239f73cdf68c7' => __DIR__ . '/../..' . '/app/helpers.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -536,6 +537,7 @@ class ComposerStaticInit0e05d79df1118f1d74ed57bf5b95f4f5
     public static $classMap = array (
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
+        'App\\Http\\Controllers\\AltaYBajaController' => __DIR__ . '/../..' . '/app/Http/Controllers/AltaYBajaController.php',
         'App\\Http\\Controllers\\AuditoriaAQLController' => __DIR__ . '/../..' . '/app/Http/Controllers/AuditoriaAQLController.php',
         'App\\Http\\Controllers\\AuditoriaCorteController' => __DIR__ . '/../..' . '/app/Http/Controllers/AuditoriaCorteController.php',
         'App\\Http\\Controllers\\AuditoriaProcesoController' => __DIR__ . '/../..' . '/app/Http/Controllers/AuditoriaProcesoController.php',
@@ -550,6 +552,11 @@ class ComposerStaticInit0e05d79df1118f1d74ed57bf5b95f4f5
         'App\\Http\\Controllers\\CalidadScreenPrintController' => __DIR__ . '/../..' . '/app/Http/Controllers/CalidadScreenPrintController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Controllers\\DashboardController' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardController.php',
+        'App\\Http\\Controllers\\DashboardPlanta1Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardPlanta1Controller.php',
+        'App\\Http\\Controllers\\DashboardPlanta1DetalleController' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardPlanta1DetalleController.php',
+        'App\\Http\\Controllers\\DashboardPlanta1PorDiaController' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardPlanta1PorDiaController.php',
+        'App\\Http\\Controllers\\DashboardPlanta2Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardPlanta2Controller.php',
+        'App\\Http\\Controllers\\DashboardPlanta2DetalleController' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardPlanta2DetalleController.php',
         'App\\Http\\Controllers\\DatosAuditoriaEtiquetas' => __DIR__ . '/../..' . '/app/Http/Controllers/DatosAuditoriaEtiquetas.php',
         'App\\Http\\Controllers\\EvaluacionCorteController' => __DIR__ . '/../..' . '/app/Http/Controllers/EvaluacionCorteController.php',
         'App\\Http\\Controllers\\HomeController' => __DIR__ . '/../..' . '/app/Http/Controllers/HomeController.php',
@@ -565,6 +572,9 @@ class ComposerStaticInit0e05d79df1118f1d74ed57bf5b95f4f5
         'App\\Http\\Controllers\\viewlistaFormularios' => __DIR__ . '/../..' . '/app/Http/Controllers/viewlistaFormularios.php',
         'App\\Http\\Kernel' => __DIR__ . '/../..' . '/app/Http/Kernel.php',
         'App\\Http\\Middleware\\Authenticate' => __DIR__ . '/../..' . '/app/Http/Middleware/Authenticate.php',
+        'App\\Http\\Middleware\\CheckRole' => __DIR__ . '/../..' . '/app/Http/Middleware/CheckRole.php',
+        'App\\Http\\Middleware\\CheckRoleAndPlant1' => __DIR__ . '/../..' . '/app/Http/Middleware/CheckRoleAndPlant1.php',
+        'App\\Http\\Middleware\\CheckRoleAndPlant2' => __DIR__ . '/../..' . '/app/Http/Middleware/CheckRoleAndPlant2.php',
         'App\\Http\\Middleware\\EncryptCookies' => __DIR__ . '/../..' . '/app/Http/Middleware/EncryptCookies.php',
         'App\\Http\\Middleware\\PreventRequestsDuringMaintenance' => __DIR__ . '/../..' . '/app/Http/Middleware/PreventRequestsDuringMaintenance.php',
         'App\\Http\\Middleware\\RedirectIfAuthenticated' => __DIR__ . '/../..' . '/app/Http/Middleware/RedirectIfAuthenticated.php',
@@ -612,6 +622,7 @@ class ComposerStaticInit0e05d79df1118f1d74ed57bf5b95f4f5
         'App\\Models\\Horno_Banda' => __DIR__ . '/../..' . '/app/Models/Horno_Banda.php',
         'App\\Models\\InspeccionEstampadoDHorno' => __DIR__ . '/../..' . '/app/Models/InspeccionEstampadoDHorno.php',
         'App\\Models\\JobAQL' => __DIR__ . '/../..' . '/app/Models/JobAQL.php',
+        'App\\Models\\JobOperacion' => __DIR__ . '/../..' . '/app/Models/JobOperacion.php',
         'App\\Models\\Lectra' => __DIR__ . '/../..' . '/app/Models/Lectra.php',
         'App\\Models\\Maquilas' => __DIR__ . '/../..' . '/app/Models/Maquilas.php',
         'App\\Models\\OpcionesDefectosScreen' => __DIR__ . '/../..' . '/app/Models/OpcionesDefectosScreen.php',
