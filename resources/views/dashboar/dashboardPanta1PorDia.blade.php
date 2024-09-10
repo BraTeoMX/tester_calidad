@@ -114,7 +114,7 @@
                                 @foreach ($dataModuloAQLGeneral as $item)
                                     <tr>
                                         <td>
-                                            <button type="button" class="btn btn-link" data-toggle="modal" data-target="#modalAQL{{ $item['modulo'] }}">
+                                            <button type="button" class="custom-btn" onclick="openCustomModal('customModalAQL{{ $item['modulo'] }}')">
                                                 {{ $item['modulo'] }}
                                             </button>
                                         </td>
@@ -174,7 +174,7 @@
                                 @foreach ($dataModuloProcesoGeneral as $item)
                                     <tr>
                                         <td>
-                                            <button type="button" class="btn btn-link" data-toggle="modal" data-target="#modalProceso{{ $item['modulo'] }}">
+                                            <button type="button" class="custom-btn" onclick="openCustomModal('customModalProceso{{ $item['modulo'] }}')">
                                                 {{ $item['modulo'] }}
                                             </button>
                                         </td>
@@ -201,53 +201,49 @@
         </div>
     </div>  
 
-    <!-- Modales para AQL -->
+    <!-- Modales para AQL -->   
     @foreach ($dataModuloAQLGeneral as $item)
-    <div class="modal fade" id="modalAQL{{ $item['modulo'] }}" tabindex="-1" role="dialog" aria-labelledby="modalAQLLabel{{ $item['modulo'] }}" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header">
-                    <h5 class="modal-title text-white" id="modalAQLLabel{{ $item['modulo'] }}">Detalles AQL para Módulo {{ $item['modulo'] }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table class="table table-responsive" id="tablaAQLDetalle{{ $item['modulo'] }}">
-                        <thead>
+    <div id="customModalAQL{{ $item['modulo'] }}" class="custom-modal">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <span class="custom-close" onclick="closeCustomModal('customModalAQL{{ $item['modulo'] }}')">&times;</span>
+                <h3>Detalles AQL para Módulo {{ $item['modulo'] }}</h3>
+            </div>
+            <div class="custom-modal-body table-responsive">
+                <table class="table" id="tablaAQLDetalle{{ $item['modulo'] }}">
+                    <thead>
+                        <tr>
+                            <th>PARO</th>
+                            <th>CLIENTE</th>
+                            <th># BULTO</th>
+                            <th>PIEZAS</th>
+                            <th>TALLA</th>
+                            <th>COLOR</th>
+                            <th>ESTILO</th>
+                            <th>PIEZAS INSPECCIONADAS</th>
+                            <th>PIEZAS RECHAZADAS</th>
+                            <th>TIPO DE DEFECTO</th>
+                            <th>Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($item['detalles'] as $registro)
                             <tr>
-                                <th>PARO</th>
-                                <th>CLIENTE</th>
-                                <th># BULTO</th>
-                                <th>PIEZAS</th>
-                                <th>TALLA</th>
-                                <th>COLOR</th>
-                                <th>ESTILO</th>
-                                <th>PIEZAS INSPECCIONADAS</th>
-                                <th>PIEZAS RECHAZADAS</th>
-                                <th>TIPO DE DEFECTO</th>
-                                <th>Hora</th>
+                                <td>{{ $registro->minutos_paro ?? 'N/A' }}</td>
+                                <td>{{ $registro->cliente ?? 'N/A' }}</td>
+                                <td>{{ $registro->bulto ?? 'N/A' }}</td>
+                                <td>{{ $registro->pieza ?? 'N/A' }}</td>
+                                <td>{{ $registro->talla ?? 'N/A' }}</td>
+                                <td>{{ $registro->color ?? 'N/A' }}</td>
+                                <td>{{ $registro->estilo ?? 'N/A' }}</td>
+                                <td>{{ $registro->cantidad_auditada ?? 'N/A' }}</td>
+                                <td>{{ $registro->cantidad_rechazada ?? 'N/A' }}</td>
+                                <td>{{ $registro->tpAuditoriaAQL->pluck('tp')->isEmpty() ? 'N/A' : implode(', ', $registro->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
+                                <td>{{ $registro->created_at ? $registro->created_at->format('H:i:s') : 'N/A' }}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($item['detalles'] as $registro)
-                                <tr>
-                                    <td>{{ $registro->minutos_paro }}</td>
-                                    <td>{{ $registro->cliente }}</td>
-                                    <td>{{ $registro->bulto }}</td>
-                                    <td>{{ $registro->pieza }}</td>
-                                    <td>{{ $registro->talla }}</td>
-                                    <td>{{ $registro->color }}</td>
-                                    <td>{{ $registro->estilo }}</td>
-                                    <td>{{ $registro->cantidad_auditada }}</td>
-                                    <td>{{ $registro->cantidad_rechazada }}</td>
-                                    <td>{{ implode(', ', $registro->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
-                                    <td>{{ $registro->created_at->format('H:i:s') }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -255,47 +251,45 @@
 
     <!-- Modales para Proceso -->
     @foreach ($dataModuloProcesoGeneral as $item)
-    <div class="modal fade" id="modalProceso{{ $item['modulo'] }}" tabindex="-1" role="dialog" aria-labelledby="modalProcesoLabel{{ $item['modulo'] }}" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header">
-                    <h5 class="modal-title text-white" id="modalProcesoLabel{{ $item['modulo'] }}">Detalles de Proceso para Módulo {{ $item['modulo'] }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table class="table table-responsive" id="tablaProcesoDetalle{{ $item['modulo'] }}">
-                        <thead>
+    <div id="customModalProceso{{ $item['modulo'] }}" class="custom-modal">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <span class="custom-close" onclick="closeCustomModal('customModalProceso{{ $item['modulo'] }}')">&times;</span>
+                <h3>Detalles de Proceso para Módulo {{ $item['modulo'] }}</h3>
+            </div>
+            <div class="custom-modal-body table-responsive">
+                <table class="table" id="tablaProcesoDetalle{{ $item['modulo'] }}">
+                    <thead>
+                        <tr>
+                            <th>PARO</th>
+                            <th>CLIENTE</th>
+                            <th>Nombre</th>
+                            <th>Operacion</th>
+                            <th>Piezas Auditadas</th>
+                            <th>Piezas Rechazadas</th>
+                            <th>Tipo de Problema</th>
+                            <th>Accion Correctiva</th>
+                            <th>pxp</th>
+                            <th>Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($item['detalles'] as $registro)
                             <tr>
-                                <th>PARO</th>
-                                <th>CLIENTE</th>
-                                <th>Nombre</th>
-                                <th>Operacion</th>
-                                <th>Piezas Auditadas</th>
-                                <th>Piezas Rechazadas</th>
-                                <th>Tipo de Problema</th>
-                                <th>Accion Correctiva</th>
-                                <th>pxp</th>
+                                <td>{{ $registro->minutos_paro ?? 'N/A' }}</td>
+                                <td>{{ $registro->cliente ?? 'N/A' }}</td>
+                                <td>{{ $registro->nombre ?? 'N/A' }}</td>
+                                <td>{{ $registro->operacion ?? 'N/A' }}</td>
+                                <td>{{ $registro->cantidad_auditada ?? 'N/A' }}</td>
+                                <td>{{ $registro->cantidad_rechazada ?? 'N/A' }}</td>
+                                <td>{{ $registro->tpAseguramientoCalidad->pluck('tp')->isEmpty() ? 'N/A' : implode(', ', $registro->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
+                                <td>{{ $registro->ac ?? 'N/A' }}</td>
+                                <td>{{ $registro->pxp ?? 'N/A' }}</td>
+                                <td>{{ $registro->created_at ? $registro->created_at->format('H:i:s') : 'N/A' }}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($item['detalles'] as $registro)
-                                <tr>
-                                    <td>{{ $registro->minutos_paro }}</td>
-                                    <td>{{ $registro->cliente }}</td>
-                                    <td>{{ $registro->nombre }}</td>
-                                    <td>{{ $registro->operacion }}</td>
-                                    <td>{{ $registro->cantidad_auditada }}</td>
-                                    <td>{{ $registro->cantidad_rechazada }}</td>
-                                    <td>{{ implode(', ', $registro->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
-                                    <td>{{ $registro->ac }}</td>
-                                    <td>{{ $registro->pxp }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -337,7 +331,7 @@
                                 @foreach ($dataModuloAQLGeneralTE as $item)
                                     <tr>
                                         <td>
-                                            <button type="button" class="btn btn-link" data-toggle="modal" data-target="#modalAQLTE{{ $item['modulo'] }}">
+                                            <button type="button" class="custom-btn" onclick="openCustomModal('customModalAQLTE{{ $item['modulo'] }}')">
                                                 {{ $item['modulo'] }}
                                             </button>
                                         </td>
@@ -396,7 +390,7 @@
                                 @foreach ($dataModuloProcesoGeneralTE as $item)
                                     <tr>
                                         <td>
-                                            <button type="button" class="btn btn-link" data-toggle="modal" data-target="#modalProcesoTE{{ $item['modulo'] }}">
+                                            <button type="button" class="custom-btn" onclick="openCustomModal('customModalProcesoTE{{ $item['modulo'] }}')">
                                                 {{ $item['modulo'] }}
                                             </button>
                                         </td>
@@ -421,104 +415,189 @@
             </div>
         </div>
     </div>  
-    <!-- Modales para AQL -->
+    <!-- Modales para AQL Tiempo extra --> 
     @foreach ($dataModuloAQLGeneralTE as $item)
-    <div class="modal fade" id="modalAQLTE{{ $item['modulo'] }}" tabindex="-1" role="dialog" aria-labelledby="modalAQLLabel{{ $item['modulo'] }}" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header">
-                    <h5 class="modal-title text-white" id="modalAQLLabel{{ $item['modulo'] }}">Detalles AQL para Módulo {{ $item['modulo'] }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table class="table table-responsive" id="tablaAQLDetalle{{ $item['modulo'] }}">
-                        <thead>
+    <div id="customModalAQLTE{{ $item['modulo'] }}" class="custom-modal">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <span class="custom-close" onclick="closeCustomModal('customModalAQLTE{{ $item['modulo'] }}')">&times;</span>
+                <h3>Detalles AQL para Módulo {{ $item['modulo'] }}</h3>
+            </div>
+            <div class="custom-modal-body table-responsive">
+                <table class="table table-responsive" id="tablaAQLDetalle{{ $item['modulo'] }}">
+                    <thead>
+                        <tr>
+                            <th>PARO</th>
+                            <th>CLIENTE</th>
+                            <th># BULTO</th>
+                            <th>PIEZAS</th>
+                            <th>TALLA</th>
+                            <th>COLOR</th>
+                            <th>ESTILO</th>
+                            <th>PIEZAS INSPECCIONADAS</th>
+                            <th>PIEZAS RECHAZADAS</th>
+                            <th>TIPO DE DEFECTO</th>
+                            <th>Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($item['detalles'] as $registro)
                             <tr>
-                                <th>PARO</th>
-                                <th>CLIENTE</th>
-                                <th># BULTO</th>
-                                <th>PIEZAS</th>
-                                <th>TALLA</th>
-                                <th>COLOR</th>
-                                <th>ESTILO</th>
-                                <th>PIEZAS INSPECCIONADAS</th>
-                                <th>PIEZAS RECHAZADAS</th>
-                                <th>TIPO DE DEFECTO</th>
-                                <th>Hora</th>
+                                <td>{{ $registro->minutos_paro ?? 'N/A' }}</td>
+                                <td>{{ $registro->cliente ?? 'N/A' }}</td>
+                                <td>{{ $registro->bulto ?? 'N/A' }}</td>
+                                <td>{{ $registro->pieza ?? 'N/A' }}</td>
+                                <td>{{ $registro->talla ?? 'N/A' }}</td>
+                                <td>{{ $registro->color ?? 'N/A' }}</td>
+                                <td>{{ $registro->estilo ?? 'N/A' }}</td>
+                                <td>{{ $registro->cantidad_auditada ?? 'N/A' }}</td>
+                                <td>{{ $registro->cantidad_rechazada ?? 'N/A' }}</td>
+                                <td>{{ $registro->tpAuditoriaAQL->pluck('tp')->isEmpty() ? 'N/A' : implode(', ', $registro->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
+                                <td>{{ $registro->created_at ? $registro->created_at->format('H:i:s') : 'N/A' }}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($item['detalles'] as $registro)
-                                <tr>
-                                    <td>{{ $registro->minutos_paro }}</td>
-                                    <td>{{ $registro->cliente }}</td>
-                                    <td>{{ $registro->bulto }}</td>
-                                    <td>{{ $registro->pieza }}</td>
-                                    <td>{{ $registro->talla }}</td>
-                                    <td>{{ $registro->color }}</td>
-                                    <td>{{ $registro->estilo }}</td>
-                                    <td>{{ $registro->cantidad_auditada }}</td>
-                                    <td>{{ $registro->cantidad_rechazada }}</td>
-                                    <td>{{ implode(', ', $registro->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
-                                    <td>{{ $registro->created_at->format('H:i:s') }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
     @endforeach
-    <!-- Modales para Proceso -->
+    <!-- Modales para Proceso Tiempo extra-->
     @foreach ($dataModuloProcesoGeneralTE as $item)
-    <div class="modal fade" id="modalProcesoTE{{ $item['modulo'] }}" tabindex="-1" role="dialog" aria-labelledby="modalProcesoLabel{{ $item['modulo'] }}" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header">
-                    <h5 class="modal-title text-white" id="modalProcesoLabel{{ $item['modulo'] }}">Detalles de Proceso para Módulo {{ $item['modulo'] }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table class="table table-responsive" id="tablaProcesoDetalle{{ $item['modulo'] }}">
-                        <thead>
+    <div id="customModalProcesoTE{{ $item['modulo'] }}" class="custom-modal">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <span class="custom-close" onclick="closeCustomModal('customModalProcesoTE{{ $item['modulo'] }}')">&times;</span>
+                <h3>Detalles de Proceso para Módulo {{ $item['modulo'] }}</h3>
+            </div>
+            <div class="custom-modal-body table-responsive">
+                <table class="table" id="tablaProcesoDetalle{{ $item['modulo'] }}">
+                    <thead>
+                        <tr>
+                            <th>PARO</th>
+                            <th>CLIENTE</th>
+                            <th>Nombre</th>
+                            <th>Operacion</th>
+                            <th>Piezas Auditadas</th>
+                            <th>Piezas Rechazadas</th>
+                            <th>Tipo de Problema</th>
+                            <th>Accion Correctiva</th>
+                            <th>pxp</th>
+                            <th>Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($item['detalles'] as $registro)
                             <tr>
-                                <th>PARO</th>
-                                <th>CLIENTE</th>
-                                <th>Nombre</th>
-                                <th>Operacion</th>
-                                <th>Piezas Auditadas</th>
-                                <th>Piezas Rechazadas</th>
-                                <th>Tipo de Problema</th>
-                                <th>Accion Correctiva</th>
-                                <th>pxp</th>
+                                <td>{{ $registro->minutos_paro ?? 'N/A' }}</td>
+                                <td>{{ $registro->cliente ?? 'N/A' }}</td>
+                                <td>{{ $registro->nombre ?? 'N/A' }}</td>
+                                <td>{{ $registro->operacion ?? 'N/A' }}</td>
+                                <td>{{ $registro->cantidad_auditada ?? 'N/A' }}</td>
+                                <td>{{ $registro->cantidad_rechazada ?? 'N/A' }}</td>
+                                <td>{{ $registro->tpAseguramientoCalidad->pluck('tp')->isEmpty() ? 'N/A' : implode(', ', $registro->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
+                                <td>{{ $registro->ac ?? 'N/A' }}</td>
+                                <td>{{ $registro->pxp ?? 'N/A' }}</td>
+                                <td>{{ $registro->created_at ? $registro->created_at->format('H:i:s') : 'N/A' }}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($item['detalles'] as $registro)
-                                <tr>
-                                    <td>{{ $registro->minutos_paro }}</td>
-                                    <td>{{ $registro->cliente }}</td>
-                                    <td>{{ $registro->nombre }}</td>
-                                    <td>{{ $registro->operacion }}</td>
-                                    <td>{{ $registro->cantidad_auditada }}</td>
-                                    <td>{{ $registro->cantidad_rechazada }}</td>
-                                    <td>{{ implode(', ', $registro->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
-                                    <td>{{ $registro->ac }}</td>
-                                    <td>{{ $registro->pxp }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
     @endforeach
+
+    <style>
+        .custom-body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        .custom-card {
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .custom-card-header {
+            background-color: #2e7d32;
+            color: white;
+            padding: 15px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        .custom-card-body {
+            padding: 15px;
+        }
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .custom-table th, .custom-table td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #333;
+        }
+        .custom-table th {
+            background-color: #2e2e2e;
+        }
+        .custom-btn {
+            background-color: transparent;
+            border: none;
+            color: #4caf50;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .custom-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            overflow-y: auto;
+        }
+        .custom-modal-content {
+            background-color: #1e1e1e;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+            min-height: 100%;
+            box-sizing: border-box;
+        }
+        .custom-close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: fixed;
+            right: 25px;
+            top: 15px;
+        }
+        .custom-close:hover,
+        .custom-close:focus {
+            color: #fff;
+        }
+        .custom-modal-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: #2e2e2e;
+            padding: 15px;
+            z-index: 1001;
+        }
+        .custom-modal-body {
+            margin-top: 70px; /* Ajusta este valor según la altura de tu encabezado */
+            padding: 15px;
+        }
+    </style>
 @endsection
 
 
@@ -602,35 +681,104 @@
                     });
                 }
             });
-            // Nuevo script para aplicar DataTables a las tablas dentro de los modales
-            $('[id^="modalAQL"]').on('shown.bs.modal', function () {
-                const modalId = $(this).attr('id');
-                const tableId = `#tablaAQLDetalle${modalId.replace('modalAQL', '')}`;
-
-                if (!$.fn.dataTable.isDataTable(tableId)) {
-                    $(tableId).DataTable({
-                        lengthChange: false,
-                        searching: true,
-                        paging: true,
-                        autoWidth: false,
-                        responsive: true,
-                        dom: 'Bfrtip',
-                        buttons: [
-                            {
-                                extend: 'excelHtml5',
-                                text: 'Exportar a Excel',
-                                className: 'btn btn-success'
-                            }
-                        ],
-                        language: {
-                            // Traducciones omitidas por brevedad
-                        }
-                    });
-                }
-            });
         });
     </script>
 
+<script>
+    $(document).ready(function() {
+        // Función para inicializar DataTable en tablas AQL
+        function initializeAQLDataTable(tableId) {
+            if (!$.fn.DataTable.isDataTable(tableId)) {
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 10,
+                    autoWidth: false,
+                    responsive: true,
+                    dom: 'Bfrtip',
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            text: 'Exportar a Excel',
+                            className: 'btn btn-success'
+                        }
+                    ],
+                    language: {
+                        "sProcessing":     "Procesando...",
+                        "sLengthMenu":     "Mostrar _MENU_ registros",
+                        "sZeroRecords":    "No se encontraron resultados",
+                        "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                        "sInfo":           "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                        "sInfoEmpty":      "Mostrando 0 a 0 de 0 registros",
+                        "sInfoFiltered":   "(filtrado de _MAX_ registros totales)",
+                        "sInfoPostFix":    "",
+                        "sSearch":         "Buscar:",
+                        "sUrl":            "",
+                        "sInfoThousands":  ",",
+                        "sLoadingRecords": "Cargando...",
+                        "oPaginate": {
+                            "sFirst":    "Primero",
+                            "sLast":     "Último",
+                            "sNext":     "Siguiente",
+                            "sPrevious": "Anterior"
+                        },
+                        "oAria": {
+                            "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                            "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                        }
+                    }
+                });
+            }
+        }
+
+        // Inicializar DataTables para todas las tablas AQL
+        $('table[id^="tablaAQLDetalle"]').each(function() {
+            initializeAQLDataTable('#' + $(this).attr('id'));
+        });
+
+        // Función para inicializar nuevas tablas AQL (por si se añaden dinámicamente)
+        function initializeNewAQLTables() {
+            $('table[id^="tablaAQLDetalle"]').each(function() {
+                if (!$.fn.DataTable.isDataTable('#' + $(this).attr('id'))) {
+                    initializeAQLDataTable('#' + $(this).attr('id'));
+                }
+            });
+        }
+
+        // Si estás usando algún evento para abrir modales, puedes llamar a initializeNewAQLTables() después de abrir el modal
+        // Por ejemplo:
+        // $(document).on('shown.bs.modal', '.modal', initializeNewAQLTables);
+    });
+    </script>
+
     <script>
+        let activeModalId = null;
+
+        function openCustomModal(modalId) {
+            document.getElementById(modalId).style.display = "block";
+            document.body.style.overflow = "hidden"; // Previene el scroll en el body
+            activeModalId = modalId; // Guarda el ID del modal activo
+        }
+
+        function closeCustomModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+            document.body.style.overflow = "auto"; // Restaura el scroll en el body
+            activeModalId = null; // Limpia el ID del modal activo
+        }
+
+        // Cerrar el modal si se hace clic fuera del contenido
+        window.onclick = function(event) {
+            if (event.target.classList.contains('custom-modal')) {
+                closeCustomModal(event.target.id);
+            }
+        }
+
+        // Nuevo: Evento para cerrar el modal con la tecla ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape" && activeModalId) {
+                closeCustomModal(activeModalId);
+            }
+        });
     </script>
 @endpush

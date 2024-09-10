@@ -130,190 +130,206 @@
                 </div>
                 <hr>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('aseguramientoCalidad.formRegistroAuditoriaProceso') }}">
-                        @csrf
-                        <input type="hidden" class="form-control" name="area" id="area"
-                            value="{{ $data['area'] }}">
-                        <div class="table-responsive">
-                            <table class="table table-200">
-                                <thead class="thead-primary">
-                                    <tr>
-                                        <th>MODULO</th>
-                                        <th>ESTILO</th>
-                                        <th>SUPERVISOR</th>
-                                        <th>AUDITOR</th>
-                                        <th>TURNO</th>
-                                        <th>CLIENTE</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><input type="text" class="form-control texto-blanco" name="modulo" id="modulo"
-                                                value="{{ $data['modulo'] }}" readonly></td>
-                                        @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
-                                        <td>
-                                            <select class="form-control texto-blanco" name="estilo" id="estilo" required onchange="actualizarEstilo(this.value)">
-                                                <option value="">Selecciona una opción</option>
-                                                @foreach($estilosEmpaque as $estilo)
-                                                    <option value="{{ $estilo }}" {{ $estilo == $data['estilo'] ? 'selected' : '' }}>{{ $estilo }}</option>
-                                                @endforeach
-                                            </select>
-                                        </td>
-                                        @else
-                                        <td>
-                                            <select class="form-control texto-blanco" name="estilo" id="estilo" required onchange="actualizarEstilo(this.value)">
-                                                <option value="">Selecciona una opción</option>
-                                                @foreach($estilos as $estilo)
-                                                    <option value="{{ $estilo }}" {{ $estilo == $data['estilo'] ? 'selected' : '' }}>{{ $estilo }}</option>
-                                                @endforeach
-                                            </select>
-                                        </td>
-                                        @endif
-                                        <td><input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader"
-                                                value="{{ $data['team_leader'] }}" readonly></td>
-                                        <td><input type="text" class="form-control texto-blanco" name="auditor" id="auditor"
-                                                value="{{ $data['auditor'] }}" readonly></td>
-                                        <td><input type="text" class="form-control texto-blanco" name="turno" id="turno"
-                                                value="{{ $data['turno'] }}" readonly></td>
-                                        <td><input type="text" class="form-control texto-blanco" name="cliente" id="cliente"
-                                            value="{{ $data['cliente'] }}" readonly></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    @if((($conteoParos == 3) && ($finParoModular1 == true)) || (($conteoParos == 6) && ($finParoModular2 == true))) 
+                        <div class="row">
+                            <form method="POST" action="{{ route('aseguramientoCalidad.cambiarEstadoInicioParo') }}">
+                                @csrf
+                                <input type="hidden" name="finalizar_paro_modular" value="1">
+                                <input type="hidden" class="form-control" name="modulo" id="modulo" value="{{ $data['modulo'] }}">
+                                <input type="hidden" class="form-control" name="estilo" id="estilo1" value="{{ $data['estilo'] }}"> 
+                                <input type="hidden" class="form-control" name="area" id="area" value="{{ $data['area'] }}">
+                                <input type="hidden" class="form-control" name="team_leader" id="team_leader" value="{{ $data['team_leader'] }}">
+        
+        
+                                <button type="submit" class="btn btn-primary">Fin Paro Modular Proceso</button> 
+                            </form>
                         </div>
-                        <hr>
-                        @if ($estatusFinalizar)
-                        @else
+                    @else
+                        <form id="miFormulario" method="POST" action="{{ route('aseguramientoCalidad.formRegistroAuditoriaProceso') }}">
+                            @csrf
+                            <input type="hidden" class="form-control" name="area" id="area"
+                                value="{{ $data['area'] }}">
                             <div class="table-responsive">
-                                <table class="table flex-container table932">
+                                <table class="table table-200">
                                     <thead class="thead-primary">
                                         <tr>
-                                            <th>NOMBRE</th>
-                                            @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
-
-                                            @else
-                                                <th>OPERACION</th>
-                                            @endif
-                                            <th>PIEZAS AUDITADAS</th>
-                                            <th>PIEZAS RECHAZADAS</th>
-                                            <th id="tp-column-header" class="d-none">TIPO DE PROBLEMA</th>
-                                            <th id="ac-column-header" class="d-none">ACCION CORRECTIVA</th>
-                                            @if ($data['area'] == 'AUDITORIA EN EMPAQUE')
-                                            @else
-                                                <th>P x P</th>
-                                            @endif
+                                            <th>MODULO</th>
+                                            <th>ESTILO</th>
+                                            <th>SUPERVISOR</th>
+                                            <th>AUDITOR</th>
+                                            <th>TURNO</th>
+                                            <th>CLIENTE</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <input type="hidden" name="nombre_hidden" id="nombre_hidden" value="">
-                                            <td>
-                                                <button class="btn btn-secondary btn-block" type="button" onclick="resetForm()">Restablecer</button>
-                                                <select name="nombre" id="nombre" class="form-control" required title="Por favor, selecciona una opción" onchange="showOtherOptions()">
-                                                    <option value="">Selecciona una opción</option>
-                                                    <option value="OTRO">OTRO</option>
-                                                    <option value="UTILITY">UTILITY</option> 
-                                                    @foreach ($nombresPlanta as $nombre)
-                                                        <option value="{{ $nombre->name }}">{{ $nombre->name }}</option>
-                                                    @endforeach
-                                                </select> 
-                                                <div id="otroOptions" style="display: none;">
-                                                    <select name="modulo_adicional" id="module" class="form-control" onchange="loadNames()">
-                                                        <option value="">Selecciona un módulo</option>
-                                                    </select>
-                                                    <select name="nombre_otro" id="name" class="form-control">
-                                                        <option value="">Selecciona un nombre</option>
-                                                    </select>
-                                                </div>
-                                                <div id="utilityOptions" style="display: none;">
-                                                    <select name="nombre_utility" id="utility" class="form-control">
-                                                        <option value="">Selecciona un Utility</option>
-                                                    </select>
-                                                </div>
-                                            </td>
+                                            <td><input type="text" class="form-control texto-blanco" name="modulo" id="modulo"
+                                                    value="{{ $data['modulo'] }}" readonly></td>
                                             @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
-
+                                            <td>
+                                                <select class="form-control texto-blanco" name="estilo" id="estilo" required onchange="actualizarEstilo(this.value)">
+                                                    <option value="">Selecciona una opción</option>
+                                                    @foreach($estilosEmpaque as $estilo)
+                                                        <option value="{{ $estilo }}" {{ $estilo == $data['estilo'] ? 'selected' : '' }}>{{ $estilo }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
                                             @else
                                             <td>
-                                                <select name="operacion" id="operacion" class="form-control" required title="Por favor, selecciona una opción" onchange="cambiarAInput(this)">
+                                                <select class="form-control texto-blanco" name="estilo" id="estilo" required onchange="actualizarEstilo(this.value)">
                                                     <option value="">Selecciona una opción</option>
-                                                    <option value="otra"> [OTRA OPERACION]</option>
-                                                    @foreach ($operacionNombre as $nombre)
-                                                        <option value="{{ $nombre->oprname }}">{{ $nombre->oprname }}</option>
+                                                    @foreach($estilos as $estilo)
+                                                        <option value="{{ $estilo }}" {{ $estilo == $data['estilo'] ? 'selected' : '' }}>{{ $estilo }}</option>
                                                     @endforeach
                                                 </select>
                                             </td>
                                             @endif
-                                            <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
-                                            <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
-                                            <td class="tp-column d-none w-100">
-                                                <select id="tpSelect" class="form-control w-100" multiple title="Por favor, selecciona una opción"> 
-                                                    <option value="OTRO">OTRO</option>
-                                                    @if ($data['area'] == 'AUDITORIA EN PROCESO')
-                                                        @foreach ($categoriaTPProceso as $proceso)
-                                                            <option value="{{ $proceso->nombre }}">{{ $proceso->nombre }}</option>
-                                                        @endforeach
-                                                    @elseif($data['area'] == 'AUDITORIA EN PROCESO PLAYERA')
-                                                        @foreach ($categoriaTPPlayera as $playera)
-                                                            <option value="{{ $playera->nombre }}">{{ $playera->nombre }}</option>
-                                                        @endforeach
-                                                    @elseif($data['area'] == 'AUDITORIA EN EMPAQUE')
-                                                        @foreach ($categoriaTPEmpaque as $empque)
-                                                            <option value="{{ $empque->nombre }}">{{ $empque->nombre }}</option>
-                                                        @endforeach
-                                                    @endif
-                                                </select>
-                                                <div id="selectedOptionsContainer" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
-                                            </td>
-                                            <td class="ac-column d-none">
-                                                <select name="ac" id="ac" class="form-control" title="Por favor, selecciona una opción">
-                                                    <option value="">Selecciona una opción</option>
-                                                    @if ($data['area'] == 'AUDITORIA EN PROCESO')
-                                                        @foreach ($categoriaACProceso as $proceso)
-                                                            <option value="{{ $proceso->accion_correctiva }}">{{ $proceso->accion_correctiva }}</option>
-                                                        @endforeach
-                                                    @elseif($data['area'] == 'AUDITORIA EN PROCESO PLAYERA')
-                                                        @foreach ($categoriaACPlayera as $playera)
-                                                            <option value="{{ $playera->accion_correctiva }}">{{ $playera->accion_correctiva }}</option>
-                                                        @endforeach
-                                                    @elseif($data['area'] == 'AUDITORIA EN EMPAQUE')
-                                                        @foreach ($categoriaACEmpaque as $empque)
-                                                            <option value="{{ $empque->accion_correctiva }}">{{ $empque->accion_correctiva }}</option>
-                                                        @endforeach
-                                                    @endif
-                                                </select>
-                                            </td>
-                                            @if ($data['area'] == 'AUDITORIA EN EMPAQUE')
-                                            @else
-                                                <td><input type="text" class="form-control" name="pxp" id="pxp"></td>
-                                            @endif
+                                            <td><input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader"
+                                                    value="{{ $data['team_leader'] }}" readonly></td>
+                                            <td><input type="text" class="form-control texto-blanco" name="auditor" id="auditor"
+                                                    value="{{ $data['auditor'] }}" readonly></td>
+                                            <td><input type="text" class="form-control texto-blanco" name="turno" id="turno"
+                                                    value="{{ $data['turno'] }}" readonly></td>
+                                            <td><input type="text" class="form-control texto-blanco" name="cliente" id="cliente"
+                                                value="{{ $data['cliente'] }}" readonly></td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
-                            <button type="submit" class="btn-verde-xd">GUARDAR</button>
-                        @endif
-                    </form>
-                    <!-- Modal -->
-                    <div class="modal fade" id="nuevoConceptoModal" tabindex="-1" role="dialog" aria-labelledby="nuevoConceptoModalLabel" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content bg-dark text-white">
-                                <div class="modal-header">
-                                    <h5 id="nuevoConceptoModalLabel">Introduce el nuevo concepto</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true" class="text-white">&times;</span>
-                                    </button>
+                            <hr>
+                            @if ($estatusFinalizar)
+                            @else
+                                <div class="table-responsive">
+                                    <table class="table flex-container table932">
+                                        <thead class="thead-primary">
+                                            <tr>
+                                                <th>NOMBRE</th>
+                                                @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+
+                                                @else
+                                                    <th>OPERACION</th>
+                                                @endif
+                                                <th>PIEZAS AUDITADAS</th>
+                                                <th>PIEZAS RECHAZADAS</th>
+                                                <th id="tp-column-header" class="d-none">TIPO DE PROBLEMA</th>
+                                                <th id="ac-column-header" class="d-none">ACCION CORRECTIVA</th>
+                                                @if ($data['area'] == 'AUDITORIA EN EMPAQUE')
+                                                @else
+                                                    <th>P x P</th>
+                                                @endif
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <input type="hidden" name="nombre_hidden" id="nombre_hidden" value="">
+                                                <td>
+                                                    <button class="btn btn-secondary btn-block" type="button" onclick="resetForm()">Restablecer</button>
+                                                    <select name="nombre" id="nombre" class="form-control" required title="Por favor, selecciona una opción" onchange="showOtherOptions()">
+                                                        <option value="">Selecciona una opción</option>
+                                                        <option value="OTRO">OTRO</option>
+                                                        <option value="UTILITY">UTILITY</option> 
+                                                        @foreach ($nombresPlanta as $nombre)
+                                                            <option value="{{ $nombre->name }}">{{ $nombre->name }}</option>
+                                                        @endforeach
+                                                    </select> 
+                                                    <div id="otroOptions" style="display: none;">
+                                                        <select name="modulo_adicional" id="module" class="form-control" onchange="loadNames()">
+                                                            <option value="">Selecciona un módulo</option>
+                                                        </select>
+                                                        <select name="nombre_otro" id="name" class="form-control">
+                                                            <option value="">Selecciona un nombre</option>
+                                                        </select>
+                                                    </div>
+                                                    <div id="utilityOptions" style="display: none;">
+                                                        <select name="nombre_utility" id="utility" class="form-control">
+                                                            <option value="">Selecciona un Utility</option>
+                                                        </select>
+                                                    </div>
+                                                </td>
+                                                @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
+
+                                                @else
+                                                <td>
+                                                    <select name="operacion" id="operacion" class="form-control" required title="Por favor, selecciona una opción" onchange="cambiarAInput(this)">
+                                                        <option value="">Selecciona una opción</option>
+                                                        <option value="otra"> [OTRA OPERACION]</option>
+                                                        @foreach ($operacionNombre as $nombre)
+                                                            <option value="{{ $nombre->oprname }}">{{ $nombre->oprname }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </td>
+                                                @endif
+                                                <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
+                                                <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
+                                                <td class="tp-column d-none w-100">
+                                                    <select id="tpSelect" class="form-control w-100" multiple title="Por favor, selecciona una opción"> 
+                                                        <option value="OTRO">OTRO</option>
+                                                        @if ($data['area'] == 'AUDITORIA EN PROCESO')
+                                                            @foreach ($categoriaTPProceso as $proceso)
+                                                                <option value="{{ $proceso->nombre }}">{{ $proceso->nombre }}</option>
+                                                            @endforeach
+                                                        @elseif($data['area'] == 'AUDITORIA EN PROCESO PLAYERA')
+                                                            @foreach ($categoriaTPPlayera as $playera)
+                                                                <option value="{{ $playera->nombre }}">{{ $playera->nombre }}</option>
+                                                            @endforeach
+                                                        @elseif($data['area'] == 'AUDITORIA EN EMPAQUE')
+                                                            @foreach ($categoriaTPEmpaque as $empque)
+                                                                <option value="{{ $empque->nombre }}">{{ $empque->nombre }}</option>
+                                                            @endforeach
+                                                        @endif
+                                                    </select>
+                                                    <div id="selectedOptionsContainer" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div> 
+                                                </td>
+                                                <td class="ac-column d-none">
+                                                    <select name="ac" id="ac" class="form-control" title="Por favor, selecciona una opción">
+                                                        <option value="">Selecciona una opción</option>
+                                                        @if ($data['area'] == 'AUDITORIA EN PROCESO')
+                                                            @foreach ($categoriaACProceso as $proceso)
+                                                                <option value="{{ $proceso->accion_correctiva }}">{{ $proceso->accion_correctiva }}</option>
+                                                            @endforeach
+                                                        @elseif($data['area'] == 'AUDITORIA EN PROCESO PLAYERA')
+                                                            @foreach ($categoriaACPlayera as $playera)
+                                                                <option value="{{ $playera->accion_correctiva }}">{{ $playera->accion_correctiva }}</option>
+                                                            @endforeach
+                                                        @elseif($data['area'] == 'AUDITORIA EN EMPAQUE')
+                                                            @foreach ($categoriaACEmpaque as $empque)
+                                                                <option value="{{ $empque->accion_correctiva }}">{{ $empque->accion_correctiva }}</option>
+                                                            @endforeach
+                                                        @endif
+                                                    </select>
+                                                </td>
+                                                @if ($data['area'] == 'AUDITORIA EN EMPAQUE')
+                                                @else
+                                                    <td><input type="text" class="form-control" name="pxp" id="pxp"></td>
+                                                @endif
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
-                                <div class="modal-body">
-                                    <input type="text" class="form-control bg-dark text-white" id="nuevoConceptoInput" placeholder="Nuevo concepto">
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                                    <button type="button" class="btn btn-primary" id="guardarNuevoConcepto">Guardar</button>
+                                <button type="submit" class="btn-verde-xd">GUARDAR</button> 
+                            @endif
+                        </form>
+                        <!-- Modal -->
+                        <div class="modal fade" id="nuevoConceptoModal" tabindex="-1" role="dialog" aria-labelledby="nuevoConceptoModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content bg-dark text-white">
+                                    <div class="modal-header">
+                                        <h5 id="nuevoConceptoModalLabel">Introduce el nuevo concepto</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true" class="text-white">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <input type="text" class="form-control bg-dark text-white" id="nuevoConceptoInput" placeholder="Nuevo concepto">
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                        <button type="button" class="btn btn-primary" id="guardarNuevoConcepto">Guardar</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    @endif
                     <hr>
                     <!--Desde aqui inicia la edicion del codigo para mostrar el contenido-->
                     @if ($mostrarRegistro)
@@ -800,7 +816,7 @@
         }
         
     </script>
-    <script>
+    <script> 
         function resetForm() {
             var select = document.getElementById("nombre");
             var otroOptions = document.getElementById("otroOptions");
@@ -826,7 +842,7 @@
 
     </script>
     <!-- Nuevo script para manejar la visibilidad de las columnas y select2 -->
-    <script> 
+    <script>  
         $(document).ready(function() {
             // Inicializar el select2
             $('#tpSelect').select2({
@@ -839,7 +855,6 @@
             // Manejador de cambio del select
             $('#tpSelect').on('change', function() {
                 let selectedOptions = $(this).val();
-                // Agregar una opción seleccionada a la lista de seleccionados
                 if (selectedOptions.length > 0) {
                     let lastSelectedOption = selectedOptions[selectedOptions.length - 1];
                     if (lastSelectedOption === 'OTRO') {
@@ -899,19 +914,37 @@
             // Función para agregar una opción seleccionada a la lista de seleccionados
             function addSelectedOption(optionText) {
                 let container = $('#selectedOptionsContainer');
+
+                // Crear el div para la nueva opción
                 let newOption = $('<div class="selected-option">').text(optionText);
+
+                // Crear el input oculto
                 let hiddenInput = $('<input type="hidden" name="tp[]" />').val(optionText);
                 newOption.append(hiddenInput);
+
+                // Crear botón para eliminar
                 let removeButton = $('<button type="button" class="btn btn-danger btn-sm ml-2">').text('Eliminar');
                 removeButton.on('click', function() {
                     newOption.remove();
                     checkContainerValidity();
                 });
                 newOption.append(removeButton);
+
+                // Crear botón para duplicar
+                let duplicateButton = $('<button type="button" class="btn btn-info btn-sm ml-2">').text('+');
+                duplicateButton.on('click', function() {
+                    // Llamar a la misma función para duplicar la opción
+                    addSelectedOption(optionText);
+                });
+                newOption.prepend(duplicateButton);  // Prepend para que el botón "+" aparezca al inicio
+
+                // Añadir la nueva opción al contenedor
                 container.append(newOption);
+
                 checkContainerValidity();
             }
     
+            // Verifica si el contenedor tiene opciones seleccionadas y ajusta la validez
             function checkContainerValidity() {
                 let container = $('#selectedOptionsContainer');
                 if (container.children('.selected-option').length === 0) {
@@ -923,18 +956,29 @@
     
             function updateColumnsVisibility() {
                 const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
+                
                 if (isNaN(cantidadRechazada) || cantidadRechazada === 0) {
+                    // Ocultar las columnas y quitar el "required"
                     $('#tp-column-header, #ac-column-header').addClass('d-none');
                     $('.tp-column, .ac-column').addClass('d-none');
                     $('#selectedOptionsContainer, #ac').prop('required', false);
+    
+                    // Quitar cualquier validación pendiente del contenedor
+                    $('#selectedOptionsContainer').removeClass('is-invalid');
+                    $('#selectedOptionsContainer').prop('required', false); // Asegurarse de que no sea obligatorio
+    
                 } else {
+                    // Mostrar las columnas y volver a poner el "required"
                     $('#tp-column-header, #ac-column-header').removeClass('d-none');
                     $('.tp-column, .ac-column').removeClass('d-none');
                     $('#selectedOptionsContainer, #ac').prop('required', true);
+    
+                    // Validar si hay opciones seleccionadas
+                    checkContainerValidity();
                 }
             }
     
-            // Inicializar la visibilidad de las columnas al cargar la página
+            // Llamar a la función en cuanto se cargue la página para inicializar
             updateColumnsVisibility();
     
             // Actualizar la visibilidad de las columnas al cambiar el valor de cantidad_rechazada
@@ -942,6 +986,25 @@
                 updateColumnsVisibility();
             });
     
+            // Modificar el comportamiento del submit
+            $('#miFormulario').on('submit', function(event) {
+                const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
+                const selectedOptionsCount = $('#selectedOptionsContainer').children('.selected-option').length;
+                
+                if (cantidadRechazada > 0) {
+                    if (selectedOptionsCount === 0) {
+                        alert('Por favor, selecciona al menos un defecto antes de enviar el formulario.');
+                        event.preventDefault(); // Detener el envío del formulario
+                        $('#tpSelect').select2('open'); // Abrir el select2 para que el usuario vea dónde seleccionar
+                    } else if (selectedOptionsCount !== cantidadRechazada) {
+                        alert(`El número de defectos seleccionados debe ser exactamente ${cantidadRechazada}.`);
+                        event.preventDefault(); // Detener el envío del formulario
+                    }
+                } else {
+                    // No validar el contenedor cuando la cantidad rechazada es 0
+                    $('#selectedOptionsContainer').prop('required', false);
+                }
+            });
         });
     </script>
     

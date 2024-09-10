@@ -416,7 +416,7 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->get()
                 ->pluck('tpAuditoriaAQL.*.tp')
                 ->flatten()
-                ->unique()
+                //->unique()
                 ->implode(', ');
             $defectosUnicos = $defectosUnicos ?: 'N/A';
             //dd($defectosUnicos);
@@ -583,7 +583,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->get()
                 ->pluck('TpAseguramientoCalidad.*.tp')
                 ->flatten()
-                ->unique()
+                //->unique()
+                //->sort()  // Ordenar alfabéticamente
                 ->implode(', ');
             $defectosUnicos = $defectosUnicos ?: 'N/A';
             $accionesCorrectivasUnicos = AseguramientoCalidad::where('modulo', $modulo)

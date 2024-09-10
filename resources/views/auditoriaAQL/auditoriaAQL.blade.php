@@ -132,7 +132,7 @@
                 </div>
                 <hr>
                 <div class="card-body">
-                    @if((($conteoParos == 2) && ($finParoModular1 == true)) || (($conteoParos == 4) && ($finParoModular2 == true))) 
+                    @if((($conteoParos == 2) && ($finParoModular1 == true)) || (($conteoParos == 4) && ($finParoModular2 == true)))  
                         <div class="row">
                             <form method="POST" action="{{ route('auditoriaAQL.cambiarEstadoInicioParoAQL') }}">
                                 @csrf
@@ -147,7 +147,7 @@
                             </form>
                         </div>
                     @else
-                        <form method="POST" action="{{ route('auditoriaAQL.formRegistroAuditoriaProcesoAQL') }}">
+                        <form id="miFormularioAQL" method="POST" action="{{ route('auditoriaAQL.formRegistroAuditoriaProcesoAQL') }}">
                             @csrf
                             <input type="hidden" class="form-control" name="area" id="area"
                                 value="{{ $data['area'] }}">
@@ -224,21 +224,15 @@
                                                 <td class="tp-column"> 
                                                     <select id="tpSelectAQL" class="form-control w-100" multiple title="Por favor, selecciona una opción">
                                                         <option value="OTRO">OTRO</option>
-                                                        @if ($data['area'] == 'AUDITORIA AQL')
-                                                            @foreach ($categoriaTPProceso as $proceso)
-                                                                <option value="{{ $proceso->nombre }}">{{ $proceso->nombre }}</option>
-                                                            @endforeach
-                                                        @elseif($data['area'] == 'AUDITORIA AQL PLAYERA')
-                                                            @foreach ($categoriaTPPlayera as $playera)
-                                                                <option value="{{ $playera->nombre }}">{{ $playera->nombre }}</option>
-                                                            @endforeach
-                                                        @endif
+                                                        @foreach ($categoriaTPProceso as $proceso)
+                                                            <option value="{{ $proceso->nombre }}">{{ $proceso->nombre }}</option>
+                                                        @endforeach
                                                     </select>
-                                                    <div id="selectedOptionsContainerAQL" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>  
+                                                    <div id="selectedOptionsContainerAQL" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
                                                 </td>
-                                                <td class="ac-column"><input type="text" class="form-control" name="ac" id="ac"></td>
+                                                <td class="ac-column"><input type="text" class="form-control" name="ac" id="ac" required></td>
                                                 <td class="nombre-column">
-                                                    <select name="nombre" id="nombre-varios" class="form-control"> 
+                                                    <select name="nombre" id="nombre-varios" class="form-control" required> 
                                                         <option value="">Selecciona una opción</option> 
                                                         <!-- Mostrar los datos normales de $nombreProceso -->
                                                         @foreach($nombreProceso as $opcion)
@@ -431,7 +425,7 @@
                                                     value="{{$registro->cantidad_auditada}}" readonly>
                                                 </td>
                                                 <td>
-                                                    <input type="text" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada"
+                                                    <input type="text" class="form-control texto-blanco" name="cantidad_rechazada"
                                                     value="{{$registro->cantidad_rechazada}}" readonly>
                                                 </td>
 
@@ -788,53 +782,53 @@
     </script>
     <script>
         $(document).ready(function() {
+            let isUpdating = false;
+            let optionCount = 0;
+    
             $('#tpSelectAQL').select2({
                 placeholder: 'Seleccione una o varias opciones',
                 allowClear: true,
                 width: 'resolve'
             });
-
+    
             $('#tpSelectAQL').on('change', function() {
-                let selectedOptions = $(this).val();
+                if (isUpdating) return;
+                isUpdating = true;
+    
+                let selectedOptions = $(this).val() || [];
                 if (selectedOptions.includes('OTRO')) {
                     $('#nuevoConceptoModalAQL').modal('show');
                 } else {
-                    // Agregar opciones seleccionadas al contenedor
                     selectedOptions.forEach(option => {
                         if (option !== 'OTRO') {
                             addSelectedOptionAQL(option);
                         }
                     });
-                    // Cerrar el select manualmente
-                    $(this).select2('close'); 
-                    $(this).val(null).trigger('change'); // Reiniciar el select
                 }
+    
+                $(this).val(null).trigger('change');
+                isUpdating = false;
             });
-
+    
             $('#guardarNuevoConceptoAQL').on('click', function() {
-                let nuevoConcepto = $('#nuevoConceptoInputAQL').val();
+                let nuevoConcepto = $('#nuevoConceptoInputAQL').val().trim().toUpperCase();
                 if (nuevoConcepto) {
-                    let area = '';
-                    @if ($data['area'] == 'AUDITORIA AQL')
-                        area = 'proceso';
-                    @elseif($data['area'] == 'AUDITORIA AQL PLAYERA')
-                        area = 'playera';
-                    @endif
-
-                    fetch('{{ route('categoria_tipo_problema_aql.store') }}', {
+                    let area = '{{ $data["area"] == "AUDITORIA AQL" ? "proceso" : "playera" }}';
+    
+                    fetch('{{ route("categoria_tipo_problema_aql.store") }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
                         body: JSON.stringify({
-                            nombre: nuevoConcepto.toUpperCase(),
+                            nombre: nuevoConcepto,
                             area: area
                         })
                     }).then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            addSelectedOptionAQL(nuevoConcepto.toUpperCase());
+                            addSelectedOptionAQL(nuevoConcepto);
                             $('#nuevoConceptoModalAQL').modal('hide');
                         } else {
                             alert('Error al guardar el nuevo concepto');
@@ -847,77 +841,114 @@
                     alert('Por favor, introduce un concepto válido');
                 }
             });
-
+    
             $('#nuevoConceptoModalAQL').on('hidden.bs.modal', function () {
                 $('#nuevoConceptoInputAQL').val('');
-                let selectedOptions = $('#tpSelectAQL').val();
-                let index = selectedOptions.indexOf('OTRO');
-                if (index > -1) {
-                    selectedOptions.splice(index, 1);
-                    $('#tpSelectAQL').val(selectedOptions).trigger('change');
-                }
             });
-
+    
             function addSelectedOptionAQL(optionText) {
                 let container = $('#selectedOptionsContainerAQL');
+                optionCount++;
+                let newOptionId = `selected-option-${optionCount}`;
+                // Crear el div para la nueva opción
                 let newOption = $('<div class="selected-option">').text(optionText);
+                newOption.attr('id', newOptionId);
+                // Crear el input oculto
                 let hiddenInput = $('<input type="hidden" name="tp[]" />').val(optionText);
                 newOption.append(hiddenInput);
+                // Crear botón para eliminar
                 let removeButton = $('<button type="button" class="btn btn-danger btn-sm ml-2">').text('Eliminar');
                 removeButton.on('click', function() {
                     newOption.remove();
                     checkContainerValidityAQL();
                 });
                 newOption.append(removeButton);
+                // Crear botón para duplicar
+                let duplicateButton = $('<button type="button" class="btn btn-info btn-sm ml-2">').text('+');
+                duplicateButton.on('click', function() {
+                    // Llamar a la misma función para duplicar la opción
+                    addSelectedOptionAQL(optionText);
+                });
+                newOption.prepend(duplicateButton);  // Prepend para que el botón "+" aparezca al inicio
+
+                // Añadir la nueva opción al contenedor
                 container.append(newOption);
+
                 checkContainerValidityAQL();
             }
-
+    
             function checkContainerValidityAQL() {
                 let container = $('#selectedOptionsContainerAQL');
-                if (container.children('.selected-option').length === 0) {
-                    container.addClass('is-invalid');
-                } else {
-                    container.removeClass('is-invalid');
-                }
+                let isValid = container.children('.selected-option').length > 0;
+                container.toggleClass('is-invalid', !isValid);
             }
-
+    
             function updateColumnsVisibilityAQL() {
-                const cantidadRechazada = parseInt($('#cantidad_rechazada').val());
-                if (isNaN(cantidadRechazada) || cantidadRechazada === 0) {
-                    $('#ac-column-header, #nombre-column-header, #tp-column-header').hide();
-                    $('.ac-column, .nombre-column, .tp-column').hide();
-                    $('#ac, #nombre, #selectedOptionsContainerAQL').prop('required', false);
+                const cantidadRechazada = parseInt($('#cantidad_rechazada').val()) || 0;
+
+                // Mostrar/ocultar columnas según el valor de cantidad_rechazada
+                const shouldShow = cantidadRechazada > 0;
+                $('#ac-column-header, #nombre-column-header, #tp-column-header').toggle(shouldShow);
+                $('.ac-column, .nombre-column, .tp-column').toggle(shouldShow);
+
+                // Manejar los campos requeridos
+                if (cantidadRechazada === 0) {
+                    $('#selectedOptionsContainerAQL').removeClass('is-invalid').removeAttr('required');
+                    $('#selectedOptionsContainerAQL').empty();
+                    // Deshabilitar y limpiar los campos ocultos
+                    $('#ac, #nombre-varios, #tpSelectAQL').prop('disabled', true).val('');
                 } else {
-                    $('#ac-column-header, #nombre-column-header, #tp-column-header').show();
-                    $('.ac-column, .nombre-column, .tp-column').show();
-                    $('#ac, #nombre, #selectedOptionsContainerAQL').prop('required', true);
+                    $('#selectedOptionsContainerAQL').attr('required', 'required');
+                    // Habilitar los campos
+                    $('#ac, #nombre-varios, #tpSelectAQL').prop('disabled', false);
                 }
+                checkContainerValidityAQL();
             }
-
+    
             updateColumnsVisibilityAQL();
-
-            $('#cantidad_rechazada').on('input', function() {
-                updateColumnsVisibilityAQL();
-            });
-
+            $('#cantidad_rechazada').on('input', updateColumnsVisibilityAQL);
+    
             $('#bulto').change(function() {
                 var selectedOption = $(this).find(':selected');
                 $('#pieza').val(selectedOption.data('pieza'));
                 $('#estilo').val(selectedOption.data('estilo'));
                 $('#color').val(selectedOption.data('color'));
                 $('#talla').val(selectedOption.data('talla'));
+            }).trigger('change');
+    
+            // Modificar la validación al enviar el formulario
+            $('#miFormularioAQL').on('submit', function(e) {
+                const cantidadRechazada = parseInt($('#cantidad_rechazada').val()) || 0;
+                let container = $('#selectedOptionsContainerAQL');
+                let selectedOptionsCount = container.children('.selected-option').length;
+
+                if (cantidadRechazada > 0) {
+                    if (selectedOptionsCount === 0) {
+                        // Si no hay opciones seleccionadas
+                        e.preventDefault();
+                        alert('Debe seleccionar al menos un defecto cuando la cantidad rechazada es mayor que 0.');
+                        container.addClass('is-invalid');
+                    } else if (selectedOptionsCount !== cantidadRechazada) {
+                        // Si el número de opciones seleccionadas no coincide con la cantidad rechazada
+                        e.preventDefault();
+                        alert(`Debe seleccionar exactamente ${cantidadRechazada} defecto(s). Actualmente tiene ${selectedOptionsCount} seleccionado(s).`);
+                        container.addClass('is-invalid');
+                    } else {
+                        // Si todo está correcto, remover la clase de error
+                        container.removeClass('is-invalid');
+                    }
+                } else {
+                    // Si cantidad_rechazada es 0, asegurarse de que los campos ocultos no sean requeridos
+                    $('#ac, #nombre-varios, #tpSelectAQL').removeAttr('required');
+                }
             });
 
-            var selectedOption = $('#bulto').find(':selected');
-            $('#pieza').val(selectedOption.data('pieza'));
-            $('#estilo').val(selectedOption.data('estilo'));
-            $('#color').val(selectedOption.data('color'));
-            $('#talla').val(selectedOption.data('talla'));
+            // Asegurarse de que updateColumnsVisibilityAQL se llame cuando cambie cantidad_rechazada
+            $('#cantidad_rechazada').on('input', updateColumnsVisibilityAQL);
+
+            // Llamar a updateColumnsVisibilityAQL al cargar la página para establecer el estado inicial
+            updateColumnsVisibilityAQL();
         });
-
-
-
     </script>
 
     <script>

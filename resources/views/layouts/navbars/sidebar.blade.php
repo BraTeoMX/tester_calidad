@@ -19,6 +19,38 @@
                 </li>
             @endif
 
+            @if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Gerente de Calidad')))
+                <li class="nav-item">
+                    <a class="nav-link" data-toggle="collapse" href="#laravelExample" aria-expanded="true">
+                        <i class="material-icons">admin_panel_settings</i>
+                        <p>{{ __('Administrador') }}
+                            <b class="caret"></b>
+                        </p>
+                    </a>
+                    <div class="collapse" id="laravelExample">
+                        <ul class="nav">
+                            <li class="nav-item{{ $pageSlug == 'Gestion' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('altaYbaja') }}">
+                                    <i class="tim-icons icon-support-17"></i>
+                                    <p>{{ __('Gestión de Categorías') }}</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('profile.edit') }}">
+                                    <i class="tim-icons icon-single-02"></i>
+                                    <span class="sidebar-normal">{{ __('Perfil de usuario') }} </span>
+                                </a>
+                            </li>
+                            <li class="nav-item active">
+                                <a class="nav-link" href="{{ route('user.index') }}">
+                                    <i class="tim-icons icon-single-02"></i>
+                                    <span class="sidebar-normal"> {{ __('Administrador de Usuarios') }} </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+            @endif
             <li class="nav-item {{ $pageSlug == 'profile' || $pageSlug == 'user-management' ? ' active' : '' }}">
                 <a class="nav-link" data-toggle="collapse" href="#laravelExamples" aria-expanded="true">
                     <i class="material-icons">note_alt</i>

@@ -279,7 +279,7 @@ class AuditoriaAQLController extends Controller
         $registrosOriginales = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
-            ->where('op', $data['op'])
+            //->where('op', $data['op'])
             ->where('team_leader', $data['team_leader'])
             ->where('cantidad_rechazada', '>', 0)
             ->orderBy('created_at', 'asc') // Ordenar por created_at ascendente
@@ -301,7 +301,7 @@ class AuditoriaAQLController extends Controller
         $conteoParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
-            ->where('op', $data['op'])
+            //->where('op', $data['op'])
             ->where('team_leader', $data['team_leader'])
             ->where('cantidad_rechazada', '>', 0)
             ->where('tiempo_extra', null)

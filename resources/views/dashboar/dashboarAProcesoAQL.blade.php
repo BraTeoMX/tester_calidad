@@ -9,13 +9,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="fecha_inicio">Fecha de inicio</label>
-                            <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
+                            <input type="week" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="fecha_fin">Fecha de fin</label>
-                            <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required>
+                            <input type="week" class="form-control" id="fecha_fin" name="fecha_fin" required>
                         </div>
                     </div>
                 </div>

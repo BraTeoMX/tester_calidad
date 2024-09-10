@@ -301,7 +301,35 @@ class AuditoriaProcesoController extends Controller
             ->whereNotIn('oprname', $excluidos)
             ->get();
 
-        
+        $registrosOriginales = AseguramientoCalidad::whereDate('created_at', $fechaActual)
+            ->where('area', $data['area'])
+            ->where('modulo', $data['modulo'])
+            //->where('team_leader', $data['team_leader'])
+            ->where('cantidad_rechazada', '>', 0)
+            ->orderBy('created_at', 'asc') // Ordenar por created_at ascendente
+            ->get();
+
+        // Aplicar filtro adicional para registros 2 y 4
+        $registro3 = $registrosOriginales->get(2); // Obtener el segundo registro
+        $registro6 = $registrosOriginales->get(5); // Obtener el cuarto registro
+
+        // Verificar si los registros 2 y 4 cumplen con el criterio adicional
+        $evaluacionRegistro3 = $registro3 && is_null($registro3->fin_paro_modular); // Usar is_null() o el operador ??
+        $evaluacionRegistro6 = $registro6 && is_null($registro6->fin_paro_modular); // Usar is_null() o el operador ??
+
+        // Almacenar los resultados en variables
+        $finParoModular1 = $evaluacionRegistro3;
+        $finParoModular2 = $evaluacionRegistro6;
+
+
+        $conteoParos = AseguramientoCalidad::whereDate('created_at', $fechaActual)
+            ->where('area', $data['area'])
+            ->where('modulo', $data['modulo'])
+            //->where('team_leader', $data['team_leader'])
+            ->where('cantidad_rechazada', '>', 0)
+            ->where('tiempo_extra', null)
+            ->count();
+        //dd($registrosOriginales, $conteoParos, $evaluacionRegistro3, $evaluacionRegistro6);
         return view('aseguramientoCalidad.auditoriaProceso', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
             'pageSlug' => $pageSlug,
@@ -324,6 +352,9 @@ class AuditoriaProcesoController extends Controller
             'total_auditadaTE' => $total_auditadaTE,
             'total_rechazadaTE' => $total_rechazadaTE,
             'total_porcentajeTE' => $total_porcentajeTE,
+            'conteoParos' => $conteoParos,
+            'finParoModular1' => $finParoModular1,
+            'finParoModular2' => $finParoModular2,
 
             ]));
     }
@@ -573,23 +604,94 @@ class AuditoriaProcesoController extends Controller
         return back()->with('success', 'Finalizacion aplicada correctamente.')->with('pageSlug', $pageSlug);
     }
 
-    public function cambiarEstadoInicioParo(Request $request)
+    public function cambiarEstadoInicioParo(Request $request) 
     {
         $pageSlug ='';
         $id = $request->idCambio;
-        //dd($id);
+        $reparacionRechazo = $request->reparacion_rechazo;
         $registro = AseguramientoCalidad::find($id);
-        $registro->fin_paro = Carbon::now();
-        
-        // Calcular la duración del paro en minutos
-        $inicioParo = Carbon::parse($registro->inicio_paro);
-        $finParo = Carbon::parse($registro->fin_paro);
-        $minutosParo = $inicioParo->diffInMinutes($finParo);
-        
-        // Almacenar la duración en minutos
-        $registro->minutos_paro = $minutosParo;
 
-        $registro->save();
+        if($request->finalizar_paro_modular == 1){
+            // Obtener la fecha actual
+            $fechaActual = Carbon::now()->toDateString();
+
+            // Obtener la hora actual
+            $horaActual = Carbon::now()->toTimeString();
+
+            //dd($request->all());
+
+             // Obtener el segundo y cuarto registro
+            $segundoRegistro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
+                ->where('modulo', $request->modulo)
+                ->where('estilo', $request->estilo)
+                ->where('team_leader', $request->team_leader)
+                ->where('area', $request->area)
+                ->where('cantidad_rechazada', '>', 0)
+                ->orderBy('created_at', 'asc')
+                ->skip(2) // Saltar el segundo registro
+                ->first();
+
+            $cuartoRegistro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
+                ->where('modulo', $request->modulo)
+                ->where('estilo', $request->estilo)
+                ->where('team_leader', $request->team_leader)
+                ->where('area', $request->area)
+                ->where('cantidad_rechazada', '>', 0)
+                ->orderBy('created_at', 'asc')
+                ->skip(5) // Saltar los primeros cinco registros
+                ->first();
+
+            // Evaluar el segundo registro
+            if ($segundoRegistro && is_null($segundoRegistro->minutos_paro_modular)) {
+                // Actualizar la columna "fin_paro_modular" con la hora actual
+                $segundoRegistro->fin_paro_modular = $horaActual;
+
+                // Calcular la diferencia en minutos entre "inicio_paro" y "fin_paro_modular"
+                $inicioParo = Carbon::parse($segundoRegistro->inicio_paro);
+                $finParoModular = Carbon::parse($horaActual);
+                $diferenciaEnMinutos = $inicioParo->diffInMinutes($finParoModular);
+
+                // Actualizar la columna "minutos_paro_modular" con la diferencia en minutos
+                $segundoRegistro->minutos_paro_modular = $diferenciaEnMinutos;
+
+                // Guardar los cambios
+                $segundoRegistro->save();
+            }
+
+            // Evaluar el cuarto registro si el segundo ya tiene "minutos_paro_modular"
+            if ($segundoRegistro && !is_null($segundoRegistro->minutos_paro_modular) && $cuartoRegistro && is_null($cuartoRegistro->minutos_paro_modular)) {
+                // Actualizar la columna "fin_paro_modular" con la hora actual
+                $cuartoRegistro->fin_paro_modular = $horaActual;
+
+                // Calcular la diferencia en minutos entre "inicio_paro" y "fin_paro_modular"
+                $inicioParo = Carbon::parse($cuartoRegistro->inicio_paro);
+                $finParoModular = Carbon::parse($horaActual);
+                $diferenciaEnMinutos = $inicioParo->diffInMinutes($finParoModular);
+
+                // Actualizar la columna "minutos_paro_modular" con la diferencia en minutos
+                $cuartoRegistro->minutos_paro_modular = $diferenciaEnMinutos;
+
+                // Guardar los cambios
+                $cuartoRegistro->save();
+            }
+
+            //dd($request->all(), $registro);
+
+        }else{
+            $registro->fin_paro = Carbon::now();
+
+            // Calcular la duración del paro en minutos
+            $inicioParo = Carbon::parse($registro->inicio_paro);
+            $finParo = Carbon::parse($registro->fin_paro);
+            $minutosParo = $inicioParo->diffInMinutes($finParo);
+
+            // Almacenar la duración en minutos
+            $registro->minutos_paro = $minutosParo;
+            //$registro->reparacion_rechazo = $reparacionRechazo;
+
+            $registro->save();
+        }
+        //dd($request->finalizar_paro_modular);
 
         return back()->with('success', 'Fin de Paro Aplicado.')->with('pageSlug', $pageSlug);
     }
