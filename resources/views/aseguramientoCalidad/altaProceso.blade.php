@@ -567,7 +567,19 @@
             </div>
         </div>
     </div>
- 
+
+    <style>
+        #searchInput1::placeholder, #searchInput2::placeholder, #searchInput3::placeholder, #searchInput4::placeholder {
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: bold;
+        }
+      
+        #searchInput1, #searchInput2, #searchInput3, #searchInput4 {
+            background-color: #1a1f30;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
     <script>
         $(document).ready(function() {
             $('#modulo').select2({

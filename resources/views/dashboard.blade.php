@@ -225,14 +225,15 @@
         <div class="col-lg-4">
             <div class="card card-chart">
                 <div class="card-header">
-             <h2 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> Segundas / Terceras</h2>
+                    <h2 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> Segundas / Terceras</h2>
                 </div>
                 <div class="card-body">
                     <div id="SegundasTercerasChart"></div>
                 </div>
             </div>
         </div>
-<!--
+
+
         <div class="col-lg-4">
             <div class="card card-chart">
                 <div class="card-header">
@@ -247,7 +248,6 @@
                 </div>
             </div>
         </div>
-    -->
     </div>
     <div class="row">
         <div class="col-lg-4">
@@ -426,6 +426,8 @@
             </div>
         </div>
     </div>
+
+
 
     <style>
         .chart-area {
@@ -918,12 +920,13 @@
         var terceras = 0;
 
         data.forEach(function(item) {
-        if (item.Calidad === 'Segunda') {
-            segundas += 1; // Contar el número de "Segundas"
-        } else if (item.Calidad === 'Tercera') {
-            terceras += 1; // Contar el número de "Terceras"
-        }
-    });
+            var qty = parseFloat(item.QTY); // Convertir QTY a número
+            if (item.Calidad === 'Segunda') {
+                segundas += qty;
+            } else if (item.Calidad === 'Tercera') {
+                terceras += qty;
+            }
+        });
 
         Highcharts.chart('SegundasTercerasChart', {
             chart: {
@@ -945,33 +948,12 @@
             series: [{
                 name: 'Segundas',
                 data: [segundas],
-                color: '#7cb5ec', // Color para "Segundas"
-                events: {
-                    click: function(event) {
-                        // Redirigir a la vista de "Segundas"
-                        window.location.href = '/Segundas';
-                    }
-                }
+                color: '#7cb5ec' // Color para "Segundas"
             }, {
                 name: 'Terceras',
                 data: [terceras],
                 color: '#434348' // Color para "Terceras"
             }],
-            plotOptions: {
-                series: {
-                    cursor: 'pointer',
-                    point: {
-                        events: {
-                            click: function() {
-                                if (this.category === 'Segundas') {
-                                    // Redirigir a la vista de "Segundas"
-                                    window.location.href = '/Segundas';
-                                }
-                            }
-                        }
-                    }
-                }
-            },
             legend: {
             enabled: true
         }
