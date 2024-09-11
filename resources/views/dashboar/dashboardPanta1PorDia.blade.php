@@ -162,6 +162,8 @@
                                     <th>Cantidad Paro</th>
                                     <th>Minutos Paro</th>
                                     <th>Promedio Minutos Paro</th>
+                                    <th>Cantidad Paro Modular</th>
+                                    <th>Minutos Paro Modular</th>
                                     <th>Cantidad Auditados</th>
                                     <th>Cantidad Defectos</th>
                                     <th>% Error Proceso</th>
@@ -185,6 +187,8 @@
                                         <td>{{ $item['conteoMinutos'] }}</td>
                                         <td>{{ $item['sumaMinutos'] }}</td>
                                         <td>{{ $item['promedioMinutosEntero'] }}</td> 
+                                        <td>{{ $item['conteParoModular'] }}</td>
+                                        <td>{{ $item['sumaParoModular'] }}</td>
                                         <td>{{ $item['sumaAuditadaProceso'] }}</td> 
                                         <td>{{ $item['sumaRechazadaProceso'] }}</td> 
                                         <td>{{ number_format($item['porcentaje_error_proceso'], 2) }}%</td>

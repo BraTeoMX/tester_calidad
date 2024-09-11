@@ -612,6 +612,18 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->pluck('nombre')
                 ->implode(', ');
             $operariosUnicos = $operariosUnicos ?: 'N/A';
+
+            $conteParoModular = AseguramientoCalidad::where('modulo', $modulo)
+                ->whereDate('created_at', $fecha)
+                ->where('tiempo_extra', $tiempoExtra)
+                ->count('minutos_paro_modular');
+
+            $sumaParoModular = AseguramientoCalidad::where('modulo', $modulo)
+                ->whereDate('created_at', $fecha)
+                ->where('tiempo_extra', $tiempoExtra)
+                ->sum('minutos_paro_modular');
+            $sumaParoModular = $sumaParoModular ?: 'N/A';
+
             $dataModuloProceso[] = [
                 'modulo' => $modulo,
                 'modulos_unicos' => $modulosUnicos,
@@ -629,6 +641,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 'accionesCorrectivasUnicos' => $accionesCorrectivasUnicos,
                 'cantidadRecorridos' => $cantidadRecorridos,
                 'operariosUnicos' => $operariosUnicos,
+                'sumaParoModular' => $sumaParoModular,
+                'conteParoModular' => $conteParoModular,
             ];
 
             
