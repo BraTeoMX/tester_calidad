@@ -141,7 +141,7 @@
                                 <input type="hidden" class="form-control" name="op" id="op1" value="{{ $data['op'] }}"> 
                                 <input type="hidden" class="form-control" name="area" id="area" value="{{ $data['area'] }}">
                                 <input type="hidden" class="form-control" name="team_leader" id="team_leader" value="{{ $data['team_leader'] }}">
-
+                                <input type="hidden" class="form-control" name="gerente_produccion" value="{{ $data['gerente_produccion'] }}">
 
                                 <button type="submit" class="btn btn-primary">Fin Paro Modular</button> 
                             </form>
@@ -159,6 +159,7 @@
                                             <th>OP</th> 
                                             <th>CLIENTE</th>
                                             <th>SUPERVISOR</th>
+                                            <th>GERENTE PRODUCCION</th>
                                             <th>AUDITOR</th>
                                             <th>TURNO</th>
                                         </tr>
@@ -181,6 +182,8 @@
                                                     value="{{ $datoUnicoOP->customername }}" readonly></td>
                                             <td><input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader"
                                                     value="{{ $data['team_leader'] }}" readonly></td>
+                                            <td><input type="text" class="form-control texto-blanco" name="gerente_produccion" 
+                                                value="{{ $data['gerente_produccion'] }}" readonly></td>
                                             <td><input type="text" class="form-control texto-blanco" name="auditor" id="auditor"
                                                     value="{{ $data['auditor'] }}" readonly></td>
                                             <td><input type="text" class="form-control texto-blanco" name="turno" id="turno"

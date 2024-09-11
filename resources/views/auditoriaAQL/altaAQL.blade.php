@@ -91,6 +91,7 @@
                                         <th>MODULO</th>
                                         <th>OP</th>
                                         <th>SUPERVISOR</th>
+                                        <th>GERENTE DE PRODUCCION</th>
                                         <th>AUDITOR</th>
                                         <th>TURNO</th>
                                     </tr>
@@ -102,7 +103,7 @@
                                         </td>
                                         <td>
                                             <select name="modulo" id="modulo" class="form-control" required
-                                                title="Por favor, selecciona una opción" onchange="cargarOrdenesOP()">
+                                                title="Por favor, selecciona una opción" onchange="cargarOrdenesOP(); obtenerSupervisor();">
                                                 <option value="" selected>Selecciona una opción</option>
                                                 @if ($auditorPlanta == 'Planta1')
                                                     @foreach ($auditoriaProcesoIntimark1 as $moduloP1)
@@ -128,23 +129,18 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <select name="team_leader" id="team_leader" class="form-control" required
-                                                title="Por favor, selecciona una opción">
+                                            <select name="team_leader" id="team_leader" class="form-control" required>
+                                                <!-- Las opciones se llenarán dinámicamente con la llamada AJAX -->
+                                            </select>                                            
+                                        </td>
+                                        <td>
+                                            <select name="gerente_produccion" class="form-control" required title="Por favor, selecciona una opción">
                                                 <option value="" selected>Selecciona una opción</option>
-                                                <!-- Agrega el atributo selected aquí -->
-                                                @if ($auditorPlanta == 'Planta1')
-                                                    @foreach ($teamLeaderPlanta1 as $teamLeader)
-                                                        <option value="{{ $teamLeader->nombre }}">
-                                                            {{ $teamLeader->nombre }}
-                                                        </option>
-                                                    @endforeach
-                                                @elseif($auditorPlanta == 'Planta2')
-                                                    @foreach ($teamLeaderPlanta2 as $teamLeader)
-                                                        <option value="{{ $teamLeader->nombre }}">
-                                                            {{ $teamLeader->nombre }}
-                                                        </option>
-                                                    @endforeach
-                                                @endif
+                                                @foreach ($gerenteProduccion as $gerente)
+                                                    <option value="{{ $gerente->nombre }}">
+                                                        {{ $gerente->nombre }}
+                                                    </option>
+                                                @endforeach
                                             </select>
                                         </td>
                                         <td><input type="text" class="form-control texto-blanco" name="auditor" id="auditor"
@@ -626,5 +622,45 @@
             });
         });
     </script>
+    
+    <script>
+        function obtenerSupervisor() {
+            var moduleid = $('#modulo').val();  // Obtén el valor del select "modulo"
+            
+            if (moduleid) {
+                $.ajax({
+                    url: '/obtener-supervisor',  // Ruta para obtener el supervisor
+                    type: 'GET',
+                    data: { moduleid: moduleid },
+                    success: function(response) {
+                        var $teamLeader = $('#team_leader');
+                        $teamLeader.empty();  // Limpia el select antes de llenarlo
 
+                        // Si hay un supervisor relacionado, lo agrega como seleccionado
+                        if (response.supervisorRelacionado) {
+                            $teamLeader.append('<option value="' + response.supervisorRelacionado.name + '" selected>' + response.supervisorRelacionado.name + '</option>');
+                        }
+
+                        // Agrega las otras opciones de supervisores
+                        $.each(response.supervisores, function(index, supervisor) {
+                            if (response.supervisorRelacionado && supervisor.name === response.supervisorRelacionado.name) {
+                                // Ya se agregó el supervisor relacionado como opción seleccionada, por lo que se omite
+                                return;
+                            }
+                            // Agrega el resto de los supervisores
+                            $teamLeader.append('<option value="' + supervisor.name + '">' + supervisor.name + '</option>');
+                        });
+
+                        // Si no hay supervisores disponibles, muestra un mensaje opcional
+                        if (!response.supervisores.length) {
+                            $teamLeader.append('<option value="">No hay supervisores disponibles</option>');
+                        }
+                    },
+                    error: function() {
+                        alert('Error al obtener los supervisores');
+                    }
+                });
+            }
+        }
+    </script>
 @endsection

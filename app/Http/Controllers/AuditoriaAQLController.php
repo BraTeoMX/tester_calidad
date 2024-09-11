@@ -117,11 +117,18 @@ class AuditoriaAQLController extends Controller
             ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente')
             ->distinct()
             ->get();
+        $gerenteProduccion = CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
+            ->orderBy('jefe_produccion')
+            ->where('planta', $datoPlanta)
+            ->where('estatus', 1)
+            ->where('jefe_produccion', 1)
+            ->get();
         return view('auditoriaAQL.altaAQL', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol,
             'pageSlug' => $pageSlug,
             'procesoActualAQL' => $procesoActualAQL,
-            'procesoFinalAQL' => $procesoFinalAQL]));
+            'procesoFinalAQL' => $procesoFinalAQL,
+            'gerenteProduccion' => $gerenteProduccion]));
     }
 
     public function obtenerItemId(Request $request)
@@ -404,6 +411,7 @@ class AuditoriaAQLController extends Controller
             'auditor' => $request->auditor,
             'turno' => $request->turno,
             'team_leader' => $request->team_leader,
+            'gerente_produccion' => $request->gerente_produccion,
         ];
         //dd($data);
         return redirect()->route('auditoriaAQL.auditoriaAQL', $data)->with('cambio-estatus', 'Iniciando en modulo: '. $data['modulo'])->with('pageSlug', $pageSlug);
@@ -445,9 +453,7 @@ class AuditoriaAQLController extends Controller
         $nuevoRegistro->op = $request->op;
         $nuevoRegistro->cliente = $request->cliente;
         $nuevoRegistro->team_leader = $request->team_leader;
-        if($jefeProduccionBusqueda){
-            $nuevoRegistro->jefe_produccion = 1;
-        }else{$nuevoRegistro->jefe_produccion = NULL; }
+        $nuevoRegistro->gerente_produccion = $request->gerente_produccion;
         $nuevoRegistro->auditor = $request->auditor;
         $nuevoRegistro->turno = $request->turno;
         $nuevoRegistro->planta = $plantaBusqueda;
