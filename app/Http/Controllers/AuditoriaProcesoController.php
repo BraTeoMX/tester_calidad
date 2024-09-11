@@ -107,14 +107,15 @@ class AuditoriaProcesoController extends Controller
             ->where('area', 'AUDITORIA EN PROCESO')
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
-            ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente')
+            ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
             ->distinct()
             ->get();
+        //dd($procesoActual);
         $procesoFinal =  AseguramientoCalidad::where('estatus', 1) 
             ->where('area', 'AUDITORIA EN PROCESO')
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
-            ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente')
+            ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
             ->distinct()
             ->get();
 
@@ -123,14 +124,14 @@ class AuditoriaProcesoController extends Controller
                 ->where('area', 'AUDITORIA EN EMPAQUE')
                 ->where('planta', $datoPlanta)
                 ->whereDate('created_at', $fechaActual)
-                ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente')
+                ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
                 ->distinct()
                 ->get();
         $empaqueFinal = AseguramientoCalidad::where('estatus', 1)
                 ->where('area', 'AUDITORIA EN EMPAQUE')
                 ->where('planta', $datoPlanta)
                 ->whereDate('created_at', $fechaActual)
-                ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente')
+                ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
                 ->distinct()
                 ->get();
         
@@ -328,6 +329,19 @@ class AuditoriaProcesoController extends Controller
             ->where('tiempo_extra', null)
             ->count();
         //dd($registrosOriginales, $conteoParos, $evaluacionRegistro3, $evaluacionRegistro6);
+        $auditorPlanta = Auth::user()->Planta;
+        if($auditorPlanta == "Planta1"){
+            $datoPlanta = "Intimark1";
+        }else{
+            $datoPlanta = "Intimark2";
+        }
+        $procesoActual = AseguramientoCalidad::where('estatus', NULL)  
+            ->where('area', 'AUDITORIA EN PROCESO')
+            ->where('planta', $datoPlanta)
+            ->whereDate('created_at', $fechaActual)
+            ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
+            ->distinct()
+            ->get();
         return view('aseguramientoCalidad.auditoriaProceso', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
             'pageSlug' => $pageSlug,
@@ -353,7 +367,7 @@ class AuditoriaProcesoController extends Controller
             'conteoParos' => $conteoParos,
             'finParoModular1' => $finParoModular1,
             'finParoModular2' => $finParoModular2,
-
+            'procesoActual' => $procesoActual,
             ]));
     }
 
@@ -426,7 +440,7 @@ class AuditoriaProcesoController extends Controller
             'cliente' => $request->cliente,
             'gerente_produccion' => $request->gerente_produccion,
         ];
-
+        //dd($data);
         // Obtener los estilos únicos relacionados con el módulo seleccionado
         $estilos = AuditoriaProceso::where('moduleid', $request->modulo)
                                     ->distinct('itemid')

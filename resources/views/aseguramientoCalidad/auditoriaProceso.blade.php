@@ -122,9 +122,76 @@
                             <h3 class="card-title">{{ $data['area'] }}</h3>
                         </div>
                         <div class="col-auto">
-                            <h4>Fecha:
-                                {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
-                            </h4>
+                            <button type="button" class="btn btn-link" data-toggle="modal" data-target="#modalProcesos">
+                                <h4>Fecha:
+                                  {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
+                                </h4>
+                            </button>                              
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal -->
+                <div class="modal fade" id="modalProcesos" tabindex="-1" role="dialog" aria-labelledby="modalProcesosLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content bg-dark">
+                            <div class="modal-header">
+                            <h5 class="modal-title texto-blanco" id="modalProcesosLabel">Detalles del Proceso</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            </div>
+                            <div class="modal-body">
+                            <!-- Aquí va tu contenido de la tabla -->
+                                <div class="table-responsive">
+                                    <input type="text" id="searchInput1" class="form-control mb-3" placeholder="Buscar Módulo o Estilo">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Acción</th>
+                                                <th>Módulo</th>
+                                                <th>Estilo</th>
+                                                <th>Supervisor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaProcesos1">
+                                            @foreach($procesoActual as $proceso)
+                                            <tr>
+                                                <td>
+                                                    <form method="POST" action="{{ route('aseguramientoCalidad.formAltaProceso') }}">
+                                                        @csrf
+                                                        <input type="hidden" name="area" value="{{ $proceso->area }}">
+                                                        <input type="hidden" name="modulo" value="{{ $proceso->modulo }}">
+                                                        <input type="hidden" name="cliente" value="{{ $proceso->cliente }}">
+                                                        <input type="hidden" name="estilo" value="{{ $proceso->estilo }}">
+                                                        <input type="hidden" name="team_leader" value="{{ $proceso->team_leader }}">
+                                                        <input type="hidden" name="gerente_produccion" value="{{ $proceso->gerente_produccion }}">
+                                                        <input type="hidden" name="auditor" value="{{ $proceso->auditor }}">
+                                                        <input type="hidden" name="turno" value="{{ $proceso->turno }}">
+                                                        <button type="submit" class="btn btn-primary">Acceder</button>
+                                                    </form>
+                                                </td>
+                                                <td>{{ $proceso->modulo }}</td>
+                                                <td>{{ $proceso->estilo }}</td>
+                                                <td>{{ $proceso->team_leader }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <script>
+                                    $(document).ready(function() {
+                                        $('#searchInput1').on('keyup', function() {
+                                            var value = $(this).val().toLowerCase();
+                                            $('#tablaProcesos1 tr').filter(function() {
+                                                var modulo = $(this).find('td:eq(1)').text().toLowerCase();
+                                                var estilo = $(this).find('td:eq(2)').text().toLowerCase();
+                                                $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
+                                            });
+                                        });
+                                    });
+                                </script>
+                            </div>
                         </div>
                     </div>
                 </div>

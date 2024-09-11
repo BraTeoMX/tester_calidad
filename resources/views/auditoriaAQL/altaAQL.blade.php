@@ -233,6 +233,7 @@
                                                                                         <input type="hidden" name="estilo" value="{{ $proceso->estilo }}">
                                                                                         <input type="hidden" name="cliente" value="{{ $proceso->cliente }}">
                                                                                         <input type="hidden" name="team_leader" value="{{ $proceso->team_leader }}">
+                                                                                        <input type="hidden" name="gerente_produccion" value="{{ $proceso->gerente_produccion }}">
                                                                                         <input type="hidden" name="auditor" value="{{ $proceso->auditor }}">
                                                                                         <input type="hidden" name="turno" value="{{ $proceso->turno }}">
                                                                                         <button type="submit" class="btn btn-primary">Acceder</button>
@@ -298,6 +299,7 @@
                                                                                         <input type="hidden" name="estilo" value="{{ $proceso->estilo }}">
                                                                                         <input type="hidden" name="cliente" value="{{ $proceso->cliente }}">
                                                                                         <input type="hidden" name="team_leader" value="{{ $proceso->team_leader }}">
+                                                                                        <input type="hidden" name="gerente_produccion" value="{{ $proceso->gerente_produccion }}">
                                                                                         <input type="hidden" name="auditor" value="{{ $proceso->auditor }}">
                                                                                         <input type="hidden" name="turno" value="{{ $proceso->turno }}">
                                                                                         <button type="submit" class="btn btn-primary">Acceder</button>
@@ -622,7 +624,7 @@
             });
         });
     </script>
-    
+
     <script>
         function obtenerSupervisor() {
             var moduleid = $('#modulo').val();  // Obtén el valor del select "modulo"

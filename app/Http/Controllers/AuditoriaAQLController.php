@@ -107,14 +107,14 @@ class AuditoriaAQLController extends Controller
             ->where('area', 'AUDITORIA AQL')
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
-            ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente')
+            ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
             ->distinct()
             ->get();
         $procesoFinalAQL = AuditoriaAQL::where('estatus', 1)
             ->where('area', 'AUDITORIA AQL')
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
-            ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente')
+            ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
             ->distinct()
             ->get();
         $gerenteProduccion = CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
@@ -350,6 +350,13 @@ class AuditoriaAQLController extends Controller
             ->groupBy('moduleid')
             ->toArray();
         //dd($nombreProcesoToAQL, $utilityPlanta2, $utilityPlanta1, $nombreProcesoToAQLPlanta1, $nombreProcesoToAQLPlanta2);
+        $procesoActualAQL =AuditoriaAQL::where('estatus', NULL)
+            ->where('area', 'AUDITORIA AQL')
+            ->where('planta', $detectarPlanta)
+            ->whereDate('created_at', $fechaActual)
+            ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
+            ->distinct()
+            ->get();
         return view('auditoriaAQL.auditoriaAQL', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol,
             'pageSlug' => $pageSlug,
@@ -380,6 +387,7 @@ class AuditoriaAQLController extends Controller
             'conteoPiezaConRechazoTE' => $conteoPiezaConRechazoTE,
             'porcentajeBultoTE' => $porcentajeBultoTE,
             'nombrePorModulo' => $nombrePorModulo,
+            'procesoActualAQL' => $procesoActualAQL
             ]));
     }
 
