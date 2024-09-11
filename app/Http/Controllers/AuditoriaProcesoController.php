@@ -13,6 +13,7 @@ use App\Models\CategoriaAccionCorrectiva;
 use App\Models\CategoriaUtility;
 use App\Models\JobOperacion;
 use App\Models\TpAseguramientoCalidad; 
+use App\Models\CategoriaSupervisor; 
 use Illuminate\Support\Facades\Mail;
 use App\Mail\NotificacionParo;
 
@@ -37,16 +38,6 @@ class AuditoriaProcesoController extends Controller
             'categoriaACProceso' => CategoriaAccionCorrectiva::where('area', 'proceso')->get(),
             'categoriaACPlayera' => CategoriaAccionCorrectiva::where('area', 'playera')->get(),
             'categoriaACEmpaque' => CategoriaAccionCorrectiva::where('area', 'empaque')->get(),
-            'teamLeaderPlanta1' => CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
-                ->orderBy('jefe_produccion')
-                ->where('planta', 'Intimark1')
-                ->where('estatus', 1)
-                ->get(),
-            'teamLeaderPlanta2' => CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
-                ->orderBy('jefe_produccion')
-                ->where('planta', 'Intimark2')
-                ->where('estatus', 1)
-                ->get(),
             'auditoriaProcesoIntimark1' =>  AuditoriaProceso::where('prodpoolid', 'Intimark1')
                 ->select('moduleid')
                 ->distinct()
@@ -92,7 +83,6 @@ class AuditoriaProcesoController extends Controller
         $pageSlug ='';
         $categorias = $this->cargarCategorias();
 
-
         //dd($registroEvaluacionCorte->all()); 
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
@@ -105,6 +95,13 @@ class AuditoriaProcesoController extends Controller
             $datoPlanta = "Intimark2";
         }
         //dd($auditorPlanta, $datoPlanta);
+        //apartado para Gerentes de Produccion 
+        $gerenteProduccion = CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
+            ->orderBy('jefe_produccion')
+            ->where('planta', $datoPlanta)
+            ->where('estatus', 1)
+            ->where('jefe_produccion', 1)
+            ->get();
 
         $procesoActual = AseguramientoCalidad::where('estatus', NULL)  
             ->where('area', 'AUDITORIA EN PROCESO')
@@ -143,7 +140,8 @@ class AuditoriaProcesoController extends Controller
             'procesoActual' => $procesoActual,
             'procesoFinal' => $procesoFinal,
             'empaqueActual' => $empaqueActual,
-            'empaqueFinal' => $empaqueFinal]));
+            'empaqueFinal' => $empaqueFinal,
+            'gerenteProduccion' => $gerenteProduccion]));
     }
 
     public function obtenerItemId(Request $request)  
@@ -426,6 +424,7 @@ class AuditoriaProcesoController extends Controller
             'auditor' => $request->auditor,
             'turno' => $request->turno,
             'cliente' => $request->cliente,
+            'gerente_produccion' => $request->gerente_produccion,
         ];
 
         // Obtener los estilos únicos relacionados con el módulo seleccionado
@@ -450,9 +449,6 @@ class AuditoriaProcesoController extends Controller
             ->pluck('prodpoolid')
             ->first();
         //dd($plantaBusqueda);
-        $jefeProduccionBusqueda = CategoriaTeamLeader::where('nombre', $request->team_leader)
-            ->where('jefe_produccion', 1)
-            ->first();
 
         //$diferenciaModulo = $request->modulo == $request->modulo_adicional;
         //dd($diferenciaModulo, $request->all());
@@ -481,9 +477,7 @@ class AuditoriaProcesoController extends Controller
         $nuevoRegistro->estilo = $request->estilo;
         $nuevoRegistro->cliente = $request->cliente;
         $nuevoRegistro->team_leader = $request->team_leader;
-        if($jefeProduccionBusqueda){
-            $nuevoRegistro->jefe_produccion = 1;
-        }else{$nuevoRegistro->jefe_produccion = NULL; }
+        $nuevoRegistro->gerente_produccion = $request->gerente_produccion;
         $nuevoRegistro->auditor = $request->auditor;
         $nuevoRegistro->turno = $request->turno;
         if($request->nombre_utility){
@@ -710,6 +704,34 @@ class AuditoriaProcesoController extends Controller
         $categoriaTipoProblema->save();
 
         return response()->json(['success' => true]);
+    }
+
+    public function obtenerSupervisor(Request $request)
+    {
+        $auditorPlanta = Auth::user()->Planta;
+        if($auditorPlanta == "Planta1"){
+            $datoPlanta = "Intimark1";
+        }else{
+            $datoPlanta = "Intimark2";
+        }
+        
+        $moduleid = $request->input('moduleid');
+
+        // Supervisor relacionado con el moduleid (puedes ajustar esto según la lógica que determines como "relacionada")
+        $supervisorRelacionado = CategoriaSupervisor::where('moduleid', $moduleid)
+            ->where('prodpoolid', $datoPlanta)
+            ->first();
+
+        // Todos los supervisores que pertenecen a la misma planta
+        $supervisores = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
+            ->select('name') // Selecciona solo el campo 'name' o los que desees
+            ->distinct()     // Aplica el filtro para datos únicos
+            ->get();
+
+        return response()->json([
+            'supervisorRelacionado' => $supervisorRelacionado,
+            'supervisores' => $supervisores
+        ]);
     }
 
 }

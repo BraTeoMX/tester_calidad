@@ -128,6 +128,7 @@ Route::get('/utilities', [AuditoriaProcesoController::class, 'getUtilities'])->n
 Route::post('/cambiarEstadoInicioParo', [AuditoriaProcesoController::class, 'cambiarEstadoInicioParo'])->name('aseguramientoCalidad.cambiarEstadoInicioParo');
 Route::post('/categoria-tipo-problema', [AuditoriaProcesoController::class, 'storeCategoriaTipoProblema'])->name('categoria_tipo_problema.store');
 Route::post('/obtenerTodosLosEstilosUnicos', [AuditoriaProcesoController::class, 'obtenerTodosLosEstilosUnicos'])->name('obtenerTodosLosEstilosUnicos');
+Route::get('/obtener-supervisor', [AuditoriaProcesoController::class, 'obtenerSupervisor']);
 
 
 
