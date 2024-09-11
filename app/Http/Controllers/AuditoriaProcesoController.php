@@ -724,8 +724,15 @@ class AuditoriaProcesoController extends Controller
 
         // Todos los supervisores que pertenecen a la misma planta
         $supervisores = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
-            ->select('name') // Selecciona solo el campo 'name' o los que desees
-            ->distinct()     // Aplica el filtro para datos únicos
+            ->whereNotNull('name')          // Filtra los valores nulos de la columna 'name'
+            ->where(function($query) {
+                $query->where('moduleid', 'like', '1%')   // Filtra los que inician con "1"
+                      ->orWhere('moduleid', 'like', '2%') // Filtra los que inician con "2"
+                      ->orWhereIn('moduleid', ['830A', '831A']); // Incluye específicamente "830A" y "831A"
+            })
+            ->where('moduleid', '!=', '198A') // Excluye el valor específico "198A"
+            ->select('name')                // Selecciona solo el campo 'name' o los que desees
+            ->distinct()                    // Aplica el filtro para datos únicos
             ->get();
 
         return response()->json([

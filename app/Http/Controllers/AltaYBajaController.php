@@ -232,19 +232,19 @@ class AltaYBajaController extends Controller
             ->first();
         if ($registroExistenteNombre || $registroExistenteNoEmpleado) {
             // Si el registro ya existe, redirigir con un mensaje de advertencia
-            return redirect()->route('altaYbaja')->with('warning', 'Responsable o supervisor ya existe.');
+            return redirect()->route('altaYbaja')->with('warning', 'Gerente de produccion ya existe.');
         }
 
         // Si no existe, crear el nuevo registro
-        $categoriaUtility = new CategoriaTeamLeader();
-        $categoriaUtility->nombre = $nombre;
-        $categoriaUtility->numero_empleado = $numeroEmpleado;
-        $categoriaUtility->planta = $planta;
-        $categoriaUtility->estatus = 1;
-        $categoriaUtility->jefe_produccion = 1;
-        $categoriaUtility->save();
+        $nuevoGerente = new CategoriaTeamLeader();
+        $nuevoGerente->nombre = $nombre;
+        $nuevoGerente->numero_empleado = $numeroEmpleado;
+        $nuevoGerente->planta = $planta;
+        $nuevoGerente->estatus = 1;
+        $nuevoGerente->jefe_produccion = 1;
+        $nuevoGerente->save();
 
-        return redirect()->route('altaYbaja')->with('success', 'Defecto de proceso creado correctamente');
+        return redirect()->route('altaYbaja')->with('success', 'Gerente de Produccion creado correctamente');
     }
 
     public function actualizarEstadoTecnico(Request $request, $id)
