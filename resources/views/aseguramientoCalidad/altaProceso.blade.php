@@ -683,7 +683,7 @@
                 $('#estilo').html(''); // Limpiar el select anterior
     
                 if (moduleid === '830A' || moduleid === '831A') {
-                    // Realizar solicitud AJAX para obtener todos los estilos únicos
+                    // Realizar solicitud AJAX para obtener todos los estilos únicos 
                     $.ajax({
                         url: '{{ route("obtenerTodosLosEstilosUnicos") }}',
                         type: 'POST',

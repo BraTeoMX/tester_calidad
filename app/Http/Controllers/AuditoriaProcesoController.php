@@ -16,6 +16,7 @@ use App\Models\TpAseguramientoCalidad;
 use App\Models\CategoriaSupervisor; 
 use Illuminate\Support\Facades\Mail;
 use App\Mail\NotificacionParo;
+use App\Models\JobAQL;
 
 
 use App\Models\EvaluacionCorte;
@@ -148,7 +149,7 @@ class AuditoriaProcesoController extends Controller
     public function obtenerItemId(Request $request)  
     {
         $moduleid = $request->input('moduleid');
-        $auditoriaProceso = AuditoriaProceso::where('moduleid', $moduleid)
+        $auditoriaProceso = JobAQL::where('moduleid', $moduleid)
                                             ->distinct('itemid')
                                             ->pluck('itemid');
         
@@ -157,9 +158,9 @@ class AuditoriaProcesoController extends Controller
         ]);
     }
 
-    public function obtenerTodosLosEstilosUnicos(Request $request)
+    public function obtenerTodosLosEstilosUnicos(Request $request) 
     {
-        $auditoriaProceso = AuditoriaProceso::distinct('itemid')->pluck('itemid');
+        $auditoriaProceso = JobAQL::distinct('itemid')->pluck('itemid');
         
         return response()->json([
             'itemids' => $auditoriaProceso,
@@ -169,7 +170,7 @@ class AuditoriaProcesoController extends Controller
     public function obtenerCliente1(Request $request)  
     {
         $itemid = $request->input('itemid');
-        $auditoriaProceso = AuditoriaProceso::where('itemid', $itemid)->first();
+        $auditoriaProceso = JobAQL::where('itemid', $itemid)->first();
 
         return response()->json([
             'cliente' => $auditoriaProceso->customername ?? ''
@@ -199,13 +200,13 @@ class AuditoriaProcesoController extends Controller
             $detectarPlanta = "Intimark2";
         }
         // Obtener los estilos únicos relacionados con el módulo seleccionado
-        $estilos = AuditoriaProceso::where('moduleid', $data['modulo'])
+        $estilos = JobAQL::where('moduleid', $data['modulo'])
                                     ->distinct('itemid')
                                     ->pluck('itemid');
 
         //dd($request->all(), $data); 
         // Obtener los estilos únicos relacionados con el módulo seleccionado
-        $estilosEmpaque = AuditoriaProceso::distinct('itemid')->pluck('itemid');
+        $estilosEmpaque = JobAQL::distinct('itemid')->pluck('itemid');
         // Obtener el estilo seleccionado
         $estiloSeleccionado = $request->input('estilo', '');
         // Actualizar $data con el nuevo estilo
@@ -376,7 +377,7 @@ class AuditoriaProcesoController extends Controller
     public function getModules()
     {
         $auditorPlanta = Auth::user()->Planta;
-        $modules = AuditoriaProceso::select('moduleid')
+        $modules = JobAQL::select('moduleid')
             ->distinct();
 
     if ($auditorPlanta == 'Planta1') {
@@ -442,7 +443,7 @@ class AuditoriaProcesoController extends Controller
         ];
         //dd($data);
         // Obtener los estilos únicos relacionados con el módulo seleccionado
-        $estilos = AuditoriaProceso::where('moduleid', $request->modulo)
+        $estilos = JobAQL::where('moduleid', $request->modulo)
                                     ->distinct('itemid')
                                     ->pluck('itemid');
 

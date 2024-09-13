@@ -475,7 +475,7 @@
                 <h3>Detalles de Proceso para Módulo {{ $item['modulo'] }}</h3>
             </div>
             <div class="custom-modal-body table-responsive">
-                <table class="table" id="tablaProcesoDetalle{{ $item['modulo'] }}">
+                <table class="table" id="tablaProcesoDetalleTE{{ $item['modulo'] }}">
                     <thead>
                         <tr>
                             <th>PARO</th>
