@@ -377,7 +377,7 @@ class AuditoriaProcesoController extends Controller
     public function getModules()
     {
         $auditorPlanta = Auth::user()->Planta;
-        $modules = JobAQL::select('moduleid')
+        $modules = AuditoriaProceso::select('moduleid')
             ->distinct();
 
     if ($auditorPlanta == 'Planta1') {
@@ -392,7 +392,7 @@ class AuditoriaProcesoController extends Controller
         return response()->json($modules);
     }
 
-    public function getNamesByModule(Request $request)
+    public function getNamesByModule(Request $request) 
     {
         $auditorPlanta = Auth::user()->Planta;
         $moduleName = $request->input('moduleid');

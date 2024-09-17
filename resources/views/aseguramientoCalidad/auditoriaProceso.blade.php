@@ -854,7 +854,7 @@
         }
 
         function loadNames() {
-            var moduleid = document.getElementById("module").value;
+            var moduleid = document.getElementById("module").value; 
             fetch("{{ route('modules.getNamesByModule') }}?moduleid=" + moduleid)
                 .then(response => response.json())
                 .then(data => {
