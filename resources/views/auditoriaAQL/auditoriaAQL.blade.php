@@ -300,19 +300,15 @@
                                                 </td>
                                                 <td class="ac-column"><input type="text" class="form-control" name="ac" id="ac" required></td>
                                                 <td class="nombre-column">
-                                                    <select name="nombre" id="nombre-varios" class="form-control" required> 
+                                                    <select name="nombre-none" id="nombreSelect" class="form-control"> 
                                                         <option value="">Selecciona una opción</option> 
-                                                        <!-- Mostrar los datos normales de $nombreProceso -->
                                                         @foreach($nombreProceso as $opcion)
                                                             <option value="{{ $opcion['name'] }}">{{ $opcion['name'] }}</option>
                                                         @endforeach
-                                                        <!-- Separador o encabezado para los datos de $utility -->
                                                         <option disabled>--- Utility ---</option>
-                                                        <!-- Mostrar los datos de $utility con un prefijo o identificación -->
                                                         @foreach($utility as $opcion)
                                                             <option value="{{ $opcion['nombre'] }}">{{ $opcion['nombre'] }}</option>
                                                         @endforeach
-                                                        <!-- Separador o encabezado para los nombres agrupados por módulo -->
                                                         @foreach($nombrePorModulo as $moduleid => $nombres)
                                                             <option disabled>--- Módulo {{ $moduleid }} ---</option>
                                                             @foreach($nombres as $opcion)
@@ -320,6 +316,8 @@
                                                             @endforeach
                                                         @endforeach
                                                     </select> 
+                                                    <div id="selectedOptionsContainerNombre" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
+                                                    <input type="hidden" name="nombre" id="nombreHidden">
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -847,6 +845,14 @@
                 width: 'resolve'
             });
         });
+        $(document).ready(function() {
+            // Inicializar el select2
+            $('#nombreSelect').select2({
+                placeholder: 'Seleccione una opcion',
+                allowClear: true,
+                width: 'resolve'
+            });
+        });
     </script>
     <script>
         $(document).ready(function() {
@@ -1069,4 +1075,57 @@
         });
     </script>
 
+    <script>
+        let optionCountNombre = 0;
+        let selectedOptionsNombre = [];
+        
+        function addSelectedOptionNombre(optionText) {
+            let container = $('#selectedOptionsContainerNombre');
+            optionCountNombre++;
+            let newOptionId = `selected-option-nombre-${optionCountNombre}`;
+            
+            // Crear el div para la nueva opción
+            let newOption = $('<div class="selected-option">').text(optionText);
+            newOption.attr('id', newOptionId);
+            
+            // Crear botón para eliminar
+            let removeButton = $('<button type="button" class="btn btn-danger btn-sm ml-2">').text('Eliminar');
+            removeButton.on('click', function() {
+                newOption.remove();
+                selectedOptionsNombre = selectedOptionsNombre.filter(item => item !== optionText);
+                updateHiddenInput();
+                checkContainerValidityNombre();
+            });
+            newOption.append(removeButton);
+        
+            // Añadir la nueva opción al contenedor
+            container.append(newOption);
+        
+            // Actualizar el array de opciones seleccionadas
+            selectedOptionsNombre.push(optionText);
+            updateHiddenInput();
+        
+            checkContainerValidityNombre();
+        }
+        
+        function updateHiddenInput() {
+            $('#nombreHidden').val(selectedOptionsNombre.join(', '));
+        }
+        
+        function checkContainerValidityNombre() {
+            let container = $('#selectedOptionsContainerNombre');
+            let isValid = container.children('.selected-option').length > 0;
+            container.toggleClass('is-invalid', !isValid);
+        }
+        
+        $(document).ready(function() {
+            $('#nombreSelect').on('change', function() {
+                let selectedOption = $(this).find('option:selected');
+                if (selectedOption.val() !== '') {
+                    addSelectedOptionNombre(selectedOption.text());
+                    $(this).val(''); // Resetear el select
+                }
+            });
+        });
+    </script>
 @endsection

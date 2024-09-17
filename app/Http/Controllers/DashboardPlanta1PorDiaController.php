@@ -355,8 +355,15 @@ class DashboardPlanta1PorDiaController extends Controller
             $conteoOperario = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
                 ->where('tiempo_extra', $tiempoExtra)
-                ->distinct()
-                ->count('nombre');
+                ->whereNotNull('nombre')
+                ->where('nombre', '!=', '')
+                ->select(DB::raw('
+                    SUM(
+                        CHAR_LENGTH(nombre) - CHAR_LENGTH(REPLACE(nombre, ",", "")) + 1
+                    ) as total_nombres
+                '))
+                ->first()
+                ->total_nombres ?? 0;
 
             $conteoMinutos = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
