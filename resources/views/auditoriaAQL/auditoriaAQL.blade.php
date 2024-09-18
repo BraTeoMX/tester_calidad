@@ -1078,7 +1078,6 @@
     <script>
         let optionCountNombre = 0;
         let selectedOptionsNombre = [];
-        
         function addSelectedOptionNombre(optionText) {
             let container = $('#selectedOptionsContainerNombre');
             optionCountNombre++;
@@ -1097,33 +1096,74 @@
                 checkContainerValidityNombre();
             });
             newOption.append(removeButton);
-        
+
             // Añadir la nueva opción al contenedor
             container.append(newOption);
-        
+
             // Actualizar el array de opciones seleccionadas
             selectedOptionsNombre.push(optionText);
             updateHiddenInput();
-        
+
             checkContainerValidityNombre();
         }
-        
+
         function updateHiddenInput() {
             $('#nombreHidden').val(selectedOptionsNombre.join(', '));
         }
-        
+
         function checkContainerValidityNombre() {
             let container = $('#selectedOptionsContainerNombre');
             let isValid = container.children('.selected-option').length > 0;
             container.toggleClass('is-invalid', !isValid);
         }
-        
+
+        function updateNombreVisibility() {
+            const cantidadRechazada = parseInt($('#cantidad_rechazada').val()) || 0;
+            const shouldShow = cantidadRechazada > 0;
+            $('.nombre-column').toggle(shouldShow);
+
+            if (cantidadRechazada === 0) {
+                $('#selectedOptionsContainerNombre').removeClass('is-invalid').removeAttr('required');
+                $('#selectedOptionsContainerNombre').empty();
+                $('#nombreSelect').prop('disabled', true);
+            } else {
+                $('#selectedOptionsContainerNombre').attr('required', 'required');
+                $('#nombreSelect').prop('disabled', false);
+            }
+            checkContainerValidityNombre();
+        }
+
         $(document).ready(function() {
             $('#nombreSelect').on('change', function() {
                 let selectedOption = $(this).find('option:selected');
                 if (selectedOption.val() !== '') {
                     addSelectedOptionNombre(selectedOption.text());
                     $(this).val(''); // Resetear el select
+                }
+            });
+
+            // Asumiendo que el campo cantidad_rechazada tiene el id 'cantidad_rechazada'
+            $('#cantidad_rechazada').on('input', updateNombreVisibility);
+
+            // Llamar a updateNombreVisibility al cargar la página para establecer el estado inicial
+            updateNombreVisibility();
+
+            // Modificar la validación al enviar el formulario
+            $('#miFormularioAQL').on('submit', function(e) {
+                const cantidadRechazada = parseInt($('#cantidad_rechazada').val()) || 0;
+                let container = $('#selectedOptionsContainerNombre');
+                let selectedOptionsCount = container.children('.selected-option').length;
+
+                if (cantidadRechazada > 0) {
+                    if (selectedOptionsCount === 0) {
+                        e.preventDefault();
+                        alert('Debe seleccionar al menos un nombre cuando la cantidad rechazada es mayor que 0.');
+                        container.addClass('is-invalid');
+                    } else {
+                        container.removeClass('is-invalid');
+                    }
+                } else {
+                    $('#nombreSelect').removeAttr('required');
                 }
             });
         });

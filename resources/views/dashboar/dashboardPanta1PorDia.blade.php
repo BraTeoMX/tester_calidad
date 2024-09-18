@@ -307,7 +307,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table tablesorter" id="tablaAQLGeneralTE">
+                        <table class="table" id="tablaAQLGeneralTE">
                             <thead class=" text-primary">
                                 <tr>
                                     <th>Modulo (AQL)</th>
