@@ -267,44 +267,70 @@
                                         <br>
                                         <hr>
                                         <div class="table-responsive">
-                                            <p>CANTIDADES ABSOLUTAS</p>
-                                            <table class="table">
-                                                <tbody>
+                                            <p>CANTIDADES ABSOLUTAS</p> <button class="btn btn-link" id="agregarColumnaCantidadAbsoluta">Agregar Columna</button>
+                                            <table id="tablaDinamica" class="table">
+                                                <thead>
                                                     <tr>
-                                                        <td>Tallas</td>
-                                                        @for ($i = 1; $i <= 6; $i++)
-                                                        <td>
-                                                            <select name="talla{{ $i }}" class="form-control">
+                                                        <th>Tallas</th>
+                                                        <th>
+                                                            <select name="talla1" class="form-control">
                                                                 <option value="">Selecciona una talla</option>
                                                                 @foreach ($auditoriaMarcadaTalla as $sizename)
-                                                                    <option value="{{ $sizename }}" {{ isset($auditoriaMarcada) && $auditoriaMarcada->{'talla'.$i} == $sizename ? 'selected' : '' }}>
-                                                                        {{ $sizename }}
-                                                                    </option>
+                                                                    <option value="{{ $sizename }}">{{ $sizename }}</option>
                                                                 @endforeach
                                                             </select>
-                                                        </td>
-                                                        @endfor
+                                                        </th>
                                                     </tr>
+                                                </thead>
+                                                <tbody>
                                                     <tr>
                                                         <td># Bultos</td>
-                                                        @for ($i = 1; $i <= 6; $i++)
-                                                        <td>
-                                                            <input type="number" class="form-control" name="bulto{{ $i }}"
-                                                                value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->{'bulto'.$i} : '' }}" />
-                                                        </td>
-                                                        @endfor
+                                                        <td><input type="number" class="form-control" name="bulto1" value="" /></td>
                                                     </tr>
                                                     <tr>
                                                         <td>Total Piezas</td>
-                                                        @for ($i = 1; $i <= 6; $i++)
-                                                        <td>
-                                                            <input type="number" class="form-control" name="total_pieza{{ $i }}"
-                                                                value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->{'total_pieza'.$i} : '' }}" />
-                                                        </td>
-                                                        @endfor
+                                                        <td><input type="number" class="form-control" name="total_pieza1" value="" /></td>
                                                     </tr>
                                                 </tbody>
                                             </table>
+                                        
+                                            <script>
+                                            $(document).ready(function() {
+                                                let columnCount = 1;
+                                                const tallas = @json($auditoriaMarcadaTalla);
+                                        
+                                                $('#agregarColumnaCantidadAbsoluta').click(function() {
+                                                    columnCount++;
+                                                    
+                                                    // Agregar nueva celda a cada fila
+                                                    $('#tablaDinamica tr').each(function(index) {
+                                                        if (index === 0) {
+                                                            // Primera fila (encabezado)
+                                                            let selectHtml = `
+                                                                <th>
+                                                                    <select name="talla${columnCount}" class="form-control">
+                                                                        <option value="">Selecciona una talla</option>`;
+                                                            
+                                                            tallas.forEach(function(talla) {
+                                                                selectHtml += `<option value="${talla}">${talla}</option>`;
+                                                            });
+                                                            
+                                                            selectHtml += `
+                                                                    </select>
+                                                                </th>`;
+                                                            
+                                                            $(this).append(selectHtml);
+                                                        } else if (index === 1) {
+                                                            // Segunda fila (# Bultos)
+                                                            $(this).append(`<td><input type="number" class="form-control" name="bulto${columnCount}" value="" /></td>`);
+                                                        } else if (index === 2) {
+                                                            // Tercera fila (Total Piezas)
+                                                            $(this).append(`<td><input type="number" class="form-control" name="total_pieza${columnCount}" value="" /></td>`);
+                                                        }
+                                                    });
+                                                });
+                                            });
+                                            </script>
                                         </div>
                                         <div class="table-responsive">
                                             <p>CANTIDADES PARCIALES</p>

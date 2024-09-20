@@ -1007,5 +1007,60 @@ class AuditoriaCorteController extends Controller
             'auditoriaMarcadaTalla' => $auditoriaMarcadaTalla,
             'auditorDato' => $auditorDato]));
     }
-    
+
+    public function formAuditoriaMarcadaV2(Request $request)
+    {
+        $pageSlug ='';
+        // Validar los datos del formulario si es necesario
+        // Obtener el ID seleccionado desde el formulario
+        $idSeleccionado = $request->input('id');
+        $idAuditoriaMarcada = $request->input('idAuditoriaMarcada');
+        //dd($idSeleccionado, $idAuditoriaMarcada);
+        $orden = $request->input('orden');
+        $accion = $request->input('accion'); // Obtener el valor del campo 'accion'
+        // Verificar la acción y actualizar el campo 'estatus' solo si se hizo clic en el botón "Finalizar"
+        //dd($accion);
+        if ($accion === 'finalizar') {
+            // Buscar la fila en la base de datos utilizando el modelo AuditoriaMarcada
+            $auditoria = AuditoriaCorteMarcada::findOrFail($idSeleccionado);
+
+            // Actualizar el valor de la columna deseada
+            $auditoria->estatus = 'estatusAuditoriaTendido';
+            $auditoria->save();
+            $auditoriaMarcadaEstatus = AuditoriaCorteMarcada::where('id', $idAuditoriaMarcada)->first();
+            $auditoriaMarcadaEstatus->estatus = 'estatusAuditoriaTendido';
+            // Asegúrate de llamar a save() en la variable actualizada
+            $auditoriaMarcadaEstatus->save();
+            $encabezadoAuditoriaCorteEstatus = EncabezadoAuditoriaCorteV2::where('id', $idAuditoriaMarcada)->first();
+            $encabezadoAuditoriaCorteEstatus->estatus = 'estatusAuditoriaTendido';
+            // Asegúrate de llamar a save() en la variable actualizada
+            $encabezadoAuditoriaCorteEstatus->save();
+            return back()->with('cambio-estatus', 'Se Cambio a estatus: AUDITORIA DE TENDIDO.')->with('pageSlug', $pageSlug);
+        }
+
+        $allChecked = trim($request->input('yarda_orden_estatus')) === "1";
+
+        $request->session()->put('estatus_checked_AuditoriaMarcada', $allChecked);
+        // Verificar si ya existe un registro con el mismo valor de orden_id
+        $existeOrden = AuditoriaCorteMarcada::where('id', $idAuditoriaMarcada)->first();
+
+        // Si ya existe un registro con el mismo valor de orden_id, puedes mostrar un mensaje de error o tomar alguna otra acción
+        if ($existeOrden) {
+            $existeOrden->yarda_orden = $request->input('yarda_orden');
+            $existeOrden->yarda_orden_estatus = $request->input('yarda_orden_estatus');
+            $existeOrden->tallas = $request->input('tallas');
+            $existeOrden->tallas_parciales = $request->input('tallas_parciales');
+            $existeOrden->bultos = $request->input('bultos');
+            $existeOrden->bultos_parciales = $request->input('bultos_parciales');
+            $existeOrden->total_piezas = $request->input('total_piezas');
+            $existeOrden->total_piezas_parciales = $request->input('total_piezas_parciales');
+            $existeOrden->largo_trazo =  $request->input('largo_trazo');
+            $existeOrden->ancho_trazo = $request->input('ancho_trazo');
+            $existeOrden->save();
+            
+            return back()->with('sobre-escribir', 'Actualilzacion realizada con exito');
+        }
+
+        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
+    }
 }
