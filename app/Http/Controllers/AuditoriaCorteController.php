@@ -24,6 +24,13 @@ use App\Models\Lectra;
 use App\Models\AuditoriaBulto;
 use App\Models\AuditoriaFinal;
 use App\Models\CategoriaAccionCorrectiva;
+//aqui incluire los nuevos modelos de la actualizacion v2
+use App\Models\EncabezadoAuditoriaCorteV2;
+use App\Models\AuditoriaCorteMarcada;
+use App\Models\AuditoriaCorteTendido;
+use App\Models\AuditoriaCorteLectra;
+use App\Models\AuditoriaCorteBulto;
+use App\Models\AuditoriaCorteFinal;
 
 use App\Exports\DatosExport; 
 use App\Models\DatoAX;
@@ -62,6 +69,28 @@ class AuditoriaCorteController extends Controller
                            ->get(),
             'DatoAXFin' => DatoAX::where('estatus', 'fin')->get(),
             'DatoAXRechazado' => DatoAX::where('estatus', 'rechazado')->get(),
+            'EncabezadoAuditoriaCorteFiltro' => EncabezadoAuditoriaCorte::all(),
+            'EncabezadoAuditoriaCorteFinal' => EncabezadoAuditoriaCorte::where('estatus', 'fin')->get(),
+            'auditoriasMarcadas' => AuditoriaMarcada::all(),
+            'CategoriaAccionCorrectiva' => CategoriaAccionCorrectiva::where('estado', 1)->where('area', '0')->get(),
+        ];
+    }
+
+    // Método privado para cargar las categorías
+    private function cargarCategoriasSinAX() {
+        return [ 
+            'CategoriaColor' => CategoriaColor::where('estado', 1)->get(),
+            'CategoriaEstilo' => CategoriaEstilo::where('estado', 1)->get(),
+            'CategoriaNoRecibo' => CategoriaNoRecibo::where('estado', 1)->get(),
+            'CategoriaTallaCantidad' => CategoriaTallaCantidad::where('estado', 1)->get(),
+            'CategoriaTamañoMuestra' => CategoriaTamañoMuestra::where('estado', 1)->get(),
+            'CategoriaMaterialRelajado' => CategoriaMaterialRelajado::where('estado', 1)->get(),
+            'CategoriaAuditor' => CategoriaAuditor::where('estado', 1)->get(),
+            'CategoriaTecnico' => CategoriaTecnico::where('estado', 1)->get(),
+            'CategoriaDefectoCorte' => CategoriaDefectoCorte::where('estado', 1)->get(),
+            'CategoriaDefectoCorteTendido' => CategoriaDefectoCorte::where('estado', 1)->where('area', "tendido")->get(),
+            'CategoriaDefectoCorteLectra' => CategoriaDefectoCorte::where('estado', 1)->where('area', "corte lectra")->get(),
+            'CategoriaDefectoCorteSellado' => CategoriaDefectoCorte::where('estado', 1)->where('area', "sellado")->get(),
             'EncabezadoAuditoriaCorteFiltro' => EncabezadoAuditoriaCorte::all(),
             'EncabezadoAuditoriaCorteFinal' => EncabezadoAuditoriaCorte::where('estatus', 'fin')->get(),
             'auditoriasMarcadas' => AuditoriaMarcada::all(),
@@ -832,4 +861,151 @@ class AuditoriaCorteController extends Controller
         return response()->json(['success' => true]);
     }
 
+    // Actualizacion registros corte
+    public function formEncabezadoAuditoriaCorteV2(Request $request)
+    {
+        $pageSlug ='';
+        // Validar los datos del formulario si es necesario
+        //$idSeleccionado = $request->input('id');
+        $orden = $request->input('orden');
+        $estilo = $request->input('estilo');
+        $planta = $request->input('planta');
+        $temporada = $request->input('temporada');
+        $cliente = $request->input('cliente');
+        $color = $request->input('color_id');
+        $eventoInicial = $request->input('evento');
+        $material = $request->input('material');
+        $pieza = $request->input('pieza');
+        $qtysched_id = $request->input('qtysched_id');
+        $trazo = $request->input('trazo');
+        $lienzo = $request->input('lienzo');
+        $total_evento = $request->input('total_evento');
+
+        //dd($request->all());
+
+        for ($i = 1; $i <= $total_evento; $i++) {
+            // Realizar la actualización en la base de datos
+            $auditoria= new EncabezadoAuditoriaCorteV2();
+            $auditoria->orden_id = $orden;
+            $auditoria->estilo_id = $estilo;
+            $auditoria->planta_id = $planta;
+            $auditoria->temporada_id = $temporada;
+            $auditoria->cliente_id = $cliente;
+            $auditoria->color_id = $color;
+            $auditoria->material = $material;
+            $auditoria->pieza = $pieza;
+            $auditoria->qtysched_id = $qtysched_id;
+            $auditoria->trazo = $trazo;
+            $auditoria->lienzo = $lienzo;
+            $auditoria->total_evento = $total_evento;
+            $auditoria->evento = $i;
+
+            if ($i == $eventoInicial) {
+                $auditoria->estatus = "estatusAuditoriaMarcada"; // Cambiar estatus solo para el primer registro
+            } else {
+                $auditoria->estatus = "proceso"; // Mantener el valor "proceso" para los demás registros
+            }
+            $auditoria->save();
+
+            //Aqui obtenemos el id del nuevo registro
+            $encabezado_id = $auditoria->id;
+
+            // Tabla AuditoriaMarcada
+            $auditoriaMarcada = new AuditoriaCorteMarcada();
+            $auditoriaMarcada->encabezado_id = $encabezado_id;
+            $auditoriaMarcada->evento = $i;
+            $auditoriaMarcada->save();
+
+            // Tabla AuditoriaTendido
+            $auditoriaTendido = new AuditoriaCorteTendido();
+            $auditoriaTendido->encabezado_id = $encabezado_id;
+            $auditoriaTendido->estatus = "proceso";
+            $auditoriaTendido->evento = $i;
+            $auditoriaTendido->save();
+
+            // Tabla Lectra
+            $lectra = new AuditoriaCorteLectra(); // Cambié el nombre a AuditoriaCorteLectra según el nuevo nombre de la tabla
+            $lectra->encabezado_id = $encabezado_id;
+            $lectra->evento = $i;
+            $lectra->save();
+
+            // Tabla AuditoriaBulto
+            $auditoriaBulto = new AuditoriaCorteBulto(); // Cambié el nombre a AuditoriaCorteBulto según el nuevo nombre de la tabla
+            $auditoriaBulto->encabezado_id = $encabezado_id;
+            $auditoriaBulto->estatus = "proceso";
+            $auditoriaBulto->evento = $i;
+            $auditoriaBulto->save();
+
+            // Tabla AuditoriaFinal
+            $auditoriaFinal = new AuditoriaCorteFinal(); // Cambié el nombre a AuditoriaCorteFinal según el nuevo nombre de la tabla
+            $auditoriaFinal->encabezado_id = $encabezado_id;
+            $auditoriaFinal->estatus = "proceso";
+            $auditoriaFinal->evento = $i;
+            $auditoriaFinal->save();
+
+            if ($i == $eventoInicial) {
+                $idEvento1 = $auditoriaMarcada->id;
+            }
+        }
+
+        return redirect()->route('auditoriaCorte.auditoriaCorteV2', ['id' => $idEvento1, 'orden' => $orden])->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
+    }
+
+    public function auditoriaCorteV2($id, $orden)
+    {
+        $pageSlug ='';
+        $categorias = $this->cargarCategoriasSinAX();
+        $auditorDato = Auth::user()->name;
+        $mesesEnEspanol = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+        // Obtener el registro correspondiente en la tabla AuditoriaMarcada si existe
+        $encabezadoAuditoriaCorte = EncabezadoAuditoriaCorteV2::where('id', $id)->first();
+        $auditoriaMarcada = AuditoriaCorteMarcada::where('id', $id)->first();
+        $auditoriaTendido = AuditoriaCorteTendido::where('id', $id)->first();
+        $Lectra = AuditoriaCorteLectra::where('id', $id)->first();
+        $auditoriaBulto = AuditoriaCorteBulto::where('id', $id)->first();
+        $auditoriaFinal = AuditoriaCorteFinal::where('id', $id)->first();
+        $auditoriaMarcadaTalla = DatoAX::where('op', $orden)
+            ->whereNotNull('sizename') // Descartar valores NULL
+            ->where('sizename', '<>', '') // Descartar valores vacíos
+            ->where('period', '>', '202312') 
+            ->select('sizename')
+            ->distinct()
+            ->pluck('sizename');
+
+        // apartado para validar los checbox
+
+        $mostrarFinalizarMarcada = $auditoriaMarcada ? session('estatus_checked_AuditoriaMarcada') : false;
+        
+        // Verifica si los campos específicos son NULL
+        if ($auditoriaMarcada && is_null($auditoriaMarcada->yarda_orden_estatus) &&
+            is_null($auditoriaMarcada->yarda_marcada_estatus) &&
+            is_null($auditoriaMarcada->yarda_tendido_estatus)) {
+            $mostrarFinalizarMarcada = false;
+        }
+        
+        //dd($auditoriaMarcada, $mostrarFinalizarMarcada);
+        $mostrarFinalizarTendido = $auditoriaTendido ? session('estatus_checked_AuditoriaTendido') : false;
+        $mostrarFinalizarLectra = $Lectra ? session('estatus_checked_Lectra') : false;
+        $mostrarFinalizarBulto = $auditoriaBulto ? session('estatus_checked_AuditoriaBulto') : false;
+        $mostrarFinalizarFinal = $auditoriaFinal ? session('estatus_checked_AuditoriaFinal') : false;
+        return view('auditoriaCorte.auditoriaCorteV2', array_merge($categorias, [
+            'mesesEnEspanol' => $mesesEnEspanol, 
+            'pageSlug' => $pageSlug,
+            'auditoriaMarcada' => $auditoriaMarcada,
+            'auditoriaTendido' => $auditoriaTendido,
+            'Lectra' => $Lectra, 
+            'auditoriaBulto' => $auditoriaBulto, 
+            'auditoriaFinal' => $auditoriaFinal,
+            'mostrarFinalizarMarcada' => $mostrarFinalizarMarcada,
+            'mostrarFinalizarTendido' => $mostrarFinalizarTendido,
+            'mostrarFinalizarLectra' => $mostrarFinalizarLectra,
+            'mostrarFinalizarBulto' => $mostrarFinalizarBulto,
+            'mostrarFinalizarFinal' => $mostrarFinalizarFinal,
+            'encabezadoAuditoriaCorte' => $encabezadoAuditoriaCorte,
+            'auditoriaMarcadaTalla' => $auditoriaMarcadaTalla,
+            'auditorDato' => $auditorDato]));
+    }
+    
 }

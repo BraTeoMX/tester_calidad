@@ -99,14 +99,13 @@
                         </tbody>
                     </table>
                 </div>
-                <form method="POST" action="{{ route('auditoriaCorte.formEncabezadoAuditoriaCorte') }}">
+                <form method="POST" action="{{ route('auditoriaCorte.formEncabezadoAuditoriaCorteV2') }}">
                     @csrf
                     <input type="hidden" name="orden" value="{{ $datoAX->op }}">
                     <input type="hidden" name="estilo" value="{{ $datoAX->estilo }}">
                     <input type="hidden" name="planta" value="{{ $datoAX->planta }}">
                     <input type="hidden" name="temporada" value="{{ $datoAX->temporada }}">
                     <input type="hidden" name="cliente" value="{{ $datoAX->custorname }}">
-                    <input type="hidden" name="color" value="{{ $datoAX->inventcolorid }}">
                     <input type="hidden" name="qtysched_id" value="{{ $datoAX->qtysched }}">
                     <!-- Desde aquí inicia la edición del código para mostrar el contenido -->
                     <div class="table-responsive">

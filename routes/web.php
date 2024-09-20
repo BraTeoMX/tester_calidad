@@ -95,6 +95,9 @@ Route::post('/formAuditoriaBulto', [AuditoriaCorteController::class, 'formAudito
 Route::post('/formAuditoriaFinal', [AuditoriaCorteController::class, 'formAuditoriaFinal'])->name('auditoriaCorte.formAuditoriaFinal');
 Route::post('/auditoriaCorte/agregarDefecto', [AuditoriaCorteController::class, 'agregarDefecto'])->name('auditoriaCorte.agregarDefecto');
 
+// actualizacion para corte
+Route::post('/formEncabezadoAuditoriaCorteV2', [AuditoriaCorteController::class, 'formEncabezadoAuditoriaCorteV2'])->name('auditoriaCorte.formEncabezadoAuditoriaCorteV2')->middleware('checkroleandplant1');
+Route::get('/auditoriaCorteV2/{id}/{orden}', [AuditoriaCorteController::class, 'auditoriaCorteV2'])->name('auditoriaCorte.auditoriaCorteV2')->middleware('checkroleandplant1');
 //fin aprtado Auditoria Corte
 
 //Inicio apartado para seccion Evaluacion corte
