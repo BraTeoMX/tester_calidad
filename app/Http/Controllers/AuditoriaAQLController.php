@@ -591,8 +591,8 @@ class AuditoriaAQLController extends Controller
              // Obtener el segundo y cuarto registro
             $segundoRegistro = AuditoriaAQL::whereDate('created_at', $fechaActual)
                 ->where('modulo', $request->modulo)
-                ->where('op', $request->op)
-                ->where('team_leader', $request->team_leader)
+                //->where('op', $request->op)
+                //->where('team_leader', $request->team_leader)
                 ->where('area', $request->area)
                 ->where('cantidad_rechazada', '>', 0)
                 ->orderBy('created_at', 'asc')
@@ -601,8 +601,8 @@ class AuditoriaAQLController extends Controller
 
             $cuartoRegistro = AuditoriaAQL::whereDate('created_at', $fechaActual)
                 ->where('modulo', $request->modulo)
-                ->where('op', $request->op)
-                ->where('team_leader', $request->team_leader)
+                //->where('op', $request->op)
+                //->where('team_leader', $request->team_leader)
                 ->where('area', $request->area)
                 ->where('cantidad_rechazada', '>', 0)
                 ->orderBy('created_at', 'asc')
