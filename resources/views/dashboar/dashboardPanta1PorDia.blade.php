@@ -388,6 +388,7 @@
                                     <th>% Error Proceso</th>
                                     <th>DEFECTOS</th>
                                     <th>ACCION CORRECTIVA</th>
+                                    <th>Operarios</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -410,6 +411,7 @@
                                         <td>{{ number_format($item['porcentaje_error_proceso'], 2) }}%</td>
                                         <td>{{ $item['defectosUnicos'] }}</td>
                                         <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
+                                        <td>{{ $item['operariosUnicos'] }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
