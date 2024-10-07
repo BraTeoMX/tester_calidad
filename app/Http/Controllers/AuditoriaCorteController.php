@@ -966,6 +966,7 @@ class AuditoriaCorteController extends Controller
         $Lectra = AuditoriaCorteLectra::where('encabezado_id', $id)->first();
         $auditoriaBulto = AuditoriaCorteBulto::where('encabezado_id', $id)->first();
         $auditoriaFinal = AuditoriaCorteFinal::where('encabezado_id', $id)->first();
+        //dd($encabezadoAuditoriaCorte, $auditoriaMarcada, $auditoriaTendido, $Lectra,  $auditoriaBulto, $auditoriaFinal);
         $auditoriaMarcadaTalla = DatoAX::where('op', $orden)
             ->whereNotNull('sizename') // Descartar valores NULL
             ->where('sizename', '<>', '') // Descartar valores vacíos
@@ -1038,4 +1039,84 @@ class AuditoriaCorteController extends Controller
 
         return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
+
+    public function formAuditoriaTendidoV2(Request $request)
+    {
+        $pageSlug ='';
+        // Validar los datos del formulario si es necesario
+        $idAuditoriaTendido = $request->input('idAuditoriaTendido');
+        $accion = $request->input('accion'); // Obtener el valor del campo 'accion'
+        //dd($idAuditoriaTendido);
+        
+        if ($accion === 'finalizar') {
+            $encabezadoAuditoriaCorteEstatus = EncabezadoAuditoriaCorteV2::where('id', $idAuditoriaTendido)->first();
+            $encabezadoAuditoriaCorteEstatus->estatus = 'estatusLectra';
+            // Asegúrate de llamar a save() en la variable actualizada
+            $encabezadoAuditoriaCorteEstatus->save();
+            return back()->with('cambio-estatus', 'Se Cambio a estatus: LECTRA.')->with('pageSlug', $pageSlug);
+        }
+
+        $allChecked = trim($request->input('codigo_material_estatus')) === "1" &&
+              trim($request->input('codigo_color_estatus')) === "1" &&
+              trim($request->input('informacion_trazo_estatus')) === "1" &&
+              trim($request->input('cantidad_lienzo_estatus')) === "1" &&
+              trim($request->input('longitud_tendido_estatus')) === "1" &&
+              trim($request->input('ancho_tendido_estatus')) === "1" &&
+              trim($request->input('material_relajado_estatus')) === "1" &&
+              trim($request->input('empalme_estatus')) === "1" &&
+              trim($request->input('cara_material_estatus')) === "1" &&
+              trim($request->input('tono_estatus')) === "1" &&
+              trim($request->input('yarda_marcada_estatus')) === "1";
+
+        $request->session()->put('estatus_checked_AuditoriaTendido', $allChecked);
+        // Verificar si ya existe un registro con el mismo valor de orden_id
+        $existeOrden = AuditoriaCorteTendido::where('encabezado_id', $idAuditoriaTendido)->first();
+        //dd($existeOrden);
+
+        // Si ya existe un registro con el mismo valor de orden_id, puedes mostrar un mensaje de error o tomar alguna otra acción
+        if ($existeOrden) {
+            $existeOrden->nombre = implode(',', $request->input('nombre'));
+            $existeOrden->mesa = $request->input('mesa');
+            $existeOrden->auditor = $request->input('auditor');
+            $existeOrden->codigo_material = $request->input('codigo_material');
+            $existeOrden->codigo_material_estatus = $request->input('codigo_material_estatus');
+            $existeOrden->codigo_color = $request->input('codigo_color');
+            $existeOrden->codigo_color_estatus = $request->input('codigo_color_estatus');
+            $existeOrden->informacion_trazo = $request->input('informacion_trazo');
+            $existeOrden->informacion_trazo_estatus = $request->input('informacion_trazo_estatus');
+            $existeOrden->cantidad_lienzo = $request->input('cantidad_lienzo');
+            $existeOrden->cantidad_lienzo_estatus = $request->input('cantidad_lienzo_estatus');
+            $existeOrden->longitud_tendido = $request->input('longitud_tendido');
+            $existeOrden->longitud_tendido_estatus = $request->input('longitud_tendido_estatus');
+            $existeOrden->ancho_tendido = $request->input('ancho_tendido');
+            $existeOrden->ancho_tendido_estatus = $request->input('ancho_tendido_estatus');
+            $existeOrden->material_relajado = $request->input('material_relajado');
+            $existeOrden->material_relajado_estatus = $request->input('material_relajado_estatus');
+            $existeOrden->empalme = $request->input('empalme');
+            $existeOrden->empalme_estatus = $request->input('empalme_estatus');
+            $existeOrden->cara_material = $request->input('cara_material');
+            $existeOrden->cara_material_estatus = $request->input('cara_material_estatus');
+            $existeOrden->tono = $request->input('tono');
+            $existeOrden->tono_estatus = $request->input('tono_estatus');
+            $existeOrden->alineacion_tendido = $request->input('alineacion_tendido');
+            $existeOrden->alineacion_tendido_estatus = "1";
+            $existeOrden->arruga_tendido = $request->input('arruga_tendido');
+            $existeOrden->arruga_tendido_estatus = "1";
+            $existeOrden->defecto_material = implode(',', $request->input('defecto_material'));
+            $existeOrden->yarda_marcada = $request->input('yarda_marcada'); 
+            $existeOrden->yarda_marcada_estatus = $request->input('yarda_marcada_estatus');
+            $existeOrden->accion_correctiva = $request->input('accion_correctiva');
+            $existeOrden->bio_tension = $request->input('bio_tension'); 
+            $existeOrden->velocidad = $request->input('velocidad'); 
+            //$existeOrden->libera_tendido = $request->input('libera_tendido');
+
+            $existeOrden->save();
+            //dd($existeOrden);
+            return back()->with('sobre-escribir', 'Actualilzacion realizada con exito');
+        }
+       
+        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug); 
+    } 
+
+
 }

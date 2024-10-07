@@ -234,7 +234,7 @@
                                 @elseif ($encabezadoAuditoriaCorte && $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaMarcada') 
                                 <form method="POST" action="{{ route('auditoriaCorte.formAuditoriaMarcadaV2') }}"> 
                                     @csrf
-                                    <input type="hidden" name="idAuditoriaMarcada" value="{{ $auditoriaMarcada->id }}">
+                                    <input type="hidden" name="idAuditoriaMarcada" value="{{ $auditoriaMarcada->encabezado_id }}">
                                     {{-- Campo oculto para el boton Finalizar --}}
                                     <input type="hidden" name="accion" value="">
                                     <div class="row">
@@ -631,10 +631,9 @@
                                     <p>-</p>
                                 @elseif ($encabezadoAuditoriaCorte && $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaTendido')
                                 <form method="POST"
-                                    action="{{ route('auditoriaCorte.formAuditoriaTendido') }}"> 
+                                    action="{{ route('auditoriaCorte.formAuditoriaTendidoV2') }}"> 
                                     @csrf
-                                    <input type="hidden" name="id" value="{{ $encabezadoAuditoriaCorte->id }}">
-                                    <input type="hidden" name="idAuditoriaTendido" value="{{ $auditoriaTendido->id }}">
+                                    <input type="hidden" name="idAuditoriaTendido" value="{{ $auditoriaTendido->encabezado_id }}">
                                     {{-- Campo oculto para el boton Finalizar --}}
                                     <input type="hidden" name="accion" value=""> 
                                     <div class="row">
@@ -1093,7 +1092,7 @@
                                             <button type="submit" class="btn btn-danger" disabled>Finalizar</button>
                                         @endif
                                     </div>
-                                </form>
+                                </form> 
                                 @elseif($encabezadoAuditoriaCorte && ($encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaMarcada' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaTendido' || $encabezadoAuditoriaCorte->estatus == 'estatusLectra' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaBulto' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaFinal' || $encabezadoAuditoriaCorte->estatus == 'fin'))
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
@@ -1576,8 +1575,7 @@
                                     action="{{ route('auditoriaCorte.formLectra') }}">
                                     @csrf
                                     <input type="hidden" name="id" value="{{ $encabezadoAuditoriaCorte->id }}">
-                                    <input type="hidden" name="idLectra" value="{{ $Lectra->id }}">
-                                    <input type="hidden" name="orden" value="{{ $datoAX->orden }}">
+                                    <input type="hidden" name="idLectra" value="{{ $Lectra->encabezado_id }}">
                                     {{-- Campo oculto para el boton Finalizar --}}
                                     <input type="hidden" name="accion" value="">
                                     <div class="row">
@@ -2259,8 +2257,7 @@
                                     action="{{ route('auditoriaCorte.formAuditoriaBulto') }}">
                                     @csrf
                                     <input type="hidden" name="id" value="{{ $encabezadoAuditoriaCorte->id }}">
-                                    <input type="hidden" name="idBulto" value="{{ $auditoriaBulto->id }}"> 
-                                    <input type="hidden" name="orden" value="{{ $datoAX->orden }}">
+                                    <input type="hidden" name="idBulto" value="{{ $auditoriaBulto->encabezado_id }}"> 
                                     {{-- Campo oculto para el boton Finalizar --}}
                                     <input type="hidden" name="accion" value="">
                                     <div class="row"> 
@@ -2612,8 +2609,7 @@
                                         action="{{ route('auditoriaCorte.formAuditoriaFinal') }}">
                                         @csrf
                                         <input type="hidden" name="id" value="{{ $encabezadoAuditoriaCorte->id }}">
-                                        <input type="hidden" name="idAuditoriaFinal" value="{{ $auditoriaFinal->id }}">
-                                        <input type="hidden" name="orden" value="{{ $datoAX->orden }}">
+                                        <input type="hidden" name="idAuditoriaFinal" value="{{ $auditoriaFinal->encabezado_id }}">
                                         {{-- Campo oculto para el boton Finalizar --}}
                                         <input type="hidden" name="accion" value="">
                                         <div class="row">
