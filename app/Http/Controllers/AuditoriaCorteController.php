@@ -961,11 +961,11 @@ class AuditoriaCorteController extends Controller
         ];
         // Obtener el registro correspondiente en la tabla AuditoriaMarcada si existe
         $encabezadoAuditoriaCorte = EncabezadoAuditoriaCorteV2::where('id', $id)->first();
-        $auditoriaMarcada = AuditoriaCorteMarcada::where('id', $id)->first();
-        $auditoriaTendido = AuditoriaCorteTendido::where('id', $id)->first();
-        $Lectra = AuditoriaCorteLectra::where('id', $id)->first();
-        $auditoriaBulto = AuditoriaCorteBulto::where('id', $id)->first();
-        $auditoriaFinal = AuditoriaCorteFinal::where('id', $id)->first();
+        $auditoriaMarcada = AuditoriaCorteMarcada::where('encabezado_id', $id)->first();
+        $auditoriaTendido = AuditoriaCorteTendido::where('encabezado_id', $id)->first();
+        $Lectra = AuditoriaCorteLectra::where('encabezado_id', $id)->first();
+        $auditoriaBulto = AuditoriaCorteBulto::where('encabezado_id', $id)->first();
+        $auditoriaFinal = AuditoriaCorteFinal::where('encabezado_id', $id)->first();
         $auditoriaMarcadaTalla = DatoAX::where('op', $orden)
             ->whereNotNull('sizename') // Descartar valores NULL
             ->where('sizename', '<>', '') // Descartar valores vacíos
@@ -976,16 +976,8 @@ class AuditoriaCorteController extends Controller
 
         // apartado para validar los checbox
 
-        $mostrarFinalizarMarcada = $auditoriaMarcada ? session('estatus_checked_AuditoriaMarcada') : false;
-        
-        // Verifica si los campos específicos son NULL
-        if ($auditoriaMarcada && is_null($auditoriaMarcada->yarda_orden_estatus) &&
-            is_null($auditoriaMarcada->yarda_marcada_estatus) &&
-            is_null($auditoriaMarcada->yarda_tendido_estatus)) {
-            $mostrarFinalizarMarcada = false;
-        }
-        
-        //dd($auditoriaMarcada, $mostrarFinalizarMarcada);
+        $mostrarFinalizarMarcada = $auditoriaMarcada ? session('estatus_checked_AuditoriaMarcada') : false; 
+        //dd($mostrarFinalizarMarcada);
         $mostrarFinalizarTendido = $auditoriaTendido ? session('estatus_checked_AuditoriaTendido') : false;
         $mostrarFinalizarLectra = $Lectra ? session('estatus_checked_Lectra') : false;
         $mostrarFinalizarBulto = $auditoriaBulto ? session('estatus_checked_AuditoriaBulto') : false;

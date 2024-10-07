@@ -265,6 +265,29 @@
                                         </div>
                                         <br>
                                         <hr>
+                                        <!-- Aquí parseamos los datos almacenados -->
+                                        @php
+                                            // Convertir las cadenas separadas por comas en arreglos
+                                            $tallas = isset($auditoriaMarcada->tallas) ? explode(',', $auditoriaMarcada->tallas) : [];
+                                            $tallasParciales = isset($auditoriaMarcada->tallas_parciales) ? explode(',', $auditoriaMarcada->tallas_parciales) : [];
+                                            $bultos = isset($auditoriaMarcada->bultos) ? explode(',', $auditoriaMarcada->bultos) : [];
+                                            $bultosParciales = isset($auditoriaMarcada->bultos_parciales) ? explode(',', $auditoriaMarcada->bultos_parciales) : [];
+                                            $totalPiezas = isset($auditoriaMarcada->total_piezas) ? explode(',', $auditoriaMarcada->total_piezas) : [];
+                                            $totalPiezasParciales = isset($auditoriaMarcada->total_piezas_parciales) ? explode(',', $auditoriaMarcada->total_piezas_parciales) : [];
+
+                                            // Determinar el número de columnas
+                                            $numColumns = max(count($tallas), count($bultos), count($totalPiezas), 1);
+                                            $numColumnsParciales = max(count($tallasParciales), count($bultosParciales), count($totalPiezasParciales), 1);
+
+                                            // Asegurar que todos los arreglos tengan la misma longitud
+                                            $tallas = array_pad($tallas, $numColumns, '');
+                                            $bultos = array_pad($bultos, $numColumns, '');
+                                            $totalPiezas = array_pad($totalPiezas, $numColumns, '');
+
+                                            $tallasParciales = array_pad($tallasParciales, $numColumnsParciales, '');
+                                            $bultosParciales = array_pad($bultosParciales, $numColumnsParciales, '');
+                                            $totalPiezasParciales = array_pad($totalPiezasParciales, $numColumnsParciales, '');
+                                        @endphp
                                         <!-- Tabla CANTIDADES ABSOLUTAS -->
                                         <div class="table-responsive">
                                             <p>CANTIDADES ABSOLUTAS</p> 
@@ -273,24 +296,30 @@
                                                 <thead>
                                                     <tr>
                                                         <th>Tallas</th>
-                                                        <th>
-                                                            <select name="tallas[0]" class="form-control">
-                                                                <option value="">Selecciona una talla</option>
-                                                                @foreach ($auditoriaMarcadaTalla as $sizename)
-                                                                    <option value="{{ $sizename }}">{{ $sizename }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </th>
+                                                        @for ($i = 0; $i < $numColumns; $i++)
+                                                            <th>
+                                                                <select name="tallas[{{ $i }}]" class="form-control">
+                                                                    <option value="">Selecciona una talla</option>
+                                                                    @foreach ($auditoriaMarcadaTalla as $sizename)
+                                                                        <option value="{{ $sizename }}" {{ $tallas[$i] == $sizename ? 'selected' : '' }}>{{ $sizename }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </th>
+                                                        @endfor
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <tr>
                                                         <td># Bultos</td>
-                                                        <td><input type="number" class="form-control" name="bultos[0]" value="" /></td>
+                                                        @for ($i = 0; $i < $numColumns; $i++)
+                                                            <td><input type="number" class="form-control" name="bultos[{{ $i }}]" value="{{ $bultos[$i] }}" /></td>
+                                                        @endfor
                                                     </tr>
                                                     <tr>
                                                         <td>Total Piezas</td>
-                                                        <td><input type="number" class="form-control" name="total_piezas[0]" value="" /></td>
+                                                        @for ($i = 0; $i < $numColumns; $i++)
+                                                            <td><input type="number" class="form-control" name="total_piezas[{{ $i }}]" value="{{ $totalPiezas[$i] }}" /></td>
+                                                        @endfor
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -304,24 +333,32 @@
                                                 <thead>
                                                     <tr>
                                                         <th>Tallas</th>
-                                                        <th>
-                                                            <select name="tallas_parciales[0]" class="form-control">
-                                                                <option value="">Selecciona una talla</option>
-                                                                @foreach ($auditoriaMarcadaTalla as $sizename)
-                                                                    <option value="{{ $sizename }}">{{ $sizename }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </th>
+                                                        @for ($i = 0; $i < $numColumnsParciales; $i++)
+                                                            <th>
+                                                                <select name="tallas_parciales[{{ $i }}]" class="form-control">
+                                                                    <option value="">Selecciona una talla</option>
+                                                                    @foreach ($auditoriaMarcadaTalla as $sizename)
+                                                                        <option value="{{ $sizename }}" {{ $tallasParciales[$i] == $sizename ? 'selected' : '' }}>{{ $sizename }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </th>
+                                                        @endfor
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <tr>
                                                         <td># Bultos</td>
-                                                        <td><input type="number" class="form-control" name="bultos_parciales[0]" value="" /></td>
+                                                        @for ($i = 0; $i < $numColumnsParciales; $i++)
+                                                            <td>
+                                                                <input type="number" class="form-control" name="bultos_parciales[{{ $i }}]" value="1" readonly />
+                                                            </td>
+                                                        @endfor
                                                     </tr>
                                                     <tr>
                                                         <td>Total Piezas</td>
-                                                        <td><input type="number" class="form-control" name="total_piezas_parciales[0]" value="" /></td>
+                                                        @for ($i = 0; $i < $numColumnsParciales; $i++)
+                                                            <td><input type="number" class="form-control" name="total_piezas_parciales[{{ $i }}]" value="{{ $totalPiezasParciales[$i] }}" /></td>
+                                                        @endfor
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -358,15 +395,15 @@
                                     </div>
                                     <script>
                                         $(document).ready(function() {
-                                            let columnCount = 1;
-                                            let columnParcialCount = 1;
+                                            let columnCount = {{ $numColumns }};
+                                            let columnParcialCount = {{ $numColumnsParciales }};
                                             const tallas = @json($auditoriaMarcadaTalla);
                                             
                                             // Agregar columna para CANTIDADES ABSOLUTAS
                                             $('#agregarColumnaCantidadAbsoluta').click(function(event) {
                                                 event.preventDefault(); // Evitar envío del formulario
                                                 columnCount++;
-                                        
+                                    
                                                 // Agregar nueva celda a cada fila
                                                 $('#tablaDinamica tr').each(function(index) {
                                                     if (index === 0) {
@@ -394,12 +431,12 @@
                                                     }
                                                 });
                                             });
-                                        
+                                    
                                             // Agregar columna para CANTIDADES PARCIALES
                                             $('#agregarColumnaCantidadParcial').click(function(event) {
                                                 event.preventDefault(); // Evitar envío del formulario
                                                 columnParcialCount++;
-                                        
+                                    
                                                 // Agregar nueva celda a cada fila
                                                 $('#tablaParcialesDinamica tr').each(function(index) {
                                                     if (index === 0) {
@@ -420,7 +457,7 @@
                                                         $(this).append(selectHtml);
                                                     } else if (index === 1) {
                                                         // Segunda fila (# Bultos)
-                                                        $(this).append(`<td><input type="number" class="form-control" name="bultos_parciales[${columnParcialCount - 1}]" value="" /></td>`);
+                                                        $(this).append(`<td><input type="number" class="form-control" name="bultos_parciales[${columnParcialCount - 1}]" value="1" readonly /></td>`);
                                                     } else if (index === 2) {
                                                         // Tercera fila (Total Piezas)
                                                         $(this).append(`<td><input type="number" class="form-control" name="total_piezas_parciales[${columnParcialCount - 1}]" value="" /></td>`);
@@ -428,7 +465,7 @@
                                                 });
                                             });
                                         });
-                                    </script>
+                                    </script>                                    
                                 </form>
                                 {{-- Fin cuerpo acordeon --}}
                                 @elseif($encabezadoAuditoriaCorte && ($encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaMarcada' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaTendido' || $encabezadoAuditoriaCorte->estatus == 'estatusLectra' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaBulto' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaFinal' || $encabezadoAuditoriaCorte->estatus == 'fin'))  
@@ -598,7 +635,6 @@
                                     @csrf
                                     <input type="hidden" name="id" value="{{ $encabezadoAuditoriaCorte->id }}">
                                     <input type="hidden" name="idAuditoriaTendido" value="{{ $auditoriaTendido->id }}">
-                                    <input type="hidden" name="orden" value="{{ $datoAX->orden }}">
                                     {{-- Campo oculto para el boton Finalizar --}}
                                     <input type="hidden" name="accion" value=""> 
                                     <div class="row">
