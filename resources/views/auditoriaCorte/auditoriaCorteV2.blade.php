@@ -2314,7 +2314,7 @@
                                     <p>-</p>
                                 @elseif($encabezadoAuditoriaCorte && $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaBulto')
                                 <form method="POST"
-                                    action="{{ route('auditoriaCorte.formAuditoriaBulto') }}">
+                                    action="{{ route('auditoriaCorte.formAuditoriaBultoV2') }}">
                                     @csrf
                                     <input type="hidden" name="id" value="{{ $encabezadoAuditoriaCorte->id }}">
                                     <input type="hidden" name="idBulto" value="{{ $auditoriaBulto->encabezado_id }}"> 

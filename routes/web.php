@@ -101,6 +101,8 @@ Route::get('/auditoriaCorteV2/{id}/{orden}', [AuditoriaCorteController::class, '
 Route::post('/formAuditoriaMarcadaV2', [AuditoriaCorteController::class, 'formAuditoriaMarcadaV2'])->name('auditoriaCorte.formAuditoriaMarcadaV2');
 Route::post('/formAuditoriaTendidoV2', [AuditoriaCorteController::class, 'formAuditoriaTendidoV2'])->name('auditoriaCorte.formAuditoriaTendidoV2');
 Route::post('/formLectraV2', [AuditoriaCorteController::class, 'formLectraV2'])->name('auditoriaCorte.formLectraV2');
+Route::post('/formAuditoriaBultoV2', [AuditoriaCorteController::class, 'formAuditoriaBultoV2'])->name('auditoriaCorte.formAuditoriaBultoV2');
+Route::post('/formAuditoriaFinalV2', [AuditoriaCorteController::class, 'formAuditoriaFinalV2'])->name('auditoriaCorte.formAuditoriaFinalV2');
 //fin aprtado Auditoria Corte
 
 //Inicio apartado para seccion Evaluacion corte

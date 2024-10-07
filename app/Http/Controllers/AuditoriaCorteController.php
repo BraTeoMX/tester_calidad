@@ -1170,4 +1170,103 @@ class AuditoriaCorteController extends Controller
         return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
+    public function formAuditoriaBultoV2(Request $request)
+    {
+        $pageSlug ='';
+        $idBulto = $request->input('idBulto');
+        $accion = $request->input('accion'); // Obtener el valor del campo 'accion'
+        //dd($request->input());
+        if ($accion === 'finalizar') {
+            
+            $encabezadoAuditoriaCorteEstatus = EncabezadoAuditoriaCorteV2::where('id', $idBulto)->first();
+            $encabezadoAuditoriaCorteEstatus->estatus = 'estatusAuditoriaFinal';
+            // Asegúrate de llamar a save() en la variable actualizada
+            $encabezadoAuditoriaCorteEstatus->save();
+            return back()->with('cambio-estatus', 'Se Cambio a estatus: AUDITORIA FINAL.')->with('pageSlug', $pageSlug);
+        }
+
+        // Verificar si todos los checkboxes tienen el valor deseado
+        $allChecked = trim($request->input('ingreso_ticket_estatus')) === "1" &&
+              trim($request->input('sellado_paquete_estatus')) === "1";
+
+        $request->session()->put('estatus_checked_AuditoriaBulto', $allChecked);
+
+        // Verificar si ya existe un registro con el mismo valor de orden_id
+        $existeOrden = AuditoriaCorteBulto::where('encabezado_id', $idBulto)->first();
+        //dd($existeOrden);
+        // Si ya existe un registro con el mismo valor de orden_id, puedes mostrar un mensaje de error o tomar alguna otra acción
+        if ($existeOrden) {
+            $existeOrden->nombre = implode(',', $request->input('nombre'));
+            $existeOrden->mesa = $request->input('mesa');
+            $existeOrden->auditor = $request->input('auditor');
+            $existeOrden->cantidad_bulto = $request->input('cantidad_bulto');
+            $existeOrden->pieza_paquete = $request->input('pieza_paquete');
+            $existeOrden->ingreso_ticket = $request->input('ingreso_ticket');
+            $existeOrden->ingreso_ticket_estatus = $request->input('ingreso_ticket_estatus');
+            $existeOrden->sellado_paquete = $request->input('sellado_paquete');
+            $existeOrden->sellado_paquete_estatus = $request->input('sellado_paquete_estatus');
+            $existeOrden->defecto = $request->input('defecto');
+            $existeOrden->cantidad_defecto = $request->input('cantidad_defecto');
+            $existeOrden->porcentaje = $request->input('porcentaje');
+
+        
+            $existeOrden->save();
+            //dd($existeOrden);
+            return back()->with('sobre-escribir', 'Actualilzacion realizada con exito');
+        }
+
+        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
+    }
+
+    public function formAuditoriaFinalV2(Request $request)
+    {
+        $pageSlug ='';
+        // Validar los datos del formulario si es necesario
+        // Obtener el ID seleccionado desde el formulario
+        $idSeleccionado = $request->input('id');
+        $idAuditoriaFinal = $request->input('idAuditoriaFinal');
+        $orden = $request->input('orden');
+        $accion = $request->input('accion'); // Obtener el valor del campo 'accion'
+        
+
+        if ($accion === 'finalizar') {
+            // Buscar la fila en la base de datos utilizando el modelo AuditoriaMarcada
+            $auditoria = DatoAX::findOrFail($idSeleccionado);
+
+            // Actualizar el valor de la columna deseada
+            $auditoria->estatus = 'fin';
+            $auditoria->save();
+            $auditoriaFinal = AuditoriaFinal::where('id', $idAuditoriaFinal)->first();
+            $auditoriaFinal->estatus = 'fin';
+            // Asegúrate de llamar a save() en la variable actualizada
+            $auditoriaFinal->save();
+
+            $encabezadoAuditoriaCorteEstatus = EncabezadoAuditoriaCorte::where('id', $idAuditoriaFinal)->first();
+            $encabezadoAuditoriaCorteEstatus->estatus = 'fin';
+            // Asegúrate de llamar a save() en la variable actualizada
+            $encabezadoAuditoriaCorteEstatus->save();
+            return back()->with('cambio-estatus', 'Fin 👋.')->with('pageSlug', $pageSlug);
+        }
+
+        
+        // Verificar si ya existe un registro con el mismo valor de orden_id
+        $existeOrden = AuditoriaFinal::where('id', $idAuditoriaFinal)->first();
+        // Verificar si todos los checkboxes tienen el valor de "1"
+        $allChecked = trim($request->input('aceptado_rechazado')) === "1";
+        // Guardar el estado del checkbox en la sesión
+        $request->session()->put('estatus_checked_AuditoriaFinal', $allChecked);
+        // Si ya existe un registro con el mismo valor de orden_id, puedes mostrar un mensaje de error o tomar alguna otra acción
+        if ($existeOrden) {
+            //$existeOrden->supervisor_corte = $request->input('supervisor_corte');
+            $existeOrden->aceptado_condicion = $request->input('aceptado_condicion');
+            $existeOrden->aceptado_rechazado = $request->input('aceptado_rechazado');
+            
+            $existeOrden->save();
+            //dd($existeOrden);
+            
+            return back()->with('sobre-escribir', 'Actualilzacion realizada con exito');
+        }
+
+        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
+    }
 }
