@@ -288,7 +288,7 @@
                                             $bultosParciales = array_pad($bultosParciales, $numColumnsParciales, '');
                                             $totalPiezasParciales = array_pad($totalPiezasParciales, $numColumnsParciales, '');
                                         @endphp
-                                        <!-- Tabla CANTIDADES ABSOLUTAS -->
+                                        <!-- Tabla CANTIDADES ABSOLUTAS --> 
                                         <div class="table-responsive">
                                             <p>CANTIDADES ABSOLUTAS</p> 
                                             <button class="btn btn-link" id="agregarColumnaCantidadAbsoluta">Agregar Columna</button> 
@@ -493,93 +493,83 @@
                                         </div>
                                         <br>
                                         <hr>
+                                        @php
+                                            // Convertir las cadenas separadas por comas en arreglos para CANTIDADES ABSOLUTAS
+                                            $tallas = isset($auditoriaMarcada->tallas) ? explode(',', $auditoriaMarcada->tallas) : [];
+                                            $bultos = isset($auditoriaMarcada->bultos) ? explode(',', $auditoriaMarcada->bultos) : [];
+                                            $totalPiezas = isset($auditoriaMarcada->total_piezas) ? explode(',', $auditoriaMarcada->total_piezas) : [];
+
+                                            // Convertir las cadenas separadas por comas en arreglos para CANTIDADES PARCIALES
+                                            $tallasParciales = isset($auditoriaMarcada->tallas_parciales) ? explode(',', $auditoriaMarcada->tallas_parciales) : [];
+                                            $bultosParciales = isset($auditoriaMarcada->bultos_parciales) ? explode(',', $auditoriaMarcada->bultos_parciales) : [];
+                                            $totalPiezasParciales = isset($auditoriaMarcada->total_piezas_parciales) ? explode(',', $auditoriaMarcada->total_piezas_parciales) : [];
+
+                                            // Determinar el número de columnas para cada tabla
+                                            $numColumns = max(count($tallas), count($bultos), count($totalPiezas), 1);
+                                            $numColumnsParciales = max(count($tallasParciales), count($bultosParciales), count($totalPiezasParciales), 1);
+                                        @endphp
                                         <div class="table-responsive">
                                             <p>CANTIDADES ABSOLUTAS</p>
                                             <table class="table">
-                                                <tbody>
+                                                <thead>
                                                     <tr>
-                                                        <td>Tallas</td>
-                                                        @for ($i = 1; $i <= 6; $i++)
-                                                        <td>
-                                                            @if (isset($auditoriaMarcada))
-                                                                <input type="text" class="form-control texto-blanco" value="{{ $auditoriaMarcada->{'talla'.$i} }}" readonly />
-                                                            @else
-                                                                <select name="talla{{ $i }}" class="form-control">
-                                                                    <option value="">Selecciona una talla</option>
-                                                                    @foreach ($auditoriaMarcadaTalla as $sizename)
-                                                                        <option value="{{ $sizename }}" {{ isset($auditoriaMarcada) && $auditoriaMarcada->{'talla'.$i} == $sizename ? 'selected' : '' }}>
-                                                                            {{ $sizename }}
-                                                                        </option>
-                                                                    @endforeach
-                                                                </select>
-                                                            @endif
-                                                        </td>
+                                                        <th>Tallas</th>
+                                                        @for ($i = 0; $i < $numColumns; $i++)
+                                                            <th>
+                                                                <input type="text" class="form-control texto-blanco" value="{{ $tallas[$i] ?? '' }}" readonly />
+                                                            </th>
                                                         @endfor
                                                     </tr>
+                                                </thead>
+                                                <tbody>
                                                     <tr>
                                                         <td># Bultos</td>
-                                                        @for ($i = 1; $i <= 6; $i++)
-                                                        <td>
-                                                            <input type="number" class="form-control texto-blanco" name="bulto{{ $i }}"
-                                                                value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->{'bulto'.$i} : '' }}"
-                                                                {{ isset($auditoriaMarcada) ? 'readonly' : '' }} />
-                                                        </td>
+                                                        @for ($i = 0; $i < $numColumns; $i++)
+                                                            <td>
+                                                                <input type="number" class="form-control texto-blanco" value="{{ $bultos[$i] ?? '' }}" readonly />
+                                                            </td>
                                                         @endfor
                                                     </tr>
                                                     <tr>
                                                         <td>Total Piezas</td>
-                                                        @for ($i = 1; $i <= 6; $i++)
-                                                        <td>
-                                                            <input type="number" class="form-control texto-blanco" name="total_pieza{{ $i }}"
-                                                                value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->{'total_pieza'.$i} : '' }}"
-                                                                {{ isset($auditoriaMarcada) ? 'readonly' : '' }} />
-                                                        </td>
+                                                        @for ($i = 0; $i < $numColumns; $i++)
+                                                            <td>
+                                                                <input type="number" class="form-control texto-blanco" value="{{ $totalPiezas[$i] ?? '' }}" readonly />
+                                                            </td>
                                                         @endfor
                                                     </tr>
                                                 </tbody>
                                             </table>
                                         </div>
+                                        
                                         <div class="table-responsive">
                                             <p>CANTIDADES PARCIALES</p>
                                             <table class="table">
-                                                <tbody>
+                                                <thead>
                                                     <tr>
-                                                        <td>Tallas</td>
-                                                        @for ($i = 1; $i <= 6; $i++)
-                                                        <td>
-                                                            @if (isset($auditoriaMarcada))
-                                                                <input type="text" class="form-control texto-blanco" value="{{ $auditoriaMarcada->{'talla_parcial'.$i} }}" readonly />
-                                                            @else
-                                                                <select name="talla_parcial{{ $i }}" class="form-control">
-                                                                    <option value="">Selecciona una talla</option>
-                                                                    @foreach ($auditoriaMarcadaTalla as $sizename)
-                                                                        <option value="{{ $sizename }}" {{ isset($auditoriaMarcada) && $auditoriaMarcada->{'talla_parcial'.$i} == $sizename ? 'selected' : '' }}>
-                                                                            {{ $sizename }}
-                                                                        </option>
-                                                                    @endforeach
-                                                                </select>
-                                                            @endif
-                                                        </td>
+                                                        <th>Tallas</th>
+                                                        @for ($i = 0; $i < $numColumnsParciales; $i++)
+                                                            <th>
+                                                                <input type="text" class="form-control texto-blanco" value="{{ $tallasParciales[$i] ?? '' }}" readonly />
+                                                            </th>
                                                         @endfor
                                                     </tr>
+                                                </thead>
+                                                <tbody>
                                                     <tr>
                                                         <td># Bultos</td>
-                                                        @for ($i = 1; $i <= 6; $i++)
-                                                        <td>
-                                                            <input type="number" class="form-control texto-blanco" name="bulto_parcial{{ $i }}"
-                                                                value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->{'bulto_parcial'.$i} : '' }}"
-                                                                {{ isset($auditoriaMarcada) ? 'readonly' : '' }} />
-                                                        </td>
+                                                        @for ($i = 0; $i < $numColumnsParciales; $i++)
+                                                            <td>
+                                                                <input type="number" class="form-control texto-blanco" value="{{ $bultosParciales[$i] ?? '' }}" readonly />
+                                                            </td>
                                                         @endfor
                                                     </tr>
                                                     <tr>
                                                         <td>Total Piezas</td>
-                                                        @for ($i = 1; $i <= 6; $i++)
-                                                        <td>
-                                                            <input type="number"  class="form-control texto-blanco" name="total_pieza_parcial{{ $i }}"
-                                                                value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->{'total_pieza_parcial'.$i} : '' }}"
-                                                                {{ isset($auditoriaMarcada) ? 'readonly' : '' }} />
-                                                        </td>
+                                                        @for ($i = 0; $i < $numColumnsParciales; $i++)
+                                                            <td>
+                                                                <input type="number" class="form-control texto-blanco" value="{{ $totalPiezasParciales[$i] ?? '' }}" readonly />
+                                                            </td>
                                                         @endfor
                                                     </tr>
                                                 </tbody>
@@ -591,7 +581,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="largo_trazo" class="col-sm-3 col-form-label texto-blanco">Largo Trazo </label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="number" step="0.0001" class="form-control me-2"
+                                                <input type="number" step="0.0001" class="form-control me-2 texto-blanco"
                                                     name="largo_trazo" id="largo_trazo" placeholder="..."
                                                     value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->largo_trazo : '' }}"
                                                     {{ isset($auditoriaMarcada) ? 'readonly' : '' }}
@@ -601,7 +591,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="ancho_trazo" class="col-sm-3 col-form-label texto-blanco">Ancho Trazo </label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="number" step="0.0001" class="form-control me-2"
+                                                <input type="number" step="0.0001" class="form-control me-2 texto-blanco"
                                                     name="ancho_trazo" id="ancho_trazo" placeholder="..."
                                                     value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->ancho_trazo : '' }}"
                                                     {{ isset($auditoriaMarcada) ? 'readonly' : '' }}
@@ -2150,34 +2140,48 @@
                                     </div>
                                     <hr>
                                     <div class="row">
+                                        @php
+                                            // Obtener datos desde la variable $Lectra
+                                            $simetria_piezas = isset($Lectra) ? explode(',', $Lectra->simetria_piezas) : [];
+                                            $panel_x1 = isset($Lectra) ? explode(',', $Lectra->panel_x1) : [];
+                                            $panel_x2 = isset($Lectra) ? explode(',', $Lectra->panel_x2) : [];
+                                            $panel_y1 = isset($Lectra) ? explode(',', $Lectra->panel_y1) : [];
+                                            $panel_y2 = isset($Lectra) ? explode(',', $Lectra->panel_y2) : [];
+
+                                            // Determinar el número de filas con base en los datos obtenidos
+                                            $numFilas = max(count($simetria_piezas), count($panel_x1), count($panel_x2), count($panel_y1), count($panel_y2), 1);
+                                        @endphp
                                         <div class="table-responsive">
                                             <table class="table">
                                                 <thead>
                                                     <tr>
                                                         <th scope="col">Panel</th>
-                                                        <th scope="col">Simetria de piezas</th>
+                                                        <th scope="col">Simetría de piezas</th>
                                                         <th scope="col" colspan="2">X° ANCHO</th>
                                                         <th scope="col" colspan="2">Y° LARGO</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @for ($panel = 1; $panel <= 4; $panel++)
+                                                    <!-- Generar filas con datos de solo lectura -->
+                                                    @for ($i = 0; $i < $numFilas; $i++)
                                                         <tr>
-                                                            <th scope="row">Panel {{ $panel }}</th>
+                                                            <th scope="row">Panel {{ $i + 1 }}</th>
                                                             <td>
-                                                                <input type="text" class="form-control texto-blanco" name="simetria_pieza{{ $panel }}" id="simetria_pieza{{ $panel }}" placeholder="panel {{ $panel }}" value="{{ isset($Lectra) ? $Lectra->{'simetria_pieza'.$panel} : '' }}" readonly />
+                                                                <input type="text" class="form-control texto-blanco" value="{{ $simetria_piezas[$i] ?? '' }}" readonly />
+                                                            </td>
+                                                            <!-- Panel X -->
+                                                            <td>
+                                                                <input type="text" class="form-control texto-blanco" value="{{ $panel_x1[$i] ?? '' }}" readonly />
                                                             </td>
                                                             <td>
-                                                                <input type="text" class="form-control texto-blanco" value="{{ isset($Lectra) ? $Lectra->{'panel'.$panel.'_x1'} : '' }}" readonly />
+                                                                <input type="text" class="form-control texto-blanco" value="{{ $panel_x2[$i] ?? '' }}" readonly />
+                                                            </td>
+                                                            <!-- Panel Y -->
+                                                            <td>
+                                                                <input type="text" class="form-control texto-blanco" value="{{ $panel_y1[$i] ?? '' }}" readonly />
                                                             </td>
                                                             <td>
-                                                                <input type="text" class="form-control texto-blanco" value="{{ isset($Lectra) ? $Lectra->{'panel'.$panel.'_x2'} : '' }}" readonly />
-                                                            </td>
-                                                            <td>
-                                                                <input type="text" class="form-control texto-blanco" value="{{ isset($Lectra) ? $Lectra->{'panel'.$panel.'_y1'} : '' }}" readonly />
-                                                            </td>
-                                                            <td>
-                                                                <input type="text" class="form-control texto-blanco" value="{{ isset($Lectra) ? $Lectra->{'panel'.$panel.'_y2'} : '' }}" readonly />
+                                                                <input type="text" class="form-control texto-blanco" value="{{ $panel_y2[$i] ?? '' }}" readonly />
                                                             </td>
                                                         </tr>
                                                     @endfor
