@@ -1221,27 +1221,13 @@ class AuditoriaCorteController extends Controller
     public function formAuditoriaFinalV2(Request $request)
     {
         $pageSlug ='';
-        // Validar los datos del formulario si es necesario
-        // Obtener el ID seleccionado desde el formulario
-        $idSeleccionado = $request->input('id');
         $idAuditoriaFinal = $request->input('idAuditoriaFinal');
-        $orden = $request->input('orden');
         $accion = $request->input('accion'); // Obtener el valor del campo 'accion'
-        
+        //dd($idAuditoriaFinal);
 
         if ($accion === 'finalizar') {
-            // Buscar la fila en la base de datos utilizando el modelo AuditoriaMarcada
-            $auditoria = DatoAX::findOrFail($idSeleccionado);
-
-            // Actualizar el valor de la columna deseada
-            $auditoria->estatus = 'fin';
-            $auditoria->save();
-            $auditoriaFinal = AuditoriaFinal::where('id', $idAuditoriaFinal)->first();
-            $auditoriaFinal->estatus = 'fin';
-            // Asegúrate de llamar a save() en la variable actualizada
-            $auditoriaFinal->save();
-
-            $encabezadoAuditoriaCorteEstatus = EncabezadoAuditoriaCorte::where('id', $idAuditoriaFinal)->first();
+            
+            $encabezadoAuditoriaCorteEstatus = EncabezadoAuditoriaCorteV2::where('id', $idAuditoriaFinal)->first();
             $encabezadoAuditoriaCorteEstatus->estatus = 'fin';
             // Asegúrate de llamar a save() en la variable actualizada
             $encabezadoAuditoriaCorteEstatus->save();
@@ -1250,7 +1236,7 @@ class AuditoriaCorteController extends Controller
 
         
         // Verificar si ya existe un registro con el mismo valor de orden_id
-        $existeOrden = AuditoriaFinal::where('id', $idAuditoriaFinal)->first();
+        $existeOrden = AuditoriaCorteFinal::where('encabezado_id', $idAuditoriaFinal)->first();
         // Verificar si todos los checkboxes tienen el valor de "1"
         $allChecked = trim($request->input('aceptado_rechazado')) === "1";
         // Guardar el estado del checkbox en la sesión

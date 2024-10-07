@@ -2666,7 +2666,7 @@
                                 {{-- Inicio cuerpo acordeon --}}
                                 @if ($encabezadoAuditoriaCorte && $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaFinal')
                                     <form method="POST"
-                                        action="{{ route('auditoriaCorte.formAuditoriaFinal') }}">
+                                        action="{{ route('auditoriaCorte.formAuditoriaFinalV2') }}">
                                         @csrf
                                         <input type="hidden" name="id" value="{{ $encabezadoAuditoriaCorte->id }}">
                                         <input type="hidden" name="idAuditoriaFinal" value="{{ $auditoriaFinal->encabezado_id }}">
