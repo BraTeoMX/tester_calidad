@@ -1572,7 +1572,7 @@
                                     <p>-</p>
                                 @elseif($encabezadoAuditoriaCorte && $encabezadoAuditoriaCorte->estatus == 'estatusLectra') 
                                 <form method="POST"
-                                    action="{{ route('auditoriaCorte.formLectra') }}">
+                                    action="{{ route('auditoriaCorte.formLectraV2') }}">
                                     @csrf
                                     <input type="hidden" name="id" value="{{ $encabezadoAuditoriaCorte->id }}">
                                     <input type="hidden" name="idLectra" value="{{ $Lectra->encabezado_id }}">
@@ -1622,56 +1622,66 @@
                                         @php
                                             $options = ['-1', '-15/16', '-7/8', '-13/16', '-3/4', '-11/16', '-5/8', '-9/16', '-1/2', '-7/16', '-3/8', '-5/16', '-1/4', '-3/16', '-1/8', '-1/16', 
                                             '0', '+1/16', '+1/8', '+3/16', '+1/4', '+5/16', '+3/8', '+7/16', '+1/2', '+9/16', '+5/8', '+11/16', '+3/4', '+13/16', '+7/8', '+15/16', '+1'];
-                                            $paneles = ['DELANTERO', 'TRACERO', 'PARCHE', 'ADICIONAL'];
+                                            // Datos almacenados (simulados, aquí se deben cargar desde la variable $Lectra o similar)
+                                            $simetria_piezas = isset($Lectra) ? explode(',', $Lectra->simetria_piezas) : [];
+                                            $panel_x1 = isset($Lectra) ? explode(',', $Lectra->panel_x1) : [];
+                                            $panel_x2 = isset($Lectra) ? explode(',', $Lectra->panel_x2) : [];
+                                            $panel_y1 = isset($Lectra) ? explode(',', $Lectra->panel_y1) : [];
+                                            $panel_y2 = isset($Lectra) ? explode(',', $Lectra->panel_y2) : [];
+
+                                            // Número de filas existentes
+                                            $numFilas = max(count($simetria_piezas), count($panel_x1), count($panel_x2), count($panel_y1), count($panel_y2), 1);
                                         @endphp
                                         <div class="table-responsive">
-                                            <table class="table">
+                                            <button id="agregarFila" class="btn btn-link mb-2">Agregar Fila</button>
+                                            <table class="table" id="tablaPaneles">
                                                 <thead>
                                                     <tr>
                                                         <th scope="col">Panel</th>
-                                                        <th scope="col">Simetria de piezas</th>
+                                                        <th scope="col">Simetría de piezas</th>
                                                         <th scope="col" colspan="2">X° ANCHO</th>
                                                         <th scope="col" colspan="2">Y° LARGO</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @for ($panel = 1; $panel <= 4; $panel++)
+                                                    <!-- Generar filas existentes -->
+                                                    @for ($i = 0; $i < $numFilas; $i++)
                                                         <tr>
-                                                            <th scope="row">Panel {{ $panel }}</th>
+                                                            <th scope="row">Panel {{ $i + 1 }}</th>
                                                             <td>
-                                                                <input type="text" class="form-control texto-blanco" name="simetria_pieza{{ $panel }}" id="simetria_pieza{{ $panel }}" placeholder="panel {{ $panel }}" value="{{ isset($Lectra) ? $Lectra->{'simetria_pieza'.$panel} : '' }}" />
+                                                                <input type="text" class="form-control texto-blanco" name="simetria_piezas[]" placeholder="Panel {{ $i + 1 }}" value="{{ $simetria_piezas[$i] ?? '' }}" />
                                                             </td>
                                                             <!-- Panel X -->
                                                             <td>
-                                                                <select name="panel{{ $panel }}_x1" id="panel{{ $panel }}_x1" class="form-control" title="Por favor, selecciona una opción">
-                                                                    <option value="">Rango Inicial </option>
+                                                                <select name="panel_x1[]" class="form-control" title="Por favor, selecciona una opción">
+                                                                    <option value="">Rango Inicial</option>
                                                                     @foreach($options as $option)
-                                                                        <option value="{{ $option }}" {{ isset($Lectra) && $Lectra->{'panel'.$panel.'_x1'} == $option ? 'selected' : '' }}>{{ $option }}</option>
+                                                                        <option value="{{ $option }}" {{ (isset($panel_x1[$i]) && $panel_x1[$i] == $option) ? 'selected' : '' }}>{{ $option }}</option>
                                                                     @endforeach
                                                                 </select>
                                                             </td>
                                                             <td>
-                                                                <select name="panel{{ $panel }}_x2" id="panel{{ $panel }}_x2" class="form-control" title="Por favor, selecciona una opción">
-                                                                    <option value="">Rango Final </option>
+                                                                <select name="panel_x2[]" class="form-control" title="Por favor, selecciona una opción">
+                                                                    <option value="">Rango Final</option>
                                                                     @foreach($options as $option)
-                                                                        <option value="{{ $option }}" {{ isset($Lectra) && $Lectra->{'panel'.$panel.'_x2'} == $option ? 'selected' : '' }}>{{ $option }}</option>
+                                                                        <option value="{{ $option }}" {{ (isset($panel_x2[$i]) && $panel_x2[$i] == $option) ? 'selected' : '' }}>{{ $option }}</option>
                                                                     @endforeach
                                                                 </select>
                                                             </td>
                                                             <!-- Panel Y -->
                                                             <td>
-                                                                <select name="panel{{ $panel }}_y1" id="panel{{ $panel }}_y1" class="form-control" title="Por favor, selecciona una opción">
-                                                                    <option value="">Rango Inicial </option>
+                                                                <select name="panel_y1[]" class="form-control" title="Por favor, selecciona una opción">
+                                                                    <option value="">Rango Inicial</option>
                                                                     @foreach($options as $option)
-                                                                        <option value="{{ $option }}" {{ isset($Lectra) && $Lectra->{'panel'.$panel.'_y1'} == $option ? 'selected' : '' }}>{{ $option }}</option>
+                                                                        <option value="{{ $option }}" {{ (isset($panel_y1[$i]) && $panel_y1[$i] == $option) ? 'selected' : '' }}>{{ $option }}</option>
                                                                     @endforeach
                                                                 </select>
                                                             </td>
                                                             <td>
-                                                                <select name="panel{{ $panel }}_y2" id="panel{{ $panel }}_y2" class="form-control" title="Por favor, selecciona una opción">
-                                                                    <option value="">Rango Final </option>
+                                                                <select name="panel_y2[]" class="form-control" title="Por favor, selecciona una opción">
+                                                                    <option value="">Rango Final</option>
                                                                     @foreach($options as $option)
-                                                                        <option value="{{ $option }}" {{ isset($Lectra) && $Lectra->{'panel'.$panel.'_y2'} == $option ? 'selected' : '' }}>{{ $option }}</option>
+                                                                        <option value="{{ $option }}" {{ (isset($panel_y2[$i]) && $panel_y2[$i] == $option) ? 'selected' : '' }}>{{ $option }}</option>
                                                                     @endforeach
                                                                 </select>
                                                             </td>
@@ -1679,6 +1689,56 @@
                                                     @endfor
                                                 </tbody>
                                             </table>
+                                            <script>
+                                                document.addEventListener('DOMContentLoaded', function() {
+                                                    const options = @json($options);
+                                                    const tablaPaneles = document.getElementById('tablaPaneles').querySelector('tbody');
+                                                    let panelCount = {{ $numFilas }};
+                                            
+                                                    document.getElementById('agregarFila').addEventListener('click', function(event) {
+                                                        event.preventDefault();
+                                                        panelCount++;
+                                            
+                                                        // Crear nueva fila
+                                                        const nuevaFila = document.createElement('tr');
+                                                        nuevaFila.innerHTML = `
+                                                            <th scope="row">Panel ${panelCount}</th>
+                                                            <td>
+                                                                <input type="text" class="form-control texto-blanco" name="simetria_piezas[]" placeholder="Panel ${panelCount}" />
+                                                            </td>
+                                                            <!-- Panel X -->
+                                                            <td>
+                                                                <select name="panel_x1[]" class="form-control" title="Por favor, selecciona una opción">
+                                                                    <option value="">Rango Inicial</option>
+                                                                    ${options.map(option => `<option value="${option}">${option}</option>`).join('')}
+                                                                </select>
+                                                            </td>
+                                                            <td>
+                                                                <select name="panel_x2[]" class="form-control" title="Por favor, selecciona una opción">
+                                                                    <option value="">Rango Final</option>
+                                                                    ${options.map(option => `<option value="${option}">${option}</option>`).join('')}
+                                                                </select>
+                                                            </td>
+                                                            <!-- Panel Y -->
+                                                            <td>
+                                                                <select name="panel_y1[]" class="form-control" title="Por favor, selecciona una opción">
+                                                                    <option value="">Rango Inicial</option>
+                                                                    ${options.map(option => `<option value="${option}">${option}</option>`).join('')}
+                                                                </select>
+                                                            </td>
+                                                            <td>
+                                                                <select name="panel_y2[]" class="form-control" title="Por favor, selecciona una opción">
+                                                                    <option value="">Rango Final</option>
+                                                                    ${options.map(option => `<option value="${option}">${option}</option>`).join('')}
+                                                                </select>
+                                                            </td>
+                                                        `;
+                                            
+                                                        // Añadir la nueva fila a la tabla
+                                                        tablaPaneles.appendChild(nuevaFila);
+                                                    });
+                                                });
+                                            </script>
                                         </div>
                                         
                                         <div class="col-md-6 mb-3"> 

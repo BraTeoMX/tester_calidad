@@ -1119,4 +1119,55 @@ class AuditoriaCorteController extends Controller
     } 
 
 
+    public function formLectraV2(Request $request)
+    {
+        $pageSlug ='';
+        //dd($request->all());
+        $idLectra = $request->input('idLectra');
+        $accion = $request->input('accion'); // Obtener el valor del campo 'accion'
+        $simetriaPiezas = array_map('strtoupper', $request->input('simetria_piezas', []));
+
+        if ($accion === 'finalizar') {
+            $encabezadoAuditoriaCorteEstatus = EncabezadoAuditoriaCorteV2::where('id', $idLectra)->first();
+            $encabezadoAuditoriaCorteEstatus->estatus = 'estatusAuditoriaBulto';
+            // Asegúrate de llamar a save() en la variable actualizada
+            $encabezadoAuditoriaCorteEstatus->save();
+            return back()->with('cambio-estatus', 'Se Cambio a estatus: AUDITORIA EN BULTOS.')->with('pageSlug', $pageSlug);
+        }
+
+        $allChecked = trim($request->input('pieza_contrapatron_estatus')) === "1";
+
+        $request->session()->put('estatus_checked_Lectra', $allChecked);
+        // Verificar si ya existe un registro con el mismo valor de orden_id
+        $existeOrden = AuditoriaCorteLectra::where('encabezado_id', $idLectra)->first();
+        //dd($request->input('x1'), $request->input('y1'));
+
+        // Si ya existe un registro con el mismo valor de orden_id, puedes mostrar un mensaje de error o tomar alguna otra acción
+        if ($existeOrden) {
+            $existeOrden->nombre = implode(',', $request->input('nombre'));
+            $existeOrden->mesa = $request->input('mesa');
+            $existeOrden->auditor = $request->input('auditor');
+            $existeOrden->simetria_piezas = implode(',', $simetriaPiezas);
+            $existeOrden->panel_x1 = implode(',', $request->input('panel_x1', []));
+            $existeOrden->panel_x2 = implode(',', $request->input('panel_x2', []));
+            $existeOrden->panel_y1 = implode(',', $request->input('panel_y1', []));
+            $existeOrden->panel_y2 = implode(',', $request->input('panel_y2', []));
+            //$existeOrden->pieza_contrapatron = $request->input('pieza_contrapatron');
+            $existeOrden->pieza_contrapatron_estatus = $request->input('pieza_contrapatron_estatus');
+            $existeOrden->pieza_inspeccionada = $request->input('pieza_inspeccionada'); 
+            $existeOrden->cantidad_defecto = $request->input('cantidad_defecto');
+            $existeOrden->defecto = implode(',', $request->input('defecto'));
+            $existeOrden->porcentaje = $request->input('porcentaje');
+            $existeOrden->estado_validacion = $request->input('estado_validacion');
+            $existeOrden->nivel_aql = $request->input('nivel_aql');
+
+        
+            $existeOrden->save();
+            //dd($existeOrden);
+            return back()->with('sobre-escribir', 'Actualilzacion realizada con exito');
+        }
+
+        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
+    }
+
 }
