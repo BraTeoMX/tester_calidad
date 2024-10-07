@@ -232,15 +232,14 @@
                                 @if($encabezadoAuditoriaCorte && $encabezadoAuditoriaCorte->estatus == 'proceso')
                                     <p> - </p>
                                 @elseif ($encabezadoAuditoriaCorte && $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaMarcada') 
-                                <form method="POST" action="{{ route('auditoriaCorte.formAuditoriaMarcada') }}">
+                                <form method="POST" action="{{ route('auditoriaCorte.formAuditoriaMarcadaV2') }}"> 
                                     @csrf
                                     <input type="hidden" name="idAuditoriaMarcada" value="{{ $auditoriaMarcada->id }}">
                                     {{-- Campo oculto para el boton Finalizar --}}
                                     <input type="hidden" name="accion" value="">
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
-                                            <label for="yarda_orden" class="col-sm-6 col-form-label">Yardas en la
-                                                orden</label>
+                                            <label for="yarda_orden" class="col-sm-6 col-form-label">Yardas en la orden</label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <div class="form-check form-check-inline">
                                                     <input type="number" step="0.0001" class="form-control me-2"
@@ -266,14 +265,16 @@
                                         </div>
                                         <br>
                                         <hr>
+                                        <!-- Tabla CANTIDADES ABSOLUTAS -->
                                         <div class="table-responsive">
-                                            <p>CANTIDADES ABSOLUTAS</p> <button class="btn btn-link" id="agregarColumnaCantidadAbsoluta">Agregar Columna</button>
+                                            <p>CANTIDADES ABSOLUTAS</p> 
+                                            <button class="btn btn-link" id="agregarColumnaCantidadAbsoluta">Agregar Columna</button> 
                                             <table id="tablaDinamica" class="table">
                                                 <thead>
                                                     <tr>
                                                         <th>Tallas</th>
                                                         <th>
-                                                            <select name="talla1" class="form-control">
+                                                            <select name="tallas[0]" class="form-control">
                                                                 <option value="">Selecciona una talla</option>
                                                                 @foreach ($auditoriaMarcadaTalla as $sizename)
                                                                     <option value="{{ $sizename }}">{{ $sizename }}</option>
@@ -285,96 +286,48 @@
                                                 <tbody>
                                                     <tr>
                                                         <td># Bultos</td>
-                                                        <td><input type="number" class="form-control" name="bulto1" value="" /></td>
+                                                        <td><input type="number" class="form-control" name="bultos[0]" value="" /></td>
                                                     </tr>
                                                     <tr>
                                                         <td>Total Piezas</td>
-                                                        <td><input type="number" class="form-control" name="total_pieza1" value="" /></td>
+                                                        <td><input type="number" class="form-control" name="total_piezas[0]" value="" /></td>
                                                     </tr>
                                                 </tbody>
                                             </table>
-                                        
-                                            <script>
-                                            $(document).ready(function() {
-                                                let columnCount = 1;
-                                                const tallas = @json($auditoriaMarcadaTalla);
-                                        
-                                                $('#agregarColumnaCantidadAbsoluta').click(function() {
-                                                    columnCount++;
-                                                    
-                                                    // Agregar nueva celda a cada fila
-                                                    $('#tablaDinamica tr').each(function(index) {
-                                                        if (index === 0) {
-                                                            // Primera fila (encabezado)
-                                                            let selectHtml = `
-                                                                <th>
-                                                                    <select name="talla${columnCount}" class="form-control">
-                                                                        <option value="">Selecciona una talla</option>`;
-                                                            
-                                                            tallas.forEach(function(talla) {
-                                                                selectHtml += `<option value="${talla}">${talla}</option>`;
-                                                            });
-                                                            
-                                                            selectHtml += `
-                                                                    </select>
-                                                                </th>`;
-                                                            
-                                                            $(this).append(selectHtml);
-                                                        } else if (index === 1) {
-                                                            // Segunda fila (# Bultos)
-                                                            $(this).append(`<td><input type="number" class="form-control" name="bulto${columnCount}" value="" /></td>`);
-                                                        } else if (index === 2) {
-                                                            // Tercera fila (Total Piezas)
-                                                            $(this).append(`<td><input type="number" class="form-control" name="total_pieza${columnCount}" value="" /></td>`);
-                                                        }
-                                                    });
-                                                });
-                                            });
-                                            </script>
                                         </div>
+                                        
+                                        <!-- Tabla CANTIDADES PARCIALES -->
                                         <div class="table-responsive">
-                                            <p>CANTIDADES PARCIALES</p>
-                                            <table class="table">
-                                                <tbody>
+                                            <p>CANTIDADES PARCIALES</p> 
+                                            <button class="btn btn-link" id="agregarColumnaCantidadParcial">Agregar Columna</button> 
+                                            <table id="tablaParcialesDinamica" class="table">
+                                                <thead>
                                                     <tr>
-                                                        <td>Tallas</td>
-                                                        @for ($i = 1; $i <= 6; $i++)
-                                                        <td>
-                                                            <select name="talla_parcial{{ $i }}" class="form-control">
+                                                        <th>Tallas</th>
+                                                        <th>
+                                                            <select name="tallas_parciales[0]" class="form-control">
                                                                 <option value="">Selecciona una talla</option>
                                                                 @foreach ($auditoriaMarcadaTalla as $sizename)
-                                                                    <option value="{{ $sizename }}" {{ isset($auditoriaMarcada) && $auditoriaMarcada->{'talla_parcial'.$i} == $sizename ? 'selected' : '' }}>
-                                                                        {{ $sizename }}
-                                                                    </option>
+                                                                    <option value="{{ $sizename }}">{{ $sizename }}</option>
                                                                 @endforeach
                                                             </select>
-                                                        </td>
-                                                        @endfor
+                                                        </th>
                                                     </tr>
+                                                </thead>
+                                                <tbody>
                                                     <tr>
                                                         <td># Bultos</td>
-                                                        @for ($i = 1; $i <= 6; $i++)
-                                                        <td>
-                                                            <input type="number" class="form-control" name="bulto_parcial{{ $i }}"
-                                                                value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->{'bulto_parcial'.$i} : '' }}" />
-                                                        </td>
-                                                        @endfor
+                                                        <td><input type="number" class="form-control" name="bultos_parciales[0]" value="" /></td>
                                                     </tr>
                                                     <tr>
                                                         <td>Total Piezas</td>
-                                                        @for ($i = 1; $i <= 6; $i++)
-                                                        <td>
-                                                            <input type="number"  class="form-control" name="total_pieza_parcial{{ $i }}"
-                                                                value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->{'total_pieza_parcial'.$i} : '' }}" />
-                                                        </td>
-                                                        @endfor
+                                                        <td><input type="number" class="form-control" name="total_piezas_parciales[0]" value="" /></td>
                                                     </tr>
                                                 </tbody>
                                             </table>
                                         </div>
-                                    </div>
-                                    <hr>
-                                    <div class="row">
+                                        
+                                        <hr>
                                         <div class="col-md-6 mb-3">
                                             <label for="largo_trazo" class="col-sm-3 col-form-label">Largo Trazo </label>
                                             <div class="col-sm-12 d-flex align-items-center">
@@ -403,6 +356,79 @@
                                             <button type="submit" class="btn btn-danger" disabled>Finalizar</button>
                                         @endif
                                     </div>
+                                    <script>
+                                        $(document).ready(function() {
+                                            let columnCount = 1;
+                                            let columnParcialCount = 1;
+                                            const tallas = @json($auditoriaMarcadaTalla);
+                                            
+                                            // Agregar columna para CANTIDADES ABSOLUTAS
+                                            $('#agregarColumnaCantidadAbsoluta').click(function(event) {
+                                                event.preventDefault(); // Evitar envío del formulario
+                                                columnCount++;
+                                        
+                                                // Agregar nueva celda a cada fila
+                                                $('#tablaDinamica tr').each(function(index) {
+                                                    if (index === 0) {
+                                                        // Primera fila (encabezado)
+                                                        let selectHtml = `
+                                                            <th>
+                                                                <select name="tallas[${columnCount - 1}]" class="form-control">
+                                                                    <option value="">Selecciona una talla</option>`;
+                                                        
+                                                        tallas.forEach(function(talla) {
+                                                            selectHtml += `<option value="${talla}">${talla}</option>`;
+                                                        });
+                                                        
+                                                        selectHtml += `
+                                                                </select>
+                                                            </th>`;
+                                                        
+                                                        $(this).append(selectHtml);
+                                                    } else if (index === 1) {
+                                                        // Segunda fila (# Bultos)
+                                                        $(this).append(`<td><input type="number" class="form-control" name="bultos[${columnCount - 1}]" value="" /></td>`);
+                                                    } else if (index === 2) {
+                                                        // Tercera fila (Total Piezas)
+                                                        $(this).append(`<td><input type="number" class="form-control" name="total_piezas[${columnCount - 1}]" value="" /></td>`);
+                                                    }
+                                                });
+                                            });
+                                        
+                                            // Agregar columna para CANTIDADES PARCIALES
+                                            $('#agregarColumnaCantidadParcial').click(function(event) {
+                                                event.preventDefault(); // Evitar envío del formulario
+                                                columnParcialCount++;
+                                        
+                                                // Agregar nueva celda a cada fila
+                                                $('#tablaParcialesDinamica tr').each(function(index) {
+                                                    if (index === 0) {
+                                                        // Primera fila (encabezado)
+                                                        let selectHtml = `
+                                                            <th>
+                                                                <select name="tallas_parciales[${columnParcialCount - 1}]" class="form-control">
+                                                                    <option value="">Selecciona una talla</option>`;
+                                                        
+                                                        tallas.forEach(function(talla) {
+                                                            selectHtml += `<option value="${talla}">${talla}</option>`;
+                                                        });
+                                                        
+                                                        selectHtml += `
+                                                                </select>
+                                                            </th>`;
+                                                        
+                                                        $(this).append(selectHtml);
+                                                    } else if (index === 1) {
+                                                        // Segunda fila (# Bultos)
+                                                        $(this).append(`<td><input type="number" class="form-control" name="bultos_parciales[${columnParcialCount - 1}]" value="" /></td>`);
+                                                    } else if (index === 2) {
+                                                        // Tercera fila (Total Piezas)
+                                                        $(this).append(`<td><input type="number" class="form-control" name="total_piezas_parciales[${columnParcialCount - 1}]" value="" /></td>`);
+                                                    }
+                                                });
+                                            });
+                                        });
+                                    </script>
                                 </form>
                                 {{-- Fin cuerpo acordeon --}}
                                 @elseif($encabezadoAuditoriaCorte && ($encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaMarcada' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaTendido' || $encabezadoAuditoriaCorte->estatus == 'estatusLectra' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaBulto' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaFinal' || $encabezadoAuditoriaCorte->estatus == 'fin'))  
