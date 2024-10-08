@@ -128,7 +128,7 @@
                 </div>
                 <hr> 
                 @if ($encabezadoAuditoriaCorte && $encabezadoAuditoriaCorte->estatus == "proceso")
-                <form method="POST" action="{{ route('auditoriaCorte.formEncabezadoAuditoriaCorte') }}">
+                <form method="POST" action="{{ route('auditoriaCorte.formEncabezadoAuditoriaCorteV2') }}">
                     @csrf
                     <input type="hidden" name="idEncabezadoAuditoriaCorte" value="{{ $encabezadoAuditoriaCorte->id }}">
                     <div class="row">
@@ -387,7 +387,7 @@
                                     <hr>
                                     <div>
                                         <button type="submit" name="accion" class="btn-verde-xd">Guardar</button>
-                                        @if($mostrarFinalizarMarcada)
+                                        @if($mostrarFinalizarMarcada == True)
                                             <button type="submit" class="btn btn-danger" value="finalizar" name="accion" >Finalizar</button>
                                         @else
                                             <button type="submit" class="btn btn-danger" disabled>Finalizar</button>

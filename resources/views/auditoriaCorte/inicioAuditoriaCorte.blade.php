@@ -128,7 +128,7 @@
                                                                 data-parent="#accordionExample">
                                                                 <div class="card-body">
                                                                     <div>
-                                                                        <form method="POST" action="{{ route('auditoriaCorte.agregarEventoCorte') }}">
+                                                                        <form method="POST" action="{{ route('auditoriaCorte.agregarEventoCorteV2') }}">
                                                                             @csrf
                                                                             <input type="hidden" name="orden_id" value="{{ $encabezadoCorte->orden_id }}">
                                                                             <input type="hidden" name="estilo_id" value="{{ $encabezadoCorte->estilo_id }}">
@@ -155,7 +155,7 @@
                                                                         <tbody>
                                                                             @foreach ($EncabezadoAuditoriaCorteFiltro->where('orden_id', $encabezadoCorte->orden_id)->where('estatus', '!=', 'fin') as $encabezado)
                                                                                 <tr>
-                                                                                    <td><a href="{{ route('auditoriaCorte.auditoriaCorte', ['id' => $encabezado->id, 'orden' => $encabezado->orden_id]) }}"
+                                                                                    <td><a href="{{ route('auditoriaCorte.auditoriaCorteV2', ['id' => $encabezado->id, 'orden' => $encabezado->orden_id]) }}"
                                                                                         class="btn btn-primary">Acceder</a>
                                                                                     </td>
                                                                                     <td>{{ $encabezado->evento }}</td>
@@ -249,7 +249,7 @@
                                                                         <tbody>
                                                                             @foreach ($EncabezadoAuditoriaCorteFinal->where('orden_id', $encabezadoCorte->orden_id) as $encabezado)
                                                                                 <tr>
-                                                                                    <td><a href="{{ route('auditoriaCorte.auditoriaCorte', ['id' => $encabezado->id, 'orden' => $encabezado->orden_id]) }}"
+                                                                                    <td><a href="{{ route('auditoriaCorte.auditoriaCorteV2', ['id' => $encabezado->id, 'orden' => $encabezado->orden_id]) }}"
                                                                                         class="btn btn-primary">Acceder</a>
                                                                                     </td>
                                                                                     <td>{{ $encabezado->evento }}</td>

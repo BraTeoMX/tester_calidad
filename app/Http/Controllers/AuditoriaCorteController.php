@@ -69,8 +69,8 @@ class AuditoriaCorteController extends Controller
                            ->get(),
             'DatoAXFin' => DatoAX::where('estatus', 'fin')->get(),
             'DatoAXRechazado' => DatoAX::where('estatus', 'rechazado')->get(),
-            'EncabezadoAuditoriaCorteFiltro' => EncabezadoAuditoriaCorte::all(),
-            'EncabezadoAuditoriaCorteFinal' => EncabezadoAuditoriaCorte::where('estatus', 'fin')->get(),
+            'EncabezadoAuditoriaCorteFiltro' => EncabezadoAuditoriaCorteV2::all(),
+            'EncabezadoAuditoriaCorteFinal' => EncabezadoAuditoriaCorteV2::where('estatus', 'fin')->get(),
             'auditoriasMarcadas' => AuditoriaMarcada::all(),
             'CategoriaAccionCorrectiva' => CategoriaAccionCorrectiva::where('estado', 1)->where('area', '0')->get(),
         ];
@@ -102,7 +102,7 @@ class AuditoriaCorteController extends Controller
     {
         $pageSlug ='';
         $categorias = $this->cargarCategorias();
-        $encabezados = EncabezadoAuditoriaCorte::all();
+        $encabezados = EncabezadoAuditoriaCorteV2::all();
 
         // Filtrar los registros para eliminar aquellos cuya 'orden_id' tenga todos los 'estatus' iguales a 'fin'
         $filteredEncabezados = $encabezados->filter(function ($item) use ($encabezados) {
@@ -116,6 +116,7 @@ class AuditoriaCorteController extends Controller
             return !$allFin;
         });
 
+        //dd($filteredEncabezados);
 
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
@@ -131,7 +132,7 @@ class AuditoriaCorteController extends Controller
                     ->from('datos_auditorias')
                     ->whereIn('op', function ($subquery) {
                         $subquery->select('orden_id')
-                            ->from('encabezado_auditoria_cortes');
+                            ->from('auditoria_corte_encabezado');
                     });
             })
             ->whereNull('estatus')
@@ -880,8 +881,26 @@ class AuditoriaCorteController extends Controller
         $trazo = $request->input('trazo');
         $lienzo = $request->input('lienzo');
         $total_evento = $request->input('total_evento');
+        // idEncabezadoAuditoriaCorte sirve para evalular un dato que se genero desde el apartado donde se genera un evento adicional y requiere de datos de captura 
+        $idEncabezadoAuditoriaCorte = $request->input('idEncabezadoAuditoriaCorte');
 
-        //dd($request->all());
+        
+        $encabezadoAuditoriaCorte = EncabezadoAuditoriaCorteV2::where('id', $idEncabezadoAuditoriaCorte)->first();
+        //dd($encabezadoAuditoriaCorte);
+        // Verificar si ya existen datos 
+        if ($encabezadoAuditoriaCorte) {
+            //dd($request->all());
+            $encabezadoAuditoriaCorte->pieza = $request->input('pieza');
+            if($request->input('color_id')){ 
+                $encabezadoAuditoriaCorte->color_id = $request->input('color_id');
+            }
+            $encabezadoAuditoriaCorte->lienzo = $request->input('lienzo');
+            $encabezadoAuditoriaCorte->qtysched_id = $request->input('qtysched_id');
+            $encabezadoAuditoriaCorte->estatus = 'estatusAuditoriaMarcada';
+            $encabezadoAuditoriaCorte->save();
+
+            return back()->with('sobre-escribir', 'Ya existen datos para este registro.');
+        }
 
         for ($i = 1; $i <= $total_evento; $i++) {
             // Realizar la actualización en la base de datos
@@ -913,41 +932,33 @@ class AuditoriaCorteController extends Controller
             // Tabla AuditoriaMarcada
             $auditoriaMarcada = new AuditoriaCorteMarcada();
             $auditoriaMarcada->encabezado_id = $encabezado_id;
-            $auditoriaMarcada->evento = $i;
             $auditoriaMarcada->save();
 
             // Tabla AuditoriaTendido
             $auditoriaTendido = new AuditoriaCorteTendido();
             $auditoriaTendido->encabezado_id = $encabezado_id;
-            $auditoriaTendido->estatus = "proceso";
-            $auditoriaTendido->evento = $i;
             $auditoriaTendido->save();
 
             // Tabla Lectra
             $lectra = new AuditoriaCorteLectra(); // Cambié el nombre a AuditoriaCorteLectra según el nuevo nombre de la tabla
             $lectra->encabezado_id = $encabezado_id;
-            $lectra->evento = $i;
             $lectra->save();
 
             // Tabla AuditoriaBulto
             $auditoriaBulto = new AuditoriaCorteBulto(); // Cambié el nombre a AuditoriaCorteBulto según el nuevo nombre de la tabla
             $auditoriaBulto->encabezado_id = $encabezado_id;
-            $auditoriaBulto->estatus = "proceso";
-            $auditoriaBulto->evento = $i;
             $auditoriaBulto->save();
 
             // Tabla AuditoriaFinal
             $auditoriaFinal = new AuditoriaCorteFinal(); // Cambié el nombre a AuditoriaCorteFinal según el nuevo nombre de la tabla
             $auditoriaFinal->encabezado_id = $encabezado_id;
-            $auditoriaFinal->estatus = "proceso";
-            $auditoriaFinal->evento = $i;
             $auditoriaFinal->save();
 
             if ($i == $eventoInicial) {
-                $idEvento1 = $auditoriaMarcada->id;
+                $idEvento1 = $auditoria->id;
             }
         }
-
+        //dd($idEvento1);
         return redirect()->route('auditoriaCorte.auditoriaCorteV2', ['id' => $idEvento1, 'orden' => $orden])->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
@@ -977,12 +988,31 @@ class AuditoriaCorteController extends Controller
 
         // apartado para validar los checbox
 
-        $mostrarFinalizarMarcada = $auditoriaMarcada ? session('estatus_checked_AuditoriaMarcada') : false; 
+        //$mostrarFinalizarMarcada = $auditoriaMarcada ? session('estatus_checked_AuditoriaMarcada') : false; 
+        $mostrarFinalizarMarcada = isset($auditoriaMarcada) && $auditoriaMarcada->yarda_orden_estatus == 1;
         //dd($mostrarFinalizarMarcada);
-        $mostrarFinalizarTendido = $auditoriaTendido ? session('estatus_checked_AuditoriaTendido') : false;
-        $mostrarFinalizarLectra = $Lectra ? session('estatus_checked_Lectra') : false;
-        $mostrarFinalizarBulto = $auditoriaBulto ? session('estatus_checked_AuditoriaBulto') : false;
-        $mostrarFinalizarFinal = $auditoriaFinal ? session('estatus_checked_AuditoriaFinal') : false;
+        //$mostrarFinalizarTendido = $auditoriaTendido ? session('estatus_checked_AuditoriaTendido') : false;
+        $mostrarFinalizarTendido = isset($auditoriaTendido) && $auditoriaTendido->codigo_material_estatus == 1 &&
+            $auditoriaTendido->codigo_color_estatus == 1 &&
+            $auditoriaTendido->informacion_trazo_estatus == 1 &&
+            $auditoriaTendido->cantidad_lienzo_estatus == 1 &&
+            $auditoriaTendido->longitud_tendido_estatus == 1 &&
+            $auditoriaTendido->ancho_tendido_estatus == 1 &&
+            $auditoriaTendido->material_relajado_estatus == 1 &&
+            $auditoriaTendido->empalme_estatus == 1 &&
+            $auditoriaTendido->cara_material_estatus == 1 &&
+            $auditoriaTendido->tono_estatus == 1 &&
+            $auditoriaTendido->yarda_marcada_estatus == 1;
+
+        //$mostrarFinalizarLectra = $Lectra ? session('estatus_checked_Lectra') : false; 
+        $mostrarFinalizarLectra = isset($Lectra) && $Lectra->pieza_contrapatron_estatus == 1;
+        
+        //$mostrarFinalizarBulto = $auditoriaBulto ? session('estatus_checked_AuditoriaBulto') : false;
+        $mostrarFinalizarBulto = isset($auditoriaBulto) && $auditoriaBulto->ingreso_ticket_estatus == 1 && $auditoriaBulto->sellado_paquete_estatus == 1;
+
+        //$mostrarFinalizarFinal = $auditoriaFinal ? session('estatus_checked_AuditoriaFinal') : false; 
+        $mostrarFinalizarFinal = isset($auditoriaFinal) && $auditoriaFinal->aceptado_rechazado == 1;
+        //dd($mostrarFinalizarMarcada);
         return view('auditoriaCorte.auditoriaCorteV2', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
             'pageSlug' => $pageSlug,
@@ -1001,40 +1031,116 @@ class AuditoriaCorteController extends Controller
             'auditorDato' => $auditorDato]));
     }
 
-    public function formAuditoriaMarcadaV2(Request $request)
+    public function agregarEventoCorteV2(Request $request)
     {
         $pageSlug ='';
+        $orden_id = $request->input('orden_id'); 
+        $cliente_id = $request->input('cliente_id'); 
+
+        // Obtener el máximo evento actual para la orden_id
+        $maxEvento = EncabezadoAuditoriaCorteV2::where('orden_id', $orden_id)->max('evento');
+        $nuevoEvento = $maxEvento + 1;
+
+        // Actualizar los registros existentes
+        EncabezadoAuditoriaCorteV2::where('orden_id', $orden_id)->update(['total_evento' => $nuevoEvento]);
+
+        // Crear una nueva instancia del modelo
+        $encabezadoAuditoriaCorte = new EncabezadoAuditoriaCorteV2();
+        $encabezadoAuditoriaCorte->orden_id = $orden_id;
+        $encabezadoAuditoriaCorte->evento = $nuevoEvento;
+        $encabezadoAuditoriaCorte->total_evento = $nuevoEvento;
+        $encabezadoAuditoriaCorte->estatus = "proceso";
+        $encabezadoAuditoriaCorte->estilo_id = $request->input('estilo_id');
+        $encabezadoAuditoriaCorte->planta_id = $request->input('planta_id');
+        $encabezadoAuditoriaCorte->temporada_id = $request->input('temporada_id');
+        $encabezadoAuditoriaCorte->cliente_id = $request->input('cliente_id');
+        $encabezadoAuditoriaCorte->color_id = $request->input('color_id');
+        $encabezadoAuditoriaCorte->material = $request->input('material');
+        $encabezadoAuditoriaCorte->pieza = $request->input('pieza');
+        $encabezadoAuditoriaCorte->trazo = $request->input('trazo');
+        $encabezadoAuditoriaCorte->lienzo = $request->input('lienzo');
+        $encabezadoAuditoriaCorte->save();
+
+        //Aqui obtenemos el id del nuevo registro
+        $encabezado_id = $encabezadoAuditoriaCorte->id;
+
+        //dd($encabezado_id);
+        // Tabla AuditoriaMarcada
+        $auditoriaMarcada = new AuditoriaCorteMarcada();
+        $auditoriaMarcada->encabezado_id = $encabezado_id;
+        $auditoriaMarcada->save();
+
+        // Tabla AuditoriaTendido
+        $auditoriaTendido = new AuditoriaCorteTendido();
+        $auditoriaTendido->encabezado_id = $encabezado_id;
+        $auditoriaTendido->save();
+
+        // Tabla Lectra
+        $lectra = new AuditoriaCorteLectra(); // Cambié el nombre a AuditoriaCorteLectra según el nuevo nombre de la tabla
+        $lectra->encabezado_id = $encabezado_id;
+        $lectra->save();
+
+        // Tabla AuditoriaBulto
+        $auditoriaBulto = new AuditoriaCorteBulto(); // Cambié el nombre a AuditoriaCorteBulto según el nuevo nombre de la tabla
+        $auditoriaBulto->encabezado_id = $encabezado_id;
+        $auditoriaBulto->save();
+
+        // Tabla AuditoriaFinal
+        $auditoriaFinal = new AuditoriaCorteFinal(); // Cambié el nombre a AuditoriaCorteFinal según el nuevo nombre de la tabla
+        $auditoriaFinal->encabezado_id = $encabezado_id;
+        $auditoriaFinal->save();
+
+        // Redireccionar a la página anterior
+        return redirect()->route('auditoriaCorte.inicioAuditoriaCorte', )->with('success', '  Evento agregado correctamente.')->with('pageSlug', $pageSlug);
+    } 
+
+    public function formAuditoriaMarcadaV2(Request $request)
+    {
+        $pageSlug = '';
         $idAuditoriaMarcada = $request->input('idAuditoriaMarcada');
-        $accion = $request->input('accion'); // Obtener el valor del campo 'accion' del boton finalizar
+        $accion = $request->input('accion'); // Obtener el valor del campo 'accion' del botón finalizar
         if ($accion === 'finalizar') {
             $encabezadoAuditoriaCorteEstatus = EncabezadoAuditoriaCorteV2::where('id', $idAuditoriaMarcada)->first();
             $encabezadoAuditoriaCorteEstatus->estatus = 'estatusAuditoriaTendido';
             $encabezadoAuditoriaCorteEstatus->save();
-            return back()->with('cambio-estatus', 'Se Cambio a estatus: AUDITORIA DE TENDIDO.')->with('pageSlug', $pageSlug);
+            return back()->with('cambio-estatus', 'Se Cambió a estatus: AUDITORIA DE TENDIDO.')->with('pageSlug', $pageSlug);
         }
 
-        $allChecked = trim($request->input('yarda_orden_estatus')) === "1";
-
-        $request->session()->put('estatus_checked_AuditoriaMarcada', $allChecked);
-        // Verificar si ya existe un registro con el mismo valor de orden_id
         $existeOrden = AuditoriaCorteMarcada::where('encabezado_id', $idAuditoriaMarcada)->first();
 
-        // Si ya existe un registro con el mismo valor de orden_id, puedes mostrar un mensaje de error o tomar alguna otra acción
         if ($existeOrden) {
+            // Actualizar otros datos
             $existeOrden->yarda_orden = $request->input('yarda_orden');
             $existeOrden->yarda_orden_estatus = $request->input('yarda_orden_estatus');
-            // Almacenar los datos de los arreglos separados por comas
+
+            // Almacenar tallas, siempre
             $existeOrden->tallas = implode(',', $request->input('tallas', []));
-            $existeOrden->tallas_parciales = implode(',', $request->input('tallas_parciales', []));
+
+            // Validar si tallas_parciales tiene datos válidos (no null)
+            $tallasParciales = $request->input('tallas_parciales', []);
+            if (!empty($tallasParciales) && $tallasParciales[0] !== null) {
+                // Solo se almacena si tallas_parciales tiene datos válidos
+                $existeOrden->tallas_parciales = implode(',', $tallasParciales);
+                $existeOrden->bultos_parciales = implode(',', $request->input('bultos_parciales', []));
+                $existeOrden->total_piezas_parciales = implode(',', $request->input('total_piezas_parciales', []));
+            } else {
+                // Si no hay datos válidos en tallas_parciales, no se almacenan estos campos
+                $existeOrden->tallas_parciales = null;
+                $existeOrden->bultos_parciales = null;
+                $existeOrden->total_piezas_parciales = null;
+            }
+
+            // Almacenar los bultos, si están presentes
             $existeOrden->bultos = implode(',', $request->input('bultos', []));
-            $existeOrden->bultos_parciales = implode(',', $request->input('bultos_parciales', []));
-            $existeOrden->total_piezas = implode(',', $request->input('total_piezas', []));
-            $existeOrden->total_piezas_parciales = implode(',', $request->input('total_piezas_parciales', []));
-            $existeOrden->largo_trazo =  $request->input('largo_trazo');
+
+            // Otros campos
+            $existeOrden->largo_trazo = $request->input('largo_trazo');
             $existeOrden->ancho_trazo = $request->input('ancho_trazo');
+
+            // Guardar los cambios
             $existeOrden->save();
-            
-            return back()->with('sobre-escribir', 'Actualilzacion realizada con exito');
+
+            return back()->with('sobre-escribir', 'Actualización realizada con éxito');
         }
 
         return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);

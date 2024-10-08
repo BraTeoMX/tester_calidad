@@ -195,6 +195,33 @@
         });
     </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obtener el formulario
+            const form = document.querySelector('form[action="{{ route('auditoriaCorte.formEncabezadoAuditoriaCorteV2') }}"]');
+
+            // Validar antes de enviar el formulario
+            form.addEventListener('submit', function(event) {
+                var evento = parseInt(document.getElementById('evento').value);
+                var totalEvento = parseInt(document.getElementById('total_evento').value);
+                var warning = document.getElementById('warning');
+
+                // Verificar si el valor de 'evento' es mayor que 'total_evento'
+                if (evento > totalEvento) {
+                    // Mostrar el mensaje de advertencia
+                    warning.style.display = 'block';
+                    
+                    // Evitar el envío del formulario
+                    event.preventDefault();
+                    alert("Por favor, selecciona un rango válido: el primer numero debe ser menor o igual a segundo numero");
+                } else {
+                    // Ocultar el mensaje si la validación es correcta
+                    warning.style.display = 'none';
+                }
+            });
+        });
+    </script>
+
     <style>
         thead.thead-primary {
             background-color: #59666e54; /* Azul claro */
