@@ -167,7 +167,7 @@ class HomeController extends Controller
                 ->limit(3)
                 ->get();
                 //Ontener Segundas y Teceras Generales
-            $SegundasTerceras = obtenerSegundasTerceras();
+            //$SegundasTerceras = obtenerSegundasTerceras();
             //dd($gerentesProduccionAQL, $gerentesProduccionProceso, $gerentesProduccion, $data);
             $dataGraficaModulos = $this->obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin);
             $modulosGrafica = !empty($dataGraficaModulos['modulosUnicos']) ? collect($dataGraficaModulos['modulosUnicos'])->toArray() : [0];
