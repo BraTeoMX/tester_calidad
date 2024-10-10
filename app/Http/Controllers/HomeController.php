@@ -9,7 +9,7 @@ use App\Models\TpAuditoriaAQL;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\DB; // Importa la clase DB
-
+use App\Models\User;
 
 class HomeController extends Controller
 {
@@ -28,6 +28,9 @@ class HomeController extends Controller
      *
      * @return \Illuminate\View\View
      */
+    /**
+     * @method bool hasRole(string $role, string $planta = null)
+     */
     public function index()
     {
         $title = "";
@@ -37,7 +40,11 @@ class HomeController extends Controller
         $SegundasTerceras = '';
 
         // Verifica si el usuario tiene los roles 'Administrador' o 'Gerente de Calidad'
-        if (Auth::check() && (Auth::user()->hasRole('Administrador') || Auth::user()->hasRole('Gerente de Calidad'))) {
+        /**
+         * @var User $user
+         */
+        $user = Auth::user();
+        if ($user->hasRole('Administrador') || $user->hasRole('Gerente de Calidad')) {
 
             function calcularPorcentaje($modelo, $fecha, $planta = null) {
                 $query = $modelo::whereDate('created_at', $fecha);
