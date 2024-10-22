@@ -89,6 +89,7 @@
                         <table class="table tablesorter" id="tablaAQLGeneral">
                             <thead class=" text-primary">
                                 <tr>
+                                    <th>Auditor</th>
                                     <th>Modulo (AQL)</th>
                                     <th>Estilo</th>
                                     <th>Numero de Operarios</th>
@@ -113,6 +114,7 @@
                             <tbody>
                                 @foreach ($dataModuloAQLGeneral as $item)
                                     <tr>
+                                        <td>{{ $item['auditorUnicos'] }}</td> 
                                         <td>
                                             <button type="button" class="custom-btn" onclick="openCustomModal('customModalAQL{{ $item['modulo'] }}')">
                                                 {{ $item['modulo'] }}
@@ -154,6 +156,7 @@
                         <table class="table tablesorter" id="tablaProcesoGeneral">
                             <thead class=" text-primary">
                                 <tr>
+                                    <th>Auditor</th>
                                     <th>Modulo (Proceso)</th>
                                     <th>Estilo</th>
                                     <th>Recorridos</th>
@@ -175,6 +178,7 @@
                             <tbody>
                                 @foreach ($dataModuloProcesoGeneral as $item)
                                     <tr>
+                                        <td>{{ $item['auditorUnicos'] }}</td> 
                                         <td>
                                             <button type="button" class="custom-btn" onclick="openCustomModal('customModalProceso{{ $item['modulo'] }}')">
                                                 {{ $item['modulo'] }}
@@ -310,6 +314,7 @@
                         <table class="table" id="tablaAQLGeneralTE">
                             <thead class=" text-primary">
                                 <tr>
+                                    <th>Auditor</th>
                                     <th>Modulo (AQL)</th>
                                     <th>Estilo</th>
                                     <th>Numero de Operarios</th>
@@ -334,6 +339,7 @@
                             <tbody>
                                 @foreach ($dataModuloAQLGeneralTE as $item)
                                     <tr>
+                                        <td>{{ $item['auditorUnicos'] }}</td> 
                                         <td>
                                             <button type="button" class="custom-btn" onclick="openCustomModal('customModalAQLTE{{ $item['modulo'] }}')">
                                                 {{ $item['modulo'] }}
@@ -375,6 +381,7 @@
                         <table class="table tablesorter" id="tablaProcesoGeneralTE">
                             <thead class=" text-primary">
                                 <tr>
+                                    <th>Auditor</th>
                                     <th>Modulo (Proceso)</th>
                                     <th>Estilo</th>
                                     <th>Recorridos</th>
@@ -394,6 +401,7 @@
                             <tbody>
                                 @foreach ($dataModuloProcesoGeneralTE as $item)
                                     <tr>
+                                        <td>{{ $item['auditorUnicos'] }}</td> 
                                         <td>
                                             <button type="button" class="custom-btn" onclick="openCustomModal('customModalProcesoTE{{ $item['modulo'] }}')">
                                                 {{ $item['modulo'] }}
