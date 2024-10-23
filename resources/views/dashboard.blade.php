@@ -234,20 +234,9 @@
         </div>
 
 
-        <div class="col-lg-4">
-            <div class="card card-chart">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="tim-icons icon-send text-info"></i> Incidencias</h3>
-                    <h5 class="card-title">AQL :      45 % </h5>
-                    <h5 class="card-title">PROCESOS : 45 % </h5>
-                </div>
-                <div class="card-body">
-                    <div class="chart-area">
-                        <canvas id="chartLineGreen"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
+
+
+
     </div>
     <div class="row">
         <div class="col-lg-4">
