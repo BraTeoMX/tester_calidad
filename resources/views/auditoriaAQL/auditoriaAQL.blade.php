@@ -831,9 +831,22 @@
         $(document).ready(function() {
             // Inicializar el select2
             $('#bulto').select2({
-                placeholder: 'Seleccione una opcion',
+                placeholder: 'Seleccione una opción',
                 allowClear: true,
                 width: 'resolve'
+            }).on('select2:open', function() {
+                // Detectar si es un dispositivo móvil
+                if (/Mobi|Android/i.test(navigator.userAgent)) {
+                    // Esperar un momento para que el select2 renderice la caja de búsqueda
+                    setTimeout(function() {
+                        // Buscar el input generado por select2
+                        var searchInput = $('.select2-search__field');
+                        if (searchInput.length > 0) {
+                            // Cambiar el tipo de input a 'tel' para que aparezca el teclado numérico
+                            searchInput.attr('type', 'tel');
+                        }
+                    }, 0); // Ejecutar después de la apertura
+                }
             });
         });
 

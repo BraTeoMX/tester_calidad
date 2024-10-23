@@ -155,6 +155,7 @@ class HomeController extends Controller
 
             // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO'
             $topDefectosAQL = TpAuditoriaAQL::select('tp', DB::raw('count(*) as total'))
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                 ->where('tp', '!=', 'NINGUNO')
                 ->groupBy('tp')
                 ->orderBy('total', 'desc')
@@ -162,6 +163,7 @@ class HomeController extends Controller
                 ->get();
             // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO'
             $topDefectosProceso = TpAseguramientoCalidad::select('tp', DB::raw('count(*) as total'))
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                 ->where('tp', '!=', 'NINGUNO')
                 ->groupBy('tp')
                 ->orderBy('total', 'desc')
