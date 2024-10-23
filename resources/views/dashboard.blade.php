@@ -222,13 +222,14 @@
         </div>
 
 
-        <div class="col-lg-4">
+        <div class="col-lg-8">
             <div class="card card-chart">
                 <div class="card-header">
-                    <h2 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> Segundas/Terceras <br> Acomulado Mensual</h2>
+                    <h2 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> Segundas/Terceras Acomulado Mensual</h2>
                 </div>
                 <div class="card-body">
                     <div id="SegundasTercerasChart"></div>
+                    <div id="spinner" class="spinner"></div>
                 </div>
             </div>
         </div>
@@ -415,7 +416,33 @@
             </div>
         </div>
     </div>
+    <style>
+  /* Estilo para el spinner */
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 4px solid #3498db;
+  width: 40px;
+  height: 40px;
+  animation: spin 2s linear infinite;
 
+  /* Centrar el spinner horizontal y verticalmente */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Ocultar el spinner inicialmente */
+#spinner {
+  display: none;
+}
+      </style>
 
 
     <style>
@@ -904,12 +931,15 @@
 
 <script>
     $(document).ready(function() {
+      // Mostrar el spinner al iniciar la petición AJAX
+      $("#spinner").show();
+
       $.ajax({
         url: "/SegundasTerceras",
         method: "GET",
         dataType: "json",
         success: function(response) {
-         var data = response.data;
+          var data = response.data;
           var segundas = 0;
           var terceras = 0;
 
@@ -952,15 +982,19 @@
               enabled: true
             }
           });
-        }, // <-- Aquí estaba la llave que faltaba
+
+          // Ocultar el spinner después de que se haya generado la gráfica
+          $("#spinner").hide();
+        },
         error: function(xhr, status, error) {
           console.error("Error al cargar los datos:", error);
+          // Ocultar el spinner en caso de error
+          $("#spinner").hide();
         }
       });
     });
 
   </script>
-
 @endpush
 
 @push('js')
