@@ -632,8 +632,8 @@ class AuditoriaProcesoController extends Controller
              // Obtener el segundo y cuarto registro
             $segundoRegistro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
                 ->where('modulo', $request->modulo)
-                ->where('estilo', $request->estilo)
-                ->where('team_leader', $request->team_leader)
+                //->where('estilo', $request->estilo)
+                //->where('team_leader', $request->team_leader)
                 ->where('area', $request->area)
                 ->where('cantidad_rechazada', '>', 0)
                 ->orderBy('created_at', 'asc')
@@ -642,8 +642,8 @@ class AuditoriaProcesoController extends Controller
 
             $cuartoRegistro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
                 ->where('modulo', $request->modulo)
-                ->where('estilo', $request->estilo)
-                ->where('team_leader', $request->team_leader)
+                //->where('estilo', $request->estilo)
+                //->where('team_leader', $request->team_leader)
                 ->where('area', $request->area)
                 ->where('cantidad_rechazada', '>', 0)
                 ->orderBy('created_at', 'asc')

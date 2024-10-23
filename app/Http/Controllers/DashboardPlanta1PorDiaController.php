@@ -411,6 +411,12 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->pluck('estilo')
                 ->implode(', ');
             //dd($estilosUnicos);
+            $auditorUnicos = AuditoriaAQL::where('modulo', $modulo)
+                ->whereDate('created_at', $fecha)
+                ->where('tiempo_extra', $tiempoExtra)
+                ->distinct()
+                ->pluck('auditor')
+                ->implode(', ');
             $defectosUnicos = AuditoriaAQL::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
                 ->where('tiempo_extra', $tiempoExtra)
@@ -467,6 +473,7 @@ class DashboardPlanta1PorDiaController extends Controller
 
             $dataModuloAQL[] = [
                 'modulo' => $modulo,
+                'auditorUnicos' => $auditorUnicos,
                 'modulos_unicos' => $modulosUnicos,
                 'porcentaje_error_aql' => $porcentajeErrorAQL,
                 'conteoOperario' => $conteoOperario,
@@ -520,6 +527,13 @@ class DashboardPlanta1PorDiaController extends Controller
             if (!is_null($planta)) {
                 $queryModulo->where('planta', $planta);
             }
+
+            $auditorUnicos = AseguramientoCalidad::where('modulo', $modulo)
+                ->whereDate('created_at', $fecha)
+                ->where('tiempo_extra', $tiempoExtra)
+                ->distinct()
+                ->pluck('auditor')
+                ->implode(', ');
 
             $modulosUnicos = AseguramientoCalidad::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
@@ -633,6 +647,7 @@ class DashboardPlanta1PorDiaController extends Controller
 
             $dataModuloProceso[] = [
                 'modulo' => $modulo,
+                'auditorUnicos' => $auditorUnicos,
                 'modulos_unicos' => $modulosUnicos,
                 'porcentaje_error_proceso' => $porcentajeErrorProceso,
                 'conteoOperario' => $conteoOperario,

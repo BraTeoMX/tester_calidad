@@ -99,14 +99,13 @@
                         </tbody>
                     </table>
                 </div>
-                <form method="POST" action="{{ route('auditoriaCorte.formEncabezadoAuditoriaCorte') }}">
+                <form method="POST" action="{{ route('auditoriaCorte.formEncabezadoAuditoriaCorteV2') }}">
                     @csrf
                     <input type="hidden" name="orden" value="{{ $datoAX->op }}">
                     <input type="hidden" name="estilo" value="{{ $datoAX->estilo }}">
                     <input type="hidden" name="planta" value="{{ $datoAX->planta }}">
                     <input type="hidden" name="temporada" value="{{ $datoAX->temporada }}">
                     <input type="hidden" name="cliente" value="{{ $datoAX->custorname }}">
-                    <input type="hidden" name="color" value="{{ $datoAX->inventcolorid }}">
                     <input type="hidden" name="qtysched_id" value="{{ $datoAX->qtysched }}">
                     <!-- Desde aquí inicia la edición del código para mostrar el contenido -->
                     <div class="table-responsive">
@@ -193,6 +192,33 @@
             } else {
                 warning.style.display = 'none';
             }
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obtener el formulario
+            const form = document.querySelector('form[action="{{ route('auditoriaCorte.formEncabezadoAuditoriaCorteV2') }}"]');
+
+            // Validar antes de enviar el formulario
+            form.addEventListener('submit', function(event) {
+                var evento = parseInt(document.getElementById('evento').value);
+                var totalEvento = parseInt(document.getElementById('total_evento').value);
+                var warning = document.getElementById('warning');
+
+                // Verificar si el valor de 'evento' es mayor que 'total_evento'
+                if (evento > totalEvento) {
+                    // Mostrar el mensaje de advertencia
+                    warning.style.display = 'block';
+                    
+                    // Evitar el envío del formulario
+                    event.preventDefault();
+                    alert("Por favor, selecciona un rango válido: el primer numero debe ser menor o igual a segundo numero");
+                } else {
+                    // Ocultar el mensaje si la validación es correcta
+                    warning.style.display = 'none';
+                }
+            });
         });
     </script>
 
