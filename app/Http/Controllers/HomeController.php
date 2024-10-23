@@ -9,7 +9,7 @@ use App\Models\TpAuditoriaAQL;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\DB; // Importa la clase DB
-
+use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
 {
@@ -159,8 +159,7 @@ class HomeController extends Controller
                 ->orderBy('total', 'desc')
                 ->limit(3)
                 ->get();
-                //Ontener Segundas y Teceras Generales
-            //$SegundasTerceras = obtenerSegundasTerceras();
+
             //dd($gerentesProduccionAQL, $gerentesProduccionProceso, $gerentesProduccion, $data);
             $dataGraficaModulos = $this->obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin);
             $modulosGrafica = !empty($dataGraficaModulos['modulosUnicos']) ? collect($dataGraficaModulos['modulosUnicos'])->toArray() : [0];
@@ -214,7 +213,7 @@ class HomeController extends Controller
             // Convertir la colección a un array si es necesario
             //$modulosUnicosArrayBusqueda = $modulosUnicosBusqueda->values()->all();
             //dd($clientesUnicosArrayBusqueda);
-            return view('dashboard', compact('title', 'topDefectosAQL', 'topDefectosProceso','SegundasTerceras',
+            return view('dashboard', compact('title', 'topDefectosAQL', 'topDefectosProceso',
                                     'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2', 'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2',
                                     'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
                                     'dataGerentesAQLGeneral', 'dataGerentesProcesoGeneral', 'dataGerentesAQLPlanta1', 'dataGerentesAQLPlanta2', 'dataGerentesProcesoPlanta1', 'dataGerentesProcesoPlanta2',
@@ -228,6 +227,27 @@ class HomeController extends Controller
         } else {
             // Si el usuario no tiene esos roles, redirige a listaFormularios
             return redirect()->route('viewlistaFormularios');
+        }
+    }
+    public function SegundasTerceras()
+    {
+        try {
+            // Obtener Segundas y Terceras Generales
+            $SegundasTerceras = obtenerSegundasTerceras();
+
+            return response()->json([
+                'data' => $SegundasTerceras,
+                'status' => 'success'
+            ], 200);
+
+        } catch (\Exception $e) {
+            // Manejar la excepción, por ejemplo, loguear el error
+            Log::error('Error al obtener SegundasTerceras: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Error al obtener los datos.',
+                'status' => 'error'
+            ], 500);
         }
     }
     private function obtenerDatosClientesPorFiltro($fechaActual, $planta = null)

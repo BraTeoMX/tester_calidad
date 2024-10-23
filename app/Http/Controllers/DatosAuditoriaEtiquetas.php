@@ -21,115 +21,124 @@ class DatosAuditoriaEtiquetas extends Controller
         ];
         return view('formulariosCalidad.auditoriaEtiquetas', compact('mesesEnEspanol'));
     }
-    public function NoOrdenes()
-    {
-        $ordenes = ModelsDatosAuditoriaEtiquetas::select('OrdenCompra')
-            ->distinct()
-            ->get();
-
-        return response()->json($ordenes);
-    }
-    public function NoOP()
-    {
-
-        $ordenes = DatosAXOV::select('op')
-            ->distinct()
-            ->get();
-
-        return response()->json($ordenes);
-    }
-    public function NoPO()
-    {
-
-        $ordenes = DatosAXOV::select('cpo')
-            ->distinct()
-            ->get();
-
-
-        return response()->json($ordenes);
-    }
-    public function NoOV()
-    {
-        $ordenes = DatosAXOV::select('salesid')
-            ->distinct()
-            ->get();
-
-
-        return response()->json($ordenes);
-    }
     public function buscarEstilos(Request $request)
     {
         $orden = $request->input('orden');
         $tipoBusqueda = $request->input('tipoBusqueda'); // Obtener el tipo de búsqueda
-        Log::info('Datosingresados: ' . $orden . ',' . $tipoBusqueda);
-        // Definir el campo de búsqueda según el tipo
-        $campoBusqueda = 'OrdenCompra'; // Valor predeterminado para OC
-        $modelo = ModelsDatosAuditoriaEtiquetas::class;
-        if ($tipoBusqueda === 'OP') {
-            $campoBusqueda = 'op'; // Cambia 'op' por el nombre real de la columna
-            $modelo = DatosAXOV::class;
+        Log::info('Datos ingresados: ' . $orden . ',' . $tipoBusqueda);
+        // Definir la conexión y el campo de búsqueda según el tipo
+        if($tipoBusqueda === 'OC'){
+             $campoBusqueda = 'ordenCompra';
+             $conexion = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View'); // Conexión por defecto para OC
+        } else if ($tipoBusqueda === 'OP') {
+            $campoBusqueda = 'OP'; // Cambia 'OP' por el nombre real de la columna
+            $conexion = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
         } elseif ($tipoBusqueda === 'PO') {
-            $campoBusqueda = 'cpo'; // Cambia 'cpo' por el nombre real de la columna
-            $modelo = DatosAXOV::class;
+            $campoBusqueda = 'CPO'; // Cambia 'PO' por el nombre real de la columna
+            $conexion = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
         } elseif ($tipoBusqueda === 'OV') {
-            $campoBusqueda = 'salesid'; // Cambia 'salesid' por el nombre real de la columna
-            $modelo = DatosAXOV::class;
+            $campoBusqueda = 'SALESID'; // Cambia 'OV' por el nombre real de la columna
+            $conexion = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
         }
 
-        $estilos = $modelo::where($campoBusqueda, $orden)
-            ->select('Estilos') // Asegúrate de que 'Estilos' existe en DatosAXOV
+        // Ejecutar la consulta para obtener los estilos
+        $estilos = $conexion
+            ->where($campoBusqueda, $orden)
+            ->select('Estilos')
             ->distinct()
             ->get();
+
         Log::info('Datos del select buscar estilos: ' . $estilos);
         $status = [];
 
+        // Iterar sobre los estilos y obtener el estado de la auditoría
         foreach ($estilos as $key => $estilo) {
-            // Obtener el estado de la auditoría para este estilo
-            $auditoriaEstado = $this->obtenerEstadoAuditoria($orden, $estilo->Estilos);
+            $auditoriaEstado = $this->obtenerEstadoAuditoria($orden, $tipoBusqueda, $estilo->Estilos);
             $status[$key] = $auditoriaEstado;
         }
 
         return response()->json(['estilos' => $estilos, 'status' => $status]);
     }
 
-    private function obtenerEstadoAuditoria($orden, $estilo)
-    {
-        try {
-            // Evaluar el estado en el modelo 'ModelsDatosAuditoriaEtiquetas'
-            $registrosEtiquetas = ModelsDatosAuditoriaEtiquetas::where('OrdenCompra', $orden)
-                ->where('Estilos', $estilo)
-                ->pluck('status');
 
-            // Evaluar el estado en el modelo 'DatosAXOV'
-            $registrosAXOV = DatosAXOV::where(function ($query) use ($orden) {
-                    $query->where('op', $orden)
-                          ->orWhere('cpo', $orden)
-                          ->orWhere('salesid', $orden);
+    private function obtenerEstadoAuditoria($tipoBusqueda, $orden, $estilo)
+{
+    try {
+        // Inicializar contadores
+        $totalEtiquetas = 0;
+        $totalAXOV = 0;
+        $totalRevision = 0;
+
+        // Determinar conexión y campo de búsqueda según el tipo
+        if ($tipoBusqueda === 'OC') {
+            // Buscar estilos de la orden en las tablas correspondientes y contar registros
+            $totalEtiquetas = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View')
+                ->where('OrdenCompra', $orden)
+                ->where('Estilos', $estilo)
+                ->count();
+        } elseif (in_array($tipoBusqueda, ['OP', 'PO', 'OV'])) {
+            // Buscar por OP, CPO o SALESID y contar registros
+            $totalAXOV = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View')
+                ->where(function ($query) use ($orden) {
+                    $query->where('OP', $orden)
+                        ->orWhere('CPO', $orden)
+                        ->orWhere('SALESID', $orden);
                 })
                 ->where('Estilos', $estilo)
-                ->pluck('status');
+                ->count();
+        }
 
-            // Unir los estados de ambos modelos
-            $todosEstados = $registrosEtiquetas->merge($registrosAXOV);
+        // Buscar en el modelo 'ReporteAuditoriaEtiqueta' por la orden y el estilo y contar registros
+        $totalRevision = ReporteAuditoriaEtiqueta::where('Orden', $orden)
+            ->where('Estilos', $estilo)
+            ->count();
 
-            // Si no se encontraron registros, la auditoría no ha sido iniciada
-            if ($todosEstados->isEmpty()) {
+        // Calcular la cantidad de registros pendientes
+        $registrosPendientes = ($totalEtiquetas + $totalAXOV) - $totalRevision;
+
+        // Si no hay registros pendientes, la auditoría no ha sido iniciada o está finalizada
+        if ($registrosPendientes >= 0) {
+            // Obtener los estados de 'ReporteAuditoriaEtiqueta' para determinar si está finalizada
+            $estadosRevision = ReporteAuditoriaEtiqueta::where('Orden', $orden)
+                ->where('Estilos', $estilo)
+                ->select('Status')
+                ->get();
+
+            // Verificar si todos los estados están finalizados
+            $todosFinalizados = $estadosRevision->every(function ($estado) {
+                $estadosFinalizados = ['Aprobado', 'Aprobado Condicionalmente', 'Rechazado'];
+                return in_array($estado->Status, $estadosFinalizados);
+            });
+            $existeRevision = ReporteAuditoriaEtiqueta::where('Orden', $orden)
+            ->where('Estilos', $estilo)
+            ->exists();
+            if ($todosFinalizados) {
+                return 'Auditoría Finalizada';
+            }  elseif (!$existeRevision) {
                 return 'No iniciada';
             }
+        } else { // Si hay registros pendientes...
 
-            // Verificar los diferentes estados de auditoría
-            $todosNulos = true;
-            $todosIniciados = true;
+            // Inicializar variables para los estados
+            $todosIniciados = false;
             $alMenosUnoEnProceso = false;
-            $todosFinalizados = true;
+            $todosFinalizados = false;
 
             $estadosEnProceso = ['Guardado', 'Update', 'Iniciado', 'Aprobado', 'Aprobado Condicionalmente', 'Rechazado'];
             $estadosFinalizados = ['Aprobado', 'Aprobado Condicionalmente', 'Rechazado'];
 
-            foreach ($todosEstados as $status) {
-                if ($status !== null) {
-                    $todosNulos = false;
-                }
+            // Obtener los estados de 'ReporteAuditoriaEtiqueta' para determinar el estado actual
+            $estadosRevision = ReporteAuditoriaEtiqueta::where('Orden', $orden)
+                ->where('Estilos', $estilo)
+                ->select('Status')
+                ->get();
+            // Verificar si existen registros en 'ReporteAuditoriaEtiqueta'
+        $existeRevision = ReporteAuditoriaEtiqueta::where('Orden', $orden)
+        ->where('Estilos', $estilo)
+        ->exists();
+            // Evaluar los estados obtenidos
+            foreach ($estadosRevision as $estado) {
+                $status = $estado->Status;
 
                 if ($status === 'Iniciado') {
                     $todosIniciados = true;
@@ -144,8 +153,8 @@ class DatosAuditoriaEtiquetas extends Controller
                 }
             }
 
-            // Determinar el estado de la auditoría
-            if ($todosNulos) {
+            // Determinar el estado de la auditoría (manteniendo la lógica original)
+            if (!$existeRevision) {
                 return 'No iniciada';
             } elseif ($todosFinalizados) {
                 return 'Auditoría Finalizada';
@@ -154,13 +163,15 @@ class DatosAuditoriaEtiquetas extends Controller
             } elseif ($todosIniciados) {
                 return 'Auditoría Iniciada';
             }
-
-        } catch (\Exception $e) {
-            // Manejar excepciones y errores
-            Log::error('Error en la obtención del estado de la auditoría: ' . $e->getMessage());
-            return 'Error al obtener el estado de la auditoría';
         }
+
+    } catch (\Exception $e) {
+        // Manejar excepciones y errores con más detalles
+        Log::error('Error en la obtención del estado de la auditoría: ' . $e->getMessage() . ' en línea ' . $e->getLine());
+        return 'Error al obtener el estado de la auditoría';
     }
+}
+
 
     public function buscarDatosAuditoriaPorEstilo(Request $request)
     {
@@ -171,35 +182,70 @@ class DatosAuditoriaEtiquetas extends Controller
         // Definir el campo de búsqueda y el modelo según el tipo
         if ($tipoBusqueda == 'OC') {
             $campoBusqueda = 'OrdenCompra';
-            $modelo = ModelsDatosAuditoriaEtiquetas::class;
-            $selectCampos = ['id', 'OrdenCompra', 'Estilos', 'Cantidad', 'Talla', 'Color'];
+            $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View');
+            $selectCampos = ['OrdenCompra', 'Estilos', 'Cantidad', 'Talla', 'Color'];
+            $campoCantidad = 'Cantidad';
         } else {
             // Mapeo de tipos de búsqueda a nombres de columna
             $campoBusqueda = [
-                'OP' => 'op',
-                'PO' => 'cpo',
-                'OV' => 'salesid',
+                'OP' => 'OP',
+                'PO' => 'CPO',
+                'OV' => 'SALESID',
             ][$tipoBusqueda];
 
-            $modelo = DatosAXOV::class;
-            $selectCampos = ['id', $campoBusqueda, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
+            $modelo = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+            $selectCampos = [$campoBusqueda, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
+            $campoCantidad = 'qty';
         }
-Log::info('Estilo seleccionado: '. $estilo);
+
+        // Log para verificar el estilo seleccionado
+        Log::info('Estilo seleccionado: ' . $estilo);
+
         // Buscar datos relacionados con el estilo especificado y la orden de compra
-        $datos = $modelo::where('Estilos', $estilo)
-            ->where($campoBusqueda, $orden)
-            ->where(function ($query) {
-                $query->whereNull('status')
-                    ->orWhereIn('status', ['Iniciado', 'Guardado']);
-            })
-            ->select($selectCampos)
-            ->get();
-            Log::info('Datos del select buscar data cmpleta: ' . $datos);
-        // Iterar sobre los datos y determinar el tamaño de muestra
-        foreach ($datos as $dato) {
-            // Determinar el campo de cantidad según el modelo
-            $campoCantidad = ($modelo === DatosAXOV::class) ? 'qty' : 'Cantidad';
-            $cantidad = $dato->$campoCantidad; // Obtener la cantidad del campo correcto
+        $datos = $modelo->where('Estilos', $estilo)
+                        ->where($campoBusqueda, $orden)
+                        ->select($selectCampos)
+                        ->get();
+
+        // Log para verificar los datos obtenidos
+        Log::info('Datos obtenidos: ' . json_encode($datos));
+
+        // Obtener TODOS los registros existentes en ReporteAuditoriaEtiqueta
+        $registrosExistentes = ReporteAuditoriaEtiqueta::all();
+
+        // Convertir los registros existentes a un array para facilitar la búsqueda
+        $registrosExistentesArray = $registrosExistentes->map(function ($item) {
+            return [
+                'Orden' => $item->Orden,
+                'Estilos' => $item->Estilos,
+                'Color' => $item->Color,
+                'Talla' => $item->Talla,
+            ];
+        })->toArray();
+
+        // Filtrar los datos obtenidos de las conexiones SQL
+        $datosFiltrados = $datos->filter(function ($dato) use ($registrosExistentesArray, $tipoBusqueda, $campoBusqueda) {
+            // Ajustar los nombres de las propiedades según el tipo de búsqueda
+            $color = ($tipoBusqueda == 'OC') ? $dato->Color : $dato->inventcolorid;
+            $talla = ($tipoBusqueda == 'OC') ? $dato->Talla : $dato->sizename;
+
+            // Obtener el valor del campo de búsqueda (OrdenCompra, OP, CPO o SALESID)
+            $ordenValor = $dato->$campoBusqueda;
+
+            // Verificar si la combinación ya existe en ReporteAuditoriaEtiqueta
+            $combinacion = [
+                'Orden' => $ordenValor,
+                'Estilos' => $dato->Estilos,
+                'color' => $color,
+                'talla' => $talla,
+            ];
+
+            return !in_array($combinacion, $registrosExistentesArray);
+        });
+
+        // Iterar sobre los datos filtrados y determinar el tamaño de muestra
+        foreach ($datosFiltrados as $dato) {
+            $cantidad = $dato->$campoCantidad;
 
             $tamaño_muestra = '';
 
@@ -236,12 +282,12 @@ Log::info('Estilo seleccionado: '. $estilo);
                 $tamaño_muestra = '2000';
             }
 
-            // Asignar el tamaño de muestra al modelo
+            // Asignar el tamaño de muestra al resultado
             $dato->tamaño_muestra = $tamaño_muestra;
         }
-        return response()->json($datos);
-    }
 
+        return response()->json($datosFiltrados);
+    }
     public function obtenerTiposDefectos()
     {
         $tiposDefectos = Cat_DefEtiquetas::all();
@@ -254,12 +300,10 @@ Log::info('Estilo seleccionado: '. $estilo);
         // Obtener los datos enviados desde el frontend
         $datos = $request->input('datos');
         $status = $request->input('status');
-        $rowId = $request->input('rowId');
 
         // Registrar los datos iniciales para depuración
         Log::info('Datos recibidos: ' . json_encode($datos));
         Log::info('Status recibido: ' . $status);
-        Log::info('Row ID recibido: ' . $rowId);
 
         if (!is_array($datos) || empty($datos)) {
             throw new \Exception('Datos inválidos, se esperaba un array no vacío.');
@@ -270,8 +314,8 @@ Log::info('Estilo seleccionado: '. $estilo);
             Log::info('Procesando dato: ' . json_encode($dato));
 
             // Validar la existencia de campos necesarios
-            if (!isset($dato['id']) || !isset($dato['tipoBusqueda'])) {
-                throw new \Exception('Datos incompletos: falta id o tipoBusqueda.');
+            if (!isset($dato['tipoBusqueda'])) {
+                throw new \Exception('Datos incompletos: falta tipoBusqueda.');
             }
 
             // Convertir el array tipoDefecto en string si es necesario
@@ -306,7 +350,6 @@ Log::info('Estilo seleccionado: '. $estilo);
 
             // Buscar o crear registro en ReporteAuditoriaEtiqueta
             $reporte = ReporteAuditoriaEtiqueta::updateOrCreate(
-                ['id' => $rowId],
                 [
                     'Orden' => $dato['orden'] ?? 'N/A',
                     'Estilos' => $dato['estilo'] ?? 'N/A',
@@ -320,31 +363,6 @@ Log::info('Estilo seleccionado: '. $estilo);
                 ]
             );
             Log::info('Reporte guardado/actualizado con ID: ' . $reporte->id);
-
-            // Obtener el tipo de búsqueda del registro actual
-            $tipoBusqueda = $dato['tipoBusqueda'];
-
-            // Determinar el modelo y el campo de búsqueda según el tipo
-            if ($tipoBusqueda === 'OC') {
-                $modelo = ModelsDatosAuditoriaEtiquetas::class;
-                $campoBusqueda = 'id';
-            } else {
-                $modelo = DatosAXOV::class;
-                $campoBusqueda = 'id';
-            }
-
-            // Buscar si existe un registro en el modelo correspondiente
-            $registroExistenteModel = $modelo::where($campoBusqueda, $dato['id'])->first();
-            Log::info('Registro existente encontrado: ' . json_encode($registroExistenteModel));
-
-            if ($registroExistenteModel) {
-                // Actualizar solo el atributo 'status'
-                $registroExistenteModel->update(['status' => $status]);
-                Log::info('Status actualizado en el modelo: ' . $modelo);
-            } else {
-                // Registro no encontrado en el modelo específico, loguear advertencia
-                Log::warning('Registro no encontrado en ' . $modelo . ' con ' . $campoBusqueda . ': ' . $dato['id']);
-            }
         }
 
         // Retornar una respuesta JSON indicando el éxito

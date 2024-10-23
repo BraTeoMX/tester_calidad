@@ -225,7 +225,7 @@
         <div class="col-lg-4">
             <div class="card card-chart">
                 <div class="card-header">
-                    <h2 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> Segundas / Terceras</h2>
+                    <h2 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> Segundas/Terceras <br> Acomulado Mensual</h2>
                 </div>
                 <div class="card-body">
                     <div id="SegundasTercerasChart"></div>
@@ -912,54 +912,65 @@
         // Mostrar la gráfica AQL por defecto
         mostrarGrafica('AQL');
     </script>
+
 <script>
     $(document).ready(function() {
-        var data = @json($SegundasTerceras); // Pasar los datos desde el servidor
+      $.ajax({
+        url: "/SegundasTerceras",
+        method: "GET",
+        dataType: "json",
+        success: function(response) {
+         var data = response.data;
+          var segundas = 0;
+          var terceras = 0;
 
-        var segundas = 0;
-        var terceras = 0;
-
-        data.forEach(function(item) {
-            var qty = parseFloat(item.QTY); // Convertir QTY a número
+          data.forEach(function(item) {
+            var qty = parseFloat(item.QTY);
             if (item.Calidad === 'Segunda') {
-                segundas += qty;
+              segundas += qty;
             } else if (item.Calidad === 'Tercera') {
-                terceras += qty;
+              terceras += qty;
             }
-        });
+          });
 
-        Highcharts.chart('SegundasTercerasChart', {
+          Highcharts.chart('SegundasTercerasChart', {
             chart: {
-                type: 'column',
-                backgroundColor: 'transparent' // Hacer el fondo transparente
+              type: 'column',
+              backgroundColor: 'transparent'
             },
             title: {
-                text: 'Segundas y Terceras'
+              text: 'Segundas y Terceras'
             },
             xAxis: {
-                categories: ['Segundas', 'Terceras']
+              categories: ['Segundas', 'Terceras']
             },
             yAxis: {
-                min: 0,
-                title: {
-                    text: 'Cantidad'
-                }
+              min: 0,
+              title: {
+                text: 'Cantidad'
+              }
             },
             series: [{
-                name: 'Segundas',
-                data: [segundas],
-                color: '#7cb5ec' // Color para "Segundas"
+              name: 'Segundas',
+              data: [segundas],
+              color: '#7cb5ec'
             }, {
-                name: 'Terceras',
-                data: [terceras],
-                color: '#434348' // Color para "Terceras"
+              name: 'Terceras',
+              data: [terceras],
+              color: '#434348'
             }],
             legend: {
-            enabled: true
+              enabled: true
+            }
+          });
+        }, // <-- Aquí estaba la llave que faltaba
+        error: function(xhr, status, error) {
+          console.error("Error al cargar los datos:", error);
         }
-        });
+      });
     });
-    </script>
+
+  </script>
 
 @endpush
 
