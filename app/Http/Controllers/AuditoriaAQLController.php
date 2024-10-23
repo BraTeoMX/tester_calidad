@@ -454,47 +454,9 @@ class AuditoriaAQLController extends Controller
             ->count();
 
         //dd($request->all(), $conteoParos);
-        if($request->nombre){
-            // Dividimos el string de nombres por comas y quitamos espacios en blanco alrededor de los nombres
-            $nombres = array_map('trim', explode(',', $request->nombre));
-        
-            // Realizamos la búsqueda en AuditoriaProceso usando whereIn para obtener los registros
-            $empleados = AuditoriaProceso::whereIn('name', $nombres)->pluck('personnelnumber', 'name');
-        
-            // Inicializamos un array vacío para almacenar los números de empleado
-            $numerosEmpleado = [];
-        
-            // Recorremos el array de nombres originales para asegurar que el orden coincida
-            foreach($nombres as $nombre) {
-                // Si el nombre se encuentra en AuditoriaProceso, lo agregamos al array de resultados
-                if(isset($empleados[$nombre])) {
-                    $numerosEmpleado[] = $empleados[$nombre];
-                } else {
-                    // Si no se encuentra en AuditoriaProceso, buscamos en CategoriaUtility
-                    $empleadoEnCategoria = CategoriaUtility::where('nombre', $nombre)->pluck('numero_empleado')->first();
-        
-                    if($empleadoEnCategoria) {
-                        // Si se encuentra en CategoriaUtility, lo agregamos al array
-                        $numerosEmpleado[] = $empleadoEnCategoria;
-                    } else {
-                        // Si no se encuentra en ninguna de las dos tablas, agregamos "No encontrado"
-                        $numerosEmpleado[] = 'No encontrado';
-                    }
-                }
-            }
-        
-            // Convertimos el array de números de empleado en un string separado por comas
-            $numerosEmpleadoString = implode(', ', $numerosEmpleado);
-        
-            // Mostramos los resultados
-            //dd($numerosEmpleadoString);
-        }
-        
-        //dd($request->nombre);
         $nuevoRegistro = new AuditoriaAQL();
         $nuevoRegistro->area = $request->area;
         $nuevoRegistro->nombre = $request->nombre;
-        $nuevoRegistro->numero_empleado = $numerosEmpleadoString;
         $nuevoRegistro->modulo = $request->modulo;
         $nuevoRegistro->op = $request->op;
         $nuevoRegistro->cliente = $request->cliente;

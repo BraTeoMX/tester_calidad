@@ -471,27 +471,6 @@ class AuditoriaProcesoController extends Controller
         // Extraer la parte numérica del módulo
         $modulo_num = intval(substr($modulo, 0, 3));
         //dd($request->all());
-        if($request->nombre || $request->nombre_utility){
-            // Limpiamos el nombre recibido por si tiene espacios en blanco adicionales
-            $nombre = trim($request->nombre);
-            $nombreUtility = trim($request->nombre_utility);
-        
-            // Intentamos buscar primero en el modelo AuditoriaProceso
-            $numeroEmpleado = AuditoriaProceso::where('name', $nombre)->pluck('personnelnumber')->first();
-        
-            // Si no lo encontramos en AuditoriaProceso, intentamos buscar en CategoriaUtility
-            if(!$numeroEmpleado) {
-                $numeroEmpleado = CategoriaUtility::where('nombre', $nombreUtility)->pluck('numero_empleado')->first();
-            }
-        
-            // Si tampoco se encuentra en CategoriaUtility, devolvemos un mensaje "No encontrado"
-            if(!$numeroEmpleado) {
-                $numeroEmpleado = 'No encontrado';
-            }
-        
-            // Mostramos el número de empleado o el mensaje "No encontrado"
-            //dd($numeroEmpleado);
-        }        
         $nuevoRegistro = new AseguramientoCalidad();
         $nuevoRegistro->area = $request->area;
         if($modulo_num >= 100 && $modulo_num < 200){
@@ -519,15 +498,12 @@ class AuditoriaProcesoController extends Controller
         if($request->nombre_utility){
             $nuevoRegistro->nombre = $request->nombre_utility;
             $nuevoRegistro->utility = 1;
-            $nuevoRegistro->numero_empleado = $numeroEmpleado;
         }else{ 
             if(!$request->input('nombre')){
                 $nuevoRegistro->nombre = $request->input('nombre_otro');
-                $nuevoRegistro->numero_empleado = $numeroEmpleado;
                 //dd($nuevoRegistro->nombre);
             }else{
                 $nuevoRegistro->nombre = $request->nombre;
-                $nuevoRegistro->numero_empleado = $numeroEmpleado;
             }
         }
         $nuevoRegistro->operacion = $request->operacion;
