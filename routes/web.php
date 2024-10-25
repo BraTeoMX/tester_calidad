@@ -26,7 +26,9 @@ use App\Http\Controllers\reporteriaInternaController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AltaYBajaController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\redireccionar;
 use App\Http\Controllers\Segundas;
+use App\Http\Controllers\Terceras;
 
 /*
 |--------------------------------------------------------------------------
@@ -296,5 +298,7 @@ Route::post('/altaYbaja/gestion-utility', [AltaYBajaController::class, 'crearUti
 Route::post('/altaYbaja/gestion-responsable', [AltaYBajaController::class, 'crearResponsable'])->name('crearResponsable');
 Route::post('/altaYbaja/gestion-tecnico', [AltaYBajaController::class, 'crearTecnico'])->name('crearTecnico');
 //Segundas
-Route::get('/Segundas', [Segundas::class, 'Segundas']);
 Route::get('/SegundasTerceras',[HomeController::class, 'SegundasTerceras']);
+Route::get('/redireccionar', [redireccionar::class, 'redireccionar']);
+Route::get('/Segundas', [Segundas::class, 'Segundas']);
+Route::get('/Terceras', [Terceras::class, 'Terceras']);

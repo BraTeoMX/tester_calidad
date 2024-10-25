@@ -969,6 +969,31 @@
                 text: 'Cantidad'
               }
             },
+            plotOptions: {
+              series: {
+                cursor: 'pointer',
+                events: {
+                  click: function(event) {
+                    var categoria = event.point.category;
+
+                    // AJAX para la redirección
+                    $.ajax({
+                      url: '/redireccionar',
+                      method: 'GET',
+                      data: {
+                        ruta: categoria === 'Segundas' ? '/Segundas' : '/Terceras'
+                      },
+                      success: function(response) {
+                        window.location.href = response.ruta;
+                      },
+                      error: function(xhr, status, error) {
+                        console.error("Error en la redirección:", error);
+                      }
+                    });
+                  }
+                }
+              }
+            },
             series: [{
               name: 'Segundas',
               data: [segundas],
@@ -993,7 +1018,6 @@
         }
       });
     });
-
   </script>
 @endpush
 

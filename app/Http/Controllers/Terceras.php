@@ -6,17 +6,16 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class Segundas extends Controller
+class Terceras extends Controller
 {
-    public function Segundas()
+    public function Terceras()
     {
         try {
-            // Obtener Segundas y Terceras Generales
-            return view('Segundas.Segundas');
+            return view('Segundas.Terceras');
 
         } catch (\Exception $e) {
             // Manejar la excepción, por ejemplo, loguear el error
-            Log::error('Error al obtener Segundas: ' . $e->getMessage());
+            Log::error('Error al obtener Terceras: ' . $e->getMessage());
 
             return response()->json([
                 'message' => 'Error al obtener los datos.',
@@ -24,20 +23,18 @@ class Segundas extends Controller
             ], 500);
         }
     }
-    public function ObtenerSegundas()
+    public function ObtenerTerceras()
     {
         try {
             // Obtener Segundas y Terceras Generales
-            $ObtenerSegundas = ObtenerSegundas();
-
+            $ObtenerTerceras = ObtenerTerceras();
             return response()->json([
-                'ObtenerSegundas' => $ObtenerSegundas,
+                'ObtenerTerceras' => $ObtenerTerceras,
                 'status' => 'success'
             ], 200);
-
         } catch (\Exception $e) {
             // Manejar la excepción, por ejemplo, loguear el error
-            Log::error('Error al obtener Segundas: ' . $e->getMessage());
+            Log::error('Error al obtener Terceras: ' . $e->getMessage());
 
             return response()->json([
                 'message' => 'Error al obtener los datos.',
