@@ -118,18 +118,19 @@ class DashboardCostosController extends Controller
             $defectosPorCliente = $defectosPorCliente->map(function ($defecto) use ($totalConteo, &$porcentajeAcumulado) {
                 $defecto['porcentaje'] = $totalConteo > 0 ? ($defecto['conteo'] / $totalConteo) * 100 : 0;
                 $porcentajeAcumulado += $defecto['porcentaje'];
-                $defecto['porcentaje_acumulado'] = $porcentajeAcumulado;
+                $defecto['porcentaje_acumulado'] = round($porcentajeAcumulado, 3);
                 return $defecto;
             });
         
             // Solo agregar al array si existen defectos para el cliente
             if ($defectosPorCliente->isNotEmpty()) {
                 $costoPorSemanaClientes[$cliente] = [
-                    'defectos' => $defectosPorCliente,
+                    'defectos' => $defectosPorCliente->values(), // Convertir a valores numéricos
                     'total_conteo' => $totalConteo,
                 ];
             }
         }
+        
         
 
         return view('dashboar.dashboardCostosNoCalidad', compact('fechaInicio', 'fechaFin', 'costoPorSemana', 'costoPorMes', 

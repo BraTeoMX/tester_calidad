@@ -162,11 +162,17 @@
                                                 <th>Total</th>
                                                 <th>{{ $data['total_conteo'] }}</th>
                                                 <th>100%</th>
-                                                <th> </th>
+                                                <th></th>
                                             </tr>
                                         </tfoot>
                                     </table>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12 mb-4">
+                            <div class="card">
+                                <!-- Contenedor para la gráfica de cada cliente -->
+                                <div id="graficoCliente_{{ $loop->index }}" style="width:100%; height:400px;"></div>
                             </div>
                         </div>
                     @endforeach
@@ -265,6 +271,48 @@
                 color: '#8B0000',  // Rojo oscuro
                 lineWidth: 6       // Grosor de línea aumentado
             }]
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            @foreach($costoPorSemanaClientes as $index => $data)
+                Highcharts.chart('graficoCliente_{{ $loop->index }}', {
+                    chart: {
+                        backgroundColor: 'transparent'
+                    },
+                    title: {
+                        text: 'Defectos y Porcentaje Acumulado - Cliente: {{ $cliente }}'
+                    },
+                    xAxis: {
+                        categories: {!! json_encode($data['defectos']->pluck('defecto_unico')->toArray()) !!},
+                        title: {
+                            text: 'Defecto Único'
+                        }
+                    },
+                    yAxis: [{
+                        title: {
+                            text: 'Conteo'
+                        }
+                    }, {
+                        title: {
+                            text: 'Porcentaje Acumulado (%)'
+                        },
+                        opposite: true // Alinea el porcentaje acumulado al lado derecho
+                    }],
+                    series: [{
+                        type: 'column',  // Muestra la serie de "Conteo" como barras
+                        name: 'Conteo',
+                        data: {!! json_encode($data['defectos']->pluck('conteo')->toArray()) !!},
+                        color: '#4aa5d6' // azul
+                    }, {
+                        type: 'line',  // Mantiene "Porcentaje Acumulado" como línea
+                        name: 'Porcentaje Acumulado (%)',
+                        data: {!! json_encode($data['defectos']->pluck('porcentaje_acumulado')->toArray()) !!},
+                        color: '#8B0000', // Rojo oscuro
+                        yAxis: 1 // Ubica el porcentaje acumulado en el segundo eje Y
+                    }]
+                });
+            @endforeach
         });
     </script>
 @endpush
