@@ -109,7 +109,13 @@
         </div>
     </div>
 
-    <script src="https://code.highcharts.com/highcharts.js"></script>
+@endsection
+
+@push('js') 
+    <script src="{{ asset('js/highcharts/highcharts.js') }}"></script>
+    <script src="{{ asset('js/highcharts/highcharts-3d.js') }}"></script>
+    <script src="{{ asset('js/highcharts/exporting.js') }}"></script>
+    <script src="{{ asset('js/highcharts/dark-unica.js') }}"></script>
     <script>
         // Convertir los datos PHP a JSON para JavaScript
         const datosSemana = @json($costoPorSemana);
@@ -122,7 +128,8 @@
 
         Highcharts.chart('graficoSemana', {
             chart: {
-                type: 'line'
+                type: 'line',
+                backgroundColor: 'transparent'
             },
             title: {
                 text: 'Costo y Minutos de Paro por Semana'
@@ -139,11 +146,15 @@
                 }
             },
             series: [{
-                name: 'Minutos Paro Proceso',
-                data: minutosParoSemana
+                name: 'Minutos Paro Proceso (MPP)',
+                data: minutosParoSemana,
+                color: '#228B22',  // Verde oscuro
+                lineWidth: 3       // Grosor de línea aumentado
             }, {
                 name: 'Costo (USD)',
-                data: costoSemana
+                data: costoSemana,
+                color: '#8B0000',  // Rojo oscuro
+                lineWidth: 3       // Grosor de línea aumentado
             }]
         });
 
@@ -154,7 +165,8 @@
 
         Highcharts.chart('graficoMes', {
             chart: {
-                type: 'line'
+                type: 'line',
+                backgroundColor: 'transparent'
             },
             title: {
                 text: 'Costo y Minutos de Paro por Mes'
@@ -171,12 +183,16 @@
                 }
             },
             series: [{
-                name: 'Minutos Paro Proceso',
-                data: minutosParoMes
+                name: 'Minutos Paro Proceso (MPP)',
+                data: minutosParoMes,
+                color: '#228B22',  // Verde oscuro
+                lineWidth: 3       // Grosor de línea aumentado
             }, {
                 name: 'Costo (USD)',
-                data: costoMes
+                data: costoMes,
+                color: '#8B0000',  // Rojo oscuro
+                lineWidth: 3       // Grosor de línea aumentado
             }]
         });
     </script>
-@endsection
+@endpush
