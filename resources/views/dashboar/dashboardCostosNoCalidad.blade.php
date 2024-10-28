@@ -122,6 +122,45 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Defectos Únicos por Cliente</h3>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @foreach($costoPorSemanaClientes as $cliente => $defectos)
+                        <div class="col-lg-6 col-md-12 mb-4">
+                            <!-- Card individual para cada cliente -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4>Cliente: {{ $cliente }}</h4>
+                                </div>
+                                <div class="card-body table-responsive">
+                                    <table class="table tablesorter">
+                                        <thead>
+                                            <tr>
+                                                <th>Defecto Único</th>
+                                                <th>Conteo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($defectos as $defecto)
+                                                <tr>
+                                                    <td>{{ $defecto['defecto_unico'] }}</td>
+                                                    <td>{{ $defecto['conteo'] }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            
         </div>
     </div>
 

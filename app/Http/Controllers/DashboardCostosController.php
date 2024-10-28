@@ -81,8 +81,45 @@ class DashboardCostosController extends Controller
         $totalMinParoMes = $costoPorMes->sum('min_paro_proc');
         $totalCostoMes = $costoPorMes->sum('costo_usd');
 
+        // Obtener clientes únicos
+        $clientesUnicos = AseguramientoCalidad::select('cliente')
+            ->distinct()
+            ->get()
+            ->pluck('cliente');
+
+        // Inicializar el arreglo para almacenar el costo por semana por cliente y defecto
+        $costoPorSemanaClientes = [];
+
+        foreach ($clientesUnicos as $cliente) {
+            // Obtener los defectos únicos y su conteo para cada cliente
+            $defectosPorCliente = AseguramientoCalidad::where('cliente', $cliente)
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->with(['tpAseguramientoCalidad' => function ($query) {
+                    $query->where('tp', '!=', 'NINGUNO');
+                }])
+                ->get()
+                ->flatMap(function ($aseguramiento) {
+                    return $aseguramiento->tpAseguramientoCalidad;
+                })
+                ->groupBy('tp')
+                ->map(function ($defectos, $tp) {
+                    return [
+                        'defecto_unico' => $tp,
+                        'conteo' => $defectos->count(),
+                    ];
+                })
+                ->sortByDesc('conteo'); // Ordenar de mayor a menor por 'conteo'
+        
+            // Solo agregar al array si existen defectos para el cliente
+            if ($defectosPorCliente->isNotEmpty()) {
+                $costoPorSemanaClientes[$cliente] = $defectosPorCliente;
+            }
+        }
+        
+
         return view('dashboar.dashboardCostosNoCalidad', compact('fechaInicio', 'fechaFin', 'costoPorSemana', 'costoPorMes', 
-                'totalParoSemana','totalMinParoSemana', 'totalCostoSemana', 'totalParoMes', 'totalMinParoMes', 'totalCostoMes'));
+                'totalParoSemana','totalMinParoSemana', 'totalCostoSemana', 'totalParoMes', 'totalMinParoMes', 'totalCostoMes',
+                'costoPorSemanaClientes'));
 
     }
 
