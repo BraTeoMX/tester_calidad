@@ -34,10 +34,15 @@ class DashboardCostosController extends Controller
     public function dashboardCostosNoCalidad(Request $request)
     {
         $title = "";
-    
-        return view('dashboar.dashboardCostosNoCalidad', compact('title'));
-    }
 
+        // Obtener las fechas de inicio y fin del request o establecer por defecto las últimas 6 semanas
+        $fechaFin = $request->input('fecha_fin') ? Carbon::parse($request->input('fecha_fin'))->endOfDay() : Carbon::now()->endOfDay();
+        $fechaInicio = $request->input('fecha_inicio') ? Carbon::parse($request->input('fecha_inicio'))->startOfDay() : Carbon::now()->subWeeks(6)->startOfDay();
+        $datosCostos = 1;
+        //dd($fechaInicio, $fechaFin);
+
+        return view('dashboar.dashboardCostosNoCalidad', compact('title', 'datosCostos', 'fechaInicio', 'fechaFin'));
+    }
 
 
 }
