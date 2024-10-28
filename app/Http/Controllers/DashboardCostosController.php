@@ -54,7 +54,11 @@ class DashboardCostosController extends Controller
                 return $item;
             });
 
-        
+        // Obtener totales de la suma de minutos de paro y costo para semanas
+        $totalParoSemana = $costoPorSemana->sum('paros_proceso');
+        $totalMinParoSemana = $costoPorSemana->sum('min_paro_proc');
+        $totalCostoSemana = $costoPorSemana->sum('costo_usd');
+
         // Obtener el mes y año de la fecha de fin para excluir el mes actual
         $mesActual = $fechaFin->month;
         $anioActual = $fechaFin->year;
@@ -72,8 +76,14 @@ class DashboardCostosController extends Controller
                 return $item;
             });
         //
+        // Obtener totales de la suma de minutos de paro y costo para meses
+        $totalParoMes = $costoPorMes->sum('paros_proceso');
+        $totalMinParoMes = $costoPorMes->sum('min_paro_proc');
+        $totalCostoMes = $costoPorMes->sum('costo_usd');
 
-        return view('dashboar.dashboardCostosNoCalidad', compact('fechaInicio', 'fechaFin', 'costoPorSemana', 'costoPorMes'));
+        return view('dashboar.dashboardCostosNoCalidad', compact('fechaInicio', 'fechaFin', 'costoPorSemana', 'costoPorMes', 
+                'totalParoSemana','totalMinParoSemana', 'totalCostoSemana', 'totalParoMes', 'totalMinParoMes', 'totalCostoMes'));
+
     }
 
 

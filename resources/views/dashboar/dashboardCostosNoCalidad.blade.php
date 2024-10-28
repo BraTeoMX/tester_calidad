@@ -59,9 +59,26 @@
                                     </tr>
                                 @endforelse
                             </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th>Total</th>
+                                    <th>{{ $totalParoSemana }}</th>
+                                    <th>{{ $totalMinParoSemana }}</th>
+                                    <th class="costo-rojo">${{ number_format($totalCostoSemana, 2) }}</th>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
+                <div class="col-lg-6 col-md-12">
+                    <div class="card">
+                        <!-- Gráfica para $costoPorSemana -->
+                        <div id="graficoSemana" style="width:100%; height:400px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="col-lg-6 col-md-12">
                     <div class="card table-responsive">
                         <table class="table tablesorter">
@@ -79,7 +96,7 @@
                                         <td>{{ $dato->mes_nombre }}</td>
                                         <td>{{ $dato->paros_proceso }}</td>
                                         <td>{{ $dato->min_paro_proc }}</td>
-                                        <td>${{ number_format($dato->costo_usd, 2) }}</td>
+                                        <td class="costo-rojo">${{ number_format($dato->costo_usd, 2) }}</td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -87,16 +104,15 @@
                                     </tr>
                                 @endforelse
                             </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th>Total</th>
+                                    <th>{{ $totalParoMes }}</th>
+                                    <th>{{ $totalMinParoMes }}</th>
+                                    <th class="costo-rojo">${{ number_format($totalCostoMes, 2) }}</th>
+                                </tr>
+                            </tfoot>
                         </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-lg-6 col-md-12">
-                    <div class="card">
-                        <!-- Gráfica para $costoPorSemana -->
-                        <div id="graficoSemana" style="width:100%; height:400px;"></div>
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-12">
@@ -109,6 +125,11 @@
         </div>
     </div>
 
+    <style>
+        .costo-rojo {
+            color: red;
+        }
+    </style>
 @endsection
 
 @push('js') 
@@ -154,7 +175,7 @@
                 name: 'Costo (USD)',
                 data: costoSemana,
                 color: '#8B0000',  // Rojo oscuro
-                lineWidth: 3       // Grosor de línea aumentado
+                lineWidth: 6       // Grosor de línea aumentado
             }]
         });
 
@@ -191,7 +212,7 @@
                 name: 'Costo (USD)',
                 data: costoMes,
                 color: '#8B0000',  // Rojo oscuro
-                lineWidth: 3       // Grosor de línea aumentado
+                lineWidth: 6       // Grosor de línea aumentado
             }]
         });
     </script>
