@@ -110,9 +110,24 @@ class DashboardCostosController extends Controller
                 })
                 ->sortByDesc('conteo'); // Ordenar de mayor a menor por 'conteo'
         
+            // Calcular el total de conteo para este cliente
+            $totalConteo = $defectosPorCliente->sum('conteo');
+        
+            // Agregar el porcentaje y porcentaje acumulado a cada defecto
+            $porcentajeAcumulado = 0;
+            $defectosPorCliente = $defectosPorCliente->map(function ($defecto) use ($totalConteo, &$porcentajeAcumulado) {
+                $defecto['porcentaje'] = $totalConteo > 0 ? ($defecto['conteo'] / $totalConteo) * 100 : 0;
+                $porcentajeAcumulado += $defecto['porcentaje'];
+                $defecto['porcentaje_acumulado'] = $porcentajeAcumulado;
+                return $defecto;
+            });
+        
             // Solo agregar al array si existen defectos para el cliente
             if ($defectosPorCliente->isNotEmpty()) {
-                $costoPorSemanaClientes[$cliente] = $defectosPorCliente;
+                $costoPorSemanaClientes[$cliente] = [
+                    'defectos' => $defectosPorCliente,
+                    'total_conteo' => $totalConteo,
+                ];
             }
         }
         

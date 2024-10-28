@@ -130,7 +130,7 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    @foreach($costoPorSemanaClientes as $cliente => $defectos)
+                    @foreach($costoPorSemanaClientes as $cliente => $data)
                         <div class="col-lg-6 col-md-12 mb-4">
                             <!-- Card individual para cada cliente -->
                             <div class="card">
@@ -143,16 +143,28 @@
                                             <tr>
                                                 <th>Defecto Único</th>
                                                 <th>Conteo</th>
+                                                <th>Porcentaje (%)</th>
+                                                <th>Porcentaje Acumulado (%)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($defectos as $defecto)
+                                            @foreach($data['defectos'] as $defecto)
                                                 <tr>
                                                     <td>{{ $defecto['defecto_unico'] }}</td>
                                                     <td>{{ $defecto['conteo'] }}</td>
+                                                    <td>{{ number_format($defecto['porcentaje'], 2) }}%</td>
+                                                    <td>{{ number_format($defecto['porcentaje_acumulado'], 2) }}%</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th>Total</th>
+                                                <th>{{ $data['total_conteo'] }}</th>
+                                                <th>100%</th>
+                                                <th> </th>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>
