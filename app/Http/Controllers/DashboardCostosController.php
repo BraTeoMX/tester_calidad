@@ -33,15 +33,47 @@ class DashboardCostosController extends Controller
 
     public function dashboardCostosNoCalidad(Request $request)
     {
-        $title = "";
-
+        // Establecer localización en español para Carbon
+        \Carbon\Carbon::setLocale('es');
         // Obtener las fechas de inicio y fin del request o establecer por defecto las últimas 6 semanas
         $fechaFin = $request->input('fecha_fin') ? Carbon::parse($request->input('fecha_fin'))->endOfDay() : Carbon::now()->endOfDay();
         $fechaInicio = $request->input('fecha_inicio') ? Carbon::parse($request->input('fecha_inicio'))->startOfDay() : Carbon::now()->subWeeks(6)->startOfDay();
-        $datosCostos = 1;
-        //dd($fechaInicio, $fechaFin);
 
-        return view('dashboar.dashboardCostosNoCalidad', compact('title', 'datosCostos', 'fechaInicio', 'fechaFin'));
+        // Definir el valor del costo por minuto
+        $costoUSD = 0.21;
+
+        // Consultar datos agrupados por semana, contando los paros y sumando los minutos
+        $costoPorSemana = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin])
+            ->whereNotNull('minutos_paro') // Solo considerar registros donde minutos_paro no es null
+            ->selectRaw("WEEK(created_at, 1) as semana, COUNT(*) as paros_proceso, CAST(SUM(minutos_paro) AS UNSIGNED) as min_paro_proc")
+            ->groupBy('semana')
+            ->get()
+            ->map(function ($item) use ($costoUSD) {
+                // Calcular el costo en USD
+                $item->costo_usd = $item->min_paro_proc * $costoUSD;
+                return $item;
+            });
+
+        
+        // Obtener el mes y año de la fecha de fin para excluir el mes actual
+        $mesActual = $fechaFin->month;
+        $anioActual = $fechaFin->year;
+
+        // Consulta de costos por mes, excluyendo el mes actual
+        $costoPorMes = AseguramientoCalidad::whereYear('created_at', $anioActual)
+            ->whereMonth('created_at', '<', $mesActual)
+            ->whereNotNull('minutos_paro')
+            ->selectRaw("MONTH(created_at) as mes, COUNT(*) as paros_proceso, CAST(SUM(minutos_paro) AS UNSIGNED) as min_paro_proc")
+            ->groupBy('mes')
+            ->get()
+            ->map(function ($item) use ($costoUSD) {
+                $item->costo_usd = $item->min_paro_proc * $costoUSD;
+                $item->mes_nombre = ucfirst(\Carbon\Carbon::create()->month($item->mes)->translatedFormat('F')); 
+                return $item;
+            });
+        //
+
+        return view('dashboar.dashboardCostosNoCalidad', compact('fechaInicio', 'fechaFin', 'costoPorSemana', 'costoPorMes'));
     }
 
 
