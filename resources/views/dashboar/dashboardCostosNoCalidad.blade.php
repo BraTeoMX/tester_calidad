@@ -149,7 +149,7 @@
                                         </thead>
                                         <tbody>
                                             @foreach($data['defectos'] as $index => $defecto)
-                                                <tr class="{{ count($data['defectos']) > 8 && $index < 4 ? 'amarillo-indicador' : '' }}">
+                                                <tr class="{{ count($data['defectos']) > 7 && $index < 4 ? 'amarillo-indicador' : '' }}">
                                                     <td>{{ $defecto['defecto_unico'] }}</td>
                                                     <td>{{ $defecto['conteo'] }}</td>
                                                     <td>{{ number_format($defecto['porcentaje'], 2) }}%</td>
@@ -201,12 +201,12 @@
         // Convertir los datos PHP a JSON para JavaScript
         const datosSemana = @json($costoPorSemana);
         const datosMes = @json($costoPorMes);
-
+    
         // Procesar los datos para el gráfico de líneas de semanas
         const semanas = datosSemana.map(d => `SEMANA ${d.semana}`);
         const minutosParoSemana = datosSemana.map(d => d.min_paro_proc);
         const costoSemana = datosSemana.map(d => d.costo_usd);
-
+    
         Highcharts.chart('graficoSemana', {
             chart: {
                 type: 'line',
@@ -221,29 +221,54 @@
                     text: 'Semana'
                 }
             },
-            yAxis: {
+            yAxis: [{ // Primer eje Y para "Minutos Paro Proceso"
                 title: {
-                    text: 'Valor'
+                    text: 'Minutos Paro Proceso (MPP)',
+                    style: {
+                        color: '#4aa5d6' // Mismo color que la línea de MPP
+                    }
+                },
+                labels: {
+                    format: '{value}',
+                    style: {
+                        color: '#4aa5d6'
+                    }
                 }
-            },
+            }, { // Segundo eje Y para "Costo (USD)"
+                title: {
+                    text: 'Costo (USD)',
+                    style: {
+                        color: '#8B0000' // Mismo color que la línea de Costo
+                    }
+                },
+                labels: {
+                    format: '${value}',
+                    style: {
+                        color: '#8B0000'
+                    }
+                },
+                opposite: true // Coloca el eje en el lado derecho
+            }],
             series: [{
                 name: 'Minutos Paro Proceso (MPP)',
                 data: minutosParoSemana,
                 color: '#4aa5d6',  // Azul
-                lineWidth: 3       // Grosor de línea aumentado
+                lineWidth: 3,       // Grosor de línea aumentado
+                yAxis: 0           // Asociado al primer eje Y
             }, {
                 name: 'Costo (USD)',
                 data: costoSemana,
                 color: '#8B0000',  // Rojo oscuro
-                lineWidth: 6       // Grosor de línea aumentado
+                lineWidth: 6,       // Grosor de línea aumentado
+                yAxis: 1           // Asociado al segundo eje Y
             }]
         });
-
+    
         // Procesar los datos para el gráfico de líneas de meses
         const meses = datosMes.map(d => d.mes_nombre);
         const minutosParoMes = datosMes.map(d => d.min_paro_proc);
         const costoMes = datosMes.map(d => d.costo_usd);
-
+    
         Highcharts.chart('graficoMes', {
             chart: {
                 type: 'line',
@@ -258,21 +283,46 @@
                     text: 'Mes'
                 }
             },
-            yAxis: {
+            yAxis: [{ // Primer eje Y para "Minutos Paro Proceso"
                 title: {
-                    text: 'Valor'
+                    text: 'Minutos Paro Proceso (MPP)',
+                    style: {
+                        color: '#4aa5d6' // Mismo color que la línea de MPP
+                    }
+                },
+                labels: {
+                    format: '{value}',
+                    style: {
+                        color: '#4aa5d6'
+                    }
                 }
-            },
+            }, { // Segundo eje Y para "Costo (USD)"
+                title: {
+                    text: 'Costo (USD)',
+                    style: {
+                        color: '#8B0000' // Mismo color que la línea de Costo
+                    }
+                },
+                labels: {
+                    format: '${value}',
+                    style: {
+                        color: '#8B0000'
+                    }
+                },
+                opposite: true // Coloca el eje en el lado derecho
+            }],
             series: [{
                 name: 'Minutos Paro Proceso (MPP)',
                 data: minutosParoMes,
                 color: '#4aa5d6',  // Azul
-                lineWidth: 3       // Grosor de línea aumentado
+                lineWidth: 3,       // Grosor de línea aumentado
+                yAxis: 0           // Asociado al primer eje Y
             }, {
                 name: 'Costo (USD)',
                 data: costoMes,
                 color: '#8B0000',  // Rojo oscuro
-                lineWidth: 6       // Grosor de línea aumentado
+                lineWidth: 6,       // Grosor de línea aumentado
+                yAxis: 1           // Asociado al segundo eje Y
             }]
         });
     </script>
