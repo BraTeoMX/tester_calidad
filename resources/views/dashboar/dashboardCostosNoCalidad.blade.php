@@ -148,8 +148,8 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($data['defectos'] as $defecto)
-                                                <tr>
+                                            @foreach($data['defectos'] as $index => $defecto)
+                                                <tr class="{{ count($data['defectos']) > 8 && $index < 4 ? 'amarillo-indicador' : '' }}">
                                                     <td>{{ $defecto['defecto_unico'] }}</td>
                                                     <td>{{ $defecto['conteo'] }}</td>
                                                     <td>{{ number_format($defecto['porcentaje'], 2) }}%</td>
@@ -185,6 +185,9 @@
     <style>
         .costo-rojo {
             color: red;
+        }
+        .amarillo-indicador {
+            background-color: #887404; /* Color amarillo oscuro */
         }
     </style>
 @endsection
@@ -226,7 +229,7 @@
             series: [{
                 name: 'Minutos Paro Proceso (MPP)',
                 data: minutosParoSemana,
-                color: '#228B22',  // Verde oscuro
+                color: '#4aa5d6',  // Azul
                 lineWidth: 3       // Grosor de línea aumentado
             }, {
                 name: 'Costo (USD)',
@@ -263,7 +266,7 @@
             series: [{
                 name: 'Minutos Paro Proceso (MPP)',
                 data: minutosParoMes,
-                color: '#228B22',  // Verde oscuro
+                color: '#4aa5d6',  // Azul
                 lineWidth: 3       // Grosor de línea aumentado
             }, {
                 name: 'Costo (USD)',
@@ -278,10 +281,11 @@
             @foreach($costoPorSemanaClientes as $index => $data)
                 Highcharts.chart('graficoCliente_{{ $loop->index }}', {
                     chart: {
+                        type: 'line',
                         backgroundColor: 'transparent'
                     },
                     title: {
-                        text: 'Defectos y Porcentaje Acumulado - Cliente: {{ $cliente }}'
+                        text: 'Defectos y Porcentaje Acumulado - Cliente: {{ json_encode($index) }}'
                     },
                     xAxis: {
                         categories: {!! json_encode($data['defectos']->pluck('defecto_unico')->toArray()) !!},
@@ -303,7 +307,7 @@
                         type: 'column',  // Muestra la serie de "Conteo" como barras
                         name: 'Conteo',
                         data: {!! json_encode($data['defectos']->pluck('conteo')->toArray()) !!},
-                        color: '#4aa5d6' // azul
+                        color: '#4aa5d6' // Azul
                     }, {
                         type: 'line',  // Mantiene "Porcentaje Acumulado" como línea
                         name: 'Porcentaje Acumulado (%)',
@@ -314,5 +318,5 @@
                 });
             @endforeach
         });
-    </script>
+    </script>    
 @endpush
