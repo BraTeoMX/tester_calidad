@@ -90,6 +90,9 @@ class DashboardCostosController extends Controller
         // Inicializar el arreglo para almacenar el costo por semana por cliente y defecto
         $costoPorSemanaClientes = [];
 
+        // Obtener los módulos únicos para cada cliente
+        $modulosPorCliente = [];
+
         foreach ($clientesUnicos as $cliente) {
             // Obtener los defectos únicos y su conteo para cada cliente
             $defectosPorCliente = AseguramientoCalidad::where('cliente', $cliente)
@@ -129,13 +132,61 @@ class DashboardCostosController extends Controller
                     'total_conteo' => $totalConteo,
                 ];
             }
+
+            // Obtener los módulos únicos asociados a cada cliente dentro del rango de fechas
+            $modulosCliente = AseguramientoCalidad::where('cliente', $cliente)
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->select('modulo')
+                ->distinct()
+                ->get()
+                ->map(function ($registro) use ($cliente, $fechaInicio, $fechaFin) {
+                    // Sumar los minutos de paro por cada módulo
+                    $minutosParo = AseguramientoCalidad::where('cliente', $cliente)
+                        ->where('modulo', $registro->modulo)
+                        ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                        ->sum('minutos_paro');
+
+                    // Obtener los estilos únicos asociados a este módulo
+                    $estilos = AseguramientoCalidad::where('cliente', $cliente)
+                        ->where('modulo', $registro->modulo)
+                        ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                        ->distinct()
+                        ->pluck('estilo')
+                        ->unique()
+                        ->implode(', '); // Concatenar estilos únicos separados por coma
+
+                    return [
+                        'modulo' => $registro->modulo,
+                        'minutos_paro_proceso' => $minutosParo ?: 0, // Asignar 0 si no hay datos
+                        'estilos' => $estilos, // Estilos concatenados
+                    ];
+                });
+
+                // Solo agregar si existen módulos para el cliente
+                if ($modulosCliente->isNotEmpty()) {
+                $totalMinutosParo = $modulosCliente->sum('minutos_paro_proceso');
+
+                // Calcular el porcentaje para cada módulo
+                $modulosCliente = $modulosCliente->map(function ($modulo) use ($totalMinutosParo) {
+                    $modulo['porcentaje'] = $totalMinutosParo > 0 
+                        ? round(($modulo['minutos_paro_proceso'] / $totalMinutosParo) * 100, 2) 
+                        : 0; // Asigna 0% si el total es 0
+                    return $modulo;
+                });
+
+                $modulosPorCliente[$cliente] = [
+                    'modulos' => $modulosCliente->values(), // Obtener solo los valores
+                    'total_modulos' => $modulosCliente->count(),
+                    'total_minutos_paro' => $totalMinutosParo, // Suma total de minutos de paro
+                ];
+            }
         }
         
         
 
         return view('dashboar.dashboardCostosNoCalidad', compact('fechaInicio', 'fechaFin', 'costoPorSemana', 'costoPorMes', 
                 'totalParoSemana','totalMinParoSemana', 'totalCostoSemana', 'totalParoMes', 'totalMinParoMes', 'totalCostoMes',
-                'costoPorSemanaClientes'));
+                'costoPorSemanaClientes', 'modulosPorCliente'));
 
     }
 

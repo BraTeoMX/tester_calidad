@@ -118,7 +118,7 @@
                 <div class="col-lg-6 col-md-12">
                     <div class="card">
                         <!-- Gráfica para $costoPorMes -->
-                        <div id="graficoMes" style="width:100%; height:400px;"></div>
+                        <div id="graficoMes" style="width:100%; height:500px;"></div>
                     </div>
                 </div>
             </div>
@@ -172,13 +172,69 @@
                         <div class="col-lg-6 col-md-12 mb-4">
                             <div class="card">
                                 <!-- Contenedor para la gráfica de cada cliente -->
-                                <div id="graficoCliente_{{ $loop->index }}" style="width:100%; height:400px;"></div>
+                                <div id="graficoCliente_{{ $loop->index }}" style="width:100%; height:500px;"></div>
                             </div>
                         </div>
                     @endforeach
                 </div>
             </div>
             
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Modulos unicos por cliente</h3>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @foreach($modulosPorCliente as $cliente => $data)
+                        <div class="col-lg-6 col-md-12 mb-4">
+                            <!-- Card individual para cada cliente -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4>Cliente: {{ $cliente }}</h4>
+                                </div>
+                                <div class="card-body table-responsive">
+                                    <table class="table tablesorter">
+                                        <thead>
+                                            <tr>
+                                                <th>Módulo Único</th>
+                                                <th>Minutos Paro Proceso</th>
+                                                <th>Porcentaje (%)</th>
+                                                <th>Estilos</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($data['modulos'] as $modulo)
+                                                <tr>
+                                                    <td>{{ $modulo['modulo'] }}</td>
+                                                    <td>{{ $modulo['minutos_paro_proceso'] }}</td>
+                                                    <td>{{ $modulo['porcentaje'] }}%</td>
+                                                    <td>{{ $modulo['estilos'] }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th>Total Módulos</th>
+                                                <th>{{ $data['total_modulos'] }}</th>
+                                                <th></th>
+                                                <th></th>
+                                            </tr>
+                                            <tr>
+                                                <th>Total Minutos Paro Proceso</th>
+                                                <th>{{ $data['total_minutos_paro'] }}</th>
+                                                <th>100%</th>
+                                                <th></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -198,6 +254,14 @@
     <script src="{{ asset('js/highcharts/exporting.js') }}"></script>
     <script src="{{ asset('js/highcharts/dark-unica.js') }}"></script>
     <script>
+        // Configuración global de Highcharts para la fuente
+        Highcharts.setOptions({
+            chart: {
+                style: {
+                    fontFamily: 'Inter, sans-serif'  // Solo se aplica a los gráficos
+                }
+            }
+        });
         // Convertir los datos PHP a JSON para JavaScript
         const datosSemana = @json($costoPorSemana);
         const datosMes = @json($costoPorMes);
@@ -335,7 +399,7 @@
                         backgroundColor: 'transparent'
                     },
                     title: {
-                        text: 'Defectos y Porcentaje Acumulado - Cliente: {{ json_encode($index) }}'
+                        text: 'Defectos y Porcentaje Pareto - Cliente: {{ json_encode($index) }}'
                     },
                     xAxis: {
                         categories: {!! json_encode($data['defectos']->pluck('defecto_unico')->toArray()) !!},
@@ -345,7 +409,7 @@
                     },
                     yAxis: [{
                         title: {
-                            text: 'Conteo'
+                            text: 'Cantidad'
                         }
                     }, {
                         title: {
