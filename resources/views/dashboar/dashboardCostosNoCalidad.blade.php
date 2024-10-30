@@ -185,6 +185,13 @@
                 </div>
             </div>
             <div class="card-body">
+                <!-- Mostrar el gran total fuera del foreach -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h5>Gran Total Minutos Paro Proceso: {{ $granTotalMinutosParo }}</h5>
+                    </div>
+                </div>
+            
                 <div class="row">
                     @foreach($modulosPorCliente as $cliente => $data)
                         <div class="col-lg-6 col-md-12 mb-4">
@@ -224,6 +231,12 @@
                                                 <th>Total Minutos Paro Proceso</th>
                                                 <th>{{ $data['total_minutos_paro'] }}</th>
                                                 <th>100%</th>
+                                                <th></th>
+                                            </tr>
+                                            <tr>
+                                                <th>Porcentaje respecto Gran Total</th>
+                                                <th>{{ $data['porcentaje_entre_gran_total_cliente'] }}%</th>
+                                                <th></th>
                                                 <th></th>
                                             </tr>
                                         </tfoot>

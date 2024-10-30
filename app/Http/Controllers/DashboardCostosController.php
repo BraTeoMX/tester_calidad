@@ -145,7 +145,7 @@ class DashboardCostosController extends Controller
                         ->where('modulo', $registro->modulo)
                         ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                         ->sum('minutos_paro');
-
+        
                     // Obtener los estilos únicos asociados a este módulo
                     $estilos = AseguramientoCalidad::where('cliente', $cliente)
                         ->where('modulo', $registro->modulo)
@@ -154,18 +154,18 @@ class DashboardCostosController extends Controller
                         ->pluck('estilo')
                         ->unique()
                         ->implode(', '); // Concatenar estilos únicos separados por coma
-
+        
                     return [
                         'modulo' => $registro->modulo,
                         'minutos_paro_proceso' => $minutosParo ?: 0, // Asignar 0 si no hay datos
                         'estilos' => $estilos, // Estilos concatenados
                     ];
                 });
-
-                // Solo agregar si existen módulos para el cliente
-                if ($modulosCliente->isNotEmpty()) {
+        
+            // Solo agregar si existen módulos para el cliente
+            if ($modulosCliente->isNotEmpty()) {
                 $totalMinutosParo = $modulosCliente->sum('minutos_paro_proceso');
-
+        
                 // Calcular el porcentaje para cada módulo
                 $modulosCliente = $modulosCliente->map(function ($modulo) use ($totalMinutosParo) {
                     $modulo['porcentaje'] = $totalMinutosParo > 0 
@@ -173,7 +173,7 @@ class DashboardCostosController extends Controller
                         : 0; // Asigna 0% si el total es 0
                     return $modulo;
                 });
-
+        
                 $modulosPorCliente[$cliente] = [
                     'modulos' => $modulosCliente->values(), // Obtener solo los valores
                     'total_modulos' => $modulosCliente->count(),
@@ -182,11 +182,22 @@ class DashboardCostosController extends Controller
             }
         }
         
+        // Calcular el gran total de minutos de paro proceso para todos los clientes
+        $granTotalMinutosParo = collect($modulosPorCliente)->sum('total_minutos_paro');
+        
+        // Añadir el porcentaje de cada cliente respecto al gran total
+        $modulosPorCliente = collect($modulosPorCliente)->map(function ($data) use ($granTotalMinutosParo) {
+            $data['porcentaje_entre_gran_total_cliente'] = $granTotalMinutosParo > 0
+                ? round(($data['total_minutos_paro'] / $granTotalMinutosParo) * 100, 2)
+                : 0; // Asigna 0% si el gran total es 0
+            return $data;
+        })->toArray();
+        
         
 
         return view('dashboar.dashboardCostosNoCalidad', compact('fechaInicio', 'fechaFin', 'costoPorSemana', 'costoPorMes', 
                 'totalParoSemana','totalMinParoSemana', 'totalCostoSemana', 'totalParoMes', 'totalMinParoMes', 'totalCostoMes',
-                'costoPorSemanaClientes', 'modulosPorCliente'));
+                'costoPorSemanaClientes', 'modulosPorCliente', 'granTotalMinutosParo'));
 
     }
 
