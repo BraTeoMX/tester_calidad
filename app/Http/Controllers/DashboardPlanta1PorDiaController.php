@@ -545,12 +545,6 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->pluck('auditor')
                 ->implode(', ');
 
-            $modulosUnicos = AseguramientoCalidad::where('modulo', $modulo)
-                ->whereDate('created_at', $fecha)
-                ->where('tiempo_extra', $tiempoExtra)
-                ->distinct()
-                ->count('modulo');
-
             $sumaAuditadaProceso = AseguramientoCalidad::where('modulo', $modulo)
                 ->whereDate('created_at', $fecha)
                 ->where('tiempo_extra', $tiempoExtra)
@@ -658,7 +652,6 @@ class DashboardPlanta1PorDiaController extends Controller
             $dataModuloProceso[] = [
                 'modulo' => $modulo,
                 'auditorUnicos' => $auditorUnicos,
-                'modulos_unicos' => $modulosUnicos,
                 'porcentaje_error_proceso' => $porcentajeErrorProceso,
                 'conteoOperario' => $conteoOperario,
                 'conteoUtility' => $conteoUtility,
@@ -1000,31 +993,64 @@ class DashboardPlanta1PorDiaController extends Controller
 
         // Filtro condicional para $tiempoExtra
         if (is_null($tiempoExtra)) {
-            $query->whereNull('tiempo_extra');  // Solo registros donde tiempo_extra es NULL
+            $query->whereNull('tiempo_extra');
         } else {
-            $query->where('tiempo_extra', $tiempoExtra);  // Solo registros con el valor de tiempo_extra especificado
+            $query->where('tiempo_extra', $tiempoExtra);
         }
 
         // Obtener combinaciones únicas de módulo y estilo, y ordenar por módulo
         $modulosEstilosProceso = $query->select('modulo', 'estilo')
             ->distinct()
-            ->orderBy('modulo', 'asc')  // Orden ascendente por módulo
+            ->orderBy('modulo', 'asc')
             ->get();
 
-        // Inicializar un arreglo para almacenar los resultados simplificados
+        // Inicializar un arreglo para almacenar los resultados
         $dataModuloEstiloProceso = [];
 
-        // Recorrer cada combinación de módulo y estilo y almacenar en el arreglo
+        // Recorrer cada combinación de módulo y estilo
         foreach ($modulosEstilosProceso as $item) {
+            $modulo = $item->modulo;
+            $estilo = $item->estilo;
+
+            // Obtener auditores únicos para la combinación actual de módulo y estilo
+            $auditoresUnicos = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->distinct()
+                ->pluck('auditor')
+                ->implode(', ');  // Combina los auditores únicos con comas
+
+            // Obtener el valor de cantidadRecorridos basado en la frecuencia máxima de "nombre" en la combinación actual
+            $cantidadRecorridos = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->selectRaw('nombre, COUNT(*) as cantidad_repeticiones')
+                ->groupBy('nombre')
+                ->orderByDesc('cantidad_repeticiones')
+                ->limit(1)  // Obtener solo el valor más alto de las repeticiones
+                ->value('cantidad_repeticiones');  // Obtener el valor de la frecuencia más alta
+
+            // Almacenar los resultados en el arreglo principal
             $dataModuloEstiloProceso[] = [
-                'modulo' => $item->modulo,
-                'estilo' => $item->estilo,
+                'modulo' => $modulo,
+                'estilo' => $estilo,
+                'auditoresUnicos' => $auditoresUnicos,
+                'cantidadRecorridos' => $cantidadRecorridos,
             ];
         }
 
-        // Retornar solo los datos de módulo y estilo
+        // Retornar los datos procesados
         return $dataModuloEstiloProceso;
     }
-
 
 }

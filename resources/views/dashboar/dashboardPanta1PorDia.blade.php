@@ -529,15 +529,19 @@
                 <table class="table tablesorter" id="tablaProcesoGeneral">
                     <thead class="text-primary">
                         <tr>
+                            <th>Auditor</th>
                             <th>Modulo</th>
                             <th>Estilo</th>
+                            <th>No. Recorridos</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($datosModuloEstiloProceso as $item)
                             <tr>
+                                <td>{{ $item['auditoresUnicos'] }}</td>
                                 <td>{{ $item['modulo'] }}</td>
                                 <td>{{ $item['estilo'] }}</td>
+                                <td>{{ $item['cantidadRecorridos'] }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -554,15 +558,19 @@
                 <table class="table tablesorter" id="tablaProcesoGeneralTE">
                     <thead class="text-primary">
                         <tr>
+                            <th>Auditor</th>
                             <th>Modulo</th>
                             <th>Estilo</th>
+                            <th>No. Recorridos</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($datosModuloEstiloProcesoTE as $item)
                             <tr>
+                                <td>{{ $item['auditoresUnicos'] }}</td>
                                 <td>{{ $item['modulo'] }}</td>
                                 <td>{{ $item['estilo'] }}</td>
+                                <td>{{ $item['cantidadRecorridos'] }}</td>
                             </tr>
                         @endforeach
                     </tbody>
