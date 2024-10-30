@@ -300,7 +300,6 @@ Route::post('/altaYbaja/gestion-responsable', [AltaYBajaController::class, 'crea
 Route::post('/altaYbaja/gestion-tecnico', [AltaYBajaController::class, 'crearTecnico'])->name('crearTecnico');
 //Segundas
 Route::get('/SegundasTerceras',[HomeController::class, 'SegundasTerceras']);
-Route::get('/redireccionar', [redireccionar::class, 'redireccionar']);
 Route::get('/Segundas', [Segundas::class, 'Segundas']);
 Route::get('/Terceras', [Terceras::class, 'Terceras']);
 

@@ -968,46 +968,36 @@
               title: {
                 text: 'Cantidad'
               }
-            },
-            plotOptions: {
-              series: {
-                cursor: 'pointer',
-                events: {
-                  click: function(event) {
-                    var categoria = event.point.category;
-
-                    // AJAX para la redirección
-                    $.ajax({
-                      url: '/redireccionar',
-                      method: 'GET',
-                      data: {
-                        ruta: categoria === 'Segundas' ? '/Segundas' : '/Terceras'
-                      },
-                      success: function(response) {
-                        window.location.href = response.ruta;
-                      },
-                      error: function(xhr, status, error) {
-                        console.error("Error en la redirección:", error);
-                      }
-                    });
-                  }
-                }
-              }
-            },
-            series: [{
-              name: 'Segundas',
-              data: [segundas],
-              color: '#7cb5ec'
-            }, {
-              name: 'Terceras',
-              data: [terceras],
-              color: '#434348'
-            }],
-            legend: {
+            }, series: [{
+        name: 'Segundas',
+        id: 'segundas', // Agrega un ID a la serie
+        data: [segundas],
+        color: '#7cb5ec',
+        events: {
+          click: function(event) {
+            // Redirigir a la vista de "Segundas" usando el ID de la serie
+            if (this.options.id === 'segundas') {
+              window.location.href = '/Segundas';
+            }
+          }
+        }
+      }, {
+        name: 'Terceras',
+        id: 'terceras', // Agrega un ID a la serie
+        data: [terceras],
+        color: '#434348',
+        events: {
+          click: function(event) {
+            // Redirigir a la vista de "Terceras" usando el ID de la serie
+            if (this.options.id === 'terceras') {
+              window.location.href = '/Terceras';
+            }
+          }
+        }
+      }],legend: {
               enabled: true
             }
           });
-
           // Ocultar el spinner después de que se haya generado la gráfica
           $("#spinner").hide();
         },

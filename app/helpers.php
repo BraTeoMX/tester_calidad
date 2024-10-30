@@ -63,7 +63,7 @@ if (!function_exists('ObtenerTerceras')) {
             return Cache::remember('ObtenerTerceras', 60, function() {
                 return DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
-                    ->where('Calidad', 'Tercera') // Filtrar por Calidad = 'Segunda'
+                    ->where('Calidad', 'Tercera') // Filtrar por Calidad = 'Tercera'
                     ->get();
             });
         } catch (\Exception $e) {

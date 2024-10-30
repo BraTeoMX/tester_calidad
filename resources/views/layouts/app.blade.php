@@ -7,9 +7,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Sistema de Calidad') }}</title>
+
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('black') }}/img/apple-icon.png">
-    <link rel="icon" type="image/png" href="{{ asset('black') }}/img/favicon.ico"> 
+    <link rel="icon" type="image/png" href="{{ asset('black') }}/img/favicon.ico">
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,600,700,800" rel="stylesheet" />
     <link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
@@ -19,6 +20,8 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
     <!-- Icons -->
     <link href="{{ asset('black') }}/css/nucleo-icons.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
     <!-- CSS -->
     <link href="{{ asset('black') }}/css/black-dashboard.css?v=1.0.0" rel="stylesheet" />
     <link href="{{ asset('black') }}/css/theme.css" rel="stylesheet" />
