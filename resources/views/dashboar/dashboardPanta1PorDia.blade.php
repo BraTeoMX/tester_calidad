@@ -77,7 +77,7 @@
             </div>
         </div>
     </div>
-
+{{--
     <div class="row">  
         <div class="col-lg-6 col-md-12">
             <div class="card ">
@@ -209,7 +209,6 @@
         </div>
     </div>  
 
-    <!-- Modales para AQL -->   
     @foreach ($dataModuloAQLGeneral as $item)
     <div id="customModalAQL{{ $item['modulo'] }}" class="custom-modal">
         <div class="custom-modal-content">
@@ -257,7 +256,6 @@
     </div>
     @endforeach
 
-    <!-- Modales para Proceso -->
     @foreach ($dataModuloProcesoGeneral as $item)
     <div id="customModalProceso{{ $item['modulo'] }}" class="custom-modal">
         <div class="custom-modal-content">
@@ -429,7 +427,6 @@
             </div>
         </div>
     </div>  
-    <!-- Modales para AQL Tiempo extra --> 
     @foreach ($dataModuloAQLGeneralTE as $item)
     <div id="customModalAQLTE{{ $item['modulo'] }}" class="custom-modal">
         <div class="custom-modal-content">
@@ -476,7 +473,6 @@
         </div>
     </div>
     @endforeach
-    <!-- Modales para Proceso Tiempo extra-->
     @foreach ($dataModuloProcesoGeneralTE as $item)
     <div id="customModalProcesoTE{{ $item['modulo'] }}" class="custom-modal">
         <div class="custom-modal-content">
@@ -521,231 +517,295 @@
         </div>
     </div>
     @endforeach
+--}}
 
-
-    <div class="card-body">
-        <div class="table-responsive">
-            @if ($datosModuloEstiloProceso)
-                <table class="table tablesorter" id="tablaProcesoGeneral">
-                    <thead class="text-primary">
-                        <tr>
-                            <th>Auditor</th>
-                            <th>Modulo</th>
-                            <th>Estilo</th>
-                            <th>No. Recorridos</th>
-                            <th>Cantidad Auditada</th>
-                            <th>Cantidad Rechazada</th>
-                            <th>% Error Proceso</th>
-                            <th>Conteo Operarios</th>
-                            <th>Conteo Utility</th>
-                            <th>Conteo Minutos</th>
-                            <th>Suma Minutos</th>
-                            <th>Promedio Minutos Paro</th>
-                            <th>Operarios Unicos</th>
-                            <th>Suma Paro Modular</th>
-                            <th>Conteo Paro Modular</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($datosModuloEstiloProceso as $item)
-                            <tr>
-                                <td>{{ $item['auditoresUnicos'] }}</td>
-                                <td>{{ $item['modulo'] }}</td>
-                                <td>{{ $item['estilo'] }}</td>
-                                <td>{{ $item['cantidadRecorridos'] }}</td>
-                                <td>{{ $item['sumaAuditadaProceso'] }}</td>
-                                <td>{{ $item['sumaRechazadaProceso'] }}</td>
-                                <td>{{ number_format($item['porcentajeErrorProceso'], 2) }}%</td>
-                                <td>{{ $item['conteoOperario'] }}</td>
-                                <td>{{ $item['conteoUtility'] }}</td>
-                                <td>{{ $item['conteoMinutos'] }}</td>
-                                <td>{{ $item['sumaMinutos'] }}</td>
-                                <td>{{ $item['promedioMinutosEntero'] }}</td>
-                                <td>{{ $item['operariosUnicos'] }}</td>
-                                <td>{{ $item['sumaParoModular'] }}</td>
-                                <td>{{ $item['conteParoModular'] }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @else
-                <p>No hay datos disponibles para el proceso general.</p>
-            @endif
+    <!-- Botones de selección -->
+    <div class="card">
+        <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+            <label class="btn btn-sm btn-primary btn-simple active" id="showAQL">
+                <input type="radio" name="options" checked>
+                <span><i class="tim-icons icon-app text-success"></i>&nbsp; AQL</span>
+            </label>
+            <label class="btn btn-sm btn-primary btn-simple" id="showProceso">
+                <input type="radio" name="options">
+                <span><i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos</span>
+            </label>
+        </div>
+        <!-- Tabla de AQL -->
+        <div id="tablaAQL" class="table-container" style="display: block;">
+            <div class="card ">
+                <div class="card-header card-header-success card-header-icon">
+                    <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Turno Normal</h3> 
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        @if ($datosModuloEstiloAQL)
+                            <table class="table tablesorter" id="tablaAQLGeneralNuevo">
+                                <thead class="text-primary">
+                                    <tr>
+                                        <th>Auditor</th>
+                                        <th>Modulo (AQL)</th>
+                                        <th>Estilo</th>
+                                        <th>Numero de Operarios</th>
+                                        <th>Cantidad Paro</th>
+                                        <th>Minutos Paro</th>
+                                        <th>Promedio Minutos Paro</th>
+                                        <th>Cantidad Paro Modular</th>
+                                        <th>Minutos Paro Modular</th>
+                                        <th>Total piezas por Bulto</th>
+                                        <th>Total Bulto</th>
+                                        <th>Total Bulto Rechazados</th>
+                                        <th>Cantidad Auditados</th>
+                                        <th>Cantidad Defectos</th>
+                                        <th>% Error AQL</th>
+                                        <th>Defectos</th>
+                                        <th>Accion Correctiva</th>
+                                        <th>Operario Responsable</th>
+                                        <th>Reparacion Piezas</th>
+                                        <th>Piezas de Bulto Rechazado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($datosModuloEstiloAQL as $item)
+                                        <tr>
+                                            <td>{{ $item['auditoresUnicos'] }}</td>
+                                            <td>{{ $item['modulo'] }}</td>
+                                            <td>{{ $item['estilosUnicos'] }}</td>
+                                            <td>{{ $item['conteoOperario'] }}</td>
+                                            <td>{{ $item['conteoMinutos'] }}</td>
+                                            <td>{{ $item['sumaMinutos'] }}</td>
+                                            <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                            <td>{{ $item['conteParoModular'] }}</td>
+                                            <td>{{ $item['sumaParoModular'] }}</td>
+                                            <td>{{ $item['sumaPiezasBulto'] }}</td>
+                                            <td>{{ $item['cantidadBultosEncontrados'] }}</td>
+                                            <td>{{ $item['cantidadBultosRechazados'] }}</td>
+                                            <td>{{ $item['sumaAuditadaAQL'] }}</td>
+                                            <td>{{ $item['sumaRechazadaAQL'] }}</td>
+                                            <td>{{ number_format($item['porcentajeErrorAQL'], 2) }}%</td>
+                                            <td>{{ $item['defectosUnicos'] }}</td>
+                                            <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
+                                            <td>{{ $item['operariosUnicos'] }}</td>
+                                            <td>{{ $item['sumaReparacionRechazo'] }}</td>
+                                            <td>{{ $item['piezasRechazadasUnicas'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @else
+                            <p>No hay datos disponibles para el proceso general de AQL.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Tabla de Proceso -->
+        <div id="tablaProceso" class="table-container" style="display: none;">
+            <div class="card ">
+                <div class="card-header card-header-success card-header-icon">
+                    <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Turno Normal</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        @if ($datosModuloEstiloProceso)
+                            <table class="table tablesorter" id="tablaProcesoGeneralNuevo">
+                                <thead class="text-primary">
+                                    <tr>
+                                        <th>Auditor</th>
+                                        <th>Modulo</th>
+                                        <th>Estilo</th>
+                                        <th>No. Recorridos</th>
+                                        <th>Cantidad Auditada</th>
+                                        <th>Cantidad Rechazada</th>
+                                        <th>% Error Proceso</th>
+                                        <th>Conteo Operarios</th>
+                                        <th>Conteo Utility</th>
+                                        <th>Conteo Minutos</th>
+                                        <th>Suma Minutos</th>
+                                        <th>Promedio Minutos Paro</th>
+                                        <th>Operarios Unicos</th>
+                                        <th>Suma Paro Modular</th>
+                                        <th>Conteo Paro Modular</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($datosModuloEstiloProceso as $item)
+                                        <tr>
+                                            <td>{{ $item['auditoresUnicos'] }}</td>
+                                            <td>{{ $item['modulo'] }}</td>
+                                            <td>{{ $item['estilo'] }}</td>
+                                            <td>{{ $item['cantidadRecorridos'] }}</td>
+                                            <td>{{ $item['sumaAuditadaProceso'] }}</td>
+                                            <td>{{ $item['sumaRechazadaProceso'] }}</td>
+                                            <td>{{ number_format($item['porcentajeErrorProceso'], 2) }}%</td>
+                                            <td>{{ $item['conteoOperario'] }}</td>
+                                            <td>{{ $item['conteoUtility'] }}</td>
+                                            <td>{{ $item['conteoMinutos'] }}</td>
+                                            <td>{{ $item['sumaMinutos'] }}</td>
+                                            <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                            <td>{{ $item['operariosUnicos'] }}</td>
+                                            <td>{{ $item['sumaParoModular'] }}</td>
+                                            <td>{{ $item['conteParoModular'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @else
+                            <p>No hay datos disponibles para el proceso general.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
-    <div class="card-body">
-        <div class="table-responsive">
-            @if ($datosModuloEstiloProcesoTE)
-                <table class="table tablesorter" id="tablaProcesoGeneralTE">
-                    <thead class="text-primary">
-                        <tr>
-                            <th>Auditor</th>
-                            <th>Modulo</th>
-                            <th>Estilo</th>
-                            <th>No. Recorridos</th>
-                            <th>Cantidad Auditada</th>
-                            <th>Cantidad Rechazada</th>
-                            <th>% Error Proceso</th>
-                            <th>Conteo Operarios</th>
-                            <th>Conteo Utility</th>
-                            <th>Conteo Minutos</th>
-                            <th>Suma Minutos</th>
-                            <th>Promedio Minutos Paro</th>
-                            <th>Operarios Unicos</th>
-                            <th>Suma Paro Modular</th>
-                            <th>Conteo Paro Modular</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($datosModuloEstiloProcesoTE as $item)
-                            <tr>
-                                <td>{{ $item['auditoresUnicos'] }}</td>
-                                <td>{{ $item['modulo'] }}</td>
-                                <td>{{ $item['estilo'] }}</td>
-                                <td>{{ $item['cantidadRecorridos'] }}</td>
-                                <td>{{ $item['sumaAuditadaProceso'] }}</td>
-                                <td>{{ $item['sumaRechazadaProceso'] }}</td>
-                                <td>{{ number_format($item['porcentajeErrorProceso'], 2) }}%</td>
-                                <td>{{ $item['conteoOperario'] }}</td>
-                                <td>{{ $item['conteoUtility'] }}</td>
-                                <td>{{ $item['conteoMinutos'] }}</td>
-                                <td>{{ $item['sumaMinutos'] }}</td>
-                                <td>{{ $item['promedioMinutosEntero'] }}</td>
-                                <td>{{ $item['operariosUnicos'] }}</td>
-                                <td>{{ $item['sumaParoModular'] }}</td>
-                                <td>{{ $item['conteParoModular'] }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @else
-                <p>No hay datos disponibles para el proceso con tiempo extra.</p>
-            @endif
+    
+    <div class="card">
+        <!-- Botones para Tiempo Extra -->
+        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+            <label class="btn btn-sm btn-primary btn-simple active" id="showAQLTE">
+                <input type="radio" name="optionsExtra" checked>
+                <span><i class="tim-icons icon-app text-warning"></i>&nbsp; AQL (Tiempo Extra)</span>
+            </label>
+            <label class="btn btn-sm btn-primary btn-simple" id="showProcesoTE">
+                <input type="radio" name="optionsExtra">
+                <span><i class="tim-icons icon-vector text-warning"></i>&nbsp; Procesos (Tiempo Extra)</span>
+            </label>
+        </div>
+        <!-- Tabla de AQL (Tiempo Extra) -->
+        <div id="tablaAQLTE" class="table-container" style="display: block;">
+            <!-- Contenido de la tabla AQL para Tiempo Extra -->
+            <div class="card ">
+                <div class="card-header card-header-success card-header-icon">
+                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Turno Tiempo Extra</h3> 
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        @if ($datosModuloEstiloAQLTE)
+                            <table class="table tablesorter" id="tablaAQLGeneralTENuevo">
+                                <thead class="text-primary">
+                                    <tr>
+                                        <th>Auditor</th>
+                                        <th>Modulo (AQL)</th>
+                                        <th>Estilo</th>
+                                        <th>Numero de Operarios</th>
+                                        <th>Cantidad Paro</th>
+                                        <th>Minutos Paro</th>
+                                        <th>Promedio Minutos Paro</th>
+                                        <th>Cantidad Paro Modular</th>
+                                        <th>Minutos Paro Modular</th>
+                                        <th>Total piezas por Bulto</th>
+                                        <th>Total Bulto</th>
+                                        <th>Total Bulto Rechazados</th>
+                                        <th>Cantidad Auditados</th>
+                                        <th>Cantidad Defectos</th>
+                                        <th>% Error AQL</th>
+                                        <th>Defectos</th>
+                                        <th>Accion Correctiva</th>
+                                        <th>Operario Responsable</th>
+                                        <th>Reparacion Piezas</th>
+                                        <th>Piezas de Bulto Rechazado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($datosModuloEstiloAQLTE as $item)
+                                        <tr>
+                                            <td>{{ $item['auditoresUnicos'] }}</td>
+                                            <td>{{ $item['modulo'] }}</td>
+                                            <td>{{ $item['estilosUnicos'] }}</td>
+                                            <td>{{ $item['conteoOperario'] }}</td>
+                                            <td>{{ $item['conteoMinutos'] }}</td>
+                                            <td>{{ $item['sumaMinutos'] }}</td>
+                                            <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                            <td>{{ $item['conteParoModular'] }}</td>
+                                            <td>{{ $item['sumaParoModular'] }}</td>
+                                            <td>{{ $item['sumaPiezasBulto'] }}</td>
+                                            <td>{{ $item['cantidadBultosEncontrados'] }}</td>
+                                            <td>{{ $item['cantidadBultosRechazados'] }}</td>
+                                            <td>{{ $item['sumaAuditadaAQL'] }}</td>
+                                            <td>{{ $item['sumaRechazadaAQL'] }}</td>
+                                            <td>{{ number_format($item['porcentajeErrorAQL'], 2) }}%</td>
+                                            <td>{{ $item['defectosUnicos'] }}</td>
+                                            <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
+                                            <td>{{ $item['operariosUnicos'] }}</td>
+                                            <td>{{ $item['sumaReparacionRechazo'] }}</td>
+                                            <td>{{ $item['piezasRechazadasUnicas'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @else
+                            <p>No hay datos disponibles para el proceso con tiempo extra de AQL.</p>
+                        @endif
+                    </div>
+                </div>
+            </div> 
+        </div>
+        <!-- Tabla de Procesos (Tiempo Extra) -->
+        <div id="tablaProcesoTE" class="table-container" style="display: none;">
+            <!-- Contenido de la tabla Proceso para Tiempo Extra -->
+            <div class="card ">
+                <div class="card-header card-header-success card-header-icon">
+                    <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Turno Tiempo Extra</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        @if ($datosModuloEstiloProcesoTE)
+                            <table class="table tablesorter" id="tablaProcesoGeneralTENuevo">
+                                <thead class="text-primary">
+                                    <tr>
+                                        <th>Auditor</th>
+                                        <th>Modulo</th>
+                                        <th>Estilo</th>
+                                        <th>No. Recorridos</th>
+                                        <th>Cantidad Auditada</th>
+                                        <th>Cantidad Rechazada</th>
+                                        <th>% Error Proceso</th>
+                                        <th>Conteo Operarios</th>
+                                        <th>Conteo Utility</th>
+                                        <th>Conteo Minutos</th>
+                                        <th>Suma Minutos</th>
+                                        <th>Promedio Minutos Paro</th>
+                                        <th>Operarios Unicos</th>
+                                        <th>Suma Paro Modular</th>
+                                        <th>Conteo Paro Modular</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($datosModuloEstiloProcesoTE as $item)
+                                        <tr>
+                                            <td>{{ $item['auditoresUnicos'] }}</td>
+                                            <td>{{ $item['modulo'] }}</td>
+                                            <td>{{ $item['estilo'] }}</td>
+                                            <td>{{ $item['cantidadRecorridos'] }}</td>
+                                            <td>{{ $item['sumaAuditadaProceso'] }}</td>
+                                            <td>{{ $item['sumaRechazadaProceso'] }}</td>
+                                            <td>{{ number_format($item['porcentajeErrorProceso'], 2) }}%</td>
+                                            <td>{{ $item['conteoOperario'] }}</td>
+                                            <td>{{ $item['conteoUtility'] }}</td>
+                                            <td>{{ $item['conteoMinutos'] }}</td>
+                                            <td>{{ $item['sumaMinutos'] }}</td>
+                                            <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                            <td>{{ $item['operariosUnicos'] }}</td>
+                                            <td>{{ $item['sumaParoModular'] }}</td>
+                                            <td>{{ $item['conteParoModular'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @else
+                            <p>No hay datos disponibles para el proceso con tiempo extra.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="card-body">
-        <div class="table-responsive">
-            @if ($datosModuloEstiloAQL)
-                <table class="table tablesorter" id="tablaAQLGeneral">
-                    <thead class="text-primary">
-                        <tr>
-                            <th>Auditor</th>
-                            <th>Modulo (AQL)</th>
-                            <th>Estilo</th>
-                            <th>Numero de Operarios</th>
-                            <th>Cantidad Paro</th>
-                            <th>Minutos Paro</th>
-                            <th>Promedio Minutos Paro</th>
-                            <th>Cantidad Paro Modular</th>
-                            <th>Minutos Paro Modular</th>
-                            <th>Total piezas por Bulto</th>
-                            <th>Total Bulto</th>
-                            <th>Total Bulto Rechazados</th>
-                            <th>Cantidad Auditados</th>
-                            <th>Cantidad Defectos</th>
-                            <th>% Error AQL</th>
-                            <th>Defectos</th>
-                            <th>Accion Correctiva</th>
-                            <th>Operario Responsable</th>
-                            <th>Reparacion Piezas</th>
-                            <th>Piezas de Bulto Rechazado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($datosModuloEstiloAQL as $item)
-                            <tr>
-                                <td>{{ $item['auditoresUnicos'] }}</td>
-                                <td>{{ $item['modulo'] }}</td>
-                                <td>{{ $item['estilosUnicos'] }}</td>
-                                <td>{{ $item['conteoOperario'] }}</td>
-                                <td>{{ $item['conteoMinutos'] }}</td>
-                                <td>{{ $item['sumaMinutos'] }}</td>
-                                <td>{{ $item['promedioMinutosEntero'] }}</td>
-                                <td>{{ $item['conteParoModular'] }}</td>
-                                <td>{{ $item['sumaParoModular'] }}</td>
-                                <td>{{ $item['sumaPiezasBulto'] }}</td>
-                                <td>{{ $item['cantidadBultosEncontrados'] }}</td>
-                                <td>{{ $item['cantidadBultosRechazados'] }}</td>
-                                <td>{{ $item['sumaAuditadaAQL'] }}</td>
-                                <td>{{ $item['sumaRechazadaAQL'] }}</td>
-                                <td>{{ number_format($item['porcentajeErrorAQL'], 2) }}%</td>
-                                <td>{{ $item['defectosUnicos'] }}</td>
-                                <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
-                                <td>{{ $item['operariosUnicos'] }}</td>
-                                <td>{{ $item['sumaReparacionRechazo'] }}</td>
-                                <td>{{ $item['piezasRechazadasUnicas'] }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @else
-                <p>No hay datos disponibles para el proceso general de AQL.</p>
-            @endif
-        </div>
-    </div>
     
-    <div class="card-body">
-        <div class="table-responsive">
-            @if ($datosModuloEstiloAQLTE)
-                <table class="table tablesorter" id="tablaAQLGeneralTE">
-                    <thead class="text-primary">
-                        <tr>
-                            <th>Auditor</th>
-                            <th>Modulo (AQL)</th>
-                            <th>Estilo</th>
-                            <th>Numero de Operarios</th>
-                            <th>Cantidad Paro</th>
-                            <th>Minutos Paro</th>
-                            <th>Promedio Minutos Paro</th>
-                            <th>Cantidad Paro Modular</th>
-                            <th>Minutos Paro Modular</th>
-                            <th>Total piezas por Bulto</th>
-                            <th>Total Bulto</th>
-                            <th>Total Bulto Rechazados</th>
-                            <th>Cantidad Auditados</th>
-                            <th>Cantidad Defectos</th>
-                            <th>% Error AQL</th>
-                            <th>Defectos</th>
-                            <th>Accion Correctiva</th>
-                            <th>Operario Responsable</th>
-                            <th>Reparacion Piezas</th>
-                            <th>Piezas de Bulto Rechazado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($datosModuloEstiloAQLTE as $item)
-                            <tr>
-                                <td>{{ $item['auditoresUnicos'] }}</td>
-                                <td>{{ $item['modulo'] }}</td>
-                                <td>{{ $item['estilosUnicos'] }}</td>
-                                <td>{{ $item['conteoOperario'] }}</td>
-                                <td>{{ $item['conteoMinutos'] }}</td>
-                                <td>{{ $item['sumaMinutos'] }}</td>
-                                <td>{{ $item['promedioMinutosEntero'] }}</td>
-                                <td>{{ $item['conteParoModular'] }}</td>
-                                <td>{{ $item['sumaParoModular'] }}</td>
-                                <td>{{ $item['sumaPiezasBulto'] }}</td>
-                                <td>{{ $item['cantidadBultosEncontrados'] }}</td>
-                                <td>{{ $item['cantidadBultosRechazados'] }}</td>
-                                <td>{{ $item['sumaAuditadaAQL'] }}</td>
-                                <td>{{ $item['sumaRechazadaAQL'] }}</td>
-                                <td>{{ number_format($item['porcentajeErrorAQL'], 2) }}%</td>
-                                <td>{{ $item['defectosUnicos'] }}</td>
-                                <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
-                                <td>{{ $item['operariosUnicos'] }}</td>
-                                <td>{{ $item['sumaReparacionRechazo'] }}</td>
-                                <td>{{ $item['piezasRechazadasUnicas'] }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @else
-                <p>No hay datos disponibles para el proceso con tiempo extra de AQL.</p>
-            @endif
-        </div>
-    </div>
+
+    
+    
     
     
     <style>
@@ -864,7 +924,8 @@
     <script>
         $(document).ready(function() {
             const tableIds = [
-                '#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaAQLGeneralTE', '#tablaProcesoGeneralTE'
+                '#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaAQLGeneralTE', '#tablaProcesoGeneralTE',
+                '#tablaAQLGeneralNuevo', '#tablaProcesoGeneralNuevo', '#tablaAQLGeneralTENuevo', '#tablaProcesoGeneralTENuevo'
             ];
 
             tableIds.forEach(tableId => {
@@ -876,6 +937,7 @@
                         autoWidth: false,
                         responsive: true,
                         dom: 'Bfrtip',
+                        order: [[1, 'asc']],
                         buttons: [
                             {
                                 extend: 'excelHtml5',
@@ -1019,6 +1081,29 @@
             if (event.key === "Escape" && activeModalId) {
                 closeCustomModal(activeModalId);
             }
+        });
+    </script>
+
+    <!-- Script para alternar entre las tablas -->
+    <script>
+        document.getElementById('showAQL').addEventListener('click', function() {
+            document.getElementById('tablaAQL').style.display = 'block';
+            document.getElementById('tablaProceso').style.display = 'none';
+        });
+
+        document.getElementById('showProceso').addEventListener('click', function() {
+            document.getElementById('tablaAQL').style.display = 'none';
+            document.getElementById('tablaProceso').style.display = 'block';
+        });
+
+        document.getElementById('showAQLTE').addEventListener('click', function() {
+            document.getElementById('tablaAQLTE').style.display = 'block';
+            document.getElementById('tablaProcesoTE').style.display = 'none';
+        });
+
+        document.getElementById('showProcesoTE').addEventListener('click', function() {
+            document.getElementById('tablaAQLTE').style.display = 'none';
+            document.getElementById('tablaProcesoTE').style.display = 'block';
         });
     </script>
 @endpush
