@@ -522,6 +522,57 @@
     </div>
     @endforeach
 
+
+    <div class="card-body">
+        <div class="table-responsive">
+            @if ($datosModuloEstiloProceso)
+                <table class="table tablesorter" id="tablaProcesoGeneral">
+                    <thead class="text-primary">
+                        <tr>
+                            <th>Modulo</th>
+                            <th>Estilo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($datosModuloEstiloProceso as $item)
+                            <tr>
+                                <td>{{ $item['modulo'] }}</td>
+                                <td>{{ $item['estilo'] }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @else
+                <p>No hay datos disponibles para el proceso general.</p>
+            @endif
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <div class="table-responsive">
+            @if ($datosModuloEstiloProcesoTE)
+                <table class="table tablesorter" id="tablaProcesoGeneralTE">
+                    <thead class="text-primary">
+                        <tr>
+                            <th>Modulo</th>
+                            <th>Estilo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($datosModuloEstiloProcesoTE as $item)
+                            <tr>
+                                <td>{{ $item['modulo'] }}</td>
+                                <td>{{ $item['estilo'] }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @else
+                <p>No hay datos disponibles para el proceso con tiempo extra.</p>
+            @endif
+        </div>
+    </div>
+    
     <style>
         .custom-body {
             font-family: Arial, sans-serif;

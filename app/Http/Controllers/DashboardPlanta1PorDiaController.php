@@ -45,6 +45,7 @@ class DashboardPlanta1PorDiaController extends Controller
             ? Carbon::parse($request->input('fecha_inicio')) 
             : Carbon::now();  // Aquí no se usa toDateString(), así que $fechaActual es un objeto Carbon
         //dd($fechaActual);
+        $plantaConsulta = "Intimark1";
         $fechaInicio = Carbon::now()->subMonth()->toDateString(); // Cambia el rango de fechas según necesites
         $fechaFin = Carbon::now()->toDateString();
 
@@ -95,7 +96,7 @@ class DashboardPlanta1PorDiaController extends Controller
         //apartado para mostrar datos de gerente de prodduccion, en este caso por dia AseguramientoCalidad y AuditoriaAQL
         // Obtención y cálculo de datos generales para AQL y Proceso
         $dataModuloAQLGeneral = $this->getDataModuloAQL($fechaActual, 'Intimark1', null);   
-        $dataModuloProcesoGeneral = $this->getDataModuloProceso($fechaActual, 'Intimark1', null);  
+        $dataModuloProcesoGeneral = $this->getDataModuloProceso($fechaActual, 'Intimark1', null);   
 
         // Para obtener los datos con tiempo_extra = 1
         $dataModuloAQLGeneralTE = $this->getDataModuloAQL($fechaActual, 'Intimark1', 1); 
@@ -114,12 +115,21 @@ class DashboardPlanta1PorDiaController extends Controller
         // Combinar los datos
         $dataModulosGeneral = $this->combineDataModulos($dataModuloAQLGeneral, $dataModuloProcesoGeneral);
 
+        //aqui empieza lo bueno desde 0
+        // Llamadas a la función para obtener los datos
+        $datosModuloEstiloProceso = $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, null);
+        $datosModuloEstiloProcesoTE = $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, 1);
+
+        // Verificar si existen datos y asignar null si están vacíos
+        $datosModuloEstiloProceso = count($datosModuloEstiloProceso) > 0 ? $datosModuloEstiloProceso : null;
+        $datosModuloEstiloProcesoTE = count($datosModuloEstiloProcesoTE) > 0 ? $datosModuloEstiloProcesoTE : null;
 
         return view('dashboar.dashboardPanta1PorDia', compact(
             'title', 'fechaActual', 'dataModuloAQLGeneral',
             'dataModuloProcesoGeneral', 'generalAQL', 'generalAQLPlanta1',
             'generalProceso', 'generalProcesoPlanta1', 'dataModuloAQLGeneralTE',
             'dataModuloProcesoGeneralTE',
+            'datosModuloEstiloProceso', 'datosModuloEstiloProcesoTE',
         ));
     }
 
@@ -980,4 +990,41 @@ class DashboardPlanta1PorDiaController extends Controller
             'dataModulo' => $dataModulo
         ];
     }
+
+
+    private function getDatosModuloEstiloProceso($fecha, $plantaConsulta, $tiempoExtra = null)
+    {
+        // Construcción de la consulta base usando la fecha y planta proporcionadas
+        $query = AseguramientoCalidad::whereDate('created_at', $fecha)
+            ->where('planta', $plantaConsulta);
+
+        // Filtro condicional para $tiempoExtra
+        if (is_null($tiempoExtra)) {
+            $query->whereNull('tiempo_extra');  // Solo registros donde tiempo_extra es NULL
+        } else {
+            $query->where('tiempo_extra', $tiempoExtra);  // Solo registros con el valor de tiempo_extra especificado
+        }
+
+        // Obtener combinaciones únicas de módulo y estilo, y ordenar por módulo
+        $modulosEstilosProceso = $query->select('modulo', 'estilo')
+            ->distinct()
+            ->orderBy('modulo', 'asc')  // Orden ascendente por módulo
+            ->get();
+
+        // Inicializar un arreglo para almacenar los resultados simplificados
+        $dataModuloEstiloProceso = [];
+
+        // Recorrer cada combinación de módulo y estilo y almacenar en el arreglo
+        foreach ($modulosEstilosProceso as $item) {
+            $dataModuloEstiloProceso[] = [
+                'modulo' => $item->modulo,
+                'estilo' => $item->estilo,
+            ];
+        }
+
+        // Retornar solo los datos de módulo y estilo
+        return $dataModuloEstiloProceso;
+    }
+
+
 }
