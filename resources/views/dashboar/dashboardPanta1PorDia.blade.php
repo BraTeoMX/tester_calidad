@@ -533,6 +533,17 @@
                             <th>Modulo</th>
                             <th>Estilo</th>
                             <th>No. Recorridos</th>
+                            <th>Cantidad Auditada</th>
+                            <th>Cantidad Rechazada</th>
+                            <th>% Error Proceso</th>
+                            <th>Conteo Operarios</th>
+                            <th>Conteo Utility</th>
+                            <th>Conteo Minutos</th>
+                            <th>Suma Minutos</th>
+                            <th>Promedio Minutos Paro</th>
+                            <th>Operarios Unicos</th>
+                            <th>Suma Paro Modular</th>
+                            <th>Conteo Paro Modular</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -542,6 +553,17 @@
                                 <td>{{ $item['modulo'] }}</td>
                                 <td>{{ $item['estilo'] }}</td>
                                 <td>{{ $item['cantidadRecorridos'] }}</td>
+                                <td>{{ $item['sumaAuditadaProceso'] }}</td>
+                                <td>{{ $item['sumaRechazadaProceso'] }}</td>
+                                <td>{{ number_format($item['porcentajeErrorProceso'], 2) }}%</td>
+                                <td>{{ $item['conteoOperario'] }}</td>
+                                <td>{{ $item['conteoUtility'] }}</td>
+                                <td>{{ $item['conteoMinutos'] }}</td>
+                                <td>{{ $item['sumaMinutos'] }}</td>
+                                <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                <td>{{ $item['operariosUnicos'] }}</td>
+                                <td>{{ $item['sumaParoModular'] }}</td>
+                                <td>{{ $item['conteParoModular'] }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -562,6 +584,17 @@
                             <th>Modulo</th>
                             <th>Estilo</th>
                             <th>No. Recorridos</th>
+                            <th>Cantidad Auditada</th>
+                            <th>Cantidad Rechazada</th>
+                            <th>% Error Proceso</th>
+                            <th>Conteo Operarios</th>
+                            <th>Conteo Utility</th>
+                            <th>Conteo Minutos</th>
+                            <th>Suma Minutos</th>
+                            <th>Promedio Minutos Paro</th>
+                            <th>Operarios Unicos</th>
+                            <th>Suma Paro Modular</th>
+                            <th>Conteo Paro Modular</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -571,6 +604,17 @@
                                 <td>{{ $item['modulo'] }}</td>
                                 <td>{{ $item['estilo'] }}</td>
                                 <td>{{ $item['cantidadRecorridos'] }}</td>
+                                <td>{{ $item['sumaAuditadaProceso'] }}</td>
+                                <td>{{ $item['sumaRechazadaProceso'] }}</td>
+                                <td>{{ number_format($item['porcentajeErrorProceso'], 2) }}%</td>
+                                <td>{{ $item['conteoOperario'] }}</td>
+                                <td>{{ $item['conteoUtility'] }}</td>
+                                <td>{{ $item['conteoMinutos'] }}</td>
+                                <td>{{ $item['sumaMinutos'] }}</td>
+                                <td>{{ $item['promedioMinutosEntero'] }}</td>
+                                <td>{{ $item['operariosUnicos'] }}</td>
+                                <td>{{ $item['sumaParoModular'] }}</td>
+                                <td>{{ $item['conteParoModular'] }}</td>
                             </tr>
                         @endforeach
                     </tbody>

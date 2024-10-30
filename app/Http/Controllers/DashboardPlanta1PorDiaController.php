@@ -1012,7 +1012,7 @@ class DashboardPlanta1PorDiaController extends Controller
             $modulo = $item->modulo;
             $estilo = $item->estilo;
 
-            // Obtener auditores únicos para la combinación actual de módulo y estilo
+            // Obtener auditores únicos
             $auditoresUnicos = AseguramientoCalidad::where('modulo', $modulo)
                 ->where('estilo', $estilo)
                 ->whereDate('created_at', $fecha)
@@ -1023,9 +1023,9 @@ class DashboardPlanta1PorDiaController extends Controller
                 })
                 ->distinct()
                 ->pluck('auditor')
-                ->implode(', ');  // Combina los auditores únicos con comas
+                ->implode(', ');
 
-            // Obtener el valor de cantidadRecorridos basado en la frecuencia máxima de "nombre" en la combinación actual
+            // Obtener el valor de cantidadRecorridos
             $cantidadRecorridos = AseguramientoCalidad::where('modulo', $modulo)
                 ->where('estilo', $estilo)
                 ->whereDate('created_at', $fecha)
@@ -1037,20 +1037,134 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->selectRaw('nombre, COUNT(*) as cantidad_repeticiones')
                 ->groupBy('nombre')
                 ->orderByDesc('cantidad_repeticiones')
-                ->limit(1)  // Obtener solo el valor más alto de las repeticiones
-                ->value('cantidad_repeticiones');  // Obtener el valor de la frecuencia más alta
+                ->limit(1)
+                ->value('cantidad_repeticiones');
 
-            // Almacenar los resultados en el arreglo principal
+            // Otros cálculos específicos
+            $sumaAuditadaProceso = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->sum('cantidad_auditada');
+
+            $sumaRechazadaProceso = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->sum('cantidad_rechazada');
+
+            $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
+
+            $conteoOperario = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->whereNull('utility')
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->distinct()
+                ->count('nombre');
+
+            $conteoUtility = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->where('utility', 1)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->distinct()
+                ->count('nombre');
+
+            $conteoMinutos = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->count('minutos_paro');
+
+            $sumaMinutos = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->sum('minutos_paro');
+
+            $promedioMinutosEntero = $conteoMinutos != 0 ? ceil($sumaMinutos / $conteoMinutos) : 0;
+
+            $operariosUnicos = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->where('cantidad_rechazada', '>', 0)
+                ->distinct()
+                ->pluck('nombre')
+                ->implode(', ') ?: 'N/A';
+
+            $sumaParoModular = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->sum('minutos_paro_modular') ?: 'N/A';
+
+            $conteParoModular = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->count('minutos_paro_modular');
+
+            // Almacenar todos los resultados en el arreglo principal
             $dataModuloEstiloProceso[] = [
                 'modulo' => $modulo,
                 'estilo' => $estilo,
                 'auditoresUnicos' => $auditoresUnicos,
                 'cantidadRecorridos' => $cantidadRecorridos,
+                'sumaAuditadaProceso' => $sumaAuditadaProceso,
+                'sumaRechazadaProceso' => $sumaRechazadaProceso,
+                'porcentajeErrorProceso' => $porcentajeErrorProceso,
+                'conteoOperario' => $conteoOperario,
+                'conteoUtility' => $conteoUtility,
+                'conteoMinutos' => $conteoMinutos,
+                'sumaMinutos' => $sumaMinutos,
+                'promedioMinutosEntero' => $promedioMinutosEntero,
+                'operariosUnicos' => $operariosUnicos,
+                'sumaParoModular' => $sumaParoModular,
+                'conteParoModular' => $conteParoModular,
             ];
         }
 
         // Retornar los datos procesados
         return $dataModuloEstiloProceso;
     }
+
 
 }
