@@ -624,8 +624,10 @@ class DashboardPlanta1PorDiaController extends Controller
                 })
                 ->distinct()
                 ->pluck('ac')
+                ->filter()  // Filtra valores nulos o vacíos
+                ->values()  // Reindexa la colección
                 ->implode(', ') ?: 'N/A';
-
+            
             $operariosUnicos = AuditoriaAQL::where('modulo', $modulo)
                 ->where('estilo', $estilo)
                 ->whereDate('created_at', $fecha)
@@ -636,6 +638,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 })
                 ->distinct()
                 ->pluck('nombre')
+                ->filter()  // Elimina valores nulos o vacíos
+                ->values()  // Reindexa la colección
                 ->implode(', ') ?: 'N/A';
 
             $sumaParoModular = AuditoriaAQL::where('modulo', $modulo)
@@ -934,6 +938,44 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->with('tpAseguramientoCalidad') // Asegúrate de tener la relación 
                 ->get();
 
+            //
+            // Obtener el valor de defectosUnicos
+            $defectosUnicos = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->when(is_null($tiempoExtra), function ($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function ($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->whereHas('TpAseguramientoCalidad', function ($query) {
+                    $query->where('tp', '!=', 'NINGUNO');
+                })
+                ->with(['TpAseguramientoCalidad' => function ($query) {
+                    $query->where('tp', '!=', 'NINGUNO');
+                }])
+                ->get()
+                ->pluck('TpAseguramientoCalidad.*.tp')
+                ->flatten()
+                //->unique()   // Descomenta si necesitas valores únicos
+                //->sort()     // Descomenta si necesitas orden alfabético
+                ->implode(', ') ?: 'N/A';
+
+            //
+            $accionesCorrectivasUnicos = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->distinct()
+                ->pluck('ac')
+                ->filter()  // Filtra valores nulos o vacíos
+                ->values()  // Reindexa la colección
+                ->implode(', ') ?: 'N/A';
+
             // Almacenar todos los resultados en el arreglo principal
             $dataModuloEstiloProceso[] = [
                 'modulo' => $modulo,
@@ -952,6 +994,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 'sumaParoModular' => $sumaParoModular,
                 'conteParoModular' => $conteParoModular,
                 'detalles' => $detalles,
+                'defectosUnicos' => $defectosUnicos,
+                'accionesCorrectivasUnicos' => $accionesCorrectivasUnicos,
             ];
         }
 
