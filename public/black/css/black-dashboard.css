@@ -19,6 +19,47 @@
 
 /* navbar color */
 
+.datepicker-picker {
+    background-color: #3a3838 !important;
+    /* Color de fondo gris */
+    color: #ccc8c8 !important;
+    /* Color del texto */
+}
+
+
+/* Estilos para el calendario */
+
+.daterangepicker {
+    background-color: #3a3838 !important;
+    /* Color de fondo gris */
+    color: #333 !important;
+    /* Color del texto */
+}
+
+
+/* Estilos para los días del calendario */
+
+.daterangepicker td.available {
+    background-color: #393535 !important;
+    /* Fondo blanco para días disponibles */
+}
+
+.daterangepicker td.off,
+.daterangepicker td.off.in-range,
+.daterangepicker td.off.start-date,
+.daterangepicker td.off.end-date {
+    background-color: #474545 !important;
+    /* Fondo gris claro para días no disponibles */
+}
+
+
+/* Estilos para el rango de fechas seleccionado */
+
+.daterangepicker td.in-range {
+    background-color: #38393a !important;
+    /* Fondo gris más oscuro para el rango seleccionado */
+}
+
 
 /* From Uiverse.io by lenin55 */
 
@@ -5220,7 +5261,7 @@ input[type="button"].btn-block {
 .card-header {
     padding: 1.25rem 1.5rem;
     margin-bottom: 0;
-    background-color: #f6f9fc;
+    background-color: #27293d;
     border-bottom: 0.0625rem solid rgba(34, 42, 66, 0.05);
 }
 

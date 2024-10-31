@@ -32,3 +32,9 @@ const app = new Vue({
 });
 
 import 'flowbite';
+
+import $ from 'jquery';
+window.$ = window.jQuery = $;
+
+import 'jquery-ui/ui/widgets/datepicker';
+// Importa solo el componente datepicker para optimizar el tamaño del archivo

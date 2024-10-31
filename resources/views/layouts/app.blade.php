@@ -56,6 +56,7 @@
           }
         };
     </script>
+
     <script src="{{ asset('material') }}/js/plugins/arrive.min.js"></script>
     <!-- Core Scripts -->
     <script src="{{ asset('material') }}/js/core/popper.min.js"></script>
@@ -134,6 +135,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.js"></script>
   <script src="{{ asset('material') }}/js/plugins/chartist.min.js"></script>
   <script src="{{ asset('material') }}/js/plugins/bootstrap-notify.js"></script>
+
     <script>
         $(document).ready(function() {
             $().ready(function() {
