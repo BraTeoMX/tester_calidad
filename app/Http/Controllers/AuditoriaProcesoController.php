@@ -471,18 +471,44 @@ class AuditoriaProcesoController extends Controller
         // Extraer la parte numérica del módulo
         $modulo_num = intval(substr($modulo, 0, 3));
         //dd($request->all());
+        if($request->nombre || $request->nombre_utility || $request->nombre_otro){
+            // Limpiamos el nombre recibido por si tiene espacios en blanco adicionales
+            if($request->nombre){
+                $nombre = trim($request->nombre);
+            }else{
+            $nombre = trim($request->nombre_otro);
+            }
+            $nombreUtility = trim($request->nombre_utility);
+            //dd($nombre);
+            // Intentamos buscar primero en el modelo AuditoriaProceso
+            $numeroEmpleado = AuditoriaProceso::where('name', $nombre)->pluck('personnelnumber')->first();
+        
+            // Si no lo encontramos en AuditoriaProceso, intentamos buscar en CategoriaUtility
+            if(!$numeroEmpleado) {
+                $numeroEmpleado = CategoriaUtility::where('nombre', $nombreUtility)->pluck('numero_empleado')->first();
+            }
+        
+            // Si tampoco se encuentra en CategoriaUtility, devolvemos un mensaje "No encontrado"
+            if(!$numeroEmpleado) {
+                $numeroEmpleado = 'No encontrado';
+            }
+        
+            // Mostramos el número de empleado o el mensaje "No encontrado"
+            //dd($numeroEmpleado);
+        }        
+        //dd($request->modulo, $request->modulo_adicional);
         $nuevoRegistro = new AseguramientoCalidad();
         $nuevoRegistro->area = $request->area;
         if($modulo_num >= 100 && $modulo_num < 200){
-            if(($request->modulo == "101A") && ($request->modulo_adicional == "101A")){
+            if($request->modulo_adicional == "830A"){
                 $nuevoRegistro->modulo_adicional = NULL;
-            }elseif($request->modulo_adicional != "101A"){
+            }elseif($request->modulo_adicional != "830A"){
                 $nuevoRegistro->modulo_adicional = $request->modulo_adicional;
             }
         }elseif($modulo_num >= 200 && $modulo_num < 300){
-            if(($request->modulo == "201A") && ($request->modulo_adicional == "201A")){
+            if($request->modulo_adicional == "831A"){
                 $nuevoRegistro->modulo_adicional = NULL;
-            }elseif($request->modulo_adicional != "201A"){
+            }elseif($request->modulo_adicional != "831A"){
                 $nuevoRegistro->modulo_adicional = $request->modulo_adicional;
             }
         }
@@ -498,12 +524,15 @@ class AuditoriaProcesoController extends Controller
         if($request->nombre_utility){
             $nuevoRegistro->nombre = $request->nombre_utility;
             $nuevoRegistro->utility = 1;
+            $nuevoRegistro->numero_empleado = $numeroEmpleado;
         }else{ 
             if(!$request->input('nombre')){
                 $nuevoRegistro->nombre = $request->input('nombre_otro');
+                $nuevoRegistro->numero_empleado = $numeroEmpleado;
                 //dd($nuevoRegistro->nombre);
             }else{
                 $nuevoRegistro->nombre = $request->nombre;
+                $nuevoRegistro->numero_empleado = $numeroEmpleado;
             }
         }
         $nuevoRegistro->operacion = $request->operacion;

@@ -29,6 +29,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\redireccionar;
 use App\Http\Controllers\Segundas;
 use App\Http\Controllers\Terceras;
+use App\Http\Controllers\DashboardCostosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -301,3 +302,6 @@ Route::post('/altaYbaja/gestion-tecnico', [AltaYBajaController::class, 'crearTec
 Route::get('/SegundasTerceras',[HomeController::class, 'SegundasTerceras']);
 Route::get('/Segundas', [Segundas::class, 'Segundas']);
 Route::get('/Terceras', [Terceras::class, 'Terceras']);
+
+//apartado para vistas de nuevas tablas 
+Route::get('/dashboardCostosNoCalidad', [DashboardCostosController::class, 'dashboardCostosNoCalidad'])->name('dashboardCostosNoCalidad');
