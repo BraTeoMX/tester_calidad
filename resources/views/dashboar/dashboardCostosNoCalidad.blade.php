@@ -35,8 +35,8 @@
             </div>
             <div class="row">
                 <div class="col-lg-6 col-md-12">
-                    <div class="card table-responsive">
-                        <table class="table tablesorter">
+                    <div class="card card-body table-responsive">
+                        <table id="tablaCostoSemana" class="table tablesorter">
                             <thead>
                                 <tr>
                                     <th># Semana</th>
@@ -71,7 +71,7 @@
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-12">
-                    <div class="card">
+                    <div class="card card-body ">
                         <!-- Gráfica para $costoPorSemana -->
                         <div id="graficoSemana" style="width:100%; height:400px;"></div>
                     </div>
@@ -80,8 +80,8 @@
 
             <div class="row">
                 <div class="col-lg-6 col-md-12">
-                    <div class="card table-responsive">
-                        <table class="table tablesorter">
+                    <div class="card card-body table-responsive">
+                        <table id="tablaCostoMes" class="table tablesorter" >
                             <thead>
                                 <tr>
                                     <th>Mes</th>
@@ -116,7 +116,7 @@
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-12">
-                    <div class="card">
+                    <div class="card card-body ">
                         <!-- Gráfica para $costoPorMes -->
                         <div id="graficoMes" style="width:100%; height:500px;"></div>
                     </div>
@@ -138,7 +138,7 @@
                                     <h4>Cliente: {{ $cliente }}</h4>
                                 </div>
                                 <div class="card-body table-responsive">
-                                    <table class="table tablesorter">
+                                    <table id="tablaDefectosCliente_{{ $loop->index }}" class="table tablesorter">
                                         <thead>
                                             <tr>
                                                 <th>Defecto Único</th>
@@ -201,7 +201,7 @@
                                     <h4>Cliente: {{ $cliente }}</h4>
                                 </div>
                                 <div class="card-body table-responsive">
-                                    <table class="table tablesorter">
+                                    <table id="tablaDefectosClienteModulo_{{ $loop->index }}" class="table tablesorter">
                                         <thead>
                                             <tr>
                                                 <th>Módulo Único</th>
@@ -256,194 +256,176 @@
             color: red;
         }
         .amarillo-indicador {
-            background-color: #887404; /* Color amarillo oscuro */
+            background-color: #887404 !important; /* Color amarillo oscuro */
         }
     </style>
+    
 @endsection
 
 @push('js') 
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap5.min.css">
+
+    <!-- DataTables JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- DataTables Buttons JavaScript -->
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+
+    <!-- Inicialización de DataTables -->
+    <script>
+        $(document).ready(function () {
+            $('#tablaCostoSemana').DataTable({
+                destroy: true,          // Evita el error de reinitialización
+                paging: true,
+                searching: true,
+                ordering: true,
+                lengthChange: false,
+                pageLength: 10
+            });
+
+            $('#tablaCostoMes').DataTable({
+                destroy: true,          // Evita el error de reinitialización
+                paging: true,
+                searching: true,
+                ordering: true,
+                lengthChange: false,
+                pageLength: 10
+            });
+            // Inicializa DataTables en cada tabla de defectos por cliente
+            @foreach($costoPorSemanaClientes as $index => $data)
+                $('#tablaDefectosCliente_{{ $loop->index }}').DataTable({
+                    destroy: true,
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    order: [[1, 'desc']],  // Ordena por defecto en la segunda columna, descendente
+                    lengthChange: false,
+                    pageLength: 10,
+                    drawCallback: function () {
+                        var totalRows = this.api().rows().count(); // Total de registros en la tabla
+                        if (totalRows > 7) { // Solo aplica la lógica si hay más de 7 registros
+                            // Recorre las primeras 4 filas visibles en la página actual
+                            this.api().rows({ page: 'current' }).every(function (rowIdx) {
+                                if (rowIdx < 4) { // Solo aplica a las primeras 4 filas
+                                    $(this.node()).addClass('amarillo-indicador');
+                                }
+                            });
+                        }
+                    }
+                });
+            @endforeach
+            // Inicializa DataTables en cada tabla de defectos por cliente-Modulo
+            @foreach($modulosPorCliente as $index => $data)
+                $('#tablaDefectosClienteModulo_{{ $loop->index }}').DataTable({
+                    destroy: true,          // Evita el error de reinitialización
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    lengthChange: false,    // Fija la cantidad de elementos a 10 por página
+                    pageLength: 10          // Número de registros por página
+                });
+            @endforeach
+        });
+    </script>
+
+    <!-- Highcharts JavaScript -->
     <script src="{{ asset('js/highcharts/highcharts.js') }}"></script>
     <script src="{{ asset('js/highcharts/highcharts-3d.js') }}"></script>
     <script src="{{ asset('js/highcharts/exporting.js') }}"></script>
     <script src="{{ asset('js/highcharts/dark-unica.js') }}"></script>
+
+    <!-- Configuración de Highcharts -->
     <script>
         // Configuración global de Highcharts para la fuente
         Highcharts.setOptions({
             chart: {
                 style: {
-                    fontFamily: 'Inter, sans-serif'  // Solo se aplica a los gráficos
+                    fontFamily: 'Inter, sans-serif'
                 }
             }
         });
-        // Convertir los datos PHP a JSON para JavaScript
+
         const datosSemana = @json($costoPorSemana);
         const datosMes = @json($costoPorMes);
-    
-        // Procesar los datos para el gráfico de líneas de semanas
+
+        // Gráfico de Costo y Minutos de Paro por Semana
         const semanas = datosSemana.map(d => `SEMANA ${d.semana}`);
         const minutosParoSemana = datosSemana.map(d => d.min_paro_proc);
         const costoSemana = datosSemana.map(d => d.costo_usd);
     
         Highcharts.chart('graficoSemana', {
-            chart: {
-                type: 'line',
-                backgroundColor: 'transparent'
-            },
-            title: {
-                text: 'Costo y Minutos de Paro por Semana'
-            },
-            xAxis: {
-                categories: semanas,
-                title: {
-                    text: 'Semana'
-                }
-            },
-            yAxis: [{ // Primer eje Y para "Minutos Paro Proceso"
-                title: {
-                    text: 'Minutos Paro Proceso (MPP)',
-                    style: {
-                        color: '#4aa5d6' // Mismo color que la línea de MPP
-                    }
-                },
-                labels: {
-                    format: '{value}',
-                    style: {
-                        color: '#4aa5d6'
-                    }
-                }
-            }, { // Segundo eje Y para "Costo (USD)"
-                title: {
-                    text: 'Costo (USD)',
-                    style: {
-                        color: '#8B0000' // Mismo color que la línea de Costo
-                    }
-                },
-                labels: {
-                    format: '${value}',
-                    style: {
-                        color: '#8B0000'
-                    }
-                },
-                opposite: true // Coloca el eje en el lado derecho
-            }],
-            series: [{
-                name: 'Minutos Paro Proceso (MPP)',
-                data: minutosParoSemana,
-                color: '#4aa5d6',  // Azul
-                lineWidth: 3,       // Grosor de línea aumentado
-                yAxis: 0           // Asociado al primer eje Y
+            chart: { type: 'line', backgroundColor: 'transparent' },
+            title: { text: 'Costo y Minutos de Paro por Semana' },
+            xAxis: { categories: semanas, title: { text: 'Semana' }},
+            yAxis: [{
+                title: { text: 'Minutos Paro Proceso (MPP)', style: { color: '#4aa5d6' }},
+                labels: { format: '{value}', style: { color: '#4aa5d6' }}
             }, {
-                name: 'Costo (USD)',
-                data: costoSemana,
-                color: '#8B0000',  // Rojo oscuro
-                lineWidth: 6,       // Grosor de línea aumentado
-                yAxis: 1           // Asociado al segundo eje Y
-            }]
+                title: { text: 'Costo (USD)', style: { color: '#8B0000' }},
+                labels: { format: '${value}', style: { color: '#8B0000' }},
+                opposite: true
+            }],
+            series: [
+                { name: 'Minutos Paro Proceso (MPP)', data: minutosParoSemana, color: '#4aa5d6', lineWidth: 3, yAxis: 0 },
+                { name: 'Costo (USD)', data: costoSemana, color: '#8B0000', lineWidth: 6, yAxis: 1 }
+            ]
         });
-    
-        // Procesar los datos para el gráfico de líneas de meses
+
+        // Gráfico de Costo y Minutos de Paro por Mes
         const meses = datosMes.map(d => d.mes_nombre);
         const minutosParoMes = datosMes.map(d => d.min_paro_proc);
         const costoMes = datosMes.map(d => d.costo_usd);
     
         Highcharts.chart('graficoMes', {
-            chart: {
-                type: 'line',
-                backgroundColor: 'transparent'
-            },
-            title: {
-                text: 'Costo y Minutos de Paro por Mes'
-            },
-            xAxis: {
-                categories: meses,
-                title: {
-                    text: 'Mes'
-                }
-            },
-            yAxis: [{ // Primer eje Y para "Minutos Paro Proceso"
-                title: {
-                    text: 'Minutos Paro Proceso (MPP)',
-                    style: {
-                        color: '#4aa5d6' // Mismo color que la línea de MPP
-                    }
-                },
-                labels: {
-                    format: '{value}',
-                    style: {
-                        color: '#4aa5d6'
-                    }
-                }
-            }, { // Segundo eje Y para "Costo (USD)"
-                title: {
-                    text: 'Costo (USD)',
-                    style: {
-                        color: '#8B0000' // Mismo color que la línea de Costo
-                    }
-                },
-                labels: {
-                    format: '${value}',
-                    style: {
-                        color: '#8B0000'
-                    }
-                },
-                opposite: true // Coloca el eje en el lado derecho
-            }],
-            series: [{
-                name: 'Minutos Paro Proceso (MPP)',
-                data: minutosParoMes,
-                color: '#4aa5d6',  // Azul
-                lineWidth: 3,       // Grosor de línea aumentado
-                yAxis: 0           // Asociado al primer eje Y
+            chart: { type: 'line', backgroundColor: 'transparent' },
+            title: { text: 'Costo y Minutos de Paro por Mes' },
+            xAxis: { categories: meses, title: { text: 'Mes' }},
+            yAxis: [{
+                title: { text: 'Minutos Paro Proceso (MPP)', style: { color: '#4aa5d6' }},
+                labels: { format: '{value}', style: { color: '#4aa5d6' }}
             }, {
-                name: 'Costo (USD)',
-                data: costoMes,
-                color: '#8B0000',  // Rojo oscuro
-                lineWidth: 6,       // Grosor de línea aumentado
-                yAxis: 1           // Asociado al segundo eje Y
-            }]
+                title: { text: 'Costo (USD)', style: { color: '#8B0000' }},
+                labels: { format: '${value}', style: { color: '#8B0000' }},
+                opposite: true
+            }],
+            series: [
+                { name: 'Minutos Paro Proceso (MPP)', data: minutosParoMes, color: '#4aa5d6', lineWidth: 3, yAxis: 0 },
+                { name: 'Costo (USD)', data: costoMes, color: '#8B0000', lineWidth: 6, yAxis: 1 }
+            ]
         });
-    </script>
-    <script>
+
+        // Gráficos de cada cliente
         document.addEventListener("DOMContentLoaded", function() {
             @foreach($costoPorSemanaClientes as $index => $data)
                 Highcharts.chart('graficoCliente_{{ $loop->index }}', {
-                    chart: {
-                        type: 'line',
-                        backgroundColor: 'transparent'
-                    },
-                    title: {
-                        text: 'Defectos y Porcentaje Pareto - Cliente: {{ json_encode($index) }}'
-                    },
+                    chart: { type: 'line', backgroundColor: 'transparent' },
+                    title: { text: 'Defectos y Porcentaje Pareto - Cliente: {{ json_encode($index) }}' },
                     xAxis: {
                         categories: {!! json_encode($data['defectos']->pluck('defecto_unico')->toArray()) !!},
-                        title: {
-                            text: 'Defecto Único'
-                        }
+                        title: { text: 'Defecto Único' }
                     },
                     yAxis: [{
-                        title: {
-                            text: 'Cantidad'
-                        }
+                        title: { text: 'Cantidad' }
                     }, {
-                        title: {
-                            text: 'Porcentaje Acumulado (%)'
-                        },
-                        opposite: true // Alinea el porcentaje acumulado al lado derecho
+                        title: { text: 'Porcentaje Acumulado (%)' },
+                        opposite: true
                     }],
-                    series: [{
-                        type: 'column',  // Muestra la serie de "Conteo" como barras
-                        name: 'Conteo',
-                        data: {!! json_encode($data['defectos']->pluck('conteo')->toArray()) !!},
-                        color: '#4aa5d6' // Azul
-                    }, {
-                        type: 'line',  // Mantiene "Porcentaje Acumulado" como línea
-                        name: 'Porcentaje Acumulado (%)',
-                        data: {!! json_encode($data['defectos']->pluck('porcentaje_acumulado')->toArray()) !!},
-                        color: '#8B0000', // Rojo oscuro
-                        yAxis: 1 // Ubica el porcentaje acumulado en el segundo eje Y
-                    }]
+                    series: [
+                        { type: 'column', name: 'Conteo', data: {!! json_encode($data['defectos']->pluck('conteo')->toArray()) !!}, color: '#4aa5d6' },
+                        { type: 'line', name: 'Porcentaje Acumulado (%)', data: {!! json_encode($data['defectos']->pluck('porcentaje_acumulado')->toArray()) !!}, color: '#8B0000', yAxis: 1 }
+                    ]
                 });
             @endforeach
         });
-    </script>    
+    </script>
 @endpush
