@@ -266,7 +266,7 @@ class AuditoriaProcesoController extends Controller
 
         $registrosIndividual = AseguramientoCalidad::whereDate('created_at', $fechaActual)
             ->where('modulo', $data['modulo'])
-            ->where('estilo', $data['estilo'])
+            //->where('estilo', $data['estilo'])
             ->where('area', $data['area'])
             ->selectRaw('nombre, COUNT(*) as cantidad_registros, SUM(cantidad_auditada) as total_auditada, SUM(cantidad_rechazada) as total_rechazada') 
             ->groupBy('nombre')

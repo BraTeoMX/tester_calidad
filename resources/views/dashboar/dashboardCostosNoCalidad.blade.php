@@ -5,7 +5,7 @@
         <div class="container-fluid">
             <div class="card">
                 <div class="card-header card-header-primary">
-                    <h3 class="card-title">Dashboard: COSTO DE LA NO CALIDAD</h3>
+                    <h2 class="card-title" style="text-align: center; font-weight: bold;">Dashboard: COSTO DE LA NO CALIDAD </h2>
                 </div>
                 <hr>
                 <div class="card-body">
