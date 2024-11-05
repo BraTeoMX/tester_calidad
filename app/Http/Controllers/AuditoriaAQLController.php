@@ -109,6 +109,7 @@ class AuditoriaAQLController extends Controller
             ->whereDate('created_at', $fechaActual)
             ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
             ->distinct()
+            ->orderBy('modulo', 'asc')
             ->get();
         $procesoFinalAQL = AuditoriaAQL::where('estatus', 1)
             ->where('area', 'AUDITORIA AQL')
@@ -356,6 +357,7 @@ class AuditoriaAQLController extends Controller
             ->whereDate('created_at', $fechaActual)
             ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
             ->distinct()
+            ->orderBy('modulo', 'asc')
             ->get();
         return view('auditoriaAQL.auditoriaAQL', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol,

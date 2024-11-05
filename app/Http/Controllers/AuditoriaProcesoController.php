@@ -110,6 +110,7 @@ class AuditoriaProcesoController extends Controller
             ->whereDate('created_at', $fechaActual)
             ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
             ->distinct()
+            ->orderBy('modulo', 'asc')
             ->get();
         //dd($procesoActual);
         $procesoFinal =  AseguramientoCalidad::where('estatus', 1) 
@@ -341,6 +342,7 @@ class AuditoriaProcesoController extends Controller
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
             ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
+            ->orderBy('modulo', 'asc')
             ->distinct()
             ->get();
         return view('aseguramientoCalidad.auditoriaProceso', array_merge($categorias, [
