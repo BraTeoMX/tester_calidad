@@ -135,7 +135,7 @@
                                         </td>
                                         <td>
                                             <select name="gerente_produccion" class="form-control" required title="Por favor, selecciona una opción">
-                                                <option value="" selected>Selecciona una opción</option>
+                                                
                                                 @foreach ($gerenteProduccion as $gerente)
                                                     <option value="{{ $gerente->nombre }}">
                                                         {{ $gerente->nombre }}

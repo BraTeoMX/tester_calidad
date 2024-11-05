@@ -604,86 +604,91 @@
                         </div>
                     @endif
                     <hr>
-                    <div class="table-responsive">
-                        <h2>Total Individual</h2>
-                        <table class="table">
-                            <thead class="thead-primary">
+                </div>
+            </div>
+            <div class="card card-body">
+                <div class="table-responsive">
+                    <h2>Total Individual</h2>
+                    <table class="table">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Nombre </th>
+                                <th>No. Recorridos </th>
+                                <th>Total Piezas Auditada</th>
+                                <th>Total Piezas Rechazada</th>
+                                <th>Porcentaje Rechazado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($registrosIndividual as $registro)
                                 <tr>
-                                    <th>Nombre </th>
-                                    <th>No. Recorridos </th>
-                                    <th>Total Piezas Auditada</th>
-                                    <th>Total Piezas Rechazada</th>
-                                    <th>Porcentaje Rechazado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($registrosIndividual as $registro)
-                                    <tr>
-                                        <td><input type="text" class="form-control texto-blanco" value="{{ $registro->nombre }}"
+                                    <td><input type="text" class="form-control texto-blanco" value="{{ $registro->nombre }}"
                                                 readonly></td>
-                                        <td><input type="text" class="form-control texto-blanco" 
+                                    <td><input type="text" class="form-control texto-blanco" 
                                             value="{{ $registro->cantidad_registros }}" readonly></td> 
-                                        <td><input type="text" class="form-control texto-blanco"
+                                    <td><input type="text" class="form-control texto-blanco"
                                                 value="{{ $registro->total_auditada }}" readonly></td>
-                                        <td><input type="text" class="form-control texto-blanco"
+                                    <td><input type="text" class="form-control texto-blanco"
                                                 value="{{ $registro->total_rechazada }}" readonly></td>
-                                        <td><input type="text" class="form-control texto-blanco"
+                                    <td><input type="text" class="form-control texto-blanco"
                                                 value="{{ $registro->total_rechazada != 0 ? round(($registro->total_rechazada / $registro->total_auditada) * 100, 2) : 0 }}"
                                                 readonly></td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <hr>
-                    <div class="table-responsive">
-                        <h2>Total General - Turno Normal</h2>
-                        <table class="table">
-                            <thead class="thead-primary">
-                                <tr>
-                                    <th>Total de Piezas Auditadas</th>
-                                    <th>Total de Piezas Rechazados</th>
-                                    <th>Porcentaje Rechazo Total</th>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><input type="text" class="form-control texto-blanco" name="total_auditada"
-                                            id="total_auditada" value="{{ $total_auditada }}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="total_rechazada"
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+                <hr>
+            <div class="card card-body">
+                <div class="table-responsive">
+                    <h2>Total General - Turno Normal</h2>
+                    <table class="table">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Total de Piezas Auditadas</th>
+                                <th>Total de Piezas Rechazados</th>
+                                <th>Porcentaje Rechazo Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="text" class="form-control texto-blanco" name="total_auditada"
+                                        id="total_auditada" value="{{ $total_auditada }}" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" name="total_rechazada"
                                             id="total_rechazada" value="{{ $total_rechazada }}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="total_porcentaje"
+                                <td><input type="text" class="form-control texto-blanco" name="total_porcentaje"
                                             id="total_porcentaje" value="{{ number_format($total_porcentaje, 2) }}"
                                             readonly></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!--Fin de la edicion del codigo para mostrar el contenido-->
-                    <div class="table-responsive">
-                        <h2>Total General - Tiempo Extra </h2>
-                        <table class="table">
-                            <thead class="thead-primary">
-                                <tr>
-                                    <th>Total de Piezas Auditadas</th>
-                                    <th>Total de Piezas Rechazados</th>
-                                    <th>Porcentaje Rechazo Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><input type="text" class="form-control texto-blanco" name="total_auditada"
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+                <!--Fin de la edicion del codigo para mostrar el contenido-->
+            <div class="card card-body">
+                <div class="table-responsive">
+                    <h2>Total General - Tiempo Extra </h2>
+                    <table class="table">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Total de Piezas Auditadas</th>
+                                <th>Total de Piezas Rechazados</th>
+                                <th>Porcentaje Rechazo Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="text" class="form-control texto-blanco" name="total_auditada"
                                             id="total_auditada" value="{{ $total_auditadaTE }}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="total_rechazada"
+                                <td><input type="text" class="form-control texto-blanco" name="total_rechazada"
                                             id="total_rechazada" value="{{ $total_rechazadaTE }}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="total_porcentaje"
+                                <td><input type="text" class="form-control texto-blanco" name="total_porcentaje"
                                             id="total_porcentaje" value="{{ number_format($total_porcentajeTE, 2) }}"
                                             readonly></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
