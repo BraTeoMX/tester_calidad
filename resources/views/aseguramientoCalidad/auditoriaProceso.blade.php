@@ -110,87 +110,119 @@
         .show>.btn-verde-xd.dropdown-toggle:focus {
             box-shadow: none, 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
         }
+
+        .custom-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            overflow-y: auto;
+        }
+
+        .custom-modal-content {
+            background-color: #1e1e1e;
+            margin: 0 auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 1200px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .custom-modal-header {
+            display: flex;
+            justify-content: space-between; /* Alinea título a la izquierda y botón a la derecha */
+            background-color: #2e2e2e;
+            padding: 15px;
+            align-items: center;
+        }
+
+        .custom-modal-body {
+            padding: 15px;
+        }
+
+        /* Estilo para el botón "CERRAR" en la esquina superior derecha */
+        .custom-modal-footer {
+            margin-right: 10px; /* Ajusta el margen derecho si deseas */
+        }
+
+        #closeModal {
+            font-size: 14px;
+            padding: 8px 16px;
+        }
+
     </style>
     {{-- ... el resto de tu vista ... --}}
     <div class="content">
         <div class="container-fluid">
             <div class="card">
-                <!--Aqui se edita el encabezado que es el que se muestra -->
+                <!--Aqui se edita el encabezado que es el que se muestra --> 
                 <div class="card-header card-header-primary">
                     <div class="row align-items-center justify-content-between">
                         <div class="col">
                             <h3 class="card-title">{{ $data['area'] }}</h3>
                         </div>
                         <div class="col-auto">
-                            <button type="button" class="btn btn-link" data-toggle="modal" data-target="#modalProcesos">
-                                <h4>Fecha:
+                            <!-- Botón para abrir el modal -->
+                            <button type="button" class="btn btn-link" id="openModal">
+                                <h4>Fecha: 
                                   {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
                                 </h4>
                             </button>                              
                         </div>
                     </div>
                 </div>
-
-                <!-- Modal -->
-                <div class="modal fade" id="modalProcesos" tabindex="-1" role="dialog" aria-labelledby="modalProcesosLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg" role="document">
-                        <div class="modal-content bg-dark">
-                            <div class="modal-header">
-                            <h5 class="modal-title texto-blanco" id="modalProcesosLabel">Detalles del Proceso</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            </div>
-                            <div class="modal-body">
-                            <!-- Aquí va tu contenido de la tabla -->
-                                <div class="table-responsive">
-                                    <input type="text" id="searchInput1" class="form-control mb-3" placeholder="Buscar Módulo o Estilo">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Acción</th>
-                                                <th>Módulo</th>
-                                                <th>Estilo</th>
-                                                <th>Supervisor</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="tablaProcesos1">
-                                            @foreach($procesoActual as $proceso)
-                                            <tr>
-                                                <td>
-                                                    <form method="POST" action="{{ route('aseguramientoCalidad.formAltaProceso') }}">
-                                                        @csrf
-                                                        <input type="hidden" name="area" value="{{ $proceso->area }}">
-                                                        <input type="hidden" name="modulo" value="{{ $proceso->modulo }}">
-                                                        <input type="hidden" name="cliente" value="{{ $proceso->cliente }}">
-                                                        <input type="hidden" name="estilo" value="{{ $proceso->estilo }}">
-                                                        <input type="hidden" name="team_leader" value="{{ $proceso->team_leader }}">
-                                                        <input type="hidden" name="gerente_produccion" value="{{ $proceso->gerente_produccion }}">
-                                                        <input type="hidden" name="auditor" value="{{ $proceso->auditor }}">
-                                                        <input type="hidden" name="turno" value="{{ $proceso->turno }}">
-                                                        <button type="submit" class="btn btn-primary">Acceder</button>
-                                                    </form>
-                                                </td>
-                                                <td>{{ $proceso->modulo }}</td>
-                                                <td>{{ $proceso->estilo }}</td>
-                                                <td>{{ $proceso->team_leader }}</td>
-                                            </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <script>
-                                    $(document).ready(function() {
-                                        $('#searchInput1').on('keyup', function() {
-                                            var value = $(this).val().toLowerCase();
-                                            $('#tablaProcesos1 tr').filter(function() {
-                                                var modulo = $(this).find('td:eq(1)').text().toLowerCase();
-                                                var estilo = $(this).find('td:eq(2)').text().toLowerCase();
-                                                $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
-                                            });
-                                        });
-                                    });
-                                </script>
+                
+                <!-- Modal personalizado -->
+                <div id="customModal" class="custom-modal">
+                    <div class="custom-modal-content">
+                        <div class="custom-modal-header">
+                            <h5 class="modal-title texto-blanco">Detalles del Proceso</h5>
+                            <!-- Botón "CERRAR" en la esquina superior derecha -->
+                            <button id="closeModal" class="btn btn-danger">CERRAR</button>
+                        </div>
+                        <div class="custom-modal-body">
+                            <!-- Aquí va el contenido de la tabla -->
+                            <div class="table-responsive">
+                                <input type="text" id="searchInput1" class="form-control mb-3" placeholder="Buscar Módulo o Estilo">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Acción</th>
+                                            <th>Módulo</th>
+                                            <th>Estilo</th>
+                                            <th>Supervisor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaProcesos1">
+                                        @foreach($procesoActual as $proceso)
+                                        <tr>
+                                            <td>
+                                                <form method="POST" action="{{ route('aseguramientoCalidad.formAltaProceso') }}">
+                                                    @csrf
+                                                    <!-- Campos ocultos -->
+                                                    <input type="hidden" name="area" value="{{ $proceso->area }}">
+                                                    <input type="hidden" name="modulo" value="{{ $proceso->modulo }}">
+                                                    <input type="hidden" name="cliente" value="{{ $proceso->cliente }}">
+                                                    <input type="hidden" name="estilo" value="{{ $proceso->estilo }}">
+                                                    <input type="hidden" name="team_leader" value="{{ $proceso->team_leader }}">
+                                                    <input type="hidden" name="gerente_produccion" value="{{ $proceso->gerente_produccion }}">
+                                                    <input type="hidden" name="auditor" value="{{ $proceso->auditor }}">
+                                                    <input type="hidden" name="turno" value="{{ $proceso->turno }}">
+                                                    <button type="submit" class="btn btn-primary">Acceder</button>
+                                                </form>
+                                            </td>
+                                            <td>{{ $proceso->modulo }}</td>
+                                            <td>{{ $proceso->estilo }}</td>
+                                            <td>{{ $proceso->team_leader }}</td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -805,6 +837,43 @@
         }
     </style>
 
+    <script>
+        // Abre el modal al hacer clic en el botón
+        document.getElementById('openModal').addEventListener('click', function() {
+            document.getElementById('customModal').style.display = 'block';
+        });
+
+        // Cierra el modal al hacer clic en el botón de cerrar
+        document.getElementById('closeModal').addEventListener('click', function() {
+            document.getElementById('customModal').style.display = 'none';
+        });
+
+        // Cierra el modal al hacer clic fuera del contenido
+        window.addEventListener('click', function(event) {
+            if (event.target === document.getElementById('customModal')) {
+                document.getElementById('customModal').style.display = 'none';
+            }
+        });
+
+        // Cierra el modal al presionar la tecla "ESC"
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                document.getElementById('customModal').style.display = 'none';
+            }
+        });
+
+        $(document).ready(function() {
+            $('#searchInput1').on('keyup', function() {
+                var value = $(this).val().toLowerCase();
+                $('#tablaProcesos1 tr').filter(function() {
+                    var modulo = $(this).find('td:eq(1)').text().toLowerCase();
+                    var estilo = $(this).find('td:eq(2)').text().toLowerCase();
+                    $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
+                });
+            });
+        });
+
+    </script>
     <script>
         $(document).ready(function() {
             // Inicializar el select2
