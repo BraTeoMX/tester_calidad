@@ -169,8 +169,11 @@ class AuditoriaAQLController extends Controller
             ->select('prodpackticketid', 'qty', 'itemid', 'colorname', 'inventsizeid')
             ->distinct()
             ->get();
-        $datoUnicoOP = JobAQL::where('prodid', $data['op'])
-            ->first();
+        //$datoUnicoOP = JobAQL::where('prodid', $data['op'])
+        //    ->first();
+        //$nombreCliente = $datoUnicoOP ? $datoUnicoOP->customername : ''; // En caso de no encontrar, deja vacío
+        $nombreCliente = $data['cliente'];
+        //dd($nombreCliente);
 
         $selectPivoteOP = JobAQL::where('moduleid', $data['modulo'])
             ->select('prodid')
@@ -363,7 +366,8 @@ class AuditoriaAQLController extends Controller
             'mesesEnEspanol' => $mesesEnEspanol,
             'pageSlug' => $pageSlug,
             'datoBultos' => $datoBultos,
-            'datoUnicoOP' => $datoUnicoOP, 'selectPivoteOP' => $selectPivoteOP,
+            'nombreCliente' => $nombreCliente,
+            'selectPivoteOP' => $selectPivoteOP,
             'data' => $data,
             'total_auditada' => $total_auditada,
             'total_rechazada' => $total_rechazada,
@@ -399,7 +403,7 @@ class AuditoriaAQLController extends Controller
         $modulo = $request->input('modulo');
     
         $datoBultos = JobAQL::where('prodid', $op)
-            ->where('moduleid', $modulo)
+            //->where('moduleid', $modulo)
             ->select('prodpackticketid', 'qty', 'itemid', 'colorname', 'inventsizeid')
             ->distinct()
             ->get();
@@ -412,12 +416,15 @@ class AuditoriaAQLController extends Controller
     {
         $pageSlug ='';
 
+        $datoUnicoOP = JobAQL::where('prodid', $request->op)
+            ->first();
+        //dd($datoUnicoOP);
         $data = [
             'area' => $request->area,
             'modulo' => $request->modulo,
             'estilo' => $request->estilo,
             'op' => $request->op,
-            'cliente' => $request->cliente,
+            'cliente' => $datoUnicoOP->customername,
             'auditor' => $request->auditor,
             'turno' => $request->turno,
             'team_leader' => $request->team_leader,

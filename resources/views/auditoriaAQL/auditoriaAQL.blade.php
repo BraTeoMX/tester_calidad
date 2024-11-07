@@ -271,7 +271,7 @@
                                                 </select>
                                             </td>
                                             <td><input type="text" class="form-control texto-blanco" name="cliente" id="cliente"
-                                                    value="{{ $datoUnicoOP->customername }}" readonly></td>
+                                                    value="{{ $nombreCliente }}" readonly></td> 
                                             <td><input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader"
                                                     value="{{ $data['team_leader'] }}" readonly></td>
                                             <td><input type="text" class="form-control texto-blanco" name="gerente_produccion" 

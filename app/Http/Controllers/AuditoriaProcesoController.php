@@ -39,15 +39,15 @@ class AuditoriaProcesoController extends Controller
             'categoriaACProceso' => CategoriaAccionCorrectiva::where('area', 'proceso')->get(),
             'categoriaACPlayera' => CategoriaAccionCorrectiva::where('area', 'playera')->get(),
             'categoriaACEmpaque' => CategoriaAccionCorrectiva::where('area', 'empaque')->get(),
-            'auditoriaProcesoIntimark1' =>  AuditoriaProceso::where('prodpoolid', 'Intimark1')
+            'auditoriaProcesoIntimark1' =>  JobAQL::whereBetween('moduleid', ['100A', '199A'])
                 ->select('moduleid')
                 ->distinct()
-                ->orderBy('moduleid', 'asc')  // Ordenar de menor a mayor
+                ->orderBy('moduleid', 'asc')
                 ->get(),
-            'auditoriaProcesoIntimark2' => AuditoriaProceso::where('prodpoolid', 'Intimark2')
+            'auditoriaProcesoIntimark2' => JobAQL::whereBetween('moduleid', ['200A', '299A'])
                 ->select('moduleid')
                 ->distinct()
-                ->orderBy('moduleid', 'asc')  // Ordenar de menor a mayor
+                ->orderBy('moduleid', 'asc')
                 ->get(), 
             'playeraActual' => AseguramientoCalidad::where('estatus', NULL)
                 ->where('area', 'AUDITORIA EN PROCESO PLAYERA')
