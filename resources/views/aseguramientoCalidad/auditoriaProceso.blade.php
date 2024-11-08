@@ -155,6 +155,11 @@
             padding: 8px 16px;
         }
 
+        .special-option {
+            font-weight: bold; /* Negrita */
+            font-style: italic; /* Cursiva */
+            transform: skew(-10deg); /* Inclinación */
+        }
     </style>
     {{-- ... el resto de tu vista ... --}}
     <div class="content">
@@ -324,26 +329,30 @@
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <input type="hidden" name="nombre_hidden" id="nombre_hidden" value="">
+                                                <input type="hidden" name="nombre_final" id="nombre_final" value="">
                                                 <td>
-                                                    <button class="btn btn-secondary btn-block" type="button" onclick="resetForm()">Restablecer</button>
-                                                    <select name="nombre" id="nombre" class="form-control" required title="Por favor, selecciona una opción" onchange="showOtherOptions()">
+                                                    <!-- Select principal con nombresPlanta, incluyendo las opciones "OTRO" y "UTILITY" -->
+                                                    <select name="nombre" id="nombre" class="form-control" required onchange="handleSelectionChange()">
                                                         <option value="">Selecciona una opción</option>
-                                                        <option value="OTRO">OTRO</option>
-                                                        <option value="UTILITY">UTILITY</option> 
+                                                        <option value="OTRO-MODULO" class="special-option">-- OTRO MODULO --</option>
+                                                        <option value="UTILITY" class="special-option">-- UTILITY --</option>
                                                         @foreach ($nombresPlanta as $nombre)
                                                             <option value="{{ $nombre->name }}">{{ $nombre->name }}</option>
                                                         @endforeach
-                                                    </select> 
-                                                    <div id="otroOptions" style="display: none;">
+                                                    </select>
+                                                
+                                                    <!-- Opciones para "OTRO" -->
+                                                    <div id="otroOptions" style="display: none; margin-top: 10px;">
                                                         <select name="modulo_adicional" id="module" class="form-control" onchange="loadNames()">
                                                             <option value="">Selecciona un módulo</option>
                                                         </select>
-                                                        <select name="nombre_otro" id="name" class="form-control">
+                                                        <select name="nombre_otro" id="name" class="form-control" style="margin-top: 10px;">
                                                             <option value="">Selecciona un nombre</option>
                                                         </select>
                                                     </div>
-                                                    <div id="utilityOptions" style="display: none;">
+                                                
+                                                    <!-- Opciones para "UTILITY" -->
+                                                    <div id="utilityOptions" style="display: none; margin-top: 10px;">
                                                         <select name="nombre_utility" id="utility" class="form-control">
                                                             <option value="">Selecciona un Utility</option>
                                                         </select>
@@ -885,107 +894,137 @@
         });
     </script>
     <script>
-        function showOtherOptions() {
-            var select = document.getElementById("nombre");
-            var otroOptions = document.getElementById("otroOptions");
-            var utilityOptions = document.getElementById("utilityOptions");
-            var nombreHidden = document.getElementById("nombre_hidden");
-
-            if (select.value !== "OTRO" && select.value !== "UTILITY") {
-                select.style.display = "block";
-                select.disabled = false;
-                otroOptions.style.display = "none";
-                utilityOptions.style.display = "none";
-                nombreHidden.value = select.value; // Actualiza el campo oculto con el valor seleccionado del primer select
-            } else if (select.value === "UTILITY") {
-                select.style.display = "none";
-                select.disabled = true;
-                otroOptions.style.display = "none";
-                utilityOptions.style.display = "block";
-                loadUtilities(); // Cargar los utilities disponibles
-            } else {
-                select.style.display = "none";
-                select.disabled = true;
+        function handleSelectionChange() {
+            const selectNombre = document.getElementById("nombre");
+            const otroOptions = document.getElementById("otroOptions");
+            const utilityOptions = document.getElementById("utilityOptions");
+            const nombreFinal = document.getElementById("nombre_final");
+    
+            // Limpiar las selecciones anteriores
+            clearSelections();
+    
+            if (selectNombre.value === "OTRO-MODULO") {
+                // Mostrar opciones de "OTRO-MODULO"
                 otroOptions.style.display = "block";
                 utilityOptions.style.display = "none";
-                loadModules(); // Cargar los módulos disponibles
+                loadModules(); // Cargar módulos disponibles
+    
+                nombreFinal.value = ""; // Limpiar el valor final
+            } else if (selectNombre.value === "UTILITY") {
+                // Mostrar opciones de "UTILITY"
+                otroOptions.style.display = "none";
+                utilityOptions.style.display = "block";
+                loadUtilities(); // Cargar utilities disponibles
+    
+                nombreFinal.value = ""; // Limpiar el valor final
+            } else if (selectNombre.value) {
+                // Se ha seleccionado un nombre de $nombresPlanta
+                otroOptions.style.display = "none";
+                utilityOptions.style.display = "none";
+    
+                nombreFinal.value = selectNombre.value; // Establecer el valor final
+            } else {
+                // Si no hay selección, ocultar los selects adicionales
+                otroOptions.style.display = "none";
+                utilityOptions.style.display = "none";
+    
+                nombreFinal.value = ""; // Limpiar el valor final
             }
         }
-
+    
+        function clearSelections() {
+            // Limpiar selects de "OTRO-MODULO"
+            const moduleSelect = document.getElementById("module");
+            moduleSelect.innerHTML = '<option value="">Selecciona un módulo</option>';
+            const nameSelect = document.getElementById("name");
+            nameSelect.innerHTML = '<option value="">Selecciona un nombre</option>';
+    
+            // Remover event listener
+            nameSelect.removeEventListener('change', updateNombreFinal);
+    
+            // Limpiar selects de "UTILITY"
+            const utilitySelect = document.getElementById("utility");
+            utilitySelect.innerHTML = '<option value="">Selecciona un Utility</option>';
+    
+            // Remover event listener
+            utilitySelect.removeEventListener('change', updateNombreFinal);
+        }
+    
         function loadModules() {
             fetch("{{ route('modules.getModules') }}")
                 .then(response => response.json())
                 .then(data => {
-                    var select = document.getElementById("module");
-                    select.innerHTML = "";
+                    const select = document.getElementById("module");
+                    select.innerHTML = '<option value="">Selecciona un módulo</option>'; // Reiniciar opciones
                     data.forEach(module => {
-                        var option = document.createElement("option");
+                        const option = document.createElement("option");
                         option.text = module.moduleid;
                         option.value = module.moduleid;
                         select.appendChild(option);
                     });
+                    // Añadir event listener
+                    select.addEventListener('change', loadNames);
                 });
         }
-
+    
         function loadNames() {
-            var moduleid = document.getElementById("module").value; 
+            const moduleid = document.getElementById("module").value; 
             fetch("{{ route('modules.getNamesByModule') }}?moduleid=" + moduleid)
                 .then(response => response.json())
                 .then(data => {
-                    var select = document.getElementById("name");
-                    select.innerHTML = "";
+                    const select = document.getElementById("name");
+                    select.innerHTML = '<option value="">Selecciona un nombre</option>'; // Reiniciar opciones
                     data.forEach(name => {
-                        var option = document.createElement("option");
+                        const option = document.createElement("option");
                         option.text = name.name;
                         option.value = name.name;
                         select.appendChild(option);
                     });
+                    // Añadir event listener
+                    select.addEventListener('change', updateNombreFinal);
                 });
         }
-
-        // Cargar los módulos iniciales
-        loadModules();
+    
         function loadUtilities() {
             fetch("{{ route('utilities.getUtilities') }}")
                 .then(response => response.json())
                 .then(data => {
-                    var select = document.getElementById("utility");
-                    select.innerHTML = "";
+                    const select = document.getElementById("utility");
+                    select.innerHTML = '<option value="">Selecciona un Utility</option>'; // Reiniciar opciones
                     data.forEach(utility => {
-                        var option = document.createElement("option");
-                        option.text = utility.nombre; // Usa 'nombre' en lugar de 'name'
-                        option.value = utility.nombre; // Usa 'nombre' en lugar de 'name'
+                        const option = document.createElement("option");
+                        option.text = utility.nombre;
+                        option.value = utility.nombre;
                         select.appendChild(option);
                     });
+                    // Añadir event listener
+                    select.addEventListener('change', updateNombreFinal);
                 });
         }
-        
-    </script>
-    <script> 
-        function resetForm() {
-            var select = document.getElementById("nombre");
-            var otroOptions = document.getElementById("otroOptions");
-            var utilityOptions = document.getElementById("utilityOptions");
-            var nombreHidden = document.getElementById("nombre_hidden");
-
-            select.style.display = "block";
-            select.disabled = false;
-            otroOptions.style.display = "none";
-            utilityOptions.style.display = "none";
-            nombreHidden.value = ""; // Restablecer el valor del campo oculto
-
-            // Limpiar select de módulos y nombres si fuera necesario
-            var moduleSelect = document.getElementById("module");
-            moduleSelect.innerHTML = "<option value=''>Selecciona un módulo</option>";
-
-            var nameSelect = document.getElementById("name");
-            nameSelect.innerHTML = "<option value=''>Selecciona un nombre</option>";
-
-            // Cargar los módulos iniciales
-            loadModules();
+    
+        function updateNombreFinal() {
+            const nombreFinal = document.getElementById("nombre_final");
+            const selectNombre = document.getElementById("nombre");
+    
+            if (selectNombre.value === "OTRO-MODULO") {
+                const nameSelect = document.getElementById("name");
+                nombreFinal.value = nameSelect.value;
+            } else if (selectNombre.value === "UTILITY") {
+                const utilitySelect = document.getElementById("utility");
+                nombreFinal.value = utilitySelect.value;
+            } else {
+                nombreFinal.value = selectNombre.value;
+            }
         }
-
+    
+        // Inicializar la página mostrando el select principal
+        document.addEventListener("DOMContentLoaded", function() {
+            handleSelectionChange();
+            // Añadir event listener para actualizar nombre_final cuando el select principal cambie
+            document.getElementById("nombre").addEventListener('change', updateNombreFinal);
+        });
     </script>
+
     <!-- Nuevo script para manejar la visibilidad de las columnas y select2 -->
     <script>  
         $(document).ready(function() {

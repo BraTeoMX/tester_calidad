@@ -398,7 +398,8 @@ class AuditoriaProcesoController extends Controller
     {
         $auditorPlanta = Auth::user()->Planta;
         $moduleName = $request->input('moduleid');
-        $names = AuditoriaProceso::where('moduleid', $moduleName);
+        $names = AuditoriaProceso::where('moduleid', $moduleName)
+            ->where('name', 'NOT REGEXP', '^[0-9]'); // Excluir nombres que comienzan con un número
 
         if ($auditorPlanta == 'Planta1') {
             $names->where('prodpoolid', 'Intimark1');
@@ -473,48 +474,33 @@ class AuditoriaProcesoController extends Controller
         // Extraer la parte numérica del módulo
         $modulo_num = intval(substr($modulo, 0, 3));
         //dd($request->all());
-        if($request->nombre || $request->nombre_utility || $request->nombre_otro){
+        $nombreFinal = $request->nombre_final;
+        if($nombreFinal){
             // Limpiamos el nombre recibido por si tiene espacios en blanco adicionales
-            if($request->nombre){
-                $nombre = trim($request->nombre);
-            }else{
-            $nombre = trim($request->nombre_otro);
-            }
-            $nombreUtility = trim($request->nombre_utility);
-            //dd($nombre);
+            $nombreFinalValidado = trim($nombreFinal);
             // Intentamos buscar primero en el modelo AuditoriaProceso
-            $numeroEmpleado = AuditoriaProceso::where('name', $nombre)->pluck('personnelnumber')->first();
+            $numeroEmpleado = AuditoriaProceso::where('name', $nombreFinalValidado)->pluck('personnelnumber')->first();
         
             // Si no lo encontramos en AuditoriaProceso, intentamos buscar en CategoriaUtility
             if(!$numeroEmpleado) {
-                $numeroEmpleado = CategoriaUtility::where('nombre', $nombreUtility)->pluck('numero_empleado')->first();
+                $numeroEmpleado = CategoriaUtility::where('nombre', $nombreFinalValidado)->pluck('numero_empleado')->first();
             }
         
             // Si tampoco se encuentra en CategoriaUtility, devolvemos un mensaje "No encontrado"
             if(!$numeroEmpleado) {
-                $numeroEmpleado = 'No encontrado';
+                $numeroEmpleado = '0000000';
             }
         
             // Mostramos el número de empleado o el mensaje "No encontrado"
-            //dd($numeroEmpleado);
+            //dd($nombreFinalValidado);
         }        
+        $utilityIdentificado = $request->nombre_utility ? 1 : null;
+        //dd($nombreFinalValidado, $numeroEmpleado, $request->all());
         //dd($request->modulo, $request->modulo_adicional);
         $nuevoRegistro = new AseguramientoCalidad();
         $nuevoRegistro->area = $request->area;
-        if($modulo_num >= 100 && $modulo_num < 200){
-            if($request->modulo_adicional == "830A"){
-                $nuevoRegistro->modulo_adicional = NULL;
-            }elseif($request->modulo_adicional != "830A"){
-                $nuevoRegistro->modulo_adicional = $request->modulo_adicional;
-            }
-        }elseif($modulo_num >= 200 && $modulo_num < 300){
-            if($request->modulo_adicional == "831A"){
-                $nuevoRegistro->modulo_adicional = NULL;
-            }elseif($request->modulo_adicional != "831A"){
-                $nuevoRegistro->modulo_adicional = $request->modulo_adicional;
-            }
-        }
         $nuevoRegistro->modulo = $request->modulo;
+        $nuevoRegistro->modulo_adicional = $request->modulo_adicional;
         $nuevoRegistro->planta = $plantaBusqueda;
         //$nuevoRegistro->modulo_adicional = ($request->modulo == $request->modulo_adicional) ? NULL : $request->modulo_adicional;
         $nuevoRegistro->estilo = $request->estilo;
@@ -523,20 +509,9 @@ class AuditoriaProcesoController extends Controller
         $nuevoRegistro->gerente_produccion = $request->gerente_produccion;
         $nuevoRegistro->auditor = $request->auditor;
         $nuevoRegistro->turno = $request->turno;
-        if($request->nombre_utility){
-            $nuevoRegistro->nombre = $request->nombre_utility;
-            $nuevoRegistro->utility = 1;
-            $nuevoRegistro->numero_empleado = $numeroEmpleado;
-        }else{ 
-            if(!$request->input('nombre')){
-                $nuevoRegistro->nombre = $request->input('nombre_otro');
-                $nuevoRegistro->numero_empleado = $numeroEmpleado;
-                //dd($nuevoRegistro->nombre);
-            }else{
-                $nuevoRegistro->nombre = $request->nombre;
-                $nuevoRegistro->numero_empleado = $numeroEmpleado;
-            }
-        }
+        $nuevoRegistro->numero_empleado = $numeroEmpleado;
+        $nuevoRegistro->nombre = $nombreFinalValidado;
+        $nuevoRegistro->utility = $utilityIdentificado;
         $nuevoRegistro->operacion = $request->operacion;
         $nuevoRegistro->cantidad_auditada = $request->cantidad_auditada;
         $nuevoRegistro->cantidad_rechazada = $request->cantidad_rechazada;
