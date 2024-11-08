@@ -1,0 +1,3 @@
+import { css } from 'lit';
+export const styles = css `:host(:not([vertical])[type=dashed])::after{background:repeating-linear-gradient(to right, var(--color), var(--color) 0.1875rem, transparent 0.1875rem, transparent 0.375rem)}:host([vertical][type=dashed])::after{background:repeating-linear-gradient(to bottom, var(--color), var(--color) 0.1875rem, transparent 0.1875rem, transparent 0.375rem)}`;
+//# sourceMappingURL=divider.indigo.css.js.map

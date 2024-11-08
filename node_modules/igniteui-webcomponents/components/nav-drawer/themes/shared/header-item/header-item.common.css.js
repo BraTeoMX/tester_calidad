@@ -1,0 +1,3 @@
+import { css } from 'lit';
+export const styles = css `:host{font-family:var(--ig-subtitle-1-font-family, var(--ig-font-family));font-size:var(--ig-subtitle-1-font-size);font-weight:var(--ig-subtitle-1-font-weight);font-style:var(--ig-subtitle-1-font-style);line-height:var(--ig-subtitle-1-line-height);letter-spacing:var(--ig-subtitle-1-letter-spacing);text-transform:var(--ig-subtitle-1-text-transform);margin-top:var(--ig-subtitle-1-margin-top);margin-bottom:var(--ig-subtitle-1-margin-bottom);color:var(--item-header-text-color)}`;
+//# sourceMappingURL=header-item.common.css.js.map

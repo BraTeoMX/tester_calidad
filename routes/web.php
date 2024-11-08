@@ -301,7 +301,12 @@ Route::post('/altaYbaja/gestion-tecnico', [AltaYBajaController::class, 'crearTec
 //Segundas
 Route::get('/SegundasTerceras',[HomeController::class, 'SegundasTerceras']);
 Route::get('/Segundas', [Segundas::class, 'Segundas']);
+///Terceras////
 Route::get('/Terceras', [Terceras::class, 'Terceras']);
+Route::get('/ObtenerTerceras', [Terceras::class, 'ObtenerTerceras']);
+Route::get('/ObtenerPlantas', [Terceras::class, 'ObtenerPlantas']);
+Route::get('/ObtenerModulos', [Terceras::class, 'ObtenerModulos']);
+Route::get('/ObtenerClientes', [Terceras::class, 'ObtenerClientes']);
 
-//apartado para vistas de nuevas tablas 
+//apartado para vistas de nuevas tablas
 Route::get('/dashboardCostosNoCalidad', [DashboardCostosController::class, 'dashboardCostosNoCalidad'])->name('dashboardCostosNoCalidad');

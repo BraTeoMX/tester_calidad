@@ -1,0 +1,3 @@
+import { css } from 'lit';
+export const styles = css `:host::after{background:var(--color)}:host(:not([vertical]))::after{inset-inline-start:var(--inset)}:host(:not([vertical])[middle])::after{min-width:.25rem;width:calc(100% - var(--inset)*2)}:host([vertical])::after{inset-block-start:var(--inset)}:host([vertical][middle])::after{min-height:.25rem;height:calc(100% - var(--inset)*2)}:host(:not([vertical])[type=dashed])::after{background:repeating-linear-gradient(to right, var(--color), var(--color) 0.625rem, transparent 0.625rem, transparent 1.25rem)}:host([vertical][type=dashed])::after{background:repeating-linear-gradient(to bottom, var(--color), var(--color) 0.625rem, transparent 0.625rem, transparent 1.25rem)}`;
+//# sourceMappingURL=divider.common.css.js.map
