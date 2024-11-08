@@ -552,6 +552,7 @@ class ComposerStaticInit0e05d79df1118f1d74ed57bf5b95f4f5
         'App\\Http\\Controllers\\CalidadScreenPrintController' => __DIR__ . '/../..' . '/app/Http/Controllers/CalidadScreenPrintController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Controllers\\DashboardController' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardController.php',
+        'App\\Http\\Controllers\\DashboardCostosController' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardCostosController.php',
         'App\\Http\\Controllers\\DashboardPlanta1Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardPlanta1Controller.php',
         'App\\Http\\Controllers\\DashboardPlanta1DetalleController' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardPlanta1DetalleController.php',
         'App\\Http\\Controllers\\DashboardPlanta1PorDiaController' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardPlanta1PorDiaController.php',

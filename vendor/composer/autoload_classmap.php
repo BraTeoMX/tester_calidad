@@ -23,6 +23,7 @@ return array(
     'App\\Http\\Controllers\\CalidadScreenPrintController' => $baseDir . '/app/Http/Controllers/CalidadScreenPrintController.php',
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
     'App\\Http\\Controllers\\DashboardController' => $baseDir . '/app/Http/Controllers/DashboardController.php',
+    'App\\Http\\Controllers\\DashboardCostosController' => $baseDir . '/app/Http/Controllers/DashboardCostosController.php',
     'App\\Http\\Controllers\\DashboardPlanta1Controller' => $baseDir . '/app/Http/Controllers/DashboardPlanta1Controller.php',
     'App\\Http\\Controllers\\DashboardPlanta1DetalleController' => $baseDir . '/app/Http/Controllers/DashboardPlanta1DetalleController.php',
     'App\\Http\\Controllers\\DashboardPlanta1PorDiaController' => $baseDir . '/app/Http/Controllers/DashboardPlanta1PorDiaController.php',

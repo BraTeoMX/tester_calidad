@@ -1,0 +1,3 @@
+import { css } from 'lit';
+export const styles = css `:host{--color: var(--ig-icon-color, 'currentColor');--disabled-color: var(--ig-icon-disabled-color, 'currentColor');--size: var(--ig-icon-size, max(var(--is-large, 1) * max(1.5rem, -1 * 1.5rem), var(--is-medium, 1) * max(1.25rem, -1 * 1.25rem), var(--is-small, 1) * max(1.125rem, -1 * 1.125rem)));--default-size: var(--ig-icon-default-size, 3)}`;
+//# sourceMappingURL=icon.shared.css.js.map

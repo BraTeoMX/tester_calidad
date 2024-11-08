@@ -1,0 +1,1 @@
+{"version":3,"file":"constructor.js","sourceRoot":"","sources":["../../../../src/components/common/mixins/constructor.ts"],"names":[],"mappings":"","sourcesContent":["export type Constructor<T = object> = new (...args: any[]) => T;\n\nexport type AbstractConstructor<T = object> = abstract new (\n  ...args: any[]\n) => T;\n"]}
