@@ -775,18 +775,20 @@
                                         <th>Auditor</th>
                                         <th>Modulo</th>
                                         <th>Estilo</th>
-                                        <th>No. Recorridos</th>
-                                        <th>Cantidad Auditada</th>
-                                        <th>Cantidad Rechazada</th>
-                                        <th>% Error Proceso</th>
-                                        <th>Conteo Operarios</th>
-                                        <th>Conteo Utility</th>
-                                        <th>Conteo Minutos</th>
-                                        <th>Suma Minutos</th>
+                                        <th>Recorridos</th>
+                                        <th>Numero de Operarios</th>
+                                        <th>Numero de Utility</th>
+                                        <th>Cantidad Paro</th>
+                                        <th>Minutos Paro</th>
                                         <th>Promedio Minutos Paro</th>
-                                        <th>Operarios Unicos</th>
-                                        <th>Suma Paro Modular</th>
-                                        <th>Conteo Paro Modular</th>
+                                        <th>Cantidad Paro Modular</th>
+                                        <th>Minutos Paro Modular</th>
+                                        <th>Cantidad Auditados</th>
+                                        <th>Cantidad Defectos</th>
+                                        <th>% Error Proceso</th>
+                                        <th>DEFECTOS</th>
+                                        <th>ACCION CORRECTIVA</th>
+                                        <th>Operarios</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -800,17 +802,19 @@
                                             </td>
                                             <td>{{ $item['estilo'] }}</td>
                                             <td>{{ $item['cantidadRecorridos'] }}</td>
-                                            <td>{{ $item['sumaAuditadaProceso'] }}</td>
-                                            <td>{{ $item['sumaRechazadaProceso'] }}</td>
-                                            <td>{{ number_format($item['porcentajeErrorProceso'], 2) }}%</td>
                                             <td>{{ $item['conteoOperario'] }}</td>
                                             <td>{{ $item['conteoUtility'] }}</td>
                                             <td>{{ $item['conteoMinutos'] }}</td>
                                             <td>{{ $item['sumaMinutos'] }}</td>
-                                            <td>{{ $item['promedioMinutosEntero'] }}</td>
-                                            <td>{{ $item['operariosUnicos'] }}</td>
-                                            <td>{{ $item['sumaParoModular'] }}</td>
+                                            <td>{{ $item['promedioMinutosEntero'] }}</td> 
                                             <td>{{ $item['conteParoModular'] }}</td>
+                                            <td>{{ $item['sumaParoModular'] }}</td>
+                                            <td>{{ $item['sumaAuditadaProceso'] }}</td> 
+                                            <td>{{ $item['sumaRechazadaProceso'] }}</td> 
+                                            <td>{{ number_format($item['porcentajeErrorProceso'], 2) }}%</td>
+                                            <td>{{ $item['defectosUnicos'] }}</td>
+                                            <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
+                                            <td>{{ $item['operariosUnicos'] }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

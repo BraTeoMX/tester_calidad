@@ -461,11 +461,42 @@ class AuditoriaAQLController extends Controller
             ->where('team_leader', $request->team_leader)
             ->where('cantidad_rechazada', '>', 0)
             ->count();
-
-        //dd($request->all(), $conteoParos);
+        //
+        $nombreFinal = $request->nombre;
+        $nombreFinalValidado = null;
+        $numeroEmpleado = null;
+        if ($nombreFinal) {
+            // Convertimos los nombres en un array, eliminando espacios adicionales
+            $nombres = array_map('trim', explode(',', $nombreFinal));
+            
+            $nombresValidados = [];
+            $numerosEmpleados = [];
+            
+            foreach ($nombres as $nombre) {
+                $nombreValidado = trim($nombre);
+                $nombresValidados[] = $nombreValidado;
+                
+                // Intentamos buscar primero en el modelo AuditoriaProceso
+                $numeroEmpleado = AuditoriaProceso::where('name', $nombreValidado)->pluck('personnelnumber')->first();
+        
+                // Si no lo encontramos en AuditoriaProceso, intentamos buscar en CategoriaUtility
+                if (!$numeroEmpleado) {
+                    $numeroEmpleado = CategoriaUtility::where('nombre', $nombreValidado)->pluck('numero_empleado')->first();
+                }
+        
+                // Si tampoco se encuentra en CategoriaUtility, devolvemos un valor de 0 para que tenga almacenado algo y no marque error
+                $numerosEmpleados[] = $numeroEmpleado ? $numeroEmpleado : "0000000";
+            }
+            
+            // Concatenamos los nombres y números de empleados con comas
+            $nombreFinalValidado = implode(', ', $nombresValidados);
+            $numeroEmpleado = implode(', ', $numerosEmpleados);
+        }
+        //dd($nombreFinalValidado, $numeroEmpleado, $request->all());
         $nuevoRegistro = new AuditoriaAQL();
         $nuevoRegistro->area = $request->area;
-        $nuevoRegistro->nombre = $request->nombre;
+        $nuevoRegistro->numero_empleado = $numeroEmpleado;
+        $nuevoRegistro->nombre = $nombreFinalValidado;
         $nuevoRegistro->modulo = $request->modulo;
         $nuevoRegistro->op = $request->op;
         $nuevoRegistro->cliente = $request->cliente;
