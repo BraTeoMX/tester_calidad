@@ -81,3 +81,31 @@
         </div>
     </div>
 </div>
+<style>
+    /* Estilo para el fondo oscuro y texto blanco */
+    .dropdown.nav-item .dropdown-toggle.nav-link {
+        background-color: #212431; /* Fondo oscuro */
+        color: #fff; /* Texto blanco */
+        font-weight: bold; /* Texto en negritas */
+    }
+
+    .dropdown.nav-item .dropdown-menu.dropdown-navbar {
+        background-color: #333; /* Fondo oscuro para el menú desplegable */
+    }
+
+    .dropdown.nav-item .dropdown-menu.dropdown-navbar .dropdown-item {
+        color: #fff; /* Texto blanco para cada elemento del menú */
+        font-weight: bold; /* Texto en negritas */
+    }
+
+    .dropdown.nav-item .dropdown-menu.dropdown-navbar .dropdown-item:hover {
+        background-color: #444; /* Color un poco más claro al pasar el ratón */
+    }
+
+    /* Para el ícono de logout en dispositivos pequeños */
+    .dropdown.nav-item .dropdown-toggle.nav-link p {
+        color: #fff;
+        font-weight: bold;
+    }
+
+</style>
