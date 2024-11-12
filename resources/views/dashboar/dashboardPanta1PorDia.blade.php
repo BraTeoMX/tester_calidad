@@ -1146,6 +1146,18 @@
 
     <script>
         $(document).ready(function() {
+            // Función para obtener el título desde el elemento <h3> anterior a cada tabla
+            function obtenerTituloTabla(tableId) {
+                return $(tableId).closest('.card').find('.card-title').text().trim();
+            }
+
+            // Obtener el valor de la fecha de inicio del input en formato YYYY-MM-DD
+            const fechaInicioInput = document.getElementById('fecha_inicio').value;
+
+            // Convertir el valor al formato DD-MM-YYYY
+            const fechaInicio = fechaInicioInput.split('-').reverse().join('-'); // Transforma a DD-MM-YYYY
+
+            // IDs de las tablas
             const tableIds = [
                 '#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaAQLGeneralTE', '#tablaProcesoGeneralTE',
                 '#tablaAQLGeneralNuevo', '#tablaProcesoGeneralNuevo', '#tablaAQLGeneralTENuevo', '#tablaProcesoGeneralTENuevo'
@@ -1153,6 +1165,8 @@
 
             tableIds.forEach(tableId => {
                 if (!$.fn.dataTable.isDataTable(tableId)) {
+                    const tituloTabla = obtenerTituloTabla(tableId); // Obtiene el título para cada tabla
+
                     $(tableId).DataTable({
                         lengthChange: false,
                         searching: true,
@@ -1165,37 +1179,32 @@
                             {
                                 extend: 'excelHtml5',
                                 text: 'Exportar a Excel',
-                                className: 'btn btn-success'
+                                className: 'btn btn-success',
+                                title: tituloTabla, // Título de la tabla como título del archivo Excel
+                                messageTop: `Fecha: ${fechaInicio}`, // Segunda fila con la fecha de inicio
+                                exportOptions: {
+                                    format: {
+                                        header: function(data, columnIndex) {
+                                            return data; // Mantiene los nombres de columnas como están
+                                        }
+                                    }
+                                }
                             }
                         ],
-                        columnDefs: [
-                            {
-                                searchable: false,
-                                orderable: false,
-                            },
-                        ],
                         language: {
-                            "sProcessing":     "Procesando...",
-                            "sLengthMenu":     "Mostrar _MENU_ registros",
-                            "sZeroRecords":    "No se encontraron resultados",
-                            "sEmptyTable":     "Ningún dato disponible en esta tabla",
-                            "sInfo":           "Registros _START_ - _END_ de _TOTAL_ mostrados",
-                            "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
-                            "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-                            "sInfoPostFix":    "",
-                            "sSearch":         "Buscar:",
-                            "sUrl":            "",
-                            "sInfoThousands":  ",",
-                            "sLoadingRecords": "Cargando...",
+                            "sProcessing": "Procesando...",
+                            "sLengthMenu": "Mostrar _MENU_ registros",
+                            "sZeroRecords": "No se encontraron resultados",
+                            "sEmptyTable": "Ningún dato disponible en esta tabla",
+                            "sInfo": "Registros _START_ - _END_ de _TOTAL_ mostrados",
+                            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                            "sSearch": "Buscar:",
                             "oPaginate": {
-                                "sFirst":    "Primero",
-                                "sLast":     "Último",
-                                "sNext":     "Siguiente",
+                                "sFirst": "Primero",
+                                "sLast": "Último",
+                                "sNext": "Siguiente",
                                 "sPrevious": "Anterior"
-                            },
-                            "oAria": {
-                                "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-                                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
                             }
                         },
                         initComplete: function(settings, json) {
