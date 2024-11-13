@@ -986,14 +986,6 @@
         id: 'terceras', // Agrega un ID a la serie
         data: [terceras],
         color: '#434348',
-        events: {
-          click: function(event) {
-            // Redirigir a la vista de "Terceras" usando el ID de la serie
-            if (this.options.id === 'terceras') {
-              window.location.href = '/Terceras';
-            }
-          }
-        }
       }],legend: {
               enabled: true
             }
