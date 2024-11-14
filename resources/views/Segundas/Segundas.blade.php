@@ -205,13 +205,12 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr class="border-b border-gray-200 dark:border-gray-700">
 
-                                                </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                     <div id="graficaPiramide" style="width: 100%; height: 600px;"></div>
+                                    <div id="spinnerTable" class="spinner"></div>
                                 </div>
                             </blockquote>
                         </div>
@@ -251,6 +250,38 @@
         #dropdownSearchPlanta {
             background-color: #374151 !important;
             /* Forza el fondo a negro */
+        }
+    </style>
+      <style>
+        /* Estilo para el spinnerTable */
+        .spinnerTable {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+
+            /* Centrar el spinnerTable horizontal y verticalmente */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Ocultar el spinner inicialmente */
+        #spinnerTable {
+            display: none;
         }
     </style>
     <style>
@@ -378,39 +409,48 @@
             let selectedPlantas = []; // Array para almacenar plantas seleccionadas
             $("#spinner").show();
 
-            $.ajax({
-                url: '/ObtenerPlantas',
-                method: "GET",
-                success: function(response) {
-                    $('#dropdownSearchPlanta ul').empty();
+            function ObtenerPlantas() {
+                if (obtenerSegundasCargado) {
+                    $.ajax({
+                        url: '/ObtenerPlantas',
+                        method: "GET",
+                        success: function(response) {
+                            $('#dropdownSearchPlanta ul').empty();
 
-                    response.ObtenerPlantas.forEach(function(plant) {
-                        $('#dropdownSearchPlanta ul').append(
-                            `<li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
+                            response.ObtenerPlantas.forEach(function(plant) {
+                                $('#dropdownSearchPlanta ul').append(
+                                    `<li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
                             <input id="checkbox-item-${plant}" type="checkbox" value="${plant}" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                             ${plant}
                         </li>`
-                        );
-                    });
+                                );
+                            });
 
-                    // Agregar el evento de cambio para cada checkbox de planta
-                    $('.planta-checkbox').on('change', function() {
-                        const plant = $(this).val();
-                        if ($(this).is(':checked')) {
-                            selectedPlantas.push(plant);
-                        } else {
-                            selectedPlantas = selectedPlantas.filter(p => p !== plant);
+                            // Agregar el evento de cambio para cada checkbox de planta
+                            $('.planta-checkbox').on('change', function() {
+                                const plant = $(this).val();
+                                if ($(this).is(':checked')) {
+                                    selectedPlantas.push(plant);
+                                } else {
+                                    selectedPlantas = selectedPlantas.filter(p => p !== plant);
+                                }
+                                console.log('Plantas seleccionadas:', selectedPlantas);
+                            });
+
+                            $("#spinner").hide();
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(error);
+                            $("#spinner").hide();
                         }
-                        console.log('Plantas seleccionadas:', selectedPlantas);
                     });
-
-                    $("#spinner").hide();
-                },
-                error: function(xhr, status, error) {
-                    console.error(error);
-                    $("#spinner").hide();
+                } else {
+                    // Si ObtenerSegundas no ha terminado, esperar 100ms y volver a intentar
+                    setTimeout(ObtenerPlantas, 100);
                 }
-            });
+            }
+            // Llamar a cargarModulos al iniciar
+            ObtenerPlantas();
         });
     </script>
     <script>
@@ -419,42 +459,48 @@
             $("#spinnerModul").show();
 
             function cargarModulos() {
-                $.ajax({
-                    url: '/ObtenerModulos',
-                    method: 'GET',
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            $('#dropdownSearchModulo ul').empty();
+                if (obtenerSegundasCargado) {
+                    $.ajax({
+                        url: '/ObtenerModulos',
+                        method: 'GET',
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                $('#dropdownSearchModulo ul').empty();
 
-                            response.ObtenerModulos.forEach(function(modulo) {
-                                $('#dropdownSearchModulo ul').append(`
+                                response.ObtenerModulos.forEach(function(modulo) {
+                                    $('#dropdownSearchModulo ul').append(`
                                 <li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
                                     <input id="checkbox-modulo-${modulo}" type="checkbox" value="${modulo}" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                                     ${modulo}
                                 </li>
                             `);
-                            });
+                                });
 
-                            // Evento para cambios en cada checkbox de módulo
-                            $('.modulo-checkbox').on('change', function() {
-                                const modulo = $(this).val();
-                                if ($(this).is(':checked')) {
-                                    selectedModulos.push(modulo);
-                                } else {
-                                    selectedModulos = selectedModulos.filter(m => m !== modulo);
-                                }
-                                console.log('Módulos seleccionados:', selectedModulos);
-                            });
-                        } else {
-                            console.error('No se recibieron datos en la respuesta');
+                                // Evento para cambios en cada checkbox de módulo
+                                $('.modulo-checkbox').on('change', function() {
+                                    const modulo = $(this).val();
+                                    if ($(this).is(':checked')) {
+                                        selectedModulos.push(modulo);
+                                    } else {
+                                        selectedModulos = selectedModulos.filter(m => m !==
+                                            modulo);
+                                    }
+                                    console.log('Módulos seleccionados:', selectedModulos);
+                                });
+                            } else {
+                                console.error('No se recibieron datos en la respuesta');
+                            }
+                            $("#spinnerModul").hide();
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error al obtener módulos:', error);
+                            $("#spinnerModul").hide();
                         }
-                        $("#spinnerModul").hide();
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error al obtener módulos:', error);
-                        $("#spinnerModul").hide();
-                    }
-                });
+                    });
+                } else {
+                    // Si ObtenerSegundas no ha terminado, esperar 100ms y volver a intentar
+                    setTimeout(cargarModulos, 100);
+                }
             }
 
             // Llamar a cargarModulos al iniciar
@@ -467,60 +513,66 @@
             $("#spinnerClient").show();
 
             function cargarClientes() {
-                $.ajax({
-                    url: '/ObtenerClientes',
-                    method: 'GET',
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            $('#dropdownSearchCliente ul').empty();
+                if (obtenerSegundasCargado) {
+                    $.ajax({
+                        url: '/ObtenerClientes',
+                        method: 'GET',
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                $('#dropdownSearchCliente ul').empty();
 
-                            response.ObtenerClientes.forEach(function(cliente) {
-                                $('#dropdownSearchCliente ul').append(`
+                                response.ObtenerClientes.forEach(function(cliente) {
+                                    $('#dropdownSearchCliente ul').append(`
                                 <li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
                                     <input id="checkbox-cliente-${cliente}" type="checkbox" value="${cliente}" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                                     ${cliente}
                                 </li>
                             `);
-                            });
+                                });
 
-                            // Evento para cambios en cada checkbox de cliente
-                            $('.cliente-checkbox').on('change', function() {
-                                const cliente = $(this).val();
-                                if ($(this).is(':checked')) {
-                                    selectedClientes.push(cliente);
-                                } else {
-                                    selectedClientes = selectedClientes.filter(c => c !==
-                                        cliente);
-                                }
-                                console.log('Clientes seleccionados:', selectedClientes);
-                            });
-                        } else {
-                            console.error('No se recibieron datos en la respuesta');
+                                // Evento para cambios en cada checkbox de cliente
+                                $('.cliente-checkbox').on('change', function() {
+                                    const cliente = $(this).val();
+                                    if ($(this).is(':checked')) {
+                                        selectedClientes.push(cliente);
+                                    } else {
+                                        selectedClientes = selectedClientes.filter(c => c !==
+                                            cliente);
+                                    }
+                                    console.log('Clientes seleccionados:', selectedClientes);
+                                });
+                            } else {
+                                console.error('No se recibieron datos en la respuesta');
+                            }
+                            $("#spinnerClient").hide();
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error al obtener clientes:', error);
+                            $("#spinnerClient").hide();
                         }
-                        $("#spinnerClient").hide();
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error al obtener clientes:', error);
-                        $("#spinnerClient").hide();
-                    }
-                });
+                    });
+                } else {
+                    // Si ObtenerSegundas no ha terminado, esperar 100ms y volver a intentar
+                    setTimeout(cargarClientes, 100);
+                }
             }
 
             // Llamar a cargarClientes al iniciar
             cargarClientes();
         });
     </script>
-     <script>
-        $(document).ready(function () {
+    <script>
+        let obtenerSegundasCargado = false;
+        $(document).ready(function() {
             // Llama a la función cuando la página esté lista
             ObtenerSegundas();
         });
-
+        $("#spinnerTable").show();
         function ObtenerSegundas() {
             $.ajax({
                 url: '/ObtenerSegundas',
                 method: 'GET',
-                success: function (response) {
+                success: function(response) {
                     if (response.status === 'success') {
                         let datosTerceras = response.data;
 
@@ -529,12 +581,15 @@
 
                         // Renderizar los datos en la tabla
                         renderizarTabla(datosTerceras);
+                        $("#spinnerClient").hide();
                     } else {
                         alert('No se pudieron obtener los datos correctamente.');
+                        $("#spinnerClient").hide();
                     }
                 },
-                error: function () {
+                error: function() {
                     alert('Hubo un error al obtener los datos.');
+                    $("#spinnerClient").hide();
                 }
             });
         }
@@ -542,9 +597,10 @@
         function renderizarTabla(datos) {
             let tbody = $('table tbody'); // Selecciona el cuerpo de la tabla
 
-            datos.forEach(function (dato) {
+            datos.forEach(function(dato) {
                 // Extraer solo la parte numérica de OPRMODULEID_AT
-                let moduloNumero = parseInt(dato.OPRMODULEID_AT.replace(/\D/g, ''), 10); // Eliminar letras y obtener un número
+                let moduloNumero = parseInt(dato.OPRMODULEID_AT.replace(/\D/g, ''),
+                    10); // Eliminar letras y obtener un número
 
                 // Determinar la planta en función del valor numérico de OPRMODULEID_AT
                 let planta;
@@ -571,11 +627,10 @@
                     </tr>
                 `;
                 tbody.append(fila); // Agrega la fila al cuerpo de la tabla
+                obtenerSegundasCargado = true;
             });
         }
     </script>
 
-    <script>
-
-    </script>
+    <script></script>
 @endsection

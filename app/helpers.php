@@ -16,9 +16,15 @@ if (!function_exists('obtenerSegundasTerceras')) {
     {
         try {
             return Cache::remember('segundas_terceras', 1800, function() {
-                return DB::connection('sqlsrv')
+                $result = DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
+                    ->select('Calidad', 'QTY')
                     ->get();
+
+                // Loguea la cantidad de registros obtenidos
+                Log::info('Cantidad de registros obtenidos en SegundasTerceras_View: ' . $result);
+
+                return $result;
             });
         } catch (\Exception $e) {
             // Manejar la excepción, por ejemplo, loguear el error
@@ -28,6 +34,7 @@ if (!function_exists('obtenerSegundasTerceras')) {
             return collect();
         }
     }
+
 }
 if (!function_exists('ObtenerSegundas')) {
     /**
@@ -39,14 +46,20 @@ if (!function_exists('ObtenerSegundas')) {
     {
         try {
             return Cache::remember('ObtenerSegundas', 1800, function() {
-                return DB::connection('sqlsrv')
+                $segundas = DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
+                    ->select('OPRMODULEID_AT','CUSTOMERNAME','DIVISIONNAME','TipoSegunda','DescripcionCalidad','PRODTICKETID', 'QTY','TRANSDATE')
                     ->where('Calidad', 'Segunda') // Filtrar por Calidad = 'Segunda'
                     ->get();
+
+                // Loguea la cantidad de registros obtenidos
+                Log::info('Cantidad de registros obtenidos en SegundasTerceras_View: ' . $segundas);
+
+                return $segundas;
             });
         } catch (\Exception $e) {
             // Manejar la excepción, por ejemplo, loguear el error
-            Log::error('Error al obtener Segundas: ' . $e->getMessage());
+            Log::error('Error al obtener SegundasTerceras: ' . $e->getMessage());
 
             // Retornar una colección vacía o lanzar una excepción personalizada
             return collect();
@@ -65,6 +78,7 @@ if (!function_exists('ObtenerPlantas')) {
             return Cache::remember('ObtenerPlantas', 1800, function () {
                 $resultados = DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
+                    ->select('PRODPOOLID')
                     ->where('Calidad', 'Segunda')
                     ->pluck('PRODPOOLID');
 
@@ -107,6 +121,7 @@ if (!function_exists('ObtenerModulos')) {
             return Cache::remember('ObtenerModulos', 1800, function () {
                 $resultados = DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
+                    ->select('OPRMODULEID_AT')
                     ->where('Calidad', 'Segunda')
                     ->pluck('OPRMODULEID_AT');
 
@@ -139,6 +154,7 @@ if (!function_exists('ObtenerClientes')) {
             return Cache::remember('ObtenerClientes', 1800, function () {
                 $Clientes = DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
+                    ->select('CUSTOMERNAME')
                     ->where('Calidad', 'Segunda')
                     ->pluck('CUSTOMERNAME');
 
@@ -171,6 +187,7 @@ if (!function_exists('ObtenerDivisiones')) {
             return Cache::remember('ObtenerDivisiones', 1800, function () {
                 $Divisiones = DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
+                    ->select('DIVISIONNAME')
                     ->where('Calidad', 'Segunda')
                     ->pluck('DIVISIONNAME');
 
@@ -203,6 +220,7 @@ if (!function_exists('ObtenerTipoSegundas')) {
             return Cache::remember('ObtenerTipoSegundas', 1800, function () {
                 $TipoSegundas = DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
+                    ->select('TipoSegunda')
                     ->where('Calidad', 'Segunda')
                     ->pluck('TipoSegunda');
 
@@ -235,6 +253,7 @@ if (!function_exists('ObtenerDescriptionSegundas')) {
             return Cache::remember('ObtenerDescriptionSegundas', 1800, function () {
                 $DescriptionSegundas = DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
+                    ->select('DescripcionCalidad')
                     ->where('Calidad', 'Segunda')
                     ->pluck('DescripcionCalidad');
 
@@ -267,6 +286,7 @@ if (!function_exists('ObtenerTickets')) {
             return Cache::remember('ObtenerTickets', 1800, function () {
                 $Tickets = DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
+                    ->select('PRODTICKETID')
                     ->where('Calidad', 'Segunda')
                     ->pluck('PRODTICKETID');
 
