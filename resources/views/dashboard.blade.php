@@ -928,87 +928,92 @@
         // Mostrar la gráfica AQL por defecto
         mostrarGrafica('AQL');
     </script>
-
 <script>
-    $(document).ready(function() {
-      // Mostrar el spinner al iniciar la petición AJAX
-      $("#spinner").show();
+    document.addEventListener("DOMContentLoaded", function() {
+      // Crear una bandera global para evitar múltiples cargas
+      if (window.datosCargados) return; // Detener si ya se ha cargado
+      window.datosCargados = true; // Marcar como cargado
 
-      $.ajax({
-        url: "/SegundasTerceras",
+      // Mostrar el spinner al iniciar la petición
+      document.getElementById("spinner").style.display = "block";
+
+      fetch("/SegundasTerceras", {
         method: "GET",
-        dataType: "json",
-        success: function(response) {
-          var data = response.data;
-          var segundas = 0;
-          var terceras = 0;
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Error en la respuesta de la red");
+        }
+        return response.json();
+      })
+      .then(data => {
+        let segundas = 0;
+        let terceras = 0;
 
-          data.forEach(function(item) {
-            var qty = parseFloat(item.QTY);
-            if (item.Calidad === 'Segunda') {
-              segundas += qty;
-            } else if (item.Calidad === 'Tercera') {
-              terceras += qty;
-            }
-          });
+        data.data.forEach(item => {
+          let qty = parseFloat(item.QTY);
+          if (item.Calidad === "Segunda") {
+            segundas += qty;
+          } else if (item.Calidad === "Tercera") {
+            terceras += qty;
+          }
+        });
 
-          Highcharts.chart('SegundasTercerasChart', {
-            chart: {
-              type: 'column',
-              backgroundColor: 'transparent'
-            },
+        Highcharts.chart("SegundasTercerasChart", {
+          chart: {
+            type: "column",
+            backgroundColor: "transparent"
+          },
+          title: {
+            text: "Segundas y Terceras"
+          },
+          xAxis: {
+            categories: ["Segundas", "Terceras"]
+          },
+          yAxis: {
+            min: 0,
             title: {
-              text: 'Segundas y Terceras'
-            },
-            xAxis: {
-              categories: ['Segundas', 'Terceras']
-            },
-            yAxis: {
-              min: 0,
-              title: {
-                text: 'Cantidad'
+              text: "Cantidad"
+            }
+          },
+          series: [{
+            name: "Segundas",
+            id: "segundas",
+            data: [segundas],
+            color: "#7cb5ec",
+            events: {
+              click: function(event) {
+                if (this.options.id === "segundas") {
+                  window.location.href = "/Segundas";
+                }
               }
-            }, series: [{
-        name: 'Segundas',
-        id: 'segundas', // Agrega un ID a la serie
-        data: [segundas],
-        color: '#7cb5ec',
-        events: {
-          click: function(event) {
-            // Redirigir a la vista de "Segundas" usando el ID de la serie
-            if (this.options.id === 'segundas') {
-              window.location.href = '/Segundas';
             }
+          }, {
+            name: "Terceras",
+            id: "terceras",
+            data: [terceras],
+            color: "#434348",
+          }],
+          legend: {
+            enabled: true
           }
-        }
-      }, {
-        name: 'Terceras',
-        id: 'terceras', // Agrega un ID a la serie
-        data: [terceras],
-        color: '#434348',
-        events: {
-          click: function(event) {
-            // Redirigir a la vista de "Terceras" usando el ID de la serie
-            if (this.options.id === 'terceras') {
-              window.location.href = '/Terceras';
-            }
-          }
-        }
-      }],legend: {
-              enabled: true
-            }
-          });
-          // Ocultar el spinner después de que se haya generado la gráfica
-          $("#spinner").hide();
-        },
-        error: function(xhr, status, error) {
-          console.error("Error al cargar los datos:", error);
-          // Ocultar el spinner en caso de error
-          $("#spinner").hide();
-        }
+        });
+
+        // Ocultar el spinner después de que se haya generado la gráfica
+        document.getElementById("spinner").style.display = "none";
+      })
+      .catch(error => {
+        console.error("Error al cargar los datos:", error);
+        // Ocultar el spinner en caso de error
+        document.getElementById("spinner").style.display = "none";
       });
     });
   </script>
+
+
 @endpush
 
 @push('js')
