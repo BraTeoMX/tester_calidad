@@ -477,6 +477,7 @@ class AuditoriaProcesoController extends Controller
         //$diferenciaModulo = $request->modulo == $request->modulo_adicional;
         //dd($diferenciaModulo, $request->all());
         $modulo = $request->modulo;
+        $moduloAdicional = $request->modulo_adicional;
         // Extraer la parte numérica del módulo
         $modulo_num = intval(substr($modulo, 0, 3));
         //dd($request->all());
@@ -493,14 +494,17 @@ class AuditoriaProcesoController extends Controller
         $numeroEmpleado = $numeroEmpleado ?: '0000000';
 
         // Lógica para identificar si es Utility
-        $utilityIdentificado = in_array($request->modulo_adicional, ['860A', '863A']) ? 1 : null;
+        $utilityIdentificado = in_array($moduloAdicional, ['860A', '863A']) ? 1 : null;
+        if ($utilityIdentificado) {
+            $moduloAdicional = null;
+        }
 
         //dd($nombreFinalValidado, $numeroEmpleado, $request->all());
         //dd($request->modulo, $request->modulo_adicional);
         $nuevoRegistro = new AseguramientoCalidad();
         $nuevoRegistro->area = $request->area;
         $nuevoRegistro->modulo = $request->modulo;
-        $nuevoRegistro->modulo_adicional = $request->modulo_adicional;
+        $nuevoRegistro->modulo_adicional = $moduloAdicional;
         $nuevoRegistro->planta = $plantaBusqueda;
         //$nuevoRegistro->modulo_adicional = ($request->modulo == $request->modulo_adicional) ? NULL : $request->modulo_adicional;
         $nuevoRegistro->estilo = $request->estilo;
