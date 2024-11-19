@@ -33,7 +33,7 @@ class AuditoriaProcesoController extends Controller
             'fechaActual' => $fechaActual,
             'auditorDato' => Auth::user()->name,
             'auditorPlanta' => Auth::user()->Planta,
-            'AuditoriaProceso' => AuditoriaProceso::all(),
+            //'AuditoriaProceso' => AuditoriaProceso::all(),
             'categoriaTPProceso' => CategoriaTipoProblema::whereIn('area', ['proceso', 'playera'])->get(),
             'categoriaTPPlayera' => CategoriaTipoProblema::where('area', 'playera')->get(),
             'categoriaTPEmpaque' => CategoriaTipoProblema::where('area', 'empaque')->get(),
@@ -480,27 +480,21 @@ class AuditoriaProcesoController extends Controller
         // Extraer la parte numérica del módulo
         $modulo_num = intval(substr($modulo, 0, 3));
         //dd($request->all());
+        // Procesar el nombre final
         $nombreFinal = $request->nombre_final;
-        if($nombreFinal){
-            // Limpiamos el nombre recibido por si tiene espacios en blanco adicionales
-            $nombreFinalValidado = trim($nombreFinal);
-            // Intentamos buscar primero en el modelo AuditoriaProceso
-            $numeroEmpleado = AuditoriaProceso::where('name', $nombreFinalValidado)->pluck('personnelnumber')->first();
-        
-            // Si no lo encontramos en AuditoriaProceso, intentamos buscar en CategoriaUtility
-            if(!$numeroEmpleado) {
-                $numeroEmpleado = CategoriaUtility::where('nombre', $nombreFinalValidado)->pluck('numero_empleado')->first();
-            }
-        
-            // Si tampoco se encuentra en CategoriaUtility, devolvemos un mensaje "No encontrado"
-            if(!$numeroEmpleado) {
-                $numeroEmpleado = '0000000';
-            }
-        
-            // Mostramos el número de empleado o el mensaje "No encontrado"
-            //dd($nombreFinalValidado);
-        }        
-        $utilityIdentificado = $request->nombre_utility ? 1 : null;
+        $nombreFinalValidado = $nombreFinal ? trim($nombreFinal) : null;
+
+        // Obtener el número de empleado desde AuditoriaProceso
+        $numeroEmpleado = AuditoriaProceso::where('name', $nombreFinalValidado)
+            ->pluck('personnelnumber')
+            ->first();
+
+        // Si no se encuentra, asignar un valor predeterminado
+        $numeroEmpleado = $numeroEmpleado ?: '0000000';
+
+        // Lógica para identificar si es Utility
+        $utilityIdentificado = in_array($request->modulo_adicional, ['860A', '863A']) ? 1 : null;
+
         //dd($nombreFinalValidado, $numeroEmpleado, $request->all());
         //dd($request->modulo, $request->modulo_adicional);
         $nuevoRegistro = new AseguramientoCalidad();

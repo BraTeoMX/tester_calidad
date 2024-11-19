@@ -350,13 +350,6 @@
                                                             <option value="">Selecciona un nombre</option>
                                                         </select>
                                                     </div>
-                                                
-                                                    <!-- Opciones para "UTILITY" -->
-                                                    <div id="utilityOptions" style="display: none; margin-top: 10px;">
-                                                        <select name="nombre_utility" id="utility" class="form-control">
-                                                            <option value="">Selecciona un Utility</option>
-                                                        </select>
-                                                    </div>
                                                 </td>
                                                 @if($data['modulo'] == "830A" || $data['modulo'] == "831A")
 
@@ -964,12 +957,34 @@
                 .then(data => {
                     const select = document.getElementById("module");
                     select.innerHTML = '<option value="">Selecciona un módulo</option>'; // Reiniciar opciones
+
+                    const highlightedOptions = []; // Opciones destacadas
+                    const normalOptions = [];     // Resto de las opciones
+
                     data.forEach(module => {
                         const option = document.createElement("option");
-                        option.text = module.moduleid;
-                        option.value = module.moduleid;
-                        select.appendChild(option);
+
+                        // Cambiar visualmente según el valor del módulo
+                        if (module.moduleid === "860A" || module.moduleid === "863A") {
+                            option.text = "UTILITY";
+                            option.value = module.moduleid;
+                            highlightedOptions.push(option); // Añadir a opciones destacadas
+                        } else if (module.moduleid === "802A" || module.moduleid === "804A") {
+                            option.text = "ENTRENAMIENTO";
+                            option.value = module.moduleid;
+                            highlightedOptions.push(option); // Añadir a opciones destacadas
+                        } else {
+                            option.text = module.moduleid; // Texto normal para otros valores
+                            option.value = module.moduleid;
+                            normalOptions.push(option); // Añadir al resto de opciones
+                        }
                     });
+
+                    // Agregar opciones destacadas primero
+                    highlightedOptions.forEach(option => select.appendChild(option));
+                    // Luego, agregar el resto de las opciones
+                    normalOptions.forEach(option => select.appendChild(option));
+
                     // Añadir event listener
                     select.addEventListener('change', loadNames);
                 });
