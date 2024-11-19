@@ -6,6 +6,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
 
+
 if (!function_exists('obtenerSegundasTerceras')) {
     /**
      * Obtiene datos de la vista SegundasTerceras_View.
@@ -119,19 +120,16 @@ if (!function_exists('ObtenerModulos')) {
     {
         try {
             return Cache::remember('ObtenerModulos', 1800, function () {
+                // Consulta optimizada con DISTINCT
                 $resultados = DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
-                    ->select('OPRMODULEID_AT')
+                    ->selectRaw('DISTINCT OPRMODULEID_AT')
                     ->where('Calidad', 'Segunda')
                     ->pluck('OPRMODULEID_AT');
 
-                Log::info('Resultados de la consulta módulos: ' . json_encode($resultados));
+                Log::info('Resultados únicos de la consulta módulos: ' . json_encode($resultados));
 
-                $modulos = $resultados->unique()->values()->toArray();
-
-                Log::info('Módulos únicos filtrados: ' . json_encode($modulos));
-
-                return $modulos;
+                return $resultados->toArray();
             });
         } catch (QueryException $e) {
             Log::error('Error en la consulta SQL al obtener Módulos: ' . $e->getMessage());
@@ -144,7 +142,7 @@ if (!function_exists('ObtenerModulos')) {
 }
 if (!function_exists('ObtenerClientes')) {
     /**
-     * Obtiene clientes únicos basados en la columna CUSTOMERNAME de la vista correspondiente.
+     * Obtiene clientes y sus divisiones basados en las columnas CUSTOMERNAME y DIVISIONNAME.
      *
      * @return array
      */
@@ -154,17 +152,20 @@ if (!function_exists('ObtenerClientes')) {
             return Cache::remember('ObtenerClientes', 1800, function () {
                 $Clientes = DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
-                    ->select('CUSTOMERNAME')
+                    ->distinct()
+                    ->select('CUSTOMERNAME', 'DIVISIONNAME')
                     ->where('Calidad', 'Segunda')
-                    ->pluck('CUSTOMERNAME');
+                    ->get();
 
                 Log::info('Resultados de la consulta Clientes: ' . json_encode($Clientes));
 
-                $ObtenerClientes = $Clientes->unique()->values()->toArray();
+                $ClientesDivisiones = $Clientes->groupBy('CUSTOMERNAME')->map(function ($items) {
+                    return $items->pluck('DIVISIONNAME')->unique()->values()->toArray();
+                })->toArray();
 
-                Log::info('Clientes únicos filtrados: ' . json_encode($ObtenerClientes));
+                Log::info('Clientes y sus divisiones: ' . json_encode($ClientesDivisiones));
 
-                return $ObtenerClientes;
+                return $ClientesDivisiones;
             });
         } catch (QueryException $e) {
             Log::error('Error en la consulta SQL al obtener Clientes: ' . $e->getMessage());
@@ -172,39 +173,6 @@ if (!function_exists('ObtenerClientes')) {
         } catch (\Exception $e) {
             Log::error('Error al obtener Clientes: ' . $e->getMessage());
             throw new \Exception('Error al obtener los datos de Clientes.');
-        }
-    }
-}
-if (!function_exists('ObtenerDivisiones')) {
-    /**
-     * Obtiene clientes únicos basados en la columna CUSTOMERNAME de la vista correspondiente.
-     *
-     * @return array
-     */
-    function ObtenerDivisiones(): array
-    {
-        try {
-            return Cache::remember('ObtenerDivisiones', 1800, function () {
-                $Divisiones = DB::connection('sqlsrv')
-                    ->table('SegundasTerceras_View')
-                    ->select('DIVISIONNAME')
-                    ->where('Calidad', 'Segunda')
-                    ->pluck('DIVISIONNAME');
-
-                Log::info('Resultados de la consulta Clientes: ' . json_encode($Divisiones));
-
-                $ObtenerDivisiones = $Divisiones->unique()->values()->toArray();
-
-                Log::info('Clientes únicos filtrados: ' . json_encode($ObtenerDivisiones));
-
-                return $ObtenerDivisiones;
-            });
-        } catch (QueryException $e) {
-            Log::error('Error en la consulta SQL al obtener Divisiones: ' . $e->getMessage());
-            throw new \Exception('Error al obtener los datos de Divisiones.');
-        } catch (\Exception $e) {
-            Log::error('Error al obtener Divisiones: ' . $e->getMessage());
-            throw new \Exception('Error al obtener los datos de Divisiones.');
         }
     }
 }
