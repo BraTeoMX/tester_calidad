@@ -14,6 +14,7 @@ use App\Models\CategoriaAccionCorrectiva;
 use App\Models\AuditoriaAQL;
 use App\Models\CategoriaUtility;
 use App\Models\TpAuditoriaAQL;
+use App\Models\CategoriaSupervisor; 
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 
 class AuditoriaAQLController extends Controller
@@ -75,8 +76,7 @@ class AuditoriaAQLController extends Controller
         $moduloSeleccionado = $request->input('modulo');
 
         // Filtrar los datos de 'ordenOPs' según el módulo seleccionado
-        $ordenesOPFiltradas = JobAQL::where('moduleid', $moduloSeleccionado)
-          ->select('prodid')
+        $ordenesOPFiltradas = JobAQL::select('prodid') //where('moduleid', $moduloSeleccionado)
           ->distinct()
           ->get();
 
@@ -103,6 +103,11 @@ class AuditoriaAQLController extends Controller
             $datoPlanta = "Intimark2";
         }
 
+        $listaModulos = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
+            ->whereBetween('moduleid', ['100A', '299A'])
+            ->get();
+        //dd($listaModulos);
+
         $procesoActualAQL =AuditoriaAQL::where('estatus', NULL)
             ->where('area', 'AUDITORIA AQL')
             ->where('planta', $datoPlanta)
@@ -127,6 +132,7 @@ class AuditoriaAQLController extends Controller
         return view('auditoriaAQL.altaAQL', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol,
             'pageSlug' => $pageSlug,
+            'listaModulos' => $listaModulos,
             'procesoActualAQL' => $procesoActualAQL,
             'procesoFinalAQL' => $procesoFinalAQL,
             'gerenteProduccion' => $gerenteProduccion]));
@@ -175,8 +181,7 @@ class AuditoriaAQLController extends Controller
         $nombreCliente = $data['cliente'];
         //dd($nombreCliente);
 
-        $selectPivoteOP = JobAQL::where('moduleid', $data['modulo'])
-            ->select('prodid')
+        $selectPivoteOP = JobAQL::select('prodid')//where('moduleid', $data['modulo'])
             ->distinct()
             ->get();
         //dd($data['modulo'], $selectPivoteOP);
@@ -492,6 +497,10 @@ class AuditoriaAQLController extends Controller
             $nombreFinalValidado = implode(', ', $nombresValidados);
             $numeroEmpleado = implode(', ', $numerosEmpleados);
         }
+        $buscarCliente = JobAQL::where('prodid', $request->op)
+            ->first(['customername']);
+        $buscarClienteResultado = $buscarCliente->customername ?? $request->cliente;
+
         //dd($nombreFinalValidado, $numeroEmpleado, $request->all());
         $nuevoRegistro = new AuditoriaAQL();
         $nuevoRegistro->area = $request->area;
@@ -499,7 +508,7 @@ class AuditoriaAQLController extends Controller
         $nuevoRegistro->nombre = $nombreFinalValidado;
         $nuevoRegistro->modulo = $request->modulo;
         $nuevoRegistro->op = $request->op;
-        $nuevoRegistro->cliente = $request->cliente;
+        $nuevoRegistro->cliente = $buscarClienteResultado;
         $nuevoRegistro->team_leader = $request->team_leader;
         $nuevoRegistro->gerente_produccion = $request->gerente_produccion;
         $nuevoRegistro->auditor = $request->auditor;

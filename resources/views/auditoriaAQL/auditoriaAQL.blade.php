@@ -918,6 +918,15 @@
 
         $(document).ready(function() {
             // Inicializar el select2
+            $('#op').select2({
+                placeholder: 'Seleccione una opcion',
+                allowClear: true,
+                width: 'resolve'
+            });
+        });
+
+        $(document).ready(function() {
+            // Inicializar el select2
             $('#nombre-varios').select2({
                 placeholder: 'Seleccione una opcion',
                 allowClear: true,

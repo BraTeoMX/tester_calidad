@@ -891,7 +891,15 @@
                 allowClear: true,
                 width: 'resolve'
             });
-        });
+        }); 
+        $(document).ready(function() {
+            // Inicializar el select2
+            $('#estilo').select2({
+                placeholder: 'Seleccione una opcion',
+                allowClear: true,
+                width: 'resolve'
+            });
+        }); 
     </script>
     <script>
         function handleSelectionChange() {

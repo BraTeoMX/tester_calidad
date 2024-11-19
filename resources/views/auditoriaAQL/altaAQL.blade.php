@@ -105,21 +105,12 @@
                                             <select name="modulo" id="modulo" class="form-control" required
                                                 title="Por favor, selecciona una opción" onchange="cargarOrdenesOP(); obtenerSupervisor();">
                                                 <option value="" selected>Selecciona una opción</option>
-                                                @if ($auditorPlanta == 'Planta1')
-                                                    @foreach ($auditoriaProcesoIntimark1 as $moduloP1)
-                                                        <option value="{{ $moduloP1->moduleid }}"
-                                                            data-modulo="{{ $moduloP1->moduleid }}">
-                                                            {{ $moduloP1->moduleid }}
-                                                        </option>
-                                                    @endforeach
-                                                @elseif($auditorPlanta == 'Planta2')
-                                                    @foreach ($auditoriaProcesoIntimark2 as $moduloP2)
-                                                        <option value="{{ $moduloP2->moduleid }}"
-                                                            data-modulo="{{ $moduloP2->moduleid }}">
-                                                            {{ $moduloP2->moduleid }}
-                                                        </option>
-                                                    @endforeach
-                                                @endif
+                                                @foreach ($listaModulos as $modulo)
+                                                    <option value="{{ $modulo->moduleid }}"
+                                                        data-modulo="{{ $modulo->moduleid }}">
+                                                        {{ $modulo->moduleid }}
+                                                    </option>
+                                                @endforeach
                                             </select>
                                         </td>
                                         <td>

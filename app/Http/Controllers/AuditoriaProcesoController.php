@@ -17,6 +17,7 @@ use App\Models\CategoriaSupervisor;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\NotificacionParo;
 use App\Models\JobAQL;
+use App\Models\ModuloEstilo;
 
 
 use App\Models\EvaluacionCorte;
@@ -96,6 +97,10 @@ class AuditoriaProcesoController extends Controller
             $datoPlanta = "Intimark2";
         }
         //dd($auditorPlanta, $datoPlanta);
+        $listaModulos = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
+            ->whereBetween('moduleid', ['100A', '299A'])
+            ->get();
+        //dd($listaModulos);
         //apartado para Gerentes de Produccion 
         $gerenteProduccion = CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
             ->orderBy('jefe_produccion')
@@ -140,6 +145,7 @@ class AuditoriaProcesoController extends Controller
         return view('aseguramientoCalidad.altaProceso', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
             'pageSlug' => $pageSlug,
+            'listaModulos' => $listaModulos,
             'procesoActual' => $procesoActual,
             'procesoFinal' => $procesoFinal,
             'empaqueActual' => $empaqueActual,
@@ -150,9 +156,9 @@ class AuditoriaProcesoController extends Controller
     public function obtenerItemId(Request $request)  
     {
         $moduleid = $request->input('moduleid');
-        $auditoriaProceso = JobAQL::where('moduleid', $moduleid)
-                                            ->distinct('itemid')
-                                            ->pluck('itemid');
+        $auditoriaProceso = ModuloEstilo::where('moduleid', $moduleid)
+                                ->distinct('itemid')
+                                ->pluck('itemid');
         
         return response()->json([
             'itemids' => $auditoriaProceso,
@@ -171,10 +177,10 @@ class AuditoriaProcesoController extends Controller
     public function obtenerCliente1(Request $request)  
     {
         $itemid = $request->input('itemid');
-        $auditoriaProceso = JobAQL::where('itemid', $itemid)->first();
+        $auditoriaProceso = ModuloEstilo::where('itemid', $itemid)->first();
 
         return response()->json([
-            'cliente' => $auditoriaProceso->customername ?? ''
+            'cliente' => $auditoriaProceso->custname ?? ''
         ]);
     }
 
@@ -201,7 +207,7 @@ class AuditoriaProcesoController extends Controller
             $detectarPlanta = "Intimark2";
         }
         // Obtener los estilos únicos relacionados con el módulo seleccionado
-        $estilos = JobAQL::where('moduleid', $data['modulo'])
+        $estilos = ModuloEstilo::where('moduleid', $data['modulo'])
                                     ->distinct('itemid')
                                     ->pluck('itemid');
 
