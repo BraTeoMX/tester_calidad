@@ -1094,7 +1094,7 @@ class AuditoriaCorteController extends Controller
         return redirect()->route('auditoriaCorte.inicioAuditoriaCorte', )->with('success', '  Evento agregado correctamente.')->with('pageSlug', $pageSlug);
     } 
 
-    public function formAuditoriaMarcadaV2(Request $request)
+    public function formAuditoriaMarcadaV2(Request $request) 
     {
         $pageSlug = '';
         $idAuditoriaMarcada = $request->input('idAuditoriaMarcada');
@@ -1107,7 +1107,7 @@ class AuditoriaCorteController extends Controller
         }
 
         $existeOrden = AuditoriaCorteMarcada::where('encabezado_id', $idAuditoriaMarcada)->first();
-
+        //dd($request->all());
         if ($existeOrden) {
             // Actualizar otros datos
             $existeOrden->yarda_orden = $request->input('yarda_orden');
@@ -1115,13 +1115,14 @@ class AuditoriaCorteController extends Controller
 
             // Almacenar tallas, siempre
             $existeOrden->tallas = implode(',', $request->input('tallas', []));
+            $existeOrden->total_piezas = implode(',', $request->input('total_piezas', []));
 
             // Validar si tallas_parciales tiene datos válidos (no null)
             $tallasParciales = $request->input('tallas_parciales', []);
             if (!empty($tallasParciales) && $tallasParciales[0] !== null) {
                 // Solo se almacena si tallas_parciales tiene datos válidos
                 $existeOrden->tallas_parciales = implode(',', $tallasParciales);
-                $existeOrden->bultos_parciales = implode(',', $request->input('bultos_parciales', []));
+                $existeOrden->bultos_parciales = implode(',', $request->input('bultos_parciales', [])); 
                 $existeOrden->total_piezas_parciales = implode(',', $request->input('total_piezas_parciales', []));
             } else {
                 // Si no hay datos válidos en tallas_parciales, no se almacenan estos campos

@@ -310,7 +310,7 @@
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td># Bultos</td>
+                                                        <td># Bultos</td> 
                                                         @for ($i = 0; $i < $numColumns; $i++)
                                                             <td><input type="number" class="form-control" name="bultos[{{ $i }}]" value="{{ $bultos[$i] }}" /></td>
                                                         @endfor
