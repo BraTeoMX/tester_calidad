@@ -1044,10 +1044,10 @@ class DashboardPlanta1PorDiaController extends Controller
         $generalAQLPlanta1 = calcularPorcentajeSemana(AuditoriaAQL::class, $fechaInicio, $fechaFin, 'Intimark1');
 
         // Llamadas a las funciones para obtener los datos Proceso y AQL
-        $datosModuloEstiloProceso = $this->getDatosModuloEstiloProcesoSemana([$fechaInicio, $fechaFin], $plantaConsulta, null);
-        $datosModuloEstiloProcesoTE = $this->getDatosModuloEstiloProcesoSemana([$fechaInicio, $fechaFin], $plantaConsulta, 1);
-        $datosModuloEstiloAQL = $this->getDatosModuloEstiloAQLSemana([$fechaInicio, $fechaFin], $plantaConsulta, null);
-        $datosModuloEstiloAQLTE = $this->getDatosModuloEstiloAQLSemana([$fechaInicio, $fechaFin], $plantaConsulta, 1);
+        $datosModuloEstiloProceso = $this->getDatosModuloClienteProcesoSemana([$fechaInicio, $fechaFin], $plantaConsulta, null);
+        $datosModuloEstiloProcesoTE = $this->getDatosModuloClienteProcesoSemana([$fechaInicio, $fechaFin], $plantaConsulta, 1);
+        $datosModuloEstiloAQL = $this->getDatosModuloClienteAQLSemana([$fechaInicio, $fechaFin], $plantaConsulta, null);
+        $datosModuloEstiloAQLTE = $this->getDatosModuloClienteAQLSemana([$fechaInicio, $fechaFin], $plantaConsulta, 1);
 
         // Verificar si existen datos y asignar null si están vacíos
         $datosModuloEstiloProceso = count($datosModuloEstiloProceso) > 0 ? $datosModuloEstiloProceso : null;
@@ -1065,10 +1065,10 @@ class DashboardPlanta1PorDiaController extends Controller
         ));
     }
 
-    private function getDatosModuloEstiloAQLSemana($rangoFechas, $plantaConsulta, $tiempoExtra = null)
+    private function getDatosModuloClienteAQLSemana($rangoFechas, $plantaConsulta, $tiempoExtra = null)
     {
         // Construcción de la consulta base usando la fecha y planta proporcionadas
-        $query = AuditoriaAQL::whereDate('created_at', $fecha)
+        $query = AuditoriaAQL::whereBetween('created_at', $rangoFechas)
             ->where('planta', $plantaConsulta);
 
         // Filtro condicional para $tiempoExtra
@@ -1078,24 +1078,24 @@ class DashboardPlanta1PorDiaController extends Controller
             $query->where('tiempo_extra', $tiempoExtra);
         }
 
-        // Obtener combinaciones únicas de módulo y estilo, y ordenar por módulo
-        $modulosEstilosAQL = $query->select('modulo', 'estilo')
+        // Obtener combinaciones únicas de módulo y cliente, y ordenar por módulo
+        $modulosClienteAQL = $query->select('modulo', 'cliente')
             ->distinct()
             ->orderBy('modulo', 'asc')
             ->get();
 
         // Inicializar un arreglo para almacenar los resultados
-        $dataModuloEstiloAQL = [];
+        $dataModuloClienteAQL = [];
 
-        // Recorrer cada combinación de módulo y estilo
-        foreach ($modulosEstilosAQL as $item) {
+        // Recorrer cada combinación de módulo y cliente
+        foreach ($modulosClienteAQL as $item) {
             $modulo = $item->modulo;
-            $estilo = $item->estilo;
+            $cliente = $item->cliente;
 
             // Obtener auditores únicos
             $auditoresUnicos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1107,8 +1107,8 @@ class DashboardPlanta1PorDiaController extends Controller
 
             // Obtener modulos únicos y otras métricas específicas para AQL
             $modulosUnicos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1118,8 +1118,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->count('modulo');
 
             $sumaAuditadaAQL = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1128,8 +1128,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->sum('cantidad_auditada');
 
             $sumaRechazadaAQL = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1140,8 +1140,8 @@ class DashboardPlanta1PorDiaController extends Controller
             $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
 
             $conteoOperario = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->whereNotNull('nombre')
                 ->where('nombre', '!=', '')
                 ->when(is_null($tiempoExtra), function($query) {
@@ -1158,8 +1158,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->total_nombres ?? 0;
 
             $conteoMinutos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1168,8 +1168,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->count('minutos_paro');
 
             $sumaMinutos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1180,20 +1180,20 @@ class DashboardPlanta1PorDiaController extends Controller
             $promedioMinutosEntero = $conteoMinutos != 0 ? ceil($sumaMinutos / $conteoMinutos) : 0;
 
             $estilosUnicos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
                     return $query->where('tiempo_extra', $tiempoExtra);
                 })
                 ->distinct()
-                ->pluck('estilo')
+                ->pluck('cliente')
                 ->implode(', ');
 
             $defectosUnicos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1211,8 +1211,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->implode(', ') ?: 'N/A';
 
             $accionesCorrectivasUnicos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1225,8 +1225,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->implode(', ') ?: 'N/A';
             
             $operariosUnicos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1239,8 +1239,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->implode(', ') ?: 'N/A';
 
             $sumaParoModular = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1251,8 +1251,8 @@ class DashboardPlanta1PorDiaController extends Controller
             //
              // Nuevo cálculo para conteParoModular
             $conteParoModular = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1262,8 +1262,8 @@ class DashboardPlanta1PorDiaController extends Controller
 
             //
             $sumaPiezasBulto = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1273,8 +1273,8 @@ class DashboardPlanta1PorDiaController extends Controller
 
             //
             $cantidadBultosEncontrados = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1284,8 +1284,8 @@ class DashboardPlanta1PorDiaController extends Controller
 
             //
             $cantidadBultosRechazados = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1296,8 +1296,8 @@ class DashboardPlanta1PorDiaController extends Controller
 
             //
             $sumaReparacionRechazo = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1307,8 +1307,8 @@ class DashboardPlanta1PorDiaController extends Controller
 
             //
             $piezasRechazadasUnicas = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1320,10 +1320,10 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->implode(', ');
 
             //
-            // Consultar detalles para cada módulo y estilo
+            // Consultar detalles para cada módulo y cliente
             $detalles = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1333,9 +1333,9 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->get();
 
             // Almacenar todos los resultados en el arreglo principal
-            $dataModuloEstiloAQL[] = [
+            $dataModuloClienteAQL[] = [
                 'modulo' => $modulo,
-                'estilo' => $estilo,
+                'cliente' => $cliente,
                 'auditoresUnicos' => $auditoresUnicos,
                 'modulosUnicos' => $modulosUnicos,
                 'sumaAuditadaAQL' => $sumaAuditadaAQL,
@@ -1361,13 +1361,13 @@ class DashboardPlanta1PorDiaController extends Controller
         }
 
         // Retornar los datos procesados
-        return $dataModuloEstiloAQL;
+        return $dataModuloClienteAQL;
     }
 
-    private function getDatosModuloEstiloProcesoSemana($rangoFechas, $plantaConsulta, $tiempoExtra = null)
+    private function getDatosModuloClienteProcesoSemana($rangoFechas, $plantaConsulta, $tiempoExtra = null)
     {
         // Construcción de la consulta base usando la fecha y planta proporcionadas
-        $query = AseguramientoCalidad::whereDate('created_at', $fecha)
+        $query = AseguramientoCalidad::whereBetween('created_at', $rangoFechas)
             ->where('planta', $plantaConsulta);
 
         // Filtro condicional para $tiempoExtra
@@ -1377,24 +1377,24 @@ class DashboardPlanta1PorDiaController extends Controller
             $query->where('tiempo_extra', $tiempoExtra);
         }
 
-        // Obtener combinaciones únicas de módulo y estilo, y ordenar por módulo
-        $modulosEstilosProceso = $query->select('modulo', 'estilo')
+        // Obtener combinaciones únicas de módulo y cliente, y ordenar por módulo
+        $modulosEstilosProceso = $query->select('modulo', 'cliente')
             ->distinct()
             ->orderBy('modulo', 'asc')
             ->get();
 
         // Inicializar un arreglo para almacenar los resultados
-        $dataModuloEstiloProceso = [];
+        $dataModuloClienteProceso = [];
 
-        // Recorrer cada combinación de módulo y estilo
+        // Recorrer cada combinación de módulo y cliente
         foreach ($modulosEstilosProceso as $item) {
             $modulo = $item->modulo;
-            $estilo = $item->estilo;
+            $cliente = $item->cliente;
 
             // Obtener auditores únicos
             $auditoresUnicos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1406,8 +1406,8 @@ class DashboardPlanta1PorDiaController extends Controller
 
             // Obtener el valor de cantidadRecorridos
             $cantidadRecorridos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1421,8 +1421,8 @@ class DashboardPlanta1PorDiaController extends Controller
 
             // Otros cálculos específicos
             $sumaAuditadaProceso = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1431,8 +1431,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->sum('cantidad_auditada');
 
             $sumaRechazadaProceso = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1443,8 +1443,8 @@ class DashboardPlanta1PorDiaController extends Controller
             $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
 
             $conteoOperario = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->whereNull('utility')
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
@@ -1455,8 +1455,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->count('nombre');
 
             $conteoUtility = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->where('utility', 1)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
@@ -1467,8 +1467,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->count('nombre');
 
             $conteoMinutos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1477,8 +1477,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->count('minutos_paro');
 
             $sumaMinutos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1489,8 +1489,8 @@ class DashboardPlanta1PorDiaController extends Controller
             $promedioMinutosEntero = $conteoMinutos != 0 ? ceil($sumaMinutos / $conteoMinutos) : 0;
 
             $operariosUnicos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1502,8 +1502,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->implode(', ') ?: 'N/A';
 
             $sumaParoModular = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1512,8 +1512,8 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->sum('minutos_paro_modular') ?: 'N/A';
 
             $conteParoModular = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1522,10 +1522,10 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->count('minutos_paro_modular');
 
             //
-            // Consultar detalles para cada módulo y estilo
+            // Consultar detalles para cada módulo y cliente
             $detalles = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1537,8 +1537,8 @@ class DashboardPlanta1PorDiaController extends Controller
             //
             // Obtener el valor de defectosUnicos
             $defectosUnicos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function ($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function ($query) use ($tiempoExtra) {
@@ -1559,8 +1559,8 @@ class DashboardPlanta1PorDiaController extends Controller
 
             //
             $accionesCorrectivasUnicos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
                     return $query->whereNull('tiempo_extra');
                 }, function($query) use ($tiempoExtra) {
@@ -1573,9 +1573,9 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->implode(', ') ?: 'N/A';
 
             // Almacenar todos los resultados en el arreglo principal
-            $dataModuloEstiloProceso[] = [
+            $dataModuloClienteProceso[] = [
                 'modulo' => $modulo,
-                'estilo' => $estilo,
+                'cliente' => $cliente,
                 'auditoresUnicos' => $auditoresUnicos,
                 'cantidadRecorridos' => $cantidadRecorridos,
                 'sumaAuditadaProceso' => $sumaAuditadaProceso,
@@ -1596,7 +1596,7 @@ class DashboardPlanta1PorDiaController extends Controller
         }
 
         // Retornar los datos procesados
-        return $dataModuloEstiloProceso;
+        return $dataModuloClienteProceso;
     }
 
 }
