@@ -84,19 +84,20 @@ class Segundas extends Controller
     public function ObtenerClientes()
     {
         try {
-            Log::info('Ejecutando función ObtenerModulos desde el controlador'); // Verificación
-            $Clientes = ObtenerClientes(); // Llama a la función del helper
+            Log::info('Ejecutando función ObtenerClientes desde el controlador');
+            $Clientes = ObtenerClientes();
 
             return response()->json([
                 'ObtenerClientes' => $Clientes,
                 'status' => 'success'
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Error al obtener ObtenerModulos: ' . $e->getMessage());
+            Log::error('Error al obtener clientes: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Error al obtener los datos.',
                 'status' => 'error'
             ], 500);
         }
     }
+
 }

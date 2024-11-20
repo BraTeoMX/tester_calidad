@@ -22,44 +22,39 @@
                         </div>
                     </div>
                 </div>
-                <!-- Tarjeta Clientes -->
+                <!-- Tarjeta Divisiones y Clientes -->
                 <div class="col-lg-3 col-md-6 col-sm-12">
                     <div class="card card-stats">
                         <div class="card-header card-header-success card-header-icon">
                             <div class="card-icon">
                                 <span class="material-symbols-outlined">location_away</span>
                             </div>
-                            <h3 class="card-title">Clientes</h3>
-                            <b>Selección Cliente..</b>
-                            <button id="dropdownSearchButtonCliente" data-dropdown-toggle="dropdownSearchCliente"
+                            <h3 class="card-title">Clientes por División</h3>
+                            <b>Cliente/Divicion</b>
+                            <button id="dropdownMultiLevelButton" data-dropdown-toggle="dropdownMultiLevelClienteDivcion"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-purple-500 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-purple-500 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                                type="button">Select clientes<svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                type="button">Seleccionar Cliente
+                                <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 10 6">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                         stroke-width="2" d="m1 1 4 4 4-4" />
-                                </svg></button>
-                            <!-- Dropdown menu -->
-                            <div id="dropdownSearchCliente"
-                                class="z-10 hidden bg-white  rounded-lg shadow w-60 dark:bg-gray-700">
+                                </svg>
+                            </button>
+                            <!-- Dropdown Multi-Level -->
+                            <div id="dropdownMultiLevelClienteDivcion"
+                                class="z-10 hidden bg-gray-600 rounded-lg shadow w-60 dark:bg-gray-700">
                                 <div class="p-3">
-                                    <label for="input-group-search" class="sr-only">Search</label>
+                                    <label for="input-group-search" class="sr-only">Buscar</label>
                                     <div class="relative">
-                                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                                    stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-                                            </svg>
-                                        </div>
-                                        <input type="text" id="input-group-search"
-                                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                            placeholder="Search cliente">
+                                        <input type="text" id="input-group-search" onkeyup="filtrarDivisiones()"
+                                            class="bg-gray-600 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                            placeholder="Buscar división o cliente">
                                     </div>
                                 </div>
-                                <div id="spinnerClient" class="spinnerClient"></div>
+                                <div id="spinnerClienteDivicion"></div>
                                 <ul class="h-48 px-3 pb-3 overflow-y-auto text-sm text-gray-700 dark:text-gray-200"
-                                    aria-labelledby="dropdownSearchButtonCliente">
-
+                                    aria-labelledby="dropdownMultiLevelButton">
+                                    <!-- Aquí se cargarán las divisiones y sus clientes -->
                                 </ul>
                             </div>
                         </div>
@@ -175,6 +170,9 @@
                                             class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                                             <thead class="text-xs text-gray-700 uppercase dark:text-gray-400">
                                                 <tr>
+                                                    <th scope="col" class="px-6 py-3">
+                                                        #
+                                                    </th>
                                                     <th scope="col" class="px-6 py-3 bg-gray-50 dark:bg-gray-800">
                                                         Plantas
                                                     </th>
@@ -208,8 +206,18 @@
 
                                             </tbody>
                                         </table>
+                                        <nav class="flex items-center flex-column flex-wrap md:flex-row justify-between pt-4"
+                                            aria-label="Table navigation">
+                                            <span
+                                                class="text-sm font-normal text-gray-500 dark:text-gray-400 mb-4 md:mb-0 block w-full md:inline md:w-auto">Datos
+                                                <span class="font-semibold text-gray-900 dark:text-white"> </span> de
+                                                <span class="font-semibold text-gray-900 dark:text-white"> </span>
+                                            </span>
+                                            <ul class="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
+
+                                            </ul>
+                                        </nav>
                                     </div>
-                                    <div id="graficaPiramide" style="width: 100%; height: 600px;"></div>
                                     <div id="spinnerTable" class="spinner"></div>
                                 </div>
                             </blockquote>
@@ -252,7 +260,7 @@
             /* Forza el fondo a negro */
         }
     </style>
-      <style>
+    <style>
         /* Estilo para el spinnerTable */
         .spinnerTable {
             border: 4px solid #f3f3f3;
@@ -350,7 +358,7 @@
     </style>
     <style>
         /* Estilo para el spinner */
-        .spinnerClient {
+        .spinnerClienteDivicion {
             border: 4px solid #f3f3f3;
             border-radius: 50%;
             border-top: 4px solid #3498db;
@@ -376,7 +384,7 @@
         }
 
         /* Ocultar el spinner inicialmente */
-        #spinnerClient {
+        #spinnerClienteDivicion {
             display: none;
         }
     </style>
@@ -403,7 +411,6 @@
             });
         });
     </script>
-
     <script>
         $(document).ready(function() {
             let selectedPlantas = []; // Array para almacenar plantas seleccionadas
@@ -415,41 +422,50 @@
                         url: '/ObtenerPlantas',
                         method: "GET",
                         success: function(response) {
-                            $('#dropdownSearchPlanta ul').empty();
+                            if (response.status === "success") {
+                                $('#dropdownSearchPlanta ul').empty();
 
-                            response.ObtenerPlantas.forEach(function(plant) {
-                                $('#dropdownSearchPlanta ul').append(
-                                    `<li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
-                            <input id="checkbox-item-${plant}" type="checkbox" value="${plant}" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                            ${plant}
-                        </li>`
-                                );
-                            });
+                                response.ObtenerPlantas.forEach(function(plant) {
+                                    $('#dropdownSearchPlanta ul').append(
+                                        `<li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
+                                        <input id="checkbox-item-${plant}"
+                                               type="checkbox"
+                                               value="${plant}"
+                                               class="planta-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                        ${plant}
+                                    </li>`
+                                    );
+                                });
 
-                            // Agregar el evento de cambio para cada checkbox de planta
-                            $('.planta-checkbox').on('change', function() {
-                                const plant = $(this).val();
-                                if ($(this).is(':checked')) {
-                                    selectedPlantas.push(plant);
-                                } else {
-                                    selectedPlantas = selectedPlantas.filter(p => p !== plant);
-                                }
-                                console.log('Plantas seleccionadas:', selectedPlantas);
-                            });
-
-                            $("#spinner").hide();
+                                $("#spinner").hide();
+                            } else {
+                                console.error("No se recibieron datos válidos");
+                                $("#spinner").hide();
+                            }
                         },
                         error: function(xhr, status, error) {
-                            console.error(error);
+                            console.error("Error al obtener plantas:", error);
                             $("#spinner").hide();
                         }
                     });
                 } else {
-                    // Si ObtenerSegundas no ha terminado, esperar 100ms y volver a intentar
+                    // Si obtenerSegundasCargado no ha terminado, esperar 100ms y volver a intentar
                     setTimeout(ObtenerPlantas, 100);
                 }
             }
-            // Llamar a cargarModulos al iniciar
+
+            // Evento de cambio para los checkboxes de planta
+            $(document).on('change', '.planta-checkbox', function() {
+                const plant = $(this).val();
+                if ($(this).is(':checked')) {
+                    selectedPlantas.push(plant);
+                } else {
+                    selectedPlantas = selectedPlantas.filter(p => p !== plant);
+                }
+                console.log('Plantas seleccionadas:', selectedPlantas);
+            });
+
+            // Llamar a la función para cargar las plantas al iniciar
             ObtenerPlantas();
         });
     </script>
@@ -469,28 +485,21 @@
 
                                 response.ObtenerModulos.forEach(function(modulo) {
                                     $('#dropdownSearchModulo ul').append(`
-                                <li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
-                                    <input id="checkbox-modulo-${modulo}" type="checkbox" value="${modulo}" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                    ${modulo}
-                                </li>
-                            `);
+                                    <li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
+                                        <input id="checkbox-modulo-${modulo}"
+                                               type="checkbox"
+                                               value="${modulo}"
+                                               class="modulo-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                        ${modulo}
+                                    </li>
+                                `);
                                 });
 
-                                // Evento para cambios en cada checkbox de módulo
-                                $('.modulo-checkbox').on('change', function() {
-                                    const modulo = $(this).val();
-                                    if ($(this).is(':checked')) {
-                                        selectedModulos.push(modulo);
-                                    } else {
-                                        selectedModulos = selectedModulos.filter(m => m !==
-                                            modulo);
-                                    }
-                                    console.log('Módulos seleccionados:', selectedModulos);
-                                });
+                                $("#spinnerModul").hide();
                             } else {
                                 console.error('No se recibieron datos en la respuesta');
+                                $("#spinnerModul").hide();
                             }
-                            $("#spinnerModul").hide();
                         },
                         error: function(xhr, status, error) {
                             console.error('Error al obtener módulos:', error);
@@ -498,10 +507,21 @@
                         }
                     });
                 } else {
-                    // Si ObtenerSegundas no ha terminado, esperar 100ms y volver a intentar
+                    // Si obtenerSegundasCargado no ha terminado, esperar 100ms y volver a intentar
                     setTimeout(cargarModulos, 100);
                 }
             }
+
+            // Evento de cambio para los checkboxes de módulo
+            $(document).on('change', '.modulo-checkbox', function() {
+                const modulo = $(this).val();
+                if ($(this).is(':checked')) {
+                    selectedModulos.push(modulo);
+                } else {
+                    selectedModulos = selectedModulos.filter(m => m !== modulo);
+                }
+                console.log('Módulos seleccionados:', selectedModulos);
+            });
 
             // Llamar a cargarModulos al iniciar
             cargarModulos();
@@ -509,128 +529,232 @@
     </script>
     <script>
         $(document).ready(function() {
-            let selectedClientes = []; // Array para almacenar clientes seleccionados
-            $("#spinnerClient").show();
+            let selectedDivisiones = [];
+            $("#spinnerClienteDivicion").show();
 
-            function cargarClientes() {
+            function cargarClientesYDivisiones() {
                 if (obtenerSegundasCargado) {
                     $.ajax({
                         url: '/ObtenerClientes',
                         method: 'GET',
                         success: function(response) {
                             if (response.status === 'success') {
-                                $('#dropdownSearchCliente ul').empty();
+                                $('#dropdownMultiLevelClienteDivcion ul').empty();
 
-                                response.ObtenerClientes.forEach(function(cliente) {
-                                    $('#dropdownSearchCliente ul').append(`
-                                <li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
-                                    <input id="checkbox-cliente-${cliente}" type="checkbox" value="${cliente}" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                    ${cliente}
+                                const clientesDivisiones = response.ObtenerClientes;
+                                Object.keys(clientesDivisiones).forEach(cliente => {
+                                    // Cliente como encabezado
+                                    $('#dropdownMultiLevelClienteDivcion ul').append(`
+                            <li class="py-2 px-2 bg-gray-700 text-white font-bold">${cliente}</li>
+                        `);
+
+                                    // Divisiones como subelementos
+                                    clientesDivisiones[cliente].forEach(division => {
+                                        $('#dropdownMultiLevelClienteDivcion ul')
+                                            .append(`
+                                <li class="py-1 px-4 hover:bg-gray-600 cursor-pointer">
+                                    <input id="checkbox-division-${division}"
+                                           type="checkbox"
+                                           value="${division}"
+                                           data-cliente="${cliente}"
+                                           class="division-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                    ${division}
                                 </li>
                             `);
+                                    });
                                 });
 
-                                // Evento para cambios en cada checkbox de cliente
-                                $('.cliente-checkbox').on('change', function() {
-                                    const cliente = $(this).val();
+                                // Evento para cambios en los checkboxes de divisiones
+                                $('.division-checkbox').on('change', function() {
+                                    const division = $(this).val();
+                                    const cliente = $(this).data(
+                                        'cliente'
+                                        ); // Obtiene el cliente del atributo data-cliente
+
                                     if ($(this).is(':checked')) {
-                                        selectedClientes.push(cliente);
+                                        selectedDivisiones.push({
+                                            cliente,
+                                            division
+                                        });
                                     } else {
-                                        selectedClientes = selectedClientes.filter(c => c !==
-                                            cliente);
+                                        selectedDivisiones = selectedDivisiones.filter(
+                                            d => d.cliente !== cliente || d.division !==
+                                            division
+                                        );
                                     }
-                                    console.log('Clientes seleccionados:', selectedClientes);
+
+                                    console.log('Divisiones seleccionadas:',
+                                    selectedDivisiones);
                                 });
+
+                                $("#spinnerClienteDivicion").hide();
                             } else {
                                 console.error('No se recibieron datos en la respuesta');
                             }
-                            $("#spinnerClient").hide();
+
                         },
                         error: function(xhr, status, error) {
-                            console.error('Error al obtener clientes:', error);
-                            $("#spinnerClient").hide();
+                            console.error('Error al obtener clientes y divisiones:', error);
+                            $("#spinnerClienteDivicion").hide();
                         }
+
                     });
                 } else {
                     // Si ObtenerSegundas no ha terminado, esperar 100ms y volver a intentar
-                    setTimeout(cargarClientes, 100);
+                    setTimeout(cargarClientesYDivisiones, 100);
                 }
             }
 
-            // Llamar a cargarClientes al iniciar
-            cargarClientes();
+            window.filtrarDivisiones = function() {
+                const valorFiltro = $('#input-group-search').val().toLowerCase();
+                $('#dropdownMultiLevelClienteDivcion ul li').each(function() {
+                    const textoElemento = $(this).text().toLowerCase();
+                    $(this).toggle(textoElemento.includes(valorFiltro));
+                });
+            };
+
+            // Llamar a la función para cargar los datos
+            cargarClientesYDivisiones();
         });
     </script>
     <script>
         let obtenerSegundasCargado = false;
+        let currentPage = 1; // Página actual de los datos
+        const itemsPerPage = 10; // Elementos por página
+        let paginatedData = []; // Array que almacenará los datos paginados
+
         $(document).ready(function() {
-            // Llama a la función cuando la página esté lista
             ObtenerSegundas();
         });
-        $("#spinnerTable").show();
+
         function ObtenerSegundas() {
+            $("#spinnerTable").show();
             $.ajax({
                 url: '/ObtenerSegundas',
                 method: 'GET',
                 success: function(response) {
                     if (response.status === 'success') {
-                        let datosTerceras = response.data;
+                        obtenerSegundasCargado = true;
+                        $("#spinnerTable").hide();
 
-                        // Limpiar la tabla antes de renderizar
-                        $('table tbody').empty();
-
-                        // Renderizar los datos en la tabla
-                        renderizarTabla(datosTerceras);
-                        $("#spinnerClient").hide();
+                        // Paginación inicial al recibir los datos
+                        paginarDatos(response.data);
+                        renderizarTabla(paginatedData[currentPage - 1]); // Mostrar la primera página
+                        mostrarBotonesPaginacion();
                     } else {
                         alert('No se pudieron obtener los datos correctamente.');
-                        $("#spinnerClient").hide();
+                        $("#spinnerTable").hide();
                     }
                 },
                 error: function() {
                     alert('Hubo un error al obtener los datos.');
-                    $("#spinnerClient").hide();
+                    $("#spinnerTable").hide();
                 }
             });
         }
 
-        function renderizarTabla(datos) {
-            let tbody = $('table tbody'); // Selecciona el cuerpo de la tabla
+        // Función para dividir los datos en arrays de 10 elementos cada uno
+        function paginarDatos(datos) {
+            paginatedData = [];
+            for (let i = 0; i < datos.length; i += itemsPerPage) {
+                paginatedData.push(datos.slice(i, i + itemsPerPage));
+            }
+        }
 
-            datos.forEach(function(dato) {
-                // Extraer solo la parte numérica de OPRMODULEID_AT
-                let moduloNumero = parseInt(dato.OPRMODULEID_AT.replace(/\D/g, ''),
-                    10); // Eliminar letras y obtener un número
+        function renderizarTabla(datosPagina) {
+            let tbody = $('table tbody');
+            tbody.empty();
 
-                // Determinar la planta en función del valor numérico de OPRMODULEID_AT
-                let planta;
-                if (moduloNumero >= 100 && moduloNumero < 200) {
-                    planta = "Planta Ixtlahuaca";
-                } else if (moduloNumero >= 200 && moduloNumero < 300) {
-                    planta = "Planta San Bartolo";
-                } else {
-                    planta = "Desconocida"; // Asignar "Desconocida" si no cumple ninguna de las condiciones
-                }
+            // Índice inicial para numerar los registros en la página actual
+            const startIndex = (currentPage - 1) * itemsPerPage;
 
-                // Crear una nueva fila con los datos de la planta
+            datosPagina.forEach(function(dato, index) {
+                let moduloNumero = parseInt(dato.OPRMODULEID_AT.replace(/\D/g, ''), 10);
+                let planta = (moduloNumero >= 100 && moduloNumero < 200) ? "Planta Ixtlahuaca" :
+                    (moduloNumero >= 200 && moduloNumero < 300) ? "Planta San Bartolo" : "Desconocida";
+
+                // Fila con contador de registro en el primer <td>
                 let fila = `
-                    <tr class="border-b border-gray-200 dark:border-gray-700">
-                        <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${planta}</td>
-                        <td class="px-6 py-4">${dato.OPRMODULEID_AT}</td>
-                        <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.CUSTOMERNAME}</td>
-                        <td class="px-6 py-4">${dato.DIVISIONNAME}</td>
-                        <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.TipoSegunda}</td>
-                         <td class="px-6 py-4">${dato.DescripcionCalidad}</td>
-                        <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.PRODTICKETID}</td>
-                         <td class="px-6 py-4">${dato.QTY}</td>
-                        <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.TRANSDATE}</td>
-                    </tr>
-                `;
-                tbody.append(fila); // Agrega la fila al cuerpo de la tabla
-                obtenerSegundasCargado = true;
+                <tr class="border-b border-gray-200 dark:border-gray-700">
+                    <td class="px-6 py-4">${startIndex + index + 1}</td> <!-- Contador de registro -->
+                    <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${planta}</td>
+                    <td class="px-6 py-4">${dato.OPRMODULEID_AT}</td>
+                    <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.CUSTOMERNAME}</td>
+                    <td class="px-6 py-4">${dato.DIVISIONNAME}</td>
+                    <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.TipoSegunda}</td>
+                    <td class="px-6 py-4">${dato.DescripcionCalidad}</td>
+                    <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.PRODTICKETID}</td>
+                    <td class="px-6 py-4">${dato.QTY}</td>
+                    <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.TRANSDATE}</td>
+                </tr>
+            `;
+                tbody.append(fila);
             });
+
+            // Actualizar los índices de navegación
+            const endIndex = Math.min(startIndex + itemsPerPage, datosPagina.length * itemsPerPage);
+            actualizarIndicesNav(startIndex + 1, endIndex, paginatedData.flat().length);
+        }
+
+        function mostrarBotonesPaginacion() {
+            const totalPages = paginatedData.length;
+            let paginationContainer = $('ul.inline-flex');
+            paginationContainer.empty();
+            // Agregar botón de 'Previous'
+            paginationContainer.append(`
+            <li>
+                <a href="#" onclick="cambiarPagina(currentPage - 1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Previous</a>
+            </li>
+        `);
+
+            // Botón para ir a la primera página "<<"
+            paginationContainer.append(`
+            <li>
+                <a href="#" onclick="cambiarPagina(1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"><<</a>
+            </li>
+        `);
+
+            // Botón para retroceder "<"
+            paginationContainer.append(`
+            <li>
+                <a href="#" onclick="cambiarPagina(currentPage - 1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"><</a>
+            </li>
+        `);
+
+            // Botón para avanzar ">"
+            paginationContainer.append(`
+            <li>
+                <a href="#" onclick="cambiarPagina(currentPage + 1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">></a>
+            </li>
+        `);
+
+            // Botón para ir a la última página ">>"
+            paginationContainer.append(`
+            <li>
+                <a href="#" onclick="cambiarPagina(${totalPages}, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">>></a>
+            </li>
+        `);
+
+            // Agregar botón de 'Next'
+            paginationContainer.append(`
+            <li>
+                <a href="#" onclick="cambiarPagina(currentPage + 1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Next</a>
+            </li>
+        `);
+        }
+
+        function cambiarPagina(page) {
+            const totalPages = paginatedData.length;
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                renderizarTabla(paginatedData[currentPage - 1]); // Renderizar la página actual
+            }
+        }
+
+        function actualizarIndicesNav(startIndex, endIndex, totalItems) {
+            $('span.text-sm.font-normal').html(`
+            Datos <span class="font-semibold text-gray-900 dark:text-white">${startIndex}</span> de <span class="font-semibold text-gray-900 dark:text-white">${endIndex}</span> de un total de ${totalItems}
+        `);
         }
     </script>
-
-    <script></script>
 @endsection
