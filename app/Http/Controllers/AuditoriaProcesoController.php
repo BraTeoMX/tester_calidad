@@ -156,10 +156,15 @@ class AuditoriaProcesoController extends Controller
     public function obtenerItemId(Request $request)  
     {
         $moduleid = $request->input('moduleid');
-        $auditoriaProceso = ModuloEstilo::where('moduleid', $moduleid)
-                                ->distinct('itemid')
-                                ->pluck('itemid');
-        
+
+        // Obtener los estilos con prioridad para los relacionados al módulo
+        $auditoriaProceso = ModuloEstilo::select('itemid')
+            ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$moduleid])
+            ->distinct('itemid')
+            ->orderBy('prioridad') // Priorizar los relacionados al módulo
+            ->orderBy('itemid') // Ordenar por itemid después
+            ->pluck('itemid');
+
         return response()->json([
             'itemids' => $auditoriaProceso,
         ]);
@@ -207,9 +212,12 @@ class AuditoriaProcesoController extends Controller
             $detectarPlanta = "Intimark2";
         }
         // Obtener los estilos únicos relacionados con el módulo seleccionado
-        $estilos = ModuloEstilo::where('moduleid', $data['modulo'])
-                                    ->distinct('itemid')
-                                    ->pluck('itemid');
+        $estilos = ModuloEstilo::select('itemid')
+            ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$data['modulo']])
+            ->distinct('itemid')
+            ->orderBy('prioridad') // Prioriza los estilos relacionados con el módulo
+            ->orderBy('itemid') // Ordena por itemid después
+            ->pluck('itemid');
 
         //dd($request->all(), $data); 
         // Obtener los estilos únicos relacionados con el módulo seleccionado

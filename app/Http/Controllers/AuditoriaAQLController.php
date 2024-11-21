@@ -72,13 +72,17 @@ class AuditoriaAQLController extends Controller
         ];
     }
 
-    public function metodoNombre(Request $request) {
+    public function metodoNombre(Request $request)
+    {
         $moduloSeleccionado = $request->input('modulo');
 
-        // Filtrar los datos de 'ordenOPs' según el módulo seleccionado
-        $ordenesOPFiltradas = JobAQL::select('prodid') //where('moduleid', $moduloSeleccionado)
-          ->distinct()
-          ->get();
+        // Filtrar los datos de 'ordenOPs' y priorizar los relacionados al módulo seleccionado
+        $ordenesOPFiltradas = JobAQL::select('prodid')
+            ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$moduloSeleccionado])
+            ->distinct()
+            ->orderBy('prioridad') // Priorizar las OPs relacionadas con el módulo seleccionado
+            ->orderBy('prodid') // Ordenar el resto por prodid
+            ->get();
 
         // Convertir los datos a formato JSON y retornar
         return response()->json($ordenesOPFiltradas);
@@ -181,9 +185,13 @@ class AuditoriaAQLController extends Controller
         $nombreCliente = $data['cliente'];
         //dd($nombreCliente);
 
-        $selectPivoteOP = JobAQL::select('prodid')//where('moduleid', $data['modulo'])
+        $selectPivoteOP = JobAQL::select('prodid')
+            ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$data['modulo']])
             ->distinct()
+            ->orderBy('prioridad') // Prioriza los relacionados con el módulo primero
+            ->orderBy('prodid') // Ordena el resto por prodid
             ->get();
+
         //dd($data['modulo'], $selectPivoteOP);
 
         $fechaActual = Carbon::now()->toDateString();
@@ -408,7 +416,7 @@ class AuditoriaAQLController extends Controller
         $modulo = $request->input('modulo');
     
         $datoBultos = JobAQL::where('prodid', $op)
-            //->where('moduleid', $modulo)
+            //->where('moduleid', $modulo) 
             ->select('prodpackticketid', 'qty', 'itemid', 'colorname', 'inventsizeid')
             ->distinct()
             ->get();
