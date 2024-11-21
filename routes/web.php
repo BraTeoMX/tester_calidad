@@ -305,7 +305,6 @@ Route::get('/ObtenerSegundas', [Segundas::class, 'ObtenerSegundas']);
 Route::get('/ObtenerPlantas', [Segundas::class, 'ObtenerPlantas']);
 Route::get('/ObtenerModulos', [Segundas::class, 'ObtenerModulos']);
 Route::get('/ObtenerClientes', [Segundas::class, 'ObtenerClientes']);
-Route::get('/ObtenerDiviciones', [Segundas::class, 'ObtenerDiviciones']);
-
+Route::get('/obtenerSegundasFiltradas', [Segundas::class, 'obtenerSegundasFiltradas']);
 //apartado para vistas de nuevas tablas
 Route::get('/dashboardCostosNoCalidad', [DashboardCostosController::class, 'dashboardCostosNoCalidad'])->name('dashboardCostosNoCalidad');
