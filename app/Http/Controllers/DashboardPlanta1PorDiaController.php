@@ -1044,24 +1044,24 @@ class DashboardPlanta1PorDiaController extends Controller
         $generalAQLPlanta1 = calcularPorcentajeSemana(AuditoriaAQL::class, $fechaInicio, $fechaFin, 'Intimark1');
 
         // Llamadas a las funciones para obtener los datos Proceso y AQL
-        $datosModuloEstiloProceso = $this->getDatosModuloClienteProcesoSemana([$fechaInicio, $fechaFin], $plantaConsulta, null);
-        $datosModuloEstiloProcesoTE = $this->getDatosModuloClienteProcesoSemana([$fechaInicio, $fechaFin], $plantaConsulta, 1);
-        $datosModuloEstiloAQL = $this->getDatosModuloClienteAQLSemana([$fechaInicio, $fechaFin], $plantaConsulta, null);
-        $datosModuloEstiloAQLTE = $this->getDatosModuloClienteAQLSemana([$fechaInicio, $fechaFin], $plantaConsulta, 1);
+        $datosModuloClienteProceso = $this->getDatosModuloClienteProcesoSemana([$fechaInicio, $fechaFin], $plantaConsulta, null);
+        $datosModuloClienteProcesoTE = $this->getDatosModuloClienteProcesoSemana([$fechaInicio, $fechaFin], $plantaConsulta, 1);
+        $datosModuloClienteAQL = $this->getDatosModuloClienteAQLSemana([$fechaInicio, $fechaFin], $plantaConsulta, null);
+        $datosModuloClienteAQLTE = $this->getDatosModuloClienteAQLSemana([$fechaInicio, $fechaFin], $plantaConsulta, 1);
 
         // Verificar si existen datos y asignar null si están vacíos
-        $datosModuloEstiloProceso = count($datosModuloEstiloProceso) > 0 ? $datosModuloEstiloProceso : null;
-        $datosModuloEstiloProcesoTE = count($datosModuloEstiloProcesoTE) > 0 ? $datosModuloEstiloProcesoTE : null;
-        $datosModuloEstiloAQL = count($datosModuloEstiloAQL) > 0 ? $datosModuloEstiloAQL : null;
-        $datosModuloEstiloAQLTE = count($datosModuloEstiloAQLTE) > 0 ? $datosModuloEstiloAQLTE : null;
+        $datosModuloClienteProceso = count($datosModuloClienteProceso) > 0 ? $datosModuloClienteProceso : null;
+        $datosModuloClienteProcesoTE = count($datosModuloClienteProcesoTE) > 0 ? $datosModuloClienteProcesoTE : null;
+        $datosModuloClienteAQL = count($datosModuloClienteAQL) > 0 ? $datosModuloClienteAQL : null;
+        $datosModuloClienteAQLTE = count($datosModuloClienteAQLTE) > 0 ? $datosModuloClienteAQLTE : null;
 
         // Retornar la vista con los datos
         return view('dashboar.dashboardPlanta1PorSemana', compact(
             'title', 'fechaInicio', 'fechaFin', 
             'generalAQL', 'generalAQLPlanta1', 
             'generalProceso', 'generalProcesoPlanta1', 
-            'datosModuloEstiloProceso', 'datosModuloEstiloProcesoTE',
-            'datosModuloEstiloAQL', 'datosModuloEstiloAQLTE'
+            'datosModuloClienteProceso', 'datosModuloClienteProcesoTE',
+            'datosModuloClienteAQL', 'datosModuloClienteAQLTE'
         ));
     }
 
@@ -1599,4 +1599,64 @@ class DashboardPlanta1PorDiaController extends Controller
         return $dataModuloClienteProceso;
     }
 
+    public function dashboardPlanta1PorMes(Request $request)
+    {
+        $title = "";
+
+        // Obtén las semanas de inicio y fin del request, o usa la semana actual por defecto
+        $mesInicio = $request->has('mes_inicio') 
+            ? Carbon::parse($request->input('mes_inicio'))->startOfMonth() 
+            : Carbon::now()->startOfMonth();
+
+        $mesFin = $request->has('mes_fin') 
+            ? Carbon::parse($request->input('mes_fin'))->endOfMonth() 
+            : Carbon::now()->endOfMonth();
+
+        // Convertir las fechas a strings si es necesario
+        $fechaInicio = $mesInicio->toDateString();
+        $fechaFin = $mesFin->toDateString();
+
+        $plantaConsulta = "Intimark1";
+
+        // Modificar la función para calcular porcentajes por rango de semanas
+        function calcularPorcentajeMes($modelo, $fechaInicio, $fechaFin, $planta = null)
+        {
+            $query = $modelo::whereBetween('created_at', [$fechaInicio, $fechaFin]);
+            if ($planta) {
+                $query->where('planta', $planta);
+            }
+            $data = $query->selectRaw('SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada')
+                ->first();
+            return $data->cantidad_auditada != 0 ? number_format(($data->cantidad_rechazada / $data->cantidad_auditada) * 100, 2) : 0;
+        }
+
+        // Información General
+        $generalProceso = calcularPorcentajeMes(AseguramientoCalidad::class, $fechaInicio, $fechaFin);
+        $generalAQL = calcularPorcentajeMes(AuditoriaAQL::class, $fechaInicio, $fechaFin);
+
+        // Planta 1 Ixtlahuaca
+        $generalProcesoPlanta1 = calcularPorcentajeMes(AseguramientoCalidad::class, $fechaInicio, $fechaFin, 'Intimark1');
+        $generalAQLPlanta1 = calcularPorcentajeMes(AuditoriaAQL::class, $fechaInicio, $fechaFin, 'Intimark1');
+
+        // Llamadas a las funciones para obtener los datos Proceso y AQL
+        $datosModuloClienteProceso = $this->getDatosModuloClienteProcesoSemana([$fechaInicio, $fechaFin], $plantaConsulta, null);
+        $datosModuloClienteProcesoTE = $this->getDatosModuloClienteProcesoSemana([$fechaInicio, $fechaFin], $plantaConsulta, 1);
+        $datosModuloClienteAQL = $this->getDatosModuloClienteAQLSemana([$fechaInicio, $fechaFin], $plantaConsulta, null);
+        $datosModuloClienteAQLTE = $this->getDatosModuloClienteAQLSemana([$fechaInicio, $fechaFin], $plantaConsulta, 1);
+
+        // Verificar si existen datos y asignar null si están vacíos
+        $datosModuloClienteProceso = count($datosModuloClienteProceso) > 0 ? $datosModuloClienteProceso : null;
+        $datosModuloClienteProcesoTE = count($datosModuloClienteProcesoTE) > 0 ? $datosModuloClienteProcesoTE : null;
+        $datosModuloClienteAQL = count($datosModuloClienteAQL) > 0 ? $datosModuloClienteAQL : null;
+        $datosModuloClienteAQLTE = count($datosModuloClienteAQLTE) > 0 ? $datosModuloClienteAQLTE : null;
+
+        // Retornar la vista con los datos
+        return view('dashboar.dashboardPlanta1PorMes', compact(
+            'title', 'fechaInicio', 'fechaFin', 
+            'generalAQL', 'generalAQLPlanta1', 
+            'generalProceso', 'generalProcesoPlanta1', 
+            'datosModuloClienteProceso', 'datosModuloClienteProcesoTE',
+            'datosModuloClienteAQL', 'datosModuloClienteAQLTE'
+        ));
+    }
 }

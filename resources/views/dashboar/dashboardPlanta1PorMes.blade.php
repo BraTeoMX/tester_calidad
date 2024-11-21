@@ -14,20 +14,23 @@
 
     <div class="row">
         <div class="col-md-12">
-            <form action="{{ route('dashboar.dashboardPlanta1PorSemana') }}" method="GET" id="filterForm">
+            <!-- Cambia la ruta del formulario -->
+            <form action="{{ route('dashboar.dashboardPlanta1PorMes') }}" method="GET" id="filterForm">
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="semana_inicio">Semana de inicio</label>
-                            <input type="week" class="form-control" id="semana_inicio" name="semana_inicio"
-                                value="{{ request('semana_inicio', now()->format('Y-\WW')) }}" required>
+                            <label for="mes_inicio">Mes de inicio</label>
+                            <!-- Cambia el tipo de entrada a "month" y ajusta el valor predeterminado -->
+                            <input type="month" class="form-control" id="mes_inicio" name="mes_inicio"
+                                value="{{ request('mes_inicio', now()->format('Y-m')) }}" required>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="semana_fin">Semana de fin</label>
-                            <input type="week" class="form-control" id="semana_fin" name="semana_fin"
-                                value="{{ request('semana_fin', now()->format('Y-\WW')) }}" required>
+                            <label for="mes_fin">Mes de fin</label>
+                            <!-- Cambia el tipo de entrada a "month" y ajusta el valor predeterminado -->
+                            <input type="month" class="form-control" id="mes_fin" name="mes_fin"
+                                value="{{ request('mes_fin', now()->format('Y-m')) }}" required>
                         </div>
                     </div>
                 </div>
@@ -35,7 +38,7 @@
             </form>
             <hr>
         </div>
-    </div>
+    </div>    
     
 
     <div class="row">
