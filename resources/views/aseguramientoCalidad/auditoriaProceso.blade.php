@@ -335,7 +335,6 @@
                                                     <select name="nombre" id="nombre" class="form-control" required onchange="handleSelectionChange()">
                                                         <option value="">Selecciona una opción</option>
                                                         <option value="OTRO-MODULO" class="special-option">-- OTRO MODULO --</option>
-                                                        <option value="UTILITY" class="special-option">-- UTILITY --</option>
                                                         @foreach ($nombresPlanta as $nombre)
                                                             <option value="{{ $nombre->name }}">{{ $nombre->name }}</option>
                                                         @endforeach
@@ -348,13 +347,6 @@
                                                         </select>
                                                         <select name="nombre_otro" id="name" class="form-control" style="margin-top: 10px;">
                                                             <option value="">Selecciona un nombre</option>
-                                                        </select>
-                                                    </div>
-                                                
-                                                    <!-- Opciones para "UTILITY" -->
-                                                    <div id="utilityOptions" style="display: none; margin-top: 10px;">
-                                                        <select name="nombre_utility" id="utility" class="form-control">
-                                                            <option value="">Selecciona un Utility</option>
                                                         </select>
                                                     </div>
                                                 </td>
@@ -905,7 +897,6 @@
         function handleSelectionChange() {
             const selectNombre = document.getElementById("nombre");
             const otroOptions = document.getElementById("otroOptions");
-            const utilityOptions = document.getElementById("utilityOptions");
             const nombreFinal = document.getElementById("nombre_final");
     
             // Limpiar las selecciones anteriores
@@ -914,27 +905,17 @@
             if (selectNombre.value === "OTRO-MODULO") {
                 // Mostrar opciones de "OTRO-MODULO"
                 otroOptions.style.display = "block";
-                utilityOptions.style.display = "none";
                 loadModules(); // Cargar módulos disponibles
-    
-                nombreFinal.value = ""; // Limpiar el valor final
-            } else if (selectNombre.value === "UTILITY") {
-                // Mostrar opciones de "UTILITY"
-                otroOptions.style.display = "none";
-                utilityOptions.style.display = "block";
-                loadUtilities(); // Cargar utilities disponibles
     
                 nombreFinal.value = ""; // Limpiar el valor final
             } else if (selectNombre.value) {
                 // Se ha seleccionado un nombre de $nombresPlanta
                 otroOptions.style.display = "none";
-                utilityOptions.style.display = "none";
     
                 nombreFinal.value = selectNombre.value; // Establecer el valor final
             } else {
                 // Si no hay selección, ocultar los selects adicionales
                 otroOptions.style.display = "none";
-                utilityOptions.style.display = "none";
     
                 nombreFinal.value = ""; // Limpiar el valor final
             }
@@ -949,13 +930,6 @@
     
             // Remover event listener
             nameSelect.removeEventListener('change', updateNombreFinal);
-    
-            // Limpiar selects de "UTILITY"
-            const utilitySelect = document.getElementById("utility");
-            utilitySelect.innerHTML = '<option value="">Selecciona un Utility</option>';
-    
-            // Remover event listener
-            utilitySelect.removeEventListener('change', updateNombreFinal);
         }
     
         function loadModules() {
@@ -964,12 +938,34 @@
                 .then(data => {
                     const select = document.getElementById("module");
                     select.innerHTML = '<option value="">Selecciona un módulo</option>'; // Reiniciar opciones
+    
+                    const highlightedOptions = []; // Opciones destacadas
+                    const normalOptions = [];     // Resto de las opciones
+    
                     data.forEach(module => {
                         const option = document.createElement("option");
-                        option.text = module.moduleid;
-                        option.value = module.moduleid;
-                        select.appendChild(option);
+    
+                        // Cambiar visualmente según el valor del módulo
+                        if (module.moduleid === "860A" || module.moduleid === "863A") {
+                            option.text = "UTILITY";
+                            option.value = module.moduleid;
+                            highlightedOptions.push(option); // Añadir a opciones destacadas
+                        } else if (module.moduleid === "802A" || module.moduleid === "804A") {
+                            option.text = "ENTRENAMIENTO";
+                            option.value = module.moduleid;
+                            highlightedOptions.push(option); // Añadir a opciones destacadas
+                        } else {
+                            option.text = module.moduleid; // Texto normal para otros valores
+                            option.value = module.moduleid;
+                            normalOptions.push(option); // Añadir al resto de las opciones
+                        }
                     });
+    
+                    // Agregar opciones destacadas primero
+                    highlightedOptions.forEach(option => select.appendChild(option));
+                    // Luego, agregar el resto de las opciones
+                    normalOptions.forEach(option => select.appendChild(option));
+    
                     // Añadir event listener
                     select.addEventListener('change', loadNames);
                 });
@@ -993,23 +989,6 @@
                 });
         }
     
-        function loadUtilities() {
-            fetch("{{ route('utilities.getUtilities') }}")
-                .then(response => response.json())
-                .then(data => {
-                    const select = document.getElementById("utility");
-                    select.innerHTML = '<option value="">Selecciona un Utility</option>'; // Reiniciar opciones
-                    data.forEach(utility => {
-                        const option = document.createElement("option");
-                        option.text = utility.nombre;
-                        option.value = utility.nombre;
-                        select.appendChild(option);
-                    });
-                    // Añadir event listener
-                    select.addEventListener('change', updateNombreFinal);
-                });
-        }
-    
         function updateNombreFinal() {
             const nombreFinal = document.getElementById("nombre_final");
             const selectNombre = document.getElementById("nombre");
@@ -1017,9 +996,6 @@
             if (selectNombre.value === "OTRO-MODULO") {
                 const nameSelect = document.getElementById("name");
                 nombreFinal.value = nameSelect.value;
-            } else if (selectNombre.value === "UTILITY") {
-                const utilitySelect = document.getElementById("utility");
-                nombreFinal.value = utilitySelect.value;
             } else {
                 nombreFinal.value = selectNombre.value;
             }
@@ -1031,7 +1007,7 @@
             // Añadir event listener para actualizar nombre_final cuando el select principal cambie
             document.getElementById("nombre").addEventListener('change', updateNombreFinal);
         });
-    </script>
+    </script>    
 
     <!-- Nuevo script para manejar la visibilidad de las columnas y select2 -->
     <script>  

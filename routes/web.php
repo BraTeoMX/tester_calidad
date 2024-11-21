@@ -277,6 +277,10 @@ Route::get('/dashboardPlanta1Detalle', [DashboardPlanta1DetalleController::class
 Route::get('/detalleXModuloPlanta1', [DashboardPlanta1DetalleController::class, 'detalleXModuloPlanta1'])->name('dashboar.detalleXModuloPlanta1');
 //dashboard Planta 1 consulta por dia
 Route::get('/dashboardPanta1PorDia', [DashboardPlanta1PorDiaController::class, 'dashboardPanta1PorDia'])->name('dashboar.dashboardPanta1PorDia');
+//dashboard Planta 1 consulta por Semana
+Route::get('/dashboardPlanta1PorSemana', [DashboardPlanta1PorDiaController::class, 'dashboardPlanta1PorSemana'])->name('dashboar.dashboardPlanta1PorSemana');
+//dashboard Planta 1 consulta por MES
+Route::get('/dashboardPlanta1PorMes', [DashboardPlanta1PorDiaController::class, 'dashboardPlanta1PorMes'])->name('dashboar.dashboardPlanta1PorMes');
 //dashboard Planta 2
 Route::get('/dashboardPanta2', [DashboardPlanta2Controller::class, 'dashboardPanta2'])->name('dashboar.dashboardPlanta2');
 Route::get('/dashboardPlanta2Detalle', [DashboardPlanta2DetalleController::class, 'dashboardPlanta2Detalle'])->name('dashboar.dashboardPlanta2Detalle');

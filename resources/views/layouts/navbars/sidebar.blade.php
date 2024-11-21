@@ -79,7 +79,7 @@
                                     <p style="text-align: center;">{{ __('AUDITORIA CORTE') }}</p>
                                 </a>
                             </li>
-                            <li class="nav-item{{ $pageSlug == 'Evaluacion Corte' ? ' active' : '' }}">
+                            {{--<li class="nav-item{{ $pageSlug == 'Evaluacion Corte' ? ' active' : '' }}">
                                 <a class="nav-link" href="{{ route('evaluacionCorte.inicioEvaluacionCorte') }}">
                                     <i class="material-icons">edit_document</i>
                                     <p>{{ __('F-4') }}</p>
@@ -92,7 +92,7 @@
                                     <p>{{ __('FCC-04') }}</p>
                                     <p style="text-align: center;">{{ __('AUDITORIA PROCESO DE CORTE') }}</p>
                                 </a>
-                            </li>
+                            </li> --}}
                             <li class="nav-item{{ $pageSlug == 'proceso' ? ' active' : '' }}">
                                 <a class="nav-link" href="{{ route('aseguramientoCalidad.altaProceso') }}">
                                     <i class="material-icons">edit_document</i>
