@@ -84,6 +84,7 @@ class AuditoriaProcesoController extends Controller
     {
         $pageSlug ='';
         $categorias = $this->cargarCategorias();
+        $tipoUsuario = Auth::user()->puesto;
 
         //dd($registroEvaluacionCorte->all()); 
         $mesesEnEspanol = [
@@ -110,15 +111,22 @@ class AuditoriaProcesoController extends Controller
             ->get();
 
         $procesoActual = AseguramientoCalidad::where('estatus', NULL)  
-            ->where('auditor', $categorias['auditorDato'])
+            //->where('auditor', $categorias['auditorDato'])
             ->where('area', 'AUDITORIA EN PROCESO')
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
             ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
             ->distinct()
-            ->orderBy('modulo', 'asc')
-            ->get();
+            ->orderBy('modulo', 'asc');
+            //->get();
         //dd($procesoActual);
+        // Aplicar el filtro del auditor solo si el tipo de usuario no es "Administrador" o "Gerente de Calidad"
+        if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
+            $procesoActual->where('auditor', $categorias['auditorDato']);
+        }
+
+        // Ejecutar la consulta
+        $procesoActual = $procesoActual->get();
         $procesoFinal =  AseguramientoCalidad::where('estatus', 1) 
             ->where('area', 'AUDITORIA EN PROCESO')
             ->where('planta', $datoPlanta)

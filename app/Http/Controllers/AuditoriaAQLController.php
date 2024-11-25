@@ -93,7 +93,8 @@ class AuditoriaAQLController extends Controller
     {
         $pageSlug ='';
         $categorias = $this->cargarCategorias();
-        //$auditorDato = Auth::user()->name;
+        $tipoUsuario = Auth::user()->puesto;
+        //dd($tipoUsuario);
 
 
         //dd($registroEvaluacionCorte->all());
@@ -114,15 +115,22 @@ class AuditoriaAQLController extends Controller
             ->get();
         //dd($listaModulos);
 
-        $procesoActualAQL =AuditoriaAQL::where('estatus', NULL) 
+        $procesoActualAQL = AuditoriaAQL::where('estatus', NULL)
             ->where('area', 'AUDITORIA AQL')
-            ->where('auditor', $categorias['auditorDato'])
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
-            ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
+            ->select('area', 'modulo', 'op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
             ->distinct()
-            ->orderBy('modulo', 'asc')
-            ->get();
+            ->orderBy('modulo', 'asc');
+
+        // Aplicar el filtro del auditor solo si el tipo de usuario no es "Administrador" o "Gerente de Calidad"
+        if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
+            $procesoActualAQL->where('auditor', $categorias['auditorDato']);
+        }
+
+        // Ejecutar la consulta
+        $procesoActualAQL = $procesoActualAQL->get();
+
         $procesoFinalAQL = AuditoriaAQL::where('estatus', 1)
             ->where('area', 'AUDITORIA AQL')
             ->where('planta', $datoPlanta)
