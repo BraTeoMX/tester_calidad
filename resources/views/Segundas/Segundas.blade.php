@@ -56,6 +56,7 @@
                                     aria-labelledby="dropdownMultiLevelButton">
                                     <!-- Aquí se cargarán las divisiones y sus clientes -->
                                 </ul>
+                                <div id="spinnerClienteDivicion"></div>
                             </div>
                         </div>
                     </div>
@@ -101,7 +102,6 @@
 
                                 </ul>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -665,6 +665,8 @@
             let tbody = $('table tbody');
             tbody.empty();
 
+
+
             // Índice inicial para numerar los registros en la página actual
             const startIndex = (currentPage - 1) * itemsPerPage;
 
@@ -672,7 +674,20 @@
                 let moduloNumero = parseInt(dato.OPRMODULEID_AT.replace(/\D/g, ''), 10);
                 let planta = (moduloNumero >= 100 && moduloNumero < 200) ? "Planta Ixtlahuaca" :
                     (moduloNumero >= 200 && moduloNumero < 300) ? "Planta San Bartolo" : "Desconocida";
-
+                    // Formatear la cantidad
+               var cantidadFormateada = dato.QTY;
+                            if (typeof cantidadFormateada === 'string') {
+                                var puntoIndex = cantidadFormateada.indexOf('.');
+                                if (puntoIndex !== -1) {
+                                    var parteDecimal = cantidadFormateada.substring(
+                                        puntoIndex + 1);
+                                    if (parteDecimal.length > 1) {
+                                        parteDecimal = parteDecimal.substring(0, 1);
+                                    }
+                                    cantidadFormateada = cantidadFormateada.substring(0,
+                                        puntoIndex + 1) + parteDecimal;
+                                }
+                            }
                 // Fila con contador de registro en el primer <td>
                 let fila = `
                 <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -684,7 +699,7 @@
                     <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.TipoSegunda}</td>
                     <td class="px-6 py-4">${dato.DescripcionCalidad}</td>
                     <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.PRODTICKETID}</td>
-                    <td class="px-6 py-4">${dato.QTY}</td>
+                    <td class="px-6 py-4">${cantidadFormateada}</td>
                     <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.TRANSDATE}</td>
                 </tr>
             `;
