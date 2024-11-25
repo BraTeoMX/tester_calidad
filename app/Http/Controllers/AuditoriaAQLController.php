@@ -15,6 +15,7 @@ use App\Models\AuditoriaAQL;
 use App\Models\CategoriaUtility;
 use App\Models\TpAuditoriaAQL;
 use App\Models\CategoriaSupervisor; 
+use App\Models\ModuloEstilo;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 
 class AuditoriaAQLController extends Controller
@@ -92,6 +93,7 @@ class AuditoriaAQLController extends Controller
     {
         $pageSlug ='';
         $categorias = $this->cargarCategorias();
+        //$auditorDato = Auth::user()->name;
 
 
         //dd($registroEvaluacionCorte->all());
@@ -112,8 +114,9 @@ class AuditoriaAQLController extends Controller
             ->get();
         //dd($listaModulos);
 
-        $procesoActualAQL =AuditoriaAQL::where('estatus', NULL)
+        $procesoActualAQL =AuditoriaAQL::where('estatus', NULL) 
             ->where('area', 'AUDITORIA AQL')
+            ->where('auditor', $categorias['auditorDato'])
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
             ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
@@ -368,6 +371,7 @@ class AuditoriaAQLController extends Controller
             ->toArray();
         //dd($nombreProcesoToAQL, $utilityPlanta2, $utilityPlanta1, $nombreProcesoToAQLPlanta1, $nombreProcesoToAQLPlanta2);
         $procesoActualAQL =AuditoriaAQL::where('estatus', NULL)
+            ->where('auditor', $categorias['auditorDato'])
             ->where('area', 'AUDITORIA AQL')
             ->where('planta', $detectarPlanta)
             ->whereDate('created_at', $fechaActual)
@@ -457,7 +461,7 @@ class AuditoriaAQLController extends Controller
         $diaSemana = $fechaHoraActual ->dayOfWeek;
 
         // Obtener el ID seleccionado desde el formulario
-        $plantaBusqueda = AuditoriaProceso::where('moduleid', $request->modulo)
+        $plantaBusqueda = ModuloEstilo::where('moduleid', $request->modulo)
             ->pluck('prodpoolid')
             ->first();
         //dd($plantaBusqueda);

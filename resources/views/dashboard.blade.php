@@ -33,7 +33,7 @@
         <div class="col-lg-6 col-md-12">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
-                    <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Auditoria de Procesos por dia</h3>
+                    <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Auditoria de Proceso por dia</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -89,8 +89,8 @@
                             </tbody>
                             <tr style="background: #1d1c1c;">
                               <td>GENERAL</td>
-                              <td>{{ number_format($generalProceso, 2) }}%</td>
                               <td>{{ number_format($generalAQL, 2) }}%</td>
+                              <td>{{ number_format($generalProceso, 2) }}%</td>
                             </tr>
                         </table>
                     </div>
@@ -258,7 +258,7 @@
                                 </label>
                                 <label class="btn btn-sm btn-info btn-simple" id="btnProcesos">
                                     <input type="radio" class="d-none d-sm-none" name="options">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-vector text-primary"></i> Procesos</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-vector text-primary"></i> Proceso</span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-gift-2"></i>
                                     </span>
@@ -296,7 +296,7 @@
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="cliente1">
                                     <input type="radio" class="d-none d-sm-none" name="clienteOptions">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Procesos</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Proceso</span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-gift-2"></i>
                                     </span>
@@ -340,7 +340,7 @@
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="modulo1">
                                     <input type="radio" class="d-none d-sm-none" name="moduloOptions">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Procesos</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Proceso</span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-gift-2"></i>
                                     </span>
@@ -382,7 +382,7 @@
                             </label>
                             <label class="btn btn-sm btn-primary btn-simple" id="top3-2" onclick="mostrarGrafica('Procesos')">
                                 <input type="radio" class="d-none d-sm-none" name="clienteOptions">
-                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Procesos</span>
+                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Proceso</span>
                                 <span class="d-block d-sm-none">
                                     <i class="tim-icons icon-gift-2"></i>
                                 </span>

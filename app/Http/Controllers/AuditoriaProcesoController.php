@@ -110,6 +110,7 @@ class AuditoriaProcesoController extends Controller
             ->get();
 
         $procesoActual = AseguramientoCalidad::where('estatus', NULL)  
+            ->where('auditor', $categorias['auditorDato'])
             ->where('area', 'AUDITORIA EN PROCESO')
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
@@ -214,9 +215,10 @@ class AuditoriaProcesoController extends Controller
         // Obtener los estilos únicos relacionados con el módulo seleccionado
         $estilos = ModuloEstilo::select('itemid')
             ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$data['modulo']])
-            ->distinct('itemid')
-            ->orderBy('prioridad') // Prioriza los estilos relacionados con el módulo
-            ->orderBy('itemid') // Ordena por itemid después
+            ->orderBy('prioridad')
+            ->orderBy('itemid')
+            ->get()
+            ->unique('itemid') // Asegura que los itemid sean únicos
             ->pluck('itemid');
 
         //dd($request->all(), $data); 
@@ -352,6 +354,7 @@ class AuditoriaProcesoController extends Controller
             $datoPlanta = "Intimark2";
         }
         $procesoActual = AseguramientoCalidad::where('estatus', NULL)  
+            ->where('auditor', $categorias['auditorDato'])
             ->where('area', 'AUDITORIA EN PROCESO')
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
@@ -477,10 +480,9 @@ class AuditoriaProcesoController extends Controller
         $diaSemana = $fechaHoraActual->dayOfWeek;
 
 
-        $plantaBusqueda = AuditoriaProceso::where('moduleid', $request->modulo)
+        $plantaBusqueda = ModuloEstilo::where('moduleid', $request->modulo)
             ->pluck('prodpoolid')
             ->first();
-        //dd($plantaBusqueda);
 
         //$diferenciaModulo = $request->modulo == $request->modulo_adicional;
         //dd($diferenciaModulo, $request->all());
@@ -508,7 +510,7 @@ class AuditoriaProcesoController extends Controller
         }
 
         //dd($nombreFinalValidado, $numeroEmpleado, $request->all());
-        //dd($request->modulo, $request->modulo_adicional);
+        //dd($request->modulo, $request->modulo_adicional, $plantaBusqueda);
         $nuevoRegistro = new AseguramientoCalidad();
         $nuevoRegistro->area = $request->area;
         $nuevoRegistro->modulo = $request->modulo;

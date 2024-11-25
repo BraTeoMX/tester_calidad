@@ -36,10 +36,11 @@ class HomeController extends Controller
     {
         $title = "";
         $fechaActual = Carbon::now()->toDateString();
-        $fechaInicio = Carbon::now()->subMonth()->toDateString(); // Cambia el rango de fechas según necesites
+        //$fechaInicio = Carbon::now()->subMonth()->toDateString(); // Cambia el rango de fechas según necesites
         $fechaFin = Carbon::now()->toDateString();
+        $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
         $SegundasTerceras = '';
-
+        //dd($fechaFin, $fechaInicio, $fechaActual);
         // Verifica si el usuario tiene los roles 'Administrador' o 'Gerente de Calidad'
         /**
          * @var User $user
