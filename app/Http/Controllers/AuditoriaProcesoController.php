@@ -488,12 +488,16 @@ class AuditoriaProcesoController extends Controller
         $diaSemana = $fechaHoraActual->dayOfWeek;
 
 
-        $plantaBusqueda = ModuloEstilo::where('moduleid', $request->modulo)
+        $plantaBusqueda = CategoriaSupervisor::where('moduleid', $request->modulo)
             ->pluck('prodpoolid')
             ->first();
 
         //$diferenciaModulo = $request->modulo == $request->modulo_adicional;
-        //dd($diferenciaModulo, $request->all());
+        $obtenerEstilo = $request->estilo; 
+        // Obtener el primer registro y el valor de la columna 'custname'
+        $obtenerCliente = ModuloEstilo::where('itemid', $request->estilo)->value('custname');
+
+        //dd($obtenerCliente, $obtenerEstilo);
         $modulo = $request->modulo;
         $moduloAdicional = $request->modulo_adicional;
         // Extraer la parte numérica del módulo
@@ -525,8 +529,8 @@ class AuditoriaProcesoController extends Controller
         $nuevoRegistro->modulo_adicional = $moduloAdicional;
         $nuevoRegistro->planta = $plantaBusqueda;
         //$nuevoRegistro->modulo_adicional = ($request->modulo == $request->modulo_adicional) ? NULL : $request->modulo_adicional;
-        $nuevoRegistro->estilo = $request->estilo;
-        $nuevoRegistro->cliente = $request->cliente;
+        $nuevoRegistro->estilo = $obtenerEstilo;
+        $nuevoRegistro->cliente = $obtenerCliente;
         $nuevoRegistro->team_leader = $request->team_leader;
         $nuevoRegistro->gerente_produccion = $request->gerente_produccion;
         $nuevoRegistro->auditor = $request->auditor;

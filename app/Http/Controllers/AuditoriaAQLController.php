@@ -469,9 +469,9 @@ class AuditoriaAQLController extends Controller
         $diaSemana = $fechaHoraActual ->dayOfWeek;
 
         // Obtener el ID seleccionado desde el formulario
-        $plantaBusqueda = ModuloEstilo::where('moduleid', $request->modulo)
+        $plantaBusqueda = CategoriaSupervisor::where('moduleid', $request->modulo)
             ->pluck('prodpoolid')
-            ->first();
+            ->first(); 
         //dd($plantaBusqueda);
         $jefeProduccionBusqueda = CategoriaTeamLeader::where('nombre', $request->team_leader)
             ->where('jefe_produccion', 1)
