@@ -39,48 +39,6 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
         $fechaFin = $request->input('fecha_fin') ? Carbon::parse($request->input('fecha_fin'))->endOfDay() : Carbon::now()->endOfDay();
         $fechaInicio = $request->input('fecha_inicio') ? Carbon::parse($request->input('fecha_inicio'))->startOfDay() : Carbon::now()->subWeeks(6)->startOfDay();
 
-        // Definir el valor del costo por minuto
-        $costoUSD = 0.21;
-
-        // Consultar datos agrupados por semana, contando los paros y sumando los minutos
-        $costoPorSemana = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->whereNotNull('minutos_paro') // Solo considerar registros donde minutos_paro no es null
-            ->selectRaw("WEEK(created_at, 1) as semana, COUNT(*) as paros_proceso, CAST(SUM(minutos_paro) AS UNSIGNED) as min_paro_proc")
-            ->groupBy('semana')
-            ->get()
-            ->map(function ($item) use ($costoUSD) {
-                // Calcular el costo en USD
-                $item->costo_usd = $item->min_paro_proc * $costoUSD;
-                return $item;
-            });
-
-        // Obtener totales de la suma de minutos de paro y costo para semanas
-        $totalParoSemana = $costoPorSemana->sum('paros_proceso');
-        $totalMinParoSemana = $costoPorSemana->sum('min_paro_proc');
-        $totalCostoSemana = $costoPorSemana->sum('costo_usd');
-
-        // Obtener el mes y año de la fecha de fin para excluir el mes actual
-        $mesActual = $fechaFin->month;
-        $anioActual = $fechaFin->year;
-
-        // Consulta de costos por mes, excluyendo el mes actual
-        $costoPorMes = AseguramientoCalidad::whereYear('created_at', $anioActual)
-            ->whereMonth('created_at', '<', $mesActual)
-            ->whereNotNull('minutos_paro')
-            ->selectRaw("MONTH(created_at) as mes, COUNT(*) as paros_proceso, CAST(SUM(minutos_paro) AS UNSIGNED) as min_paro_proc")
-            ->groupBy('mes')
-            ->get()
-            ->map(function ($item) use ($costoUSD) {
-                $item->costo_usd = $item->min_paro_proc * $costoUSD;
-                $item->mes_nombre = ucfirst(\Carbon\Carbon::create()->month($item->mes)->translatedFormat('F')); 
-                return $item;
-            });
-        //
-        // Obtener totales de la suma de minutos de paro y costo para meses
-        $totalParoMes = $costoPorMes->sum('paros_proceso');
-        $totalMinParoMes = $costoPorMes->sum('min_paro_proc');
-        $totalCostoMes = $costoPorMes->sum('costo_usd');
-
         // Obtener clientes únicos
         $clientesUnicos = AseguramientoCalidad::select('cliente')
             ->distinct()
@@ -182,24 +140,8 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             }
         }
         
-        // Calcular el gran total de minutos de paro proceso para todos los clientes
-        $granTotalMinutosParo = collect($modulosPorCliente)->sum('total_minutos_paro');
-        
-        // Añadir el porcentaje de cada cliente respecto al gran total
-        $modulosPorCliente = collect($modulosPorCliente)->map(function ($data) use ($granTotalMinutosParo) {
-            $data['porcentaje_entre_gran_total_cliente'] = $granTotalMinutosParo > 0
-                ? round(($data['total_minutos_paro'] / $granTotalMinutosParo) * 100, 2)
-                : 0; // Asigna 0% si el gran total es 0
-            return $data;
-        })->toArray();
-        
-        
-
-        return view('dashboarComparativaModulo.planta1PorSemana', compact('fechaInicio', 'fechaFin', 'costoPorSemana', 'costoPorMes', 
-                'totalParoSemana','totalMinParoSemana', 'totalCostoSemana', 'totalParoMes', 'totalMinParoMes', 'totalCostoMes',
-                'costoPorSemanaClientes', 'modulosPorCliente', 'granTotalMinutosParo'));
+        return view('dashboarComparativaModulo.planta1PorSemana', compact('fechaInicio', 'fechaFin', 'modulosPorCliente'));
 
     }
-
 
 }
