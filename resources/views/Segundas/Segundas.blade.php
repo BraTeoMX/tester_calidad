@@ -397,13 +397,13 @@
 
             flatpickr(".flatpickr", {
                 mode: "range",
-                dateFormat: "d-m-Y",
+                dateFormat: "Y-m-d",
                 wrap: true,
                 onChange: function(selectedDatesArray) {
                     // Convertir las fechas seleccionadas a un formato legible y almacenar en el array
                     selectedDates = selectedDatesArray.map(date => {
                         // Convierte cada fecha a formato "dd-mm-yyyy"
-                        return flatpickr.formatDate(date, "d-m-Y");
+                        return flatpickr.formatDate(date, "Y-m-d");
                     });
 
                     console.log('Fechas seleccionadas:', selectedDates); // Mostrar en consola
@@ -428,11 +428,10 @@
                                 response.ObtenerPlantas.forEach(function(plant) {
                                     $('#dropdownSearchPlanta ul').append(
                                         `<li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
-                                        <input id="checkbox-item-${plant}"
+                                        <input id="checkbox-planta"
                                                type="checkbox"
                                                value="${plant}"
-                                               class="planta-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                        ${plant}
+                                               class="planta-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">${plant}
                                     </li>`
                                     );
                                 });
@@ -469,162 +468,237 @@
             ObtenerPlantas();
         });
     </script>
-    <script>
-        $(document).ready(function() {
-            let selectedModulos = []; // Array para almacenar módulos seleccionados
-            $("#spinnerModul").show();
+   <script>
+    $(document).ready(function() {
+        let selectedDivisiones = [];
+        let selectedClientes = [];
+        $("#spinnerClienteDivicion").show();
 
-            function cargarModulos() {
-                if (obtenerSegundasCargado) {
-                    $.ajax({
-                        url: '/ObtenerModulos',
-                        method: 'GET',
-                        success: function(response) {
-                            if (response.status === 'success') {
-                                $('#dropdownSearchModulo ul').empty();
+        function cargarClientesYDivisiones() {
+            if (obtenerSegundasCargado) {
+                $.ajax({
+                    url: '/ObtenerClientes',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            $('#dropdownMultiLevelClienteDivcion ul').empty();
 
-                                response.ObtenerModulos.forEach(function(modulo) {
-                                    $('#dropdownSearchModulo ul').append(`
-                                    <li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
-                                        <input id="checkbox-modulo-${modulo}"
-                                               type="checkbox"
-                                               value="${modulo}"
-                                               class="modulo-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                        ${modulo}
+                            const clientesDivisiones = response.ObtenerClientes;
+                            Object.keys(clientesDivisiones).forEach(cliente => {
+                                // Cliente como encabezado con checkbox
+                                $('#dropdownMultiLevelClienteDivcion ul').append(`
+                                    <li class="py-2 px-2 bg-gray-700 text-white font-bold">
+                                        <input id="checkbox-cliente" type="checkbox" value="${cliente}" data-cliente="${cliente}" class="cliente-checkbox" >
+                                        ${cliente}
                                     </li>
                                 `);
-                                });
 
-                                $("#spinnerModul").hide();
-                            } else {
-                                console.error('No se recibieron datos en la respuesta');
-                                $("#spinnerModul").hide();
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error al obtener módulos:', error);
-                            $("#spinnerModul").hide();
-                        }
-                    });
-                } else {
-                    // Si obtenerSegundasCargado no ha terminado, esperar 100ms y volver a intentar
-                    setTimeout(cargarModulos, 100);
-                }
-            }
-
-            // Evento de cambio para los checkboxes de módulo
-            $(document).on('change', '.modulo-checkbox', function() {
-                const modulo = $(this).val();
-                if ($(this).is(':checked')) {
-                    selectedModulos.push(modulo);
-                } else {
-                    selectedModulos = selectedModulos.filter(m => m !== modulo);
-                }
-                console.log('Módulos seleccionados:', selectedModulos);
-            });
-
-            // Llamar a cargarModulos al iniciar
-            cargarModulos();
-        });
-    </script>
-    <script>
-        $(document).ready(function() {
-            let selectedDivisiones = [];
-            $("#spinnerClienteDivicion").show();
-
-            function cargarClientesYDivisiones() {
-                if (obtenerSegundasCargado) {
-                    $.ajax({
-                        url: '/ObtenerClientes',
-                        method: 'GET',
-                        success: function(response) {
-                            if (response.status === 'success') {
-                                $('#dropdownMultiLevelClienteDivcion ul').empty();
-
-                                const clientesDivisiones = response.ObtenerClientes;
-                                Object.keys(clientesDivisiones).forEach(cliente => {
-                                    // Cliente como encabezado
+                                // Divisiones como subelementos
+                                clientesDivisiones[cliente].forEach(division => {
                                     $('#dropdownMultiLevelClienteDivcion ul').append(`
-                            <li class="py-2 px-2 bg-gray-700 text-white font-bold">${cliente}</li>
-                        `);
+                                        <li class="py-1 px-4 hover:bg-gray-600 cursor-pointer">
+                                            <input id="checkbox-division" type="checkbox" value="${division}" data-cliente="${cliente}" class="division-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                            ${division}
+                                        </li>
+                                    `);
+                                });
+                            });
 
-                                    // Divisiones como subelementos
-                                    clientesDivisiones[cliente].forEach(division => {
-                                        $('#dropdownMultiLevelClienteDivcion ul')
-                                            .append(`
-                                <li class="py-1 px-4 hover:bg-gray-600 cursor-pointer">
-                                    <input id="checkbox-division-${division}"
+                            // Evento para cambios en los checkboxes de clientes
+                            $('.cliente-checkbox').on('change', function() {
+                                const cliente = $(this).val();
+
+                                if ($(this).is(':checked')) {
+                                    selectedClientes.push({
+                                        cliente
+                                    });
+                                } else {
+                                    selectedClientes = selectedClientes.filter(
+                                        c => c.cliente !== cliente
+                                    );
+                                }
+
+                                console.log('Clientes seleccionadas:', selectedClientes);
+                            });
+
+                            // Evento para cambios en los checkboxes de divisiones
+                            $('.division-checkbox').on('change', function() {
+                                const division = $(this).val();
+
+                                if ($(this).is(':checked')) {
+                                    selectedDivisiones.push({
+                                        division
+                                    });
+                                } else {
+                                    selectedDivisiones = selectedDivisiones.filter(
+                                        d => d.division !== division
+                                    );
+                                }
+
+                                console.log('Divisiones seleccionadas:', selectedDivisiones);
+                            });
+
+                            $("#spinnerClienteDivicion").hide();
+                        } else {
+                            console.error('No se recibieron datos en la respuesta');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al obtener clientes y divisiones:', error);
+                        $("#spinnerClienteDivicion").hide();
+                    }
+                });
+            } else {
+                // Si ObtenerSegundas no ha terminado, esperar 100ms y volver a intentar
+                setTimeout(cargarClientesYDivisiones, 100);
+            }
+        }
+
+        window.filtrarDivisiones = function() {
+            const valorFiltro = $('#input-group-search').val().toLowerCase();
+            $('#dropdownMultiLevelClienteDivcion ul li').each(function() {
+                const textoElemento = $(this).text().toLowerCase();
+                $(this).toggle(textoElemento.includes(valorFiltro));
+            });
+        };
+
+        // Llamar a la función para cargar los datos
+        cargarClientesYDivisiones();
+    });
+</script>
+<script>
+    $(document).ready(function() {
+        let selectedModulos = []; // Array para almacenar módulos seleccionados
+        $("#spinnerModul").show();
+
+        function cargarModulos() {
+            if (obtenerSegundasCargado) {
+                $.ajax({
+                    url: '/ObtenerModulos',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            $('#dropdownSearchModulo ul').empty();
+
+                            response.ObtenerModulos.forEach(function(modulo) {
+                                $('#dropdownSearchModulo ul').append(`
+                                <li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
+                                    <input id="checkbox-modulo"
                                            type="checkbox"
-                                           value="${division}"
-                                           data-cliente="${cliente}"
-                                           class="division-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                    ${division}
+                                           value="${modulo}"
+                                           class="modulo-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                    ${modulo}
                                 </li>
                             `);
-                                    });
-                                });
+                            });
 
-                                // Evento para cambios en los checkboxes de divisiones
-                                $('.division-checkbox').on('change', function() {
-                                    const division = $(this).val();
-                                    const cliente = $(this).data(
-                                        'cliente'
-                                        ); // Obtiene el cliente del atributo data-cliente
-
-                                    if ($(this).is(':checked')) {
-                                        selectedDivisiones.push({
-                                            cliente,
-                                            division
-                                        });
-                                    } else {
-                                        selectedDivisiones = selectedDivisiones.filter(
-                                            d => d.cliente !== cliente || d.division !==
-                                            division
-                                        );
-                                    }
-
-                                    console.log('Divisiones seleccionadas:',
-                                    selectedDivisiones);
-                                });
-
-                                $("#spinnerClienteDivicion").hide();
-                            } else {
-                                console.error('No se recibieron datos en la respuesta');
-                            }
-
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error al obtener clientes y divisiones:', error);
-                            $("#spinnerClienteDivicion").hide();
+                            $("#spinnerModul").hide();
+                        } else {
+                            console.error('No se recibieron datos en la respuesta');
+                            $("#spinnerModul").hide();
                         }
-
-                    });
-                } else {
-                    // Si ObtenerSegundas no ha terminado, esperar 100ms y volver a intentar
-                    setTimeout(cargarClientesYDivisiones, 100);
-                }
-            }
-
-            window.filtrarDivisiones = function() {
-                const valorFiltro = $('#input-group-search').val().toLowerCase();
-                $('#dropdownMultiLevelClienteDivcion ul li').each(function() {
-                    const textoElemento = $(this).text().toLowerCase();
-                    $(this).toggle(textoElemento.includes(valorFiltro));
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al obtener módulos:', error);
+                        $("#spinnerModul").hide();
+                    }
                 });
-            };
+            } else {
+                // Si obtenerSegundasCargado no ha terminado, esperar 100ms y volver a intentar
+                setTimeout(cargarModulos, 100);
+            }
+        }
 
-            // Llamar a la función para cargar los datos
-            cargarClientesYDivisiones();
+        // Evento de cambio para los checkboxes de módulo
+        $(document).on('change', '.modulo-checkbox', function() {
+            const modulo = $(this).val();
+            if ($(this).is(':checked')) {
+                selectedModulos.push(modulo);
+            } else {
+                selectedModulos = selectedModulos.filter(m => m !== modulo);
+            }
+            console.log('Módulos seleccionados:', selectedModulos);
         });
-    </script>
+
+        // Llamar a cargarModulos al iniciar
+        cargarModulos();
+    });
+</script>
+
     <script>
         let obtenerSegundasCargado = false;
         let currentPage = 1; // Página actual de los datos
         const itemsPerPage = 10; // Elementos por página
         let paginatedData = []; // Array que almacenará los datos paginados
+        let allData = []; // Array para almacenar todos los datos recibidos
+        let selectedDates = []; // Array para almacenar las fechas seleccionadas
+        let selectedDivisiones = []; // Array para almacenar divisiones seleccionadas
+        let selectedModulos = []; // Array para almacenar módulos seleccionados
+        let selectedPlantas = []; // Array para almacenar plantas seleccionadas
+        let selectedClientes = []; // Array para almacenar clientes seleccionados
 
         $(document).ready(function() {
             ObtenerSegundas();
+
+            // Inicializar flatpickr para el elemento con id #Fecha
+            flatpickr(".flatpickr", {
+                mode: "range",
+                dateFormat: "d-m-Y",
+                wrap: true,
+                onChange: function(selectedDatesArray) {
+                    // Convertir las fechas seleccionadas a un formato legible y almacenar en el array
+                    selectedDates = selectedDatesArray.map(date => {
+                        // Convierte cada fecha a formato "dd-mm-yyyy"
+                        return flatpickr.formatDate(date, "Y-m-d");
+                    });
+                    console.log('Fechas seleccionadas:', selectedDates); // Mostrar en consola
+                    filtrarDatos();
+                }
+            });
+
+            // Evento de cambio para los checkboxes de plantas
+            $(document).on('change', '#checkbox-planta', function() {
+                const value = $(this).val();
+                if ($(this).is(':checked')) {
+                    selectedPlantas.push(value);
+                } else {
+                    selectedPlantas = selectedPlantas.filter(item => item !== value);
+                }
+                filtrarDatos();
+            });
+
+            // Evento de cambio para los checkboxes de módulos
+            $(document).on('change', '#checkbox-modulo', function() {
+                const value = $(this).val();
+                if ($(this).is(':checked')) {
+                    selectedModulos.push(value);
+                } else {
+                    selectedModulos = selectedModulos.filter(item => item !== value);
+                }
+                filtrarDatos();
+            });
+
+            // Evento de cambio para los checkboxes de divisiones
+            $(document).on('change', '#checkbox-division', function() {
+                const value = $(this).val();
+                if ($(this).is(':checked')) {
+                    selectedDivisiones.push(value);
+                } else {
+                    selectedDivisiones = selectedDivisiones.filter(item => item !== value);
+                }
+                filtrarDatos();
+            });
+
+            // Evento de cambio para los checkboxes de clientes
+            $(document).on('change', '#checkbox-cliente', function() {
+                const value = $(this).val();
+                if ($(this).is(':checked')) {
+                    selectedClientes.push(value);
+                } else {
+                    selectedClientes = selectedClientes.filter(item => item !== value);
+                }
+                filtrarDatos();
+            });
         });
 
         function ObtenerSegundas() {
@@ -636,9 +710,10 @@
                     if (response.status === 'success') {
                         obtenerSegundasCargado = true;
                         $("#spinnerTable").hide();
+                        allData = response.data;
 
                         // Paginación inicial al recibir los datos
-                        paginarDatos(response.data);
+                        paginarDatos(allData);
                         renderizarTabla(paginatedData[currentPage - 1]); // Mostrar la primera página
                         mostrarBotonesPaginacion();
                     } else {
@@ -665,44 +740,44 @@
             let tbody = $('table tbody');
             tbody.empty();
 
-
+            // Asegurarse de que datosPagina es un array válido antes de iterar
+            if (!Array.isArray(datosPagina) || datosPagina.length === 0) {
+                tbody.append(`<tr><td colspan="10" class="text-center">No se encontraron datos</td></tr>`);
+                return;
+            }
 
             // Índice inicial para numerar los registros en la página actual
             const startIndex = (currentPage - 1) * itemsPerPage;
 
             datosPagina.forEach(function(dato, index) {
-                let moduloNumero = parseInt(dato.OPRMODULEID_AT.replace(/\D/g, ''), 10);
-                let planta = (moduloNumero >= 100 && moduloNumero < 200) ? "Planta Ixtlahuaca" :
-                    (moduloNumero >= 200 && moduloNumero < 300) ? "Planta San Bartolo" : "Desconocida";
-                    // Formatear la cantidad
-               var cantidadFormateada = dato.QTY;
-                            if (typeof cantidadFormateada === 'string') {
-                                var puntoIndex = cantidadFormateada.indexOf('.');
-                                if (puntoIndex !== -1) {
-                                    var parteDecimal = cantidadFormateada.substring(
-                                        puntoIndex + 1);
-                                    if (parteDecimal.length > 1) {
-                                        parteDecimal = parteDecimal.substring(0, 1);
-                                    }
-                                    cantidadFormateada = cantidadFormateada.substring(0,
-                                        puntoIndex + 1) + parteDecimal;
-                                }
-                            }
+                // Formatear la cantidad
+                var cantidadFormateada = dato.QTY;
+                if (typeof cantidadFormateada === 'string') {
+                    var puntoIndex = cantidadFormateada.indexOf('.');
+                    if (puntoIndex !== -1) {
+                        var parteDecimal = cantidadFormateada.substring(puntoIndex + 1);
+                        if (parteDecimal.length > 1) {
+                            parteDecimal = parteDecimal.substring(0, 1);
+                        }
+                        cantidadFormateada = cantidadFormateada.substring(0, puntoIndex + 1) + parteDecimal;
+                    }
+                }
+
                 // Fila con contador de registro en el primer <td>
                 let fila = `
-                <tr class="border-b border-gray-200 dark:border-gray-700">
-                    <td class="px-6 py-4">${startIndex + index + 1}</td> <!-- Contador de registro -->
-                    <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${planta}</td>
-                    <td class="px-6 py-4">${dato.OPRMODULEID_AT}</td>
-                    <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.CUSTOMERNAME}</td>
-                    <td class="px-6 py-4">${dato.DIVISIONNAME}</td>
-                    <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.TipoSegunda}</td>
-                    <td class="px-6 py-4">${dato.DescripcionCalidad}</td>
-                    <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.PRODTICKETID}</td>
-                    <td class="px-6 py-4">${cantidadFormateada}</td>
-                    <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.TRANSDATE}</td>
-                </tr>
-            `;
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+                <td class="px-6 py-4">${startIndex + index + 1}</td> <!-- Contador de registro -->
+                <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.PRODPOOLID}</td>
+                <td class="px-6 py-4">${dato.OPRMODULEID_AT}</td>
+                <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.CUSTOMERNAME}</td>
+                <td class="px-6 py-4">${dato.DIVISIONNAME}</td>
+                <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.TipoSegunda}</td>
+                <td class="px-6 py-4">${dato.DescripcionCalidad}</td>
+                <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.PRODTICKETID}</td>
+                <td class="px-6 py-4">${cantidadFormateada}</td>
+                <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.TRANSDATE}</td>
+            </tr>
+        `;
                 tbody.append(fila);
             });
 
@@ -717,45 +792,44 @@
             paginationContainer.empty();
             // Agregar botón de 'Previous'
             paginationContainer.append(`
-            <li>
-                <a href="#" onclick="cambiarPagina(currentPage - 1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Previous</a>
-            </li>
-        `);
+        <li>
+            <a href="#" onclick="cambiarPagina(currentPage - 1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Previous</a>
+        </li>
+    `);
 
             // Botón para ir a la primera página "<<"
             paginationContainer.append(`
-            <li>
-                <a href="#" onclick="cambiarPagina(1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"><<</a>
-            </li>
-        `);
+        <li>
+            <a href="#" onclick="cambiarPagina(1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"><<</a>
+        </li>
+    `);
 
             // Botón para retroceder "<"
             paginationContainer.append(`
-            <li>
-                <a href="#" onclick="cambiarPagina(currentPage - 1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"><</a>
-            </li>
-        `);
-
+        <li>
+            <a href="#" onclick="cambiarPagina(currentPage - 1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"><</a>
+        </li>
+    `);
             // Botón para avanzar ">"
             paginationContainer.append(`
-            <li>
-                <a href="#" onclick="cambiarPagina(currentPage + 1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">></a>
-            </li>
-        `);
+        <li>
+            <a href="#" onclick="cambiarPagina(currentPage + 1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">></a>
+        </li>
+    `);
 
             // Botón para ir a la última página ">>"
             paginationContainer.append(`
-            <li>
-                <a href="#" onclick="cambiarPagina(${totalPages}, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">>></a>
-            </li>
-        `);
+        <li>
+            <a href="#" onclick="cambiarPagina(${totalPages}, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">>></a>
+        </li>
+    `);
 
             // Agregar botón de 'Next'
             paginationContainer.append(`
-            <li>
-                <a href="#" onclick="cambiarPagina(currentPage + 1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Next</a>
-            </li>
-        `);
+        <li>
+            <a href="#" onclick="cambiarPagina(currentPage + 1, ${totalPages})" class="font-semibold flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-gray-800 border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Next</a>
+        </li>
+    `);
         }
 
         function cambiarPagina(page) {
@@ -768,8 +842,27 @@
 
         function actualizarIndicesNav(startIndex, endIndex, totalItems) {
             $('span.text-sm.font-normal').html(`
-            Datos <span class="font-semibold text-gray-900 dark:text-white">${startIndex}</span> de <span class="font-semibold text-gray-900 dark:text-white">${endIndex}</span> de un total de ${totalItems}
-        `);
+        Datos <span class="font-semibold text-gray-900 dark:text-white">${startIndex}</span> de <span class="font-semibold text-gray-900 dark:text-white">${endIndex}</span> de un total de ${totalItems}
+    `);
+        }
+
+        function filtrarDatos() {
+            let datosFiltrados = allData.filter(dato => {
+                const fechaValida = !selectedDates.length || (new Date(dato.TRANSDATE).getTime() >= new Date(
+                    selectedDates[0]).getTime() && new Date(dato.TRANSDATE).getTime() <= new Date(
+                    selectedDates[1]).getTime());
+                const clienteValido = !selectedClientes.length || selectedClientes.includes(dato.CUSTOMERNAME);
+                const divisionValida = !selectedDivisiones.length || selectedDivisiones.includes(dato.DIVISIONNAME);
+                const moduloValido = !selectedModulos.length || selectedModulos.includes(dato.OPRMODULEID_AT);
+                const plantaValida = !selectedPlantas.length || selectedPlantas.includes(dato.PRODPOOLID);
+
+                return fechaValida && clienteValido && divisionValida && moduloValido && plantaValida;
+            });
+
+            // Volver a paginar y renderizar los datos filtrados
+            paginarDatos(datosFiltrados);
+            renderizarTabla(paginatedData[currentPage - 1]);
+            mostrarBotonesPaginacion();
         }
     </script>
 @endsection

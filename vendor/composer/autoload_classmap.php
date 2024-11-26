@@ -106,6 +106,7 @@ return array(
     'App\\Models\\JobOperacion' => $baseDir . '/app/Models/JobOperacion.php',
     'App\\Models\\Lectra' => $baseDir . '/app/Models/Lectra.php',
     'App\\Models\\Maquilas' => $baseDir . '/app/Models/Maquilas.php',
+    'App\\Models\\ModuloEstilo' => $baseDir . '/app/Models/ModuloEstilo.php',
     'App\\Models\\OpcionesDefectosScreen' => $baseDir . '/app/Models/OpcionesDefectosScreen.php',
     'App\\Models\\ProcesoPlancha' => $baseDir . '/app/Models/ProcesoPlancha.php',
     'App\\Models\\ReporteAuditoriaEtiqueta' => $baseDir . '/app/Models/ReporteAuditoriaEtiqueta.php',
