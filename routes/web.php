@@ -30,6 +30,7 @@ use App\Http\Controllers\redireccionar;
 use App\Http\Controllers\Segundas;
 use App\Http\Controllers\Terceras;
 use App\Http\Controllers\DashboardCostosController;
+use App\Http\Controllers\DashboardComparativoModuloPlanta1Controller;
 
 /*
 |--------------------------------------------------------------------------
@@ -312,3 +313,6 @@ Route::get('/ObtenerClientes', [Segundas::class, 'ObtenerClientes']);
 Route::get('/obtenerSegundasFiltradas', [Segundas::class, 'obtenerSegundasFiltradas']);
 //apartado para vistas de nuevas tablas
 Route::get('/dashboardCostosNoCalidad', [DashboardCostosController::class, 'dashboardCostosNoCalidad'])->name('dashboardCostosNoCalidad');
+
+//dashboard Planta 1 consulta por Semana del comparativo por cliente modulo
+Route::get('/planta1PorSemana', [DashboardComparativoModuloPlanta1Controller::class, 'planta1PorSemana'])->name('dashboarComparativaModulo.planta1PorSemana');
