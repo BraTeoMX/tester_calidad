@@ -37,26 +37,37 @@
             <div class="card-body">
             
                 <div class="row">
-                    @foreach($modulosPorCliente as $cliente => $data)
-                        <div class="col-lg-6 col-md-12 mb-4">
+                    @foreach($modulosPorCliente as $cliente => $modulos)
+                        <div class="col-lg-12 mb-4">
                             <!-- Card individual para cada cliente -->
                             <div class="card">
                                 <div class="card-header">
                                     <h4>Cliente: {{ $cliente }}</h4>
                                 </div>
                                 <div class="card-body table-responsive">
-                                    <table id="tablaDefectosClienteModulo_{{ $loop->index }}" class="table tablesorter">
+                                    <table class="table tablesorter">
                                         <thead>
                                             <tr>
-                                                <th>Módulo Único</th>
-                                                <th>Porcentaje (%)</th>
+                                                <th rowspan="2">Módulo</th>
+                                                @foreach($semanas as $semana)
+                                                    <th colspan="1">
+                                                        Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})
+                                                    </th>
+                                                @endforeach
+                                            </tr>
+                                            <tr>
+                                                @foreach($semanas as $semana)
+                                                    <th>% Proceso</th>
+                                                @endforeach
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($data['modulos'] as $modulo)
+                                            @foreach($modulos as $modulo)
                                                 <tr>
                                                     <td>{{ $modulo['modulo'] }}</td>
-                                                    <td>{{ $modulo['porcentaje'] }}%</td>
+                                                    @foreach($modulo['porcentajes'] as $porcentaje)
+                                                        <td>{{ $porcentaje }}%</td>
+                                                    @endforeach
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -64,7 +75,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-6 col-md-12 mb-4">
+                        <div class="col-lg-12 mb-4">
                             <div class="card">
                                 <!-- Contenedor para la gráfica de cada cliente -->
                                 <div id="graficoCliente_{{ $loop->index }}" style="width:100%; height:500px;"></div>
@@ -72,6 +83,8 @@
                         </div>
                     @endforeach
                 </div>
+                
+                
             </div>
 
         </div>
