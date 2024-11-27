@@ -129,15 +129,6 @@
         </div>
     </div>
 
-    <style>
-        .costo-rojo {
-            color: red;
-        }
-        .amarillo-indicador {
-            background-color: #887404 !important; /* Color amarillo oscuro */
-        }
-    </style>
-    
 @endsection
 
 @push('js') 
@@ -228,29 +219,52 @@
                 Highcharts.chart("graficoCliente_{{ $loop->index }}", {
                     chart: {
                         type: 'line', // Tipo general para la gráfica
+                        backgroundColor: 'transparent', // Fondo transparente
+                        style: {
+                            fontFamily: 'Arial' // Tipografía Arial
+                        }
                     },
                     title: {
-                        text: "Porcentajes Semanales - Cliente: {{ $cliente }}"
+                        text: "Porcentajes Semanales - Cliente: {{ $cliente }}",
+                        style: {
+                            fontFamily: 'Arial' // Tipografía Arial para el título
+                        }
                     },
                     xAxis: {
                         categories: semanas_{{ $loop->index }},
                         title: {
-                            text: "Semanas"
+                            text: "Semanas",
+                            style: {
+                                fontFamily: 'Arial' // Tipografía Arial para el eje X
+                            }
+                        },
+                        labels: {
+                            style: {
+                                fontFamily: 'Arial' // Tipografía Arial para las etiquetas del eje X
+                            }
                         }
                     },
                     yAxis: {
                         title: {
-                            text: "Porcentaje (%)"
+                            text: "Porcentaje (%)",
+                            style: {
+                                fontFamily: 'Arial' // Tipografía Arial para el eje Y
+                            }
                         },
                         min: 0,
                         max: maxY_{{ $loop->index }}, // Máximo dinámico
+                        labels: {
+                            style: {
+                                fontFamily: 'Arial' // Tipografía Arial para las etiquetas del eje Y
+                            }
+                        }
                     },
                     series: [
                         {
                             name: "% AQL",
                             type: 'line', // Línea para AQL
                             data: aql_{{ $loop->index }},
-                            color: "#007bff", // Color azul
+                            color: "#28a745", // Color verde
                             zIndex: 2, // Mayor zIndex para sobreponerse a las barras
                             marker: {
                                 enabled: true, // Mostrar puntos en la línea
@@ -261,13 +275,16 @@
                             name: "% Proceso",
                             type: 'column', // Barras para Proceso
                             data: proceso_{{ $loop->index }},
-                            color: "#28a745", // Color verde
+                            color: "#007bff", // Color azul
                             zIndex: 1 // Menor zIndex para estar detrás de la línea
                         }
                     ],
                     tooltip: {
                         shared: true,
-                        valueSuffix: "%"
+                        valueSuffix: "%",
+                        style: {
+                            fontFamily: 'Arial' // Tipografía Arial para el tooltip
+                        }
                     },
                     credits: {
                         enabled: false
@@ -275,5 +292,5 @@
                 });
             @endforeach
         });
-    </script>
+    </script>    
 @endpush

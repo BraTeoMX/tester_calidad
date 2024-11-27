@@ -52,7 +52,8 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             ->select('cliente')
             ->distinct()
             ->get()
-            ->pluck('cliente');
+            ->pluck('cliente')
+            ->sort(); // Ordena alfabéticamente de menor a mayor
 
         $modulosPorCliente = [];
         $totalesPorCliente = []; // Guardar totales por cliente
