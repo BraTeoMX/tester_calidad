@@ -50,8 +50,9 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             $fechaIterativa->addWeek();
         }
 
-        // Obtener clientes únicos
-        $clientesUnicos = AseguramientoCalidad::select('cliente')
+        // Obtener clientes únicos dentro del rango de fechas seleccionado
+        $clientesUnicos = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin])
+            ->select('cliente')
             ->distinct()
             ->get()
             ->pluck('cliente');
@@ -75,7 +76,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                 $semanalPorcentajes = [];
 
                 foreach ($semanas as $semana) {
-                    // Calcular la suma de "cantidad_auditada" y "cantidad_rechazada" para la semana actual
+                    // Calcular el porcentaje para AseguramientoCalidad
                     $cantidadAuditada = AseguramientoCalidad::where('cliente', $cliente)
                         ->where('modulo', $modulo)
                         ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
@@ -86,22 +87,32 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                         ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
                         ->sum('cantidad_rechazada');
 
-                    // Calcular el porcentaje
-                    if ($cantidadAuditada > 0) {
-                        $porcentaje = round(($cantidadRechazada / $cantidadAuditada) * 100, 3);
-                    } elseif ($cantidadAuditada === 0 && $cantidadRechazada === 0) {
-                        $porcentaje = 'N/A'; // No hay datos en esta semana
-                    } else {
-                        $porcentaje = 0; // Si hay datos, pero auditada es 0, mostrar 0
-                    }
+                    $porcentaje = ($cantidadAuditada > 0) ? round(($cantidadRechazada / $cantidadAuditada) * 100, 3) : 'N/A';
 
-                    $semanalPorcentajes[] = $porcentaje;
+                    // Calcular el porcentaje para AuditoriaAQL
+                    $cantidadAuditadaAQL = AuditoriaAQL::where('cliente', $cliente)
+                        ->where('modulo', $modulo)
+                        ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
+                        ->sum('cantidad_auditada');
+
+                    $cantidadRechazadaAQL = AuditoriaAQL::where('cliente', $cliente)
+                        ->where('modulo', $modulo)
+                        ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
+                        ->sum('cantidad_rechazada');
+
+                    $porcentajeAQL = ($cantidadAuditadaAQL > 0) ? round(($cantidadRechazadaAQL / $cantidadAuditadaAQL) * 100, 3) : 'N/A';
+
+                    // Combinar ambos porcentajes en un solo arreglo para la semana
+                    $semanalPorcentajes[] = [
+                        'proceso' => $porcentaje,
+                        'aql' => $porcentajeAQL,
+                    ];
                 }
 
                 // Agregar los datos del módulo con sus porcentajes semanales
                 $modulosPorCliente[$cliente][] = [
                     'modulo' => $modulo,
-                    'porcentajes' => $semanalPorcentajes,
+                    'semanalPorcentajes' => $semanalPorcentajes,
                 ];
             }
         }
@@ -109,6 +120,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
         // Retornar la vista con los datos necesarios
         return view('dashboarComparativaModulo.planta1PorSemana', compact('fechaInicio', 'fechaFin', 'modulosPorCliente', 'semanas'));
     }
+
 
 
 }
