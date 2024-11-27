@@ -27,7 +27,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-secondary">Mostrar datos</button>
+                                <button type="submit" class="btn btn-secondary">Mostrar datos</button> 
                             </form>
                         </div>
                     </div>
@@ -35,7 +35,6 @@
             </div>
             
             <div class="card-body">
-            
                 <div class="row">
                     @foreach($modulosPorCliente as $cliente => $modulos)
                         <div class="col-lg-12 mb-4">
@@ -67,22 +66,63 @@
                                                 <tr>
                                                     <td>{{ $modulo['modulo'] }}</td>
                                                     @foreach($modulo['semanalPorcentajes'] as $porcentajes)
-                                                        <td>{{ $porcentajes['proceso'] }}</td>
                                                         <td>{{ $porcentajes['aql'] }}</td>
+                                                        <td>{{ $porcentajes['proceso'] }}</td>
                                                     @endforeach
                                                 </tr>
                                             @endforeach
                                         </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td><strong>Totales</strong></td>
+                                                @foreach($totalesPorCliente[$cliente] as $totales)
+                                                    <td>{{ $totales['aql'] }}</td>
+                                                    <td>{{ $totales['proceso'] }}</td>
+                                                @endforeach
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>
                         </div>
                         <div class="col-lg-12 mb-4">
-                            <div class="card">
-                                <!-- Contenedor para la gráfica de cada cliente -->
-                                <div id="graficoCliente_{{ $loop->index }}" style="width:100%; height:500px;"></div>
+                            <div class="row">
+                                <!-- Contenedor para la tabla reducida -->
+                                <div class="col-lg-3">
+                                    <div class="card mt-4">
+                                        <div class="card-header">
+                                            <h5>Resumen por Semana</h5>
+                                        </div>
+                                        <div class="card-body table-responsive">
+                                            <table class="table tablesorter">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Semana</th>
+                                                        <th>% AQL</th>
+                                                        <th>% Proceso</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($semanas as $key => $semana)
+                                                        <tr>
+                                                            <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
+                                                            <td>{{ $totalesPorCliente[$cliente][$key]['aql'] }}</td>
+                                                            <td>{{ $totalesPorCliente[$cliente][$key]['proceso'] }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>                                
+                                <!-- Contenedor para la gráfica -->
+                                <div class="col-lg-9">
+                                    <div class="card">
+                                        <div id="graficoCliente_{{ $loop->index }}" style="width:100%; height:500px;"></div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </div>                        
                     @endforeach
                 </div>                
             </div>
@@ -143,4 +183,72 @@
     <script src="{{ asset('js/highcharts/exporting.js') }}"></script>
     <script src="{{ asset('js/highcharts/dark-unica.js') }}"></script>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            @foreach($modulosPorCliente as $cliente => $modulos)
+                // Crear datos para las series
+                const semanas_{{ $loop->index }} = [
+                    @foreach($semanas as $semana)
+                        "Semana {{ $semana['inicio']->format('W') }}",
+                    @endforeach
+                ];
+    
+                const aql_{{ $loop->index }} = [
+                    @foreach($totalesPorCliente[$cliente] as $totales)
+                        {{ $totales['aql'] === 'N/A' ? 'null' : $totales['aql'] }},
+                    @endforeach
+                ];
+    
+                const proceso_{{ $loop->index }} = [
+                    @foreach($totalesPorCliente[$cliente] as $totales)
+                        {{ $totales['proceso'] === 'N/A' ? 'null' : $totales['proceso'] }},
+                    @endforeach
+                ];
+    
+                // Inicializar gráfica para cada cliente
+                Highcharts.chart("graficoCliente_{{ $loop->index }}", {
+                    chart: {
+                        type: 'line', // Tipo general para la gráfica (línea)
+                    },
+                    title: {
+                        text: "Porcentajes Semanales - Cliente: {{ $cliente }}"
+                    },
+                    xAxis: {
+                        categories: semanas_{{ $loop->index }},
+                        title: {
+                            text: "Semanas"
+                        }
+                    },
+                    yAxis: {
+                        title: {
+                            text: "Porcentaje (%)"
+                        },
+                        min: 0,
+                        max: 100
+                    },
+                    series: [
+                        {
+                            name: "% AQL",
+                            type: 'line', // Línea para AQL
+                            data: aql_{{ $loop->index }},
+                            color: "#007bff" // Color azul
+                        },
+                        {
+                            name: "% Proceso",
+                            type: 'column', // Barras para Proceso
+                            data: proceso_{{ $loop->index }},
+                            color: "#28a745" // Color verde
+                        }
+                    ],
+                    tooltip: {
+                        shared: true,
+                        valueSuffix: "%"
+                    },
+                    credits: {
+                        enabled: false
+                    }
+                });
+            @endforeach
+        });
+    </script>
 @endpush

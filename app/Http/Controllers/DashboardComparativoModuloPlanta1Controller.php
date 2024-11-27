@@ -33,13 +33,11 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
     //
     public function planta1PorSemana(Request $request)
     {
-        // Establecer localización en español para Carbon
         \Carbon\Carbon::setLocale('es');
-        // Obtener las fechas de inicio y fin del request o establecer por defecto las últimas 6 semanas
+
         $fechaFin = $request->input('fecha_fin') ? Carbon::parse($request->input('fecha_fin'))->endOfWeek() : Carbon::now()->endOfWeek();
         $fechaInicio = $request->input('fecha_inicio') ? Carbon::parse($request->input('fecha_inicio'))->startOfWeek() : Carbon::now()->subWeeks(6)->startOfWeek();
 
-        // Obtener todas las semanas dentro del rango seleccionado
         $semanas = [];
         $fechaIterativa = $fechaInicio->copy();
         while ($fechaIterativa->lte($fechaFin)) {
@@ -50,33 +48,37 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             $fechaIterativa->addWeek();
         }
 
-        // Obtener clientes únicos dentro del rango de fechas seleccionado
         $clientesUnicos = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin])
             ->select('cliente')
             ->distinct()
             ->get()
             ->pluck('cliente');
 
-        // Inicializar el arreglo para almacenar los módulos únicos y porcentajes por cliente
         $modulosPorCliente = [];
+        $totalesPorCliente = []; // Guardar totales por cliente
 
         foreach ($clientesUnicos as $cliente) {
-            // Obtener los módulos únicos para el cliente
             $modulosCliente = AseguramientoCalidad::where('cliente', $cliente)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                 ->select('modulo')
                 ->distinct()
                 ->get()
-                ->pluck('modulo'); // Solo obtener los nombres de los módulos
+                ->pluck('modulo');
 
             $modulosPorCliente[$cliente] = [];
+            $totalesSemanasCliente = array_fill(0, count($semanas), [
+                'proceso' => 0,
+                'aql' => 0,
+                'auditadas_proceso' => 0,
+                'rechazadas_proceso' => 0,
+                'auditadas_aql' => 0,
+                'rechazadas_aql' => 0,
+            ]);
 
-            // Para cada módulo, calcular los porcentajes por semana
             foreach ($modulosCliente as $modulo) {
                 $semanalPorcentajes = [];
 
-                foreach ($semanas as $semana) {
-                    // Calcular el porcentaje para AseguramientoCalidad
+                foreach ($semanas as $key => $semana) {
                     $cantidadAuditada = AseguramientoCalidad::where('cliente', $cliente)
                         ->where('modulo', $modulo)
                         ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
@@ -87,9 +89,6 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                         ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
                         ->sum('cantidad_rechazada');
 
-                    $porcentaje = ($cantidadAuditada > 0) ? round(($cantidadRechazada / $cantidadAuditada) * 100, 3) : 'N/A';
-
-                    // Calcular el porcentaje para AuditoriaAQL
                     $cantidadAuditadaAQL = AuditoriaAQL::where('cliente', $cliente)
                         ->where('modulo', $modulo)
                         ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
@@ -100,27 +99,44 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                         ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
                         ->sum('cantidad_rechazada');
 
+                    $porcentajeProceso = ($cantidadAuditada > 0) ? round(($cantidadRechazada / $cantidadAuditada) * 100, 3) : 'N/A';
                     $porcentajeAQL = ($cantidadAuditadaAQL > 0) ? round(($cantidadRechazadaAQL / $cantidadAuditadaAQL) * 100, 3) : 'N/A';
 
-                    // Combinar ambos porcentajes en un solo arreglo para la semana
                     $semanalPorcentajes[] = [
-                        'proceso' => $porcentaje,
+                        'proceso' => $porcentajeProceso,
                         'aql' => $porcentajeAQL,
                     ];
+
+                    // Acumular valores para totales por cliente
+                    $totalesSemanasCliente[$key]['auditadas_proceso'] += $cantidadAuditada;
+                    $totalesSemanasCliente[$key]['rechazadas_proceso'] += $cantidadRechazada;
+                    $totalesSemanasCliente[$key]['auditadas_aql'] += $cantidadAuditadaAQL;
+                    $totalesSemanasCliente[$key]['rechazadas_aql'] += $cantidadRechazadaAQL;
                 }
 
-                // Agregar los datos del módulo con sus porcentajes semanales
                 $modulosPorCliente[$cliente][] = [
                     'modulo' => $modulo,
                     'semanalPorcentajes' => $semanalPorcentajes,
                 ];
             }
+
+            // Calcular porcentajes finales para totales por cliente
+            foreach ($totalesSemanasCliente as $key => $totales) {
+                $totalesSemanasCliente[$key]['proceso'] = ($totales['auditadas_proceso'] > 0)
+                    ? round(($totales['rechazadas_proceso'] / $totales['auditadas_proceso']) * 100, 3)
+                    : 'N/A';
+
+                $totalesSemanasCliente[$key]['aql'] = ($totales['auditadas_aql'] > 0)
+                    ? round(($totales['rechazadas_aql'] / $totales['auditadas_aql']) * 100, 3)
+                    : 'N/A';
+            }
+
+            // Guardar los totales del cliente
+            $totalesPorCliente[$cliente] = $totalesSemanasCliente;
         }
 
-        // Retornar la vista con los datos necesarios
-        return view('dashboarComparativaModulo.planta1PorSemana', compact('fechaInicio', 'fechaFin', 'modulosPorCliente', 'semanas'));
+        return view('dashboarComparativaModulo.planta1PorSemana', compact('fechaInicio', 'fechaFin', 'modulosPorCliente', 'semanas', 'totalesPorCliente'));
     }
-
 
 
 }
