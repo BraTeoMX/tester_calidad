@@ -49,14 +49,24 @@ if (!function_exists('ObtenerSegundas')) {
             return Cache::remember('ObtenerSegundas', 1800, function() {
                 $segundas = DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
-                    ->select('OPRMODULEID_AT','CUSTOMERNAME','DIVISIONNAME','TipoSegunda','DescripcionCalidad','PRODTICKETID', 'QTY','TRANSDATE')
+                    ->select('OPRMODULEID_AT', 'PRODPOOLID', 'CUSTOMERNAME', 'DIVISIONNAME', 'TipoSegunda', 'DescripcionCalidad', 'PRODTICKETID', 'QTY', 'TRANSDATE')
                     ->where('Calidad', 'Segunda') // Filtrar por Calidad = 'Segunda'
                     ->get();
 
-                // Loguea la cantidad de registros obtenidos
-                Log::info('Cantidad de registros obtenidos en SegundasTerceras_View: ' . $segundas);
+                // Mapear los datos para aplicar la transformación a PRODPOOLID
+                $segundasTransformadas = $segundas->map(function ($item) {
+                    if (strcasecmp($item->PRODPOOLID, 'intimark1') === 0) {
+                        $item->PRODPOOLID = 'Planta Ixtlahuaca';
+                    } elseif (strcasecmp($item->PRODPOOLID, 'intimark2') === 0) {
+                        $item->PRODPOOLID = 'Planta San Bartolo';
+                    }
+                    return $item;
+                });
 
-                return $segundas;
+                // Loguea la cantidad de registros obtenidos
+                Log::info('Cantidad de registros obtenidos en SegundasTerceras_View: ' . $segundasTransformadas->count());
+
+                return $segundasTransformadas;
             });
         } catch (\Exception $e) {
             // Manejar la excepción, por ejemplo, loguear el error
@@ -66,6 +76,7 @@ if (!function_exists('ObtenerSegundas')) {
             return collect();
         }
     }
+
 }
 if (!function_exists('ObtenerPlantas')) {
     /**
@@ -89,7 +100,7 @@ if (!function_exists('ObtenerPlantas')) {
                     $lowerItem = strtolower($item);
                     switch ($lowerItem) {
                         case 'intimark1':
-                            return 'Planta Ixtlahuca';
+                            return 'Planta Ixtlahuaca';
                         case 'intimark2':
                             return 'Planta San Bartolo';
                         default:
@@ -153,7 +164,7 @@ if (!function_exists('ObtenerClientes')) {
                 $Clientes = DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
                     ->distinct()
-                    ->select('CUSTOMERNAME', 'DIVISIONNAME')
+                    ->select('CUSTOMERNAME', 'DIVISIONNAME', 'OPRMODULEID_AT')
                     ->where('Calidad', 'Segunda')
                     ->get();
 

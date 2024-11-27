@@ -635,6 +635,7 @@ class ComposerStaticInit0e05d79df1118f1d74ed57bf5b95f4f5
         'App\\Models\\JobOperacion' => __DIR__ . '/../..' . '/app/Models/JobOperacion.php',
         'App\\Models\\Lectra' => __DIR__ . '/../..' . '/app/Models/Lectra.php',
         'App\\Models\\Maquilas' => __DIR__ . '/../..' . '/app/Models/Maquilas.php',
+        'App\\Models\\ModuloEstilo' => __DIR__ . '/../..' . '/app/Models/ModuloEstilo.php',
         'App\\Models\\OpcionesDefectosScreen' => __DIR__ . '/../..' . '/app/Models/OpcionesDefectosScreen.php',
         'App\\Models\\ProcesoPlancha' => __DIR__ . '/../..' . '/app/Models/ProcesoPlancha.php',
         'App\\Models\\ReporteAuditoriaEtiqueta' => __DIR__ . '/../..' . '/app/Models/ReporteAuditoriaEtiqueta.php',
