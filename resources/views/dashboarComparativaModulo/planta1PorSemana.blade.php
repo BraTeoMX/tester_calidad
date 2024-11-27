@@ -189,7 +189,7 @@
                 // Crear datos para las series
                 const semanas_{{ $loop->index }} = [
                     @foreach($semanas as $semana)
-                        "Semana {{ $semana['inicio']->format('W') }}",
+                        "Semana {{ $semana['inicio']->format('W') }} - {{ $semana['inicio']->format('Y') }}",
                     @endforeach
                 ];
     
@@ -205,10 +205,14 @@
                     @endforeach
                 ];
     
+                // Calcular rango dinámico para el eje Y
+                const allData_{{ $loop->index }} = aql_{{ $loop->index }}.concat(proceso_{{ $loop->index }}).filter(v => v !== null);
+                const maxY_{{ $loop->index }} = Math.ceil(Math.max(...allData_{{ $loop->index }})) + 5; // Máximo dinámico con un margen de +5
+    
                 // Inicializar gráfica para cada cliente
                 Highcharts.chart("graficoCliente_{{ $loop->index }}", {
                     chart: {
-                        type: 'line', // Tipo general para la gráfica (línea)
+                        type: 'line', // Tipo general para la gráfica
                     },
                     title: {
                         text: "Porcentajes Semanales - Cliente: {{ $cliente }}"
@@ -224,20 +228,26 @@
                             text: "Porcentaje (%)"
                         },
                         min: 0,
-                        max: 100
+                        max: maxY_{{ $loop->index }}, // Máximo dinámico
                     },
                     series: [
                         {
                             name: "% AQL",
                             type: 'line', // Línea para AQL
                             data: aql_{{ $loop->index }},
-                            color: "#007bff" // Color azul
+                            color: "#007bff", // Color azul
+                            zIndex: 2, // Mayor zIndex para sobreponerse a las barras
+                            marker: {
+                                enabled: true, // Mostrar puntos en la línea
+                                radius: 4
+                            }
                         },
                         {
                             name: "% Proceso",
                             type: 'column', // Barras para Proceso
                             data: proceso_{{ $loop->index }},
-                            color: "#28a745" // Color verde
+                            color: "#28a745", // Color verde
+                            zIndex: 1 // Menor zIndex para estar detrás de la línea
                         }
                     ],
                     tooltip: {
