@@ -35,9 +35,11 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
     {
         \Carbon\Carbon::setLocale('es');
 
+        // Fechas de inicio y fin
         $fechaFin = $request->input('fecha_fin') ? Carbon::parse($request->input('fecha_fin'))->endOfWeek() : Carbon::now()->endOfWeek();
         $fechaInicio = $request->input('fecha_inicio') ? Carbon::parse($request->input('fecha_inicio'))->startOfWeek() : Carbon::now()->subWeeks(6)->startOfWeek();
 
+        // Generar semanas en el rango
         $semanas = [];
         $fechaIterativa = $fechaInicio->copy();
         while ($fechaIterativa->lte($fechaFin)) {
@@ -48,96 +50,151 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             $fechaIterativa->addWeek();
         }
 
+        // Clientes únicos
         $clientesUnicos = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin])
             ->select('cliente')
             ->distinct()
             ->get()
             ->pluck('cliente')
-            ->sort(); // Ordena alfabéticamente de menor a mayor
+            ->sort();
 
+        // Inicializar arreglos para almacenar los datos
         $modulosPorCliente = [];
-        $totalesPorCliente = []; // Guardar totales por cliente
+        $totalesPorCliente = [];
+        $modulosPorClientePlanta1 = [];
+        $totalesPorClientePlanta1 = [];
+        $modulosPorClientePlanta2 = [];
+        $totalesPorClientePlanta2 = [];
 
+        // Obtener datos para cada cliente
         foreach ($clientesUnicos as $cliente) {
-            $modulosCliente = AseguramientoCalidad::where('cliente', $cliente)
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->select('modulo')
-                ->distinct()
-                ->get()
-                ->pluck('modulo');
+            // Datos generales
+            [$modulosPorCliente[$cliente], $totalesPorCliente[$cliente]] = $this->getDatosPorCliente($cliente, $fechaInicio, $fechaFin, $semanas);
 
-            $modulosPorCliente[$cliente] = [];
-            $totalesSemanasCliente = array_fill(0, count($semanas), [
-                'proceso' => 0,
-                'aql' => 0,
-                'auditadas_proceso' => 0,
-                'rechazadas_proceso' => 0,
-                'auditadas_aql' => 0,
-                'rechazadas_aql' => 0,
-            ]);
+            // Datos Planta 1 - Ixtlahuaca
+            [$modulosPorClientePlanta1[$cliente], $totalesPorClientePlanta1[$cliente]] = $this->getDatosPorCliente($cliente, $fechaInicio, $fechaFin, $semanas, 'Intimark1');
 
-            foreach ($modulosCliente as $modulo) {
-                $semanalPorcentajes = [];
-
-                foreach ($semanas as $key => $semana) {
-                    $cantidadAuditada = AseguramientoCalidad::where('cliente', $cliente)
-                        ->where('modulo', $modulo)
-                        ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
-                        ->sum('cantidad_auditada');
-
-                    $cantidadRechazada = AseguramientoCalidad::where('cliente', $cliente)
-                        ->where('modulo', $modulo)
-                        ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
-                        ->sum('cantidad_rechazada');
-
-                    $cantidadAuditadaAQL = AuditoriaAQL::where('cliente', $cliente)
-                        ->where('modulo', $modulo)
-                        ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
-                        ->sum('cantidad_auditada');
-
-                    $cantidadRechazadaAQL = AuditoriaAQL::where('cliente', $cliente)
-                        ->where('modulo', $modulo)
-                        ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
-                        ->sum('cantidad_rechazada');
-
-                    $porcentajeProceso = ($cantidadAuditada > 0) ? round(($cantidadRechazada / $cantidadAuditada) * 100, 3) : 'N/A';
-                    $porcentajeAQL = ($cantidadAuditadaAQL > 0) ? round(($cantidadRechazadaAQL / $cantidadAuditadaAQL) * 100, 3) : 'N/A';
-
-                    $semanalPorcentajes[] = [
-                        'proceso' => $porcentajeProceso,
-                        'aql' => $porcentajeAQL,
-                    ];
-
-                    // Acumular valores para totales por cliente
-                    $totalesSemanasCliente[$key]['auditadas_proceso'] += $cantidadAuditada;
-                    $totalesSemanasCliente[$key]['rechazadas_proceso'] += $cantidadRechazada;
-                    $totalesSemanasCliente[$key]['auditadas_aql'] += $cantidadAuditadaAQL;
-                    $totalesSemanasCliente[$key]['rechazadas_aql'] += $cantidadRechazadaAQL;
-                }
-
-                $modulosPorCliente[$cliente][] = [
-                    'modulo' => $modulo,
-                    'semanalPorcentajes' => $semanalPorcentajes,
-                ];
-            }
-
-            // Calcular porcentajes finales para totales por cliente
-            foreach ($totalesSemanasCliente as $key => $totales) {
-                $totalesSemanasCliente[$key]['proceso'] = ($totales['auditadas_proceso'] > 0)
-                    ? round(($totales['rechazadas_proceso'] / $totales['auditadas_proceso']) * 100, 3)
-                    : 'N/A';
-
-                $totalesSemanasCliente[$key]['aql'] = ($totales['auditadas_aql'] > 0)
-                    ? round(($totales['rechazadas_aql'] / $totales['auditadas_aql']) * 100, 3)
-                    : 'N/A';
-            }
-
-            // Guardar los totales del cliente
-            $totalesPorCliente[$cliente] = $totalesSemanasCliente;
+            // Datos Planta 2 - San Bartolo
+            [$modulosPorClientePlanta2[$cliente], $totalesPorClientePlanta2[$cliente]] = $this->getDatosPorCliente($cliente, $fechaInicio, $fechaFin, $semanas, 'Intimark2');
         }
 
-        return view('dashboarComparativaModulo.planta1PorSemanaComparativa', compact('fechaInicio', 'fechaFin', 'modulosPorCliente', 'semanas', 'totalesPorCliente'));
+        return view('dashboarComparativaModulo.planta1PorSemanaComparativa', compact(
+            'fechaInicio',
+            'fechaFin',
+            'modulosPorCliente',
+            'totalesPorCliente',
+            'modulosPorClientePlanta1',
+            'totalesPorClientePlanta1',
+            'modulosPorClientePlanta2',
+            'totalesPorClientePlanta2',
+            'semanas'
+        ));
     }
+
+    /**
+     * Función privada para obtener datos por cliente y planta (si aplica).
+     */
+    private function getDatosPorCliente($cliente, $fechaInicio, $fechaFin, $semanas, $planta = null)
+    {
+        // Consulta base para AseguramientoCalidad (proceso)
+        $queryCalidad = AseguramientoCalidad::where('cliente', $cliente)
+            ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
+
+        // Consulta base para AuditoriaAQL (AQL)
+        $queryAQL = AuditoriaAQL::where('cliente', $cliente)
+            ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
+
+        if ($planta) {
+            $queryCalidad->where('planta', $planta);
+            $queryAQL->where('planta', $planta);
+        }
+
+        // Obtener módulos únicos
+        $modulosCliente = $queryCalidad->select('modulo')->distinct()->get()->pluck('modulo');
+
+        $modulos = [];
+        $totalesSemanas = array_fill(0, count($semanas), [
+            'proceso' => 0,
+            'aql' => 0,
+            'auditadas_proceso' => 0,
+            'rechazadas_proceso' => 0,
+            'auditadas_aql' => 0,
+            'rechazadas_aql' => 0,
+        ]);
+
+        foreach ($modulosCliente as $modulo) {
+            $semanalPorcentajes = [];
+
+            foreach ($semanas as $key => $semana) {
+                // Datos para AseguramientoCalidad
+                $cantidadAuditada = AseguramientoCalidad::where('cliente', $cliente)
+                    ->where('modulo', $modulo)
+                    ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_auditada');
+
+                $cantidadRechazada = AseguramientoCalidad::where('cliente', $cliente)
+                    ->where('modulo', $modulo)
+                    ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_rechazada');
+
+                // Datos para AuditoriaAQL
+                $cantidadAuditadaAQL = AuditoriaAQL::where('cliente', $cliente)
+                    ->where('modulo', $modulo)
+                    ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_auditada');
+
+                $cantidadRechazadaAQL = AuditoriaAQL::where('cliente', $cliente)
+                    ->where('modulo', $modulo)
+                    ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
+                    ->when($planta, function ($query) use ($planta) {
+                        return $query->where('planta', $planta);
+                    })
+                    ->sum('cantidad_rechazada');
+
+                // Cálculo de porcentajes
+                $porcentajeProceso = ($cantidadAuditada > 0) ? round(($cantidadRechazada / $cantidadAuditada) * 100, 3) : 'N/A';
+                $porcentajeAQL = ($cantidadAuditadaAQL > 0) ? round(($cantidadRechazadaAQL / $cantidadAuditadaAQL) * 100, 3) : 'N/A';
+
+                $semanalPorcentajes[] = [
+                    'proceso' => $porcentajeProceso,
+                    'aql' => $porcentajeAQL,
+                ];
+
+                // Acumular totales para cada semana
+                $totalesSemanas[$key]['auditadas_proceso'] += $cantidadAuditada;
+                $totalesSemanas[$key]['rechazadas_proceso'] += $cantidadRechazada;
+                $totalesSemanas[$key]['auditadas_aql'] += $cantidadAuditadaAQL;
+                $totalesSemanas[$key]['rechazadas_aql'] += $cantidadRechazadaAQL;
+            }
+
+            $modulos[] = [
+                'modulo' => $modulo,
+                'semanalPorcentajes' => $semanalPorcentajes,
+            ];
+        }
+
+        foreach ($totalesSemanas as $key => $totales) {
+            $totalesSemanas[$key]['proceso'] = ($totales['auditadas_proceso'] > 0)
+                ? round(($totales['rechazadas_proceso'] / $totales['auditadas_proceso']) * 100, 3)
+                : 'N/A';
+
+            $totalesSemanas[$key]['aql'] = ($totales['auditadas_aql'] > 0)
+                ? round(($totales['rechazadas_aql'] / $totales['auditadas_aql']) * 100, 3)
+                : 'N/A';
+        }
+
+        return [$modulos, $totalesSemanas];
+    }
+
 
 
 }

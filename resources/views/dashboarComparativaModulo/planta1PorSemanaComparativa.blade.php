@@ -56,6 +56,7 @@
                         <div class="card-header">
                             <h4>Cliente: {{ $cliente }}</h4>
                         </div>
+                        <!-- Sección General -->
                         <div class="card-body table-responsive">
                             <table id="tablaClienteModulo{{ $loop->index }}" class="table tablesorter">
                                 <thead>
@@ -97,7 +98,7 @@
                             </table>
                         </div>
                     </div>
-
+            
                     <div class="row">
                         <div class="col-lg-3">
                             <div class="card mt-4">
@@ -132,9 +133,179 @@
                             </div>
                         </div>
                     </div>
+            
+                    <!-- NUEVAS SECCIONES -->
+            
+                    <!-- Sección Planta 1 -->
+                    <div class="card mt-5">
+                        <div class="card-header">
+                            <h5>Planta 1 - Ixtlahuaca</h5>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table id="tablaClienteModuloPlanta1{{ $loop->index }}" class="table tablesorter">
+                                <!-- Tabla con los datos de Planta 1 -->
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2">Módulo</th>
+                                        @foreach($semanas as $semana)
+                                        <th colspan="2" class="text-center">
+                                            Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})
+                                        </th>
+                                        @endforeach
+                                    </tr>
+                                    <tr>
+                                        @foreach($semanas as $semana)
+                                        <th>% AQL</th>
+                                        <th>% Proceso</th>
+                                        @endforeach
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($modulosPorClientePlanta1[$cliente] as $modulo)
+                                    <tr>
+                                        <td>{{ $modulo['modulo'] }}</td>
+                                        @foreach($modulo['semanalPorcentajes'] as $porcentajes)
+                                        <td>{{ $porcentajes['aql'] }}</td>
+                                        <td>{{ $porcentajes['proceso'] }}</td>
+                                        @endforeach
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td><strong>Totales</strong></td>
+                                        @foreach($totalesPorClientePlanta1[$cliente] as $totales)
+                                        <td>{{ $totales['aql'] }}</td>
+                                        <td>{{ $totales['proceso'] }}</td>
+                                        @endforeach
+                                    </tr>
+                                </tfoot>                                
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <div class="card mt-4">
+                                <div class="card-header">
+                                    <h5>Resumen por Semana</h5>
+                                </div>
+                                <div class="card-body table-responsive">
+                                    <table id="tablaResumenClientePlanta1{{ $loop->index }}" class="table tablesorter">
+                                        <thead>
+                                            <tr>
+                                                <th>Semana</th>
+                                                <th>% AQL</th>
+                                                <th>% Proceso</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($semanas as $key => $semana)
+                                            <tr>
+                                                <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
+                                                <td>{{ $totalesPorClientePlanta1[$cliente][$key]['aql'] }}</td>
+                                                <td>{{ $totalesPorClientePlanta1[$cliente][$key]['proceso'] }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-9">
+                            <div class="card">
+                                <div id="graficoClientePlanta1_{{ $loop->index }}" style="width:100%; height:500px;"></div>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- Sección Planta 2 -->
+                    <div class="card mt-5">
+                        <div class="card-header">
+                            <h5>Planta 2 - San Bartolo</h5>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table id="tablaClienteModuloPlanta2{{ $loop->index }}" class="table tablesorter">
+                                <!-- Tabla con los datos de Planta 2 -->
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2">Módulo</th>
+                                        @foreach($semanas as $semana)
+                                        <th colspan="2" class="text-center">
+                                            Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})
+                                        </th>
+                                        @endforeach
+                                    </tr>
+                                    <tr>
+                                        @foreach($semanas as $semana)
+                                        <th>% AQL</th>
+                                        <th>% Proceso</th>
+                                        @endforeach
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($modulosPorClientePlanta2[$cliente] as $modulo)
+                                    <tr>
+                                        <td>{{ $modulo['modulo'] }}</td>
+                                        @foreach($modulo['semanalPorcentajes'] as $porcentajes)
+                                        <td>{{ $porcentajes['aql'] }}</td>
+                                        <td>{{ $porcentajes['proceso'] }}</td>
+                                        @endforeach
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td><strong>Totales</strong></td>
+                                        @foreach($totalesPorClientePlanta2[$cliente] as $totales)
+                                        <td>{{ $totales['aql'] }}</td>
+                                        <td>{{ $totales['proceso'] }}</td>
+                                        @endforeach
+                                    </tr>
+                                </tfoot>                                
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <div class="card mt-4">
+                                <div class="card-header">
+                                    <h5>Resumen por Semana</h5>
+                                </div>
+                                <div class="card-body table-responsive">
+                                    <table id="tablaResumenClientePlanta2{{ $loop->index }}" class="table tablesorter">
+                                        <thead>
+                                            <tr>
+                                                <th>Semana</th>
+                                                <th>% AQL</th>
+                                                <th>% Proceso</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($semanas as $key => $semana)
+                                            <tr>
+                                                <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
+                                                <td>{{ $totalesPorClientePlanta2[$cliente][$key]['aql'] }}</td>
+                                                <td>{{ $totalesPorClientePlanta2[$cliente][$key]['proceso'] }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-9">
+                            <div class="card">
+                                <div id="graficoClientePlanta2_{{ $loop->index }}" style="width:100%; height:500px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+
                 </div>
                 @endforeach
-            </div>
+            </div>            
         </div>
     </div>
 @endsection
@@ -173,6 +344,24 @@
                     lengthChange: false,    // Fija la cantidad de elementos a 10 por página
                     pageLength: 10          // Número de registros por página
                 });
+
+                $('#tablaClienteModuloPlanta1{{ $loop->index }}').DataTable({
+                    destroy: true,          // Evita el error de reinitialización
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    lengthChange: false,    // Fija la cantidad de elementos a 10 por página
+                    pageLength: 10          // Número de registros por página
+                });
+
+                $('#tablaClienteModuloPlanta2{{ $loop->index }}').DataTable({
+                    destroy: true,          // Evita el error de reinitialización
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    lengthChange: false,    // Fija la cantidad de elementos a 10 por página
+                    pageLength: 10          // Número de registros por página
+                });
             @endforeach
         });
     </script>
@@ -181,6 +370,24 @@
             // Inicializa DataTables en cada tabla resumen por cliente
             @foreach($modulosPorCliente as $index => $data)
                 $('#tablaResumenCliente{{ $loop->index }}').DataTable({
+                    destroy: true,          // Evita el error de reinitialización
+                    paging: true,          // Sin paginación (si es necesario, cámbialo a true)
+                    searching: false,       // Sin búsqueda (opcional)
+                    ordering: true,         // Habilita ordenamiento
+                    lengthChange: false,    // Fija la cantidad de elementos visibles
+                    pageLength: 5,
+                });
+
+                $('#tablaResumenClientePlanta1{{ $loop->index }}').DataTable({
+                    destroy: true,          // Evita el error de reinitialización
+                    paging: true,          // Sin paginación (si es necesario, cámbialo a true)
+                    searching: false,       // Sin búsqueda (opcional)
+                    ordering: true,         // Habilita ordenamiento
+                    lengthChange: false,    // Fija la cantidad de elementos visibles
+                    pageLength: 5,
+                });
+
+                $('#tablaResumenClientePlanta2{{ $loop->index }}').DataTable({
                     destroy: true,          // Evita el error de reinitialización
                     paging: true,          // Sin paginación (si es necesario, cámbialo a true)
                     searching: false,       // Sin búsqueda (opcional)
@@ -301,5 +508,216 @@
                 });
             @endforeach
         });
-    </script>    
+    </script> 
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            @foreach($modulosPorClientePlanta1 as $cliente => $modulos)
+                // Crear datos para las series
+                const semanas_{{ $loop->index }} = [
+                    @foreach($semanas as $semana)
+                        "Semana {{ $semana['inicio']->format('W') }} - {{ $semana['inicio']->format('Y') }}",
+                    @endforeach
+                ];
+    
+                const aql_{{ $loop->index }} = [
+                    @foreach($totalesPorClientePlanta1[$cliente] as $totales)
+                        {{ $totales['aql'] === 'N/A' ? 'null' : $totales['aql'] }},
+                    @endforeach
+                ];
+    
+                const proceso_{{ $loop->index }} = [
+                    @foreach($totalesPorClientePlanta1[$cliente] as $totales)
+                        {{ $totales['proceso'] === 'N/A' ? 'null' : $totales['proceso'] }},
+                    @endforeach
+                ];
+    
+                // Calcular rango dinámico para el eje Y
+                const allData_{{ $loop->index }} = aql_{{ $loop->index }}.concat(proceso_{{ $loop->index }}).filter(v => v !== null);
+                const maxY_{{ $loop->index }} = Math.ceil(Math.max(...allData_{{ $loop->index }})) + 5; // Máximo dinámico con un margen de +5
+    
+                // Inicializar gráfica para cada cliente
+                Highcharts.chart("graficoClientePlanta1_{{ $loop->index }}", {
+                    chart: {
+                        type: 'line', // Tipo general para la gráfica
+                        backgroundColor: 'transparent', // Fondo transparente
+                        style: {
+                            fontFamily: 'Arial' // Tipografía Arial
+                        }
+                    },
+                    title: {
+                        text: "Porcentajes Semanales - Cliente: {{ $cliente }}",
+                        style: {
+                            fontFamily: 'Arial' // Tipografía Arial para el título
+                        }
+                    },
+                    xAxis: {
+                        categories: semanas_{{ $loop->index }},
+                        title: {
+                            text: "Semanas",
+                            style: {
+                                fontFamily: 'Arial' // Tipografía Arial para el eje X
+                            }
+                        },
+                        labels: {
+                            style: {
+                                fontFamily: 'Arial' // Tipografía Arial para las etiquetas del eje X
+                            }
+                        }
+                    },
+                    yAxis: {
+                        title: {
+                            text: "Porcentaje (%)",
+                            style: {
+                                fontFamily: 'Arial' // Tipografía Arial para el eje Y 
+                            }
+                        },
+                        min: 0,
+                        max: maxY_{{ $loop->index }}, // Máximo dinámico
+                        labels: {
+                            style: {
+                                fontFamily: 'Arial' // Tipografía Arial para las etiquetas del eje Y
+                            }
+                        }
+                    },
+                    series: [
+                        {
+                            name: "% AQL",
+                            type: 'line', // Línea para AQL
+                            data: aql_{{ $loop->index }},
+                            color: "#28a745", // Color verde
+                            zIndex: 2, // Mayor zIndex para sobreponerse a las barras
+                            marker: {
+                                enabled: true, // Mostrar puntos en la línea
+                                radius: 4
+                            }
+                        },
+                        {
+                            name: "% Proceso",
+                            type: 'column', // Barras para Proceso
+                            data: proceso_{{ $loop->index }},
+                            color: "#007bff", // Color azul
+                            zIndex: 1 // Menor zIndex para estar detrás de la línea
+                        }
+                    ],
+                    tooltip: {
+                        shared: true,
+                        valueSuffix: "%",
+                        style: {
+                            fontFamily: 'Arial' // Tipografía Arial para el tooltip
+                        }
+                    },
+                    credits: {
+                        enabled: false
+                    }
+                });
+            @endforeach
+        });
+    </script> 
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            @foreach($modulosPorClientePlanta2 as $cliente => $modulos)
+                // Crear datos para las series
+                const semanas_{{ $loop->index }} = [
+                    @foreach($semanas as $semana)
+                        "Semana {{ $semana['inicio']->format('W') }} - {{ $semana['inicio']->format('Y') }}",
+                    @endforeach
+                ];
+    
+                const aql_{{ $loop->index }} = [
+                    @foreach($totalesPorClientePlanta2[$cliente] as $totales)
+                        {{ $totales['aql'] === 'N/A' ? 'null' : $totales['aql'] }},
+                    @endforeach
+                ];
+    
+                const proceso_{{ $loop->index }} = [
+                    @foreach($totalesPorClientePlanta2[$cliente] as $totales)
+                        {{ $totales['proceso'] === 'N/A' ? 'null' : $totales['proceso'] }},
+                    @endforeach
+                ];
+    
+                // Calcular rango dinámico para el eje Y
+                const allData_{{ $loop->index }} = aql_{{ $loop->index }}.concat(proceso_{{ $loop->index }}).filter(v => v !== null);
+                const maxY_{{ $loop->index }} = Math.ceil(Math.max(...allData_{{ $loop->index }})) + 5; // Máximo dinámico con un margen de +5
+    
+                // Inicializar gráfica para cada cliente
+                Highcharts.chart("graficoClientePlanta2_{{ $loop->index }}", {
+                    chart: {
+                        type: 'line', // Tipo general para la gráfica
+                        backgroundColor: 'transparent', // Fondo transparente
+                        style: {
+                            fontFamily: 'Arial' // Tipografía Arial
+                        }
+                    },
+                    title: {
+                        text: "Porcentajes Semanales - Cliente: {{ $cliente }}",
+                        style: {
+                            fontFamily: 'Arial' // Tipografía Arial para el título
+                        }
+                    },
+                    xAxis: {
+                        categories: semanas_{{ $loop->index }},
+                        title: {
+                            text: "Semanas",
+                            style: {
+                                fontFamily: 'Arial' // Tipografía Arial para el eje X
+                            }
+                        },
+                        labels: {
+                            style: {
+                                fontFamily: 'Arial' // Tipografía Arial para las etiquetas del eje X
+                            }
+                        }
+                    },
+                    yAxis: {
+                        title: {
+                            text: "Porcentaje (%)",
+                            style: {
+                                fontFamily: 'Arial' // Tipografía Arial para el eje Y 
+                            }
+                        },
+                        min: 0,
+                        max: maxY_{{ $loop->index }}, // Máximo dinámico
+                        labels: {
+                            style: {
+                                fontFamily: 'Arial' // Tipografía Arial para las etiquetas del eje Y
+                            }
+                        }
+                    },
+                    series: [
+                        {
+                            name: "% AQL",
+                            type: 'line', // Línea para AQL
+                            data: aql_{{ $loop->index }},
+                            color: "#28a745", // Color verde
+                            zIndex: 2, // Mayor zIndex para sobreponerse a las barras
+                            marker: {
+                                enabled: true, // Mostrar puntos en la línea
+                                radius: 4
+                            }
+                        },
+                        {
+                            name: "% Proceso",
+                            type: 'column', // Barras para Proceso
+                            data: proceso_{{ $loop->index }},
+                            color: "#007bff", // Color azul
+                            zIndex: 1 // Menor zIndex para estar detrás de la línea
+                        }
+                    ],
+                    tooltip: {
+                        shared: true,
+                        valueSuffix: "%",
+                        style: {
+                            fontFamily: 'Arial' // Tipografía Arial para el tooltip
+                        }
+                    },
+                    credits: {
+                        enabled: false
+                    }
+                });
+            @endforeach
+        });
+    </script>  
+
 @endpush
