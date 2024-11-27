@@ -94,7 +94,7 @@
                                             <h5>Resumen por Semana</h5>
                                         </div>
                                         <div class="card-body table-responsive">
-                                            <table class="table tablesorter">
+                                            <table id="tablaResumenCliente{{ $loop->index }}" class="table tablesorter">
                                                 <thead>
                                                     <tr>
                                                         <th>Semana</th>
@@ -172,6 +172,21 @@
                     ordering: true,
                     lengthChange: false,    // Fija la cantidad de elementos a 10 por página
                     pageLength: 10          // Número de registros por página
+                });
+            @endforeach
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Inicializa DataTables en cada tabla resumen por cliente
+            @foreach($modulosPorCliente as $index => $data)
+                $('#tablaResumenCliente{{ $loop->index }}').DataTable({
+                    destroy: true,          // Evita el error de reinitialización
+                    paging: true,          // Sin paginación (si es necesario, cámbialo a true)
+                    searching: false,       // Sin búsqueda (opcional)
+                    ordering: true,         // Habilita ordenamiento
+                    lengthChange: false,    // Fija la cantidad de elementos visibles
+                    pageLength: 5,
                 });
             @endforeach
         });
