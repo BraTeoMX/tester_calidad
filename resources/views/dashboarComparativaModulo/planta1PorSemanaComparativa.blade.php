@@ -56,254 +56,263 @@
                         <div class="card-header">
                             <h4>Cliente: {{ $cliente }}</h4>
                         </div>
-                        <!-- Sección General -->
-                        <div class="card-body table-responsive">
-                            <table id="tablaClienteModulo{{ $loop->index }}" class="table tablesorter">
-                                <thead>
-                                    <tr>
-                                        <th rowspan="2">Módulo</th>
-                                        @foreach($semanas as $semana)
-                                        <th colspan="2" class="text-center">
-                                            Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})
-                                        </th>
-                                        @endforeach
-                                    </tr>
-                                    <tr>
-                                        @foreach($semanas as $semana)
-                                        <th>% Proceso</th>
-                                        <th>% AQL</th>
-                                        @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($modulos as $modulo)
-                                    <tr>
-                                        <td>{{ $modulo['modulo'] }}</td>
-                                        @foreach($modulo['semanalPorcentajes'] as $porcentajes)
-                                        <td>{{ $porcentajes['aql'] }}</td>
-                                        <td>{{ $porcentajes['proceso'] }}</td>
-                                        @endforeach
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td><strong>Totales</strong></td>
-                                        @foreach($totalesPorCliente[$cliente] as $totales)
-                                        <td>{{ $totales['aql'] }}</td>
-                                        <td>{{ $totales['proceso'] }}</td>
-                                        @endforeach
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-            
-                    <div class="row">
-                        <div class="col-lg-3">
-                            <div class="card mt-4">
-                                <div class="card-header">
-                                    <h5>Resumen por Semana</h5>
-                                </div>
+                
+                        <!-- Subpestañas para las secciones General, Planta 1 y Planta 2 -->
+                        <ul class="nav nav-pills mb-3" id="pills-tab-{{ $loop->index }}" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="general-tab-{{ $loop->index }}" data-toggle="pill" href="#general-{{ $loop->index }}" role="tab" aria-controls="general-{{ $loop->index }}" aria-selected="true">General</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="planta1-tab-{{ $loop->index }}" data-toggle="pill" href="#planta1-{{ $loop->index }}" role="tab" aria-controls="planta1-{{ $loop->index }}" aria-selected="false">Planta 1 - Ixtlahuaca</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="planta2-tab-{{ $loop->index }}" data-toggle="pill" href="#planta2-{{ $loop->index }}" role="tab" aria-controls="planta2-{{ $loop->index }}" aria-selected="false">Planta 2 - San Bartolo</a>
+                            </li>
+                        </ul>
+                
+                        <div class="tab-content" id="pills-tabContent-{{ $loop->index }}">
+                            <!-- Sección General -->
+                            <div class="tab-pane fade show active" id="general-{{ $loop->index }}" role="tabpanel" aria-labelledby="general-tab-{{ $loop->index }}">
                                 <div class="card-body table-responsive">
-                                    <table id="tablaResumenCliente{{ $loop->index }}" class="table tablesorter">
+                                    <!-- Tabla General -->
+                                    <table id="tablaClienteModulo{{ $loop->index }}" class="table tablesorter">
                                         <thead>
                                             <tr>
-                                                <th>Semana</th>
+                                                <th rowspan="2">Módulo</th>
+                                                @foreach($semanas as $semana)
+                                                <th colspan="2" class="text-center">
+                                                    Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})
+                                                </th>
+                                                @endforeach
+                                            </tr>
+                                            <tr>
+                                                @foreach($semanas as $semana)
                                                 <th>% AQL</th>
                                                 <th>% Proceso</th>
+                                                @endforeach
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($semanas as $key => $semana)
+                                            @foreach($modulos as $modulo)
                                             <tr>
-                                                <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
-                                                <td>{{ $totalesPorCliente[$cliente][$key]['aql'] }}</td>
-                                                <td>{{ $totalesPorCliente[$cliente][$key]['proceso'] }}</td>
+                                                <td>{{ $modulo['modulo'] }}</td>
+                                                @foreach($modulo['semanalPorcentajes'] as $porcentajes)
+                                                <td>{{ $porcentajes['aql'] }}</td>
+                                                <td>{{ $porcentajes['proceso'] }}</td>
+                                                @endforeach
                                             </tr>
                                             @endforeach
                                         </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td><strong>Totales</strong></td>
+                                                @foreach($totalesPorCliente[$cliente] as $totales)
+                                                <td>{{ $totales['aql'] }}</td>
+                                                <td>{{ $totales['proceso'] }}</td>
+                                                @endforeach
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-9">
-                            <div class="card">
-                                <div id="graficoCliente_{{ $loop->index }}" style="width:100%; height:500px;"></div>
-                            </div>
-                        </div>
-                    </div>
-            
-                    <!-- NUEVAS SECCIONES -->
-            
-                    <!-- Sección Planta 1 -->
-                    <div class="card mt-5">
-                        <div class="card-header">
-                            <h5>Planta 1 - Ixtlahuaca</h5>
-                        </div>
-                        <div class="card-body table-responsive">
-                            <table id="tablaClienteModuloPlanta1{{ $loop->index }}" class="table tablesorter">
-                                <!-- Tabla con los datos de Planta 1 -->
-                                <thead>
-                                    <tr>
-                                        <th rowspan="2">Módulo</th>
-                                        @foreach($semanas as $semana)
-                                        <th colspan="2" class="text-center">
-                                            Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})
-                                        </th>
-                                        @endforeach
-                                    </tr>
-                                    <tr>
-                                        @foreach($semanas as $semana)
-                                        <th>% AQL</th>
-                                        <th>% Proceso</th>
-                                        @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($modulosPorClientePlanta1[$cliente] as $modulo)
-                                    <tr>
-                                        <td>{{ $modulo['modulo'] }}</td>
-                                        @foreach($modulo['semanalPorcentajes'] as $porcentajes)
-                                        <td>{{ $porcentajes['aql'] }}</td>
-                                        <td>{{ $porcentajes['proceso'] }}</td>
-                                        @endforeach
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td><strong>Totales</strong></td>
-                                        @foreach($totalesPorClientePlanta1[$cliente] as $totales)
-                                        <td>{{ $totales['aql'] }}</td>
-                                        <td>{{ $totales['proceso'] }}</td>
-                                        @endforeach
-                                    </tr>
-                                </tfoot>                                
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-lg-3">
-                            <div class="card mt-4">
-                                <div class="card-header">
-                                    <h5>Resumen por Semana</h5>
+                                <div class="row">
+                                    <div class="col-lg-3">
+                                        <!-- Resumen por Semana Planta 1 -->
+                                        <div class="card mt-4">
+                                            <div class="card-header">
+                                                <h5>Resumen por Semana</h5>
+                                            </div>
+                                            <div class="card-body table-responsive">
+                                                <table id="tablaResumenCliente{{ $loop->index }}" class="table tablesorter">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Semana</th>
+                                                            <th>% AQL</th>
+                                                            <th>% Proceso</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($semanas as $key => $semana)
+                                                        <tr>
+                                                            <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
+                                                            <td>{{ $totalesPorCliente[$cliente][$key]['aql'] }}</td>
+                                                            <td>{{ $totalesPorCliente[$cliente][$key]['proceso'] }}</td>
+                                                        </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="card">
+                                            <div id="graficoCliente_{{ $loop->index }}" style="width:100%; height:500px;"></div>
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
+                
+                            <!-- Sección Planta 1 -->
+                            <div class="tab-pane fade" id="planta1-{{ $loop->index }}" role="tabpanel" aria-labelledby="planta1-tab-{{ $loop->index }}">
                                 <div class="card-body table-responsive">
-                                    <table id="tablaResumenClientePlanta1{{ $loop->index }}" class="table tablesorter">
+                                    <!-- Tabla Planta 1 -->
+                                    <table id="tablaClienteModuloPlanta1{{ $loop->index }}" class="table tablesorter">
                                         <thead>
                                             <tr>
-                                                <th>Semana</th>
+                                                <th rowspan="2">Módulo</th>
+                                                @foreach($semanas as $semana)
+                                                <th colspan="2" class="text-center">
+                                                    Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})
+                                                </th>
+                                                @endforeach
+                                            </tr>
+                                            <tr>
+                                                @foreach($semanas as $semana)
                                                 <th>% AQL</th>
                                                 <th>% Proceso</th>
+                                                @endforeach
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($semanas as $key => $semana)
+                                            @foreach($modulosPorClientePlanta1[$cliente] as $modulo)
                                             <tr>
-                                                <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
-                                                <td>{{ $totalesPorClientePlanta1[$cliente][$key]['aql'] }}</td>
-                                                <td>{{ $totalesPorClientePlanta1[$cliente][$key]['proceso'] }}</td>
+                                                <td>{{ $modulo['modulo'] }}</td>
+                                                @foreach($modulo['semanalPorcentajes'] as $porcentajes)
+                                                <td>{{ $porcentajes['aql'] }}</td>
+                                                <td>{{ $porcentajes['proceso'] }}</td>
+                                                @endforeach
                                             </tr>
                                             @endforeach
                                         </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td><strong>Totales</strong></td>
+                                                @foreach($totalesPorClientePlanta1[$cliente] as $totales)
+                                                <td>{{ $totales['aql'] }}</td>
+                                                <td>{{ $totales['proceso'] }}</td>
+                                                @endforeach
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-9">
-                            <div class="card">
-                                <div id="graficoClientePlanta1_{{ $loop->index }}" style="width:100%; height:500px;"></div>
-                            </div>
-                        </div>
-                    </div>
-            
-                    <!-- Sección Planta 2 -->
-                    <div class="card mt-5">
-                        <div class="card-header">
-                            <h5>Planta 2 - San Bartolo</h5>
-                        </div>
-                        <div class="card-body table-responsive">
-                            <table id="tablaClienteModuloPlanta2{{ $loop->index }}" class="table tablesorter">
-                                <!-- Tabla con los datos de Planta 2 -->
-                                <thead>
-                                    <tr>
-                                        <th rowspan="2">Módulo</th>
-                                        @foreach($semanas as $semana)
-                                        <th colspan="2" class="text-center">
-                                            Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})
-                                        </th>
-                                        @endforeach
-                                    </tr>
-                                    <tr>
-                                        @foreach($semanas as $semana)
-                                        <th>% AQL</th>
-                                        <th>% Proceso</th>
-                                        @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($modulosPorClientePlanta2[$cliente] as $modulo)
-                                    <tr>
-                                        <td>{{ $modulo['modulo'] }}</td>
-                                        @foreach($modulo['semanalPorcentajes'] as $porcentajes)
-                                        <td>{{ $porcentajes['aql'] }}</td>
-                                        <td>{{ $porcentajes['proceso'] }}</td>
-                                        @endforeach
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td><strong>Totales</strong></td>
-                                        @foreach($totalesPorClientePlanta2[$cliente] as $totales)
-                                        <td>{{ $totales['aql'] }}</td>
-                                        <td>{{ $totales['proceso'] }}</td>
-                                        @endforeach
-                                    </tr>
-                                </tfoot>                                
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-lg-3">
-                            <div class="card mt-4">
-                                <div class="card-header">
-                                    <h5>Resumen por Semana</h5>
+                                <div class="row">
+                                    <div class="col-lg-3">
+                                        <!-- Resumen por Semana Planta 1 -->
+                                        <div class="card mt-4">
+                                            <div class="card-header">
+                                                <h5>Resumen por Semana</h5>
+                                            </div>
+                                            <div class="card-body table-responsive">
+                                                <table id="tablaResumenClientePlanta1{{ $loop->index }}" class="table tablesorter">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Semana</th>
+                                                            <th>% AQL</th>
+                                                            <th>% Proceso</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($semanas as $key => $semana)
+                                                        <tr>
+                                                            <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
+                                                            <td>{{ $totalesPorClientePlanta1[$cliente][$key]['aql'] }}</td>
+                                                            <td>{{ $totalesPorClientePlanta1[$cliente][$key]['proceso'] }}</td>
+                                                        </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="card">
+                                            <div id="graficoClientePlanta1_{{ $loop->index }}" style="width:100%; height:500px;"></div>
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
+                
+                            <!-- Sección Planta 2 -->
+                            <div class="tab-pane fade" id="planta2-{{ $loop->index }}" role="tabpanel" aria-labelledby="planta2-tab-{{ $loop->index }}">
                                 <div class="card-body table-responsive">
-                                    <table id="tablaResumenClientePlanta2{{ $loop->index }}" class="table tablesorter">
+                                    <!-- Tabla Planta 2 -->
+                                    <table id="tablaClienteModuloPlanta2{{ $loop->index }}" class="table tablesorter">
                                         <thead>
                                             <tr>
-                                                <th>Semana</th>
+                                                <th rowspan="2">Módulo</th>
+                                                @foreach($semanas as $semana)
+                                                <th colspan="2" class="text-center">
+                                                    Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})
+                                                </th>
+                                                @endforeach
+                                            </tr>
+                                            <tr>
+                                                @foreach($semanas as $semana)
                                                 <th>% AQL</th>
                                                 <th>% Proceso</th>
+                                                @endforeach
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($semanas as $key => $semana)
+                                            @foreach($modulosPorClientePlanta2[$cliente] as $modulo)
                                             <tr>
-                                                <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
-                                                <td>{{ $totalesPorClientePlanta2[$cliente][$key]['aql'] }}</td>
-                                                <td>{{ $totalesPorClientePlanta2[$cliente][$key]['proceso'] }}</td>
+                                                <td>{{ $modulo['modulo'] }}</td>
+                                                @foreach($modulo['semanalPorcentajes'] as $porcentajes)
+                                                <td>{{ $porcentajes['aql'] }}</td>
+                                                <td>{{ $porcentajes['proceso'] }}</td>
+                                                @endforeach
                                             </tr>
                                             @endforeach
                                         </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td><strong>Totales</strong></td>
+                                                @foreach($totalesPorClientePlanta2[$cliente] as $totales)
+                                                <td>{{ $totales['aql'] }}</td>
+                                                <td>{{ $totales['proceso'] }}</td>
+                                                @endforeach
+                                            </tr>
+                                        </tfoot>
                                     </table>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-3">
+                                        <!-- Resumen por Semana Planta 2 -->
+                                        <div class="card mt-4">
+                                            <div class="card-header">
+                                                <h5>Resumen por Semana</h5>
+                                            </div>
+                                            <div class="card-body table-responsive">
+                                                <table id="tablaResumenClientePlanta2{{ $loop->index }}" class="table tablesorter">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Semana</th>
+                                                            <th>% AQL</th>
+                                                            <th>% Proceso</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($semanas as $key => $semana)
+                                                        <tr>
+                                                            <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
+                                                            <td>{{ $totalesPorClientePlanta2[$cliente][$key]['aql'] }}</td>
+                                                            <td>{{ $totalesPorClientePlanta2[$cliente][$key]['proceso'] }}</td>
+                                                        </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="card">
+                                            <div id="graficoClientePlanta2_{{ $loop->index }}" style="width:100%; height:500px;"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-9">
-                            <div class="card">
-                                <div id="graficoClientePlanta2_{{ $loop->index }}" style="width:100%; height:500px;"></div>
-                            </div>
-                        </div>
                     </div>
-
-
-                </div>
+                </div>                
                 @endforeach
             </div>            
         </div>
