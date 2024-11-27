@@ -45,12 +45,12 @@
                                     <h4>Cliente: {{ $cliente }}</h4>
                                 </div>
                                 <div class="card-body table-responsive">
-                                    <table class="table tablesorter">
+                                    <table id="tablaClienteModulo{{ $loop->index }}" class="table tablesorter">
                                         <thead>
                                             <tr>
                                                 <th rowspan="2">Módulo</th>
                                                 @foreach($semanas as $semana)
-                                                    <th colspan="1">
+                                                    <th colspan="2" class="text-center">
                                                         Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})
                                                     </th>
                                                 @endforeach
@@ -58,6 +58,7 @@
                                             <tr>
                                                 @foreach($semanas as $semana)
                                                     <th>% Proceso</th>
+                                                    <th>% AQL</th>
                                                 @endforeach
                                             </tr>
                                         </thead>
@@ -65,8 +66,9 @@
                                             @foreach($modulos as $modulo)
                                                 <tr>
                                                     <td>{{ $modulo['modulo'] }}</td>
-                                                    @foreach($modulo['porcentajes'] as $porcentaje)
-                                                        <td>{{ $porcentaje }}%</td>
+                                                    @foreach($modulo['semanalPorcentajes'] as $porcentajes)
+                                                        <td>{{ $porcentajes['proceso'] }}</td>
+                                                        <td>{{ $porcentajes['aql'] }}</td>
                                                     @endforeach
                                                 </tr>
                                             @endforeach
@@ -82,11 +84,8 @@
                             </div>
                         </div>
                     @endforeach
-                </div>
-                
-                
+                </div>                
             </div>
-
         </div>
     </div>
 
@@ -126,7 +125,7 @@
 
             // Inicializa DataTables en cada tabla de defectos por cliente-Modulo
             @foreach($modulosPorCliente as $index => $data)
-                $('#tablaDefectosClienteModulo_{{ $loop->index }}').DataTable({
+                $('#tablaClienteModulo{{ $loop->index }}').DataTable({
                     destroy: true,          // Evita el error de reinitialización
                     paging: true,
                     searching: true,

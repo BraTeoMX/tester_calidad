@@ -720,10 +720,10 @@ class DashboardPlanta1PorDiaController extends Controller
                     return $query->where('tiempo_extra', $tiempoExtra);
                 })
                 ->where('cantidad_rechazada', '>', 0)
-                ->distinct()
-                ->pluck('pieza')
-                ->implode(', ');
+                ->sum('pieza'); // Cambia pluck y implode por sum para obtener el total
 
+            // Si no encuentra datos, retorna 'N/A'
+            $piezasRechazadasUnicas = $piezasRechazadasUnicas > 0 ? $piezasRechazadasUnicas : 'N/A';
             //
             // Consultar detalles para cada módulo y estilo
             $detalles = AuditoriaAQL::where('modulo', $modulo)
