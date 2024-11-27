@@ -136,7 +136,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             $totalesPorCliente[$cliente] = $totalesSemanasCliente;
         }
 
-        return view('dashboarComparativaModulo.planta1PorSemana', compact('fechaInicio', 'fechaFin', 'modulosPorCliente', 'semanas', 'totalesPorCliente'));
+        return view('dashboarComparativaModulo.planta1PorSemanaComparativa', compact('fechaInicio', 'fechaFin', 'modulosPorCliente', 'semanas', 'totalesPorCliente'));
     }
 
 

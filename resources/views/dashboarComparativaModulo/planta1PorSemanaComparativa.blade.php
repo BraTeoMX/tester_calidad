@@ -248,7 +248,7 @@
                         title: {
                             text: "Porcentaje (%)",
                             style: {
-                                fontFamily: 'Arial' // Tipografía Arial para el eje Y
+                                fontFamily: 'Arial' // Tipografía Arial para el eje Y 
                             }
                         },
                         min: 0,
