@@ -343,6 +343,21 @@
     <script>
         $(document).ready(function () {
 
+            $.fn.dataTable.ext.type.order['custom-num-pre'] = function(a) {
+                // Si es "N/A", devolver un valor que lo coloque al final
+                if (a === "N/A") return -Infinity;
+                
+                // Convertir a número flotante
+                var x = parseFloat(a);
+                
+                // Si no es un número válido, devolver -Infinity
+                return isNaN(x) ? -Infinity : x;
+            };
+
+            $.fn.dataTable.ext.type.order['custom-num-desc'] = function(a, b) {
+                return b - a;
+            };
+
             // Inicializa DataTables en cada tabla de defectos por cliente-Modulo
             @foreach($modulosPorCliente as $index => $data)
                 $('#tablaClienteModulo{{ $loop->index }}').DataTable({
@@ -351,7 +366,22 @@
                     searching: true,
                     ordering: true,
                     lengthChange: false,    // Fija la cantidad de elementos a 10 por página
-                    pageLength: 10          // Número de registros por página
+                    pageLength: 10,         // Número de registros por página
+                    // Configurar columnas específicas para el ordenamiento
+                    columnDefs: [
+                        {
+                            targets: 0,      // La primera columna (índice 0)
+                            type: "string"   // Tratarla como texto (caracteres)
+                        },
+                        {
+                            targets: "_all", // Todas las demás columnas numéricas
+                            type: "custom-num",  // Usar tipo personalizado
+                            render: function(data, type, row) {
+                                // Esto ayuda a manejar la presentación de "N/A"
+                                return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+                            }
+                        }
+                    ]
                 });
 
                 $('#tablaClienteModuloPlanta1{{ $loop->index }}').DataTable({
@@ -360,7 +390,22 @@
                     searching: true,
                     ordering: true,
                     lengthChange: false,    // Fija la cantidad de elementos a 10 por página
-                    pageLength: 10          // Número de registros por página
+                    pageLength: 10,         // Número de registros por página
+                    // Configurar columnas específicas para el ordenamiento
+                    columnDefs: [
+                        {
+                            targets: 0,      // La primera columna (índice 0)
+                            type: "string"   // Tratarla como texto (caracteres)
+                        },
+                        {
+                            targets: "_all", // Todas las demás columnas numéricas
+                            type: "custom-num",  // Usar tipo personalizado
+                            render: function(data, type, row) {
+                                // Esto ayuda a manejar la presentación de "N/A"
+                                return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+                            }
+                        }
+                    ]
                 });
 
                 $('#tablaClienteModuloPlanta2{{ $loop->index }}').DataTable({
@@ -369,7 +414,22 @@
                     searching: true,
                     ordering: true,
                     lengthChange: false,    // Fija la cantidad de elementos a 10 por página
-                    pageLength: 10          // Número de registros por página
+                    pageLength: 10,         // Número de registros por página
+                    // Configurar columnas específicas para el ordenamiento
+                    columnDefs: [
+                        {
+                            targets: 0,      // La primera columna (índice 0)
+                            type: "string"   // Tratarla como texto (caracteres)
+                        },
+                        {
+                            targets: "_all", // Todas las demás columnas numéricas
+                            type: "custom-num",  // Usar tipo personalizado
+                            render: function(data, type, row) {
+                                // Esto ayuda a manejar la presentación de "N/A"
+                                return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+                            }
+                        }
+                    ]
                 });
             @endforeach
         });
@@ -385,6 +445,21 @@
                     ordering: true,         // Habilita ordenamiento
                     lengthChange: false,    // Fija la cantidad de elementos visibles
                     pageLength: 5,
+                    // Configurar columnas específicas para el ordenamiento
+                    columnDefs: [
+                        {
+                            targets: 0,      // La primera columna (índice 0)
+                            type: "string"   // Tratarla como texto (caracteres)
+                        },
+                        {
+                            targets: "_all", // Todas las demás columnas numéricas
+                            type: "custom-num",  // Usar tipo personalizado
+                            render: function(data, type, row) {
+                                // Esto ayuda a manejar la presentación de "N/A"
+                                return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+                            }
+                        }
+                    ]
                 });
 
                 $('#tablaResumenClientePlanta1{{ $loop->index }}').DataTable({
@@ -394,6 +469,21 @@
                     ordering: true,         // Habilita ordenamiento
                     lengthChange: false,    // Fija la cantidad de elementos visibles
                     pageLength: 5,
+                    // Configurar columnas específicas para el ordenamiento
+                    columnDefs: [
+                        {
+                            targets: 0,      // La primera columna (índice 0)
+                            type: "string"   // Tratarla como texto (caracteres)
+                        },
+                        {
+                            targets: "_all", // Todas las demás columnas numéricas
+                            type: "custom-num",  // Usar tipo personalizado
+                            render: function(data, type, row) {
+                                // Esto ayuda a manejar la presentación de "N/A"
+                                return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+                            }
+                        }
+                    ]
                 });
 
                 $('#tablaResumenClientePlanta2{{ $loop->index }}').DataTable({
@@ -403,6 +493,21 @@
                     ordering: true,         // Habilita ordenamiento
                     lengthChange: false,    // Fija la cantidad de elementos visibles
                     pageLength: 5,
+                    // Configurar columnas específicas para el ordenamiento
+                    columnDefs: [
+                        {
+                            targets: 0,      // La primera columna (índice 0)
+                            type: "string"   // Tratarla como texto (caracteres)
+                        },
+                        {
+                            targets: "_all", // Todas las demás columnas numéricas
+                            type: "custom-num",  // Usar tipo personalizado
+                            render: function(data, type, row) {
+                                // Esto ayuda a manejar la presentación de "N/A"
+                                return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+                            }
+                        }
+                    ]
                 });
             @endforeach
         });
