@@ -250,27 +250,36 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             $semanalPorcentajes = [];
 
             foreach ($semanas as $key => $semana) {
-                // Clonar las consultas para evitar modificar las originales
-                $queryCalidad = clone $queryCalidadBase;
-                $queryAQL = clone $queryAQLBase;
-
-                // Datos para AseguramientoCalidad
-                $cantidadAuditada = $queryCalidad->where('modulo', $modulo)
+                // Crear consultas independientes para evitar problemas de acumulación
+                $cantidadAuditada = AseguramientoCalidad::where('cliente', $cliente)
+                    ->where('estilo', $estilo)
+                    ->where('modulo', $modulo)
                     ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
                     ->sum('cantidad_auditada');
 
-                $cantidadRechazada = $queryCalidad->where('modulo', $modulo)
+                $cantidadRechazada = AseguramientoCalidad::where('cliente', $cliente)
+                    ->where('estilo', $estilo)
+                    ->where('modulo', $modulo)
                     ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
                     ->sum('cantidad_rechazada');
 
-                // Datos para AuditoriaAQL
-                $cantidadAuditadaAQL = $queryAQL->where('modulo', $modulo)
+                // Auditoría AQL
+                $cantidadAuditadaAQL = AuditoriaAQL::where('cliente', $cliente)
+                    ->where('estilo', $estilo)
+                    ->where('modulo', $modulo)
                     ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
                     ->sum('cantidad_auditada');
 
-                $cantidadRechazadaAQL = $queryAQL->where('modulo', $modulo)
+                $cantidadRechazadaAQL = AuditoriaAQL::where('cliente', $cliente)
+                    ->where('estilo', $estilo)
+                    ->where('modulo', $modulo)
                     ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
                     ->sum('cantidad_rechazada');
+
+                // Validar acumulación correcta
+                if ($cantidadAuditada < 0 || $cantidadRechazada < 0) {
+                    throw new \Exception("Valores negativos detectados en módulo $modulo para semana $key");
+                }
 
                 // Cálculo de porcentajes
                 $porcentajeProceso = ($cantidadAuditada > 0) ? round(($cantidadRechazada / $cantidadAuditada) * 100, 3) : 'N/A';
@@ -281,20 +290,18 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                     'aql' => $porcentajeAQL,
                 ];
 
-                // Acumular totales para cada semana
+                // Acumular totales por semana
                 $totalesSemanas[$key]['auditadas_proceso'] += $cantidadAuditada;
                 $totalesSemanas[$key]['rechazadas_proceso'] += $cantidadRechazada;
                 $totalesSemanas[$key]['auditadas_aql'] += $cantidadAuditadaAQL;
                 $totalesSemanas[$key]['rechazadas_aql'] += $cantidadRechazadaAQL;
             }
 
-            // Solo añadir módulos si tienen al menos un dato válido
-            if (array_filter($semanalPorcentajes, fn($data) => $data['proceso'] !== 'N/A' || $data['aql'] !== 'N/A')) {
-                $modulos[] = [
-                    'modulo' => $modulo,
-                    'semanalPorcentajes' => $semanalPorcentajes,
-                ];
-            }
+            // Añadir el módulo con sus porcentajes semanales
+            $modulos[] = [
+                'modulo' => $modulo,
+                'semanalPorcentajes' => $semanalPorcentajes,
+            ];
         }
 
         foreach ($totalesSemanas as $key => $totales) {
@@ -309,6 +316,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
         return [$modulos, $totalesSemanas];
     }
+
 
 
 }
