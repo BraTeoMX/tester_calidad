@@ -1146,6 +1146,14 @@
 
     <script>
         $(document).ready(function() {
+            // Definir un tipo personalizado de ordenamiento para manejar "N/A"
+            $.fn.dataTable.ext.type.order['custom-num'] = function(a, b) {
+                // Manejar "N/A" como el valor más bajo
+                if (a === "N/A" || a === "") return -Infinity;
+                if (b === "N/A" || b === "") return -Infinity;
+                return parseFloat(a) - parseFloat(b); // Comparación numérica normal
+            };
+
             // Función para obtener el título desde el elemento <h3> anterior a cada tabla
             function obtenerTituloTabla(tableId) {
                 return $(tableId).closest('.card').find('.card-title').text().trim();
@@ -1153,14 +1161,12 @@
 
             // Obtener el valor de la fecha de inicio del input en formato YYYY-MM-DD
             const fechaInicioInput = document.getElementById('fecha_inicio').value;
-
-            // Convertir el valor al formato DD-MM-YYYY
             const fechaInicio = fechaInicioInput.split('-').reverse().join('-'); // Transforma a DD-MM-YYYY
 
             // IDs de las tablas
             const tableIds = [
                 '#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaAQLGeneralTE', '#tablaProcesoGeneralTE',
-                '#tablaAQLGeneralNuevo', '#tablaProcesoGeneralNuevo', '#tablaAQLGeneralTENuevo', '#tablaProcesoGeneralTENuevo'
+                '#tablaAQLGeneralNuevo', '#tablaAQLGeneralTENuevo'
             ];
 
             tableIds.forEach(tableId => {
@@ -1211,7 +1217,120 @@
                             if ($('body').hasClass('dark-mode')) {
                                 $(tableId + '_wrapper').addClass('dark-mode');
                             }
-                        }
+                        },
+                        columnDefs: [
+                            {
+                                targets: [0, 1, 2, 15, 16, 17], // Columnas específicas como numéricas
+                                type: "string",
+                                render: function (data) {
+                                    return typeof data === "string" ? data.trim() : data;
+                                }
+                            },
+                            {
+                                targets: "_all", // Resto de columnas con valores personalizados
+                                type: "custom-num",
+                                render: function(data, type, row) {
+                                    // Manejar "N/A" en la presentación y ordenamiento
+                                    return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+                                }
+                            }
+                        ]
+                    });
+                }
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            // Definir un tipo personalizado de ordenamiento para manejar "N/A"
+            $.fn.dataTable.ext.type.order['custom-num'] = function(a, b) {
+                // Manejar "N/A" como el valor más bajo
+                if (a === "N/A" || a === "") return -Infinity;
+                if (b === "N/A" || b === "") return -Infinity;
+                return parseFloat(a) - parseFloat(b); // Comparación numérica normal
+            };
+
+            // Función para obtener el título desde el elemento <h3> anterior a cada tabla
+            function obtenerTituloTabla(tableId) {
+                return $(tableId).closest('.card').find('.card-title').text().trim();
+            }
+
+            // Obtener el valor de la fecha de inicio del input en formato YYYY-MM-DD
+            const fechaInicioInput = document.getElementById('fecha_inicio').value;
+            const fechaInicio = fechaInicioInput.split('-').reverse().join('-'); // Transforma a DD-MM-YYYY
+
+            // IDs de las tablas
+            const tableIds = [
+                '#tablaProcesoGeneralNuevo', '#tablaProcesoGeneralTENuevo'
+            ];
+
+            tableIds.forEach(tableId => {
+                if (!$.fn.dataTable.isDataTable(tableId)) {
+                    const tituloTabla = obtenerTituloTabla(tableId); // Obtiene el título para cada tabla
+
+                    $(tableId).DataTable({
+                        lengthChange: false,
+                        searching: true,
+                        paging: false,
+                        autoWidth: false,
+                        responsive: true,
+                        dom: 'Bfrtip',
+                        order: [[1, 'asc']],
+                        buttons: [
+                            {
+                                extend: 'excelHtml5',
+                                text: 'Exportar a Excel',
+                                className: 'btn btn-success',
+                                title: tituloTabla, // Título de la tabla como título del archivo Excel
+                                messageTop: `Fecha: ${fechaInicio}`, // Segunda fila con la fecha de inicio
+                                exportOptions: {
+                                    format: {
+                                        header: function(data, columnIndex) {
+                                            return data; // Mantiene los nombres de columnas como están
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        language: {
+                            "sProcessing": "Procesando...",
+                            "sLengthMenu": "Mostrar _MENU_ registros",
+                            "sZeroRecords": "No se encontraron resultados",
+                            "sEmptyTable": "Ningún dato disponible en esta tabla",
+                            "sInfo": "Registros _START_ - _END_ de _TOTAL_ mostrados",
+                            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                            "sSearch": "Buscar:",
+                            "oPaginate": {
+                                "sFirst": "Primero",
+                                "sLast": "Último",
+                                "sNext": "Siguiente",
+                                "sPrevious": "Anterior"
+                            }
+                        },
+                        initComplete: function(settings, json) {
+                            if ($('body').hasClass('dark-mode')) {
+                                $(tableId + '_wrapper').addClass('dark-mode');
+                            }
+                        },
+                        columnDefs: [
+                            {
+                                targets: [0, 1, 2, 14, 15, 16], // Columnas específicas como numéricas
+                                type: "string",
+                                render: function (data) {
+                                    return typeof data === "string" ? data.trim() : data;
+                                }
+                            },
+                            {
+                                targets: "_all", // Resto de columnas con valores personalizados
+                                type: "custom-num",
+                                render: function(data, type, row) {
+                                    // Manejar "N/A" en la presentación y ordenamiento
+                                    return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+                                }
+                            }
+                        ]
                     });
                 }
             });

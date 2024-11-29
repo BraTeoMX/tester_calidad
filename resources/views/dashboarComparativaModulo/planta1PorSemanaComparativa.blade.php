@@ -73,7 +73,43 @@
                         <div class="tab-content" id="pills-tabContent-{{ $loop->index }}">
                             <!-- Sección General -->
                             <div class="tab-pane fade show active" id="general-{{ $loop->index }}" role="tabpanel" aria-labelledby="general-tab-{{ $loop->index }}">
-                                <div class="card-body table-responsive">
+                                <div class="row">
+                                    <div class="col-lg-3">
+                                        <!-- Resumen por Semana General -->
+                                        <div class="card mt-4">
+                                            <div class="card-header">
+                                                <h5>Resumen por Semana</h5>
+                                            </div>
+                                            <div class="card-body table-responsive" style="background-color: #2c2c2c; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
+                                                <table id="tablaResumenCliente{{ $loop->index }}" class="table tablesorter">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Semana</th>
+                                                            <th>% AQL</th>
+                                                            <th>% Proceso</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($semanas as $key => $semana)
+                                                        <tr>
+                                                            <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
+                                                            <td>{{ $totalesPorCliente[$cliente][$key]['aql'] }}</td>
+                                                            <td>{{ $totalesPorCliente[$cliente][$key]['proceso'] }}</td>
+                                                        </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="card">
+                                            <div id="graficoCliente_{{ $loop->index }}" style="width:100%; height:500px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-body table-responsive" style="background-color: #2c2c2c; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
                                     <!-- Tabla General -->
                                     <table id="tablaClienteModulo{{ $loop->index }}" class="table tablesorter">
                                         <thead>
@@ -114,6 +150,11 @@
                                         </tfoot>
                                     </table>
                                 </div>
+                                
+                            </div>
+                
+                            <!-- Sección Planta 1 -->
+                            <div class="tab-pane fade" id="planta1-{{ $loop->index }}" role="tabpanel" aria-labelledby="planta1-tab-{{ $loop->index }}">
                                 <div class="row">
                                     <div class="col-lg-3">
                                         <!-- Resumen por Semana Planta 1 -->
@@ -121,8 +162,8 @@
                                             <div class="card-header">
                                                 <h5>Resumen por Semana</h5>
                                             </div>
-                                            <div class="card-body table-responsive">
-                                                <table id="tablaResumenCliente{{ $loop->index }}" class="table tablesorter">
+                                            <div class="card-body table-responsive" style="background-color: #2c2c2c; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
+                                                <table id="tablaResumenClientePlanta1{{ $loop->index }}" class="table tablesorter">
                                                     <thead>
                                                         <tr>
                                                             <th>Semana</th>
@@ -134,8 +175,8 @@
                                                         @foreach($semanas as $key => $semana)
                                                         <tr>
                                                             <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
-                                                            <td>{{ $totalesPorCliente[$cliente][$key]['aql'] }}</td>
-                                                            <td>{{ $totalesPorCliente[$cliente][$key]['proceso'] }}</td>
+                                                            <td>{{ $totalesPorClientePlanta1[$cliente][$key]['aql'] }}</td>
+                                                            <td>{{ $totalesPorClientePlanta1[$cliente][$key]['proceso'] }}</td>
                                                         </tr>
                                                         @endforeach
                                                     </tbody>
@@ -145,15 +186,11 @@
                                     </div>
                                     <div class="col-lg-9">
                                         <div class="card">
-                                            <div id="graficoCliente_{{ $loop->index }}" style="width:100%; height:500px;"></div>
+                                            <div id="graficoClientePlanta1_{{ $loop->index }}" style="width:100%; height:500px;"></div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                
-                            <!-- Sección Planta 1 -->
-                            <div class="tab-pane fade" id="planta1-{{ $loop->index }}" role="tabpanel" aria-labelledby="planta1-tab-{{ $loop->index }}">
-                                <div class="card-body table-responsive">
+                                <div class="card-body table-responsive" style="background-color: #2c2c2c; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
                                     <!-- Tabla Planta 1 -->
                                     <table id="tablaClienteModuloPlanta1{{ $loop->index }}" class="table tablesorter">
                                         <thead>
@@ -194,15 +231,20 @@
                                         </tfoot>
                                     </table>
                                 </div>
+                                
+                            </div>
+                
+                            <!-- Sección Planta 2 -->
+                            <div class="tab-pane fade" id="planta2-{{ $loop->index }}" role="tabpanel" aria-labelledby="planta2-tab-{{ $loop->index }}">
                                 <div class="row">
                                     <div class="col-lg-3">
-                                        <!-- Resumen por Semana Planta 1 -->
+                                        <!-- Resumen por Semana Planta 2 -->
                                         <div class="card mt-4">
                                             <div class="card-header">
                                                 <h5>Resumen por Semana</h5>
                                             </div>
-                                            <div class="card-body table-responsive">
-                                                <table id="tablaResumenClientePlanta1{{ $loop->index }}" class="table tablesorter">
+                                            <div class="card-body table-responsive" style="background-color: #2c2c2c; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
+                                                <table id="tablaResumenClientePlanta2{{ $loop->index }}" class="table tablesorter">
                                                     <thead>
                                                         <tr>
                                                             <th>Semana</th>
@@ -214,8 +256,8 @@
                                                         @foreach($semanas as $key => $semana)
                                                         <tr>
                                                             <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
-                                                            <td>{{ $totalesPorClientePlanta1[$cliente][$key]['aql'] }}</td>
-                                                            <td>{{ $totalesPorClientePlanta1[$cliente][$key]['proceso'] }}</td>
+                                                            <td>{{ $totalesPorClientePlanta2[$cliente][$key]['aql'] }}</td>
+                                                            <td>{{ $totalesPorClientePlanta2[$cliente][$key]['proceso'] }}</td>
                                                         </tr>
                                                         @endforeach
                                                     </tbody>
@@ -225,15 +267,11 @@
                                     </div>
                                     <div class="col-lg-9">
                                         <div class="card">
-                                            <div id="graficoClientePlanta1_{{ $loop->index }}" style="width:100%; height:500px;"></div>
+                                            <div id="graficoClientePlanta2_{{ $loop->index }}" style="width:100%; height:500px;"></div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                
-                            <!-- Sección Planta 2 -->
-                            <div class="tab-pane fade" id="planta2-{{ $loop->index }}" role="tabpanel" aria-labelledby="planta2-tab-{{ $loop->index }}">
-                                <div class="card-body table-responsive">
+                                <div class="card-body table-responsive" style="background-color: #2c2c2c; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
                                     <!-- Tabla Planta 2 -->
                                     <table id="tablaClienteModuloPlanta2{{ $loop->index }}" class="table tablesorter">
                                         <thead>
@@ -273,41 +311,6 @@
                                             </tr>
                                         </tfoot>
                                     </table>
-                                </div>
-                                <div class="row">
-                                    <div class="col-lg-3">
-                                        <!-- Resumen por Semana Planta 2 -->
-                                        <div class="card mt-4">
-                                            <div class="card-header">
-                                                <h5>Resumen por Semana</h5>
-                                            </div>
-                                            <div class="card-body table-responsive">
-                                                <table id="tablaResumenClientePlanta2{{ $loop->index }}" class="table tablesorter">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Semana</th>
-                                                            <th>% AQL</th>
-                                                            <th>% Proceso</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach($semanas as $key => $semana)
-                                                        <tr>
-                                                            <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
-                                                            <td>{{ $totalesPorClientePlanta2[$cliente][$key]['aql'] }}</td>
-                                                            <td>{{ $totalesPorClientePlanta2[$cliente][$key]['proceso'] }}</td>
-                                                        </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-9">
-                                        <div class="card">
-                                            <div id="graficoClientePlanta2_{{ $loop->index }}" style="width:100%; height:500px;"></div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -362,6 +365,7 @@
             @foreach($modulosPorCliente as $index => $data)
                 $('#tablaClienteModulo{{ $loop->index }}').DataTable({
                     destroy: true,          // Evita el error de reinitialización
+                    responsive: true, // Habilita la respuesta
                     paging: true,
                     searching: true,
                     ordering: true,
@@ -386,6 +390,7 @@
 
                 $('#tablaClienteModuloPlanta1{{ $loop->index }}').DataTable({
                     destroy: true,          // Evita el error de reinitialización
+                    responsive: true, // Habilita la respuesta
                     paging: true,
                     searching: true,
                     ordering: true,
@@ -410,6 +415,7 @@
 
                 $('#tablaClienteModuloPlanta2{{ $loop->index }}').DataTable({
                     destroy: true,          // Evita el error de reinitialización
+                    responsive: true, // Habilita la respuesta
                     paging: true,
                     searching: true,
                     ordering: true,
