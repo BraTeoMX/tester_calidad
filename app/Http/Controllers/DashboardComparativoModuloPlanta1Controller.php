@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\DB; // Importa la clase DB
+use App\Models\ClienteProcentaje;
 
 
 class DashboardComparativoModuloPlanta1Controller extends Controller
@@ -57,6 +58,10 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             ->get()
             ->pluck('cliente')
             ->sort();
+        //
+        // Traer datos de ClienteProcentaje solo para los clientes encontrados
+        $clientesProcentaje = ClienteProcentaje::whereIn('nombre', $clientesUnicos)->get()->keyBy('nombre');
+
 
         // Inicializar arreglos para almacenar los datos
         $modulosPorCliente = [];
@@ -65,8 +70,12 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
         $totalesPorClienteYEstilo = [];
         $modulosPorClientePlanta1 = [];
         $totalesPorClientePlanta1 = [];
+        $modulosPorClienteYEstiloPlanta1 = [];
+        $totalesPorClienteYEstiloPlanta1 = [];
         $modulosPorClientePlanta2 = [];
         $totalesPorClientePlanta2 = [];
+        $modulosPorClienteYEstiloPlanta2 = [];
+        $totalesPorClienteYEstiloPlanta2 = [];
 
         // Obtener datos para cada cliente
         foreach ($clientesUnicos as $cliente) {
@@ -85,6 +94,14 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                 // Datos específicos por cliente y estilo
                 [$modulosPorClienteYEstilo[$cliente][$estilo], $totalesPorClienteYEstilo[$cliente][$estilo]] =
                     $this->getDatosPorClienteYEstilo($cliente, $estilo, $fechaInicio, $fechaFin, $semanas);
+
+                //
+                [$modulosPorClienteYEstiloPlanta1[$cliente][$estilo], $totalesPorClienteYEstiloPlanta1[$cliente][$estilo]] =
+                    $this->getDatosPorClienteYEstilo($cliente, $estilo, $fechaInicio, $fechaFin, $semanas, 'Intimark1');
+                
+                //
+                [$modulosPorClienteYEstiloPlanta2[$cliente][$estilo], $totalesPorClienteYEstiloPlanta2[$cliente][$estilo]] =
+                    $this->getDatosPorClienteYEstilo($cliente, $estilo, $fechaInicio, $fechaFin, $semanas, 'Intimark2');
             }
 
             // Datos Planta 1 - Ixtlahuaca
@@ -103,8 +120,12 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             'totalesPorClienteYEstilo',
             'modulosPorClientePlanta1',
             'totalesPorClientePlanta1',
+            'modulosPorClienteYEstiloPlanta1',
+            'totalesPorClienteYEstiloPlanta1',
             'modulosPorClientePlanta2',
             'totalesPorClientePlanta2',
+            'modulosPorClienteYEstiloPlanta2',
+            'totalesPorClienteYEstiloPlanta2',
             'semanas'
         ));
     }

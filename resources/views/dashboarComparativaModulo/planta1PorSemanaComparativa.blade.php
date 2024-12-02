@@ -285,6 +285,60 @@
                                         </tfoot>
                                     </table>
                                 </div>
+
+                                <!-- Datos por Estilos Planta 1 -->
+                                @isset($modulosPorClienteYEstiloPlanta1[$cliente])
+                                <div class="mt-4">
+                                    <h5>Desglose por Estilos</h5>
+                                    @foreach($modulosPorClienteYEstiloPlanta1[$cliente] as $estilo => $modulosEstilo)
+                                        <div class="card mt-3">
+                                            <div class="card-header">
+                                                <h6>Estilo: {{ $estilo }}</h6>
+                                            </div>
+                                            <div class="card-body table-responsive" style="background-color: #2c2c2c; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
+                                                <table class="table tablesorter">
+                                                    <thead>
+                                                        <tr>
+                                                            <th rowspan="2">Módulo</th>
+                                                            @foreach($semanas as $semana)
+                                                            <th colspan="2" class="text-center">
+                                                                Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})
+                                                            </th>
+                                                            @endforeach
+                                                        </tr>
+                                                        <tr>
+                                                            @foreach($semanas as $semana)
+                                                            <th>% AQL</th>
+                                                            <th>% Proceso</th>
+                                                            @endforeach
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($modulosEstilo as $modulo)
+                                                        <tr>
+                                                            <td>{{ $modulo['modulo'] }}</td>
+                                                            @foreach($modulo['semanalPorcentajes'] as $porcentajes)
+                                                            <td>{{ $porcentajes['aql'] }}</td>
+                                                            <td>{{ $porcentajes['proceso'] }}</td>
+                                                            @endforeach
+                                                        </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td><strong>Totales</strong></td>
+                                                            @foreach($totalesPorClienteYEstiloPlanta1[$cliente][$estilo] as $totales)
+                                                            <td>{{ $totales['aql'] }}</td>
+                                                            <td>{{ $totales['proceso'] }}</td>
+                                                            @endforeach
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @endisset
                                 
                             </div>
                 
@@ -366,6 +420,60 @@
                                         </tfoot>
                                     </table>
                                 </div>
+
+                                <!-- Datos por Estilos Planta 1 -->
+                                @isset($modulosPorClienteYEstiloPlanta2[$cliente])
+                                <div class="mt-4">
+                                    <h5>Desglose por Estilos</h5>
+                                    @foreach($modulosPorClienteYEstiloPlanta2[$cliente] as $estilo => $modulosEstilo)
+                                        <div class="card mt-3">
+                                            <div class="card-header">
+                                                <h6>Estilo: {{ $estilo }}</h6>
+                                            </div>
+                                            <div class="card-body table-responsive" style="background-color: #2c2c2c; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
+                                                <table class="table tablesorter">
+                                                    <thead>
+                                                        <tr>
+                                                            <th rowspan="2">Módulo</th>
+                                                            @foreach($semanas as $semana)
+                                                            <th colspan="2" class="text-center">
+                                                                Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})
+                                                            </th>
+                                                            @endforeach
+                                                        </tr>
+                                                        <tr>
+                                                            @foreach($semanas as $semana)
+                                                            <th>% AQL</th>
+                                                            <th>% Proceso</th>
+                                                            @endforeach
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($modulosEstilo as $modulo)
+                                                        <tr>
+                                                            <td>{{ $modulo['modulo'] }}</td>
+                                                            @foreach($modulo['semanalPorcentajes'] as $porcentajes)
+                                                            <td>{{ $porcentajes['aql'] }}</td>
+                                                            <td>{{ $porcentajes['proceso'] }}</td>
+                                                            @endforeach
+                                                        </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td><strong>Totales</strong></td>
+                                                            @foreach($totalesPorClienteYEstiloPlanta2[$cliente][$estilo] as $totales)
+                                                            <td>{{ $totales['aql'] }}</td>
+                                                            <td>{{ $totales['proceso'] }}</td>
+                                                            @endforeach
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @endisset
                             </div>
                         </div>
                     </div>
