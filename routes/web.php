@@ -303,6 +303,8 @@ Route::post('/altaYbaja/defecto-empaque', [AltaYBajaController::class, 'crearDef
 Route::post('/altaYbaja/gestion-utility', [AltaYBajaController::class, 'crearUtility'])->name('crearUtility');
 Route::post('/altaYbaja/gestion-responsable', [AltaYBajaController::class, 'crearResponsable'])->name('crearResponsable');
 Route::post('/altaYbaja/gestion-tecnico', [AltaYBajaController::class, 'crearTecnico'])->name('crearTecnico');
+Route::post('/actualizarClientesPorcentajes', [AltaYBajaController::class, 'actualizarClientesPorcentajes'])->name('actualizarClientesPorcentajes');
+
 //Segundas
 Route::get('/SegundasTerceras',[HomeController::class, 'SegundasTerceras']);
 Route::get('/Segundas', [Segundas::class, 'Segundas']);

@@ -5,6 +5,8 @@ use App\Models\CategoriaTipoProblema;
 use App\Models\CategoriaUtility;
 use App\Models\CategoriaTeamLeader;
 use App\Models\CategoriaTecnico;
+use App\Models\ClienteProcentaje;
+use App\Models\AseguramientoCalidad;
 use Illuminate\Http\Request; 
 
 class AltaYBajaController extends Controller
@@ -18,8 +20,25 @@ class AltaYBajaController extends Controller
         $categoriaUtility = CategoriaUtility::all();
         $categoriaResponsable = CategoriaTeamLeader::all();
         $categoriaTecnico = CategoriaTecnico::all();
+        // Obtener clientes únicos de AseguramientoCalidad
+        $clientesUnicos = AseguramientoCalidad::select('cliente')
+            ->distinct()
+            ->get()
+            ->pluck('cliente')
+            ->sort();
+
+        // Insertar nombres únicos en ClienteProcentaje si no existen
+        foreach ($clientesUnicos as $cliente) {
+            ClienteProcentaje::firstOrCreate(
+                ['nombre' => $cliente] // Condición para evitar duplicados, solo basada en "nombre"
+            );
+        }
+
+        // Consultar todos los registros de ClienteProcentaje para la vista
+        $clientesPorcentajes = ClienteProcentaje::all();
+
         return view('altaYbaja', compact('pageSlug', 'categoriaTipoProblemaProceso', 'categoriaTipoProblemaPlayera', 'categoriaTipoProblemaEmpaque',
-                'categoriaUtility', 'categoriaResponsable', 'categoriaTecnico'));
+                'categoriaUtility', 'categoriaResponsable', 'categoriaTecnico', 'clientesPorcentajes'));
     }
 
     public function crearDefectoProceso(Request $request)
@@ -300,6 +319,22 @@ class AltaYBajaController extends Controller
         $categoriaUtility->save();
 
         return redirect()->route('altaYbaja')->with('success', 'Tecnico de Corte creado correctamente');
+    }
+
+    public function actualizarClientesPorcentajes(Request $request)
+    {
+        // Iterar sobre los valores enviados para aql y proceso
+        foreach ($request->aql as $id => $aqlValue) {
+            $cliente = ClienteProcentaje::find($id);
+            if ($cliente) {
+                $cliente->aql = $aqlValue;
+                $cliente->proceso = $request->proceso[$id]; // Obtener el valor correspondiente de proceso
+                $cliente->save();
+            }
+        }
+
+        // Redirigir con mensaje de éxito
+        return redirect()->route('altaYbaja')->with('success', 'Valores actualizados correctamente.');
     }
 
 }

@@ -381,6 +381,67 @@
             </div>
         </div>
     </div>
+    <hr>
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card card-chart">
+                <div class="card-header">
+                    <h3>Clientes: Porcentajes AQL y Proceso</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <form method="POST" action="{{ route('actualizarClientesPorcentajes') }}">
+                            @csrf
+                            <table id="tablaClientesPorcentajes" class="table tablesorter">
+                                <thead class="text-primary">
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>% AQL</th>
+                                        <th>% PROCESO</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($clientesPorcentajes as $dato)
+                                    <tr>
+                                        <td>{{ $dato->nombre }}</td>
+                                        <td>
+                                            <input 
+                                                type="number" 
+                                                step="0.01" 
+                                                min="0" 
+                                                max="99.99" 
+                                                name="aql[{{ $dato->id }}]" 
+                                                value="{{ number_format($dato->aql, 2, '.', '') }}" 
+                                                class="form-control" 
+                                                oninput="validarDecimales(this)"
+                                            />
+                                        </td>
+                                        <td>
+                                            <input 
+                                                type="number" 
+                                                step="0.01" 
+                                                min="0" 
+                                                max="99.99" 
+                                                name="proceso[{{ $dato->id }}]" 
+                                                value="{{ number_format($dato->proceso, 2, '.', '') }}" 
+                                                class="form-control" 
+                                                oninput="validarDecimales(this)"
+                                            />
+                                        </td>
+                                        <td>
+                                            <button type="submit" class="btn btn-primary btn-sm">Actualizar</button>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </div>
 
     
 @endsection
@@ -449,6 +510,53 @@
         });
     </script>
     <script>
+        $(document).ready(function() {
+            const tableIds = ['#tablaClientesPorcentajes'];
+            
+            tableIds.forEach(tableId => {
+                if (!$.fn.dataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable({
+                        lengthChange: false,
+                        searching: true,
+                        paging: true,
+                        pageLength: 10,
+                        autoWidth: false,
+                        responsive: true,
+                        language: {
+                            "sProcessing":     "Procesando...",
+                            "sLengthMenu":     "Mostrar _MENU_ registros",
+                            "sZeroRecords":    "No se encontraron resultados",
+                            "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                            "sInfo":           "Registros _START_ - _END_ de _TOTAL_ mostrados",
+                            "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                            "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                            "sInfoPostFix":    "",
+                            "sSearch":         "Buscar:",
+                            "sUrl":            "",
+                            "sInfoThousands":  ",",
+                            "sLoadingRecords": "Cargando...",
+                            "oPaginate": {
+                                "sFirst":    "Primero",
+                                "sLast":     "Último",
+                                "sNext":     "Siguiente",
+                                "sPrevious": "Anterior"
+                            },
+                            "oAria": {
+                                "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                            }
+                        },
+                        initComplete: function(settings, json) {
+                            if ($('body').hasClass('dark-mode')) {
+                                $(tableId + '_wrapper').addClass('dark-mode');
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+    <script>
         document.getElementById('numero_empleado').addEventListener('input', function (e) {
             let value = e.target.value;
             if (value.includes('.')) {
@@ -456,4 +564,14 @@
             }
         });
     </script>
+    <script>
+        function validarDecimales(input) {
+            // Limitar a 2 decimales
+            if (input.value) {
+                let value = parseFloat(input.value).toFixed(2);
+                input.value = value;
+            }
+        }
+    </script>
+    
 @endpush
