@@ -61,6 +61,23 @@
 
     <div class="row">
         <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaClientePorDia" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaSupervisorPorDia" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaModuloPorDia" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
                     <h4 class="card-title"> <i class="tim-icons icon-shape-star text-primary"></i> Clientes</h4>
@@ -157,23 +174,6 @@
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-lg-4">
-            <div class="card card-body">
-                <div id="graficaClientePorDia" style="width:100%; height:400px;"></div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card card-body">
-                <div id="graficaSupervisorPorDia" style="width:100%; height:400px;"></div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card card-body">
-                <div id="graficaModuloPorDia" style="width:100%; height:400px;"></div>
-            </div>
-        </div>
-    </div>
 
 
     <div class="row">
@@ -253,6 +253,23 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaClientesSemanal" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaSupervisoresSemanal" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaModulosSemanal" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-lg-4">
             <div class="card ">
@@ -343,23 +360,6 @@
                         </table>                        
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-lg-4">
-            <div class="card card-body">
-                <div id="graficaClientesSemanal" style="width:100%; height:400px;"></div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card card-body">
-                <div id="graficaSupervisoresSemanal" style="width:100%; height:400px;"></div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card card-body">
-                <div id="graficaModulosSemanal" style="width:100%; height:400px;"></div>
             </div>
         </div>
     </div>
