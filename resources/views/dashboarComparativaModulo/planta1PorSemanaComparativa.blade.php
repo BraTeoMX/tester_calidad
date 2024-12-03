@@ -93,12 +93,16 @@
                                                         @foreach($semanas as $key => $semana)
                                                         <tr>
                                                             <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
-                                                            <td>{{ $totalesPorCliente[$cliente][$key]['aql'] }}</td>
-                                                            <td>{{ $totalesPorCliente[$cliente][$key]['proceso'] }}</td>
+                                                            <td class="{{ $totalesPorCliente[$cliente][$key]['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $totalesPorCliente[$cliente][$key]['aql'] }}
+                                                            </td>
+                                                            <td class="{{ $totalesPorCliente[$cliente][$key]['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $totalesPorCliente[$cliente][$key]['proceso'] }}
+                                                            </td>
                                                         </tr>
                                                         @endforeach
                                                     </tbody>
-                                                </table>
+                                                </table>                                                
                                             </div>
                                         </div>
                                     </div>
@@ -133,8 +137,12 @@
                                             <tr>
                                                 <td>{{ $modulo['modulo'] }}</td>
                                                 @foreach($modulo['semanalPorcentajes'] as $porcentajes)
-                                                <td>{{ $porcentajes['aql'] }}</td>
-                                                <td>{{ $porcentajes['proceso'] }}</td>
+                                                <td class="{{ $porcentajes['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                    {{ $porcentajes['aql'] }}
+                                                </td>
+                                                <td class="{{ $porcentajes['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                    {{ $porcentajes['proceso'] }}
+                                                </td>
                                                 @endforeach
                                             </tr>
                                             @endforeach
@@ -143,8 +151,12 @@
                                             <tr>
                                                 <td><strong>Totales</strong></td>
                                                 @foreach($totalesPorCliente[$cliente] as $totales)
-                                                <td>{{ $totales['aql'] }}</td>
-                                                <td>{{ $totales['proceso'] }}</td>
+                                                <td class="{{ $totales['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                    {{ $totales['aql'] }}
+                                                </td>
+                                                <td class="{{ $totales['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                    {{ $totales['proceso'] }}
+                                                </td>
                                                 @endforeach
                                             </tr>
                                         </tfoot>
@@ -183,8 +195,12 @@
                                                         <tr>
                                                             <td>{{ $modulo['modulo'] }}</td>
                                                             @foreach($modulo['semanalPorcentajes'] as $porcentajes)
-                                                            <td>{{ $porcentajes['aql'] }}</td>
-                                                            <td>{{ $porcentajes['proceso'] }}</td>
+                                                            <td class="{{ $porcentajes['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $porcentajes['aql'] }}
+                                                            </td>
+                                                            <td class="{{ $porcentajes['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $porcentajes['proceso'] }}
+                                                            </td>
                                                             @endforeach
                                                         </tr>
                                                         @endforeach
@@ -193,8 +209,12 @@
                                                         <tr>
                                                             <td><strong>Totales</strong></td>
                                                             @foreach($totalesPorClienteYEstilo[$cliente][$estilo] as $totales)
-                                                            <td>{{ $totales['aql'] }}</td>
-                                                            <td>{{ $totales['proceso'] }}</td>
+                                                            <td class="{{ $totales['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $totales['aql'] }}
+                                                            </td>
+                                                            <td class="{{ $totales['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $totales['proceso'] }}
+                                                            </td>
                                                             @endforeach
                                                         </tr>
                                                     </tfoot>
@@ -229,12 +249,16 @@
                                                         @foreach($semanas as $key => $semana)
                                                         <tr>
                                                             <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
-                                                            <td>{{ $totalesPorClientePlanta1[$cliente][$key]['aql'] }}</td>
-                                                            <td>{{ $totalesPorClientePlanta1[$cliente][$key]['proceso'] }}</td>
+                                                            <td class="{{ $totalesPorClientePlanta1[$cliente][$key]['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $totalesPorClientePlanta1[$cliente][$key]['aql'] }}
+                                                            </td>
+                                                            <td class="{{ $totalesPorClientePlanta1[$cliente][$key]['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $totalesPorClientePlanta1[$cliente][$key]['proceso'] }}
+                                                            </td>
                                                         </tr>
                                                         @endforeach
                                                     </tbody>
-                                                </table>
+                                                </table>                                                
                                             </div>
                                         </div>
                                     </div>
@@ -268,8 +292,12 @@
                                             <tr>
                                                 <td>{{ $modulo['modulo'] }}</td>
                                                 @foreach($modulo['semanalPorcentajes'] as $porcentajes)
-                                                <td>{{ $porcentajes['aql'] }}</td>
-                                                <td>{{ $porcentajes['proceso'] }}</td>
+                                                <td class="{{ $porcentajes['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                    {{ $porcentajes['aql'] }}
+                                                </td>
+                                                <td class="{{ $porcentajes['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                    {{ $porcentajes['proceso'] }}
+                                                </td>
                                                 @endforeach
                                             </tr>
                                             @endforeach
@@ -278,8 +306,12 @@
                                             <tr>
                                                 <td><strong>Totales</strong></td>
                                                 @foreach($totalesPorClientePlanta1[$cliente] as $totales)
-                                                <td>{{ $totales['aql'] }}</td>
-                                                <td>{{ $totales['proceso'] }}</td>
+                                                <td class="{{ $totales['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                    {{ $totales['aql'] }}
+                                                </td>
+                                                <td class="{{ $totales['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                    {{ $totales['proceso'] }}
+                                                </td>
                                                 @endforeach
                                             </tr>
                                         </tfoot>
@@ -318,8 +350,12 @@
                                                         <tr>
                                                             <td>{{ $modulo['modulo'] }}</td>
                                                             @foreach($modulo['semanalPorcentajes'] as $porcentajes)
-                                                            <td>{{ $porcentajes['aql'] }}</td>
-                                                            <td>{{ $porcentajes['proceso'] }}</td>
+                                                            <td class="{{ $porcentajes['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $porcentajes['aql'] }}
+                                                            </td>
+                                                            <td class="{{ $porcentajes['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $porcentajes['proceso'] }}
+                                                            </td>
                                                             @endforeach
                                                         </tr>
                                                         @endforeach
@@ -328,12 +364,16 @@
                                                         <tr>
                                                             <td><strong>Totales</strong></td>
                                                             @foreach($totalesPorClienteYEstiloPlanta1[$cliente][$estilo] as $totales)
-                                                            <td>{{ $totales['aql'] }}</td>
-                                                            <td>{{ $totales['proceso'] }}</td>
+                                                            <td class="{{ $totales['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $totales['aql'] }}
+                                                            </td>
+                                                            <td class="{{ $totales['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $totales['proceso'] }}
+                                                            </td>
                                                             @endforeach
                                                         </tr>
                                                     </tfoot>
-                                                </table>
+                                                </table>                                                
                                             </div>
                                         </div>
                                     @endforeach
@@ -364,12 +404,16 @@
                                                         @foreach($semanas as $key => $semana)
                                                         <tr>
                                                             <td>Semana {{ $semana['inicio']->format('W') }} <br> ({{ $semana['inicio']->format('Y') }})</td>
-                                                            <td>{{ $totalesPorClientePlanta2[$cliente][$key]['aql'] }}</td>
-                                                            <td>{{ $totalesPorClientePlanta2[$cliente][$key]['proceso'] }}</td>
+                                                            <td class="{{ $totalesPorClientePlanta2[$cliente][$key]['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $totalesPorClientePlanta2[$cliente][$key]['aql'] }}
+                                                            </td>
+                                                            <td class="{{ $totalesPorClientePlanta2[$cliente][$key]['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $totalesPorClientePlanta2[$cliente][$key]['proceso'] }}
+                                                            </td>
                                                         </tr>
                                                         @endforeach
                                                     </tbody>
-                                                </table>
+                                                </table>                                                
                                             </div>
                                         </div>
                                     </div>
@@ -403,8 +447,12 @@
                                             <tr>
                                                 <td>{{ $modulo['modulo'] }}</td>
                                                 @foreach($modulo['semanalPorcentajes'] as $porcentajes)
-                                                <td>{{ $porcentajes['aql'] }}</td>
-                                                <td>{{ $porcentajes['proceso'] }}</td>
+                                                <td class="{{ $porcentajes['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                    {{ $porcentajes['aql'] }}
+                                                </td>
+                                                <td class="{{ $porcentajes['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                    {{ $porcentajes['proceso'] }}
+                                                </td>
                                                 @endforeach
                                             </tr>
                                             @endforeach
@@ -413,8 +461,12 @@
                                             <tr>
                                                 <td><strong>Totales</strong></td>
                                                 @foreach($totalesPorClientePlanta2[$cliente] as $totales)
-                                                <td>{{ $totales['aql'] }}</td>
-                                                <td>{{ $totales['proceso'] }}</td>
+                                                <td class="{{ $totales['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                    {{ $totales['aql'] }}
+                                                </td>
+                                                <td class="{{ $totales['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                    {{ $totales['proceso'] }}
+                                                </td>
                                                 @endforeach
                                             </tr>
                                         </tfoot>
@@ -453,8 +505,12 @@
                                                         <tr>
                                                             <td>{{ $modulo['modulo'] }}</td>
                                                             @foreach($modulo['semanalPorcentajes'] as $porcentajes)
-                                                            <td>{{ $porcentajes['aql'] }}</td>
-                                                            <td>{{ $porcentajes['proceso'] }}</td>
+                                                            <td class="{{ $porcentajes['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $porcentajes['aql'] }}
+                                                            </td>
+                                                            <td class="{{ $porcentajes['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $porcentajes['proceso'] }}
+                                                            </td>
                                                             @endforeach
                                                         </tr>
                                                         @endforeach
@@ -463,12 +519,16 @@
                                                         <tr>
                                                             <td><strong>Totales</strong></td>
                                                             @foreach($totalesPorClienteYEstiloPlanta2[$cliente][$estilo] as $totales)
-                                                            <td>{{ $totales['aql'] }}</td>
-                                                            <td>{{ $totales['proceso'] }}</td>
+                                                            <td class="{{ $totales['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $totales['aql'] }}
+                                                            </td>
+                                                            <td class="{{ $totales['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $totales['proceso'] }}
+                                                            </td>
                                                             @endforeach
                                                         </tr>
                                                     </tfoot>
-                                                </table>
+                                                </table>                                                
                                             </div>
                                         </div>
                                     @endforeach
@@ -482,6 +542,13 @@
             </div>            
         </div>
     </div>
+    <style>
+        .bg-rojo-oscuro {
+            background-color: #8B0000; /* Rojo oscuro */
+            color: white; /* Texto blanco para contraste */
+        }
+    </style>
+    
 @endsection
 
 

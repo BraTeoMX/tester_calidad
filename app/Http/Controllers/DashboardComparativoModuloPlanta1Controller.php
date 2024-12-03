@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\DB; // Importa la clase DB
 use App\Models\ClienteProcentaje;
+use Illuminate\Support\Facades\Log;
 
 
 class DashboardComparativoModuloPlanta1Controller extends Controller
@@ -38,7 +39,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
         // Fechas de inicio y fin
         $fechaFin = $request->input('fecha_fin') ? Carbon::parse($request->input('fecha_fin'))->endOfWeek() : Carbon::now()->endOfWeek();
-        $fechaInicio = $request->input('fecha_inicio') ? Carbon::parse($request->input('fecha_inicio'))->startOfWeek() : Carbon::now()->subWeeks(6)->startOfWeek();
+        $fechaInicio = $request->input('fecha_inicio') ? Carbon::parse($request->input('fecha_inicio'))->startOfWeek() : Carbon::now()->subWeeks(3)->startOfWeek();
 
         // Generar semanas en el rango
         $semanas = [];
@@ -62,8 +63,14 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
         // Traer datos de ClienteProcentaje solo para los clientes encontrados
         $clientesProcentaje = ClienteProcentaje::whereIn('nombre', $clientesUnicos)->get()->keyBy('nombre');
 
+        // Formatear clientes para log
+        //$clientesLog = $clientesProcentaje->map(function ($cliente) {
+        //    return "Nombre: {$cliente->nombre}, Proceso: {$cliente->proceso}, AQL: {$cliente->aql}";
+        //})->join("\n");
 
-        // Inicializar arreglos para almacenar los datos
+        // Registrar en el log
+        //Log::info("Lista de clientes obtenidos de ClienteProcentaje:\n" . $clientesLog);
+
         $modulosPorCliente = [];
         $totalesPorCliente = [];
         $modulosPorClienteYEstilo = [];
@@ -79,8 +86,20 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
         // Obtener datos para cada cliente
         foreach ($clientesUnicos as $cliente) {
+            // Obtener los datos específicos del cliente desde ClienteProcentaje
+            $datosClienteProcentaje = $clientesProcentaje->get($cliente);
+            // Registrar el cliente y sus datos en el log
+            //Log::info("Cliente: $cliente, Datos ClienteProcentaje: " . json_encode($datosClienteProcentaje));
+
             // Datos generales (sin estilo)
-            [$modulosPorCliente[$cliente], $totalesPorCliente[$cliente]] = $this->getDatosPorCliente($cliente, $fechaInicio, $fechaFin, $semanas);
+            [$modulosPorCliente[$cliente], $totalesPorCliente[$cliente]] = $this->getDatosPorCliente(
+                $cliente,
+                $fechaInicio,
+                $fechaFin,
+                $semanas,
+                null,
+                $datosClienteProcentaje // Pasar datos del cliente
+            );
 
             // Estilos únicos asociados al cliente
             $estilosUnicos = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin])
@@ -93,23 +112,62 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             foreach ($estilosUnicos as $estilo) {
                 // Datos específicos por cliente y estilo
                 [$modulosPorClienteYEstilo[$cliente][$estilo], $totalesPorClienteYEstilo[$cliente][$estilo]] =
-                    $this->getDatosPorClienteYEstilo($cliente, $estilo, $fechaInicio, $fechaFin, $semanas);
+                    $this->getDatosPorClienteYEstilo(
+                        $cliente,
+                        $estilo,
+                        $fechaInicio,
+                        $fechaFin,
+                        $semanas,
+                        null,
+                        $datosClienteProcentaje // Pasar datos del cliente
+                    );
 
-                //
+                // Planta 1 - Ixtlahuaca
                 [$modulosPorClienteYEstiloPlanta1[$cliente][$estilo], $totalesPorClienteYEstiloPlanta1[$cliente][$estilo]] =
-                    $this->getDatosPorClienteYEstilo($cliente, $estilo, $fechaInicio, $fechaFin, $semanas, 'Intimark1');
-                
-                //
+                    $this->getDatosPorClienteYEstilo(
+                        $cliente,
+                        $estilo,
+                        $fechaInicio,
+                        $fechaFin,
+                        $semanas,
+                        'Intimark1',
+                        $datosClienteProcentaje // Pasar datos del cliente
+                    );
+
+                // Planta 2 - San Bartolo
                 [$modulosPorClienteYEstiloPlanta2[$cliente][$estilo], $totalesPorClienteYEstiloPlanta2[$cliente][$estilo]] =
-                    $this->getDatosPorClienteYEstilo($cliente, $estilo, $fechaInicio, $fechaFin, $semanas, 'Intimark2');
+                    $this->getDatosPorClienteYEstilo(
+                        $cliente,
+                        $estilo,
+                        $fechaInicio,
+                        $fechaFin,
+                        $semanas,
+                        'Intimark2',
+                        $datosClienteProcentaje // Pasar datos del cliente
+                    );
             }
 
             // Datos Planta 1 - Ixtlahuaca
-            [$modulosPorClientePlanta1[$cliente], $totalesPorClientePlanta1[$cliente]] = $this->getDatosPorCliente($cliente, $fechaInicio, $fechaFin, $semanas, 'Intimark1');
+            [$modulosPorClientePlanta1[$cliente], $totalesPorClientePlanta1[$cliente]] = $this->getDatosPorCliente(
+                $cliente,
+                $fechaInicio,
+                $fechaFin,
+                $semanas,
+                'Intimark1',
+                $datosClienteProcentaje
+            );
 
             // Datos Planta 2 - San Bartolo
-            [$modulosPorClientePlanta2[$cliente], $totalesPorClientePlanta2[$cliente]] = $this->getDatosPorCliente($cliente, $fechaInicio, $fechaFin, $semanas, 'Intimark2');
+            [$modulosPorClientePlanta2[$cliente], $totalesPorClientePlanta2[$cliente]] = $this->getDatosPorCliente(
+                $cliente,
+                $fechaInicio,
+                $fechaFin,
+                $semanas,
+                'Intimark2',
+                $datosClienteProcentaje
+            );
         }
+
 
         return view('dashboarComparativaModulo.planta1PorSemanaComparativa', compact(
             'fechaInicio',
@@ -133,8 +191,10 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
     /**
      * Función privada para obtener datos por cliente y planta (si aplica).
      */
-    private function getDatosPorCliente($cliente, $fechaInicio, $fechaFin, $semanas, $planta = null)
+    private function getDatosPorCliente($cliente, $fechaInicio, $fechaFin, $semanas, $planta = null, $datosClienteProcentaje = null)
     {
+
+        //Log::info("Funcion Privada Cliente: $cliente, Datos ClienteProcentaje: " . json_encode($datosClienteProcentaje));
         // Consulta base para AseguramientoCalidad (proceso)
         $queryCalidad = AseguramientoCalidad::where('cliente', $cliente)
             ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
@@ -150,6 +210,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
         // Obtener módulos únicos
         $modulosCliente = $queryCalidad->select('modulo')->distinct()->get()->pluck('modulo');
+        //Log::info("Cliente: $cliente, Módulos Cliente: " . json_encode($modulosCliente));
 
         $modulos = [];
         $totalesSemanas = array_fill(0, count($semanas), [
@@ -165,6 +226,8 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             $semanalPorcentajes = [];
 
             foreach ($semanas as $key => $semana) {
+                
+
                 // Datos para AseguramientoCalidad
                 $cantidadAuditada = AseguramientoCalidad::where('cliente', $cliente)
                     ->where('modulo', $modulo)
@@ -203,9 +266,21 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                 $porcentajeProceso = ($cantidadAuditada > 0) ? round(($cantidadRechazada / $cantidadAuditada) * 100, 3) : 'N/A';
                 $porcentajeAQL = ($cantidadAuditadaAQL > 0) ? round(($cantidadRechazadaAQL / $cantidadAuditadaAQL) * 100, 3) : 'N/A';
 
+                // Comparar con ClienteProcentaje
+                $procesoColor = $datosClienteProcentaje && $porcentajeProceso !== 'N/A' && $porcentajeProceso >= $datosClienteProcentaje->proceso;
+                $aqlColor = $datosClienteProcentaje && $porcentajeAQL !== 'N/A' && $porcentajeAQL >= $datosClienteProcentaje->aql;
+
+                // Registrar los valores en el log
+                //Log::info("Cliente: $cliente, Módulo: $modulo, Semana: {$semana['inicio']->format('W')}");
+                //Log::info("Porcentaje Proceso: $porcentajeProceso, Cliente Proceso: " . ($datosClienteProcentaje->proceso ?? 'N/A') . ", Indicador Proceso Color: " . ($procesoColor ? 'true' : 'false'));
+                //Log::info("Porcentaje AQL: $porcentajeAQL, Cliente AQL: " . ($datosClienteProcentaje->aql ?? 'N/A') . ", Indicador AQL Color: " . ($aqlColor ? 'true' : 'false'));
+                
+                // Agregar porcentajes e indicadores al arreglo
                 $semanalPorcentajes[] = [
                     'proceso' => $porcentajeProceso,
+                    'proceso_color' => $procesoColor, // Indicador para colorear
                     'aql' => $porcentajeAQL,
+                    'aql_color' => $aqlColor, // Indicador para colorear
                 ];
 
                 // Acumular totales para cada semana
@@ -221,6 +296,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             ];
         }
 
+        // Totales comparativos
         foreach ($totalesSemanas as $key => $totales) {
             $totalesSemanas[$key]['proceso'] = ($totales['auditadas_proceso'] > 0)
                 ? round(($totales['rechazadas_proceso'] / $totales['auditadas_proceso']) * 100, 3)
@@ -229,6 +305,20 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             $totalesSemanas[$key]['aql'] = ($totales['auditadas_aql'] > 0)
                 ? round(($totales['rechazadas_aql'] / $totales['auditadas_aql']) * 100, 3)
                 : 'N/A';
+
+            $totalesSemanas[$key]['proceso_color'] = $datosClienteProcentaje
+                && $totalesSemanas[$key]['proceso'] !== 'N/A'
+                && $totalesSemanas[$key]['proceso'] >= $datosClienteProcentaje->proceso;
+
+            $totalesSemanas[$key]['aql_color'] = $datosClienteProcentaje
+                && $totalesSemanas[$key]['aql'] !== 'N/A'
+                && $totalesSemanas[$key]['aql'] >= $datosClienteProcentaje->aql;
+
+            //
+            // Registrar los valores en el log
+           // Log::info("Totales Semana: $key");
+           // Log::info("Total Proceso: " . $totalesSemanas[$key]['proceso'] . ", Indicador Proceso Color: " . ($totalesSemanas[$key]['proceso_color'] ? 'true' : 'false'));
+            //Log::info("Total AQL: " . $totalesSemanas[$key]['aql'] . ", Indicador AQL Color: " . ($totalesSemanas[$key]['aql_color'] ? 'true' : 'false'));
         }
 
         return [$modulos, $totalesSemanas];
@@ -237,7 +327,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
     /**
      * Función privada para obtener datos por cliente y estilo.
     */
-    private function getDatosPorClienteYEstilo($cliente, $estilo, $fechaInicio, $fechaFin, $semanas, $planta = null)
+    private function getDatosPorClienteYEstilo($cliente, $estilo, $fechaInicio, $fechaFin, $semanas, $planta = null, $datosClienteProcentaje = null)
     {
         // Consulta base para AseguramientoCalidad (proceso)
         $queryCalidadBase = AseguramientoCalidad::where('cliente', $cliente)
@@ -297,18 +387,20 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                     ->whereBetween('created_at', [$semana['inicio'], $semana['fin']])
                     ->sum('cantidad_rechazada');
 
-                // Validar acumulación correcta
-                if ($cantidadAuditada < 0 || $cantidadRechazada < 0) {
-                    throw new \Exception("Valores negativos detectados en módulo $modulo para semana $key");
-                }
-
                 // Cálculo de porcentajes
                 $porcentajeProceso = ($cantidadAuditada > 0) ? round(($cantidadRechazada / $cantidadAuditada) * 100, 3) : 'N/A';
                 $porcentajeAQL = ($cantidadAuditadaAQL > 0) ? round(($cantidadRechazadaAQL / $cantidadAuditadaAQL) * 100, 3) : 'N/A';
 
+                // Comparar con ClienteProcentaje
+                $procesoColor = $datosClienteProcentaje && $porcentajeProceso !== 'N/A' && $porcentajeProceso >= $datosClienteProcentaje->proceso;
+                $aqlColor = $datosClienteProcentaje && $porcentajeAQL !== 'N/A' && $porcentajeAQL >= $datosClienteProcentaje->aql;
+
+                // Agregar porcentajes e indicadores al arreglo
                 $semanalPorcentajes[] = [
                     'proceso' => $porcentajeProceso,
+                    'proceso_color' => $procesoColor, // Indicador para colorear
                     'aql' => $porcentajeAQL,
+                    'aql_color' => $aqlColor, // Indicador para colorear
                 ];
 
                 // Acumular totales por semana
@@ -333,10 +425,19 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             $totalesSemanas[$key]['aql'] = ($totales['auditadas_aql'] > 0)
                 ? round(($totales['rechazadas_aql'] / $totales['auditadas_aql']) * 100, 3)
                 : 'N/A';
+
+            $totalesSemanas[$key]['proceso_color'] = $datosClienteProcentaje
+                && $totalesSemanas[$key]['proceso'] !== 'N/A'
+                && $totalesSemanas[$key]['proceso'] >= $datosClienteProcentaje->proceso;
+
+            $totalesSemanas[$key]['aql_color'] = $datosClienteProcentaje
+                && $totalesSemanas[$key]['aql'] !== 'N/A'
+                && $totalesSemanas[$key]['aql'] >= $datosClienteProcentaje->aql;
         }
 
         return [$modulos, $totalesSemanas];
     }
+
 
 
 

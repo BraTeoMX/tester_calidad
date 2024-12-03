@@ -75,7 +75,6 @@
                                     <th>Cliente</th>
                                     <th>% AQL</th>
                                     <th>% Proceso</th>
-                                    <!-- Aquí puedes agregar más encabezados si es necesario -->
                                 </tr>
                             </thead>
                             <tbody>
@@ -158,6 +157,23 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaClientePorDia" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaSupervisorPorDia" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaModuloPorDia" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+    </div>
 
 
     <div class="row">
@@ -236,6 +252,118 @@
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card ">
+                <div class="card-header">
+                    <h4 class="card-title"> <i class="tim-icons icon-shape-star text-primary"></i> Clientes</h4>
+                    <p class="card-category d-inline"> Semana actual</p>
+
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="tablaClientesSemanal" class="table tablesorter">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>% AQL</th>
+                                    <th>% Proceso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($clientesSemana as $cliente)
+                                <tr>
+                                    <td>{{ $cliente['cliente'] }}</td>
+                                    <td>{{ number_format($cliente['% AQL'], 2) }}%</td>
+                                    <td>{{ number_format($cliente['% PROCESO'], 2) }}%</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card ">
+                <div class="card-header">
+                    <h4 class="card-title">Supervisores AQL <i class="tim-icons icon-app text-success"></i> y PROCESO <i class="tim-icons icon-vector text-primary"></i></h4>
+                    <p class="card-category d-inline"> Semana actual</p>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="tablaResponsablesSemanal" class="table tablesorter">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Supervisor</th>
+                                    <th>% AQL</th>
+                                    <th>% Proceso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($supervisoresSemana as $supervisor)
+                                <tr>
+                                    <td>{{ $supervisor['team_leader'] }}</td>
+                                    <td>{{ number_format($supervisor['% AQL'], 2) }}%</td>
+                                    <td>{{ number_format($supervisor['% PROCESO'], 2) }}%</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card ">
+                <div class="card-header">
+                    <h4 class="card-title">Modulos AQL <i class="tim-icons icon-app text-success"></i> y PROCESO <i class="tim-icons icon-vector text-primary"></i></h4>
+                    <p class="card-category d-inline"> Semana actual</p>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="tablaModulosSemanal" class="table tablesorter">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Módulo</th>
+                                    <th>% AQL</th>
+                                    <th>% Proceso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($modulosSemana as $modulo)
+                                <tr>
+                                    <td>{{ $modulo['modulo'] }}</td>
+                                    <td>{{ number_format($modulo['% AQL'], 2) }}%</td>
+                                    <td>{{ number_format($modulo['% PROCESO'], 2) }}%</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaClientesSemanal" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaSupervisoresSemanal" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaModulosSemanal" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+    </div>
+    
 
     <div class="row">
         <div class="col-12">
@@ -1014,6 +1142,277 @@
     });
   </script>
 
+    
+    <script>
+        // Configuración global de Highcharts para la fuente y estilo
+        Highcharts.setOptions({
+            chart: {
+                style: {
+                    fontFamily: 'Arial, sans-serif' // Establecer la tipografía global
+                }
+            }
+        });
+        //script para cliente por semana
+        document.addEventListener('DOMContentLoaded', function () {
+            Highcharts.chart('graficaClientesSemanal', {
+                chart: {
+                    type: 'column', // Cambiar a 'bar' si prefieres barras horizontales
+                    backgroundColor: null // Fondo transparente
+                },
+                title: {
+                    text: 'Comparativo AQL y PROCESO - Clientes (Semana Actual)'
+                },
+                xAxis: {
+                    categories: @json(array_column($clientesSemana, 'cliente')), // Lista de clientes
+                    crosshair: true
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'Porcentaje (%)'
+                    }
+                },
+                tooltip: {
+                    shared: true
+                },
+                plotOptions: {
+                    column: {
+                        pointPadding: 0.2,
+                        borderWidth: 0
+                    }
+                },
+                series: [{
+                    name: '% AQL',
+                    data: @json(array_column($clientesSemana, '% AQL')), // Datos de AQL
+                    color: '#dd4dc7' // Color definido para AQL
+                }, {
+                    name: '% PROCESO',
+                    data: @json(array_column($clientesSemana, '% PROCESO')), // Datos de PROCESO
+                    color: '#00f0c1' // Color definido para PROCESO
+                }]
+            });
+        });
+
+        //Supervisores por semana
+        document.addEventListener('DOMContentLoaded', function () {
+            Highcharts.chart('graficaSupervisoresSemanal', {
+                chart: {
+                    type: 'column',
+                    backgroundColor: null // Fondo transparente
+                },
+                title: {
+                    text: 'Comparativo AQL y PROCESO - Supervisores (Semana Actual)'
+                },
+                xAxis: {
+                    categories: @json(array_column($supervisoresSemana, 'team_leader')),
+                    crosshair: true
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'Porcentaje (%)'
+                    }
+                },
+                tooltip: {
+                    shared: true
+                },
+                plotOptions: {
+                    column: {
+                        pointPadding: 0.2,
+                        borderWidth: 0
+                    }
+                },
+                series: [{
+                    name: '% AQL',
+                    data: @json(array_column($supervisoresSemana, '% AQL')),
+                    color: '#dd4dc7' // Color definido para AQL
+                }, {
+                    name: '% PROCESO',
+                    data: @json(array_column($supervisoresSemana, '% PROCESO')),
+                    color: '#00f0c1' // Color definido para PROCESO
+                    
+                }]
+            });
+        });
+
+        //Modulo por semana
+        document.addEventListener('DOMContentLoaded', function () {
+            Highcharts.chart('graficaModulosSemanal', {
+                chart: {
+                    type: 'column',
+                    backgroundColor: null // Fondo transparente
+                },
+                title: {
+                    text: 'Comparativo AQL y PROCESO - Módulos (Semana Actual)'
+                },
+                xAxis: {
+                    categories: @json(array_column($modulosSemana, 'modulo')),
+                    crosshair: true
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'Porcentaje (%)'
+                    }
+                },
+                tooltip: {
+                    shared: true
+                },
+                plotOptions: {
+                    column: {
+                        pointPadding: 0.2,
+                        borderWidth: 0
+                    }
+                },
+                series: [{
+                    name: '% AQL',
+                    data: @json(array_column($modulosSemana, '% AQL')),
+                    color: '#dd4dc7' // Color definido para AQL
+                }, {
+                    name: '% PROCESO',
+                    data: @json(array_column($modulosSemana, '% PROCESO')),
+                    color: '#00f0c1' // Color definido para PROCESO
+                }]
+            });
+        });
+
+    </script>
+
+    <script>
+        //misma grafica pero ahora por dia
+        // Configuración global de Highcharts para la fuente y estilo
+        Highcharts.setOptions({
+            chart: {
+                style: {
+                    fontFamily: 'Arial, sans-serif' // Establecer la tipografía global
+                }
+            }
+        });
+
+        // Script para Clientes por día
+        document.addEventListener('DOMContentLoaded', function () {
+            Highcharts.chart('graficaClientePorDia', {
+                chart: {
+                    type: 'column',
+                    backgroundColor: null // Fondo transparente
+                },
+                title: {
+                    text: 'Comparativo AQL y PROCESO - Clientes (Día Actual)'
+                },
+                xAxis: {
+                    categories: @json(array_column($dataGeneral['dataCliente'], 'cliente')), // Lista de clientes
+                    crosshair: true
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'Porcentaje (%)'
+                    }
+                },
+                tooltip: {
+                    shared: true
+                },
+                plotOptions: {
+                    column: {
+                        pointPadding: 0.2,
+                        borderWidth: 0
+                    }
+                },
+                series: [{
+                    name: '% AQL',
+                    data: @json(array_column($dataGeneral['dataCliente'], 'porcentajeErrorAQL')), // Datos de AQL
+                    color: '#dd4dc7' // Color definido para AQL
+                }, {
+                    name: '% PROCESO',
+                    data: @json(array_column($dataGeneral['dataCliente'], 'porcentajeErrorProceso')), // Datos de PROCESO
+                    color: '#00f0c1' // Color definido para PROCESO
+                }]
+            });
+        });
+
+        // Script para Supervisores por día
+        document.addEventListener('DOMContentLoaded', function () {
+            Highcharts.chart('graficaSupervisorPorDia', {
+                chart: {
+                    type: 'column',
+                    backgroundColor: null // Fondo transparente
+                },
+                title: {
+                    text: 'Comparativo AQL y PROCESO - Supervisores (Día Actual)'
+                },
+                xAxis: {
+                    categories: @json(array_column($dataGerentesGeneral, 'team_leader')), // Lista de supervisores
+                    crosshair: true
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'Porcentaje (%)'
+                    }
+                },
+                tooltip: {
+                    shared: true
+                },
+                plotOptions: {
+                    column: {
+                        pointPadding: 0.2,
+                        borderWidth: 0
+                    }
+                },
+                series: [{
+                    name: '% AQL',
+                    data: @json(array_column($dataGerentesGeneral, 'porcentaje_error_aql')), // Datos de AQL
+                    color: '#dd4dc7' // Color definido para AQL
+                }, {
+                    name: '% PROCESO',
+                    data: @json(array_column($dataGerentesGeneral, 'porcentaje_error_proceso')), // Datos de PROCESO
+                    color: '#00f0c1' // Color definido para PROCESO
+                }]
+            });
+        });
+
+        // Script para Módulos por día
+        document.addEventListener('DOMContentLoaded', function () {
+            Highcharts.chart('graficaModuloPorDia', {
+                chart: {
+                    type: 'column',
+                    backgroundColor: null // Fondo transparente
+                },
+                title: {
+                    text: 'Comparativo AQL y PROCESO - Módulos (Día Actual)'
+                },
+                xAxis: {
+                    categories: @json(array_column($dataModulosGeneral, 'modulo')), // Lista de módulos
+                    crosshair: true
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'Porcentaje (%)'
+                    }
+                },
+                tooltip: {
+                    shared: true
+                },
+                plotOptions: {
+                    column: {
+                        pointPadding: 0.2,
+                        borderWidth: 0
+                    }
+                },
+                series: [{
+                    name: '% AQL',
+                    data: @json(array_column($dataModulosGeneral, 'porcentaje_error_aql')), // Datos de AQL
+                    color: '#dd4dc7' // Color definido para AQL
+                }, {
+                    name: '% PROCESO',
+                    data: @json(array_column($dataModulosGeneral, 'porcentaje_error_proceso')), // Datos de PROCESO
+                    color: '#00f0c1' // Color definido para PROCESO
+                }]
+            });
+        });
+
+    </script>
 
 @endpush
 
@@ -1028,7 +1427,23 @@
 
     <script>
         $(document).ready(function() {
-            const tableIds = ['#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaResponsables', '#tablaModulos', '#tablaResponsable', '#tablaClientes'];
+            $.fn.dataTable.ext.type.order['custom-num-pre'] = function(a) {
+                // Si es "N/A", devolver un valor que lo coloque al final
+                if (a === "N/A") return -Infinity;
+                
+                // Convertir a número flotante
+                var x = parseFloat(a);
+                
+                // Si no es un número válido, devolver -Infinity
+                return isNaN(x) ? -Infinity : x;
+            };
+
+            $.fn.dataTable.ext.type.order['custom-num-desc'] = function(a, b) {
+                return b - a;
+            };
+            const tableIds = ['#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaResponsables', '#tablaModulos', '#tablaResponsable', '#tablaClientes',
+                            '#tablaModulosSemanal', '#tablaResponsablesSemanal', '#tablaClientesSemanal',
+            ];
 
             tableIds.forEach(tableId => {
                 if (!$.fn.dataTable.isDataTable(tableId)) {
@@ -1044,6 +1459,22 @@
                                 searchable: false,
                                 orderable: false,
                             },
+                            {
+                                targets: 0, // La primera columna (índice 0)
+                                type: "string", // Tratar como texto
+                                render: function(data, type, row) {
+                                    // Asegúrate de manejar correctamente el texto
+                                    return type === 'sort' ? data : data;
+                                }
+                            },
+                            {
+                                targets: "_all", // Todas las demás columnas numéricas
+                                type: "custom-num",  // Usar tipo personalizado
+                                render: function(data, type, row) {
+                                    // Esto ayuda a manejar la presentación de "N/A"
+                                    return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+                                }
+                            }
                         ],
                         language: {
                             "sProcessing":     "Procesando...",

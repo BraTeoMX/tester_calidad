@@ -224,6 +224,12 @@ class HomeController extends Controller
             // Convertir la colección a un array si es necesario
             //$modulosUnicosArrayBusqueda = $modulosUnicosBusqueda->values()->all();
             //dd($clientesUnicosArrayBusqueda);
+            $datosSemana = $this->calcularPorcentajesSemanaActual();
+
+            // Clientes, Supervisores y Módulos por semana
+            $clientesSemana = $datosSemana['clientes'];
+            $supervisoresSemana = $datosSemana['supervisores'];
+            $modulosSemana = $datosSemana['modulos'];
             return view('dashboard', compact('title', 'topDefectosAQL', 'topDefectosProceso',
                                     'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2', 'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2',
                                     'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
@@ -234,7 +240,8 @@ class HomeController extends Controller
                                     'fechas', 'porcentajesAQL', 'porcentajesProceso',
                                     'fechasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica',
                                     'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica',
-                                    'clientesUnicosArrayBusqueda'));
+                                    'clientesUnicosArrayBusqueda',
+                                    'clientesSemana', 'supervisoresSemana', 'modulosSemana'));
         } else {
             // Si el usuario no tiene esos roles, redirige a listaFormularios
             return redirect()->route('viewlistaFormularios');
@@ -847,5 +854,96 @@ class HomeController extends Controller
             'modulosUnicos' => $modulosUnicos,
             'dataModulo' => $dataModulo
         ];
+    }
+
+    private function calcularPorcentajesSemanaActual()
+    {
+        // Obtener la fecha de inicio y fin de la semana actual
+        $fechaInicioSemana = Carbon::now()->startOfWeek()->toDateString();
+        $fechaFinSemana = Carbon::now()->endOfWeek()->toDateString();
+
+        // Consultas para cada caso y modelo
+        $clientesAQL = AuditoriaAQL::select('cliente', 
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'), 
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
+            ->groupBy('cliente')
+            ->get();
+
+        $clientesProceso = AseguramientoCalidad::select('cliente', 
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'), 
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
+            ->groupBy('cliente')
+            ->get();
+
+        $supervisoresAQL = AuditoriaAQL::select('team_leader', 
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'), 
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
+            ->groupBy('team_leader')
+            ->get();
+
+        $supervisoresProceso = AseguramientoCalidad::select('team_leader', 
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'), 
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
+            ->groupBy('team_leader')
+            ->get();
+
+        $modulosAQL = AuditoriaAQL::select('modulo', 
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'), 
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
+            ->groupBy('modulo')
+            ->get();
+
+        $modulosProceso = AseguramientoCalidad::select('modulo', 
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'), 
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
+            ->groupBy('modulo')
+            ->get();
+
+        // Formatear los resultados
+        $clientes = $this->formatearResultados($clientesAQL, $clientesProceso, 'cliente');
+        $supervisores = $this->formatearResultados($supervisoresAQL, $supervisoresProceso, 'team_leader');
+        $modulos = $this->formatearResultados($modulosAQL, $modulosProceso, 'modulo');
+
+        // Retornar los resultados
+        return [
+            'clientes' => $clientes,
+            'supervisores' => $supervisores,
+            'modulos' => $modulos,
+        ];
+    }
+
+    private function formatearResultados($aqlData, $procesoData, $columna)
+    {
+        $resultados = [];
+
+        // Unificar las claves de ambos datasets
+        $claves = collect($aqlData->pluck($columna))->merge($procesoData->pluck($columna))->unique();
+
+        foreach ($claves as $clave) {
+            $aql = $aqlData->firstWhere($columna, $clave);
+            $proceso = $procesoData->firstWhere($columna, $clave);
+
+            $porcentajeAQL = $aql && $aql->total_auditada > 0 
+                ? ($aql->total_rechazada / $aql->total_auditada) * 100 
+                : 0;
+
+            $porcentajeProceso = $proceso && $proceso->total_auditada > 0 
+                ? ($proceso->total_rechazada / $proceso->total_auditada) * 100 
+                : 0;
+
+            $resultados[] = [
+                $columna => $clave,
+                '% AQL' => round($porcentajeAQL, 2),
+                '% PROCESO' => round($porcentajeProceso, 2),
+            ];
+        }
+
+        return $resultados;
     }
 }
