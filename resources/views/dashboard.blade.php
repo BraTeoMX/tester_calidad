@@ -590,6 +590,8 @@
     <script src="{{ asset('js/highcharts/highcharts.js') }}"></script>
     <script src="{{ asset('js/highcharts/highcharts-3d.js') }}"></script>
     <script src="{{ asset('js/highcharts/exporting.js') }}"></script>
+    <script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
     <script src="{{ asset('js/highcharts/dark-unica.js') }}"></script>
 
     <script>
@@ -1184,11 +1186,11 @@
                 series: [{
                     name: '% AQL',
                     data: @json(array_column($clientesSemana, '% AQL')), // Datos de AQL
-                    color: '#dd4dc7' // Color definido para AQL
+                    color: '#00f0c1' // Color definido para AQL
                 }, {
                     name: '% PROCESO',
                     data: @json(array_column($clientesSemana, '% PROCESO')), // Datos de PROCESO
-                    color: '#00f0c1' // Color definido para PROCESO
+                    color: '#dd4dc7' // Color definido para PROCESO
                 }]
             });
         });
@@ -1225,11 +1227,11 @@
                 series: [{
                     name: '% AQL',
                     data: @json(array_column($supervisoresSemana, '% AQL')),
-                    color: '#dd4dc7' // Color definido para AQL
+                    color: '#00f0c1' // Color definido para AQL
                 }, {
                     name: '% PROCESO',
                     data: @json(array_column($supervisoresSemana, '% PROCESO')),
-                    color: '#00f0c1' // Color definido para PROCESO
+                    color: '#dd4dc7' // Color definido para PROCESO
                     
                 }]
             });
@@ -1267,11 +1269,11 @@
                 series: [{
                     name: '% AQL',
                     data: @json(array_column($modulosSemana, '% AQL')),
-                    color: '#dd4dc7' // Color definido para AQL
+                    color: '#00f0c1' // Color definido para AQL
                 }, {
                     name: '% PROCESO',
                     data: @json(array_column($modulosSemana, '% PROCESO')),
-                    color: '#00f0c1' // Color definido para PROCESO
+                    color: '#dd4dc7' // Color definido para PROCESO
                 }]
             });
         });
@@ -1321,11 +1323,11 @@
                 series: [{
                     name: '% AQL',
                     data: @json(array_column($dataGeneral['dataCliente'], 'porcentajeErrorAQL')), // Datos de AQL
-                    color: '#dd4dc7' // Color definido para AQL
+                    color: '#00f0c1' // Color definido para AQL
                 }, {
                     name: '% PROCESO',
                     data: @json(array_column($dataGeneral['dataCliente'], 'porcentajeErrorProceso')), // Datos de PROCESO
-                    color: '#00f0c1' // Color definido para PROCESO
+                    color: '#dd4dc7' // Color definido para PROCESO
                 }]
             });
         });
@@ -1362,11 +1364,11 @@
                 series: [{
                     name: '% AQL',
                     data: @json(array_column($dataGerentesGeneral, 'porcentaje_error_aql')), // Datos de AQL
-                    color: '#dd4dc7' // Color definido para AQL
+                    color: '#00f0c1' // Color definido para AQL
                 }, {
                     name: '% PROCESO',
                     data: @json(array_column($dataGerentesGeneral, 'porcentaje_error_proceso')), // Datos de PROCESO
-                    color: '#00f0c1' // Color definido para PROCESO
+                    color: '#dd4dc7' // Color definido para PROCESO
                 }]
             });
         });
@@ -1403,11 +1405,11 @@
                 series: [{
                     name: '% AQL',
                     data: @json(array_column($dataModulosGeneral, 'porcentaje_error_aql')), // Datos de AQL
-                    color: '#dd4dc7' // Color definido para AQL
+                    color: '#00f0c1' // Color definido para AQL
                 }, {
                     name: '% PROCESO',
                     data: @json(array_column($dataModulosGeneral, 'porcentaje_error_proceso')), // Datos de PROCESO
-                    color: '#00f0c1' // Color definido para PROCESO
+                    color: '#dd4dc7' // Color definido para PROCESO
                 }]
             });
         });
