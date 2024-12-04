@@ -17,6 +17,18 @@
                         <p>{{ __('Consulta por Dia') }}</p>
                     </a>
                 </li>
+                <li class="nav-item{{ $pageSlug == 'dashboardPorSemanal' ? ' active' : '' }}">
+                    <a class="nav-link" href="{{ route('dashboar.dashboardPlanta1PorSemana') }}">
+                        <i class="tim-icons icon-tap-02"></i>
+                        <p>{{ __('Consulta por Semana') }}</p>
+                    </a>
+                </li> 
+                <li class="nav-item{{ $pageSlug == 'dashboardComparativoClientes' ? ' active' : '' }}">
+                    <a class="nav-link" href="{{ route('dashboarComparativaModulo.planta1PorSemana') }}">
+                        <i class="tim-icons icon-paper"></i>
+                        <p>{{ __('Comparativo Clientes') }}</p>
+                    </a>
+                </li> 
             @endif
 
             @if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Gerente de Calidad')))

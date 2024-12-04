@@ -599,9 +599,9 @@ class DashboardPlanta1PorDiaController extends Controller
             $defectosUnicos = AuditoriaAQL::where('modulo', $modulo)
                 ->where('estilo', $estilo)
                 ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
+                ->when(is_null($tiempoExtra), function ($query) {
                     return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
+                }, function ($query) use ($tiempoExtra) {
                     return $query->where('tiempo_extra', $tiempoExtra);
                 })
                 ->whereHas('tpAuditoriaAQL', function ($query) {
@@ -611,9 +611,17 @@ class DashboardPlanta1PorDiaController extends Controller
                     $query->where('tp', '!=', 'NINGUNO');
                 }])
                 ->get()
-                ->pluck('tpAuditoriaAQL.*.tp')
-                ->flatten()
-                ->implode(', ') ?: 'N/A';
+                ->pluck('tpAuditoriaAQL.*.tp') // Obtiene los valores de 'tp'
+                ->flatten() // Aplana la colección anidada
+                ->filter() // Elimina valores nulos o vacíos
+                ->groupBy(fn($item) => $item) // Agrupa por el valor de 'tp'
+                ->map(function ($items, $key) {
+                    $count = $items->count();
+                    return $count > 1 ? "$key ($count)" : $key; // Agrega el conteo solo si es mayor a 1
+                })
+                ->sort() // Ordena alfabéticamente
+                ->values() // Reindexa la colección
+                ->implode(', ') ?: 'N/A';            
 
             $accionesCorrectivasUnicos = AuditoriaAQL::where('modulo', $modulo)
                 ->where('estilo', $estilo)
@@ -632,16 +640,25 @@ class DashboardPlanta1PorDiaController extends Controller
             $operariosUnicos = AuditoriaAQL::where('modulo', $modulo)
                 ->where('estilo', $estilo)
                 ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
+                ->when(is_null($tiempoExtra), function ($query) {
                     return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
+                }, function ($query) use ($tiempoExtra) {
                     return $query->where('tiempo_extra', $tiempoExtra);
                 })
-                ->distinct()
-                ->pluck('nombre')
-                ->filter()  // Elimina valores nulos o vacíos
-                ->values()  // Reindexa la colección
-                ->implode(', ') ?: 'N/A';
+                ->pluck('nombre') // Obtiene los nombres
+                ->flatMap(function ($item) {
+                    return collect(explode(',', $item)) // Divide cada cadena por comas
+                        ->map(fn($name) => trim($name)) // Elimina espacios adicionales
+                        ->filter(); // Elimina valores vacíos o nulos
+                })
+                ->groupBy(fn($item) => $item) // Agrupa los nombres individuales
+                ->map(function ($items, $key) {
+                    $count = $items->count();
+                    return $count > 1 ? "$key ($count)" : $key; // Agrega el conteo solo si es mayor a 1
+                })
+                ->sort() // Ordena alfabéticamente
+                ->values() // Reindexa la colección
+                ->implode(', ') ?: 'N/A';            
 
             $sumaParoModular = AuditoriaAQL::where('modulo', $modulo)
                 ->where('estilo', $estilo)
@@ -896,14 +913,21 @@ class DashboardPlanta1PorDiaController extends Controller
             $operariosUnicos = AseguramientoCalidad::where('modulo', $modulo)
                 ->where('estilo', $estilo)
                 ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
+                ->when(is_null($tiempoExtra), function ($query) {
                     return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
+                }, function ($query) use ($tiempoExtra) {
                     return $query->where('tiempo_extra', $tiempoExtra);
                 })
                 ->where('cantidad_rechazada', '>', 0)
-                ->distinct()
-                ->pluck('nombre')
+                ->pluck('nombre') // Obtiene los nombres
+                ->filter() // Elimina valores nulos o vacíos
+                ->groupBy(fn($item) => $item) // Agrupa por nombre
+                ->map(function ($items, $key) {
+                    $count = $items->count();
+                    return $count > 1 ? "$key ($count)" : $key; // Agrega el conteo solo si es mayor a 1
+                })
+                ->sort() // Ordena alfabéticamente
+                ->values() // Reindexa la colección
                 ->implode(', ') ?: 'N/A';
 
             $sumaParoModular = AseguramientoCalidad::where('modulo', $modulo)
@@ -956,10 +980,16 @@ class DashboardPlanta1PorDiaController extends Controller
                     $query->where('tp', '!=', 'NINGUNO');
                 }])
                 ->get()
-                ->pluck('TpAseguramientoCalidad.*.tp')
-                ->flatten()
-                //->unique()   // Descomenta si necesitas valores únicos
-                //->sort()     // Descomenta si necesitas orden alfabético
+                ->pluck('TpAseguramientoCalidad.*.tp') // Obtiene los valores de 'tp'
+                ->flatten() // Aplana la colección anidada
+                ->filter() // Elimina valores nulos o vacíos
+                ->groupBy(fn($item) => $item) // Agrupa por el valor de 'tp'
+                ->map(function ($items, $key) {
+                    $count = $items->count();
+                    return $count > 1 ? "$key ($count)" : $key; // Agrega el conteo solo si es mayor a 1
+                })
+                ->sort() // Ordena alfabéticamente
+                ->values() // Reindexa la colección
                 ->implode(', ') ?: 'N/A';
 
             //
@@ -1194,9 +1224,9 @@ class DashboardPlanta1PorDiaController extends Controller
             $defectosUnicos = AuditoriaAQL::where('modulo', $modulo)
                 ->where('cliente', $cliente)
                 ->whereBetween('created_at', $rangoFechas)
-                ->when(is_null($tiempoExtra), function($query) {
+                ->when(is_null($tiempoExtra), function ($query) {
                     return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
+                }, function ($query) use ($tiempoExtra) {
                     return $query->where('tiempo_extra', $tiempoExtra);
                 })
                 ->whereHas('tpAuditoriaAQL', function ($query) {
@@ -1206,8 +1236,18 @@ class DashboardPlanta1PorDiaController extends Controller
                     $query->where('tp', '!=', 'NINGUNO');
                 }])
                 ->get()
-                ->pluck('tpAuditoriaAQL.*.tp')
-                ->flatten()
+                ->pluck('tpAuditoriaAQL.*.tp') // Obtiene los valores de 'tp'
+                ->flatten() // Aplana la colección anidada
+                ->filter() // Elimina valores nulos o vacíos
+                ->groupBy(function ($item) {
+                    return $item; // Agrupa por el valor de 'tp'
+                })
+                ->map(function ($items, $key) {
+                    $count = $items->count();
+                    return $count > 1 ? "$key ($count)" : $key; // Agrega el conteo solo si es mayor a 1
+                })
+                ->values() // Reindexa la colección
+                ->sort()
                 ->implode(', ') ?: 'N/A';
 
             $accionesCorrectivasUnicos = AuditoriaAQL::where('modulo', $modulo)
@@ -1227,16 +1267,24 @@ class DashboardPlanta1PorDiaController extends Controller
             $operariosUnicos = AuditoriaAQL::where('modulo', $modulo)
                 ->where('cliente', $cliente)
                 ->whereBetween('created_at', $rangoFechas)
-                ->when(is_null($tiempoExtra), function($query) {
+                ->when(is_null($tiempoExtra), function ($query) {
                     return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
+                }, function ($query) use ($tiempoExtra) {
                     return $query->where('tiempo_extra', $tiempoExtra);
                 })
-                ->distinct()
                 ->pluck('nombre')
-                ->filter()  // Elimina valores nulos o vacíos
-                ->values()  // Reindexa la colección
-                ->implode(', ') ?: 'N/A';
+                ->flatMap(function ($item) {
+                    return collect(explode(',', $item)) // Divide los nombres por comas
+                        ->map(fn($name) => trim($name)) // Elimina espacios adicionales
+                        ->filter(); // Elimina valores vacíos o nulos
+                })
+                ->groupBy(fn($item) => $item) // Agrupa los nombres individuales
+                ->map(function ($items, $key) {
+                    $count = $items->count();
+                    return $count > 1 ? "$key ($count)" : $key; // Agrega el conteo solo si es mayor a 1
+                })
+                ->values() // Reindexa la colección
+                ->implode(', ') ?: 'N/A';            
 
             $sumaParoModular = AuditoriaAQL::where('modulo', $modulo)
                 ->where('cliente', $cliente)
@@ -1306,7 +1354,7 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->sum('reparacion_rechazo');
 
             //
-            $piezasRechazadasUnicas = AuditoriaAQL::where('modulo', $modulo)
+            $piezasRechazadasSumadas = AuditoriaAQL::where('modulo', $modulo)
                 ->where('cliente', $cliente)
                 ->whereBetween('created_at', $rangoFechas)
                 ->when(is_null($tiempoExtra), function($query) {
@@ -1315,9 +1363,7 @@ class DashboardPlanta1PorDiaController extends Controller
                     return $query->where('tiempo_extra', $tiempoExtra);
                 })
                 ->where('cantidad_rechazada', '>', 0)
-                ->distinct()
-                ->pluck('pieza')
-                ->implode(', ');
+                ->sum('pieza'); // Cambiado para sumar la columna 'pieza'
 
             //
             // Consultar detalles para cada módulo y cliente
@@ -1355,7 +1401,7 @@ class DashboardPlanta1PorDiaController extends Controller
                 'cantidadBultosEncontrados' => $cantidadBultosEncontrados,
                 'cantidadBultosRechazados' => $cantidadBultosRechazados,
                 'sumaReparacionRechazo' => $sumaReparacionRechazo,
-                'piezasRechazadasUnicas' => $piezasRechazadasUnicas,
+                'piezasRechazadasSumadas' => $piezasRechazadasSumadas,
                 'detalles' => $detalles,
             ];
         }
@@ -1491,14 +1537,20 @@ class DashboardPlanta1PorDiaController extends Controller
             $operariosUnicos = AseguramientoCalidad::where('modulo', $modulo)
                 ->where('cliente', $cliente)
                 ->whereBetween('created_at', $rangoFechas)
-                ->when(is_null($tiempoExtra), function($query) {
+                ->when(is_null($tiempoExtra), function ($query) {
                     return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
+                }, function ($query) use ($tiempoExtra) {
                     return $query->where('tiempo_extra', $tiempoExtra);
                 })
                 ->where('cantidad_rechazada', '>', 0)
-                ->distinct()
-                ->pluck('nombre')
+                ->pluck('nombre') // Obtiene los nombres
+                ->filter() // Elimina valores nulos o vacíos
+                ->groupBy(fn($item) => $item) // Agrupa por nombre
+                ->map(function ($items, $key) {
+                    $count = $items->count();
+                    return $count > 1 ? "$key ($count)" : $key; // Agrega el conteo solo si es mayor a 1
+                })
+                ->values() // Reindexa la colección
                 ->implode(', ') ?: 'N/A';
 
             $sumaParoModular = AseguramientoCalidad::where('modulo', $modulo)
@@ -1551,10 +1603,16 @@ class DashboardPlanta1PorDiaController extends Controller
                     $query->where('tp', '!=', 'NINGUNO');
                 }])
                 ->get()
-                ->pluck('TpAseguramientoCalidad.*.tp')
-                ->flatten()
-                //->unique()   // Descomenta si necesitas valores únicos
-                //->sort()     // Descomenta si necesitas orden alfabético
+                ->pluck('TpAseguramientoCalidad.*.tp') // Obtiene los valores de 'tp'
+                ->flatten() // Aplana la colección anidada
+                ->filter() // Elimina valores nulos o vacíos
+                ->groupBy(fn($item) => $item) // Agrupa por el valor de 'tp'
+                ->map(function ($items, $key) {
+                    $count = $items->count();
+                    return $count > 1 ? "$key ($count)" : $key; // Agrega el conteo solo si es mayor a 1
+                })
+                ->values() // Reindexa la colección
+                ->sort()
                 ->implode(', ') ?: 'N/A';
 
             //

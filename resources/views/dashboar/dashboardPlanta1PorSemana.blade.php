@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageSlug' => 'dashboardPorDia', 'titlePage' => __('Dashboard')])
+@extends('layouts.app', ['pageSlug' => 'dashboardPorSemanal', 'titlePage' => __('DashboardSemanal')])
 
 @section('content')
 
@@ -162,7 +162,7 @@
                                             <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
                                             <td>{{ $item['operariosUnicos'] }}</td>
                                             <td>{{ $item['sumaReparacionRechazo'] }}</td>
-                                            <td>{{ $item['piezasRechazadasUnicas'] }}</td>
+                                            <td>{{ $item['piezasRechazadasSumadas'] }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -322,7 +322,7 @@
                                             <td>{{ $item['accionesCorrectivasUnicos'] }}</td>
                                             <td>{{ $item['operariosUnicos'] }}</td>
                                             <td>{{ $item['sumaReparacionRechazo'] }}</td>
-                                            <td>{{ $item['piezasRechazadasUnicas'] }}</td>
+                                            <td>{{ $item['piezasRechazadasSumadas'] }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
