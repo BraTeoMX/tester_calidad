@@ -25,7 +25,7 @@
                 </li> 
                 <li class="nav-item{{ $pageSlug == 'dashboardComparativoClientes' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('dashboarComparativaModulo.planta1PorSemana') }}">
-                        <i class="tim-icons icon-paper"></i>
+                        <i class="tim-icons icon-bag-16"></i>
                         <p>{{ __('Comparativo Clientes') }}</p>
                     </a>
                 </li> 
