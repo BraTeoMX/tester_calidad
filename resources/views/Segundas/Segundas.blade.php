@@ -217,31 +217,31 @@
                                                     <th scope="col" class="px-6 py-3">
                                                         #
                                                     </th>
-                                                    <th scope="col" class="px-6 py-3 bg-gray-500 dark:bg-gray-800">
+                                                    <th scope="col" class="px-6 py-3">
                                                         Plantas
                                                     </th>
                                                     <th scope="col" class="px-6 py-3">
                                                         Modulos
                                                     </th>
-                                                    <th scope="col" class="px-6 py-3 bg-gray-500 dark:bg-gray-800">
+                                                    <th scope="col" class="px-6 py-3">
                                                         Clientes
                                                     </th>
                                                     <th scope="col" class="px-6 py-3">
                                                         Divisiones Clinetes
                                                     </th>
-                                                    <th scope="col" class="px-6 py-3 bg-gray-500 dark:bg-gray-800">
+                                                    <th scope="col" class="px-6 py-3">
                                                         Tipo Segundas
                                                     </th>
                                                     <th scope="col" class="px-6 py-3">
                                                         Desc Segundas
                                                     </th>
-                                                    <th scope="col" class="px-6 py-3 bg-gray-500 dark:bg-gray-800">
+                                                    <th scope="col" class="px-6 py-3">
                                                         Ticket
                                                     </th>
                                                     <th scope="col" class="px-6 py-3">
                                                         Cantidad
                                                     </th>
-                                                    <th scope="col" class="px-6 py-3 bg-gray-500 dark:bg-gray-800">
+                                                    <th scope="col" class="px-6 py-3">
                                                         Fechas
                                                     </th>
                                                 </tr>
@@ -767,15 +767,15 @@
                 let fila = `
             <tr class="border-b border-gray-200 dark:border-gray-700">
                 <td class="px-6 py-4">${startIndex + index + 1}</td> <!-- Contador de registro -->
-                <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.PRODPOOLID}</td>
+                <td class="px-6 py-4">${dato.PRODPOOLID}</td>
                 <td class="px-6 py-4">${dato.OPRMODULEID_AT}</td>
-                <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.CUSTOMERNAME}</td>
+                <td class="px-6 py-4 ">${dato.CUSTOMERNAME}</td>
                 <td class="px-6 py-4">${dato.DIVISIONNAME}</td>
-                <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.TipoSegunda}</td>
+                <td class="px-6 py-4 ">${dato.TipoSegunda}</td>
                 <td class="px-6 py-4">${dato.DescripcionCalidad}</td>
-                <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.PRODTICKETID}</td>
+                <td class="px-6 py-4">${dato.PRODTICKETID}</td>
                 <td class="px-6 py-4">${cantidadFormateada}</td>
-                <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">${dato.TRANSDATE}</td>
+                <td class="px-6 py-4">${dato.TRANSDATE}</td>
             </tr>
         `;
                 tbody.append(fila);
