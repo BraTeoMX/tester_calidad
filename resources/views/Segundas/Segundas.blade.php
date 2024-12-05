@@ -14,8 +14,6 @@
                             </div>
                             <h3 class="card-title">Fecha</h3>
                             <div class="flatpickr">
-                                <b>Selección Fecha..</b>
-                                <br>
                                 <input type="text" class="form-control input-custom-style"
                                     placeholder="Selección Fecha.." data-input id="Fecha">
                             </div>
@@ -30,7 +28,6 @@
                                 <span class="material-symbols-outlined">location_away</span>
                             </div>
                             <h3 class="card-title">Clientes por División</h3>
-                            <b>Cliente/Divicion</b>
                             <button id="dropdownMultiLevelButton" data-dropdown-toggle="dropdownMultiLevelClienteDivcion"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-purple-500 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-purple-500 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                                 type="button">Seleccionar Cliente
@@ -61,7 +58,48 @@
                         </div>
                     </div>
                 </div>
-
+                <!-- Tarjeta Tipos Defectos -->
+                <div class="col-lg-3 col-md-6 col-sm-12">
+                    <div class="card card-stats">
+                        <div class="card-header card-header-success card-header-icon">
+                            <div class="card-icon">
+                                <span class="material-symbols-outlined">pest_control</span>
+                            </div>
+                            <h3 class="card-title">Tipos Defectos</h3>
+                            <!-- Botón Dropdown -->
+                            <button id="dropdownToggleDefectos" data-dropdown-toggle="dropdownMenuDefectos"
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-500 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-purple-500 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                                type="button">
+                                Seleccionar Defecto
+                                <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 10 6">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" d="m1 1 4 4 4-4" />
+                                </svg>
+                            </button>
+                            <!-- Dropdown menu -->
+                            <div id="dropdownMenuDefectos"
+                                class="z-10 hidden bg-gray-600 rounded-lg shadow w-60 dark:bg-gray-700">
+                                <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200">
+                                    <li>
+                                        <div class="flex items-center">
+                                            <input id="checkbox-defectos" type="checkbox" value="Segunda por Material"
+                                                class="defectos-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                            Material
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="flex items-center">
+                                            <input id="checkbox-defectos" type="checkbox" value="Segunda por Costura"
+                                                class="defectos-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                            Costura
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- Tarjeta Modulo -->
                 <div class="col-lg-3 col-md-6 col-sm-12">
                     <div class="card card-stats">
@@ -70,10 +108,9 @@
                                 <span class="material-symbols-outlined">view_module</span>
                             </div>
                             <h3 class="card-title">Modulo</h3>
-                            <b>Selección Modulo..</b>
                             <button id="dropdownSearchButtonModulo" data-dropdown-toggle="dropdownSearchModulo"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-purple-500 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-purple-500 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                                type="button">Select Modulos<svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true"
+                                type="button">Seleccionar Modulos<svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                         stroke-width="2" d="m1 1 4 4 4-4" />
@@ -87,8 +124,9 @@
                                         <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                                             <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                                    stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                                                <path stroke="currentColor" stroke-linecap="round"
+                                                    stroke-linejoin="round" stroke-width="2"
+                                                    d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                             </svg>
                                         </div>
                                         <input type="text" id="input-group-search"
@@ -105,7 +143,6 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Tarjeta Planta -->
                 <div class="col-lg-3 col-md-6 col-sm-12">
                     <div class="card card-stats">
@@ -114,11 +151,9 @@
                                 <span class="material-symbols-outlined">source_environment</span>
                             </div>
                             <h3 class="card-title">Planta</h3>
-                            <b>Selección Planta..</b>
-                            <br>
                             <button id="dropdownSearchButtonPlanta" data-dropdown-toggle="dropdownSearchPlanta"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-purple-500 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-purple-500 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                                type="button">Select planta<svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true"
+                                type="button">Seleccionar planta<svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                         stroke-width="2" d="m1 1 4 4 4-4" />
@@ -145,7 +180,16 @@
                                 <div id="spinner" class="spinner"></div>
                                 <ul class="h-48 px-3 pb-3 overflow-y-auto text-sm text-gray-700 dark:text-gray-200"
                                     aria-labelledby="dropdownSearchButtonPlanta">
-
+                                    <li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
+                                        <input id="checkbox-planta" type="checkbox" value="Planta Ixtlahuaca"
+                                            class="planta-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">Planta
+                                        Ixtlahuaca
+                                    </li>
+                                    <li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
+                                        <input id="checkbox-planta" type="checkbox" value="Planta San Bartolo"
+                                            class="planta-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">Planta
+                                        San Bartolo
+                                    </li>
                                 </ul>
                             </div>
                         </div>
@@ -413,175 +457,119 @@
     </script>
     <script>
         $(document).ready(function() {
-            let selectedPlantas = []; // Array para almacenar plantas seleccionadas
-            $("#spinner").show();
+            let selectedDivisiones = [];
+            let selectedClientes = [];
+            $("#spinnerClienteDivicion").show();
 
-            function ObtenerPlantas() {
+            function cargarClientesYDivisiones() {
                 if (obtenerSegundasCargado) {
                     $.ajax({
-                        url: '/ObtenerPlantas',
-                        method: "GET",
+                        url: '/ObtenerClientes',
+                        method: 'GET',
                         success: function(response) {
-                            if (response.status === "success") {
-                                $('#dropdownSearchPlanta ul').empty();
+                            if (response.status === 'success') {
+                                $('#dropdownMultiLevelClienteDivcion ul').empty();
 
-                                response.ObtenerPlantas.forEach(function(plant) {
-                                    $('#dropdownSearchPlanta ul').append(
-                                        `<li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
-                                        <input id="checkbox-planta"
-                                               type="checkbox"
-                                               value="${plant}"
-                                               class="planta-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">${plant}
-                                    </li>`
-                                    );
-                                });
-
-                                $("#spinner").hide();
-                            } else {
-                                console.error("No se recibieron datos válidos");
-                                $("#spinner").hide();
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error("Error al obtener plantas:", error);
-                            $("#spinner").hide();
-                        }
-                    });
-                } else {
-                    // Si obtenerSegundasCargado no ha terminado, esperar 100ms y volver a intentar
-                    setTimeout(ObtenerPlantas, 100);
-                }
-            }
-
-            // Evento de cambio para los checkboxes de planta
-            $(document).on('change', '.planta-checkbox', function() {
-                const plant = $(this).val();
-                if ($(this).is(':checked')) {
-                    selectedPlantas.push(plant);
-                } else {
-                    selectedPlantas = selectedPlantas.filter(p => p !== plant);
-                }
-                console.log('Plantas seleccionadas:', selectedPlantas);
-            });
-
-            // Llamar a la función para cargar las plantas al iniciar
-            ObtenerPlantas();
-        });
-    </script>
-   <script>
-    $(document).ready(function() {
-        let selectedDivisiones = [];
-        let selectedClientes = [];
-        $("#spinnerClienteDivicion").show();
-
-        function cargarClientesYDivisiones() {
-            if (obtenerSegundasCargado) {
-                $.ajax({
-                    url: '/ObtenerClientes',
-                    method: 'GET',
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            $('#dropdownMultiLevelClienteDivcion ul').empty();
-
-                            const clientesDivisiones = response.ObtenerClientes;
-                            Object.keys(clientesDivisiones).forEach(cliente => {
-                                // Cliente como encabezado con checkbox
-                                $('#dropdownMultiLevelClienteDivcion ul').append(`
+                                const clientesDivisiones = response.ObtenerClientes;
+                                Object.keys(clientesDivisiones).forEach(cliente => {
+                                    // Cliente como encabezado con checkbox
+                                    $('#dropdownMultiLevelClienteDivcion ul').append(`
                                     <li class="py-2 px-2 bg-gray-700 text-white font-bold">
                                         <input id="checkbox-cliente" type="checkbox" value="${cliente}" data-cliente="${cliente}" class="cliente-checkbox" >
                                         ${cliente}
                                     </li>
                                 `);
 
-                                // Divisiones como subelementos
-                                clientesDivisiones[cliente].forEach(division => {
-                                    $('#dropdownMultiLevelClienteDivcion ul').append(`
+                                    // Divisiones como subelementos
+                                    clientesDivisiones[cliente].forEach(division => {
+                                        $('#dropdownMultiLevelClienteDivcion ul')
+                                            .append(`
                                         <li class="py-1 px-4 hover:bg-gray-600 cursor-pointer">
                                             <input id="checkbox-division" type="checkbox" value="${division}" data-cliente="${cliente}" class="division-checkbox w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                                             ${division}
                                         </li>
                                     `);
+                                    });
                                 });
-                            });
 
-                            // Evento para cambios en los checkboxes de clientes
-                            $('.cliente-checkbox').on('change', function() {
-                                const cliente = $(this).val();
+                                // Evento para cambios en los checkboxes de clientes
+                                $('.cliente-checkbox').on('change', function() {
+                                    const cliente = $(this).val();
 
-                                if ($(this).is(':checked')) {
-                                    selectedClientes.push({
-                                        cliente
-                                    });
-                                } else {
-                                    selectedClientes = selectedClientes.filter(
-                                        c => c.cliente !== cliente
-                                    );
-                                }
+                                    if ($(this).is(':checked')) {
+                                        selectedClientes.push({
+                                            cliente
+                                        });
+                                    } else {
+                                        selectedClientes = selectedClientes.filter(
+                                            c => c.cliente !== cliente
+                                        );
+                                    }
 
-                                console.log('Clientes seleccionadas:', selectedClientes);
-                            });
+                                    console.log('Clientes seleccionadas:', selectedClientes);
+                                });
 
-                            // Evento para cambios en los checkboxes de divisiones
-                            $('.division-checkbox').on('change', function() {
-                                const division = $(this).val();
+                                // Evento para cambios en los checkboxes de divisiones
+                                $('.division-checkbox').on('change', function() {
+                                    const division = $(this).val();
 
-                                if ($(this).is(':checked')) {
-                                    selectedDivisiones.push({
-                                        division
-                                    });
-                                } else {
-                                    selectedDivisiones = selectedDivisiones.filter(
-                                        d => d.division !== division
-                                    );
-                                }
+                                    if ($(this).is(':checked')) {
+                                        selectedDivisiones.push({
+                                            division
+                                        });
+                                    } else {
+                                        selectedDivisiones = selectedDivisiones.filter(
+                                            d => d.division !== division
+                                        );
+                                    }
 
-                                console.log('Divisiones seleccionadas:', selectedDivisiones);
-                            });
+                                    console.log('Divisiones seleccionadas:',
+                                        selectedDivisiones);
+                                });
 
+                                $("#spinnerClienteDivicion").hide();
+                            } else {
+                                console.error('No se recibieron datos en la respuesta');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error al obtener clientes y divisiones:', error);
                             $("#spinnerClienteDivicion").hide();
-                        } else {
-                            console.error('No se recibieron datos en la respuesta');
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error al obtener clientes y divisiones:', error);
-                        $("#spinnerClienteDivicion").hide();
-                    }
-                });
-            } else {
-                // Si ObtenerSegundas no ha terminado, esperar 100ms y volver a intentar
-                setTimeout(cargarClientesYDivisiones, 100);
+                    });
+                } else {
+                    // Si ObtenerSegundas no ha terminado, esperar 100ms y volver a intentar
+                    setTimeout(cargarClientesYDivisiones, 100);
+                }
             }
-        }
 
-        window.filtrarDivisiones = function() {
-            const valorFiltro = $('#input-group-search').val().toLowerCase();
-            $('#dropdownMultiLevelClienteDivcion ul li').each(function() {
-                const textoElemento = $(this).text().toLowerCase();
-                $(this).toggle(textoElemento.includes(valorFiltro));
-            });
-        };
+            window.filtrarDivisiones = function() {
+                const valorFiltro = $('#input-group-search').val().toLowerCase();
+                $('#dropdownMultiLevelClienteDivcion ul li').each(function() {
+                    const textoElemento = $(this).text().toLowerCase();
+                    $(this).toggle(textoElemento.includes(valorFiltro));
+                });
+            };
 
-        // Llamar a la función para cargar los datos
-        cargarClientesYDivisiones();
-    });
-</script>
-<script>
-    $(document).ready(function() {
-        let selectedModulos = []; // Array para almacenar módulos seleccionados
-        $("#spinnerModul").show();
+            // Llamar a la función para cargar los datos
+            cargarClientesYDivisiones();
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            let selectedModulos = []; // Array para almacenar módulos seleccionados
+            $("#spinnerModul").show();
+            function cargarModulos() {
+                if (obtenerSegundasCargado) {
+                    $.ajax({
+                        url: '/ObtenerModulos',
+                        method: 'GET',
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                $('#dropdownSearchModulo ul').empty();
 
-        function cargarModulos() {
-            if (obtenerSegundasCargado) {
-                $.ajax({
-                    url: '/ObtenerModulos',
-                    method: 'GET',
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            $('#dropdownSearchModulo ul').empty();
-
-                            response.ObtenerModulos.forEach(function(modulo) {
-                                $('#dropdownSearchModulo ul').append(`
+                                response.ObtenerModulos.forEach(function(modulo) {
+                                    $('#dropdownSearchModulo ul').append(`
                                 <li class="py-1 px-2 hover:bg-gray-600 cursor-pointer">
                                     <input id="checkbox-modulo"
                                            type="checkbox"
@@ -590,41 +578,39 @@
                                     ${modulo}
                                 </li>
                             `);
-                            });
+                                });
 
-                            $("#spinnerModul").hide();
-                        } else {
-                            console.error('No se recibieron datos en la respuesta');
+                                $("#spinnerModul").hide();
+                            } else {
+                                console.error('No se recibieron datos en la respuesta');
+                                $("#spinnerModul").hide();
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error al obtener módulos:', error);
                             $("#spinnerModul").hide();
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error al obtener módulos:', error);
-                        $("#spinnerModul").hide();
-                    }
-                });
-            } else {
-                // Si obtenerSegundasCargado no ha terminado, esperar 100ms y volver a intentar
-                setTimeout(cargarModulos, 100);
+                    });
+                } else {
+                    // Si obtenerSegundasCargado no ha terminado, esperar 100ms y volver a intentar
+                    setTimeout(cargarModulos, 100);
+                }
             }
-        }
+            // Evento de cambio para los checkboxes de módulo
+            $(document).on('change', '.modulo-checkbox', function() {
+                const modulo = $(this).val();
+                if ($(this).is(':checked')) {
+                    selectedModulos.push(modulo);
+                } else {
+                    selectedModulos = selectedModulos.filter(m => m !== modulo);
+                }
+                console.log('Módulos seleccionados:', selectedModulos);
+            });
 
-        // Evento de cambio para los checkboxes de módulo
-        $(document).on('change', '.modulo-checkbox', function() {
-            const modulo = $(this).val();
-            if ($(this).is(':checked')) {
-                selectedModulos.push(modulo);
-            } else {
-                selectedModulos = selectedModulos.filter(m => m !== modulo);
-            }
-            console.log('Módulos seleccionados:', selectedModulos);
+            // Llamar a cargarModulos al iniciar
+            cargarModulos();
         });
-
-        // Llamar a cargarModulos al iniciar
-        cargarModulos();
-    });
-</script>
-
+    </script>
     <script>
         let obtenerSegundasCargado = false;
         let currentPage = 1; // Página actual de los datos
@@ -636,6 +622,7 @@
         let selectedModulos = []; // Array para almacenar módulos seleccionados
         let selectedPlantas = []; // Array para almacenar plantas seleccionadas
         let selectedClientes = []; // Array para almacenar clientes seleccionados
+        let selectedDefectos = []; // Array para almacenar defectos seleccionados
 
         $(document).ready(function() {
             ObtenerSegundas();
@@ -699,6 +686,19 @@
                 }
                 filtrarDatos();
             });
+
+            // Evento de cambio para los checkboxes de defectos
+            $(document).on('change', '#checkbox-defectos', function() {
+                const value = $(this).val();
+                if ($(this).is(':checked')) {
+                    selectedDefectos.push(value);
+                } else {
+                    selectedDefectos = selectedDefectos.filter(item => item !== value);
+                }
+                filtrarDatos();
+            });
+
+
         });
 
         function ObtenerSegundas() {
@@ -853,10 +853,12 @@
                     selectedDates[1]).getTime());
                 const clienteValido = !selectedClientes.length || selectedClientes.includes(dato.CUSTOMERNAME);
                 const divisionValida = !selectedDivisiones.length || selectedDivisiones.includes(dato.DIVISIONNAME);
+                const defectoValida = !selectedDefectos.length || selectedDefectos.includes(dato.TipoSegunda);
                 const moduloValido = !selectedModulos.length || selectedModulos.includes(dato.OPRMODULEID_AT);
                 const plantaValida = !selectedPlantas.length || selectedPlantas.includes(dato.PRODPOOLID);
 
-                return fechaValida && clienteValido && divisionValida && moduloValido && plantaValida;
+                return fechaValida && clienteValido && divisionValida && defectoValida && moduloValido &&
+                    plantaValida;
             });
 
             // Volver a paginar y renderizar los datos filtrados

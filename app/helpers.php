@@ -78,49 +78,6 @@ if (!function_exists('ObtenerSegundas')) {
     }
 
 }
-if (!function_exists('ObtenerPlantas')) {
-    /**
-     * Obtiene nombres de plantas únicos basados en la columna [PRODPOOLID] de la vista SegundasTerceras_View.
-     *
-     * @return array
-     */
-    function ObtenerPlantas(): array
-    {
-        try {
-            return Cache::remember('ObtenerPlantas', 1800, function () {
-                $resultados = DB::connection('sqlsrv')
-                    ->table('SegundasTerceras_View')
-                    ->select('PRODPOOLID')
-                    ->where('Calidad', 'Segunda')
-                    ->pluck('PRODPOOLID');
-
-                Log::info('Resultados de la consulta: ' . json_encode($resultados));
-
-                $plantas = $resultados->unique()->map(function ($item) {
-                    $lowerItem = strtolower($item);
-                    switch ($lowerItem) {
-                        case 'intimark1':
-                            return 'Planta Ixtlahuaca';
-                        case 'intimark2':
-                            return 'Planta San Bartolo';
-                        default:
-                            return null;
-                    }
-                })->filter();
-
-                Log::info('Datos plantas: ' . json_encode($plantas));
-
-                return $plantas->unique()->values()->toArray();
-            });
-        } catch (QueryException $e) {
-            Log::error('Error en la consulta SQL al obtener Plantas: ' . $e->getMessage());
-            throw new \Exception('Error al obtener los datos de Plantas.');
-        } catch (\Exception $e) {
-            Log::error('Error al obtener Plantas: ' . $e->getMessage());
-            throw new \Exception('Error al obtener los datos de Plantas.');
-        }
-    }
-}
 if (!function_exists('ObtenerModulos')) {
     /**
      * Obtiene módulos únicos basados en la columna OPRMODULEID_AT de la vista correspondiente.
@@ -134,8 +91,10 @@ if (!function_exists('ObtenerModulos')) {
                 // Consulta optimizada con DISTINCT
                 $resultados = DB::connection('sqlsrv')
                     ->table('SegundasTerceras_View')
-                    ->selectRaw('DISTINCT OPRMODULEID_AT')
+                    ->distinct()
+                    ->select('OPRMODULEID_AT')
                     ->where('Calidad', 'Segunda')
+                    ->orderBy('OPRMODULEID_AT')
                     ->pluck('OPRMODULEID_AT');
 
                 Log::info('Resultados únicos de la consulta módulos: ' . json_encode($resultados));
@@ -220,69 +179,4 @@ if (!function_exists('ObtenerTipoSegundas')) {
         }
     }
 }
-if (!function_exists('ObtenerDescriptionSegundas')) {
-    /**
-     * Obtiene clientes únicos basados en la columna CUSTOMERNAME de la vista correspondiente.
-     *
-     * @return array
-     */
-    function ObtenerDescriptionSegundas(): array
-    {
-        try {
-            return Cache::remember('ObtenerDescriptionSegundas', 1800, function () {
-                $DescriptionSegundas = DB::connection('sqlsrv')
-                    ->table('SegundasTerceras_View')
-                    ->select('DescripcionCalidad')
-                    ->where('Calidad', 'Segunda')
-                    ->pluck('DescripcionCalidad');
 
-                Log::info('Resultados DescriptionSegundas: ' . json_encode($DescriptionSegundas));
-
-                $ObtenerDescriptionSegundas = $DescriptionSegundas->unique()->values()->toArray();
-
-                Log::info('Clientes únicos filtrados DescriptionSegundas: ' . json_encode($ObtenerDescriptionSegundas));
-
-                return $ObtenerDescriptionSegundas;
-            });
-        } catch (QueryException $e) {
-            Log::error('Error en la consulta SQL al obtener DescriptionSegundas: ' . $e->getMessage());
-            throw new \Exception('Error al obtener DescriptionSegundas');
-        } catch (\Exception $e) {
-            Log::error('Error al obtener DescriptionSegundas: ' . $e->getMessage());
-            throw new \Exception('Error al obtener DescriptionSegundas.');
-        }
-    }
-}
-if (!function_exists('ObtenerTickets')) {
-    /**
-     * Obtiene clientes únicos basados en la columna CUSTOMERNAME de la vista correspondiente.
-     *
-     * @return array
-     */
-    function ObtenerTickets(): array
-    {
-        try {
-            return Cache::remember('ObtenerTickets', 1800, function () {
-                $Tickets = DB::connection('sqlsrv')
-                    ->table('SegundasTerceras_View')
-                    ->select('PRODTICKETID')
-                    ->where('Calidad', 'Segunda')
-                    ->pluck('PRODTICKETID');
-
-                Log::info('Resultados de ObtenerTickets: ' . json_encode($Tickets));
-
-                $ObtenerTickets= $Tickets->unique()->values()->toArray();
-
-                Log::info('Clientes únicos filtrados de ObtenerTickets: ' . json_encode($ObtenerTickets));
-
-                return $ObtenerTickets;
-            });
-        } catch (QueryException $e) {
-            Log::error('Error en la consulta SQL al ObtenerTickets: ' . $e->getMessage());
-            throw new \Exception('Error al obtener de ObtenerTickets.');
-        } catch (\Exception $e) {
-            Log::error('Error al obtener de ObtenerTickets: ' . $e->getMessage());
-            throw new \Exception('Error al obtener los datos ObtenerTickets.');
-        }
-    }
-}
