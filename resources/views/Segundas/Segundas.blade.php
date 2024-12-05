@@ -217,31 +217,31 @@
                                                     <th scope="col" class="px-6 py-3">
                                                         #
                                                     </th>
-                                                    <th scope="col" class="px-6 py-3 bg-gray-50 dark:bg-gray-800">
+                                                    <th scope="col" class="px-6 py-3 bg-gray-500 dark:bg-gray-800">
                                                         Plantas
                                                     </th>
                                                     <th scope="col" class="px-6 py-3">
                                                         Modulos
                                                     </th>
-                                                    <th scope="col" class="px-6 py-3 bg-gray-50 dark:bg-gray-800">
+                                                    <th scope="col" class="px-6 py-3 bg-gray-500 dark:bg-gray-800">
                                                         Clientes
                                                     </th>
                                                     <th scope="col" class="px-6 py-3">
                                                         Divisiones Clinetes
                                                     </th>
-                                                    <th scope="col" class="px-6 py-3 bg-gray-50 dark:bg-gray-800">
+                                                    <th scope="col" class="px-6 py-3 bg-gray-500 dark:bg-gray-800">
                                                         Tipo Segundas
                                                     </th>
                                                     <th scope="col" class="px-6 py-3">
                                                         Desc Segundas
                                                     </th>
-                                                    <th scope="col" class="px-6 py-3 bg-gray-50 dark:bg-gray-800">
+                                                    <th scope="col" class="px-6 py-3 bg-gray-500 dark:bg-gray-800">
                                                         Ticket
                                                     </th>
                                                     <th scope="col" class="px-6 py-3">
                                                         Cantidad
                                                     </th>
-                                                    <th scope="col" class="px-6 py-3 bg-gray-50 dark:bg-gray-800">
+                                                    <th scope="col" class="px-6 py-3 bg-gray-500 dark:bg-gray-800">
                                                         Fechas
                                                     </th>
                                                 </tr>
@@ -254,8 +254,8 @@
                                             aria-label="Table navigation">
                                             <span
                                                 class="text-sm font-normal text-gray-500 dark:text-gray-400 mb-4 md:mb-0 block w-full md:inline md:w-auto">Datos
-                                                <span class="font-semibold text-gray-900 dark:text-white"> </span> de
-                                                <span class="font-semibold text-gray-900 dark:text-white"> </span>
+                                                <span class="font-semibold text-gray-500 dark:text-gray-400"> </span> de
+                                                <span class="font-semibold text-gray-500 dark:text-gray-400"> </span>
                                             </span>
                                             <ul class="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
 
