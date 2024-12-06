@@ -297,7 +297,7 @@
                                 </tr>
                                 @endforeach
                             </tbody>
-                        </table>                        
+                        </table>
                     </div>
                 </div>
             </div>
@@ -327,7 +327,7 @@
                                 </tr>
                                 @endforeach
                             </tbody>
-                        </table>                        
+                        </table>
                     </div>
                 </div>
             </div>
@@ -357,13 +357,13 @@
                                 </tr>
                                 @endforeach
                             </tbody>
-                        </table>                        
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
 
     <div class="row">
         <div class="col-12">
@@ -544,7 +544,7 @@
 
 
     </div>
-    
+
     <style>
   /* Estilo para el spinner */
 .spinner {
@@ -1083,16 +1083,30 @@
       .then(data => {
         let segundas = 0;
         let terceras = 0;
+        let totalQty = 0; // Variable para almacenar el total de Total_QTY
 
+        // Sumamos las cantidades de Total_QTY
         data.data.forEach(item => {
-          let qty = parseFloat(item.QTY);
-          if (item.Calidad === "Segunda") {
-            segundas += qty;
-          } else if (item.Calidad === "Tercera") {
-            terceras += qty;
+          let qty = parseFloat(item.Total_QTY); // Asegúrate de que el valor es numérico
+          totalQty += qty; // Sumar al total de QTY
+          // Sumar para segundas y terceras
+          if (item.QUALITY === "1") {
+            segundas += qty; // Suma para "Segundas"
+          } else if (item.QUALITY === "2") {
+            terceras += qty; // Suma para "Terceras"
           }
         });
 
+        // Calcular el porcentaje para Segundas y Terceras
+        let porcentajeSegundas = (segundas / totalQty) * 100;
+        let porcentajeTerceras = (terceras / totalQty) * 100;
+
+        // Mostrar en consola para verificar
+        console.log("Total QTY: ", totalQty);
+        console.log("Segundas: ", segundas, " | Porcentaje Segundas: ", porcentajeSegundas);
+        console.log("Terceras: ", terceras, " | Porcentaje Terceras: ", porcentajeTerceras);
+
+        // Generamos la gráfica con los datos
         Highcharts.chart("SegundasTercerasChart", {
           chart: {
             type: "column",
@@ -1110,11 +1124,21 @@
               text: "Cantidad"
             }
           },
+          tooltip: {
+            pointFormatter: function() {
+              return `<b>${this.series.name}:</b> ${this.y} <br><b>Porcentaje:</b> ${(this.y / totalQty * 100).toFixed(2)}%`;
+            }
+          },
           series: [{
             name: "Segundas",
             id: "segundas",
-            data: [segundas],
+            data: [{
+              y: segundas,
+            }],
             color: "#7cb5ec",
+            dataLabels: {
+              enabled: false,
+            },
             events: {
               click: function(event) {
                 if (this.options.id === "segundas") {
@@ -1125,8 +1149,13 @@
           }, {
             name: "Terceras",
             id: "terceras",
-            data: [terceras],
+            data: [{
+              y: terceras,
+            }],
             color: "#434348",
+            dataLabels: {
+              enabled: false,
+            }
           }],
           legend: {
             enabled: true
@@ -1144,7 +1173,9 @@
     });
   </script>
 
-    
+
+
+
     <script>
         // Configuración global de Highcharts para la fuente y estilo
         Highcharts.setOptions({
@@ -1232,7 +1263,7 @@
                     name: '% PROCESO',
                     data: @json(array_column($supervisoresSemana, '% PROCESO')),
                     color: '#dd4dc7' // Color definido para PROCESO
-                    
+
                 }]
             });
         });
@@ -1432,10 +1463,10 @@
             $.fn.dataTable.ext.type.order['custom-num-pre'] = function(a) {
                 // Si es "N/A", devolver un valor que lo coloque al final
                 if (a === "N/A") return -Infinity;
-                
+
                 // Convertir a número flotante
                 var x = parseFloat(a);
-                
+
                 // Si no es un número válido, devolver -Infinity
                 return isNaN(x) ? -Infinity : x;
             };

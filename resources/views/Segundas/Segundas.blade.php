@@ -204,7 +204,7 @@
                 <div class="card card-stats">
                     <div class="card">
                         <div class="card-header">
-                            Graphic
+                            Data info
                         </div>
                         <div class="card-body">
                             <blockquote class="blockquote mb-auto col-lg-auto col-md-auto col-sm-auto">
