@@ -100,6 +100,47 @@
                                             </tfoot>                                            
                                         </table>
                                     </div>
+                                    <div class="row mt-4">
+                                        <!-- Tarjeta Resumen por Semana -->
+                                        <div class="col-lg-3">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>Resumen por Semana</h5>
+                                                </div>
+                                                <div class="table-responsive" style="background-color: #2c2c2c; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
+                                                    <table class="table tablesorter">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Semana</th>
+                                                                <th>% AQL</th>
+                                                                <th>% Proceso</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach($semanas as $i => $semana)
+                                                            <tr>
+                                                                <td>Semana {{ $semana['semana'] }} ({{ $semana['anio'] }})</td>
+                                                                <td>{{ $modulosEstilo['totales_aql'][$i] }}</td>
+                                                                <td>{{ $modulosEstilo['totales_proceso'][$i] }}</td>
+                                                            </tr>
+                                                            @endforeach
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Tarjeta Gráfico -->
+                                        <div class="col-lg-9">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5>Gráfico</h5>
+                                                </div>
+                                                <!-- Div para el gráfico con ID único -->
+                                                <div id="chart-{{ $loop->parent->index }}-{{ $loop->index }}" style="width:100%; height:500px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>                                
                                 @endforeach
                             </div>
@@ -147,5 +188,77 @@
     <script src="{{ asset('js/highcharts/exporting.js') }}"></script>
     <script src="{{ asset('js/highcharts/dark-unica.js') }}"></script>
 
-
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            @foreach($modulosPorClienteYEstilo as $cliente => $estilos)
+                @foreach($estilos as $estilo => $modulosEstilo)
+                    const categories_{{ $loop->parent->index }}_{{ $loop->index }} = [
+                        @foreach($semanas as $i => $semana)
+                            "Semana {{ $semana['semana'] }} ({{ $semana['anio'] }})",
+                        @endforeach
+                    ];
+        
+                    const aql_{{ $loop->parent->index }}_{{ $loop->index }} = [
+                        @foreach($modulosEstilo['totales_aql'] as $totalAql)
+                            {{ is_numeric($totalAql) ? $totalAql : 'null' }},
+                        @endforeach
+                    ];
+        
+                    const proceso_{{ $loop->parent->index }}_{{ $loop->index }} = [
+                        @foreach($modulosEstilo['totales_proceso'] as $totalProceso)
+                            {{ is_numeric($totalProceso) ? $totalProceso : 'null' }},
+                        @endforeach
+                    ];
+        
+                    const allData_{{ $loop->parent->index }}_{{ $loop->index }} = aql_{{ $loop->parent->index }}_{{ $loop->index }}.concat(proceso_{{ $loop->parent->index }}_{{ $loop->index }}).filter(v => v !== null);
+                    const maxY_{{ $loop->parent->index }}_{{ $loop->index }} = allData_{{ $loop->parent->index }}_{{ $loop->index }}.length > 0 ? Math.ceil(Math.max(...allData_{{ $loop->parent->index }}_{{ $loop->index }})) + 5 : 10;
+        
+                    Highcharts.chart("chart-{{ $loop->parent->index }}-{{ $loop->index }}", {
+                        chart: {
+                            backgroundColor: 'transparent',
+                            style: { fontFamily: 'Arial' }
+                        },
+                        title: {
+                            text: "Porcentajes Semanales",
+                            style: { fontFamily: 'Arial' }
+                        },
+                        xAxis: {
+                            categories: categories_{{ $loop->parent->index }}_{{ $loop->index }},
+                            title: { text: "Semanas", style: { fontFamily: 'Arial' } },
+                            labels: { style: { fontFamily: 'Arial' } }
+                        },
+                        yAxis: {
+                            title: { text: "Porcentaje (%)", style: { fontFamily: 'Arial' } },
+                            min: 0,
+                            max: maxY_{{ $loop->parent->index }}_{{ $loop->index }},
+                            labels: { style: { fontFamily: 'Arial' } }
+                        },
+                        series: [
+                            {
+                                name: "% AQL",
+                                type: 'line',
+                                data: aql_{{ $loop->parent->index }}_{{ $loop->index }},
+                                color: "#28a745",
+                                zIndex: 2,
+                                marker: { enabled: true, radius: 4 }
+                            },
+                            {
+                                name: "% Proceso",
+                                type: 'column',
+                                data: proceso_{{ $loop->parent->index }}_{{ $loop->index }},
+                                color: "#007bff",
+                                zIndex: 1
+                            }
+                        ],
+                        tooltip: {
+                            shared: true,
+                            valueSuffix: "%",
+                            style: { fontFamily: 'Arial' }
+                        },
+                        credits: { enabled: false }
+                    });
+                @endforeach
+            @endforeach
+        });
+    </script>
 @endpush
