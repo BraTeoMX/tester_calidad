@@ -503,62 +503,54 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             $currentDate->addWeek();
         }
 
-        // Consultar clientes únicos en el rango
-        $clientesUnicos = ComparativoSemanalCliente::where(function ($query) use ($semanas) {
-            foreach ($semanas as $rango) {
-                $query->orWhere(function ($subQuery) use ($rango) {
-                    $subQuery->where('semana', $rango['semana'])
-                            ->where('anio', $rango['anio']);
-                });
-            }
-        })->distinct('cliente')->pluck('cliente');
+        // Creamos un arreglo para filtrar por la combinación semana-año
+        // Usamos CONCAT(anio, '-', semana) para simplificar la comparación
+        $listaSemanasAnios = array_map(function($rango) {
+            return $rango['anio'] . '-' . $rango['semana'];
+        }, $semanas);
 
-        // Consultar y consolidar datos agrupados por Cliente, Estilo y Módulo
-        $modulosPorClienteYEstilo = ComparativoSemanalCliente::where(function ($query) use ($semanas) {
-            foreach ($semanas as $rango) {
-                $query->orWhere(function ($subQuery) use ($rango) {
-                    $subQuery->where('semana', $rango['semana'])
-                            ->where('anio', $rango['anio']);
-                });
-            }
-        })
-        ->whereIn('cliente', $clientesUnicos)
-        ->get()
-        ->groupBy(function ($item) {
-            return $item->cliente;
-        })
-        ->map(function ($modulos, $cliente) use ($semanas) {
-            return $modulos->groupBy(function ($modulo) {
-                return $modulo->estilo ?? 'General'; // Agrupamos por estilo o "Sin Estilo"
-            })->map(function ($modulosEstilo) use ($semanas) {
-                // Consolidar los datos por módulo
-                $consolidado = [];
-                foreach ($modulosEstilo as $modulo) {
-                    if (!isset($consolidado[$modulo->modulo])) {
-                        $consolidado[$modulo->modulo] = [
-                            'modulo' => $modulo->modulo,
-                            'semanalPorcentajes' => array_fill(0, count($semanas), [
-                                'aql' => "N/A",
-                                'proceso' => "N/A"
-                            ])
-                        ];
-                    }
+        // Obtenemos todos los registros en esas semanas y años
+        $registros = ComparativoSemanalCliente::whereIn(
+            DB::raw("CONCAT(anio, '-', semana)"), $listaSemanasAnios
+        )->get();
 
-                    foreach ($semanas as $index => $semana) {
-                        if ($modulo->semana == $semana['semana'] && $modulo->anio == $semana['anio']) {
-                            $consolidado[$modulo->modulo]['semanalPorcentajes'][$index] = [
-                                'aql' => $modulo->porcentaje_aql ?? "N/A",
-                                'proceso' => $modulo->porcentaje_proceso ?? "N/A"
-                            ];
+        // Agrupamos por cliente, luego por estilo (o General), luego consolidamos por módulo
+        $modulosPorClienteYEstilo = $registros
+            ->groupBy('cliente')
+            ->map(function ($itemsPorCliente) use ($semanas) {
+                return $itemsPorCliente
+                    ->groupBy(function($item) {
+                        return $item->estilo ?? 'General';
+                    })
+                    ->map(function($modulosEstilo) use ($semanas) {
+                        $consolidado = [];
+
+                        foreach ($modulosEstilo as $modulo) {
+                            if (!isset($consolidado[$modulo->modulo])) {
+                                $consolidado[$modulo->modulo] = [
+                                    'modulo' => $modulo->modulo,
+                                    'semanalPorcentajes' => array_fill(0, count($semanas), [
+                                        'aql' => "N/A",
+                                        'proceso' => "N/A"
+                                    ])
+                                ];
+                            }
+
+                            foreach ($semanas as $index => $semana) {
+                                if ($modulo->semana == $semana['semana'] && $modulo->anio == $semana['anio']) {
+                                    $consolidado[$modulo->modulo]['semanalPorcentajes'][$index] = [
+                                        'aql' => $modulo->porcentaje_aql ?? "N/A",
+                                        'proceso' => $modulo->porcentaje_proceso ?? "N/A"
+                                    ];
+                                }
+                            }
                         }
-                    }
-                }
 
-                return collect($consolidado);
+                        return collect($consolidado);
+                    });
             });
-        });
 
-        // Pasar los datos a la vista
+        // Pasamos los datos a la vista
         return view('dashboarComparativaModulo.semanaComparativaGeneral', [
             'fechaInicio' => $fechaInicio,
             'fechaFin' => $fechaFin,
