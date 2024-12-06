@@ -81,19 +81,23 @@
                                             <tbody>
                                                 @foreach($modulosEstilo as $modulo)
                                                 <tr>
-                                                    <td>{{ $modulo->modulo }}</td>
-                                                    @foreach($modulo->semanalPorcentajes as $porcentajes)
-                                                        <td class="{{ $porcentajes['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
-                                                            {{ $porcentajes['aql'] }}
-                                                        </td>
-                                                        <td class="{{ $porcentajes['proceso_color'] ? 'bg-rojo-oscuro' : '' }}">
-                                                            {{ $porcentajes['proceso'] }}
-                                                        </td>
+                                                    <td>{{ $modulo['modulo'] }}</td>
+                                                    @foreach($modulo['semanalPorcentajes'] as $porcentajes)
+                                                        <td>{{ $porcentajes['aql'] }}</td>
+                                                        <td>{{ $porcentajes['proceso'] }}</td>
                                                     @endforeach
                                                 </tr>
                                                 @endforeach
                                             </tbody>
-                                            
+                                            <tfoot>
+                                                <tr>
+                                                    <td><strong>Totales</strong></td>
+                                                    @foreach($totalesPorSemana as $totales)
+                                                        <td>{{ $totales['aql'] }}</td>
+                                                        <td>{{ $totales['proceso'] }}</td>
+                                                    @endforeach
+                                                </tr>
+                                            </tfoot>                                            
                                         </table>
                                     </div>
                                 </div>                                
