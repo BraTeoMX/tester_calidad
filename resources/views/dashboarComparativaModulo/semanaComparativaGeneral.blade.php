@@ -79,7 +79,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach($modulosEstilo as $modulo)
+                                                @foreach($modulosEstilo['modulos'] as $modulo)
                                                 <tr>
                                                     <td>{{ $modulo['modulo'] }}</td>
                                                     @foreach($modulo['semanalPorcentajes'] as $porcentajes)
@@ -88,7 +88,16 @@
                                                     @endforeach
                                                 </tr>
                                                 @endforeach
-                                            </tbody>                                       
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th>Total</th>
+                                                    @foreach($modulosEstilo['totales_aql'] as $index => $totalAql)
+                                                        <td>{{ $totalAql }}</td>
+                                                        <td>{{ $modulosEstilo['totales_proceso'][$index] }}</td>
+                                                    @endforeach
+                                                </tr>
+                                            </tfoot>                                            
                                         </table>
                                     </div>
                                 </div>                                

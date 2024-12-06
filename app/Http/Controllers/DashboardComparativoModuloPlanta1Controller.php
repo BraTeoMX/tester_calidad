@@ -504,7 +504,6 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
         }
 
         // Creamos un arreglo para filtrar por la combinación semana-año
-        // Usamos CONCAT(anio, '-', semana) para simplificar la comparación
         $listaSemanasAnios = array_map(function($rango) {
             return $rango['anio'] . '-' . $rango['semana'];
         }, $semanas);
@@ -514,7 +513,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             DB::raw("CONCAT(anio, '-', semana)"), $listaSemanasAnios
         )->get();
 
-        // Agrupamos por cliente, luego por estilo (o General), luego consolidamos por módulo
+        // Agrupamos por cliente, luego por estilo (o General), luego por módulo
         $modulosPorClienteYEstilo = $registros
             ->groupBy('cliente')
             ->map(function ($itemsPorCliente) use ($semanas) {
@@ -524,6 +523,14 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                     })
                     ->map(function($modulosEstilo) use ($semanas) {
                         $consolidado = [];
+
+                        // Arreglos para acumular totales AQL por semana
+                        $rechazadaAqlSemana = array_fill(0, count($semanas), 0);
+                        $auditadaAqlSemana = array_fill(0, count($semanas), 0);
+
+                        // Arreglos para acumular totales PROCESO por semana
+                        $rechazadaProcesoSemana = array_fill(0, count($semanas), 0);
+                        $auditadaProcesoSemana = array_fill(0, count($semanas), 0);
 
                         foreach ($modulosEstilo as $modulo) {
                             if (!isset($consolidado[$modulo->modulo])) {
@@ -538,15 +545,48 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
                             foreach ($semanas as $index => $semana) {
                                 if ($modulo->semana == $semana['semana'] && $modulo->anio == $semana['anio']) {
+                                    // Asignar valores de porcentajes
                                     $consolidado[$modulo->modulo]['semanalPorcentajes'][$index] = [
                                         'aql' => $modulo->porcentaje_aql ?? "N/A",
                                         'proceso' => $modulo->porcentaje_proceso ?? "N/A"
                                     ];
+
+                                    // Acumular datos para el total AQL
+                                    $rechazadaAqlSemana[$index] += $modulo->cantidad_rechazada_aql ?? 0;
+                                    $auditadaAqlSemana[$index] += $modulo->cantidad_auditada_aql ?? 0;
+
+                                    // Acumular datos para el total PROCESO
+                                    $rechazadaProcesoSemana[$index] += $modulo->cantidad_rechazada_proceso ?? 0;
+                                    $auditadaProcesoSemana[$index] += $modulo->cantidad_auditada_proceso ?? 0;
                                 }
                             }
                         }
 
-                        return collect($consolidado);
+                        // Calcular totales AQL por semana
+                        $totalesAql = [];
+                        foreach ($semanas as $i => $semana) {
+                            if ($auditadaAqlSemana[$i] > 0) {
+                                $totalesAql[] = round(($rechazadaAqlSemana[$i] / $auditadaAqlSemana[$i]) * 100, 3);
+                            } else {
+                                $totalesAql[] = "N/A";
+                            }
+                        }
+
+                        // Calcular totales PROCESO por semana
+                        $totalesProceso = [];
+                        foreach ($semanas as $i => $semana) {
+                            if ($auditadaProcesoSemana[$i] > 0) {
+                                $totalesProceso[] = round(($rechazadaProcesoSemana[$i] / $auditadaProcesoSemana[$i]) * 100, 3);
+                            } else {
+                                $totalesProceso[] = "N/A";
+                            }
+                        }
+
+                        return [
+                            'modulos' => collect($consolidado),
+                            'totales_aql' => $totalesAql,
+                            'totales_proceso' => $totalesProceso
+                        ];
                     });
             });
 
