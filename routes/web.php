@@ -50,7 +50,7 @@ Route::get('/', function () {
     if (Auth::check()) {
         return redirect()->route('home');
     }
-    return view('login');
+    return view('auth.login');
 });
 
 // Ruta para la página de inicio después de iniciar sesión
