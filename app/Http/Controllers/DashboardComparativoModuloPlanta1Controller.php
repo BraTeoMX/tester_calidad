@@ -529,7 +529,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
         })
         ->map(function ($modulos, $cliente) use ($semanas) {
             return $modulos->groupBy(function ($modulo) {
-                return $modulo->estilo ?? 'General'; // Agrupamos por estilo o "General" es cuando hay valores nulos
+                return $modulo->estilo ?? 'General'; // Agrupamos por estilo o "Sin Estilo"
             })->map(function ($modulosEstilo) use ($semanas) {
                 // Consolidar los datos por módulo
                 $consolidado = [];
@@ -558,53 +558,13 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             });
         });
 
-        // Calcular totales por semana
-        $totalesPorSemana = [];
-        foreach ($semanas as $index => $semana) {
-            $totalRechazadaAQL = 0;
-            $totalAuditadaAQL = 0;
-            $totalRechazadaProceso = 0;
-            $totalAuditadaProceso = 0;
-
-            $hayDatosSemana = false; // Verifica si al menos un módulo tiene datos para esta semana
-
-            foreach ($modulosPorClienteYEstilo as $cliente => $estilos) {
-                foreach ($estilos as $estilo => $modulosEstilo) {
-                    foreach ($modulosEstilo as $modulo) {
-                        if (isset($modulo['semanalPorcentajes']) && is_array($modulo['semanalPorcentajes'])) {
-                            $datos = $modulo['semanalPorcentajes'][$index] ?? null;
-
-                            if ($datos && $datos['aql'] !== "N/A") {
-                                $hayDatosSemana = true; // Se encontró al menos un valor
-                                $totalRechazadaAQL += $modulo->cantidad_rechazada_aql ?? 0;
-                                $totalAuditadaAQL += $modulo->cantidad_auditada_aql ?? 0;
-                            }
-
-                            if ($datos && $datos['proceso'] !== "N/A") {
-                                $hayDatosSemana = true; // Se encontró al menos un valor
-                                $totalRechazadaProceso += $modulo->cantidad_rechazada_proceso ?? 0;
-                                $totalAuditadaProceso += $modulo->cantidad_auditada_proceso ?? 0;
-                            }
-                        }
-                    }
-                }
-            }
-
-            $totalesPorSemana[] = [
-                'aql' => $hayDatosSemana && $totalAuditadaAQL > 0 ? round(($totalRechazadaAQL / $totalAuditadaAQL) * 100, 3) : "N/A",
-                'proceso' => $hayDatosSemana && $totalAuditadaProceso > 0 ? round(($totalRechazadaProceso / $totalAuditadaProceso) * 100, 3) : "N/A"
-            ];
-        }
-
         // Pasar los datos a la vista
         return view('dashboarComparativaModulo.semanaComparativaGeneral', [
             'fechaInicio' => $fechaInicio,
             'fechaFin' => $fechaFin,
             'modulosPorClienteYEstilo' => $modulosPorClienteYEstilo,
-            'semanas' => $semanas,
-            'totalesPorSemana' => $totalesPorSemana
+            'semanas' => $semanas
         ]);
     }
-
 
 }

@@ -88,16 +88,7 @@
                                                     @endforeach
                                                 </tr>
                                                 @endforeach
-                                            </tbody>
-                                            <tfoot>
-                                                <tr>
-                                                    <td><strong>Totales</strong></td>
-                                                    @foreach($totalesPorSemana as $totales)
-                                                        <td>{{ $totales['aql'] }}</td>
-                                                        <td>{{ $totales['proceso'] }}</td>
-                                                    @endforeach
-                                                </tr>
-                                            </tfoot>                                            
+                                            </tbody>                                       
                                         </table>
                                     </div>
                                 </div>                                
