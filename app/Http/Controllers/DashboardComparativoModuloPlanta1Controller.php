@@ -493,10 +493,10 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
         $fechaInicio = $request->input('fecha_inicio') ? Carbon::parse($request->input('fecha_inicio'))->startOfWeek() : Carbon::now()->subWeeks(1)->startOfWeek();
 
         // Obtener las semanas y años correspondientes al rango
-        $semanasRango = [];
+        $semanas = [];
         $currentDate = $fechaInicio->copy();
         while ($currentDate <= $fechaFin) {
-            $semanasRango[] = [
+            $semanas[] = [
                 'semana' => $currentDate->weekOfYear,
                 'anio' => $currentDate->year
             ];
@@ -504,143 +504,58 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
         }
 
         // Consultar clientes únicos en el rango
-        $clientesUnicos = ComparativoSemanalCliente::where(function ($query) use ($semanasRango) {
-            foreach ($semanasRango as $rango) {
+        $clientesUnicos = ComparativoSemanalCliente::where(function ($query) use ($semanas) {
+            foreach ($semanas as $rango) {
                 $query->orWhere(function ($subQuery) use ($rango) {
                     $subQuery->where('semana', $rango['semana'])
                             ->where('anio', $rango['anio']);
                 });
             }
-        })->distinct('cliente') // Obtener valores únicos basados en la columna 'cliente'
-        ->pluck('cliente');  // Solo devolver la columna 'cliente'
-        //
-        dd($fechaInicio, $fechaFin, $semanasRango, $clientesUnicos);
-        // Traer datos de ClienteProcentaje solo para los clientes encontrados
-        $clientesProcentaje = ClienteProcentaje::whereIn('nombre', $clientesUnicos)->get()->keyBy('nombre');
+        })->distinct('cliente')->pluck('cliente');
 
-        // Formatear clientes para log
-        //$clientesLog = $clientesProcentaje->map(function ($cliente) {
-        //    return "Nombre: {$cliente->nombre}, Proceso: {$cliente->proceso}, AQL: {$cliente->aql}";
-        //})->join("\n");
-
-        // Registrar en el log
-        //Log::info("Lista de clientes obtenidos de ClienteProcentaje:\n" . $clientesLog);
-
-        $modulosPorCliente = [];
-        $totalesPorCliente = [];
-        $modulosPorClienteYEstilo = [];
-        $totalesPorClienteYEstilo = [];
-        $modulosPorClientePlanta1 = [];
-        $totalesPorClientePlanta1 = [];
-        $modulosPorClienteYEstiloPlanta1 = [];
-        $totalesPorClienteYEstiloPlanta1 = [];
-        $modulosPorClientePlanta2 = [];
-        $totalesPorClientePlanta2 = [];
-        $modulosPorClienteYEstiloPlanta2 = [];
-        $totalesPorClienteYEstiloPlanta2 = [];
-
-        // Obtener datos para cada cliente
-        foreach ($clientesUnicos as $cliente) {
-            // Obtener los datos específicos del cliente desde ClienteProcentaje
-            $datosClienteProcentaje = $clientesProcentaje->get($cliente);
-            // Registrar el cliente y sus datos en el log
-            //Log::info("Cliente: $cliente, Datos ClienteProcentaje: " . json_encode($datosClienteProcentaje));
-
-            // Datos generales (sin estilo)
-            [$modulosPorCliente[$cliente], $totalesPorCliente[$cliente]] = $this->getDatosPorCliente(
-                $cliente,
-                $fechaInicio,
-                $fechaFin,
-                $semanas,
-                null,
-                $datosClienteProcentaje // Pasar datos del cliente
-            );
-
-            // Estilos únicos asociados al cliente
-            $estilosUnicos = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('cliente', $cliente)
-                ->select('estilo')
-                ->distinct()
-                ->get()
-                ->pluck('estilo');
-
-            foreach ($estilosUnicos as $estilo) {
-                // Datos específicos por cliente y estilo
-                [$modulosPorClienteYEstilo[$cliente][$estilo], $totalesPorClienteYEstilo[$cliente][$estilo]] =
-                    $this->getDatosPorClienteYEstilo(
-                        $cliente,
-                        $estilo,
-                        $fechaInicio,
-                        $fechaFin,
-                        $semanas,
-                        null,
-                        $datosClienteProcentaje // Pasar datos del cliente
-                    );
-
-                // Planta 1 - Ixtlahuaca
-                [$modulosPorClienteYEstiloPlanta1[$cliente][$estilo], $totalesPorClienteYEstiloPlanta1[$cliente][$estilo]] =
-                    $this->getDatosPorClienteYEstilo(
-                        $cliente,
-                        $estilo,
-                        $fechaInicio,
-                        $fechaFin,
-                        $semanas,
-                        'Intimark1',
-                        $datosClienteProcentaje // Pasar datos del cliente
-                    );
-
-                // Planta 2 - San Bartolo
-                [$modulosPorClienteYEstiloPlanta2[$cliente][$estilo], $totalesPorClienteYEstiloPlanta2[$cliente][$estilo]] =
-                    $this->getDatosPorClienteYEstilo(
-                        $cliente,
-                        $estilo,
-                        $fechaInicio,
-                        $fechaFin,
-                        $semanas,
-                        'Intimark2',
-                        $datosClienteProcentaje // Pasar datos del cliente
-                    );
+        // Consultar datos agrupados por Cliente y por Estilo
+        $modulosPorClienteYEstilo = ComparativoSemanalCliente::where(function ($query) use ($semanas) {
+            foreach ($semanas as $rango) {
+                $query->orWhere(function ($subQuery) use ($rango) {
+                    $subQuery->where('semana', $rango['semana'])
+                            ->where('anio', $rango['anio']);
+                });
             }
+        })
+        ->whereIn('cliente', $clientesUnicos)
+        ->get()
+        ->groupBy(function ($item) {
+            return $item->cliente;
+        })
+        ->map(function ($modulos, $cliente) use ($semanas) {
+            return $modulos->groupBy(function ($modulo) {
+                return $modulo->estilo ?? 'Sin Estilo'; // Agrupamos por estilo o "Sin Estilo"
+            })->map(function ($modulosEstilo) use ($semanas) {
+                // Estructurar los datos para incluir porcentajes por semana
+                return $modulosEstilo->map(function ($modulo) use ($semanas) {
+                    $semanalPorcentajes = [];
+                    foreach ($semanas as $semana) {
+                        $semanalPorcentajes[] = [
+                            'aql' => $modulo->aql_porcentaje ?? 0, // Reemplaza con los valores correctos
+                            'aql_color' => $modulo->aql_color ?? false, // Reemplaza con lógica de colores
+                            'proceso' => $modulo->proceso_porcentaje ?? 0, // Reemplaza con los valores correctos
+                            'proceso_color' => $modulo->proceso_color ?? false // Reemplaza con lógica de colores
+                        ];
+                    }
+                    $modulo->semanalPorcentajes = $semanalPorcentajes;
+                    return $modulo;
+                });
+            });
+        });
 
-            // Datos Planta 1 - Ixtlahuaca
-            [$modulosPorClientePlanta1[$cliente], $totalesPorClientePlanta1[$cliente]] = $this->getDatosPorCliente(
-                $cliente,
-                $fechaInicio,
-                $fechaFin,
-                $semanas,
-                'Intimark1',
-                $datosClienteProcentaje
-            );
-
-            // Datos Planta 2 - San Bartolo
-            [$modulosPorClientePlanta2[$cliente], $totalesPorClientePlanta2[$cliente]] = $this->getDatosPorCliente(
-                $cliente,
-                $fechaInicio,
-                $fechaFin,
-                $semanas,
-                'Intimark2',
-                $datosClienteProcentaje
-            );
-        }
-
-
-        return view('dashboarComparativaModulo.semanaComparativaGeneral', compact(
-            'fechaInicio',
-            'fechaFin',
-            'modulosPorCliente',
-            'totalesPorCliente',
-            'modulosPorClienteYEstilo',
-            'totalesPorClienteYEstilo',
-            'modulosPorClientePlanta1',
-            'totalesPorClientePlanta1',
-            'modulosPorClienteYEstiloPlanta1',
-            'totalesPorClienteYEstiloPlanta1',
-            'modulosPorClientePlanta2',
-            'totalesPorClientePlanta2',
-            'modulosPorClienteYEstiloPlanta2',
-            'totalesPorClienteYEstiloPlanta2',
-            'semanas'
-        ));
+        // Pasar los datos a la vista
+        return view('dashboarComparativaModulo.semanaComparativaGeneral', [
+            'fechaInicio' => $fechaInicio,
+            'fechaFin' => $fechaFin,
+            'modulosPorClienteYEstilo' => $modulosPorClienteYEstilo,
+            'semanas' => $semanas // Renombramos la variable para coincidir con la vista
+        ]);
     }
+
 
 }
