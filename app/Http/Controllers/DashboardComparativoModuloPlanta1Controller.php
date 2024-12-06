@@ -289,25 +289,27 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                 $totalesSemanas[$key]['rechazadas_proceso'] += $cantidadRechazada;
                 $totalesSemanas[$key]['auditadas_aql'] += $cantidadAuditadaAQL;
                 $totalesSemanas[$key]['rechazadas_aql'] += $cantidadRechazadaAQL;
-                // Insertar o actualizar en la tabla
-                ComparativoSemanalCliente::updateOrCreate(
-                    [
-                        'semana' => $semana['inicio']->week,
-                        'anio' => $semana['inicio']->year,
-                        'cliente' => $cliente,
-                        'estilo' => null,
-                        'modulo' => $modulo,
-                        'planta' => str_starts_with($modulo, '1') ? 1 : (str_starts_with($modulo, '2') ? 2 : 0),
-                    ],
-                    [
-                        'cantidad_auditada_proceso' => $cantidadAuditada ?: null,
-                        'cantidad_rechazada_proceso' => $cantidadRechazada ?: null,
-                        'porcentaje_proceso' => ($porcentajeProceso === 'N/A') ? null : $porcentajeProceso,
-                        'cantidad_auditada_aql' => $cantidadAuditadaAQL ?: null,
-                        'cantidad_rechazada_aql' => $cantidadRechazadaAQL ?: null,
-                        'porcentaje_aql' => ($porcentajeAQL === 'N/A') ? null : $porcentajeAQL,
-                    ]
-                );
+                // Insertar o actualizar en la tabla solo si al menos uno de los porcentajes es válido
+                if ($porcentajeProceso !== 'N/A' || $porcentajeAQL !== 'N/A') {
+                    ComparativoSemanalCliente::updateOrCreate(
+                        [
+                            'semana' => $semana['inicio']->week,
+                            'anio' => $semana['inicio']->year,
+                            'cliente' => $cliente,
+                            'estilo' => null,
+                            'modulo' => $modulo,
+                            'planta' => str_starts_with($modulo, '1') ? 1 : (str_starts_with($modulo, '2') ? 2 : 0),
+                        ],
+                        [
+                            'cantidad_auditada_proceso' => $cantidadAuditada ?: null,
+                            'cantidad_rechazada_proceso' => $cantidadRechazada ?: null,
+                            'porcentaje_proceso' => ($porcentajeProceso === 'N/A') ? null : $porcentajeProceso,
+                            'cantidad_auditada_aql' => $cantidadAuditadaAQL ?: null,
+                            'cantidad_rechazada_aql' => $cantidadRechazadaAQL ?: null,
+                            'porcentaje_aql' => ($porcentajeAQL === 'N/A') ? null : $porcentajeAQL,
+                        ]
+                    );
+                }
             }
 
             $modulos[] = [
@@ -429,25 +431,27 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                 $totalesSemanas[$key]['auditadas_aql'] += $cantidadAuditadaAQL;
                 $totalesSemanas[$key]['rechazadas_aql'] += $cantidadRechazadaAQL;
 
-                // Insertar o actualizar en la tabla
-                ComparativoSemanalCliente::updateOrCreate(
-                    [
-                        'semana' => $semana['inicio']->week,
-                        'anio' => $semana['inicio']->year,
-                        'cliente' => $cliente,
-                        'estilo' => $estilo,
-                        'modulo' => $modulo,
-                        'planta' => str_starts_with($modulo, '1') ? 1 : (str_starts_with($modulo, '2') ? 2 : 0),
-                    ],
-                    [
-                        'cantidad_auditada_proceso' => $cantidadAuditada ?: null,
-                        'cantidad_rechazada_proceso' => $cantidadRechazada ?: null,
-                        'porcentaje_proceso' => ($porcentajeProceso === 'N/A') ? null : $porcentajeProceso,
-                        'cantidad_auditada_aql' => $cantidadAuditadaAQL ?: null,
-                        'cantidad_rechazada_aql' => $cantidadRechazadaAQL ?: null,
-                        'porcentaje_aql' => ($porcentajeAQL === 'N/A') ? null : $porcentajeAQL,
-                    ]
-                );
+                // Insertar o actualizar en la tabla solo si al menos uno de los porcentajes es válido
+                if ($porcentajeProceso !== 'N/A' || $porcentajeAQL !== 'N/A') {
+                    ComparativoSemanalCliente::updateOrCreate(
+                        [
+                            'semana' => $semana['inicio']->week,
+                            'anio' => $semana['inicio']->year,
+                            'cliente' => $cliente,
+                            'estilo' => $estilo,
+                            'modulo' => $modulo,
+                            'planta' => str_starts_with($modulo, '1') ? 1 : (str_starts_with($modulo, '2') ? 2 : 0),
+                        ],
+                        [
+                            'cantidad_auditada_proceso' => $cantidadAuditada ?: null,
+                            'cantidad_rechazada_proceso' => $cantidadRechazada ?: null,
+                            'porcentaje_proceso' => ($porcentajeProceso === 'N/A') ? null : $porcentajeProceso,
+                            'cantidad_auditada_aql' => $cantidadAuditadaAQL ?: null,
+                            'cantidad_rechazada_aql' => $cantidadRechazadaAQL ?: null,
+                            'porcentaje_aql' => ($porcentajeAQL === 'N/A') ? null : $porcentajeAQL,
+                        ]
+                    );
+                }
             }
 
             // Añadir el módulo con sus porcentajes semanales
@@ -488,25 +492,29 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
         $fechaFin = $request->input('fecha_fin') ? Carbon::parse($request->input('fecha_fin'))->endOfWeek() : Carbon::now()->endOfWeek();
         $fechaInicio = $request->input('fecha_inicio') ? Carbon::parse($request->input('fecha_inicio'))->startOfWeek() : Carbon::now()->subWeeks(1)->startOfWeek();
 
-        // Generar semanas en el rango
-        $semanas = [];
-        $fechaIterativa = $fechaInicio->copy();
-        while ($fechaIterativa->lte($fechaFin)) {
-            $semanas[] = [
-                'inicio' => $fechaIterativa->copy(),
-                'fin' => $fechaIterativa->copy()->endOfWeek(),
+        // Obtener las semanas y años correspondientes al rango
+        $semanasRango = [];
+        $currentDate = $fechaInicio->copy();
+        while ($currentDate <= $fechaFin) {
+            $semanasRango[] = [
+                'semana' => $currentDate->weekOfYear,
+                'anio' => $currentDate->year
             ];
-            $fechaIterativa->addWeek();
+            $currentDate->addWeek();
         }
 
-        // Clientes únicos
-        $clientesUnicos = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin])
-            ->select('cliente')
-            ->distinct()
-            ->get()
-            ->pluck('cliente')
-            ->sort();
+        // Consultar clientes únicos en el rango
+        $clientesUnicos = ComparativoSemanalCliente::where(function ($query) use ($semanasRango) {
+            foreach ($semanasRango as $rango) {
+                $query->orWhere(function ($subQuery) use ($rango) {
+                    $subQuery->where('semana', $rango['semana'])
+                            ->where('anio', $rango['anio']);
+                });
+            }
+        })->distinct('cliente') // Obtener valores únicos basados en la columna 'cliente'
+        ->pluck('cliente');  // Solo devolver la columna 'cliente'
         //
+        dd($fechaInicio, $fechaFin, $semanasRango, $clientesUnicos);
         // Traer datos de ClienteProcentaje solo para los clientes encontrados
         $clientesProcentaje = ClienteProcentaje::whereIn('nombre', $clientesUnicos)->get()->keyBy('nombre');
 
