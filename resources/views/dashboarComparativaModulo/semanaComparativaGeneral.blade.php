@@ -64,7 +64,7 @@
                                                 <h5>Resumen por Semana</h5>
                                             </div>
                                             <div class="table-responsive" style="background-color: #2c2c2c; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
-                                                <table class="table tablesorter">
+                                                <table class="table tablesorter" id="tabla-resumen-{{ $loop->parent->index }}-{{ $loop->index }}">
                                                     <thead>
                                                         <tr>
                                                             <th>Semana</th>
@@ -102,7 +102,7 @@
                                         <h5>Estilo: {{ $estilo }}</h5>
                                     </div>
                                     <div class="card-body table-responsive" style="background-color: #2c2c2c; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
-                                        <table class="table tablesorter">
+                                        <table class="table tablesorter" id="tabla-detalles-{{ $loop->parent->index }}-{{ $loop->index }}">
                                             <thead>
                                                 <tr>
                                                     <th rowspan="2">Módulo</th>
@@ -182,6 +182,53 @@
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            @foreach($modulosPorClienteYEstilo as $cliente => $estilos)
+                @foreach($estilos as $estilo => $modulosEstilo)
+                    // Inicializar tabla Resumen por Semana
+                    (function() {
+                        let resumenTableId = '#tabla-resumen-{{ $loop->parent->index }}-{{ $loop->index }}';
+                        if (!$.fn.DataTable.isDataTable(resumenTableId)) {
+                            $(resumenTableId).DataTable({
+                                paging: true,
+                                searching: true,
+                                ordering: true,
+                                responsive: true,
+                                dom: 'Bfrtip',
+                                buttons: [
+                                    'copy', 'csv', 'excel', 'pdf', 'print'
+                                ],
+                                language: {
+                                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                                }
+                            });
+                        }
+                    })();
+    
+                    // Inicializar tabla Detalles por Estilo
+                    (function() {
+                        let detallesTableId = '#tabla-detalles-{{ $loop->parent->index }}-{{ $loop->index }}';
+                        if (!$.fn.DataTable.isDataTable(detallesTableId)) {
+                            $(detallesTableId).DataTable({
+                                paging: true,
+                                searching: true,
+                                ordering: true,
+                                responsive: false,
+                                dom: 'Bfrtip',
+                                buttons: [
+                                    'copy', 'csv', 'excel', 'pdf', 'print'
+                                ],
+                                language: {
+                                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                                }
+                            });
+                        }
+                    })();
+                @endforeach
+            @endforeach
+        });
+    </script>
     
     <!-- Highcharts JavaScript -->
     <script src="{{ asset('js/highcharts/highcharts.js') }}"></script>
