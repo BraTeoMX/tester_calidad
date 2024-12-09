@@ -516,8 +516,30 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
         // Cargamos los porcentajes de los clientes
         $clientesPorcentajes = ClienteProcentaje::all()->keyBy('nombre');
 
-        // Agrupamos por cliente, luego por estilo (o General), luego por módulo
-        $modulosPorClienteYEstilo = $registros
+        // Filtramos los registros según la planta
+        $registrosGeneral = $registros; // Todos
+        $registrosPlanta1 = $registros->where('planta', 1); 
+        $registrosPlanta2 = $registros->where('planta', 2);
+
+        // Procesamos cada uno
+        $modulosPorClienteYEstiloGeneral = $this->procesarRegistros($registrosGeneral, $semanas, $clientesPorcentajes);
+        $modulosPorClienteYEstiloPlanta1 = $this->procesarRegistros($registrosPlanta1, $semanas, $clientesPorcentajes);
+        $modulosPorClienteYEstiloPlanta2 = $this->procesarRegistros($registrosPlanta2, $semanas, $clientesPorcentajes);
+
+        // Pasamos los datos a la vista
+        return view('dashboarComparativaModulo.semanaComparativaGeneral', [
+            'fechaInicio' => $fechaInicio,
+            'fechaFin' => $fechaFin,
+            'semanas' => $semanas,
+            'modulosPorClienteYEstilo' => $modulosPorClienteYEstiloGeneral, // Data general (sin filtro)
+            'modulosPorClienteYEstiloPlanta1' => $modulosPorClienteYEstiloPlanta1,
+            'modulosPorClienteYEstiloPlanta2' => $modulosPorClienteYEstiloPlanta2
+        ]);
+    }
+
+    private function procesarRegistros($registros, $semanas, $clientesPorcentajes)
+    {
+        return $registros
             ->groupBy('cliente')
             ->map(function ($itemsPorCliente, $cliente) use ($semanas, $clientesPorcentajes) {
                 $datosClienteProcentaje = $clientesPorcentajes->get($cliente);
@@ -607,7 +629,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                             }
                         }
 
-                        // Retornar los datos
+                        // Al final, retornas el mismo array que ya devuelves actualmente:
                         return [
                             'modulos' => collect($consolidado),
                             'totales_aql' => $totalesAql,
@@ -617,14 +639,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                         ];
                     });
             });
-
-        // Pasamos los datos a la vista
-        return view('dashboarComparativaModulo.semanaComparativaGeneral', [
-            'fechaInicio' => $fechaInicio,
-            'fechaFin' => $fechaFin,
-            'modulosPorClienteYEstilo' => $modulosPorClienteYEstilo,
-            'semanas' => $semanas
-        ]);
     }
+
 
 }
