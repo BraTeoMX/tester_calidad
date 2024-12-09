@@ -183,6 +183,17 @@
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
     <script>
+        // Definir el tipo de ordenamiento personalizado para manejar "N/A"
+        $.fn.dataTable.ext.type.order['custom-num-pre'] = function (a) {
+            if (a === "N/A") return -Infinity; // Coloca "N/A" al final
+            var x = parseFloat(a);
+            return isNaN(x) ? -Infinity : x;
+        };
+
+        $.fn.dataTable.ext.type.order['custom-num-desc'] = function (a, b) {
+            return b - a; // Orden descendente
+        };
+
         document.addEventListener("DOMContentLoaded", function () {
             @foreach($modulosPorClienteYEstilo as $cliente => $estilos)
                 @foreach($estilos as $estilo => $modulosEstilo)
@@ -197,11 +208,33 @@
                                 responsive: true,
                                 dom: 'Bfrtip',
                                 buttons: [
-                                    'copy', 'csv', 'excel', 'pdf', 'print'
+                                    {
+                                        extend: 'excel',
+                                        text: 'Exportar a Excel',
+                                        className: 'btn btn-success' // Clase personalizada para el botón
+                                    },
+                                    {
+                                        extend: 'copy',
+                                        text: 'Copiar Tabla' // Texto personalizado
+                                    }
                                 ],
                                 language: {
                                     url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-                                }
+                                },
+                                columnDefs: [
+                                    {
+                                        targets: 0, // La primera columna
+                                        type: "string" // Ordenar como texto
+                                    },
+                                    {
+                                        targets: "_all", // Todas las demás columnas
+                                        type: "custom-num", // Usar el tipo de orden personalizado
+                                        render: function (data, type, row) {
+                                            // Renderizar "N/A" correctamente
+                                            return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+                                        }
+                                    }
+                                ]
                             });
                         }
                     })();
@@ -217,11 +250,33 @@
                                 responsive: false,
                                 dom: 'Bfrtip',
                                 buttons: [
-                                    'copy', 'csv', 'excel', 'pdf', 'print'
+                                    {
+                                        extend: 'excel',
+                                        text: 'Exportar a Excel',
+                                        className: 'btn btn-success' // Clase personalizada para el botón
+                                    },
+                                    {
+                                        extend: 'copy',
+                                        text: 'Copiar Tabla' // Texto personalizado
+                                    }
                                 ],
                                 language: {
                                     url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-                                }
+                                },
+                                columnDefs: [
+                                    {
+                                        targets: 0, // La primera columna
+                                        type: "string" // Ordenar como texto
+                                    },
+                                    {
+                                        targets: "_all", // Todas las demás columnas
+                                        type: "custom-num", // Usar el tipo de orden personalizado
+                                        render: function (data, type, row) {
+                                            // Renderizar "N/A" correctamente
+                                            return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+                                        }
+                                    }
+                                ]
                             });
                         }
                     })();
