@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB; // Importa la clase DB
 use App\Models\ClienteProcentaje;
 use Illuminate\Support\Facades\Log;
 use App\Models\ComparativoSemanalCliente;
+use Illuminate\Support\Facades\Cache;
 
 
 class DashboardComparativoModuloPlanta1Controller extends Controller
@@ -622,44 +623,53 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             $fechaFin = Carbon::now()->endOfWeek();
         }
 
-        // Obtener semanas y años
-        $semanas = [];
-        $currentDate = $fechaInicio->copy();
-        while ($currentDate <= $fechaFin) {
-            $semanas[] = [
-                'semana' => $currentDate->weekOfYear,
-                'anio' => $currentDate->year
+        // Generar un identificador único para el caché basado en las fechas
+        $cacheKey = 'semanaComparativaGeneral:' . $fechaInicio->format('Y-m-d') . '-' . $fechaFin->format('Y-m-d');
+
+        // Intentar obtener los datos de la caché
+        $data = Cache::remember($cacheKey, now()->addHours(10), function () use ($fechaInicio, $fechaFin) {
+            // Si no está en caché, procesar los datos y almacenarlos
+            $semanas = [];
+            $currentDate = $fechaInicio->copy();
+            while ($currentDate <= $fechaFin) {
+                $semanas[] = [
+                    'semana' => $currentDate->weekOfYear,
+                    'anio' => $currentDate->year
+                ];
+                $currentDate->addWeek();
+            }
+
+            $listaSemanasAnios = array_map(function($rango) {
+                return $rango['anio'] . '-' . $rango['semana'];
+            }, $semanas);
+
+            $registros = ComparativoSemanalCliente::whereIn(
+                DB::raw("CONCAT(anio, '-', semana)"), $listaSemanasAnios
+            )->get();
+
+            $clientesPorcentajes = ClienteProcentaje::all()->keyBy('nombre');
+
+            $registrosGeneral = $registros;
+            $registrosPlanta1 = $registros->where('planta', 1);
+            $registrosPlanta2 = $registros->where('planta', 2);
+
+            $modulosPorClienteYEstiloGeneral = $this->procesarRegistros($registrosGeneral, $semanas, $clientesPorcentajes);
+            $modulosPorClienteYEstiloPlanta1 = $this->procesarRegistros($registrosPlanta1, $semanas, $clientesPorcentajes);
+            $modulosPorClienteYEstiloPlanta2 = $this->procesarRegistros($registrosPlanta2, $semanas, $clientesPorcentajes);
+
+            // Estructura JSON con toda la información necesaria
+            return [
+                'fechaInicio' => $fechaInicio->format('Y-m-d'),
+                'fechaFin' => $fechaFin->format('Y-m-d'),
+                'semanas' => $semanas,
+                'modulosPorClienteYEstilo' => $modulosPorClienteYEstiloGeneral,
+                'modulosPorClienteYEstiloPlanta1' => $modulosPorClienteYEstiloPlanta1,
+                'modulosPorClienteYEstiloPlanta2' => $modulosPorClienteYEstiloPlanta2
             ];
-            $currentDate->addWeek();
-        }
+        });
 
-        $listaSemanasAnios = array_map(function($rango) {
-            return $rango['anio'] . '-' . $rango['semana'];
-        }, $semanas);
-
-        $registros = ComparativoSemanalCliente::whereIn(
-            DB::raw("CONCAT(anio, '-', semana)"), $listaSemanasAnios
-        )->get();
-
-        $clientesPorcentajes = ClienteProcentaje::all()->keyBy('nombre');
-
-        $registrosGeneral = $registros;
-        $registrosPlanta1 = $registros->where('planta', 1);
-        $registrosPlanta2 = $registros->where('planta', 2);
-
-        $modulosPorClienteYEstiloGeneral = $this->procesarRegistros($registrosGeneral, $semanas, $clientesPorcentajes);
-        $modulosPorClienteYEstiloPlanta1 = $this->procesarRegistros($registrosPlanta1, $semanas, $clientesPorcentajes);
-        $modulosPorClienteYEstiloPlanta2 = $this->procesarRegistros($registrosPlanta2, $semanas, $clientesPorcentajes);
-
-        // Estructura JSON con toda la información necesaria
-        return response()->json([
-            'fechaInicio' => $fechaInicio->format('Y-m-d'),
-            'fechaFin' => $fechaFin->format('Y-m-d'),
-            'semanas' => $semanas,
-            'modulosPorClienteYEstilo' => $modulosPorClienteYEstiloGeneral,
-            'modulosPorClienteYEstiloPlanta1' => $modulosPorClienteYEstiloPlanta1,
-            'modulosPorClienteYEstiloPlanta2' => $modulosPorClienteYEstiloPlanta2
-        ]);
+        // Devolver la respuesta con los datos
+        return response()->json($data);
     }
 
 
