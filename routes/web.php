@@ -320,3 +320,5 @@ Route::get('/dashboardCostosNoCalidad', [DashboardCostosController::class, 'dash
 //dashboard Planta 1 consulta por Semana del comparativo por cliente modulo
 Route::get('/planta1PorSemana', [DashboardComparativoModuloPlanta1Controller::class, 'planta1PorSemana'])->name('dashboarComparativaModulo.planta1PorSemana');
 Route::get('/semanaComparativaGeneral', [DashboardComparativoModuloPlanta1Controller::class, 'semanaComparativaGeneral'])->name('dashboarComparativaModulo.semanaComparativaGeneral');
+Route::get('/data/semana-comparativa-general', [DashboardComparativoModuloPlanta1Controller::class, 'getSemanaComparativaGeneralData'])->name('dashboarComparativaModulo.semanaComparativaGeneralData');
+

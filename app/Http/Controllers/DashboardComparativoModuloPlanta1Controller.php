@@ -486,55 +486,8 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
     public function semanaComparativaGeneral(Request $request)
     {
-        \Carbon\Carbon::setLocale('es');
-
-        // Fechas de inicio y fin
-        $fechaFin = $request->input('fecha_fin') ? Carbon::parse($request->input('fecha_fin'))->endOfWeek() : Carbon::now()->endOfWeek();
-        $fechaInicio = $request->input('fecha_inicio') ? Carbon::parse($request->input('fecha_inicio'))->startOfWeek() : Carbon::now()->subWeeks(1)->startOfWeek();
-
-        // Obtener las semanas y años correspondientes al rango
-        $semanas = [];
-        $currentDate = $fechaInicio->copy();
-        while ($currentDate <= $fechaFin) {
-            $semanas[] = [
-                'semana' => $currentDate->weekOfYear,
-                'anio' => $currentDate->year
-            ];
-            $currentDate->addWeek();
-        }
-
-        // Creamos un arreglo para filtrar por la combinación semana-año
-        $listaSemanasAnios = array_map(function($rango) {
-            return $rango['anio'] . '-' . $rango['semana'];
-        }, $semanas);
-
-        // Obtenemos todos los registros en esas semanas y años
-        $registros = ComparativoSemanalCliente::whereIn(
-            DB::raw("CONCAT(anio, '-', semana)"), $listaSemanasAnios
-        )->get();
-
-        // Cargamos los porcentajes de los clientes
-        $clientesPorcentajes = ClienteProcentaje::all()->keyBy('nombre');
-
-        // Filtramos los registros según la planta
-        $registrosGeneral = $registros; // Todos
-        $registrosPlanta1 = $registros->where('planta', 1); 
-        $registrosPlanta2 = $registros->where('planta', 2);
-
-        // Procesamos cada uno
-        $modulosPorClienteYEstiloGeneral = $this->procesarRegistros($registrosGeneral, $semanas, $clientesPorcentajes);
-        $modulosPorClienteYEstiloPlanta1 = $this->procesarRegistros($registrosPlanta1, $semanas, $clientesPorcentajes);
-        $modulosPorClienteYEstiloPlanta2 = $this->procesarRegistros($registrosPlanta2, $semanas, $clientesPorcentajes);
-
-        // Pasamos los datos a la vista
-        return view('dashboarComparativaModulo.semanaComparativaGeneral', [
-            'fechaInicio' => $fechaInicio,
-            'fechaFin' => $fechaFin,
-            'semanas' => $semanas,
-            'modulosPorClienteYEstilo' => $modulosPorClienteYEstiloGeneral, // Data general (sin filtro)
-            'modulosPorClienteYEstiloPlanta1' => $modulosPorClienteYEstiloPlanta1,
-            'modulosPorClienteYEstiloPlanta2' => $modulosPorClienteYEstiloPlanta2
-        ]);
+        // Solo devolver la vista básica con el formulario y las tabs vacías (o estructura base)
+        return view('dashboarComparativaModulo.semanaComparativaGeneral');
     }
 
     private function procesarRegistros($registros, $semanas, $clientesPorcentajes)
@@ -631,7 +584,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
                         // Al final, retornas el mismo array que ya devuelves actualmente:
                         return [
-                            'modulos' => collect($consolidado),
+                            'modulos' => array_values($consolidado),
                             'totales_aql' => $totalesAql,
                             'totales_proceso' => $totalesProceso,
                             'totales_aql_colores' => $totalesAqlColores,
@@ -639,6 +592,74 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                         ];
                     });
             });
+    }
+
+    public function getSemanaComparativaGeneralData(Request $request)
+    {
+        \Carbon\Carbon::setLocale('es');
+
+        // Obtenemos rangos de fecha
+        $fecha_inicio_str = $request->input('fecha_inicio');
+        $fecha_fin_str = $request->input('fecha_fin');
+
+        if ($fecha_inicio_str) {
+            // $fecha_inicio_str = "YYYY-Wxx"
+            list($anio_inicio, $semana_inicio) = explode('-W', $fecha_inicio_str);
+            $anio_inicio = (int)$anio_inicio;
+            $semana_inicio = (int)$semana_inicio;
+            // Establecer la fecha a la primera semana ISO del año y sumarle las semanas necesarias
+            $fechaInicio = Carbon::now()->setISODate($anio_inicio, $semana_inicio)->startOfWeek();
+        } else {
+            $fechaInicio = Carbon::now()->subWeeks(1)->startOfWeek();
+        }
+
+        if ($fecha_fin_str) {
+            list($anio_fin, $semana_fin) = explode('-W', $fecha_fin_str);
+            $anio_fin = (int)$anio_fin;
+            $semana_fin = (int)$semana_fin;
+            $fechaFin = Carbon::now()->setISODate($anio_fin, $semana_fin)->endOfWeek();
+        } else {
+            $fechaFin = Carbon::now()->endOfWeek();
+        }
+
+        // Obtener semanas y años
+        $semanas = [];
+        $currentDate = $fechaInicio->copy();
+        while ($currentDate <= $fechaFin) {
+            $semanas[] = [
+                'semana' => $currentDate->weekOfYear,
+                'anio' => $currentDate->year
+            ];
+            $currentDate->addWeek();
+        }
+
+        $listaSemanasAnios = array_map(function($rango) {
+            return $rango['anio'] . '-' . $rango['semana'];
+        }, $semanas);
+
+        $registros = ComparativoSemanalCliente::whereIn(
+            DB::raw("CONCAT(anio, '-', semana)"), $listaSemanasAnios
+        )->get();
+
+        $clientesPorcentajes = ClienteProcentaje::all()->keyBy('nombre');
+
+        $registrosGeneral = $registros;
+        $registrosPlanta1 = $registros->where('planta', 1);
+        $registrosPlanta2 = $registros->where('planta', 2);
+
+        $modulosPorClienteYEstiloGeneral = $this->procesarRegistros($registrosGeneral, $semanas, $clientesPorcentajes);
+        $modulosPorClienteYEstiloPlanta1 = $this->procesarRegistros($registrosPlanta1, $semanas, $clientesPorcentajes);
+        $modulosPorClienteYEstiloPlanta2 = $this->procesarRegistros($registrosPlanta2, $semanas, $clientesPorcentajes);
+
+        // Estructura JSON con toda la información necesaria
+        return response()->json([
+            'fechaInicio' => $fechaInicio->format('Y-m-d'),
+            'fechaFin' => $fechaFin->format('Y-m-d'),
+            'semanas' => $semanas,
+            'modulosPorClienteYEstilo' => $modulosPorClienteYEstiloGeneral,
+            'modulosPorClienteYEstiloPlanta1' => $modulosPorClienteYEstiloPlanta1,
+            'modulosPorClienteYEstiloPlanta2' => $modulosPorClienteYEstiloPlanta2
+        ]);
     }
 
 
