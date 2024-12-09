@@ -76,8 +76,12 @@
                                                         @foreach($semanas as $i => $semana)
                                                         <tr>
                                                             <td>Semana {{ $semana['semana'] }} ({{ $semana['anio'] }})</td>
-                                                            <td>{{ $modulosEstilo['totales_aql'][$i] }}</td>
-                                                            <td>{{ $modulosEstilo['totales_proceso'][$i] }}</td>
+                                                            <td class="{{ $modulosEstilo['totales_aql_colores'][$i] ? 'bg-rojo-oscuro' : '' }}">
+                                                                {{ $modulosEstilo['totales_aql'][$i] }}
+                                                            </td>
+                                                            <td class="{{ $modulosEstilo['totales_proceso_colores'][$i] ? 'bg-amarillo-oscuro' : '' }}">
+                                                                {{ $modulosEstilo['totales_proceso'][$i] }}
+                                                            </td>
                                                         </tr>
                                                         @endforeach
                                                     </tbody>
@@ -124,8 +128,12 @@
                                                 <tr>
                                                     <td>{{ $modulo['modulo'] }}</td>
                                                     @foreach($modulo['semanalPorcentajes'] as $porcentajes)
-                                                        <td>{{ $porcentajes['aql'] }}</td>
-                                                        <td>{{ $porcentajes['proceso'] }}</td>
+                                                        <td class="{{ $porcentajes['aql_color'] ? 'bg-rojo-oscuro' : '' }}">
+                                                            {{ $porcentajes['aql'] }}
+                                                        </td>
+                                                        <td class="{{ $porcentajes['proceso_color'] ? 'bg-amarillo-oscuro' : '' }}">
+                                                            {{ $porcentajes['proceso'] }}
+                                                        </td>
                                                     @endforeach
                                                 </tr>
                                                 @endforeach
@@ -134,11 +142,15 @@
                                                 <tr>
                                                     <th>Total</th>
                                                     @foreach($modulosEstilo['totales_aql'] as $index => $totalAql)
-                                                        <td>{{ $totalAql }}</td>
-                                                        <td>{{ $modulosEstilo['totales_proceso'][$index] }}</td>
+                                                        <td class="{{ $modulosEstilo['totales_aql_colores'][$index] ? 'bg-rojo-oscuro' : '' }}">
+                                                            {{ $totalAql }}
+                                                        </td>
+                                                        <td class="{{ $modulosEstilo['totales_proceso_colores'][$index] ? 'bg-amarillo-oscuro' : '' }}">
+                                                            {{ $modulosEstilo['totales_proceso'][$index] }}
+                                                        </td>
                                                     @endforeach
                                                 </tr>
-                                            </tfoot>                                            
+                                            </tfoot>
                                         </table>
                                     </div>
                                     
@@ -156,6 +168,11 @@
     <style>
         .bg-rojo-oscuro {
             background-color: #8B0000; /* Rojo oscuro */
+            color: white; /* Texto blanco para contraste */
+        }
+
+        .bg-amarillo-oscuro {
+            background-color: #918305; /* Rojo oscuro */
             color: white; /* Texto blanco para contraste */
         }
     </style>

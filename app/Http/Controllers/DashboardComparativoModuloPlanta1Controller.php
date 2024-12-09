@@ -513,18 +513,23 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             DB::raw("CONCAT(anio, '-', semana)"), $listaSemanasAnios
         )->get();
 
+        // Cargamos los porcentajes de los clientes
+        $clientesPorcentajes = ClienteProcentaje::all()->keyBy('nombre');
+
         // Agrupamos por cliente, luego por estilo (o General), luego por módulo
         $modulosPorClienteYEstilo = $registros
             ->groupBy('cliente')
-            ->map(function ($itemsPorCliente) use ($semanas) {
+            ->map(function ($itemsPorCliente, $cliente) use ($semanas, $clientesPorcentajes) {
+                $datosClienteProcentaje = $clientesPorcentajes->get($cliente);
+
                 return $itemsPorCliente
                     ->groupBy(function($item) {
                         return $item->estilo ?? 'General';
                     })
-                    ->map(function($modulosEstilo) use ($semanas) {
+                    ->map(function($modulosEstilo) use ($semanas, $datosClienteProcentaje) {
                         $consolidado = [];
 
-                        // Arreglos para acumular totales AQL por semana
+                        // Arreglos para acumular totales AQL y PROCESO por semana
                         $rechazadaAqlSemana = array_fill(0, count($semanas), 0);
                         $auditadaAqlSemana = array_fill(0, count($semanas), 0);
 
@@ -538,20 +543,28 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                                     'modulo' => $modulo->modulo,
                                     'semanalPorcentajes' => array_fill(0, count($semanas), [
                                         'aql' => "N/A",
-                                        'proceso' => "N/A"
+                                        'proceso' => "N/A",
+                                        'aql_color' => false,
+                                        'proceso_color' => false
                                     ])
                                 ];
                             }
 
                             foreach ($semanas as $index => $semana) {
                                 if ($modulo->semana == $semana['semana'] && $modulo->anio == $semana['anio']) {
-                                    // Asignar valores de porcentajes
+                                    // Comparación de porcentajes con ClienteProcentaje
+                                    $aqlColor = $datosClienteProcentaje && $modulo->porcentaje_aql !== null && $modulo->porcentaje_aql >= $datosClienteProcentaje->aql;
+                                    $procesoColor = $datosClienteProcentaje && $modulo->porcentaje_proceso !== null && $modulo->porcentaje_proceso >= $datosClienteProcentaje->proceso;
+
+                                    // Asignar valores de porcentajes y colores
                                     $consolidado[$modulo->modulo]['semanalPorcentajes'][$index] = [
                                         'aql' => $modulo->porcentaje_aql ?? "N/A",
-                                        'proceso' => $modulo->porcentaje_proceso ?? "N/A"
+                                        'proceso' => $modulo->porcentaje_proceso ?? "N/A",
+                                        'aql_color' => $aqlColor,
+                                        'proceso_color' => $procesoColor
                                     ];
 
-                                    // Acumular datos para el total AQL
+                                    // Acumular datos para el total AQL y PROCESO
                                     $rechazadaAqlSemana[$index] += $modulo->cantidad_rechazada_aql ?? 0;
                                     $auditadaAqlSemana[$index] += $modulo->cantidad_auditada_aql ?? 0;
 
@@ -564,28 +577,43 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
                         // Calcular totales AQL por semana
                         $totalesAql = [];
+                        $totalesAqlColores = [];
                         foreach ($semanas as $i => $semana) {
                             if ($auditadaAqlSemana[$i] > 0) {
-                                $totalesAql[] = round(($rechazadaAqlSemana[$i] / $auditadaAqlSemana[$i]) * 100, 3);
+                                $total = round(($rechazadaAqlSemana[$i] / $auditadaAqlSemana[$i]) * 100, 3);
+                                $totalesAql[] = $total;
+
+                                // Comparar con ClienteProcentaje para determinar el color
+                                $totalesAqlColores[] = $datosClienteProcentaje && $total >= $datosClienteProcentaje->aql;
                             } else {
                                 $totalesAql[] = "N/A";
+                                $totalesAqlColores[] = false; // No aplica color para N/A
                             }
                         }
 
                         // Calcular totales PROCESO por semana
                         $totalesProceso = [];
+                        $totalesProcesoColores = [];
                         foreach ($semanas as $i => $semana) {
                             if ($auditadaProcesoSemana[$i] > 0) {
-                                $totalesProceso[] = round(($rechazadaProcesoSemana[$i] / $auditadaProcesoSemana[$i]) * 100, 3);
+                                $total = round(($rechazadaProcesoSemana[$i] / $auditadaProcesoSemana[$i]) * 100, 3);
+                                $totalesProceso[] = $total;
+
+                                // Comparar con ClienteProcentaje para determinar el color
+                                $totalesProcesoColores[] = $datosClienteProcentaje && $total >= $datosClienteProcentaje->proceso;
                             } else {
                                 $totalesProceso[] = "N/A";
+                                $totalesProcesoColores[] = false; // No aplica color para N/A
                             }
                         }
 
+                        // Retornar los datos
                         return [
                             'modulos' => collect($consolidado),
                             'totales_aql' => $totalesAql,
-                            'totales_proceso' => $totalesProceso
+                            'totales_proceso' => $totalesProceso,
+                            'totales_aql_colores' => $totalesAqlColores,
+                            'totales_proceso_colores' => $totalesProcesoColores
                         ];
                     });
             });
