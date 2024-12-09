@@ -1,5 +1,6 @@
 @extends('layouts.app', ['pageSlug' => 'Segundas', 'titlePage' => __('Segundas')])
 @section('content')
+<meta name="csrf-token" content="{{ csrf_token() }}">
     <div class="content">
         <div class="container-fluid">
             <h1 class="card-title" style="font-size: 280%;">{{ __('Segundas') }}</h1>
@@ -204,6 +205,28 @@
                 <div class="card card-stats">
                     <div class="card">
                         <div class="card-header">
+                            Grafics
+                        </div>
+                        <div class="card-body">
+                            <blockquote class="blockquote mb-auto col-lg-auto col-md-auto col-sm-auto">
+                            <button id="regresarBtn"
+                                style="display:none; background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                                Regresar
+                            </button>
+                            <div id="SegundasGrafics"></div>
+                        </blockquote>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="content">
+        <div class="container-fluid">
+            <div class="col-lg-auto col-md-auto col-sm-auto">
+                <div class="card card-stats">
+                    <div class="card">
+                        <div class="card-header">
                             Data info
                         </div>
                         <div class="card-body">
@@ -271,28 +294,7 @@
             </div>
         </div>
     </div>
-    <div class="content">
-        <div class="container-fluid">
-            <div class="col-lg-auto col-md-auto col-sm-auto">
-                <div class="card card-stats">
-                    <div class="card">
-                        <div class="card-header">
-                            Grafics
-                        </div>
-                        <div class="card-body">
-                            <blockquote class="blockquote mb-auto col-lg-auto col-md-auto col-sm-auto">
-                            <button id="regresarBtn"
-                                style="display:none; background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
-                                Regresar
-                            </button>
-                            <div id="SegundasGrafics"></div>
-                        </blockquote>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/drilldown.js"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp,container-queries"></script>
@@ -1318,4 +1320,5 @@
             }, {});
         }
     </script>
+
 @endsection
