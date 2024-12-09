@@ -1,5 +1,6 @@
 @extends('layouts.app', ['pageSlug' => 'Segundas', 'titlePage' => __('Segundas')])
 @section('content')
+<meta name="csrf-token" content="{{ csrf_token() }}">
     <div class="content">
         <div class="container-fluid">
             <h1 class="card-title" style="font-size: 280%;">{{ __('Segundas') }}</h1>
@@ -204,7 +205,29 @@
                 <div class="card card-stats">
                     <div class="card">
                         <div class="card-header">
-                            Graphic
+                            Grafics
+                        </div>
+                        <div class="card-body">
+                            <blockquote class="blockquote mb-auto col-lg-auto col-md-auto col-sm-auto">
+                            <button id="regresarBtn"
+                                style="display:none; background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                                Regresar
+                            </button>
+                            <div id="SegundasGrafics"></div>
+                        </blockquote>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="content">
+        <div class="container-fluid">
+            <div class="col-lg-auto col-md-auto col-sm-auto">
+                <div class="card card-stats">
+                    <div class="card">
+                        <div class="card-header">
+                            Data info
                         </div>
                         <div class="card-body">
                             <blockquote class="blockquote mb-auto col-lg-auto col-md-auto col-sm-auto">
@@ -271,6 +294,9 @@
             </div>
         </div>
     </div>
+
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/drilldown.js"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
     <style>
@@ -559,6 +585,7 @@
         $(document).ready(function() {
             let selectedModulos = []; // Array para almacenar módulos seleccionados
             $("#spinnerModul").show();
+
             function cargarModulos() {
                 if (obtenerSegundasCargado) {
                     $.ajax({
@@ -867,4 +894,431 @@
             mostrarBotonesPaginacion();
         }
     </script>
+    <script>
+        $(document).ready(function() {
+            ObtenerSegundas();
+
+            // Inicializar flatpickr para el elemento con id #Fecha
+            flatpickr(".flatpickr", {
+                mode: "range",
+                dateFormat: "d-m-Y",
+                wrap: true,
+                onChange: function(selectedDatesArray) {
+                    selectedDates = selectedDatesArray.map(date => flatpickr.formatDate(date, "Y-m-d"));
+                    filtrarDatos(); // Aplicar filtro
+                },
+            });
+
+            // Eventos de filtros (reutilizados para actualizar tabla y gráfica)
+            $(document).on("change",
+                "#checkbox-planta, #checkbox-modulo, #checkbox-division, #checkbox-cliente, #checkbox-defectos",
+                function() {
+                    const value = $(this).val();
+                    const type = $(this).attr("id").replace("checkbox-", "selected");
+                    if ($(this).is(":checked")) {
+                        window[type].push(value);
+                    } else {
+                        window[type] = window[type].filter(item => item !== value);
+                    }
+                    filtrarDatos();
+                });
+
+            // Botón para retroceder a la vista anterior
+            $(document).on("click", "#regresarBtn", function() {
+                if (previousChartData) {
+                    renderGrafica(previousChartData);
+                    $('#regresarBtn').hide(); // Ocultar el botón cuando estamos en la gráfica principal
+                }
+            });
+        });
+
+        function ObtenerSegundas() {
+            $("#spinnerTable").show();
+            $.ajax({
+                url: "/ObtenerSegundas",
+                method: "GET",
+                success: function(response) {
+                    if (response.status === "success") {
+                        obtenerSegundasCargado = true;
+                        $("#spinnerTable").hide();
+                        allData = response.data;
+
+                        // Paginación inicial y primera renderización
+                        paginarDatos(allData);
+                        renderizarTabla(paginatedData[currentPage - 1]);
+                        mostrarBotonesPaginacion();
+                        renderGrafica(allData); // Cargar gráfica inicial
+                    } else {
+                        alert("No se pudieron obtener los datos correctamente.");
+                        $("#spinnerTable").hide();
+                    }
+                },
+                error: function() {
+                    alert("Hubo un error al obtener los datos.");
+                    $("#spinnerTable").hide();
+                },
+            });
+        }
+
+        function filtrarDatos() {
+            let datosFiltrados = allData.filter(dato => {
+                const fechaValida = !selectedDates.length || (new Date(dato.TRANSDATE).getTime() >= new Date(
+                    selectedDates[0]).getTime() && new Date(dato.TRANSDATE).getTime() <= new Date(
+                    selectedDates[1]).getTime());
+                const clienteValido = !selectedClientes.length || selectedClientes.includes(dato.CUSTOMERNAME);
+                const divisionValida = !selectedDivisiones.length || selectedDivisiones.includes(dato.DIVISIONNAME);
+                const defectoValida = !selectedDefectos.length || selectedDefectos.includes(dato.TipoSegunda);
+                const moduloValido = !selectedModulos.length || selectedModulos.includes(dato.OPRMODULEID_AT);
+                const plantaValida = !selectedPlantas.length || selectedPlantas.includes(dato.PRODPOOLID);
+
+                return fechaValida && clienteValido && divisionValida && defectoValida && moduloValido &&
+                    plantaValida;
+            });
+
+            // Actualizar tabla y gráfica con los datos filtrados
+            paginarDatos(datosFiltrados);
+            renderizarTabla(paginatedData[currentPage - 1]);
+            mostrarBotonesPaginacion();
+            renderGrafica(datosFiltrados); // Actualizar gráfica
+        }
+
+        function renderGrafica(data) {
+            previousChartData = data; // Guardar datos de la gráfica actual para retroceder
+
+            const groupedByPlanta = groupBy(data, "PRODPOOLID");
+            const seriesData = Object.keys(groupedByPlanta).map(planta => {
+                const totalQty = groupedByPlanta[planta].reduce((sum, item) => sum + parseFloat(item.QTY), 0);
+                return {
+                    name: planta,
+                    y: totalQty
+                };
+            });
+
+            Highcharts.chart("SegundasGrafics", {
+                chart: {
+                    type: "column",
+                    backgroundColor: "transparent" // Fondo transparente
+                },
+                title: {
+                    text: "Segundas por Planta",
+                    style: {
+                        color: '#ffffff'
+                    }
+                },
+                xAxis: {
+                    type: "category",
+                    title: {
+                        text: "Plantas",
+                        style: {
+                            color: '#ffffff'
+                        }
+                    },
+                    labels: {
+                        style: {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: "Cantidad (QTY)",
+                        style: {
+                            color: '#ffffff'
+                        }
+                    },
+                    labels: {
+                        style: {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                tooltip: {
+                    pointFormat: "Cantidad: <b>{point.y}</b>",
+                    style: {
+                        color: '#000000'
+                    }
+                },
+                plotOptions: {
+                    series: {
+                        cursor: "pointer",
+                        dataLabels: {
+                            enabled: true,
+                            format: "{point.y}",
+                            style: {
+                                color: '#ffffff'
+                            }
+                        },
+                        point: {
+                            events: {
+                                click: function() {
+                                    mostrarClientes(this.name, groupedByPlanta[this.name]);
+                                    $('#regresarBtn').show(); // Mostrar el botón de regreso
+                                },
+                            },
+                        },
+                    },
+                },
+                series: [{
+                    name: "Plantas",
+                    colorByPoint: true,
+                    data: seriesData
+                }],
+            });
+        }
+
+        function mostrarClientes(planta, plantaData) {
+            const groupedByCliente = groupBy(plantaData, "CUSTOMERNAME");
+            const seriesData = Object.keys(groupedByCliente)
+                .map(cliente => {
+                    const totalQty = groupedByCliente[cliente].reduce((sum, item) => sum + parseFloat(item.QTY), 0);
+                    return {
+                        name: cliente,
+                        y: totalQty
+                    };
+                })
+                .sort((a, b) => b.y - a.y); // Ordenar de mayor a menor por cantidad
+
+            Highcharts.chart("SegundasGrafics", {
+                chart: {
+                    type: "column",
+                    backgroundColor: "transparent" // Fondo transparente
+                },
+                title: {
+                    text: `Clientes en Planta: ${planta}`,
+                    style: {
+                        color: '#ffffff'
+                    }
+                },
+                xAxis: {
+                    type: "category",
+                    title: {
+                        text: "Clientes",
+                        style: {
+                            color: '#ffffff'
+                        }
+                    },
+                    labels: {
+                        style: {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: "Cantidad (QTY)",
+                        style: {
+                            color: '#ffffff'
+                        }
+                    },
+                    labels: {
+                        style: {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                tooltip: {
+                    pointFormat: "Cantidad: <b>{point.y}</b>",
+                    style: {
+                        color: '#000000'
+                    }
+                },
+                plotOptions: {
+                    series: {
+                        cursor: "pointer",
+                        dataLabels: {
+                            enabled: true,
+                            format: "{point.y}",
+                            style: {
+                                color: '#ffffff'
+                            }
+                        },
+                        point: {
+                            events: {
+                                click: function() {
+                                    mostrarDivisionesYProblemas(this.name, groupedByCliente[this.name]);
+                                },
+                            },
+                        },
+                    },
+                },
+                series: [{
+                    name: "Clientes",
+                    colorByPoint: true,
+                    data: seriesData
+                }],
+            });
+        }
+
+        function mostrarDivisionesYProblemas(cliente, clienteData) {
+            const groupedByDivision = groupBy(clienteData, "DIVISIONNAME");
+            const seriesData = Object.keys(groupedByDivision).map(division => {
+                const totalQty = groupedByDivision[division].reduce((sum, item) => sum + parseFloat(item.QTY), 0);
+                return {
+                    name: division,
+                    y: totalQty
+                };
+            });
+
+            Highcharts.chart("SegundasGrafics", {
+                chart: {
+                    type: "column",
+                    backgroundColor: "transparent" // Fondo transparente
+                },
+                title: {
+                    text: `Divisiones de Cliente: ${cliente}`,
+                    style: {
+                        color: '#ffffff'
+                    }
+                },
+                xAxis: {
+                    type: "category",
+                    title: {
+                        text: "Divisiones",
+                        style: {
+                            color: '#ffffff'
+                        }
+                    },
+                    labels: {
+                        style: {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: "Cantidad (QTY)",
+                        style: {
+                            color: '#ffffff'
+                        }
+                    },
+                    labels: {
+                        style: {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                tooltip: {
+                    pointFormat: "Cantidad: <b>{point.y}</b>",
+                    style: {
+                        color: '#000000'
+                    }
+                },
+                plotOptions: {
+                    series: {
+                        cursor: "pointer",
+                        dataLabels: {
+                            enabled: true,
+                            format: "{point.y}",
+                            style: {
+                                color: '#ffffff'
+                            }
+                        },
+                        point: {
+                            events: {
+                                click: function() {
+                                    mostrarProblemas(this.name, groupedByDivision[this.name]);
+                                },
+                            },
+                        },
+                    },
+                },
+                series: [{
+                    name: "Divisiones",
+                    colorByPoint: true,
+                    data: seriesData
+                }],
+            });
+        }
+
+        function mostrarProblemas(division, divisionData) {
+            const groupedByDefecto = groupBy(divisionData, "TipoSegunda");
+            const seriesData = Object.keys(groupedByDefecto).map(defecto => {
+                const totalQty = groupedByDefecto[defecto].reduce((sum, item) => sum + parseFloat(item.QTY), 0);
+                return {
+                    name: defecto,
+                    y: totalQty
+                };
+            });
+
+            Highcharts.chart("SegundasGrafics", {
+                chart: {
+                    type: "column",
+                    backgroundColor: "transparent" // Fondo transparente
+                },
+                title: {
+                    text: `Tipos de Problema en División: ${division}`,
+                    style: {
+                        color: '#ffffff'
+                    }
+                },
+                xAxis: {
+                    type: "category",
+                    title: {
+                        text: "Tipos de Problema",
+                        style: {
+                            color: '#ffffff'
+                        }
+                    },
+                    labels: {
+                        style: {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: "Cantidad (QTY)",
+                        style: {
+                            color: '#ffffff'
+                        }
+                    },
+                    labels: {
+                        style: {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                tooltip: {
+                    pointFormat: "Cantidad: <b>{point.y}</b>",
+                    style: {
+                        color: '#000000'
+                    }
+                },
+                plotOptions: {
+                    series: {
+                        cursor: "pointer",
+                        dataLabels: {
+                            enabled: true,
+                            format: "{point.y}",
+                            style: {
+                                color: '#ffffff'
+                            }
+                        },
+                        point: {
+                            events: {
+                                click: function() {
+                                    // No hay más subniveles, no hacemos nada
+                                },
+                            },
+                        },
+                    },
+                },
+                series: [{
+                    name: "Problemas",
+                    colorByPoint: true,
+                    data: seriesData
+                }],
+            });
+        }
+
+        function groupBy(data, key) {
+            return data.reduce(function(result, item) {
+                const groupKey = item[key];
+                if (!result[groupKey]) result[groupKey] = [];
+                result[groupKey].push(item);
+                return result;
+            }, {});
+        }
+    </script>
+
 @endsection
