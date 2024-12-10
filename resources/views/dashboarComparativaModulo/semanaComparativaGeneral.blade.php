@@ -351,36 +351,43 @@
 
     // Inicializa DataTables en las tablas recién creadas
     function inicializarTablas($container) {
-        $container.find('table.tablesorter').DataTable({
-            paging: true,
-            searching: true,
-            ordering: true,
-            responsive: true,
-            dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excel',
-                    text: 'Exportar a Excel',
-                    className: 'btn btn-success'
-                },
-                {
-                    extend: 'copy',
-                    text: 'Copiar Tabla'
-                }
-            ],
-            columnDefs: [
-                {
-                    targets: 0,
-                    type: 'string'
-                },
-                {
-                    targets: '_all',
-                    type: 'custom-num',
-                    render: function (data, type, row) {
-                        return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+        $container.find('table.tablesorter').each(function () {
+            // Verificar si la tabla es la de resumen
+            const isResumenTable = $(this).attr('id')?.startsWith('tabla-resumen');
+            
+            // Configuración personalizada para la tabla de resumen
+            $(this).DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                responsive: true,
+                pageLength: isResumenTable ? 5 : 10, // Paginación de 5 para la tabla de resumen, 10 para las demás
+                dom: 'Bfrtip',
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: 'Exportar a Excel',
+                        className: 'btn btn-success'
+                    },
+                    {
+                        extend: 'copy',
+                        text: 'Copiar Tabla'
                     }
-                }
-            ]
+                ],
+                columnDefs: [
+                    {
+                        targets: 0,
+                        type: 'string'
+                    },
+                    {
+                        targets: '_all',
+                        type: 'custom-num',
+                        render: function (data, type, row) {
+                            return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+                        }
+                    }
+                ]
+            });
         });
     }
 
