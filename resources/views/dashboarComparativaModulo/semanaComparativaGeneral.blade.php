@@ -95,18 +95,11 @@
 
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap5.min.css">
 
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+
 
     <!-- Highcharts -->
     <script src="{{ asset('js/highcharts/highcharts.js') }}"></script>
@@ -430,25 +423,14 @@
             // Verificar si la tabla es la de resumen
             const isResumenTable = $(this).attr('id')?.startsWith('tabla-resumen');
             
-            // Configuración personalizada para la tabla de resumen
+            // Configuración personalizada para la tabla de resumen 
             $(this).DataTable({
                 paging: true,
                 searching: true,
                 ordering: true,
                 responsive: true,
                 pageLength: isResumenTable ? 5 : 10, // Paginación de 5 para la tabla de resumen, 10 para las demás
-                dom: 'Bfrtip',
-                buttons: [
-                    {
-                        extend: 'excel',
-                        text: 'Exportar a Excel',
-                        className: 'btn btn-success'
-                    },
-                    {
-                        extend: 'copy',
-                        text: 'Copiar Tabla'
-                    }
-                ],
+                dom: 'FRtip',
                 columnDefs: [
                     {
                         targets: 0,
