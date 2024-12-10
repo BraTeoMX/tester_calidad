@@ -497,7 +497,19 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
     private function procesarRegistros($registros, $semanas, $clientesPorcentajes)
     {
-        return $registros
+        // Generar una clave única de caché basada en los datos de entrada
+        $cacheKey = 'procesarRegistros:' . md5(serialize($registros) . serialize($semanas) . serialize($clientesPorcentajes));
+
+        // Verificar si los datos ya están en la caché
+        if (Cache::has($cacheKey)) {
+            Log::info('Datos procesados obtenidos desde el caché.');
+            return Cache::get($cacheKey);
+        }
+
+        Log::info('Procesando datos y almacenándolos en la caché.');
+
+        // Proceso actual de agrupación y cálculo
+        $resultado = $registros
             ->groupBy('cliente')
             ->map(function ($itemsPorCliente, $cliente) use ($semanas, $clientesPorcentajes) {
                 $datosClienteProcentaje = $clientesPorcentajes->get($cliente);
@@ -517,7 +529,6 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                         $rechazadaAqlSemana = array_fill(0, count($semanas), 0);
                         $auditadaAqlSemana = array_fill(0, count($semanas), 0);
 
-                        // Arreglos para acumular totales PROCESO por semana
                         $rechazadaProcesoSemana = array_fill(0, count($semanas), 0);
                         $auditadaProcesoSemana = array_fill(0, count($semanas), 0);
 
@@ -536,11 +547,9 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
                             foreach ($semanas as $index => $semana) {
                                 if ($modulo->semana == $semana['semana'] && $modulo->anio == $semana['anio']) {
-                                    // Comparación de porcentajes con ClienteProcentaje
                                     $aqlColor = $datosClienteProcentaje && $modulo->porcentaje_aql !== null && $modulo->porcentaje_aql >= $datosClienteProcentaje->aql;
                                     $procesoColor = $datosClienteProcentaje && $modulo->porcentaje_proceso !== null && $modulo->porcentaje_proceso >= $datosClienteProcentaje->proceso;
 
-                                    // Asignar valores de porcentajes y colores
                                     $consolidado[$modulo->modulo]['semanalPorcentajes'][$index] = [
                                         'aql' => $modulo->porcentaje_aql ?? "N/A",
                                         'proceso' => $modulo->porcentaje_proceso ?? "N/A",
@@ -548,50 +557,41 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                                         'proceso_color' => $procesoColor
                                     ];
 
-                                    // Acumular datos para el total AQL y PROCESO
                                     $rechazadaAqlSemana[$index] += $modulo->cantidad_rechazada_aql ?? 0;
                                     $auditadaAqlSemana[$index] += $modulo->cantidad_auditada_aql ?? 0;
 
-                                    // Acumular datos para el total PROCESO
                                     $rechazadaProcesoSemana[$index] += $modulo->cantidad_rechazada_proceso ?? 0;
                                     $auditadaProcesoSemana[$index] += $modulo->cantidad_auditada_proceso ?? 0;
                                 }
                             }
                         }
 
-                        // Calcular totales AQL por semana
                         $totalesAql = [];
                         $totalesAqlColores = [];
                         foreach ($semanas as $i => $semana) {
                             if ($auditadaAqlSemana[$i] > 0) {
                                 $total = round(($rechazadaAqlSemana[$i] / $auditadaAqlSemana[$i]) * 100, 3);
                                 $totalesAql[] = $total;
-
-                                // Comparar con ClienteProcentaje para determinar el color
                                 $totalesAqlColores[] = $datosClienteProcentaje && $total >= $datosClienteProcentaje->aql;
                             } else {
                                 $totalesAql[] = "N/A";
-                                $totalesAqlColores[] = false; // No aplica color para N/A
+                                $totalesAqlColores[] = false;
                             }
                         }
 
-                        // Calcular totales PROCESO por semana
                         $totalesProceso = [];
                         $totalesProcesoColores = [];
                         foreach ($semanas as $i => $semana) {
                             if ($auditadaProcesoSemana[$i] > 0) {
                                 $total = round(($rechazadaProcesoSemana[$i] / $auditadaProcesoSemana[$i]) * 100, 3);
                                 $totalesProceso[] = $total;
-
-                                // Comparar con ClienteProcentaje para determinar el color
                                 $totalesProcesoColores[] = $datosClienteProcentaje && $total >= $datosClienteProcentaje->proceso;
                             } else {
                                 $totalesProceso[] = "N/A";
-                                $totalesProcesoColores[] = false; // No aplica color para N/A
+                                $totalesProcesoColores[] = false;
                             }
                         }
 
-                        // Al final, retornas el mismo array que ya devuelves actualmente:
                         return [
                             'modulos' => array_values($consolidado),
                             'totales_aql' => $totalesAql,
@@ -601,7 +601,13 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                         ];
                     });
             });
+
+        // Almacenar el resultado en la caché
+        Cache::put($cacheKey, $resultado, now()->addHours(10));
+
+        return $resultado;
     }
+
 
 
     public function getSemanaComparativaGeneralData(Request $request)
