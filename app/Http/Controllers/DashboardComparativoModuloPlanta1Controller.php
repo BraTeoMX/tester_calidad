@@ -682,9 +682,25 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
     public function exportSemanaComparativa(Request $request)
     {
+        // Obtener el parámetro de la planta
+        $planta = $request->input('planta', 'general'); // Valor por defecto es "general"
+
         // Reutilizamos la lógica para obtener los datos estructurados
         $data = $this->getSemanaComparativaGeneralData($request)->getData();
         $data = json_decode(json_encode($data), true); // Convertir stdClass a array
+
+        // Seleccionar los datos según la planta
+        switch ($planta) {
+            case 'planta1':
+                $modulosPorClienteYEstilo = $data['modulosPorClienteYEstiloPlanta1'];
+                break;
+            case 'planta2':
+                $modulosPorClienteYEstilo = $data['modulosPorClienteYEstiloPlanta2'];
+                break;
+            default:
+                $modulosPorClienteYEstilo = $data['modulosPorClienteYEstilo'];
+                break;
+        }
 
         // Crear hoja de cálculo
         $spreadsheet = new Spreadsheet();
@@ -716,7 +732,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
         $sheetIndex = 0;
 
-        foreach ($data['modulosPorClienteYEstilo'] as $cliente => $estilos) {
+        foreach ($modulosPorClienteYEstilo as $cliente => $estilos) {
             // Crear una hoja por cliente
             $sheet = $sheetIndex === 0 ? $spreadsheet->getActiveSheet() : $spreadsheet->createSheet();
             $sheet->setTitle(substr($cliente, 0, 30)); // Máximo 30 caracteres para el nombre de la hoja
@@ -744,7 +760,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
                     // Aplicar color a las celdas según los colores calculados
                     if ($datosEstilo['totales_aql_colores'][$index]) {
-                        $sheet->getStyle("B{$row}")->applyFromArray($yellowStyle);
+                        $sheet->getStyle("B{$row}")->applyFromArray($redStyle);
                     }
                     if ($datosEstilo['totales_proceso_colores'][$index]) {
                         $sheet->getStyle("C{$row}")->applyFromArray($yellowStyle);
@@ -757,25 +773,11 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
                 // Tabla Detalles (módulos)
                 $sheet->setCellValue("A{$row}", "Módulo");
-                $row++;
-
                 foreach ($data['semanas'] as $index => $semana) {
-                    // Agregar "Semana: X (Año)"
                     $col = chr(66 + ($index * 2)); // Columna dinámica (A = 65 en ASCII)
-                    $sheet->setCellValue("{$col}{$row}", "Semana: {$semana['semana']} ({$semana['anio']})");
-                    $sheet->mergeCells("{$col}{$row}:" . chr(ord($col) + 1) . "{$row}"); // Combina las celdas de AQL y Proceso
-                    $sheet->getStyle("{$col}{$row}")->applyFromArray($headerStyle);
-                }
-
-                $row++; // Avanzar una fila
-
-                foreach ($data['semanas'] as $index => $semana) {
-                    // Ahora agregamos % AQL y % Proceso debajo de "Semana: X (Año)"
-                    $col = chr(66 + ($index * 2)); // Columna dinámica
                     $sheet->setCellValue("{$col}{$row}", "% AQL");
                     $sheet->setCellValue(chr(ord($col) + 1) . "{$row}", "% Proceso");
                 }
-
                 $row++;
 
                 foreach ($datosEstilo['modulos'] as $modulo) {
@@ -787,10 +789,10 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
                         // Aplicar colores
                         if ($porcentajes['aql_color']) {
-                            $sheet->getStyle("{$col}{$row}")->applyFromArray($yellowStyle);
+                            $sheet->getStyle("{$col}{$row}")->applyFromArray($redStyle);
                         }
                         if ($porcentajes['proceso_color']) {
-                            $sheet->getStyle(chr(ord($col) + 1) . "{$row}")->applyFromArray($redStyle);
+                            $sheet->getStyle(chr(ord($col) + 1) . "{$row}")->applyFromArray($yellowStyle);
                         }
                     }
                     $row++;
@@ -801,7 +803,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
         }
 
         // Guardar el archivo
-        $fileName = 'Semana_Comparativa_General.xlsx';
+        $fileName = 'Semana_Comparativa_' . ucfirst($planta) . '.xlsx';
         $writer = new Xlsx($spreadsheet);
 
         // Devolver el archivo como respuesta

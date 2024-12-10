@@ -37,7 +37,22 @@
                                 </div>
                                 <button type="submit" class="btn btn-secondary">Mostrar datos</button>
                             </form>
-                            <button type="button" id="exportExcel" class="btn btn-primary">Exportar a Excel</button>
+                            <div class="accordion" id="accordionExport">
+                                <div class="card">
+                                    <div class="card-header p-0" id="headingExport">
+                                        <button class="btn btn-secondary text-left py-2" type="button" data-toggle="collapse" data-target="#collapseExport" aria-expanded="false" aria-controls="collapseExport">
+                                            Opciones a exportar
+                                        </button>
+                                    </div>
+                                    <div id="collapseExport" class="collapse" aria-labelledby="headingExport" data-parent="#accordionExport">
+                                        <div class="card-body p-2">
+                                            <button type="button" id="exportExcelGeneral" class="btn btn-info mb-2">General</button>
+                                            <button type="button" id="exportExcelPlanta1" class="btn btn-info mb-2">Planta 1 - Ixtlahuaca</button>
+                                            <button type="button" id="exportExcelPlanta2" class="btn btn-info ">Planta 2 - San Bartolo</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                            
                         </div>
                     </div>
                 </div>
@@ -68,8 +83,9 @@
             background-color: #918305; /* Rojo oscuro */
             color: white; /* Texto blanco para contraste */
         }
+
     </style>
-    
+        
 @endsection
 
 
@@ -99,40 +115,63 @@
     <script src="{{ asset('js/highcharts/dark-unica.js') }}"></script>
 
     <script>
-        $('#exportExcel').on('click', function() {
-            // Obtener los valores de fecha seleccionados
-            var fechaInicio = $('#fecha_inicio').val();
-            var fechaFin = $('#fecha_fin').val();
+        $(document).ready(function () {
+            // Función genérica para exportar
+            function exportExcel(planta) {
+                const fechaInicio = $('#fecha_inicio').val();
+                const fechaFin = $('#fecha_fin').val();
 
-            // Crear un formulario para enviar los datos al backend
-            var form = $('<form>', {
-                method: 'POST',
-                action: '{{ route("export.semana") }}'
+                // Crear un formulario para enviar los datos al backend
+                const form = $('<form>', {
+                    method: 'POST',
+                    action: '{{ route("export.semana") }}' // Ruta genérica
+                });
+
+                // Agregar el token CSRF
+                form.append($('<input>', {
+                    type: 'hidden',
+                    name: '_token',
+                    value: '{{ csrf_token() }}'
+                }));
+
+                // Agregar fechas al formulario
+                form.append($('<input>', {
+                    type: 'hidden',
+                    name: 'fecha_inicio',
+                    value: fechaInicio
+                }));
+                form.append($('<input>', {
+                    type: 'hidden',
+                    name: 'fecha_fin',
+                    value: fechaFin
+                }));
+
+                // Agregar planta al formulario
+                form.append($('<input>', {
+                    type: 'hidden',
+                    name: 'planta',
+                    value: planta
+                }));
+
+                // Agregar el formulario al cuerpo y enviarlo
+                $('body').append(form);
+                form.submit();
+            }
+
+            // Vincular los botones con la exportación
+            $('#exportExcelGeneral').on('click', function () {
+                exportExcel('general');
             });
 
-            // Agregar el token CSRF
-            form.append($('<input>', {
-                type: 'hidden',
-                name: '_token',
-                value: '{{ csrf_token() }}'
-            }));
+            $('#exportExcelPlanta1').on('click', function () {
+                exportExcel('planta1');
+            });
 
-            // Agregar las fechas al formulario
-            form.append($('<input>', {
-                type: 'hidden',
-                name: 'fecha_inicio',
-                value: fechaInicio
-            }));
-            form.append($('<input>', {
-                type: 'hidden',
-                name: 'fecha_fin',
-                value: fechaFin
-            }));
-
-            // Agregar el formulario al cuerpo y enviarlo
-            $('body').append(form);
-            form.submit();
+            $('#exportExcelPlanta2').on('click', function () {
+                exportExcel('planta2');
+            });
         });
+
 
     // Definir el tipo de ordenamiento personalizado para manejar "N/A"
     $.fn.dataTable.ext.type.order['custom-num-pre'] = function (a) {
@@ -197,13 +236,13 @@
                         '<hr>' +
                         '<ul class="nav nav-pills mb-3" id="pills-tab-planta-' + index + '" role="tablist">' +
                             '<li class="nav-item">' +
-                                '<a class="nav-link active" id="pills-general-tab-' + index + '" data-toggle="pill" href="#pills-general-' + index + '" role="tab" aria-controls="pills-general-' + index + '" aria-selected="true">General</a>' +
+                                '<a class="nav-link btn btn-secondary active" id="pills-general-tab-' + index + '" data-toggle="pill" href="#pills-general-' + index + '" role="tab" aria-controls="pills-general-' + index + '" aria-selected="true">General</a>' +
                             '</li>' +
                             '<li class="nav-item">' +
-                                '<a class="nav-link" id="pills-planta1-tab-' + index + '" data-toggle="pill" href="#pills-planta1-' + index + '" role="tab" aria-controls="pills-planta1-' + index + '" aria-selected="false">Planta 1 - Ixtlahuaca</a>' +
+                                '<a class="nav-link btn btn-secondary" id="pills-planta1-tab-' + index + '" data-toggle="pill" href="#pills-planta1-' + index + '" role="tab" aria-controls="pills-planta1-' + index + '" aria-selected="false">Planta 1 - Ixtlahuaca</a>' +
                             '</li>' +
                             '<li class="nav-item">' +
-                                '<a class="nav-link" id="pills-planta2-tab-' + index + '" data-toggle="pill" href="#pills-planta2-' + index + '" role="tab" aria-controls="pills-planta2-' + index + '" aria-selected="false">Planta 2 - San Bartolo</a>' +
+                                '<a class="nav-link btn btn-secondary" id="pills-planta2-tab-' + index + '" data-toggle="pill" href="#pills-planta2-' + index + '" role="tab" aria-controls="pills-planta2-' + index + '" aria-selected="false">Planta 2 - San Bartolo</a>' +
                             '</li>' +
                         '</ul>' +
                         '<div class="tab-content" id="pills-tabContent-planta-' + index + '">' +
