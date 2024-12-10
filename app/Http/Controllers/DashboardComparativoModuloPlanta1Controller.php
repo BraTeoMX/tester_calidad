@@ -15,7 +15,10 @@ use App\Models\ClienteProcentaje;
 use Illuminate\Support\Facades\Log;
 use App\Models\ComparativoSemanalCliente;
 use Illuminate\Support\Facades\Cache;
-
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class DashboardComparativoModuloPlanta1Controller extends Controller
 {
@@ -499,10 +502,14 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                 $datosClienteProcentaje = $clientesPorcentajes->get($cliente);
 
                 return $itemsPorCliente
-                    ->groupBy(function($item) {
+                    ->groupBy(function ($item) {
                         return $item->estilo ?? 'General';
                     })
-                    ->map(function($modulosEstilo) use ($semanas, $datosClienteProcentaje) {
+                    ->sortBy(function ($_, $key) {
+                        // Si el estilo es "General", debe aparecer primero
+                        return $key === 'General' ? -1 : $key;
+                    })
+                    ->map(function ($modulosEstilo) use ($semanas, $datosClienteProcentaje) {
                         $consolidado = [];
 
                         // Arreglos para acumular totales AQL y PROCESO por semana
@@ -595,6 +602,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             });
     }
 
+
     public function getSemanaComparativaGeneralData(Request $request)
     {
         \Carbon\Carbon::setLocale('es');
@@ -672,5 +680,134 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
         return response()->json($data);
     }
 
+    public function exportSemanaComparativa(Request $request)
+    {
+        // Reutilizamos la lógica para obtener los datos estructurados
+        $data = $this->getSemanaComparativaGeneralData($request)->getData();
+        $data = json_decode(json_encode($data), true); // Convertir stdClass a array
+
+        // Crear hoja de cálculo
+        $spreadsheet = new Spreadsheet();
+
+        // Estilo por defecto para encabezados
+        $headerStyle = [
+            'font' => ['bold' => true],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['argb' => 'FFDDDDDD'], // Gris claro
+            ],
+            'alignment' => ['horizontal' => 'center'],
+        ];
+
+        // Estilo de colores personalizados (amarillo y rojo)
+        $yellowStyle = [
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['argb' => Color::COLOR_YELLOW],
+            ],
+        ];
+
+        $redStyle = [
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['argb' => Color::COLOR_RED],
+            ],
+        ];
+
+        $sheetIndex = 0;
+
+        foreach ($data['modulosPorClienteYEstilo'] as $cliente => $estilos) {
+            // Crear una hoja por cliente
+            $sheet = $sheetIndex === 0 ? $spreadsheet->getActiveSheet() : $spreadsheet->createSheet();
+            $sheet->setTitle(substr($cliente, 0, 30)); // Máximo 30 caracteres para el nombre de la hoja
+            $sheetIndex++;
+
+            $row = 1;
+
+            foreach ($estilos as $estilo => $datosEstilo) {
+                // Agregar título del estilo
+                $sheet->setCellValue("A{$row}", "Estilo: {$estilo}");
+                $sheet->getStyle("A{$row}")->applyFromArray($headerStyle);
+                $row++;
+
+                // Tabla Resumen
+                $sheet->setCellValue("A{$row}", "Semana");
+                $sheet->setCellValue("B{$row}", "% AQL");
+                $sheet->setCellValue("C{$row}", "% Proceso");
+                $sheet->getStyle("A{$row}:C{$row}")->applyFromArray($headerStyle);
+                $row++;
+
+                foreach ($data['semanas'] as $index => $semana) {
+                    $sheet->setCellValue("A{$row}", "Semana {$semana['semana']} ({$semana['anio']})");
+                    $sheet->setCellValue("B{$row}", $datosEstilo['totales_aql'][$index]);
+                    $sheet->setCellValue("C{$row}", $datosEstilo['totales_proceso'][$index]);
+
+                    // Aplicar color a las celdas según los colores calculados
+                    if ($datosEstilo['totales_aql_colores'][$index]) {
+                        $sheet->getStyle("B{$row}")->applyFromArray($yellowStyle);
+                    }
+                    if ($datosEstilo['totales_proceso_colores'][$index]) {
+                        $sheet->getStyle("C{$row}")->applyFromArray($yellowStyle);
+                    }
+
+                    $row++;
+                }
+
+                $row++; // Espacio entre tablas
+
+                // Tabla Detalles (módulos)
+                $sheet->setCellValue("A{$row}", "Módulo");
+                $row++;
+
+                foreach ($data['semanas'] as $index => $semana) {
+                    // Agregar "Semana: X (Año)"
+                    $col = chr(66 + ($index * 2)); // Columna dinámica (A = 65 en ASCII)
+                    $sheet->setCellValue("{$col}{$row}", "Semana: {$semana['semana']} ({$semana['anio']})");
+                    $sheet->mergeCells("{$col}{$row}:" . chr(ord($col) + 1) . "{$row}"); // Combina las celdas de AQL y Proceso
+                    $sheet->getStyle("{$col}{$row}")->applyFromArray($headerStyle);
+                }
+
+                $row++; // Avanzar una fila
+
+                foreach ($data['semanas'] as $index => $semana) {
+                    // Ahora agregamos % AQL y % Proceso debajo de "Semana: X (Año)"
+                    $col = chr(66 + ($index * 2)); // Columna dinámica
+                    $sheet->setCellValue("{$col}{$row}", "% AQL");
+                    $sheet->setCellValue(chr(ord($col) + 1) . "{$row}", "% Proceso");
+                }
+
+                $row++;
+
+                foreach ($datosEstilo['modulos'] as $modulo) {
+                    $sheet->setCellValue("A{$row}", $modulo['modulo']);
+                    foreach ($modulo['semanalPorcentajes'] as $index => $porcentajes) {
+                        $col = chr(66 + ($index * 2)); // Columna dinámica
+                        $sheet->setCellValue("{$col}{$row}", $porcentajes['aql']);
+                        $sheet->setCellValue(chr(ord($col) + 1) . "{$row}", $porcentajes['proceso']);
+
+                        // Aplicar colores
+                        if ($porcentajes['aql_color']) {
+                            $sheet->getStyle("{$col}{$row}")->applyFromArray($yellowStyle);
+                        }
+                        if ($porcentajes['proceso_color']) {
+                            $sheet->getStyle(chr(ord($col) + 1) . "{$row}")->applyFromArray($redStyle);
+                        }
+                    }
+                    $row++;
+                }
+
+                $row += 2; // Espacio entre estilos
+            }
+        }
+
+        // Guardar el archivo
+        $fileName = 'Semana_Comparativa_General.xlsx';
+        $writer = new Xlsx($spreadsheet);
+
+        // Devolver el archivo como respuesta
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $fileName);
+    }
 
 }

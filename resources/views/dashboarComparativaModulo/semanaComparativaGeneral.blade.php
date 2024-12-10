@@ -37,6 +37,7 @@
                                 </div>
                                 <button type="submit" class="btn btn-secondary">Mostrar datos</button>
                             </form>
+                            <button type="button" id="exportExcel" class="btn btn-primary">Exportar a Excel</button>
                         </div>
                     </div>
                 </div>
@@ -98,6 +99,41 @@
     <script src="{{ asset('js/highcharts/dark-unica.js') }}"></script>
 
     <script>
+        $('#exportExcel').on('click', function() {
+            // Obtener los valores de fecha seleccionados
+            var fechaInicio = $('#fecha_inicio').val();
+            var fechaFin = $('#fecha_fin').val();
+
+            // Crear un formulario para enviar los datos al backend
+            var form = $('<form>', {
+                method: 'POST',
+                action: '{{ route("export.semana") }}'
+            });
+
+            // Agregar el token CSRF
+            form.append($('<input>', {
+                type: 'hidden',
+                name: '_token',
+                value: '{{ csrf_token() }}'
+            }));
+
+            // Agregar las fechas al formulario
+            form.append($('<input>', {
+                type: 'hidden',
+                name: 'fecha_inicio',
+                value: fechaInicio
+            }));
+            form.append($('<input>', {
+                type: 'hidden',
+                name: 'fecha_fin',
+                value: fechaFin
+            }));
+
+            // Agregar el formulario al cuerpo y enviarlo
+            $('body').append(form);
+            form.submit();
+        });
+
     // Definir el tipo de ordenamiento personalizado para manejar "N/A"
     $.fn.dataTable.ext.type.order['custom-num-pre'] = function (a) {
         if (a === "N/A") return -Infinity; 
