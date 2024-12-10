@@ -636,8 +636,13 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
         $cacheKey = 'semanaComparativaGeneral:' . $fechaInicio->format('Y-m-d') . '-' . $fechaFin->format('Y-m-d');
 
         // Intentar obtener los datos de la caché
-        $data = Cache::remember($cacheKey, now()->addHours(10), function () use ($fechaInicio, $fechaFin) {
-            // Si no está en caché, procesar los datos y almacenarlos
+        if (Cache::has($cacheKey)) {
+            Log::info('Datos obtenidos desde el caché.');
+            $data = Cache::get($cacheKey);
+        } else {
+            // Si no están en caché, procesar los datos
+            Log::info('Datos generados y almacenados en el caché.');
+            
             $semanas = [];
             $currentDate = $fechaInicio->copy();
             while ($currentDate <= $fechaFin) {
@@ -648,12 +653,13 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                 $currentDate->addWeek();
             }
 
-            $listaSemanasAnios = array_map(function($rango) {
+            $listaSemanasAnios = array_map(function ($rango) {
                 return $rango['anio'] . '-' . $rango['semana'];
             }, $semanas);
 
             $registros = ComparativoSemanalCliente::whereIn(
-                DB::raw("CONCAT(anio, '-', semana)"), $listaSemanasAnios
+                DB::raw("CONCAT(anio, '-', semana)"),
+                $listaSemanasAnios
             )->get();
 
             $clientesPorcentajes = ClienteProcentaje::all()->keyBy('nombre');
@@ -667,7 +673,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             $modulosPorClienteYEstiloPlanta2 = $this->procesarRegistros($registrosPlanta2, $semanas, $clientesPorcentajes);
 
             // Estructura JSON con toda la información necesaria
-            return [
+            $data = [
                 'fechaInicio' => $fechaInicio->format('Y-m-d'),
                 'fechaFin' => $fechaFin->format('Y-m-d'),
                 'semanas' => $semanas,
@@ -675,11 +681,15 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                 'modulosPorClienteYEstiloPlanta1' => $modulosPorClienteYEstiloPlanta1,
                 'modulosPorClienteYEstiloPlanta2' => $modulosPorClienteYEstiloPlanta2
             ];
-        });
+
+            // Almacenar los datos en la caché
+            Cache::put($cacheKey, $data, now()->addHours(10));
+        }
 
         // Devolver la respuesta con los datos
         return response()->json($data);
     }
+
 
     public function exportSemanaComparativa(Request $request)
     {
