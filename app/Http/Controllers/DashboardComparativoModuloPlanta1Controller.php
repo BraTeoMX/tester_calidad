@@ -773,10 +773,28 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
                 // Tabla Detalles (módulos)
                 $sheet->setCellValue("A{$row}", "Módulo");
+                // Encabezado de las semanas (combinando celdas por cada par de columnas)
                 foreach ($data['semanas'] as $index => $semana) {
-                    $col = chr(66 + ($index * 2)); // Columna dinámica (A = 65 en ASCII)
+                    $col = chr(66 + ($index * 2)); // Columna dinámica (B, D, F, etc.)
+
+                    // Escribir la semana y combinar celdas
+                    $sheet->setCellValue("{$col}{$row}", "Semana: {$semana['semana']} ({$semana['anio']})");
+                    $sheet->mergeCells("{$col}{$row}:" . chr(ord($col) + 1) . "{$row}"); // Combinar las dos columnas (AQL y Proceso)
+                    $sheet->getStyle("{$col}{$row}")->applyFromArray($headerStyle); // Aplicar estilo de encabezado
+                }
+                $row++; // Pasar a la siguiente fila
+
+                // Escribir encabezados de % AQL y % Proceso
+                foreach ($data['semanas'] as $index => $semana) {
+                    $col = chr(66 + ($index * 2)); // Columna dinámica (B, D, F, etc.)
+
+                    // % AQL
                     $sheet->setCellValue("{$col}{$row}", "% AQL");
+                    $sheet->getStyle("{$col}{$row}")->applyFromArray($headerStyle);
+
+                    // % Proceso
                     $sheet->setCellValue(chr(ord($col) + 1) . "{$row}", "% Proceso");
+                    $sheet->getStyle(chr(ord($col) + 1) . "{$row}")->applyFromArray($headerStyle);
                 }
                 $row++;
 
