@@ -19,6 +19,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class DashboardComparativoModuloPlanta1Controller extends Controller
 {
@@ -730,6 +731,16 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
             ],
         ];
 
+        $borderStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => 'FF000000'], // Negro
+                ],
+            ],
+        ];
+        
+
         $sheetIndex = 0;
 
         foreach ($modulosPorClienteYEstilo as $cliente => $estilos) {
@@ -769,15 +780,17 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                     $row++;
                 }
 
+                // Aplicar bordes a la tabla Resumen
+                $sheet->getStyle("A" . ($row - count($data['semanas']) - 1) . ":C" . ($row - 1))->applyFromArray($borderStyle);
+
                 $row++; // Espacio entre tablas
 
-                // Tabla Detalles (módulos)
+                // Tabla Detalles (Módulos)
                 $sheet->setCellValue("A{$row}", "Módulo");
+
                 // Encabezado de las semanas (combinando celdas por cada par de columnas)
                 foreach ($data['semanas'] as $index => $semana) {
                     $col = chr(66 + ($index * 2)); // Columna dinámica (B, D, F, etc.)
-
-                    // Escribir la semana y combinar celdas
                     $sheet->setCellValue("{$col}{$row}", "Semana: {$semana['semana']} ({$semana['anio']})");
                     $sheet->mergeCells("{$col}{$row}:" . chr(ord($col) + 1) . "{$row}"); // Combinar las dos columnas (AQL y Proceso)
                     $sheet->getStyle("{$col}{$row}")->applyFromArray($headerStyle); // Aplicar estilo de encabezado
@@ -787,14 +800,8 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                 // Escribir encabezados de % AQL y % Proceso
                 foreach ($data['semanas'] as $index => $semana) {
                     $col = chr(66 + ($index * 2)); // Columna dinámica (B, D, F, etc.)
-
-                    // % AQL
                     $sheet->setCellValue("{$col}{$row}", "% AQL");
-                    $sheet->getStyle("{$col}{$row}")->applyFromArray($headerStyle);
-
-                    // % Proceso
                     $sheet->setCellValue(chr(ord($col) + 1) . "{$row}", "% Proceso");
-                    $sheet->getStyle(chr(ord($col) + 1) . "{$row}")->applyFromArray($headerStyle);
                 }
                 $row++;
 
@@ -815,6 +822,11 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                     }
                     $row++;
                 }
+
+                // Aplicar bordes a la tabla Detalles
+                $lastRow = $row - 1; // Última fila ocupada por los datos de la tabla
+                $lastColumn = chr(66 + (count($data['semanas']) * 2) - 1); // Última columna dinámica
+                $sheet->getStyle("A" . ($row - count($datosEstilo['modulos']) - 1) . ":{$lastColumn}{$lastRow}")->applyFromArray($borderStyle);
 
                 $row += 2; // Espacio entre estilos
             }
