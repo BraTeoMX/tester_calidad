@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class JobAQLHistorial extends Model
 {
     use HasFactory;
-    protected $table = 'job_aql_temporal';
+    protected $table = 'job_aql_v2';
 
 
 }

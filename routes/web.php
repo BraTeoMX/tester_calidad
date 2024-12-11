@@ -326,3 +326,5 @@ Route::post('/export-semana-comparativa', [DashboardComparativoModuloPlanta1Cont
 
 //seccion para gestion por parte del administrador de calidad
 Route::get('/agregarAqlProceso', [GestionController::class, 'agregarAqlProceso'])->name('gestion.agregarAqlProceso');
+Route::get('/buscarAql', [GestionController::class, 'buscarAql'])->name('gestion.buscarAql');
+Route::post('/guardarAql', [GestionController::class, 'guardarAql'])->name('gestion.guardarAql');

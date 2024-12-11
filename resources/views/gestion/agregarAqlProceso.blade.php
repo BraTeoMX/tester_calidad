@@ -6,10 +6,36 @@
         <div class="col-6">
             <div class="card card-chart">
                 <div class="card-header">
-                    <h3>Seccion: AQL</h3>
+                    <h3>Sección: AQL</h3>
                 </div>
                 <div class="card-body">
-
+                    <!-- Formulario de búsqueda -->
+                    <form id="search-form">
+                        <div class="form-group">
+                            <label for="search-input">Buscar por OP:</label>
+                            <input type="text" id="search-input" class="form-control" placeholder="Escribe un ID">
+                        </div>
+                        <button type="button" id="search-button" class="btn btn-primary">Buscar</button>
+                    </form>
+                    <hr>
+                    <!-- Tabla para mostrar resultados -->
+                    <div id="search-results">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Bulto</th>
+                                    <th>OP</th>
+                                    <th>Estilo</th>
+                                    <th>Cantidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Los resultados se inyectarán aquí -->
+                            </tbody>
+                        </table>
+                        <button type="button" id="save-button" class="btn btn-success">Guardar Registros</button>
+                    </div>                    
                 </div>
             </div>
         </div>
@@ -29,67 +55,114 @@
 @endsection
 
 @push('js')
-    <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    <!-- DataTables JavaScript -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
     <script>
-        $(document).ready(function() {
-            const tableIds = ['#tablaDefectoProceso', '#tablaDefectoPlayera', '#tablaDefectoEmpaque', '#tablaUtility', '#tablaResponsable', '#tablaTecnico'];
-            
-            tableIds.forEach(tableId => {
-                if (!$.fn.dataTable.isDataTable(tableId)) {
-                    $(tableId).DataTable({
-                        lengthChange: false,
-                        searching: true,
-                        paging: true,
-                        pageLength: 5,
-                        autoWidth: false,
-                        responsive: true,
-                        columnDefs: [
-                            {
-                                targets: -1,
-                                searchable: false,
-                                orderable: false,
-                            },
-                        ],
-                        language: {
-                            "sProcessing":     "Procesando...",
-                            "sLengthMenu":     "Mostrar _MENU_ registros",
-                            "sZeroRecords":    "No se encontraron resultados",
-                            "sEmptyTable":     "Ningún dato disponible en esta tabla",
-                            "sInfo":           "Registros _START_ - _END_ de _TOTAL_ mostrados",
-                            "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
-                            "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-                            "sInfoPostFix":    "",
-                            "sSearch":         "Buscar:",
-                            "sUrl":            "",
-                            "sInfoThousands":  ",",
-                            "sLoadingRecords": "Cargando...",
-                            "oPaginate": {
-                                "sFirst":    "Primero",
-                                "sLast":     "Último",
-                                "sNext":     "Siguiente",
-                                "sPrevious": "Anterior"
-                            },
-                            "oAria": {
-                                "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-                                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                            }
-                        },
-                        initComplete: function(settings, json) {
-                            if ($('body').hasClass('dark-mode')) {
-                                $(tableId + '_wrapper').addClass('dark-mode');
-                            }
-                        }
-                    });
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchButton = document.getElementById('search-button');
+            const searchInput = document.getElementById('search-input');
+            const searchResults = document.querySelector('#search-results tbody');
+
+            searchButton.addEventListener('click', function (event) {
+                event.preventDefault(); // Evita el comportamiento predeterminado del formulario
+                const searchTerm = searchInput.value.trim(); // Elimina espacios en blanco
+
+                if (!searchTerm) {
+                    alert('Por favor, escribe un término de búsqueda.');
+                    return;
                 }
+
+                // Realiza la petición AJAX
+                fetch(`/buscarAql?searchTerm=${searchTerm}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la solicitud al servidor');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Limpia los resultados previos
+                        searchResults.innerHTML = '';
+
+                        if (data.data.length === 0) {
+                            // Si no hay resultados
+                            searchResults.innerHTML = '<tr><td colspan="5">No se encontraron resultados.</td></tr>';
+                            return;
+                        }
+
+                        // Genera el HTML para los nuevos resultados
+                        data.data.forEach(item => {
+                            const row = `
+                                <tr>
+                                    <td>${item.id}</td>
+                                    <td>${item.prodpackticketid}</td>
+                                    <td>${item.prodid}</td>
+                                    <td>${item.itemid}</td>
+                                    <td>${item.qty}</td>
+                                </tr>
+                            `;
+                            searchResults.insertAdjacentHTML('beforeend', row);
+                        });
+                    } else {
+                        alert(data.message); // Muestra el mensaje de error desde el backend
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Hubo un problema al realizar la búsqueda. Verifica la consola para más detalles.');
+                });
             });
         });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const saveButton = document.getElementById('save-button');
+            const searchResults = document.querySelector('#search-results tbody');
+
+            // Asegúrate de que el evento no se registre múltiples veces
+            saveButton.removeEventListener('click', guardarRegistros);
+            saveButton.addEventListener('click', guardarRegistros);
+
+            function guardarRegistros() {
+                // Obtiene todos los IDs de los registros mostrados en la tabla
+                const ids = [];
+                searchResults.querySelectorAll('tr').forEach(row => {
+                    const id = row.cells[0].textContent; // Toma el ID de la primera celda
+                    ids.push(id);
+                });
+
+                if (ids.length === 0) {
+                    alert('No hay registros para guardar.');
+                    return;
+                }
+
+                // Realiza la petición AJAX para guardar los registros
+                fetch('/guardarAql', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ ids }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(data.message); // Muestra el mensaje recibido del servidor
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Hubo un problema al guardar los registros.');
+                });
+            }
+        });
+
     </script>
     
 @endpush
