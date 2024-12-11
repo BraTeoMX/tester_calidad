@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageSlug' => 'Gestion', 'titlePage' => __('Gestion')])
+@extends('layouts.app', ['pageSlug' => 'GestionBusqueda', 'titlePage' => __('GestionBusqueda')])
 
 @section('content')
 
@@ -19,7 +19,7 @@
                     </form>
                     <hr>
                     <!-- Tabla para mostrar resultados -->
-                    <div id="search-results">
+                    <div id="search-results" class="table-responsive">
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
@@ -81,7 +81,12 @@
         </div>        
     </div>
 
-    
+    <style>
+        thead tr {
+            background-color: #343a40; /* Gris oscuro */
+            color: white; /* Texto en blanco para contraste */
+        }
+    </style>
 @endsection
 
 @push('js')
