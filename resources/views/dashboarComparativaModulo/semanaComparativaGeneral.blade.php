@@ -448,17 +448,35 @@
         });
     }
 
-    // Esta función busca todos los contenedores de gráficas en el $container y genera las gráficas con Highcharts
-    function generarTodasLasGraficas($container, semanas) {
-        $container.find('div[id^="chart"]').each(function() {
-            var $chartDiv = $(this);
-            var categories = JSON.parse($chartDiv.attr('data-categories'));
-            var aqlData = JSON.parse($chartDiv.attr('data-aql'));
-            var procesoData = JSON.parse($chartDiv.attr('data-proceso'));
-            var maxY = parseInt($chartDiv.attr('data-maxy'), 10);
+    // Esta función busca todos los contenedores de gráficas en el $container y genera las gráficas progresivamente
+    function generarTodasLasGraficas($container, semanas, batchSize = 3, delay = 1000) {
+        const chartDivs = $container.find('div[id^="chart"]'); // Encuentra todos los contenedores de gráficas
+        let currentIndex = 0;
 
-            generarGrafico($chartDiv.attr('id'), categories, aqlData, procesoData, maxY);
-        });
+        function renderNextBatch() {
+            const batch = chartDivs.slice(currentIndex, currentIndex + batchSize); // Obtiene un lote de gráficos
+            batch.each(function () {
+                const $chartDiv = $(this);
+
+                // Obtén los datos para la gráfica desde los atributos data-*
+                const categories = JSON.parse($chartDiv.attr('data-categories'));
+                const aqlData = JSON.parse($chartDiv.attr('data-aql'));
+                const procesoData = JSON.parse($chartDiv.attr('data-proceso'));
+                const maxY = parseInt($chartDiv.attr('data-maxy'), 10);
+
+                // Llama a la función para generar la gráfica
+                generarGrafico($chartDiv.attr('id'), categories, aqlData, procesoData, maxY);
+            });
+
+            currentIndex += batchSize;
+
+            // Si quedan gráficas por generar, programa el siguiente lote
+            if (currentIndex < chartDivs.length) {
+                setTimeout(renderNextBatch, delay); // Espera un tiempo antes de procesar el siguiente lote
+            }
+        }
+
+        renderNextBatch(); // Comienza a generar las gráficas
     }
 
     // Función para generar un gráfico Highcharts dado un contenedor e información
