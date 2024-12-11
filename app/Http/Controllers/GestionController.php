@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Log;
 use App\Models\JobAQLTemporal;
 use App\Models\JobAQLHistorial;
+use App\Models\ModuloEstiloTemporal;
 use Illuminate\Http\Request; 
 
 class GestionController extends Controller
@@ -12,9 +13,13 @@ class GestionController extends Controller
     public function agregarAqlProceso()
     {
         $pageSlug ='';
-        
+        // Obtener estilos y clientes únicos
+        $estilos = JobAQLHistorial::select('itemid', 'customername')
+            ->distinct()
+            ->orderBy('itemid') // Ordenar por itemid
+            ->get();
 
-        return view('gestion.agregarAqlProceso', compact('pageSlug'));
+        return view('gestion.agregarAqlProceso', compact('pageSlug', 'estilos'));
     }
 
     public function buscarAql(Request $request)
@@ -90,5 +95,29 @@ class GestionController extends Controller
         ]);
     }
 
+    public function guardarModuloEstilo(Request $request)
+    {
+        $items = $request->input('items');
+        
+        // Elimina registros con más de 15 días basándose en `created_at`
+        $fechaLimite = now()->subDays(15); // Fecha límite: 15 días antes de hoy
+        JobAQLTemporal::where('created_at', '<', $fechaLimite)->delete();
+        foreach ($items as $item) {
+            // Evitar duplicados basados en itemid
+            $exists = ModuloEstiloTemporal::where('itemid', $item['itemid'])->exists();
+
+            if (!$exists) {
+                ModuloEstiloTemporal::create([
+                    'itemid' => $item['itemid'],
+                    'custname' => $item['customername'],
+                ]);
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Registros guardados correctamente.',
+        ]);
+    }
 
 }
