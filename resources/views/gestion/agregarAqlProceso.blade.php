@@ -27,13 +27,14 @@
                                     <th>Bulto</th>
                                     <th>OP</th>
                                     <th>Estilo</th>
-                                    <th>Cantidad</th>
+                                    <th>Fecha Corte</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <!-- Los resultados se inyectarán aquí -->
                             </tbody>
                         </table>
+                        <br>
                         <button type="button" id="save-button" class="btn btn-success">Guardar Registros</button>
                     </div>                    
                 </div>
@@ -57,12 +58,20 @@
 @push('js')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const searchButton = document.getElementById('search-button');
+            const searchForm = document.getElementById('search-form');
             const searchInput = document.getElementById('search-input');
             const searchResults = document.querySelector('#search-results tbody');
 
-            searchButton.addEventListener('click', function (event) {
-                event.preventDefault(); // Evita el comportamiento predeterminado del formulario
+            searchForm.addEventListener('submit', function (event) {
+                event.preventDefault(); // Evita que el formulario recargue la página
+                realizarBusqueda();
+            });
+
+            document.getElementById('search-button').addEventListener('click', function () {
+                realizarBusqueda();
+            });
+
+            function realizarBusqueda() {
                 const searchTerm = searchInput.value.trim(); // Elimina espacios en blanco
 
                 if (!searchTerm) {
@@ -102,7 +111,7 @@
                                     <td>${item.prodpackticketid}</td>
                                     <td>${item.prodid}</td>
                                     <td>${item.itemid}</td>
-                                    <td>${item.qty}</td>
+                                    <td>${item.payrolldate}</td>
                                 </tr>
                             `;
                             searchResults.insertAdjacentHTML('beforeend', row);
@@ -115,18 +124,18 @@
                     console.error('Error:', error);
                     alert('Hubo un problema al realizar la búsqueda. Verifica la consola para más detalles.');
                 });
-            });
+            }
         });
 
         document.addEventListener('DOMContentLoaded', function () {
             const saveButton = document.getElementById('save-button');
             const searchResults = document.querySelector('#search-results tbody');
 
-            // Asegúrate de que el evento no se registre múltiples veces
-            saveButton.removeEventListener('click', guardarRegistros);
-            saveButton.addEventListener('click', guardarRegistros);
+            // Limpia cualquier registro previo del evento click para evitar duplicados
+            saveButton.replaceWith(saveButton.cloneNode(true));
+            const newSaveButton = document.getElementById('save-button');
 
-            function guardarRegistros() {
+            newSaveButton.addEventListener('click', function () {
                 // Obtiene todos los IDs de los registros mostrados en la tabla
                 const ids = [];
                 searchResults.querySelectorAll('tr').forEach(row => {
@@ -160,8 +169,9 @@
                     console.error('Error:', error);
                     alert('Hubo un problema al guardar los registros.');
                 });
-            }
+            });
         });
+
 
     </script>
     

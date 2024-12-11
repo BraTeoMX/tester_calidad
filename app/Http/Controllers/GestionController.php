@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
 use App\Models\JobAQLTemporal;
 use App\Models\JobAQLHistorial;
 use Illuminate\Http\Request; 
@@ -48,6 +49,10 @@ class GestionController extends Controller
             ], 400);
         }
 
+        // Elimina registros con más de 15 días basándose en `created_at`
+        $fechaLimite = now()->subDays(15); // Fecha límite: 15 días antes de hoy
+        JobAQLTemporal::where('created_at', '<', $fechaLimite)->delete();
+        //Log::info("Dato: " . json_encode($fechaLimite));
         // Obtiene los registros completos desde JobAQLHistorial
         $records = JobAQLHistorial::whereIn('id', $ids)->get();
 
@@ -83,7 +88,7 @@ class GestionController extends Controller
             'status' => 'success',
             'message' => 'Registros guardados correctamente.',
         ]);
-}
+    }
 
 
 }
