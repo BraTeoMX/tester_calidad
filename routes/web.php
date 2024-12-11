@@ -31,6 +31,7 @@ use App\Http\Controllers\Segundas;
 use App\Http\Controllers\Terceras;
 use App\Http\Controllers\DashboardCostosController;
 use App\Http\Controllers\DashboardComparativoModuloPlanta1Controller;
+use App\Http\Controllers\GestionController;
 
 
 /*
@@ -323,3 +324,5 @@ Route::get('/semanaComparativaGeneral', [DashboardComparativoModuloPlanta1Contro
 Route::get('/data/semana-comparativa-general', [DashboardComparativoModuloPlanta1Controller::class, 'getSemanaComparativaGeneralData'])->name('dashboarComparativaModulo.semanaComparativaGeneralData');
 Route::post('/export-semana-comparativa', [DashboardComparativoModuloPlanta1Controller::class, 'exportSemanaComparativa'])->name('export.semana');
 
+//seccion para gestion por parte del administrador de calidad
+Route::get('/agregarAqlProceso', [GestionController::class, 'agregarAqlProceso'])->name('gestion.agregarAqlProceso');
