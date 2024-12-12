@@ -21,58 +21,6 @@ use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 class AuditoriaAQL_v2Controller extends Controller
 {
 
-    // Método privado para cargar las categorías
-    private function cargarCategorias() {
-        $fechaActual = Carbon::now()->toDateString();
-        return [
-            'auditorDato' => Auth::user()->name,
-            'auditorPlanta' => Auth::user()->Planta,
-            'AuditoriaProceso' => AuditoriaProceso::all(),
-            'categoriaTPProceso' => CategoriaTipoProblema::whereIn('area', ['proceso', 'playera'])->get(),
-            'categoriaTPPlayera' => CategoriaTipoProblema::where('area', 'playera')->get(),
-            'categoriaTPEmpaque' => CategoriaTipoProblema::where('area', 'empaque')->get(),
-            'categoriaACProceso' => CategoriaAccionCorrectiva::where('area', 'proceso')->get(),
-            'categoriaACPlayera' => CategoriaAccionCorrectiva::where('area', 'playera')->get(),
-            'categoriaACEmpaque' => CategoriaAccionCorrectiva::where('area', 'empaque')->get(),
-            'teamLeaderPlanta1' => CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
-                ->orderBy('jefe_produccion')
-                ->where('planta', 'Intimark1')
-                ->where('estatus', 1)
-                ->get(),
-            'teamLeaderPlanta2' => CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
-                ->orderBy('jefe_produccion')
-                ->where('planta', 'Intimark2')
-                ->where('estatus', 1)
-                ->get(),
-            'auditoriaProcesoIntimark1' =>  JobAQL::whereBetween('moduleid', ['100A', '199A'])
-                ->select('moduleid')
-                ->distinct()
-                ->orderBy('moduleid', 'asc')
-                ->get(),
-            'auditoriaProcesoIntimark2' => JobAQL::whereBetween('moduleid', ['200A', '299A'])
-                ->select('moduleid')
-                ->distinct()
-                ->orderBy('moduleid', 'asc')
-                ->get(),
-            'playeraActualAQL' => AuditoriaAQL::where('estatus', NULL)
-                ->where('area', 'AUDITORIA AQL PLAYERA')
-                ->whereDate('created_at', $fechaActual)
-                ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente')
-                ->distinct()
-                ->get(),
-            'playeraFinalAQL' => AuditoriaAQL::where('estatus', 1)
-                ->where('area', 'AUDITORIA AQL PLAYERA')
-                ->whereDate('created_at', $fechaActual)
-                ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente')
-                ->distinct()
-                ->get(),
-            'ordenOPs' => JobAQL::select('prodid')
-                ->distinct()
-                ->get(),
-
-        ];
-    }
-
     public function metodoNombre_v2(Request $request)
     {
         $moduloSeleccionado = $request->input('modulo');
@@ -92,18 +40,14 @@ class AuditoriaAQL_v2Controller extends Controller
     public function altaAQL_v2(Request $request) 
     {
         $pageSlug ='';
-        $categorias = $this->cargarCategorias();
+        $fechaActual = Carbon::now()->toDateString();
+        $auditorDato = Auth::user()->name;
+        $auditorPlanta = Auth::user()->Planta;
         $tipoUsuario = Auth::user()->puesto;
-        //dd($tipoUsuario);
-
-
-        //dd($registroEvaluacionCorte->all());
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
 
-        $fechaActual = Carbon::now()->toDateString();
-        $auditorPlanta = Auth::user()->Planta;
         if($auditorPlanta == "Planta1"){
             $datoPlanta = "Intimark1";
         }else{
@@ -116,7 +60,6 @@ class AuditoriaAQL_v2Controller extends Controller
         //dd($listaModulos);
 
         $procesoActualAQL = AuditoriaAQL::where('estatus', NULL)
-            ->where('area', 'AUDITORIA AQL')
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
             ->select('area', 'modulo', 'op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
@@ -125,14 +68,13 @@ class AuditoriaAQL_v2Controller extends Controller
 
         // Aplicar el filtro del auditor solo si el tipo de usuario no es "Administrador" o "Gerente de Calidad"
         if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
-            $procesoActualAQL->where('auditor', $categorias['auditorDato']);
+            $procesoActualAQL->where('auditor', $auditorDato);
         }
 
         // Ejecutar la consulta
         $procesoActualAQL = $procesoActualAQL->get();
 
         $procesoFinalAQL = AuditoriaAQL::where('estatus', 1)
-            ->where('area', 'AUDITORIA AQL')
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
             ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
@@ -144,22 +86,9 @@ class AuditoriaAQL_v2Controller extends Controller
             ->where('estatus', 1)
             ->where('jefe_produccion', 1)
             ->get();
-        return view('auditoriaAQL.altaAQL_v2', array_merge($categorias, [
-            'mesesEnEspanol' => $mesesEnEspanol,
-            'pageSlug' => $pageSlug,
-            'listaModulos' => $listaModulos,
-            'procesoActualAQL' => $procesoActualAQL,
-            'procesoFinalAQL' => $procesoFinalAQL,
-            'gerenteProduccion' => $gerenteProduccion]));
-    }
 
-    public function obtenerItemId_v2(Request $request)
-    {
-        $moduleid = $request->input('moduleid');
-        $auditoriaProceso = AuditoriaProceso::where('moduleid', $moduleid)->first();
-        $itemid = $auditoriaProceso ? $auditoriaProceso->itemid : '';
-
-        return response()->json(['itemid' => $itemid]);
+        return view('auditoriaAQL.altaAQL_v2', compact('mesesEnEspanol', 'pageSlug', 'auditorDato',
+                'listaModulos', 'procesoActualAQL', 'procesoFinalAQL', 'gerenteProduccion'));
     }
 
     public function auditoriaAQL_v2(Request $request)
@@ -169,30 +98,28 @@ class AuditoriaAQL_v2Controller extends Controller
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
-        $categorias = $this->cargarCategorias();
-        $detectarPlanta = Auth::user()->Planta; 
-        if($detectarPlanta == 'Planta1'){
+        $fechaActual = Carbon::now()->toDateString();
+        $auditorDato = Auth::user()->name;
+        $auditorPlanta = Auth::user()->Planta;
+        $categoriaTPProceso = CategoriaTipoProblema::whereIn('area', ['proceso', 'playera'])->get();
+        
+        if($auditorPlanta == 'Planta1'){
             $detectarPlanta = "Intimark1";
-        }elseif($detectarPlanta == 'Planta2'){
+        }elseif($auditorPlanta == 'Planta2'){
             $detectarPlanta = "Intimark2";
         }
 
-        //dd($detectarPlanta);
         // Obtener los datos de la solicitud
         $data = $request->all();
         // Asegurarse de que la variable $data esté definida
         $data = $data ?? [];
-
-        //dd($request->all(), $data);
 
         $datoBultos = JobAQL::whereIn('prodid', (array) $data['op'])
             ->where('moduleid', $data['modulo'])
             ->select('prodpackticketid', 'qty', 'itemid', 'colorname', 'inventsizeid')
             ->distinct()
             ->get();
-        //$datoUnicoOP = JobAQL::where('prodid', $data['op'])
-        //    ->first();
-        //$nombreCliente = $datoUnicoOP ? $datoUnicoOP->customername : ''; // En caso de no encontrar, deja vacío
+
         $nombreCliente = $data['cliente'];
         //dd($nombreCliente);
 
@@ -292,7 +219,6 @@ class AuditoriaAQL_v2Controller extends Controller
             $total_auditadaIndividualTE = $registrosIndividualTE->sum('total_auditada');
             $total_rechazadaIndividualTE = $registrosIndividualTE->sum('total_rechazada');
         }
-        //dd($registros, $fechaActual);
          //conteo de registros del dia respecto a la cantidad de bultos, que es lo mismo a los bultos
         $conteoBultosTE = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('area', $data['area'])
@@ -310,12 +236,9 @@ class AuditoriaAQL_v2Controller extends Controller
         // Calcula el porcentaje total
         $total_porcentajeIndividualTE = $total_auditadaIndividualTE != 0 ? ($total_rechazadaIndividualTE / $total_auditadaIndividualTE) * 100 : 0;
 
-        //dd($finParoModular);
         $registrosOriginales = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
-            //->where('op', $data['op'])
-            ->where('team_leader', $data['team_leader'])
             ->where('cantidad_rechazada', '>', 0)
             ->orderBy('created_at', 'asc') // Ordenar por created_at ascendente
             ->get();
@@ -336,8 +259,6 @@ class AuditoriaAQL_v2Controller extends Controller
         $conteoParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
-            //->where('op', $data['op'])
-            ->where('team_leader', $data['team_leader'])
             ->where('cantidad_rechazada', '>', 0)
             ->where('tiempo_extra', null)
             ->count();
@@ -347,12 +268,6 @@ class AuditoriaAQL_v2Controller extends Controller
             ->pluck('customername')
             ->first();
 
-        $utility = CategoriaUtility::where('estado', 1)
-            ->where('planta', $detectarPlanta)
-            ->select('nombre')
-            ->get()
-            ->toArray();
-        //dd($utility, $detectarPlanta);
         $nombreProceso = AuditoriaProceso::where('moduleid', $data['modulo'])
             ->select('name')
             ->distinct()
@@ -377,49 +292,22 @@ class AuditoriaAQL_v2Controller extends Controller
             })
             ->groupBy('moduleid')
             ->toArray();
-        //dd($nombreProcesoToAQL, $utilityPlanta2, $utilityPlanta1, $nombreProcesoToAQLPlanta1, $nombreProcesoToAQLPlanta2);
+        
         $procesoActualAQL =AuditoriaAQL::where('estatus', NULL)
-            ->where('auditor', $categorias['auditorDato'])
-            ->where('area', 'AUDITORIA AQL')
+            ->where('auditor', $auditorDato)
             ->where('planta', $detectarPlanta)
             ->whereDate('created_at', $fechaActual)
             ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
             ->distinct()
             ->orderBy('modulo', 'asc')
             ->get();
-        return view('auditoriaAQL.auditoriaAQL_v2', array_merge($categorias, [
-            'mesesEnEspanol' => $mesesEnEspanol,
-            'pageSlug' => $pageSlug,
-            'datoBultos' => $datoBultos,
-            'nombreCliente' => $nombreCliente,
-            'selectPivoteOP' => $selectPivoteOP,
-            'data' => $data,
-            'total_auditada' => $total_auditada,
-            'total_rechazada' => $total_rechazada,
-            'total_porcentaje' => $total_porcentaje,
-            'registrosIndividual' => $registrosIndividual,
-            'total_auditadaIndividual' => $total_auditadaIndividual,
-            'total_rechazadaIndividual' => $total_rechazadaIndividual,
-            'total_porcentajeIndividual' => $total_porcentajeIndividual,
-            'estatusFinalizar' => $estatusFinalizar,
-            'registrosIndividualPieza' => $registrosIndividualPieza,
-            'conteoBultos' => $conteoBultos,
-            'conteoPiezaConRechazo' => $conteoPiezaConRechazo,
-            'porcentajeBulto' => $porcentajeBulto,
-            'mostrarRegistro' => $mostrarRegistro,
-            'conteoParos' => $conteoParos,
-            'finParoModular1' => $finParoModular1,
-            'finParoModular2' => $finParoModular2,
-            'nombreProceso' => $nombreProceso,
-            'utility' => $utility,
-            'registrosIndividualTE' => $registrosIndividualTE,
-            'registrosIndividualPiezaTE' => $registrosIndividualPiezaTE,
-            'conteoBultosTE' => $conteoBultosTE,
-            'conteoPiezaConRechazoTE' => $conteoPiezaConRechazoTE,
-            'porcentajeBultoTE' => $porcentajeBultoTE,
-            'nombrePorModulo' => $nombrePorModulo,
-            'procesoActualAQL' => $procesoActualAQL
-            ]));
+
+        return view('auditoriaAQL.auditoriaAQL_v2', compact('mesesEnEspanol', 'pageSlug', 'datoBultos', 'nombreCliente', 'categoriaTPProceso',
+            'selectPivoteOP','data', 'total_auditada','total_rechazada','total_porcentaje','registrosIndividual','total_auditadaIndividual',
+            'total_rechazadaIndividual', 'total_porcentajeIndividual','estatusFinalizar','registrosIndividualPieza', 'conteoBultos',
+            'conteoPiezaConRechazo','porcentajeBulto','mostrarRegistro', 'conteoParos', 'finParoModular1','finParoModular2','nombreProceso',
+            'registrosIndividualTE','registrosIndividualPiezaTE','conteoBultosTE','conteoPiezaConRechazoTE','porcentajeBultoTE',
+            'nombrePorModulo','procesoActualAQL'));
     }
 
     public function getBultosByOp_v2(Request $request)

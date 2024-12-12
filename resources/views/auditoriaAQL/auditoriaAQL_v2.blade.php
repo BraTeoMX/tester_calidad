@@ -332,10 +332,6 @@
                                                         @foreach($nombreProceso as $opcion)
                                                             <option value="{{ $opcion['name'] }}">{{ $opcion['name'] }}</option>
                                                         @endforeach
-                                                        <option disabled>--- Utility ---</option>
-                                                        @foreach($utility as $opcion)
-                                                            <option value="{{ $opcion['nombre'] }}">{{ $opcion['nombre'] }}</option>
-                                                        @endforeach
                                                         @foreach($nombrePorModulo as $moduleid => $nombres)
                                                             <option disabled>--- Módulo {{ $moduleid }} ---</option>
                                                             @foreach($nombres as $opcion)
