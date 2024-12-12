@@ -32,6 +32,7 @@ use App\Http\Controllers\Terceras;
 use App\Http\Controllers\DashboardCostosController;
 use App\Http\Controllers\DashboardComparativoModuloPlanta1Controller;
 use App\Http\Controllers\GestionController;
+use App\Http\Controllers\AuditoriaAQL_v2Controller;
 
 
 /*
@@ -330,3 +331,16 @@ Route::get('/buscarAql', [GestionController::class, 'buscarAql'])->name('gestion
 Route::post('/guardarAql', [GestionController::class, 'guardarAql'])->name('gestion.guardarAql');
 Route::post('/guardarModuloEstilo', [GestionController::class, 'guardarModuloEstilo'])->name('guardarModuloEstilo');
 
+//Inicio apartado para seccion Auditoria AQL V2
+Route::get('/auditoriaAQL_v2', [AuditoriaAQL_v2Controller::class, 'auditoriaAQL_v2'])->name('auditoriaAQL.auditoriaAQL_v2')->middleware('auth');
+Route::get('/altaAQL_v2', [AuditoriaAQL_v2Controller::class, 'altaAQL_v2'])->name('auditoriaAQL.altaAQL_v2')->middleware('auth');
+Route::post('/obtenerItemIdAQL_v2', [AuditoriaAQL_v2Controller::class, 'obtenerItemIdAQL_v2'])->name('obtenerItemIdAQL_v2');
+Route::post('/formAltaProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formAltaProcesoAQL_v2'])->name('auditoriaAQL.formAltaProcesoAQL_v2');
+Route::post('/formRegistroAuditoriaProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formRegistroAuditoriaProcesoAQL_v2'])->name('auditoriaAQL.formRegistroAuditoriaProcesoAQL_v2');
+Route::post('/formUpdateDeleteProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formUpdateDeleteProceso_v2'])->name('auditoriaAQL.formUpdateDeleteProceso_v2');
+Route::post('/formFinalizarProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formFinalizarProceso_v2'])->name('auditoriaAQL.formFinalizarProceso_v2');
+Route::post('/cambiarEstadoInicioParoAQL_v2', [AuditoriaAQL_v2Controller::class, 'cambiarEstadoInicioParoAQL_v2'])->name('auditoriaAQL.cambiarEstadoInicioParoAQL_v2');
+Route::get('/RechazosParoAQL_v2', [AuditoriaAQL_v2Controller::class, 'RechazosParoAQL_v2'])->name('auditoriaAQL.RechazosParoAQL_v2');
+Route::post('/cargarOrdenesOP_v2', [AuditoriaAQL_v2Controller::class, 'metodoNombre_v2'])->name('metodoNombre_v2');
+Route::post('/categoria-tipo-problema-aql_v2', [AuditoriaAQL_v2Controller::class, 'storeCategoriaTipoProblemaAQL'])->name('categoria_tipo_problema_aql.store_v2');
+Route::get('/get-bultos-by-op_v2', [AuditoriaAQL_v2Controller::class, 'getBultosByOp_v2'])->name('getBultosByOp_v2');
