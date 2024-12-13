@@ -20,21 +20,58 @@ const select2Options: JQuery.Select2Options = {
     allowClear: true,
 };
 
-// Inicializa select2 en el elemento con ID `#op-seleccion-ts`
-initializeSelect2('#op-seleccion-ts', select2Options);
+// Función para obtener el valor de un parámetro en la URL
+function getParameterByName(name: string): string | null {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(name);
+}
 
-// Selecciona el elemento del DOM
-const opSelect = $('#op-seleccion-ts'); // Usa jQuery para seleccionar el elemento
+// Función para cargar opciones al inicio
+function cargarOpcionesIniciales() {
+    $.ajax({
+        url: '/obtener-opciones-op',
+        method: 'GET',
+        success: function (data) {
+            const opSelect = $('#op-seleccion-ts');
+            opSelect.empty(); // Limpia cualquier opción previa
 
+            // Agrega una opción por defecto
+            opSelect.append(new Option('Selecciona una opción', ''));
+
+            // Agrega las nuevas opciones desde la respuesta
+            data.forEach((item: { prodid: string }) => {
+                opSelect.append(new Option(item.prodid, item.prodid));
+            });
+
+            // Vuelve a inicializar select2
+            opSelect.select2(select2Options);
+
+            // Selecciona el valor basado en el parámetro de la URL
+            const selectedValue = getParameterByName('op');
+            if (selectedValue) {
+                opSelect.val(selectedValue).trigger('change'); // Selecciona y actualiza
+            }
+        },
+        error: function (error) {
+            console.error('Error al cargar las opciones iniciales:', error);
+        },
+    });
+}
+
+// Llama a la función para cargar las opciones al inicio
+$(document).ready(() => {
+    cargarOpcionesIniciales();
+});
+
+// Actualiza la URL dinámicamente cuando cambia el valor
+const opSelect = $('#op-seleccion-ts');
 if (opSelect.length) {
-    // Maneja el evento `change` de select2
     opSelect.on('change', function (this: HTMLElement) {
-        const selectedValue = $(this).val() as string | null; // Obtiene el valor seleccionado (puede ser string o null)
-
+        const selectedValue = $(this).val() as string | null; // Obtiene el valor seleccionado
         if (selectedValue) {
-            // Actualiza la URL con el nombre correcto del parámetro
+            // Actualiza la URL con el valor seleccionado
             const currentUrl = new URL(window.location.href);
-            currentUrl.searchParams.set('op', selectedValue); // Cambia a 'op' en lugar de 'op-seleccion-ts'
+            currentUrl.searchParams.set('op', selectedValue);
             window.history.pushState({}, '', currentUrl.toString());
         }
     });

@@ -188,15 +188,18 @@
                                     <tbody>
                                         <tr>
                                             <td><input type="text" class="form-control texto-blanco" name="modulo" id="modulo"
-                                                    value="{{ $data['modulo'] }}" readonly></td>
+                                                    value="{{ $data['modulo'] }}" readonly>
+                                            </td>
                                             <td>
-                                                <select class="form-control texto-blanco" name="op-seleccion" id="op-seleccion-ts" required title="Selecciona una OP">
-                                                    <option value="">Selecciona una opción</option>
-                                                    @foreach ($selectPivoteOP as $op)
-                                                        <option value="{{ $op->prodid }}" {{ $op->prodid == $data['op'] ? 'selected' : '' }}>
-                                                            {{ $op->prodid }}
-                                                        </option>
-                                                    @endforeach
+                                                <select
+                                                    class="form-control texto-blanco"
+                                                    name="op-seleccion"
+                                                    id="op-seleccion-ts"
+                                                    required
+                                                    title="Selecciona una OP"
+                                                >
+                                                    <!-- El select estará vacío inicialmente -->
+                                                    <option value="">Cargando opciones...</option>
                                                 </select>
                                             </td>
                                             <td><input type="text" class="form-control texto-blanco" name="cliente" id="cliente"

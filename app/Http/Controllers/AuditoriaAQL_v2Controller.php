@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\JobAQL;
+use App\Models\JobAQLTemporal;
 use App\Models\AuditoriaProceso;
 use App\Models\CategoriaTeamLeader;
 use App\Models\CategoriaTipoProblema;
@@ -104,15 +105,6 @@ class AuditoriaAQL_v2Controller extends Controller
 
         $nombreCliente = $data['cliente'];
         //dd($nombreCliente);
-
-        $selectPivoteOP = JobAQL::select('prodid')
-            ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$data['modulo']])
-            ->distinct()
-            ->orderBy('prioridad') // Prioriza los relacionados con el módulo primero
-            ->orderBy('prodid') // Ordena el resto por prodid
-            ->get();
-
-        //dd($data['modulo'], $selectPivoteOP);
 
         $fechaActual = Carbon::now()->toDateString();
 
@@ -272,11 +264,24 @@ class AuditoriaAQL_v2Controller extends Controller
             ->get();
 
         return view('auditoriaAQL.auditoriaAQL_v2', compact('mesesEnEspanol', 'pageSlug', 'datoBultos', 'nombreCliente', 'categoriaTPProceso',
-            'selectPivoteOP','data', 'total_auditada','total_rechazada','total_porcentaje','registrosIndividual','total_auditadaIndividual',
+            'data', 'total_auditada','total_rechazada','total_porcentaje','registrosIndividual','total_auditadaIndividual',
             'total_rechazadaIndividual', 'total_porcentajeIndividual','estatusFinalizar','registrosIndividualPieza', 'conteoBultos',
             'conteoPiezaConRechazo','porcentajeBulto','mostrarRegistro', 'conteoParos', 'finParoModular1','finParoModular2','nombreProceso',
             'registrosIndividualTE','registrosIndividualPiezaTE','conteoBultosTE','conteoPiezaConRechazoTE','porcentajeBultoTE',
             'nombrePorModulo','procesoActualAQL'));
+    }
+
+    public function obtenerOpcionesOP(Request $request)
+    {
+        $datosOP = JobAQL::select('prodid')
+            ->union(
+                JobAQLTemporal::select('prodid')
+            )
+            ->distinct()
+            ->orderBy('prodid')
+            ->get();
+
+        return response()->json($datosOP);
     }
 
     public function getBultosByOp_v2(Request $request)
