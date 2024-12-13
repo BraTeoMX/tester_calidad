@@ -156,70 +156,134 @@
     <div class="content">
         <div class="container-fluid">
             <div class="card">
-                <!--Aqui se edita el encabezado que es el que se muestra -->
+                <!-- Encabezado del card -->
                 <div class="card-header card-header-primary">
                     <div class="row align-items-center justify-content-between">
                         <div class="col">
                             <h3 class="card-title">AUDITORIA AQL</h3>
                         </div>
                         <div class="col-auto">
-                            <h4>Fecha: {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }} </h4>
+                            <h4>
+                                Fecha: {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
+                            </h4>
                         </div>
                     </div>
                 </div>
                 <hr>
+                <!-- Contenido del card -->
                 <div class="card-body">
-
-                            <input type="hidden" class="form-control" name="area" id="area"
-                                value="AQL PROCESO">
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <thead class="thead-primary table-100">
-                                        <tr>
-                                            <th>MODULO</th>
-                                            <th>OP</th> 
-                                            <th>CLIENTE</th>
-                                            <th>SUPERVISOR</th>
-                                            <th>GERENTE PRODUCCION</th>
-                                            <th>AUDITOR</th>
-                                            <th>TURNO</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td><input type="text" class="form-control texto-blanco" name="modulo" id="modulo"
-                                                    value="{{ $data['modulo'] }}" readonly>
-                                            </td>
-                                            <td>
-                                                <select
-                                                    class="form-control texto-blanco"
-                                                    name="op-seleccion"
-                                                    id="op-seleccion-ts"
-                                                    required
-                                                    title="Selecciona una OP"
-                                                >
-                                                    <!-- El select estará vacío inicialmente -->
-                                                    <option value="">Cargando opciones...</option>
-                                                </select>
-                                            </td>
-                                            <td><input type="text" class="form-control texto-blanco" name="cliente" id="cliente"
-                                                    value="{{ $nombreCliente }}" readonly></td> 
-                                            <td><input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader"
-                                                    value="{{ $data['team_leader'] }}" readonly></td>
-                                            <td><input type="text" class="form-control texto-blanco" name="gerente_produccion" 
-                                                value="{{ $data['gerente_produccion'] }}" readonly></td>
-                                            <td><input type="text" class="form-control texto-blanco" name="auditor" id="auditor"
-                                                    value="{{ $data['auditor'] }}" readonly></td>
-                                            <td><input type="text" class="form-control texto-blanco" name="turno" id="turno"
-                                                    value="{{ $data['turno'] }}" readonly></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                    <input type="hidden" class="form-control" name="area" id="area" value="AQL PROCESO">
+                    <!-- Tabla responsiva -->
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead class="thead-primary table-100">
+                                <tr>
+                                    <th>MODULO</th>
+                                    <th>OP</th>
+                                    <th>CLIENTE</th>
+                                    <th>SUPERVISOR</th>
+                                    <th>GERENTE PRODUCCION</th>
+                                    <th>AUDITOR</th>
+                                    <th>TURNO</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" name="modulo" id="modulo" value="{{ $data['modulo'] }}" readonly>
+                                    </td>
+                                    <td>
+                                        <select class="form-control texto-blanco" name="op-seleccion" id="op-seleccion-ts" required title="Selecciona una OP">
+                                            <option value="">Cargando opciones...</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" name="cliente" id="cliente" value="{{ $nombreCliente }}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader" value="{{ $data['team_leader'] }}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" name="gerente_produccion" value="{{ $data['gerente_produccion'] }}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" name="auditor" id="auditor" value="{{ $data['auditor'] }}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" name="turno" id="turno" value="{{ $data['turno'] }}" readonly>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table32">
+                            <thead class="thead-primary">
+                                <tr>
+                                    <th># BULTO</th>
+                                    <th>PIEZAS</th>
+                                    <th>ESTILO</th>
+                                    <th>COLOR</th>
+                                    <th>TALLA</th>
+                                    <th>PIEZAS INSPECCIONADAS</th>
+                                    <th>PIEZAS RECHAZADAS</th>
+                                    <th id="tp-column-header">TIPO DE DEFECTO</th>
+                                    <th id="ac-column-header">ACCION CORRECTIVA</th>
+                                    <th id="nombre-column-header">NOMBRE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <select name="bulto" id="bulto" class="form-control" required title="Por favor, selecciona una opción">
+                                            <option value="">Selecciona una opción</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text" class="form-control texto-blanco" name="pieza" id="pieza" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" name="estilo" id="estilo" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" name="color" id="color" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" name="talla" id="talla" readonly></td>
+                                    <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
+                                    <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
+                                    <td class="tp-column"> 
+                                        <select id="tpSelectAQL" class="form-control w-100" multiple title="Por favor, selecciona una opción">
+                                            <option value="OTRO">OTRO</option>
+                                            @foreach ($categoriaTPProceso as $proceso)
+                                                <option value="{{ $proceso->nombre }}">{{ $proceso->nombre }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div id="selectedOptionsContainerAQL" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
+                                    </td>
+                                    <td class="ac-column"><input type="text" class="form-control" name="ac" id="ac" required></td>
+                                    <td class="nombre-column">
+                                        <select name="nombre-none" id="nombreSelect" class="form-control"> 
+                                            <option value="">Selecciona una opción</option> 
+                                            @foreach($nombreProceso as $opcion)
+                                                <option value="{{ $opcion['name'] }}">{{ $opcion['name'] }}</option>
+                                            @endforeach
+                                            <option disabled>--- Utility ---</option>
+                                            @foreach($utility as $opcion)
+                                                <option value="{{ $opcion['nombre'] }}">{{ $opcion['nombre'] }}</option>
+                                            @endforeach
+                                            @foreach($nombrePorModulo as $moduleid => $nombres)
+                                                <option disabled>--- Módulo {{ $moduleid }} ---</option>
+                                                @foreach($nombres as $opcion)
+                                                    <option value="{{ $opcion['name'] }}">{{ $opcion['name'] }}</option>
+                                                @endforeach
+                                            @endforeach
+                                        </select> 
+                                        <div id="selectedOptionsContainerNombre" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
+                                        <input type="hidden" name="nombre" id="nombreHidden">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="submit" class="btn-verde-xd">Guardar</button>
                 </div>
             </div>
         </div>
-    </div>
+    </div>    
 
     <style>
         thead.thead-primary {
