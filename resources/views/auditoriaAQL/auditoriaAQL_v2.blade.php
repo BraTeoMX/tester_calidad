@@ -160,7 +160,7 @@
                 <div class="card-header card-header-primary">
                     <div class="row align-items-center justify-content-between">
                         <div class="col">
-                            <h3 class="card-title">{{ $data['area'] }}</h3>
+                            <h3 class="card-title">AUDITORIA AQL</h3>
                         </div>
                         <div class="col-auto">
                             <!-- Botón para abrir el modal personalizado -->
@@ -199,7 +199,6 @@
                                                 <td>
                                                     <form method="POST" action="{{ route('auditoriaAQL.formAltaProcesoAQL') }}">
                                                         @csrf
-                                                        <input type="hidden" name="area" value="{{ $proceso->area }}">
                                                         <input type="hidden" name="modulo" value="{{ $proceso->modulo }}">
                                                         <input type="hidden" name="op" value="{{ $proceso->op }}">
                                                         <input type="hidden" name="estilo" value="{{ $proceso->estilo }}">
@@ -231,7 +230,6 @@
                                 <input type="hidden" name="finalizar_paro_modular" value="1">
                                 <input type="hidden" class="form-control" name="modulo" id="modulo" value="{{ $data['modulo'] }}">
                                 <input type="hidden" class="form-control" name="op" id="op1" value="{{ $data['op'] }}"> 
-                                <input type="hidden" class="form-control" name="area" id="area" value="{{ $data['area'] }}">
                                 <input type="hidden" class="form-control" name="team_leader" id="team_leader" value="{{ $data['team_leader'] }}">
                                 <input type="hidden" class="form-control" name="gerente_produccion" value="{{ $data['gerente_produccion'] }}">
 
@@ -239,10 +237,10 @@
                             </form>
                         </div>
                     @else
-                        <form id="miFormularioAQL" method="POST" action="{{ route('auditoriaAQL.formRegistroAuditoriaProcesoAQL') }}">
+                        <form id="miFormularioAQL" method="POST" action="{{ route('auditoriaAQL.formRegistroAuditoriaProcesoAQL_v2') }}">
                             @csrf
                             <input type="hidden" class="form-control" name="area" id="area"
-                                value="{{ $data['area'] }}">
+                                value="AQL PROCESO">
                             <div class="table-responsive">
                                 <table class="table">
                                     <thead class="thead-primary table-100">
@@ -549,7 +547,6 @@
                                 </table>
                                 <form action="{{ route('auditoriaAQL.formFinalizarProceso') }}" method="POST">
                                     @csrf
-                                    <input type="hidden" name="area" value="{{ $data['area'] }}">
                                     <input type="hidden" name="modulo" value="{{ $data['modulo'] }}">
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
@@ -971,7 +968,6 @@
             $('#guardarNuevoConceptoAQL').on('click', function() {
                 let nuevoConcepto = $('#nuevoConceptoInputAQL').val().trim().toUpperCase();
                 if (nuevoConcepto) {
-                    let area = '{{ $data["area"] == "AUDITORIA AQL" ? "proceso" : "playera" }}';
     
                     fetch('{{ route("categoria_tipo_problema_aql.store") }}', {
                         method: 'POST',
@@ -981,7 +977,6 @@
                         },
                         body: JSON.stringify({
                             nombre: nuevoConcepto,
-                            area: area
                         })
                     }).then(response => response.json())
                     .then(data => {

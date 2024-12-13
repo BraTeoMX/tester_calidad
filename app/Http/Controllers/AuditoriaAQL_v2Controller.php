@@ -7,10 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\JobAQL;
 use App\Models\AuditoriaProceso;
-use App\Models\AseguramientoCalidad;
 use App\Models\CategoriaTeamLeader;
 use App\Models\CategoriaTipoProblema;
-use App\Models\CategoriaAccionCorrectiva;
 use App\Models\AuditoriaAQL;
 use App\Models\CategoriaUtility;
 use App\Models\TpAuditoriaAQL;
@@ -20,22 +18,6 @@ use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 
 class AuditoriaAQL_v2Controller extends Controller
 {
-
-    public function metodoNombre_v2(Request $request)
-    {
-        $moduloSeleccionado = $request->input('modulo');
-
-        // Filtrar los datos de 'ordenOPs' y priorizar los relacionados al módulo seleccionado
-        $ordenesOPFiltradas = JobAQL::select('prodid')
-            ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$moduloSeleccionado])
-            ->distinct()
-            ->orderBy('prioridad') // Priorizar las OPs relacionadas con el módulo seleccionado
-            ->orderBy('prodid') // Ordenar el resto por prodid
-            ->get();
-
-        // Convertir los datos a formato JSON y retornar
-        return response()->json($ordenesOPFiltradas);
-    }
 
     public function altaAQL_v2(Request $request) 
     {
@@ -62,7 +44,7 @@ class AuditoriaAQL_v2Controller extends Controller
         $procesoActualAQL = AuditoriaAQL::where('estatus', NULL)
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
-            ->select('area', 'modulo', 'op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
+            ->select('modulo', 'op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
             ->distinct()
             ->orderBy('modulo', 'asc');
 
@@ -77,7 +59,7 @@ class AuditoriaAQL_v2Controller extends Controller
         $procesoFinalAQL = AuditoriaAQL::where('estatus', 1)
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
-            ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
+            ->select('modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
             ->distinct()
             ->get();
         $gerenteProduccion = CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
@@ -136,17 +118,14 @@ class AuditoriaAQL_v2Controller extends Controller
 
         $mostrarRegistro = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('modulo', $data['modulo'])
-            ->where('area', $data['area'])
             ->get();
         $estatusFinalizar = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('modulo', $data['modulo'])
-            ->where('area', $data['area'])
             ->where('estatus', 1)
             ->exists();
 
         $registros = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('modulo', $data['modulo'])
-            ->where('area', $data['area'])
             ->selectRaw('COALESCE(SUM(cantidad_auditada), 0) as total_auditada, COALESCE(SUM(cantidad_rechazada), 0) as total_rechazada')
             ->first();
         $total_auditada = $registros->total_auditada ?? 0;
@@ -155,7 +134,6 @@ class AuditoriaAQL_v2Controller extends Controller
 
 
         $registrosIndividual = AuditoriaAQL::whereDate('created_at', $fechaActual) 
-            ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
             ->where('tiempo_extra', null)
             ->selectRaw('SUM(cantidad_auditada) as total_auditada, SUM(cantidad_rechazada) as total_rechazada')
@@ -163,7 +141,6 @@ class AuditoriaAQL_v2Controller extends Controller
 
         //apartado para suma de piezas por cada bulto
         $registrosIndividualPieza = AuditoriaAQL::whereDate('created_at', $fechaActual) 
-            ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
             ->where('tiempo_extra', null)
             ->selectRaw('SUM(pieza) as total_pieza, SUM(cantidad_rechazada) as total_rechazada')
@@ -180,13 +157,11 @@ class AuditoriaAQL_v2Controller extends Controller
         //dd($registros, $fechaActual);
          //conteo de registros del dia respecto a la cantidad de bultos, que es lo mismo a los bultos
         $conteoBultos = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
             ->where('tiempo_extra', null)
             ->count();
         //conteo de registros del dia respecto a los rechazos
         $conteoPiezaConRechazo = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
             ->where('cantidad_rechazada', '>', 0)
             ->where('tiempo_extra', null)
@@ -197,7 +172,6 @@ class AuditoriaAQL_v2Controller extends Controller
 
         //apartado para mostrar Tiempo Extra
         $registrosIndividualTE = AuditoriaAQL::whereDate('created_at', $fechaActual) 
-            ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
             ->where('tiempo_extra', 1)
             ->selectRaw('SUM(cantidad_auditada) as total_auditada, SUM(cantidad_rechazada) as total_rechazada')
@@ -205,7 +179,6 @@ class AuditoriaAQL_v2Controller extends Controller
 
         //apartado para suma de piezas por cada bulto
         $registrosIndividualPiezaTE = AuditoriaAQL::whereDate('created_at', $fechaActual) 
-            ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
             ->where('tiempo_extra', 1)
             ->selectRaw('SUM(pieza) as total_pieza, SUM(cantidad_rechazada) as total_rechazada')
@@ -221,13 +194,11 @@ class AuditoriaAQL_v2Controller extends Controller
         }
          //conteo de registros del dia respecto a la cantidad de bultos, que es lo mismo a los bultos
         $conteoBultosTE = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
             ->where('tiempo_extra', 1)
             ->count();
         //conteo de registros del dia respecto a los rechazos
         $conteoPiezaConRechazoTE = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
             ->where('cantidad_rechazada', '>', 0)
             ->where('tiempo_extra', 1)
@@ -237,7 +208,6 @@ class AuditoriaAQL_v2Controller extends Controller
         $total_porcentajeIndividualTE = $total_auditadaIndividualTE != 0 ? ($total_rechazadaIndividualTE / $total_auditadaIndividualTE) * 100 : 0;
 
         $registrosOriginales = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
             ->where('cantidad_rechazada', '>', 0)
             ->orderBy('created_at', 'asc') // Ordenar por created_at ascendente
@@ -257,7 +227,6 @@ class AuditoriaAQL_v2Controller extends Controller
 
 
         $conteoParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('area', $data['area'])
             ->where('modulo', $data['modulo'])
             ->where('cantidad_rechazada', '>', 0)
             ->where('tiempo_extra', null)
@@ -297,7 +266,7 @@ class AuditoriaAQL_v2Controller extends Controller
             ->where('auditor', $auditorDato)
             ->where('planta', $detectarPlanta)
             ->whereDate('created_at', $fechaActual)
-            ->select('area','modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
+            ->select('modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
             ->distinct()
             ->orderBy('modulo', 'asc')
             ->get();
@@ -368,7 +337,6 @@ class AuditoriaAQL_v2Controller extends Controller
         $fechaActual = Carbon::now()->toDateString();
 
         $conteoParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('area', $request->area)
             ->where('modulo', $request->modulo)
             ->where('op', $request->op)
             ->where('team_leader', $request->team_leader)
@@ -411,7 +379,6 @@ class AuditoriaAQL_v2Controller extends Controller
 
         //dd($nombreFinalValidado, $numeroEmpleado, $request->all());
         $nuevoRegistro = new AuditoriaAQL();
-        $nuevoRegistro->area = $request->area;
         $nuevoRegistro->numero_empleado = $numeroEmpleado;
         $nuevoRegistro->nombre = $nombreFinalValidado;
         $nuevoRegistro->modulo = $request->modulo;
@@ -521,7 +488,6 @@ class AuditoriaAQL_v2Controller extends Controller
         // Actualizar todos los registros que cumplan con las condiciones
         AuditoriaAQL::whereDate('created_at', $fechaActual)
         ->where('modulo', $modulo)
-        ->where('area', $area)
         ->update(['observacion' => $observacion, 'estatus' => $estatus]);
 
 
@@ -550,7 +516,6 @@ class AuditoriaAQL_v2Controller extends Controller
                 ->where('modulo', $request->modulo)
                 //->where('op', $request->op)
                 //->where('team_leader', $request->team_leader)
-                ->where('area', $request->area)
                 ->where('cantidad_rechazada', '>', 0)
                 ->orderBy('created_at', 'asc')
                 ->skip(1) // Saltar el primer registro
@@ -560,7 +525,6 @@ class AuditoriaAQL_v2Controller extends Controller
                 ->where('modulo', $request->modulo)
                 //->where('op', $request->op)
                 //->where('team_leader', $request->team_leader)
-                ->where('area', $request->area)
                 ->where('cantidad_rechazada', '>', 0)
                 ->orderBy('created_at', 'asc')
                 ->skip(3) // Saltar los primeros tres registros
