@@ -16,4 +16,5 @@ mix.js('resources/js/app.js', 'public/js')
     .sass('resources/sass/app.scss', 'public/css')
     .postCss("resources/css/app.css", "public/css", [
         require("tailwindcss"),
-    ]);
+    ])
+    .ts('resources/ts/op-select.ts', 'public/js'); // Compila tu archivo TypeScript
