@@ -190,7 +190,7 @@
                                             <td><input type="text" class="form-control texto-blanco" name="modulo" id="modulo"
                                                     value="{{ $data['modulo'] }}" readonly></td>
                                             <td>
-                                                <select class="form-control texto-blanco" name="op" id="op" required title="Selecciona una OP">
+                                                <select class="form-control texto-blanco" name="op-seleccion" id="op-seleccion-ts" required title="Selecciona una OP">
                                                     <option value="">Selecciona una opción</option>
                                                     @foreach ($selectPivoteOP as $op)
                                                         <option value="{{ $op->prodid }}" {{ $op->prodid == $data['op'] ? 'selected' : '' }}>

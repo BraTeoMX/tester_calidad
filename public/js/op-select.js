@@ -18,23 +18,39 @@ var __importDefault = this && this.__importDefault || function (mod) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var jquery_1 = __importDefault(__webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js"));
-__webpack_require__(/*! select2 */ "./node_modules/select2/dist/js/select2.js"); // Esto habilita el método `select2` en jQuery
-__webpack_require__(/*! select2/dist/css/select2.css */ "./node_modules/select2/dist/css/select2.css"); // Opcional, si quieres incluir estilos desde npm
-var opSelect = (0, jquery_1["default"])('#op'); // Usa jQuery para seleccionar el elemento
+var jquery_1 = __importDefault(__webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")); // Importa jQuery
+__webpack_require__(/*! select2 */ "./node_modules/select2/dist/js/select2.js"); // Habilita el método `select2` en jQuery
+__webpack_require__(/*! select2/dist/css/select2.css */ "./node_modules/select2/dist/css/select2.css"); // Incluye los estilos de select2 desde npm (opcional)
+// Función reutilizable para inicializar select2
+function initializeSelect2(selector, options) {
+  var element = (0, jquery_1["default"])(selector);
+  if (element.length) {
+    try {
+      element.select2(options); // Inicializa select2 con las opciones proporcionadas
+    } catch (error) {
+      console.error("Error inicializando select2 en ".concat(selector, ":"), error);
+    }
+  }
+}
+// Opciones de configuración para select2
+var select2Options = {
+  placeholder: 'Selecciona una opción',
+  allowClear: true
+};
+// Inicializa select2 en el elemento con ID `#op-seleccion-ts`
+initializeSelect2('#op-seleccion-ts', select2Options);
+// Selecciona el elemento del DOM
+var opSelect = (0, jquery_1["default"])('#op-seleccion-ts'); // Usa jQuery para seleccionar el elemento
 if (opSelect.length) {
-  // Inicializa select2
-  opSelect.select2({
-    placeholder: 'Selecciona una opción',
-    allowClear: true
-  });
   // Maneja el evento `change` de select2
   opSelect.on('change', function () {
-    var selectedValue = (0, jquery_1["default"])(this).val(); // Obtiene el valor seleccionado
-    // Actualiza la URL
-    var currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.set('op', selectedValue);
-    window.history.pushState({}, '', currentUrl.toString());
+    var selectedValue = (0, jquery_1["default"])(this).val(); // Obtiene el valor seleccionado (puede ser string o null)
+    if (selectedValue) {
+      // Actualiza la URL con el nombre correcto del parámetro
+      var currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set('op', selectedValue); // Cambia a 'op' en lugar de 'op-seleccion-ts'
+      window.history.pushState({}, '', currentUrl.toString());
+    }
   });
 }
 
