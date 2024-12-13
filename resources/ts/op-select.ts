@@ -1,17 +1,27 @@
-// Selecciona el elemento del DOM
-const opSelect = document.getElementById('op') as HTMLSelectElement;
+import $ from 'jquery';
+import 'select2'; // Esto habilita el método `select2` en jQuery
+import 'select2/dist/css/select2.css'; // Opcional, si quieres incluir estilos desde npm
 
-if (opSelect) {
-    opSelect.addEventListener('change', (event) => {
-        const selectedValue = opSelect.value; // Valor seleccionado en el select
+const opSelect = $('#op'); // Usa jQuery para seleccionar el elemento
 
-        // Obtén la URL actual
+if (opSelect.length) {
+    try {
+        // Inicializa select2
+        opSelect.select2({
+            placeholder: 'Selecciona una opción',
+            allowClear: true,
+        });
+    } catch (error) {
+        console.error('Error inicializando select2:', error);
+    }
+
+    // Maneja el evento `change` de select2
+    opSelect.on('change', function (this: HTMLElement) {
+        const selectedValue = $(this).val(); // Obtiene el valor seleccionado
+
+        // Actualiza la URL
         const currentUrl = new URL(window.location.href);
-
-        // Actualiza el parámetro `op` en la URL
-        currentUrl.searchParams.set('op', selectedValue);
-
-        // Cambia el historial de la URL sin recargar la página
+        currentUrl.searchParams.set('op', selectedValue as string);
         window.history.pushState({}, '', currentUrl.toString());
     });
 }
