@@ -58,64 +58,106 @@ class HomeController extends Controller
                               ->first();
                 return $data->cantidad_auditada != 0 ? number_format(($data->cantidad_rechazada / $data->cantidad_auditada) * 100, 2) : 0;
             }
-            // Información General
-            $generalProceso = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual);
-            $generalAQL = calcularPorcentaje(AuditoriaAQL::class, $fechaActual);
-
-            // Planta 1 Ixtlahuaca
-            $generalProcesoPlanta1 = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark1');
-            $generalAQLPlanta1 = calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark1');
-
-            // Planta 2 San Bartolo
-            $generalProcesoPlanta2 = calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark2');
-            $generalAQLPlanta2 = calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark2');
-
-            // Nueva consulta para obtener datos por fecha
+        
+            // Información General - Consultas del día actual (cache 1 hora = 60 min)
+            $generalProceso = Cache::remember('generalProceso_'.$fechaActual, 60, function() use ($fechaActual) {
+                return calcularPorcentaje(AseguramientoCalidad::class, $fechaActual);
+            });
+        
+            $generalAQL = Cache::remember('generalAQL_'.$fechaActual, 60, function() use ($fechaActual) {
+                return calcularPorcentaje(AuditoriaAQL::class, $fechaActual);
+            });
+        
+            // Planta 1 Ixtlahuaca - Consultas del día actual (1 hora)
+            $generalProcesoPlanta1 = Cache::remember('generalProcesoPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
+                return calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark1');
+            });
+        
+            $generalAQLPlanta1 = Cache::remember('generalAQLPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
+                return calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark1');
+            });
+        
+            // Planta 2 San Bartolo - Consultas del día actual (1 hora)
+            $generalProcesoPlanta2 = Cache::remember('generalProcesoPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
+                return calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark2');
+            });
+        
+            $generalAQLPlanta2 = Cache::remember('generalAQLPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
+                return calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark2');
+            });
+        
+            // Nueva consulta para obtener datos por fecha - No es una consulta a BD, solo genera fechas
             $fechas = collect();
             $period = Carbon::parse($fechaInicio)->daysUntil(Carbon::parse($fechaFin));
-
             foreach ($period as $date) {
                 $fechas->push($date->format('Y-m-d'));
             }
-
-            $porcentajesAQL = $fechas->map(function($fecha) {
-                return calcularPorcentaje(AuditoriaAQL::class, $fecha);
+        
+            // Rango de fechas (5 horas = 300 min)
+            $porcentajesAQL = Cache::remember('porcentajesAQL_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechas) {
+                return $fechas->map(function($fecha) {
+                    return calcularPorcentaje(AuditoriaAQL::class, $fecha);
+                });
             });
-
-            $porcentajesProceso = $fechas->map(function($fecha) {
-                return calcularPorcentaje(AseguramientoCalidad::class, $fecha);
+        
+            $porcentajesProceso = Cache::remember('porcentajesProceso_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechas) {
+                return $fechas->map(function($fecha) {
+                    return calcularPorcentaje(AseguramientoCalidad::class, $fecha);
+                });
             });
-
-
-            // Obtención y cálculo de datos generales para AQL y Proceso
-            $dataGerentesAQLGeneral = $this->getDataGerentesProduccionAQL($fechaActual);
-            $dataGerentesProcesoGeneral = $this->getDataGerentesProduccionProceso($fechaActual);
-
-            // Obtención y cálculo de datos por planta para gerentes de producción
-            $dataGerentesAQLPlanta1 = $this->getDataGerentesProduccionAQL($fechaActual, 'Intimark1');
-            $dataGerentesAQLPlanta2 = $this->getDataGerentesProduccionAQL($fechaActual, 'Intimark2');
-            $dataGerentesProcesoPlanta1 = $this->getDataGerentesProduccionProceso($fechaActual, 'Intimark1');
-            $dataGerentesProcesoPlanta2 = $this->getDataGerentesProduccionProceso($fechaActual, 'Intimark2');
-
-            // Combinar los datos
+        
+            // Obtención y cálculo de datos generales para AQL y Proceso (Consultas del día actual - 1 hora)
+            $dataGerentesAQLGeneral = Cache::remember('dataGerentesAQLGeneral_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->getDataGerentesProduccionAQL($fechaActual);
+            });
+        
+            $dataGerentesProcesoGeneral = Cache::remember('dataGerentesProcesoGeneral_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->getDataGerentesProduccionProceso($fechaActual);
+            });
+        
+            // Obtención y cálculo de datos por planta para gerentes de producción (Consultas del día actual - 1 hora)
+            $dataGerentesAQLPlanta1 = Cache::remember('dataGerentesAQLPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->getDataGerentesProduccionAQL($fechaActual, 'Intimark1');
+            });
+        
+            $dataGerentesAQLPlanta2 = Cache::remember('dataGerentesAQLPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->getDataGerentesProduccionAQL($fechaActual, 'Intimark2');
+            });
+        
+            $dataGerentesProcesoPlanta1 = Cache::remember('dataGerentesProcesoPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->getDataGerentesProduccionProceso($fechaActual, 'Intimark1');
+            });
+        
+            $dataGerentesProcesoPlanta2 = Cache::remember('dataGerentesProcesoPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->getDataGerentesProduccionProceso($fechaActual, 'Intimark2');
+            });
+        
+            // Combinar los datos - (No es consulta a BD)
             $dataGerentesGeneral = $this->combineDataGerentes($dataGerentesAQLGeneral, $dataGerentesProcesoGeneral);
-            // Datos generales
-            $dataGeneral = $this->obtenerDatosClientesPorFiltro($fechaActual);
-
-            // Datos planta Intimark1
-            $dataPlanta1 = $this->obtenerDatosClientesPorFiltro($fechaActual, 'Intimark1');
-
-            // Datos planta Intimark2
-            $dataPlanta2 = $this->obtenerDatosClientesPorFiltro($fechaActual, 'Intimark2');
-
-            // Datos para las gráficas usando el rango de fechas
-            $dataGrafica = $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
-            //$clientesGrafica = collect($dataGrafica['clientesUnicos'])->toArray();
-            //$fechasGrafica = collect($dataGrafica['dataCliente'][0]['fechas'])->toArray();
-            // Verificar si los datos están vacíos y asignar valores por defecto
+        
+            // Datos generales (Consultas del día actual - 1 hora)
+            $dataGeneral = Cache::remember('dataGeneral_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->obtenerDatosClientesPorFiltro($fechaActual);
+            });
+        
+            // Datos planta Intimark1 (Consultas del día actual - 1 hora)
+            $dataPlanta1 = Cache::remember('dataPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->obtenerDatosClientesPorFiltro($fechaActual, 'Intimark1');
+            });
+        
+            // Datos planta Intimark2 (Consultas del día actual - 1 hora)
+            $dataPlanta2 = Cache::remember('dataPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->obtenerDatosClientesPorFiltro($fechaActual, 'Intimark2');
+            });
+        
+            // Datos para las gráficas usando el rango de fechas (5 horas)
+            $dataGrafica = Cache::remember('dataGrafica_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechaInicio, $fechaFin) {
+                return $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
+            });
+        
             $clientesGrafica = !empty($dataGrafica['clientesUnicos']) ? collect($dataGrafica['clientesUnicos'])->toArray() : [0];
             $fechasGrafica = !empty($dataGrafica['dataCliente'][0]['fechas']) ? collect($dataGrafica['dataCliente'][0]['fechas'])->toArray() : [0];
-
+        
             $datasetsAQL = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
                 return [
                     'label' => $clienteData['cliente'],
@@ -125,7 +167,7 @@ class HomeController extends Controller
                     'fill' => false
                 ];
             })->toArray();
-
+        
             $datasetsProceso = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
                 return [
                     'label' => $clienteData['cliente'],
@@ -135,48 +177,67 @@ class HomeController extends Controller
                     'fill' => false
                 ];
             })->toArray();
-            //dd($dataGrafica, $clientesGrafica, $datasetsAQL, $datasetsProceso);
-            //apartado para mostrar datos de gerente de prodduccion, en este caso por dia AseguramientoCalidad y AuditoriaAQL
-            // Obtención y cálculo de datos generales para AQL y Proceso
-            $dataModuloAQLGeneral = $this->getDataModuloAQL($fechaActual);
-            $dataModuloProcesoGeneral = $this->getDataModuloProceso($fechaActual);
-
-            // Obtención y cálculo de datos por planta para Auditoria AQL
-            $dataModuloAQLPlanta1 = $this->getDataModuloAQL($fechaActual, 'Intimark1');
-            $dataModuloAQLPlanta2 = $this->getDataModuloAQL($fechaActual, 'Intimark2');
-
-            // Obtención y cálculo de datos por planta para Aseguramiento Calidad
-            $dataModuloProcesoPlanta1 = $this->getDataModuloProceso($fechaActual, 'Intimark1');
-            $dataModuloProcesoPlanta2 = $this->getDataModuloProceso($fechaActual, 'Intimark2');
-
-            // Combinar los datos
+        
+            //apartado para mostrar datos de gerente de producción, en este caso por dia AseguramientoCalidad y AuditoriaAQL
+            // Obtención y cálculo de datos generales para AQL y Proceso (Consultas del día actual - 1 hora)
+            $dataModuloAQLGeneral = Cache::remember('dataModuloAQLGeneral_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->getDataModuloAQL($fechaActual);
+            });
+        
+            $dataModuloProcesoGeneral = Cache::remember('dataModuloProcesoGeneral_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->getDataModuloProceso($fechaActual);
+            });
+        
+            // Obtención y cálculo de datos por planta para Auditoria AQL (Consultas del día actual - 1 hora)
+            $dataModuloAQLPlanta1 = Cache::remember('dataModuloAQLPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->getDataModuloAQL($fechaActual, 'Intimark1');
+            });
+        
+            $dataModuloAQLPlanta2 = Cache::remember('dataModuloAQLPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->getDataModuloAQL($fechaActual, 'Intimark2');
+            });
+        
+            // Obtención y cálculo de datos por planta para Aseguramiento Calidad (Consultas del día actual - 1 hora)
+            $dataModuloProcesoPlanta1 = Cache::remember('dataModuloProcesoPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->getDataModuloProceso($fechaActual, 'Intimark1');
+            });
+        
+            $dataModuloProcesoPlanta2 = Cache::remember('dataModuloProcesoPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
+                return $this->getDataModuloProceso($fechaActual, 'Intimark2');
+            });
+        
+            // Combinar los datos (No es consulta a BD)
             $dataModulosGeneral = $this->combineDataModulos($dataModuloAQLGeneral, $dataModuloProcesoGeneral);
-
-
-            //dd($dataModuloAQLGeneral, $dataModuloProcesoGeneral, $dataModuloAQLPlanta1, $dataModuloAQLPlanta2, $dataModuloProcesoPlanta1, $dataModuloProcesoPlanta2);
-
-            // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO'
-            $topDefectosAQL = TpAuditoriaAQL::select('tp', DB::raw('count(*) as total'))
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('tp', '!=', 'NINGUNO')
-                ->groupBy('tp')
-                ->orderBy('total', 'desc')
-                ->limit(3)
-                ->get();
-            // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO'
-            $topDefectosProceso = TpAseguramientoCalidad::select('tp', DB::raw('count(*) as total'))
-                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                ->where('tp', '!=', 'NINGUNO')
-                ->groupBy('tp')
-                ->orderBy('total', 'desc')
-                ->limit(3)
-                ->get();
-
-            //dd($gerentesProduccionAQL, $gerentesProduccionProceso, $gerentesProduccion, $data);
-            $dataGraficaModulos = $this->obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin);
+        
+            // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO' (Rango de fechas - 5 horas)
+            $topDefectosAQL = Cache::remember('topDefectosAQL_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechaInicio, $fechaFin) {
+                return TpAuditoriaAQL::select('tp', DB::raw('count(*) as total'))
+                    ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                    ->where('tp', '!=', 'NINGUNO')
+                    ->groupBy('tp')
+                    ->orderBy('total', 'desc')
+                    ->limit(3)
+                    ->get();
+            });
+        
+            $topDefectosProceso = Cache::remember('topDefectosProceso_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechaInicio, $fechaFin) {
+                return TpAseguramientoCalidad::select('tp', DB::raw('count(*) as total'))
+                    ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                    ->where('tp', '!=', 'NINGUNO')
+                    ->groupBy('tp')
+                    ->orderBy('total', 'desc')
+                    ->limit(3)
+                    ->get();
+            });
+        
+            // Datos de modulos por rango de fechas (5 horas)
+            $dataGraficaModulos = Cache::remember('dataGraficaModulos_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechaInicio, $fechaFin) {
+                return $this->obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin);
+            });
+        
             $modulosGrafica = !empty($dataGraficaModulos['modulosUnicos']) ? collect($dataGraficaModulos['modulosUnicos'])->toArray() : [0];
             $fechasGraficaModulos = !empty($dataGraficaModulos['dataModulo'][0]['fechas']) ? collect($dataGraficaModulos['dataModulo'][0]['fechas'])->toArray() : [0];
-
+        
             $datasetsAQLModulos = collect($dataGraficaModulos['dataModulo'])->map(function ($moduloData) {
                 return [
                     'label' => $moduloData['modulo'],
@@ -186,7 +247,7 @@ class HomeController extends Controller
                     'fill' => false
                 ];
             })->toArray();
-
+        
             $datasetsProcesoModulos = collect($dataGraficaModulos['dataModulo'])->map(function ($moduloData) {
                 return [
                     'label' => $moduloData['modulo'],
@@ -196,40 +257,48 @@ class HomeController extends Controller
                     'fill' => false
                 ];
             })->toArray();
-            // Obtener los clientes únicos de AseguramientoCalidad
-            $clientesAseguramientoBusqueda = AseguramientoCalidad::select('cliente')
-            ->distinct()
-            ->pluck('cliente');
-
-            // Obtener los clientes únicos de AuditoriaAQL
-            $clientesAuditoriaBusqueda = AuditoriaAQL::select('cliente')
-            ->distinct()
-            ->pluck('cliente');
+        
+            // Obtener los clientes únicos - Sin fecha. Se puede considerar como datos menos cambiantes, se puede aplicar 5 horas
+            $clientesAseguramientoBusqueda = Cache::remember('clientesAseguramientoBusqueda', 300, function() {
+                return AseguramientoCalidad::select('cliente')
+                    ->distinct()
+                    ->pluck('cliente');
+            });
+        
+            $clientesAuditoriaBusqueda = Cache::remember('clientesAuditoriaBusqueda', 300, function() {
+                return AuditoriaAQL::select('cliente')
+                    ->distinct()
+                    ->pluck('cliente');
+            });
+        
             // Combinar ambas listas y eliminar duplicados
             $clientesUnicosBusqueda = $clientesAseguramientoBusqueda->merge($clientesAuditoriaBusqueda)->unique();
-            // Convertir la colección a un array si es necesario
             $clientesUnicosArrayBusqueda = $clientesUnicosBusqueda->values()->all();
-
-            $datosSemana = Cache::remember('datos_semana_actual', now()->addMinutes(60), function () {
+        
+            // Datos de la semana (Rango semanal - 5 horas)
+            $datosSemana = Cache::remember('datosSemana_'.$fechaActual, 300, function() {
                 return $this->calcularPorcentajesSemanaActual();
             });
-
+        
             // Clientes, Supervisores y Módulos por semana
             $clientesSemana = $datosSemana['clientes'];
             $supervisoresSemana = $datosSemana['supervisores'];
             $modulosSemana = $datosSemana['modulos'];
-            return view('dashboard', compact('title', 'topDefectosAQL', 'topDefectosProceso',
-                                    'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2', 'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2',
-                                    'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
-                                    'dataGerentesAQLGeneral', 'dataGerentesProcesoGeneral', 'dataGerentesAQLPlanta1', 'dataGerentesAQLPlanta2', 'dataGerentesProcesoPlanta1', 'dataGerentesProcesoPlanta2',
-                                    'generalProceso', 'generalAQL', 'generalAQLPlanta1', 'generalAQLPlanta2','generalProcesoPlanta1', 'generalProcesoPlanta2',
-                                    'dataGeneral', 'dataPlanta1', 'dataPlanta2',
-                                    'dataGerentesGeneral', 'dataModulosGeneral',
-                                    'fechas', 'porcentajesAQL', 'porcentajesProceso',
-                                    'fechasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica',
-                                    'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica',
-                                    'clientesUnicosArrayBusqueda',
-                                    'clientesSemana', 'supervisoresSemana', 'modulosSemana'));
+        
+            return view('dashboard', compact(
+                'title', 'topDefectosAQL', 'topDefectosProceso',
+                'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2', 'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2',
+                'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
+                'dataGerentesAQLGeneral', 'dataGerentesProcesoGeneral', 'dataGerentesAQLPlanta1', 'dataGerentesAQLPlanta2', 'dataGerentesProcesoPlanta1', 'dataGerentesProcesoPlanta2',
+                'generalProceso', 'generalAQL', 'generalAQLPlanta1', 'generalAQLPlanta2','generalProcesoPlanta1', 'generalProcesoPlanta2',
+                'dataGeneral', 'dataPlanta1', 'dataPlanta2',
+                'dataGerentesGeneral', 'dataModulosGeneral',
+                'fechas', 'porcentajesAQL', 'porcentajesProceso',
+                'fechasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica',
+                'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica',
+                'clientesUnicosArrayBusqueda',
+                'clientesSemana', 'supervisoresSemana', 'modulosSemana'
+            ));
         } else {
             // Si el usuario no tiene esos roles, redirige a listaFormularios
             return redirect()->route('viewlistaFormularios');
