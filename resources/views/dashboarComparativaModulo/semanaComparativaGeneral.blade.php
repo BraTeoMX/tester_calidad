@@ -275,12 +275,19 @@
             return;
         }
 
+        // Reordenar estilos: "General" primero
+        const estilosOrdenados = Object.keys(estilosData).sort((a, b) => {
+            if (a.toLowerCase() === 'general') return -1; // General al inicio
+            if (b.toLowerCase() === 'general') return 1;
+            return a.localeCompare(b); // Orden lexicográfico para el resto
+        });
+
         var html = '<div class="card mt-3">' +
             '<div class="card-header"><h4>Información del Cliente: ' + cliente + '</h4></div>' +
             '<div class="card-body">';
 
-        $.each(estilosData, function(estilo, datosEstilo) {
-            html += generarSeccionEstilo(estilo, datosEstilo, semanas, '', 'General');
+        estilosOrdenados.forEach(function(estilo) {
+            html += generarSeccionEstilo(estilo, estilosData[estilo], semanas, '', 'General');
         });
 
         html += '</div></div>';
@@ -349,7 +356,8 @@
         var html = '<div class="row mt-4">' +
             '<div class="col-lg-3">' +
                 '<div class="card">' +
-                    '<div class="card-header"><h5>Resumen por Semana</h5></div>' +
+                    '<div class="card-header"><h5>Estilo: ' + estilo + '</h5></div>' +
+                    '<div class="card-header"><h5>resumen por Semana</h5></div>' +
                     '<div class="table-responsive" style="background-color: #2c2c2c; box-shadow:0px 4px 6px rgba(0,0,0,0.2); padding:15px; border-radius:8px;">' +
                         '<table class="table tablesorter" id="' + resumenTableId + '">' +
                             '<thead><tr><th>Semana</th><th>% AQL</th><th>% Proceso</th></tr></thead><tbody>';
