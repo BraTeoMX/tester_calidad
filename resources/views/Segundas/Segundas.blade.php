@@ -199,6 +199,7 @@
             </div>
         </div>
     </div>
+
     <div class="content">
         <div class="container-fluid">
             <div class="col-lg-auto col-md-auto col-sm-auto">
@@ -234,7 +235,7 @@
                                 <div class="card-body">
                                     <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                                         <table
-                                            class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                                            class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400" id="TableSegundas" name="TableSegundas">
                                             <thead class="text-xs text-gray-700 uppercase dark:text-gray-400">
                                                 <tr>
                                                     <th scope="col" class="px-6 py-3">
@@ -293,6 +294,28 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div data-dial-init class="fixed end-6 bottom-6 group">
+        <div id="speed-dial-menu-bottom-right" class="flex flex-col items-center hidden mb-4 space-y-2">
+            <button type="button" data-tooltip-target="tooltip-download" data-tooltip-placement="left" class="flex justify-center items-center w-[52px] h-[52px] text-gray-500 hover:text-gray-900 bg-white rounded-full border border-gray-200 dark:border-gray-600 shadow-sm dark:hover:text-white dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none dark:focus:ring-gray-400">
+                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M14.707 7.793a1 1 0 0 0-1.414 0L11 10.086V1.5a1 1 0 0 0-2 0v8.586L6.707 7.793a1 1 0 1 0-1.414 1.414l4 4a1 1 0 0 0 1.416 0l4-4a1 1 0 0 0-.002-1.414Z"/>
+                    <path d="M18 12h-2.55l-2.975 2.975a3.5 3.5 0 0 1-4.95 0L4.55 12H2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2Zm-3 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/>
+                </svg>
+                <span class="sr-only">Download</span>
+            </button>
+            <div id="tooltip-download" role="tooltip" class="absolute z-10 invisible inline-block w-auto px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+                Download
+                <div class="tooltip-arrow" data-popper-arrow></div>
+            </div>
+        </div>
+        <button type="button" data-dial-toggle="speed-dial-menu-bottom-right" aria-controls="speed-dial-menu-bottom-right" aria-expanded="false" class="flex items-center justify-center text-white bg-blue-700 rounded-full w-14 h-14 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 focus:outline-none dark:focus:ring-blue-800">
+            <svg class="w-5 h-5 transition-transform group-hover:rotate-45" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
+            </svg>
+            <span class="sr-only">Open actions menu</span>
+        </button>
     </div>
 
     <script src="https://code.highcharts.com/highcharts.js"></script>
@@ -1394,4 +1417,117 @@
             }, {});
         }
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Función para exportar toda la tabla a Excel
+        function exportTableToExcel(tableID, filename) {
+            // Obtenemos la tabla completa
+            const table = document.getElementById(tableID);
+
+            // Creamos un nuevo libro de Excel
+            const wb = XLSX.utils.book_new();
+
+            // Obtenemos todos los datos (sin paginación)
+            const allRows = allData; // Usamos allData, que contiene todos los datos sin paginación
+
+            // Agregar encabezado combinado "Reporte segundas"
+            const totalCols = table.rows[0].cells.length; // Total de columnas
+            const wsData = [];
+
+            // Encabezado combinado
+            wsData.push([{
+                v: "Reporte segundas",
+                s: {
+                    font: { bold: true, sz: 16 },
+                    alignment: { horizontal: "center", vertical: "center" },
+                    border: getExcelBorderStyle() // Aseguramos que tenga borde
+                }
+            }]);
+            wsData[0].length = totalCols; // Ajusta para abarcar todas las columnas
+
+            // Agregar encabezados de la tabla
+            const headers = [];
+            for (let cell of table.rows[0].cells) {
+                headers.push({
+                    v: cell.innerText,
+                    s: {
+                        font: { bold: true },
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: getExcelBorderStyle() // Aseguramos que tenga borde
+                    }
+                });
+            }
+            wsData.push(headers);
+
+            // Agregar filas completas de los datos a la hoja de Excel
+            allRows.forEach((dato, index) => {
+                const rowData = [
+                    index + 1, // Contador de registros (número de fila)
+                    dato.PRODPOOLID,
+                    dato.OPRMODULEID_AT,
+                    dato.CUSTOMERNAME,
+                    dato.DIVISIONNAME,
+                    dato.TipoSegunda,
+                    dato.DescripcionCalidad,
+                    dato.PRODTICKETID,
+                    dato.QTY,
+                    dato.TRANSDATE
+                ].map(cellValue => {
+                    return {
+                        v: cellValue,
+                        s: { border: getExcelBorderStyle() } // Aplicamos bordes a cada celda
+                    };
+                });
+                wsData.push(rowData);
+            });
+
+            // Crear la hoja de Excel
+            const ws = XLSX.utils.aoa_to_sheet(wsData, { cellStyles: true }); // cellStyles: true es crucial
+
+            // Calcular el ancho de las columnas dinámicamente
+            const wscols = [];
+            for (let col = 0; col < totalCols; col++) {
+                let maxLength = 10; // Ancho mínimo para cada columna
+                // Revisar todas las filas para encontrar la longitud máxima del contenido en la columna
+                for (let row = 0; row < wsData.length; row++) {
+                    const cellValue = wsData[row][col] ? wsData[row][col].v : ''; // Obtener el valor de la celda
+                    const cellLength = cellValue.toString().length; // Calcular la longitud
+                    maxLength = Math.max(maxLength, cellLength); // Encontrar el valor máximo
+                }
+                wscols.push({ wch: maxLength + 2 }); // Añadir un pequeño espacio extra al ancho
+            }
+            ws["!cols"] = wscols; // Aplicar el ancho calculado
+
+            // Unir las celdas del encabezado
+            ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: totalCols - 1 } }]; // Combina desde la primera hasta la última columna
+
+            // Agregar la hoja al libro
+            XLSX.utils.book_append_sheet(wb, ws, "Reporte segundas");
+
+            // Descargar el archivo Excel
+            XLSX.writeFile(wb, filename);
+        }
+
+        // Función para definir los estilos de borde en Excel
+        function getExcelBorderStyle() {
+            return {
+                top: { style: "thin" },
+                bottom: { style: "thin" },
+                left: { style: "thin" },
+                right: { style: "thin" }
+            };
+        }
+
+        // Evento del botón para generar el archivo Excel
+        document.querySelector('[data-tooltip-target="tooltip-download"]').addEventListener("click", function () {
+            exportTableToExcel("TableSegundas", "reporte_segundas.xlsx");
+        });
+    </script>
+
+
+
+
+
+
+
 @endsection
