@@ -41,7 +41,7 @@
                                 <div class="card">
                                     <div class="card-header p-0" id="headingExport">
                                         <button class="btn btn-secondary text-left py-2" type="button" data-toggle="collapse" data-target="#collapseExport" aria-expanded="false" aria-controls="collapseExport">
-                                            Opciones a exportar
+                                            Exportar
                                         </button>
                                     </div>
                                     <div id="collapseExport" class="collapse" aria-labelledby="headingExport" data-parent="#accordionExport">
@@ -255,6 +255,15 @@
 
                     // Planta 2
                     generarContenidoPlanta('#pills-planta2-' + index, cliente, modulosPlanta2[cliente] || {}, semanas, 'Planta 2');
+
+                    // Delegar evento para resaltar el botón activo
+                    $(document).on('click', '.nav-pills .nav-link', function () {
+                        $(this).closest('.nav-pills').find('.nav-link').removeClass('btn-secondary active').addClass('btn-link');
+                        $(this).removeClass('btn-link').addClass('btn-secondary active');
+                    });
+
+                    // Resaltar por defecto el primer botón "General"
+                    $('.nav-pills .nav-link.active').removeClass('btn-link').addClass('btn-secondary');
                 });
             }
         });
@@ -481,13 +490,19 @@
 
     // Función para generar un gráfico Highcharts dado un contenedor e información
     function generarGrafico(containerId, categories, aqlData, procesoData, maxY) {
+        // Obtener el texto del botón activo para usarlo en el título
+        const activeButtonText = $(`#${containerId}`).closest('.tab-pane').find('.nav-pills .nav-link.active').text().trim();
+
+        // Generar el título dinámico
+        const dynamicTitle = `Porcentajes Semanales ${activeButtonText}`;
+
         Highcharts.chart(containerId, {
             chart: {
                 backgroundColor: 'transparent',
                 style: { fontFamily: 'Arial' }
             },
             title: {
-                text: "Porcentajes Semanales",
+                text: dynamicTitle, // Usar el título dinámico
                 style: { fontFamily: 'Arial' }
             },
             xAxis: {
@@ -526,6 +541,7 @@
             credits: { enabled: false }
         });
     }
+
     </script>
 
 @endpush

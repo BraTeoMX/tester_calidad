@@ -33,7 +33,7 @@
         <div class="col-lg-6 col-md-12">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
-                    <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Auditoria AQL por día</h3>
+                    <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Auditoria AQL</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
