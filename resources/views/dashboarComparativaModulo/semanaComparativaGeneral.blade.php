@@ -339,6 +339,8 @@
         var detallesTableId = 'tabla-detalles' + (sufijo ? '-' + sufijo : '') + '-' + indexEstilo;
         var chartId = 'chart' + (sufijo ? '-' + sufijo : '') + '-' + indexEstilo;
 
+        // Separador visual antes de cada estilo
+        var html = '<hr style="border: 1px solid #ddd; margin: 30px 0;">'; // Línea horizontal
         // Preparar datos para las gráficas:
         var categories = semanas.map(s => "Semana " + s.semana + " (" + s.anio + ")");
         // Convertir "N/A" en null para las gráficas, números en su valor numérico
@@ -381,12 +383,12 @@
         // Tarjeta del gráfico
         html += '<div class="col-lg-9">' +
             '<div class="card">' +
-                '<div class="card-header"><h5>Gráfico</h5></div>' +
                 '<div id="' + chartId + '" ' +
                 'data-categories=\'' + JSON.stringify(categories) + '\' ' +
                 'data-aql=\'' + JSON.stringify(aqlData) + '\' ' +
                 'data-proceso=\'' + JSON.stringify(procesoData) + '\' ' +
                 'data-maxy="' + maxY + '"' +
+                'data-estilo=' + estilo + ' ' + // Nuevo atributo
                 ' style="width:100%; height:500px;"></div>' +
             '</div>' +
             '</div>' +
@@ -480,9 +482,10 @@
                 const aqlData = JSON.parse($chartDiv.attr('data-aql'));
                 const procesoData = JSON.parse($chartDiv.attr('data-proceso'));
                 const maxY = parseInt($chartDiv.attr('data-maxy'), 10);
+                const estilo = $chartDiv.attr('data-estilo'); // Obtener el estilo
 
-                // Llama a la función para generar la gráfica
-                generarGrafico($chartDiv.attr('id'), categories, aqlData, procesoData, maxY);
+                // Llama a la función para generar la gráfica con el estilo
+                generarGrafico($chartDiv.attr('id'), categories, aqlData, procesoData, maxY, estilo);
             });
 
             currentIndex += batchSize;
@@ -496,21 +499,16 @@
         renderNextBatch(); // Comienza a generar las gráficas
     }
 
+
     // Función para generar un gráfico Highcharts dado un contenedor e información
-    function generarGrafico(containerId, categories, aqlData, procesoData, maxY) {
-        // Obtener el texto del botón activo para usarlo en el título
-        const activeButtonText = $(`#${containerId}`).closest('.tab-pane').find('.nav-pills .nav-link.active').text().trim();
-
-        // Generar el título dinámico
-        const dynamicTitle = `Porcentajes Semanales ${activeButtonText}`;
-
+    function generarGrafico(containerId, categories, aqlData, procesoData, maxY, estilo) {
         Highcharts.chart(containerId, {
             chart: {
                 backgroundColor: 'transparent',
                 style: { fontFamily: 'Arial' }
             },
             title: {
-                text: dynamicTitle, // Usar el título dinámico
+                text: "Estilo: '" + estilo + "', Porcentaje Semanal", // Actualización del título
                 style: { fontFamily: 'Arial' }
             },
             xAxis: {
@@ -549,6 +547,7 @@
             credits: { enabled: false }
         });
     }
+
 
     </script>
 
