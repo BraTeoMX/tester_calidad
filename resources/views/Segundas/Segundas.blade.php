@@ -1,6 +1,6 @@
 @extends('layouts.app', ['pageSlug' => 'Segundas', 'titlePage' => __('Segundas')])
 @section('content')
-<meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <div class="content">
         <div class="container-fluid">
             <h1 class="card-title" style="font-size: 280%;">{{ __('Segundas') }}</h1>
@@ -209,12 +209,12 @@
                         </div>
                         <div class="card-body">
                             <blockquote class="blockquote mb-auto col-lg-auto col-md-auto col-sm-auto">
-                            <button id="regresarBtn"
-                                style="display:none; background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
-                                Regresar
-                            </button>
-                            <div id="SegundasGrafics"></div>
-                        </blockquote>
+                                <button id="regresarBtn"
+                                    style="display:none; background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                                    Regresar
+                                </button>
+                                <div id="SegundasGrafics"></div>
+                            </blockquote>
                         </div>
                     </div>
                 </div>
@@ -1297,7 +1297,7 @@
                         point: {
                             events: {
                                 click: function() {
-                                    // No hay más subniveles, no hacemos nada
+                                    mostrarDescripcionCalidad(this.name, groupedByDefecto[this.name]);
                                 },
                             },
                         },
@@ -1311,6 +1311,80 @@
             });
         }
 
+        function mostrarDescripcionCalidad(defecto, defectoData) {
+            const groupedByDescripcion = groupBy(defectoData, "DescripcionCalidad");
+            const seriesData = Object.keys(groupedByDescripcion).map(descripcion => {
+                const totalQty = groupedByDescripcion[descripcion].reduce((sum, item) => sum + parseFloat(item.QTY),
+                    0);
+                return {
+                    name: descripcion,
+                    y: totalQty
+                };
+            });
+
+            Highcharts.chart("SegundasGrafics", {
+                chart: {
+                    type: "column",
+                    backgroundColor: "transparent" // Fondo transparente
+                },
+                title: {
+                    text: `Descripción de Calidad para el Problema: ${defecto}`,
+                    style: {
+                        color: '#ffffff'
+                    }
+                },
+                xAxis: {
+                    type: "category",
+                    title: {
+                        text: "Descripción de Calidad",
+                        style: {
+                            color: '#ffffff'
+                        }
+                    },
+                    labels: {
+                        style: {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: "Cantidad (QTY)",
+                        style: {
+                            color: '#ffffff'
+                        }
+                    },
+                    labels: {
+                        style: {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                tooltip: {
+                    pointFormat: "Cantidad: <b>{point.y}</b>",
+                    style: {
+                        color: '#000000'
+                    }
+                },
+                plotOptions: {
+                    series: {
+                        cursor: "pointer",
+                        dataLabels: {
+                            enabled: true,
+                            format: "{point.y}",
+                            style: {
+                                color: '#ffffff'
+                            }
+                        },
+                    },
+                },
+                series: [{
+                    name: "Descripción de Calidad",
+                    colorByPoint: true,
+                    data: seriesData
+                }],
+            });
+        }
         function groupBy(data, key) {
             return data.reduce(function(result, item) {
                 const groupKey = item[key];
@@ -1320,5 +1394,4 @@
             }, {});
         }
     </script>
-
 @endsection
