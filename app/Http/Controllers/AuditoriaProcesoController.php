@@ -523,6 +523,10 @@ class AuditoriaProcesoController extends Controller
         // Obtener el primer registro y el valor de la columna 'custname'
         $obtenerCliente = ModuloEstilo::where('itemid', $request->estilo)->value('custname');
 
+        if (empty($obtenerCliente)) {
+            $obtenerCliente = ModuloEstiloTemporal::where('itemid', $request->estilo)->value('custname');
+        }
+
         //dd($obtenerCliente, $obtenerEstilo);
         $modulo = $request->modulo;
         $moduloAdicional = $request->modulo_adicional;
