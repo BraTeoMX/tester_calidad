@@ -13,7 +13,7 @@
 
             <div class="card">
                 <div class="card-header card-header-primary">
-                    <h2 class="card-title text-center font-weight-bold">Dashboard: COMPARATIVO CLIENTES</h2>
+                    <h2 class="card-title text-center font-weight-bold">COMPARATIVO CLIENTES</h2>
                 </div>
                 <hr>
                 <div class="card-body">
