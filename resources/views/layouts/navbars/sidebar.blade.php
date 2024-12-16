@@ -24,7 +24,7 @@
                     </a>
                 </li> 
                 <li class="nav-item{{ $pageSlug == 'dashboardComparativoClientes' ? ' active' : '' }}">
-                    <a class="nav-link" href="{{ route('dashboarComparativaModulo.planta1PorSemana') }}">
+                    <a class="nav-link" href="{{ route('dashboarComparativaModulo.semanaComparativaGeneral') }}">
                         <i class="tim-icons icon-bag-16"></i>
                         <p>{{ __('Comparativo Clientes') }}</p>
                     </a>
@@ -47,13 +47,19 @@
                                     <p>{{ __('Gestión de Categorías') }}</p>
                                 </a>
                             </li>
+                            <li class="nav-item{{ $pageSlug == 'GestionBusqueda' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('gestion.agregarAqlProceso') }}">
+                                    <i class="tim-icons icon-zoom-split"></i>
+                                    <p>{{ __('Busqueda Bulto/Estilo') }}</p>
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('profile.edit') }}">
                                     <i class="tim-icons icon-single-02"></i>
                                     <span class="sidebar-normal">{{ __('Perfil de usuario') }} </span>
                                 </a>
                             </li>
-                            <li class="nav-item active">
+                            <li class="nav-item">
                                 <a class="nav-link" href="{{ route('user.index') }}">
                                     <i class="tim-icons icon-single-02"></i>
                                     <span class="sidebar-normal"> {{ __('Administrador de Usuarios') }} </span>

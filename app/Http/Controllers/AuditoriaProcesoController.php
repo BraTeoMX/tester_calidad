@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\NotificacionParo;
 use App\Models\JobAQL;
 use App\Models\ModuloEstilo;
+use App\Models\ModuloEstiloTemporal;
 
 
 use App\Models\EvaluacionCorte;
@@ -162,20 +163,29 @@ class AuditoriaProcesoController extends Controller
             'gerenteProduccion' => $gerenteProduccion]));
     }
 
-    public function obtenerItemId(Request $request)  
+    public function obtenerItemId(Request $request)
     {
         $moduleid = $request->input('moduleid');
 
-        // Obtener los estilos con prioridad para los relacionados al módulo
-        $auditoriaProceso = ModuloEstilo::select('itemid')
+        // Obtener los estilos con prioridad para los relacionados al módulo desde ModuloEstilo
+        $itemidsModuloEstilo = ModuloEstilo::select('itemid')
             ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$moduleid])
             ->distinct('itemid')
             ->orderBy('prioridad') // Priorizar los relacionados al módulo
             ->orderBy('itemid') // Ordenar por itemid después
             ->pluck('itemid');
 
+        // Obtener los estilos desde ModuloEstiloTemporal
+        $itemidsModuloEstiloTemporal = ModuloEstiloTemporal::select('itemid')
+            ->distinct('itemid')
+            ->orderBy('itemid') // Ordenar por itemid
+            ->pluck('itemid');
+
+        // Combinar ambos resultados y eliminar duplicados
+        $itemidsCombinados = $itemidsModuloEstilo->merge($itemidsModuloEstiloTemporal)->unique();
+
         return response()->json([
-            'itemids' => $auditoriaProceso,
+            'itemids' => $itemidsCombinados->values(),
         ]);
     }
 
@@ -188,13 +198,20 @@ class AuditoriaProcesoController extends Controller
         ]);
     }
 
-    public function obtenerCliente1(Request $request)  
+    public function obtenerCliente1(Request $request)
     {
         $itemid = $request->input('itemid');
+
+        // Buscar en ModuloEstilo primero
         $auditoriaProceso = ModuloEstilo::where('itemid', $itemid)->first();
 
+        // Si no se encuentra, buscar en ModuloEstiloTemporal
+        if (!$auditoriaProceso) {
+            $auditoriaProceso = ModuloEstiloTemporal::where('itemid', $itemid)->first();
+        }
+
         return response()->json([
-            'cliente' => $auditoriaProceso->custname ?? ''
+            'cliente' => $auditoriaProceso->custname ?? '' // Devuelve el nombre del cliente si existe, o vacío si no se encuentra
         ]);
     }
 
@@ -220,8 +237,8 @@ class AuditoriaProcesoController extends Controller
         }elseif($detectarPlanta == 'Planta2'){
             $detectarPlanta = "Intimark2";
         }
-        // Obtener los estilos únicos relacionados con el módulo seleccionado
-        $estilos = ModuloEstilo::select('itemid')
+        // Obtener los estilos únicos relacionados con el módulo seleccionado de ModuloEstilo
+        $estilosModuloEstilo = ModuloEstilo::select('itemid')
             ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$data['modulo']])
             ->orderBy('prioridad')
             ->orderBy('itemid')
@@ -229,6 +246,15 @@ class AuditoriaProcesoController extends Controller
             ->unique('itemid') // Asegura que los itemid sean únicos
             ->pluck('itemid');
 
+        // Obtener los estilos únicos del modelo ModuloEstiloTemporal
+        $estilosModuloEstiloTemporal = ModuloEstiloTemporal::select('itemid')
+            ->orderBy('itemid') // Ordenar por itemid
+            ->get()
+            ->unique('itemid') // Asegura que los itemid sean únicos
+            ->pluck('itemid');
+
+        // Combinar ambos resultados, asegurando unicidad
+        $estilos = $estilosModuloEstilo->merge($estilosModuloEstiloTemporal)->unique();
         //dd($request->all(), $data); 
         // Obtener los estilos únicos relacionados con el módulo seleccionado
         $estilosEmpaque = JobAQL::distinct('itemid')->pluck('itemid');

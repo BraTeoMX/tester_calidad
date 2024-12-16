@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\JobAQL;
+use App\Models\JobAQLTemporal;
 use App\Models\AuditoriaProceso;
 use App\Models\AseguramientoCalidad;
 use App\Models\CategoriaTeamLeader;
@@ -77,10 +78,19 @@ class AuditoriaAQLController extends Controller
     {
         $moduloSeleccionado = $request->input('modulo');
 
-        // Filtrar los datos de 'ordenOPs' y priorizar los relacionados al módulo seleccionado
-        $ordenesOPFiltradas = JobAQL::select('prodid')
+        // Obtener datos únicos de JobAQL
+        $ordenesJobAQL = JobAQL::select('prodid')
             ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$moduloSeleccionado])
-            ->distinct()
+            ->distinct();
+
+        // Obtener datos únicos de JobAQLTemporal
+        $ordenesJobAQLTemporal = JobAQLTemporal::select('prodid')
+            ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$moduloSeleccionado])
+            ->distinct();
+
+        // Unir ambas consultas y obtener valores únicos
+        $ordenesOPFiltradas = $ordenesJobAQL
+            ->union($ordenesJobAQLTemporal) // Unir ambas consultas
             ->orderBy('prioridad') // Priorizar las OPs relacionadas con el módulo seleccionado
             ->orderBy('prodid') // Ordenar el resto por prodid
             ->get();
@@ -198,9 +208,17 @@ class AuditoriaAQLController extends Controller
 
         $selectPivoteOP = JobAQL::select('prodid')
             ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$data['modulo']])
-            ->distinct()
-            ->orderBy('prioridad') // Prioriza los relacionados con el módulo primero
-            ->orderBy('prodid') // Ordena el resto por prodid
+            ->distinct();
+
+        $selectPivoteOPTemporal = JobAQLTemporal::select('prodid')
+            ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$data['modulo']])
+            ->distinct();
+
+        // Combinar ambas consultas y asignar a $selectPivoteOP
+        $selectPivoteOP = $selectPivoteOP
+            ->union($selectPivoteOPTemporal) // Unir las consultas
+            ->orderBy('prioridad') // Priorizar los relacionados con el módulo primero
+            ->orderBy('prodid') // Ordenar el resto por prodid
             ->get();
 
         //dd($data['modulo'], $selectPivoteOP);
@@ -425,14 +443,23 @@ class AuditoriaAQLController extends Controller
     public function getBultosByOp(Request $request)
     {
         $op = $request->input('op');
-        $modulo = $request->input('modulo');
-    
-        $datoBultos = JobAQL::where('prodid', $op)
-            //->where('moduleid', $modulo) 
+
+        // Consulta de JobAQL
+        $queryJobAQL = JobAQL::where('prodid', $op)
             ->select('prodpackticketid', 'qty', 'itemid', 'colorname', 'inventsizeid')
-            ->distinct()
+            ->distinct();
+
+        // Consulta de JobAQLTemporal
+        $queryJobAQLTemporal = JobAQLTemporal::where('prodid', $op)
+            ->select('prodpackticketid', 'qty', 'itemid', 'colorname', 'inventsizeid')
+            ->distinct();
+
+        // Combinar ambas consultas y ejecutar
+        $datoBultos = $queryJobAQL
+            ->union($queryJobAQLTemporal) // Unir los resultados
             ->get();
-            
+
+        // Retornar los datos en formato JSON
         return response()->json($datoBultos);
     }
 
@@ -441,8 +468,12 @@ class AuditoriaAQLController extends Controller
     {
         $pageSlug ='';
 
-        $datoUnicoOP = JobAQL::where('prodid', $request->op)
-            ->first();
+        $datoUnicoOP = JobAQL::where('prodid', $request->op)->first();
+
+        if (!$datoUnicoOP) {
+            // Si no se encuentra en JobAQL, buscar en JobAQLTemporal
+            $datoUnicoOP = JobAQLTemporal::where('prodid', $request->op)->first();
+        }
         //dd($datoUnicoOP);
         $data = [
             'area' => $request->area,

@@ -13,7 +13,13 @@ use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\DB; // Importa la clase DB
 use App\Models\ClienteProcentaje;
 use Illuminate\Support\Facades\Log;
-
+use App\Models\ComparativoSemanalCliente;
+use Illuminate\Support\Facades\Cache;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class DashboardComparativoModuloPlanta1Controller extends Controller
 {
@@ -39,7 +45,7 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
         // Fechas de inicio y fin
         $fechaFin = $request->input('fecha_fin') ? Carbon::parse($request->input('fecha_fin'))->endOfWeek() : Carbon::now()->endOfWeek();
-        $fechaInicio = $request->input('fecha_inicio') ? Carbon::parse($request->input('fecha_inicio'))->startOfWeek() : Carbon::now()->subWeeks(3)->startOfWeek();
+        $fechaInicio = $request->input('fecha_inicio') ? Carbon::parse($request->input('fecha_inicio'))->startOfWeek() : Carbon::now()->subWeeks(1)->startOfWeek();
 
         // Generar semanas en el rango
         $semanas = [];
@@ -288,6 +294,27 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                 $totalesSemanas[$key]['rechazadas_proceso'] += $cantidadRechazada;
                 $totalesSemanas[$key]['auditadas_aql'] += $cantidadAuditadaAQL;
                 $totalesSemanas[$key]['rechazadas_aql'] += $cantidadRechazadaAQL;
+                // Insertar o actualizar en la tabla solo si al menos uno de los porcentajes es válido
+                if ($porcentajeProceso !== 'N/A' || $porcentajeAQL !== 'N/A') {
+                    ComparativoSemanalCliente::updateOrCreate(
+                        [
+                            'semana' => $semana['inicio']->week,
+                            'anio' => $semana['inicio']->year,
+                            'cliente' => $cliente,
+                            'estilo' => null,
+                            'modulo' => $modulo,
+                            'planta' => str_starts_with($modulo, '1') ? 1 : (str_starts_with($modulo, '2') ? 2 : 0),
+                        ],
+                        [
+                            'cantidad_auditada_proceso' => $cantidadAuditada ?: null,
+                            'cantidad_rechazada_proceso' => $cantidadRechazada ?: null,
+                            'porcentaje_proceso' => ($porcentajeProceso === 'N/A') ? null : $porcentajeProceso,
+                            'cantidad_auditada_aql' => $cantidadAuditadaAQL ?: null,
+                            'cantidad_rechazada_aql' => $cantidadRechazadaAQL ?: null,
+                            'porcentaje_aql' => ($porcentajeAQL === 'N/A') ? null : $porcentajeAQL,
+                        ]
+                    );
+                }
             }
 
             $modulos[] = [
@@ -408,6 +435,28 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
                 $totalesSemanas[$key]['rechazadas_proceso'] += $cantidadRechazada;
                 $totalesSemanas[$key]['auditadas_aql'] += $cantidadAuditadaAQL;
                 $totalesSemanas[$key]['rechazadas_aql'] += $cantidadRechazadaAQL;
+
+                // Insertar o actualizar en la tabla solo si al menos uno de los porcentajes es válido
+                if ($porcentajeProceso !== 'N/A' || $porcentajeAQL !== 'N/A') {
+                    ComparativoSemanalCliente::updateOrCreate(
+                        [
+                            'semana' => $semana['inicio']->week,
+                            'anio' => $semana['inicio']->year,
+                            'cliente' => $cliente,
+                            'estilo' => $estilo,
+                            'modulo' => $modulo,
+                            'planta' => str_starts_with($modulo, '1') ? 1 : (str_starts_with($modulo, '2') ? 2 : 0),
+                        ],
+                        [
+                            'cantidad_auditada_proceso' => $cantidadAuditada ?: null,
+                            'cantidad_rechazada_proceso' => $cantidadRechazada ?: null,
+                            'porcentaje_proceso' => ($porcentajeProceso === 'N/A') ? null : $porcentajeProceso,
+                            'cantidad_auditada_aql' => $cantidadAuditadaAQL ?: null,
+                            'cantidad_rechazada_aql' => $cantidadRechazadaAQL ?: null,
+                            'porcentaje_aql' => ($porcentajeAQL === 'N/A') ? null : $porcentajeAQL,
+                        ]
+                    );
+                }
             }
 
             // Añadir el módulo con sus porcentajes semanales
@@ -440,5 +489,358 @@ class DashboardComparativoModuloPlanta1Controller extends Controller
 
 
 
+    public function semanaComparativaGeneral(Request $request)
+    {
+        // Solo devolver la vista básica con el formulario y las tabs vacías (o estructura base)
+        return view('dashboarComparativaModulo.semanaComparativaGeneral');
+    }
+
+    private function procesarRegistros($registros, $semanas, $clientesPorcentajes)
+    {
+        return $registros
+            ->groupBy('cliente')
+            ->map(function ($itemsPorCliente, $cliente) use ($semanas, $clientesPorcentajes) {
+                $datosClienteProcentaje = $clientesPorcentajes->get($cliente);
+
+                return $itemsPorCliente
+                    ->groupBy(function ($item) {
+                        return $item->estilo ?? 'General';
+                    })
+                    ->sortBy(function ($_, $key) {
+                        // Si el estilo es "General", debe aparecer primero
+                        return $key === 'General' ? -1 : $key;
+                    })
+                    ->map(function ($modulosEstilo) use ($semanas, $datosClienteProcentaje) {
+                        $consolidado = [];
+
+                        // Arreglos para acumular totales AQL y PROCESO por semana
+                        $rechazadaAqlSemana = array_fill(0, count($semanas), 0);
+                        $auditadaAqlSemana = array_fill(0, count($semanas), 0);
+
+                        // Arreglos para acumular totales PROCESO por semana
+                        $rechazadaProcesoSemana = array_fill(0, count($semanas), 0);
+                        $auditadaProcesoSemana = array_fill(0, count($semanas), 0);
+
+                        foreach ($modulosEstilo as $modulo) {
+                            if (!isset($consolidado[$modulo->modulo])) {
+                                $consolidado[$modulo->modulo] = [
+                                    'modulo' => $modulo->modulo,
+                                    'semanalPorcentajes' => array_fill(0, count($semanas), [
+                                        'aql' => "N/A",
+                                        'proceso' => "N/A",
+                                        'aql_color' => false,
+                                        'proceso_color' => false
+                                    ])
+                                ];
+                            }
+
+                            foreach ($semanas as $index => $semana) {
+                                if ($modulo->semana == $semana['semana'] && $modulo->anio == $semana['anio']) {
+                                    // Comparación de porcentajes con ClienteProcentaje
+                                    $aqlColor = $datosClienteProcentaje && $modulo->porcentaje_aql !== null && $modulo->porcentaje_aql >= $datosClienteProcentaje->aql;
+                                    $procesoColor = $datosClienteProcentaje && $modulo->porcentaje_proceso !== null && $modulo->porcentaje_proceso >= $datosClienteProcentaje->proceso;
+
+                                    // Asignar valores de porcentajes y colores
+                                    $consolidado[$modulo->modulo]['semanalPorcentajes'][$index] = [
+                                        'aql' => $modulo->porcentaje_aql ?? "N/A",
+                                        'proceso' => $modulo->porcentaje_proceso ?? "N/A",
+                                        'aql_color' => $aqlColor,
+                                        'proceso_color' => $procesoColor
+                                    ];
+
+                                    // Acumular datos para el total AQL y PROCESO
+                                    $rechazadaAqlSemana[$index] += $modulo->cantidad_rechazada_aql ?? 0;
+                                    $auditadaAqlSemana[$index] += $modulo->cantidad_auditada_aql ?? 0;
+
+                                    // Acumular datos para el total PROCESO
+                                    $rechazadaProcesoSemana[$index] += $modulo->cantidad_rechazada_proceso ?? 0;
+                                    $auditadaProcesoSemana[$index] += $modulo->cantidad_auditada_proceso ?? 0;
+                                }
+                            }
+                        }
+
+                        // Calcular totales AQL por semana
+                        $totalesAql = [];
+                        $totalesAqlColores = [];
+                        foreach ($semanas as $i => $semana) {
+                            if ($auditadaAqlSemana[$i] > 0) {
+                                $total = round(($rechazadaAqlSemana[$i] / $auditadaAqlSemana[$i]) * 100, 3);
+                                $totalesAql[] = $total;
+
+                                // Comparar con ClienteProcentaje para determinar el color
+                                $totalesAqlColores[] = $datosClienteProcentaje && $total >= $datosClienteProcentaje->aql;
+                            } else {
+                                $totalesAql[] = "N/A";
+                                $totalesAqlColores[] = false; // No aplica color para N/A
+                            }
+                        }
+
+                        // Calcular totales PROCESO por semana
+                        $totalesProceso = [];
+                        $totalesProcesoColores = [];
+                        foreach ($semanas as $i => $semana) {
+                            if ($auditadaProcesoSemana[$i] > 0) {
+                                $total = round(($rechazadaProcesoSemana[$i] / $auditadaProcesoSemana[$i]) * 100, 3);
+                                $totalesProceso[] = $total;
+
+                                // Comparar con ClienteProcentaje para determinar el color
+                                $totalesProcesoColores[] = $datosClienteProcentaje && $total >= $datosClienteProcentaje->proceso;
+                            } else {
+                                $totalesProceso[] = "N/A";
+                                $totalesProcesoColores[] = false; // No aplica color para N/A
+                            }
+                        }
+
+                        // Al final, retornas el mismo array que ya devuelves actualmente:
+                        return [
+                            'modulos' => array_values($consolidado),
+                            'totales_aql' => $totalesAql,
+                            'totales_proceso' => $totalesProceso,
+                            'totales_aql_colores' => $totalesAqlColores,
+                            'totales_proceso_colores' => $totalesProcesoColores
+                        ];
+                    });
+            });
+    }
+
+
+    public function getSemanaComparativaGeneralData(Request $request)
+    {
+        \Carbon\Carbon::setLocale('es');
+
+        // Obtenemos rangos de fecha
+        $fecha_inicio_str = $request->input('fecha_inicio');
+        $fecha_fin_str = $request->input('fecha_fin');
+
+        if ($fecha_inicio_str) {
+            // $fecha_inicio_str = "YYYY-Wxx"
+            list($anio_inicio, $semana_inicio) = explode('-W', $fecha_inicio_str);
+            $anio_inicio = (int)$anio_inicio;
+            $semana_inicio = (int)$semana_inicio;
+            // Establecer la fecha a la primera semana ISO del año y sumarle las semanas necesarias
+            $fechaInicio = Carbon::now()->setISODate($anio_inicio, $semana_inicio)->startOfWeek();
+        } else {
+            $fechaInicio = Carbon::now()->subWeeks(1)->startOfWeek();
+        }
+
+        if ($fecha_fin_str) {
+            list($anio_fin, $semana_fin) = explode('-W', $fecha_fin_str);
+            $anio_fin = (int)$anio_fin;
+            $semana_fin = (int)$semana_fin;
+            $fechaFin = Carbon::now()->setISODate($anio_fin, $semana_fin)->endOfWeek();
+        } else {
+            $fechaFin = Carbon::now()->endOfWeek();
+        }
+
+        // Generar un identificador único para el caché basado en las fechas
+        $cacheKey = 'semanaComparativaGeneral:' . $fechaInicio->format('Y-m-d') . '-' . $fechaFin->format('Y-m-d');
+
+        // Intentar obtener los datos de la caché
+        $data = Cache::remember($cacheKey, now()->addHours(10), function () use ($fechaInicio, $fechaFin) {
+            // Si no está en caché, procesar los datos y almacenarlos
+            $semanas = [];
+            $currentDate = $fechaInicio->copy();
+            while ($currentDate <= $fechaFin) {
+                $semanas[] = [
+                    'semana' => $currentDate->weekOfYear,
+                    'anio' => $currentDate->year
+                ];
+                $currentDate->addWeek();
+            }
+
+            $listaSemanasAnios = array_map(function($rango) {
+                return $rango['anio'] . '-' . $rango['semana'];
+            }, $semanas);
+
+            $registros = ComparativoSemanalCliente::whereIn(
+                DB::raw("CONCAT(anio, '-', semana)"), $listaSemanasAnios
+            )->get();
+
+            $clientesPorcentajes = ClienteProcentaje::all()->keyBy('nombre');
+
+            $registrosGeneral = $registros;
+            $registrosPlanta1 = $registros->where('planta', 1);
+            $registrosPlanta2 = $registros->where('planta', 2);
+
+            $modulosPorClienteYEstiloGeneral = $this->procesarRegistros($registrosGeneral, $semanas, $clientesPorcentajes);
+            $modulosPorClienteYEstiloPlanta1 = $this->procesarRegistros($registrosPlanta1, $semanas, $clientesPorcentajes);
+            $modulosPorClienteYEstiloPlanta2 = $this->procesarRegistros($registrosPlanta2, $semanas, $clientesPorcentajes);
+
+            // Estructura JSON con toda la información necesaria
+            return [
+                'fechaInicio' => $fechaInicio->format('Y-m-d'),
+                'fechaFin' => $fechaFin->format('Y-m-d'),
+                'semanas' => $semanas,
+                'modulosPorClienteYEstilo' => $modulosPorClienteYEstiloGeneral,
+                'modulosPorClienteYEstiloPlanta1' => $modulosPorClienteYEstiloPlanta1,
+                'modulosPorClienteYEstiloPlanta2' => $modulosPorClienteYEstiloPlanta2
+            ];
+        });
+        
+
+        // Devolver la respuesta con los datos
+        return response()->json($data);
+    }
+
+    public function exportSemanaComparativa(Request $request)
+    {
+        // Obtener el parámetro de la planta
+        $planta = $request->input('planta', 'general'); // Valor por defecto es "general"
+
+        // Reutilizamos la lógica para obtener los datos estructurados
+        $data = $this->getSemanaComparativaGeneralData($request)->getData();
+        $data = json_decode(json_encode($data), true); // Convertir stdClass a array
+
+        // Seleccionar los datos según la planta
+        switch ($planta) {
+            case 'planta1':
+                $modulosPorClienteYEstilo = $data['modulosPorClienteYEstiloPlanta1'];
+                break;
+            case 'planta2':
+                $modulosPorClienteYEstilo = $data['modulosPorClienteYEstiloPlanta2'];
+                break;
+            default:
+                $modulosPorClienteYEstilo = $data['modulosPorClienteYEstilo'];
+                break;
+        }
+
+        // Crear hoja de cálculo
+        $spreadsheet = new Spreadsheet();
+
+        // Estilo por defecto para encabezados
+        $headerStyle = [
+            'font' => ['bold' => true],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['argb' => 'FFDDDDDD'], // Gris claro
+            ],
+            'alignment' => ['horizontal' => 'center'],
+        ];
+
+        // Estilo de colores personalizados (amarillo y rojo)
+        $yellowStyle = [
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['argb' => Color::COLOR_YELLOW],
+            ],
+        ];
+
+        $redStyle = [
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['argb' => Color::COLOR_RED],
+            ],
+        ];
+
+        $borderStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => 'FF000000'], // Negro
+                ],
+            ],
+        ];
+        
+
+        $sheetIndex = 0;
+
+        foreach ($modulosPorClienteYEstilo as $cliente => $estilos) {
+            // Crear una hoja por cliente
+            $sheet = $sheetIndex === 0 ? $spreadsheet->getActiveSheet() : $spreadsheet->createSheet();
+            $sheet->setTitle(substr($cliente, 0, 30)); // Máximo 30 caracteres para el nombre de la hoja
+            $sheetIndex++;
+
+            $row = 1;
+
+            foreach ($estilos as $estilo => $datosEstilo) {
+                // Agregar título del estilo
+                $sheet->setCellValue("A{$row}", "Estilo: {$estilo}");
+                $sheet->getStyle("A{$row}")->applyFromArray($headerStyle);
+                $row++;
+
+                // Tabla Resumen
+                $sheet->setCellValue("A{$row}", "Semana");
+                $sheet->setCellValue("B{$row}", "% AQL");
+                $sheet->setCellValue("C{$row}", "% Proceso");
+                $sheet->getStyle("A{$row}:C{$row}")->applyFromArray($headerStyle);
+                $row++;
+
+                foreach ($data['semanas'] as $index => $semana) {
+                    $sheet->setCellValue("A{$row}", "Semana {$semana['semana']} ({$semana['anio']})");
+                    $sheet->setCellValue("B{$row}", $datosEstilo['totales_aql'][$index]);
+                    $sheet->setCellValue("C{$row}", $datosEstilo['totales_proceso'][$index]);
+
+                    // Aplicar color a las celdas según los colores calculados
+                    if ($datosEstilo['totales_aql_colores'][$index]) {
+                        $sheet->getStyle("B{$row}")->applyFromArray($redStyle);
+                    }
+                    if ($datosEstilo['totales_proceso_colores'][$index]) {
+                        $sheet->getStyle("C{$row}")->applyFromArray($yellowStyle);
+                    }
+
+                    $row++;
+                }
+
+                // Aplicar bordes a la tabla Resumen
+                $sheet->getStyle("A" . ($row - count($data['semanas']) - 1) . ":C" . ($row - 1))->applyFromArray($borderStyle);
+
+                $row++; // Espacio entre tablas
+
+                // Tabla Detalles (Módulos)
+                $sheet->setCellValue("A{$row}", "Módulo");
+
+                // Encabezado de las semanas (combinando celdas por cada par de columnas)
+                foreach ($data['semanas'] as $index => $semana) {
+                    $col = chr(66 + ($index * 2)); // Columna dinámica (B, D, F, etc.)
+                    $sheet->setCellValue("{$col}{$row}", "Semana: {$semana['semana']} ({$semana['anio']})");
+                    $sheet->mergeCells("{$col}{$row}:" . chr(ord($col) + 1) . "{$row}"); // Combinar las dos columnas (AQL y Proceso)
+                    $sheet->getStyle("{$col}{$row}")->applyFromArray($headerStyle); // Aplicar estilo de encabezado
+                }
+                $row++; // Pasar a la siguiente fila
+
+                // Escribir encabezados de % AQL y % Proceso
+                foreach ($data['semanas'] as $index => $semana) {
+                    $col = chr(66 + ($index * 2)); // Columna dinámica (B, D, F, etc.)
+                    $sheet->setCellValue("{$col}{$row}", "% AQL");
+                    $sheet->setCellValue(chr(ord($col) + 1) . "{$row}", "% Proceso");
+                }
+                $row++;
+
+                foreach ($datosEstilo['modulos'] as $modulo) {
+                    $sheet->setCellValue("A{$row}", $modulo['modulo']);
+                    foreach ($modulo['semanalPorcentajes'] as $index => $porcentajes) {
+                        $col = chr(66 + ($index * 2)); // Columna dinámica
+                        $sheet->setCellValue("{$col}{$row}", $porcentajes['aql']);
+                        $sheet->setCellValue(chr(ord($col) + 1) . "{$row}", $porcentajes['proceso']);
+
+                        // Aplicar colores
+                        if ($porcentajes['aql_color']) {
+                            $sheet->getStyle("{$col}{$row}")->applyFromArray($redStyle);
+                        }
+                        if ($porcentajes['proceso_color']) {
+                            $sheet->getStyle(chr(ord($col) + 1) . "{$row}")->applyFromArray($yellowStyle);
+                        }
+                    }
+                    $row++;
+                }
+
+                // Aplicar bordes a la tabla Detalles
+                $lastRow = $row - 1; // Última fila ocupada por los datos de la tabla
+                $lastColumn = chr(66 + (count($data['semanas']) * 2) - 1); // Última columna dinámica
+                $sheet->getStyle("A" . ($row - count($datosEstilo['modulos']) - 1) . ":{$lastColumn}{$lastRow}")->applyFromArray($borderStyle);
+
+                $row += 2; // Espacio entre estilos
+            }
+        }
+
+        // Guardar el archivo
+        $fileName = 'Semana_Comparativa_' . ucfirst($planta) . '.xlsx';
+        $writer = new Xlsx($spreadsheet);
+
+        // Devolver el archivo como respuesta
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $fileName);
+    }
 
 }
