@@ -433,6 +433,9 @@
         }
         html += '</tr></tfoot></table></div></div>';
 
+        // Añadir separador al final del contenido del estilo
+        html += '<hr style="border: 1px solid #ddd; margin: 30px 0;">';
+
         return html;
     }
 
