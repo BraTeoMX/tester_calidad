@@ -284,6 +284,34 @@ class AuditoriaAQL_v2Controller extends Controller
         return response()->json($datosOP);
     }
 
+    public function obtenerOpcionesBulto(Request $request)
+    {
+        // Obtén el valor enviado desde el select "op-seleccion-ts"
+        $opSeleccionada = $request->input('op');
+
+        if (!$opSeleccionada) {
+            return response()->json(['error' => 'El valor del select OP no fue proporcionado.'], 400);
+        }
+
+        // Realiza la consulta basada en el valor de "op-seleccion-ts"
+        $datosBulto = JobAQL::where('op', $opSeleccionada) // Ajusta según la columna que almacene la relación con OP
+            ->select('id', 'nombre')
+            ->union(
+                JobAQLTemporal::where('op', $opSeleccionada) // Ajusta el modelo y la columna si es necesario
+                    ->select('id', 'nombre')
+            )
+            ->distinct()
+            ->orderBy('nombre')
+            ->get();
+
+        // Devuelve los datos en formato JSON
+        return response()->json($datosBulto);
+    }
+
+    
+
+
+
     public function getBultosByOp_v2(Request $request)
     {
         $op = $request->input('op');

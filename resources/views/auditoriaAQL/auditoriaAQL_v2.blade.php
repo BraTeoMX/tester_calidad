@@ -215,8 +215,6 @@
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
-                    <div class="table-responsive">
                         <table class="table table32">
                             <thead class="thead-primary">
                                 <tr>
@@ -261,10 +259,6 @@
                                             @foreach($nombreProceso as $opcion)
                                                 <option value="{{ $opcion['name'] }}">{{ $opcion['name'] }}</option>
                                             @endforeach
-                                            <option disabled>--- Utility ---</option>
-                                            @foreach($utility as $opcion)
-                                                <option value="{{ $opcion['nombre'] }}">{{ $opcion['nombre'] }}</option>
-                                            @endforeach
                                             @foreach($nombrePorModulo as $moduleid => $nombres)
                                                 <option disabled>--- Módulo {{ $moduleid }} ---</option>
                                                 @foreach($nombres as $opcion)
@@ -283,7 +277,7 @@
                 </div>
             </div>
         </div>
-    </div>    
+    </div>
 
     <style>
         thead.thead-primary {

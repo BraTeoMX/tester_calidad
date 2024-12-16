@@ -335,6 +335,8 @@ Route::post('/guardarModuloEstilo', [GestionController::class, 'guardarModuloEst
 Route::get('/auditoriaAQL_v2', [AuditoriaAQL_v2Controller::class, 'auditoriaAQL_v2'])->name('auditoriaAQL.auditoriaAQL_v2')->middleware('auth');
 Route::get('/altaAQL_v2', [AuditoriaAQL_v2Controller::class, 'altaAQL_v2'])->name('auditoriaAQL.altaAQL_v2')->middleware('auth');
 Route::get('/obtener-opciones-op', [AuditoriaAQL_v2Controller::class, 'obtenerOpcionesOP'])->name('obtener.opciones.op');
+Route::get('/obtener-opciones-bulto', [AuditoriaAQL_v2Controller::class, 'obtenerOpcionesBulto'])->name('obtener.opciones.bulto');
+
 
 
 Route::post('/obtenerItemIdAQL_v2', [AuditoriaAQL_v2Controller::class, 'obtenerItemIdAQL_v2'])->name('obtenerItemIdAQL_v2');
