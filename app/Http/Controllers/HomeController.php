@@ -11,6 +11,7 @@ use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\DB; // Importa la clase DB
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
@@ -208,23 +209,10 @@ class HomeController extends Controller
             $clientesUnicosBusqueda = $clientesAseguramientoBusqueda->merge($clientesAuditoriaBusqueda)->unique();
             // Convertir la colección a un array si es necesario
             $clientesUnicosArrayBusqueda = $clientesUnicosBusqueda->values()->all();
-            // Obtener los modulos únicos de AseguramientoCalidad
-            //$modulosAseguramientoBusqueda = AseguramientoCalidad::select('modulo')
-            //->distinct()
-            //->pluck('modulo');
 
-            // Obtener los modulos únicos de AuditoriaAQL
-            //$modulosAuditoriaBusqueda = AuditoriaAQL::select('modulo')
-            //->distinct()
-            //->pluck('modulo');
-
-            // Combinar ambas listas y eliminar duplicados
-            //$modulosUnicosBusqueda = $modulosAseguramientoBusqueda->merge($modulosAuditoriaBusqueda)->unique();
-
-            // Convertir la colección a un array si es necesario
-            //$modulosUnicosArrayBusqueda = $modulosUnicosBusqueda->values()->all();
-            //dd($clientesUnicosArrayBusqueda);
-            $datosSemana = $this->calcularPorcentajesSemanaActual();
+            $datosSemana = Cache::remember('datos_semana_actual', now()->addMinutes(60), function () {
+                return $this->calcularPorcentajesSemanaActual();
+            });
 
             // Clientes, Supervisores y Módulos por semana
             $clientesSemana = $datosSemana['clientes'];
