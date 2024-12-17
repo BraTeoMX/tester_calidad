@@ -309,6 +309,7 @@ Route::post('/altaYbaja/gestion-tecnico', [AltaYBajaController::class, 'crearTec
 Route::post('/actualizarClientesPorcentajes', [AltaYBajaController::class, 'actualizarClientesPorcentajes'])->name('actualizarClientesPorcentajes');
 //ajax para mostrar dato en dashboard principal
 Route::get('/dashboard-data-dia', [HomeController::class, 'getDashboardDataDia'])->name('dashboard.dataDia')->middleware('auth');
+Route::get('/dashboard-data-semana', [HomeController::class, 'getDashboardDataSemana'])->name('dashboard.dataSemana')->middleware('auth');
 //Segundas
 Route::get('/SegundasTerceras',[HomeController::class, 'SegundasTerceras']);
 Route::get('/Segundas', [Segundas::class, 'Segundas']);

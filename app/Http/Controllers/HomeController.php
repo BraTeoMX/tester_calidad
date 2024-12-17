@@ -270,32 +270,6 @@ class HomeController extends Controller
                 ];
             })->toArray();
         
-            // Obtener los clientes únicos - Sin fecha. Se puede considerar como datos menos cambiantes, se puede aplicar 5 horas
-            $clientesAseguramientoBusqueda = Cache::remember('clientesAseguramientoBusqueda', 300, function() {
-                return AseguramientoCalidad::select('cliente')
-                    ->distinct()
-                    ->pluck('cliente');
-            });
-        
-            $clientesAuditoriaBusqueda = Cache::remember('clientesAuditoriaBusqueda', 300, function() {
-                return AuditoriaAQL::select('cliente')
-                    ->distinct()
-                    ->pluck('cliente');
-            });
-        
-            // Combinar ambas listas y eliminar duplicados
-            $clientesUnicosBusqueda = $clientesAseguramientoBusqueda->merge($clientesAuditoriaBusqueda)->unique();
-            $clientesUnicosArrayBusqueda = $clientesUnicosBusqueda->values()->all();
-        
-            // Datos de la semana (Rango semanal - 5 horas)
-            $datosSemana = Cache::remember('datosSemana_'.$fechaActual, 300, function() {
-                return $this->calcularPorcentajesSemanaActual();
-            });
-        
-            // Clientes, Supervisores y Módulos por semana
-            $clientesSemana = $datosSemana['clientes'];
-            $supervisoresSemana = $datosSemana['supervisores'];
-            $modulosSemana = $datosSemana['modulos'];
         
             return view('dashboard', compact(
                 'title', 'topDefectosAQL', 'topDefectosProceso',
@@ -305,8 +279,6 @@ class HomeController extends Controller
                 'fechas', 'porcentajesAQL', 'porcentajesProceso',
                 'fechasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica',
                 'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica',
-                'clientesUnicosArrayBusqueda',
-                'clientesSemana', 'supervisoresSemana', 'modulosSemana'
             ));
         } else {
             // Si el usuario no tiene esos roles, redirige a listaFormularios
@@ -486,154 +458,6 @@ class HomeController extends Controller
     }
 
 
-
-    private function getDataModuloAQL($fecha, $planta = null)
-    {
-        $query = AuditoriaAQL::whereDate('created_at', $fecha);
-
-        if (!is_null($planta)) {
-            $query->where('planta', $planta);
-        }
-
-        $modulosAQL = $query->select('modulo')
-                            ->distinct()
-                            ->pluck('modulo')
-                            ->all();
-
-        $dataModuloAQL = [];
-        foreach ($modulosAQL as $modulo) {
-            $queryModulo = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha);
-
-            if (!is_null($planta)) {
-                $queryModulo->where('planta', $planta);
-            }
-
-            $modulosUnicos = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->distinct()
-                                ->count('modulo');
-
-            $sumaAuditadaAQL = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->sum('cantidad_auditada');
-
-            $sumaRechazadaAQL = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->sum('cantidad_rechazada');
-
-            $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
-
-            $conteoOperario = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->distinct()
-                                ->count('nombre');
-
-            $conteoMinutos = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->count('minutos_paro');
-
-            $conteParoModular = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->count('minutos_paro_modular');
-
-            $sumaMinutos = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->sum('minutos_paro');
-
-            $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
-            $promedioMinutosEntero = ceil($promedioMinutos);
-
-            $dataModuloAQL[] = [
-                'modulo' => $modulo,
-                'modulos_unicos' => $modulosUnicos,
-                'porcentaje_error_aql' => $porcentajeErrorAQL,
-                'conteoOperario' => $conteoOperario,
-                'conteoMinutos' => $conteoMinutos,
-                'sumaMinutos' => $sumaMinutos,
-                'promedioMinutosEntero' => $promedioMinutosEntero,
-                'conteParoModular' => $conteParoModular,
-            ];
-        }
-
-        return $dataModuloAQL;
-    }
-
-    private function getDataModuloProceso($fecha, $planta = null)
-    {
-        $query = AseguramientoCalidad::whereDate('created_at', $fecha);
-
-        if (!is_null($planta)) {
-            $query->where('planta', $planta);
-        }
-
-        $modulosProceso = $query->select('modulo')
-                                ->distinct()
-                                ->pluck('modulo')
-                                ->all();
-
-        $dataModuloProceso = [];
-        foreach ($modulosProceso as $modulo) {
-            $queryModulo = AseguramientoCalidad::where('modulo', $modulo)
-                                        ->whereDate('created_at', $fecha);
-
-            if (!is_null($planta)) {
-                $queryModulo->where('planta', $planta);
-            }
-
-            $modulosUnicos = AseguramientoCalidad::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->distinct()
-                                ->count('modulo');
-
-            $sumaAuditadaProceso = AseguramientoCalidad::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->sum('cantidad_auditada');
-
-            $sumaRechazadaProceso = AseguramientoCalidad::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->sum('cantidad_rechazada');
-
-            $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
-
-            $conteoOperario = AseguramientoCalidad::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->where('utility', null)
-                                ->distinct()
-                                ->count('nombre');
-
-            $conteoUtility = AseguramientoCalidad::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->where('utility', 1)
-                                ->distinct()
-                                ->count('nombre');
-
-            $conteoMinutos = AseguramientoCalidad::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->count('minutos_paro');
-
-            $sumaMinutos = AseguramientoCalidad::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->sum('minutos_paro');
-
-            $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
-            $promedioMinutosEntero = ceil($promedioMinutos);
-
-            $dataModuloProceso[] = [
-                'modulo' => $modulo,
-                'modulos_unicos' => $modulosUnicos,
-                'porcentaje_error_proceso' => $porcentajeErrorProceso,
-                'conteoOperario' => $conteoOperario,
-                'conteoUtility' => $conteoUtility,
-                'conteoMinutos' => $conteoMinutos,
-                'sumaMinutos' => $sumaMinutos,
-                'promedioMinutosEntero' => $promedioMinutosEntero,
-            ];
-        }
-
-        return $dataModuloProceso;
-    }
-
     private function getDataGerentesProduccionAQL($fecha, $planta = null)
     {
         $query = AuditoriaAQL::whereDate('created_at', $fecha);
@@ -812,43 +636,6 @@ class HomeController extends Controller
         return $combinedData;
     }
 
-    private function combineDataModulos($dataAQL, $dataProceso)
-    {
-        $combinedData = [];
-
-        // Indexar datos de Proceso por modulo
-        $dataProcesoIndexed = [];
-        foreach ($dataProceso as $item) {
-            $dataProcesoIndexed[$item['modulo']] = $item;
-        }
-
-        // Combinar datos
-        foreach ($dataAQL as $itemAQL) {
-            $modulo = $itemAQL['modulo'];
-            $itemProceso = $dataProcesoIndexed[$modulo] ?? null;
-
-            $combinedData[] = [
-                'modulo' => $modulo,
-                'porcentaje_error_aql' => $itemAQL['porcentaje_error_aql'],
-                'porcentaje_error_proceso' => $itemProceso['porcentaje_error_proceso'] ?? null
-            ];
-
-            // Eliminar el entry del array indexado para evitar duplicados
-            unset($dataProcesoIndexed[$modulo]);
-        }
-
-        // Agregar cualquier item de Proceso que no haya sido combinado
-        foreach ($dataProcesoIndexed as $itemProceso) {
-            $combinedData[] = [
-                'modulo' => $itemProceso['modulo'],
-                'porcentaje_error_aql' => null,
-                'porcentaje_error_proceso' => $itemProceso['porcentaje_error_proceso']
-            ];
-        }
-
-        return $combinedData;
-    }
-
     private function obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin)
     {
         $modulosUnicos = collect();
@@ -920,6 +707,18 @@ class HomeController extends Controller
             'modulosUnicos' => $modulosUnicos,
             'dataModulo' => $dataModulo
         ];
+    }
+
+    public function getDashboardDataSemana()
+    {
+        $fechaActual = Carbon::now()->toDateString();
+
+        // Cacheamos los datos semanales por 5 horas (18000 segundos)
+        $datosSemana = Cache::remember('datosSemana_' . $fechaActual, 18000, function () {
+            return $this->calcularPorcentajesSemanaActual();
+        });
+
+        return response()->json($datosSemana);
     }
 
     private function calcularPorcentajesSemanaActual()

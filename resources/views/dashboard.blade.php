@@ -194,13 +194,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($clientesSemana as $cliente)
-                                <tr>
-                                    <td>{{ $cliente['cliente'] }}</td>
-                                    <td>{{ number_format($cliente['% AQL'], 2) }}%</td>
-                                    <td>{{ number_format($cliente['% PROCESO'], 2) }}%</td>
-                                </tr>
-                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -224,13 +217,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($supervisoresSemana as $supervisor)
-                                <tr>
-                                    <td>{{ $supervisor['team_leader'] }}</td>
-                                    <td>{{ number_format($supervisor['% AQL'], 2) }}%</td>
-                                    <td>{{ number_format($supervisor['% PROCESO'], 2) }}%</td>
-                                </tr>
-                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -254,13 +240,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($modulosSemana as $modulo)
-                                <tr>
-                                    <td>{{ $modulo['modulo'] }}</td>
-                                    <td>{{ number_format($modulo['% AQL'], 2) }}%</td>
-                                    <td>{{ number_format($modulo['% PROCESO'], 2) }}%</td>
-                                </tr>
-                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -499,6 +478,13 @@
     <script src="https://code.highcharts.com/modules/export-data.js"></script>
     <script src="{{ asset('js/highcharts/dark-unica.js') }}"></script>
 
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <!-- DataTables JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
     <script>
         $(document).ready(function () {
             fetchDataDia();
@@ -633,6 +619,11 @@
             
             // Funciones para llenar las tablas (Ya las tienes implementadas)
             function renderTablaClientes(clientes) {
+                const tableId = '#tablaClientes';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy(); // Destruir la instancia previa
+                }
+
                 let html = '';
                 $.each(clientes, function (cliente, valores) {
                     html += `
@@ -642,10 +633,25 @@
                             <td>${valores['% PROCESO'] ? valores['% PROCESO'].toFixed(2) + '%' : '0%'}</td>
                         </tr>`;
                 });
-                $('#tablaClientes tbody').html(html);
+                $(tableId + ' tbody').html(html); // Reemplazar el contenido de la tabla
+
+                // Re-inicializar DataTable
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
             }
-    
+
             function renderTablaSupervisores(supervisores) {
+                const tableId = '#tablaResponsables';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
                 let html = '';
                 $.each(supervisores, function (supervisor, valores) {
                     html += `
@@ -655,10 +661,24 @@
                             <td>${valores['% PROCESO'] ? valores['% PROCESO'].toFixed(2) + '%' : '0%'}</td>
                         </tr>`;
                 });
-                $('#tablaResponsables tbody').html(html);
+                $(tableId + ' tbody').html(html);
+
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
             }
-    
+
             function renderTablaModulos(modulos) {
+                const tableId = '#tablaModulos';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
                 let html = '';
                 $.each(modulos, function (modulo, valores) {
                     html += `
@@ -668,7 +688,182 @@
                             <td>${valores['% PROCESO'] ? valores['% PROCESO'].toFixed(2) + '%' : '0%'}</td>
                         </tr>`;
                 });
-                $('#tablaModulos tbody').html(html);
+                $(tableId + ' tbody').html(html);
+
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            fetchDataSemana();
+
+            function fetchDataSemana() {
+                $.ajax({
+                    url: "{{ route('dashboard.dataSemana') }}",
+                    type: "GET",
+                    success: function (data) {
+                        // Actualizar tablas
+                        renderTablaClientesSemanal(data.clientes);
+                        renderTablaResponsablesSemanal(data.supervisores);
+                        renderTablaModulosSemanal(data.modulos);
+
+                        // Generar gráficas
+                        renderGraficaClientesSemanal(data.clientes);
+                        renderGraficaSupervisoresSemanal(data.supervisores);
+                        renderGraficaModulosSemanal(data.modulos);
+                    },
+                    error: function () {
+                        alert('Error al cargar los datos de la semana.');
+                    }
+                });
+            }
+
+            // Función para actualizar la tabla de Clientes
+            function renderTablaClientesSemanal(clientes) {
+                const tableId = '#tablaClientesSemanal';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
+                let html = '';
+                clientes.forEach(cliente => {
+                    html += `
+                        <tr>
+                            <td>${cliente.cliente}</td>
+                            <td>${cliente['% AQL'].toFixed(2)}%</td>
+                            <td>${cliente['% PROCESO'].toFixed(2)}%</td>
+                        </tr>`;
+                });
+                $('#tablaClientesSemanal tbody').html(html);
+
+                // Re-inicializar DataTable
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
+
+            // Función para actualizar la tabla de Supervisores
+            function renderTablaResponsablesSemanal(supervisores) {
+                const tableId = '#tablaResponsablesSemanal';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
+                let html = '';
+                supervisores.forEach(supervisor => {
+                    html += `
+                        <tr>
+                            <td>${supervisor.team_leader}</td>
+                            <td>${supervisor['% AQL'].toFixed(2)}%</td>
+                            <td>${supervisor['% PROCESO'].toFixed(2)}%</td>
+                        </tr>`;
+                });
+                $('#tablaResponsablesSemanal tbody').html(html);
+
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
+
+            // Función para actualizar la tabla de Módulos
+            function renderTablaModulosSemanal(modulos) {
+                const tableId = '#tablaModulosSemanal';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+                
+                let html = '';
+                modulos.forEach(modulo => {
+                    html += `
+                        <tr>
+                            <td>${modulo.modulo}</td>
+                            <td>${modulo['% AQL'].toFixed(2)}%</td>
+                            <td>${modulo['% PROCESO'].toFixed(2)}%</td>
+                        </tr>`;
+                });
+                $('#tablaModulosSemanal tbody').html(html);
+
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
+
+            // Función para generar la gráfica de Clientes
+            function renderGraficaClientesSemanal(clientes) {
+                const categorias = clientes.map(c => c.cliente);
+                const dataAQL = clientes.map(c => c['% AQL']);
+                const dataProceso = clientes.map(c => c['% PROCESO']);
+
+                Highcharts.chart('graficaClientesSemanal', {
+                    chart: { type: 'column', backgroundColor: null },
+                    title: { text: 'Comparativo AQL y PROCESO - Clientes (Semana Actual)' },
+                    xAxis: { categories: categorias, crosshair: true },
+                    yAxis: { min: 0, title: { text: 'Porcentaje (%)' } },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+
+            // Función para generar la gráfica de Supervisores
+            function renderGraficaSupervisoresSemanal(supervisores) {
+                const categorias = supervisores.map(s => s.team_leader);
+                const dataAQL = supervisores.map(s => s['% AQL']);
+                const dataProceso = supervisores.map(s => s['% PROCESO']);
+
+                Highcharts.chart('graficaSupervisoresSemanal', {
+                    chart: { type: 'column', backgroundColor: null },
+                    title: { text: 'Comparativo AQL y PROCESO - Supervisores (Semana Actual)' },
+                    xAxis: { categories: categorias, crosshair: true },
+                    yAxis: { min: 0, title: { text: 'Porcentaje (%)' } },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+
+            // Función para generar la gráfica de Módulos
+            function renderGraficaModulosSemanal(modulos) {
+                const categorias = modulos.map(m => m.modulo);
+                const dataAQL = modulos.map(m => m['% AQL']);
+                const dataProceso = modulos.map(m => m['% PROCESO']);
+
+                Highcharts.chart('graficaModulosSemanal', {
+                    chart: { type: 'column', backgroundColor: null },
+                    title: { text: 'Comparativo AQL y PROCESO - Módulos (Semana Actual)' },
+                    xAxis: { categories: categorias, crosshair: true },
+                    yAxis: { min: 0, title: { text: 'Porcentaje (%)' } },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
             }
         });
     </script>
@@ -1251,243 +1446,6 @@
       });
     });
   </script>
-
-
-
-
-    <script>
-        // Configuración global de Highcharts para la fuente y estilo
-        Highcharts.setOptions({
-            chart: {
-                style: {
-                    fontFamily: 'Arial, sans-serif' // Establecer la tipografía global
-                }
-            }
-        });
-        //script para cliente por semana
-        document.addEventListener('DOMContentLoaded', function () {
-            Highcharts.chart('graficaClientesSemanal', {
-                chart: {
-                    type: 'column', // Cambiar a 'bar' si prefieres barras horizontales
-                    backgroundColor: null // Fondo transparente
-                },
-                title: {
-                    text: 'Comparativo AQL y PROCESO - Clientes (Semana Actual)'
-                },
-                xAxis: {
-                    categories: @json(array_column($clientesSemana, 'cliente')), // Lista de clientes
-                    crosshair: true
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: 'Porcentaje (%)'
-                    }
-                },
-                tooltip: {
-                    shared: true
-                },
-                plotOptions: {
-                    column: {
-                        pointPadding: 0.2,
-                        borderWidth: 0
-                    }
-                },
-                series: [{
-                    name: '% AQL',
-                    data: @json(array_column($clientesSemana, '% AQL')), // Datos de AQL
-                    color: '#00f0c1' // Color definido para AQL
-                }, {
-                    name: '% PROCESO',
-                    data: @json(array_column($clientesSemana, '% PROCESO')), // Datos de PROCESO
-                    color: '#dd4dc7' // Color definido para PROCESO
-                }]
-            });
-        });
-
-        //Supervisores por semana
-        document.addEventListener('DOMContentLoaded', function () {
-            Highcharts.chart('graficaSupervisoresSemanal', {
-                chart: {
-                    type: 'column',
-                    backgroundColor: null // Fondo transparente
-                },
-                title: {
-                    text: 'Comparativo AQL y PROCESO - Supervisores (Semana Actual)'
-                },
-                xAxis: {
-                    categories: @json(array_column($supervisoresSemana, 'team_leader')),
-                    crosshair: true
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: 'Porcentaje (%)'
-                    }
-                },
-                tooltip: {
-                    shared: true
-                },
-                plotOptions: {
-                    column: {
-                        pointPadding: 0.2,
-                        borderWidth: 0
-                    }
-                },
-                series: [{
-                    name: '% AQL',
-                    data: @json(array_column($supervisoresSemana, '% AQL')),
-                    color: '#00f0c1' // Color definido para AQL
-                }, {
-                    name: '% PROCESO',
-                    data: @json(array_column($supervisoresSemana, '% PROCESO')),
-                    color: '#dd4dc7' // Color definido para PROCESO
-
-                }]
-            });
-        });
-
-        //Modulo por semana
-        document.addEventListener('DOMContentLoaded', function () {
-            Highcharts.chart('graficaModulosSemanal', {
-                chart: {
-                    type: 'column',
-                    backgroundColor: null // Fondo transparente
-                },
-                title: {
-                    text: 'Comparativo AQL y PROCESO - Módulos (Semana Actual)'
-                },
-                xAxis: {
-                    categories: @json(array_column($modulosSemana, 'modulo')),
-                    crosshair: true
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: 'Porcentaje (%)'
-                    }
-                },
-                tooltip: {
-                    shared: true
-                },
-                plotOptions: {
-                    column: {
-                        pointPadding: 0.2,
-                        borderWidth: 0
-                    }
-                },
-                series: [{
-                    name: '% AQL',
-                    data: @json(array_column($modulosSemana, '% AQL')),
-                    color: '#00f0c1' // Color definido para AQL
-                }, {
-                    name: '% PROCESO',
-                    data: @json(array_column($modulosSemana, '% PROCESO')),
-                    color: '#dd4dc7' // Color definido para PROCESO
-                }]
-            });
-        });
-
-    </script>
-
-@endpush
-
-@push('js')
-    <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    <!-- DataTables JavaScript -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            $.fn.dataTable.ext.type.order['custom-num-pre'] = function(a) {
-                // Si es "N/A", devolver un valor que lo coloque al final
-                if (a === "N/A") return -Infinity;
-
-                // Convertir a número flotante
-                var x = parseFloat(a);
-
-                // Si no es un número válido, devolver -Infinity
-                return isNaN(x) ? -Infinity : x;
-            };
-
-            $.fn.dataTable.ext.type.order['custom-num-desc'] = function(a, b) {
-                return b - a;
-            };
-            const tableIds = ['#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaResponsables', '#tablaModulos', '#tablaResponsable', '#tablaClientes',
-                            '#tablaModulosSemanal', '#tablaResponsablesSemanal', '#tablaClientesSemanal',
-            ];
-
-            tableIds.forEach(tableId => {
-                if (!$.fn.dataTable.isDataTable(tableId)) {
-                    $(tableId).DataTable({
-                        lengthChange: false,
-                        searching: true,
-                        paging: true,
-                        pageLength: 5,
-                        autoWidth: false,
-                        responsive: true,
-                        columnDefs: [
-                            {
-                                searchable: false,
-                                orderable: false,
-                            },
-                            {
-                                targets: 0, // La primera columna (índice 0)
-                                type: "string", // Tratar como texto
-                                render: function(data, type, row) {
-                                    // Asegúrate de manejar correctamente el texto
-                                    return type === 'sort' ? data : data;
-                                }
-                            },
-                            {
-                                targets: "_all", // Todas las demás columnas numéricas
-                                type: "custom-num",  // Usar tipo personalizado
-                                render: function(data, type, row) {
-                                    // Esto ayuda a manejar la presentación de "N/A"
-                                    return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
-                                }
-                            }
-                        ],
-                        language: {
-                            "sProcessing":     "Procesando...",
-                            "sLengthMenu":     "Mostrar _MENU_ registros",
-                            "sZeroRecords":    "No se encontraron resultados",
-                            "sEmptyTable":     "Ningún dato disponible en esta tabla",
-                            "sInfo":           "Registros _START_ - _END_ de _TOTAL_ mostrados",
-                            "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
-                            "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-                            "sInfoPostFix":    "",
-                            "sSearch":         "Buscar:",
-                            "sUrl":            "",
-                            "sInfoThousands":  ",",
-                            "sLoadingRecords": "Cargando...",
-                            "oPaginate": {
-                                "sFirst":    "Primero",
-                                "sLast":     "Último",
-                                "sNext":     "Siguiente",
-                                "sPrevious": "Anterior"
-                            },
-                            "oAria": {
-                                "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-                                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                            }
-                        },
-                        initComplete: function(settings, json) {
-                            if ($('body').hasClass('dark-mode')) {
-                                $(tableId + '_wrapper').addClass('dark-mode');
-                            }
-                        }
-                    });
-                }
-            });
-        });
-    </script>
-
-
 
 
 @endpush
