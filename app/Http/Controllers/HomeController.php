@@ -49,43 +49,92 @@ class HomeController extends Controller
         $user = Auth::user();
         if ($user->hasRole('Administrador') || $user->hasRole('Gerente de Calidad')) {
 
-            function calcularPorcentaje($modelo, $fecha, $planta = null) {
-                $query = $modelo::whereDate('created_at', $fecha);
-                if ($planta) {
-                    $query->where('planta', $planta);
+            // Consulta consolidada (una sola ejecución para las dos tablas)
+            $resultados = Cache::remember('resultados_consolidados_'.$fechaActual, 60, function() use ($fechaActual) {
+                $generalAseguramiento = DB::table('aseguramientos_calidad')
+                    ->selectRaw("
+                        'Proceso' as tipo,
+                        'General' as planta,
+                        SUM(cantidad_auditada) as cantidad_auditada,
+                        SUM(cantidad_rechazada) as cantidad_rechazada
+                    ")
+                    ->whereDate('created_at', $fechaActual);
+            
+                $generalAQL = DB::table('auditoria_aql')
+                    ->selectRaw("
+                        'AQL' as tipo,
+                        'General' as planta,
+                        SUM(cantidad_auditada) as cantidad_auditada,
+                        SUM(cantidad_rechazada) as cantidad_rechazada
+                    ")
+                    ->whereDate('created_at', $fechaActual);
+            
+                $aseguramientoPorPlanta = DB::table('aseguramientos_calidad')
+                    ->selectRaw("
+                        'Proceso' as tipo,
+                        COALESCE(planta, 'General') as planta,
+                        SUM(cantidad_auditada) as cantidad_auditada,
+                        SUM(cantidad_rechazada) as cantidad_rechazada
+                    ")
+                    ->whereDate('created_at', $fechaActual)
+                    ->groupBy('planta');
+            
+                $aqlPorPlanta = DB::table('auditoria_aql')
+                    ->selectRaw("
+                        'AQL' as tipo,
+                        COALESCE(planta, 'General') as planta,
+                        SUM(cantidad_auditada) as cantidad_auditada,
+                        SUM(cantidad_rechazada) as cantidad_rechazada
+                    ")
+                    ->whereDate('created_at', $fechaActual)
+                    ->groupBy('planta');
+            
+                return $generalAseguramiento
+                    ->unionAll($generalAQL)
+                    ->unionAll($aseguramientoPorPlanta)
+                    ->unionAll($aqlPorPlanta)
+                    ->get();
+            });
+            
+            
+            // Inicializamos variables
+            $generalProceso = $generalAQL = 0;
+            $generalProcesoPlanta1 = $generalProcesoPlanta2 = 0;
+            $generalAQLPlanta1 = $generalAQLPlanta2 = 0;
+
+            // Recorrer resultados y asignar valores
+            foreach ($resultados as $item) {
+                if ($item->tipo == 'Proceso') { // AseguramientoCalidad
+                    if ($item->planta == 'General') {
+                        $generalProceso = $item->cantidad_auditada != 0 
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                            : 0;
+                    } elseif ($item->planta == 'Intimark1') {
+                        $generalProcesoPlanta1 = $item->cantidad_auditada != 0 
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                            : 0;
+                    } elseif ($item->planta == 'Intimark2') {
+                        $generalProcesoPlanta2 = $item->cantidad_auditada != 0 
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                            : 0;
+                    }
+                } elseif ($item->tipo == 'AQL') { // AuditoriaAQL
+                    if ($item->planta == 'General') {
+                        $generalAQL = $item->cantidad_auditada != 0 
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                            : 0;
+                    } elseif ($item->planta == 'Intimark1') {
+                        $generalAQLPlanta1 = $item->cantidad_auditada != 0 
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                            : 0;
+                    } elseif ($item->planta == 'Intimark2') {
+                        $generalAQLPlanta2 = $item->cantidad_auditada != 0 
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                            : 0;
+                    }
                 }
-                $data = $query->selectRaw('SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada')
-                              ->first();
-                return $data->cantidad_auditada != 0 ? number_format(($data->cantidad_rechazada / $data->cantidad_auditada) * 100, 2) : 0;
             }
-        
-            // Información General - Consultas del día actual (cache 1 hora = 60 min)
-            $generalProceso = Cache::remember('generalProceso_'.$fechaActual, 60, function() use ($fechaActual) {
-                return calcularPorcentaje(AseguramientoCalidad::class, $fechaActual);
-            });
-        
-            $generalAQL = Cache::remember('generalAQL_'.$fechaActual, 60, function() use ($fechaActual) {
-                return calcularPorcentaje(AuditoriaAQL::class, $fechaActual);
-            });
-        
-            // Planta 1 Ixtlahuaca - Consultas del día actual (1 hora)
-            $generalProcesoPlanta1 = Cache::remember('generalProcesoPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
-                return calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark1');
-            });
-        
-            $generalAQLPlanta1 = Cache::remember('generalAQLPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
-                return calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark1');
-            });
-        
-            // Planta 2 San Bartolo - Consultas del día actual (1 hora)
-            $generalProcesoPlanta2 = Cache::remember('generalProcesoPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
-                return calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark2');
-            });
-        
-            $generalAQLPlanta2 = Cache::remember('generalAQLPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
-                return calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark2');
-            });
-        
+
             // Nueva consulta para obtener datos por fecha - No es una consulta a BD, solo genera fechas
             $fechas = collect();
             $period = Carbon::parse($fechaInicio)->daysUntil(Carbon::parse($fechaFin));
@@ -94,17 +143,9 @@ class HomeController extends Controller
             }
         
             // Rango de fechas (5 horas = 300 min)
-            $porcentajesAQL = Cache::remember('porcentajesAQL_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechas) {
-                return $fechas->map(function($fecha) {
-                    return calcularPorcentaje(AuditoriaAQL::class, $fecha);
-                });
-            });
+            $porcentajesAQL = $generalAQL;
         
-            $porcentajesProceso = Cache::remember('porcentajesProceso_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechas) {
-                return $fechas->map(function($fecha) {
-                    return calcularPorcentaje(AseguramientoCalidad::class, $fecha);
-                });
-            });
+            $porcentajesProceso = $generalProceso;
         
             // Obtención y cálculo de datos generales para AQL y Proceso (Consultas del día actual - 1 hora)
             $dataGerentesAQLGeneral = Cache::remember('dataGerentesAQLGeneral_'.$fechaActual, 60, function() use ($fechaActual) {
