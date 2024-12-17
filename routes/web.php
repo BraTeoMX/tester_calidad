@@ -307,7 +307,8 @@ Route::post('/altaYbaja/gestion-utility', [AltaYBajaController::class, 'crearUti
 Route::post('/altaYbaja/gestion-responsable', [AltaYBajaController::class, 'crearResponsable'])->name('crearResponsable');
 Route::post('/altaYbaja/gestion-tecnico', [AltaYBajaController::class, 'crearTecnico'])->name('crearTecnico');
 Route::post('/actualizarClientesPorcentajes', [AltaYBajaController::class, 'actualizarClientesPorcentajes'])->name('actualizarClientesPorcentajes');
-
+//ajax para mostrar dato en dashboard principal
+Route::get('/dashboard-data-dia', [HomeController::class, 'getDashboardDataDia'])->name('dashboard.dataDia')->middleware('auth');
 //Segundas
 Route::get('/SegundasTerceras',[HomeController::class, 'SegundasTerceras']);
 Route::get('/Segundas', [Segundas::class, 'Segundas']);

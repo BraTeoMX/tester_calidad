@@ -220,35 +220,6 @@ class HomeController extends Controller
             })->toArray();
         
             //apartado para mostrar datos de gerente de producción, en este caso por dia AseguramientoCalidad y AuditoriaAQL
-            // Obtención y cálculo de datos generales para AQL y Proceso (Consultas del día actual - 1 hora)
-            $dataModuloAQLGeneral = Cache::remember('dataModuloAQLGeneral_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataModuloAQL($fechaActual);
-            });
-        
-            $dataModuloProcesoGeneral = Cache::remember('dataModuloProcesoGeneral_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataModuloProceso($fechaActual);
-            });
-        
-            // Obtención y cálculo de datos por planta para Auditoria AQL (Consultas del día actual - 1 hora)
-            $dataModuloAQLPlanta1 = Cache::remember('dataModuloAQLPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataModuloAQL($fechaActual, 'Intimark1');
-            });
-        
-            $dataModuloAQLPlanta2 = Cache::remember('dataModuloAQLPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataModuloAQL($fechaActual, 'Intimark2');
-            });
-        
-            // Obtención y cálculo de datos por planta para Aseguramiento Calidad (Consultas del día actual - 1 hora)
-            $dataModuloProcesoPlanta1 = Cache::remember('dataModuloProcesoPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataModuloProceso($fechaActual, 'Intimark1');
-            });
-        
-            $dataModuloProcesoPlanta2 = Cache::remember('dataModuloProcesoPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataModuloProceso($fechaActual, 'Intimark2');
-            });
-        
-            // Combinar los datos (No es consulta a BD)
-            $dataModulosGeneral = $this->combineDataModulos($dataModuloAQLGeneral, $dataModuloProcesoGeneral);
         
             // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO' (Rango de fechas - 5 horas)
             $topDefectosAQL = Cache::remember('topDefectosAQL_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechaInicio, $fechaFin) {
@@ -328,12 +299,9 @@ class HomeController extends Controller
         
             return view('dashboard', compact(
                 'title', 'topDefectosAQL', 'topDefectosProceso',
-                'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2', 'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2',
-                'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
                 'dataGerentesAQLGeneral', 'dataGerentesProcesoGeneral', 'dataGerentesAQLPlanta1', 'dataGerentesAQLPlanta2', 'dataGerentesProcesoPlanta1', 'dataGerentesProcesoPlanta2',
                 'generalProceso', 'generalAQL', 'generalAQLPlanta1', 'generalAQLPlanta2','generalProcesoPlanta1', 'generalProcesoPlanta2',
                 'dataGeneral', 'dataPlanta1', 'dataPlanta2',
-                'dataGerentesGeneral', 'dataModulosGeneral',
                 'fechas', 'porcentajesAQL', 'porcentajesProceso',
                 'fechasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica',
                 'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica',
@@ -1044,4 +1012,93 @@ class HomeController extends Controller
 
         return $resultados;
     }
+
+    public function getDashboardDataDia()
+    {
+        $fechaActual = Carbon::now()->toDateString();
+
+        // Cacheamos los datos del día actual por 5 minutos
+        $datosDia = Cache::remember('datosDia_' . $fechaActual, 3600, function () use ($fechaActual) {
+            return $this->calcularPorcentajesDia($fechaActual);
+        });
+
+        return response()->json($datosDia);
+    }
+
+    private function calcularPorcentajesDia($fechaActual)
+    {
+        // Consultas para Clientes, Supervisores y Módulos
+        $clientesAQL = AuditoriaAQL::select('cliente',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereDate('created_at', $fechaActual)
+            ->groupBy('cliente')
+            ->get();
+
+        $clientesProceso = AseguramientoCalidad::select('cliente',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereDate('created_at', $fechaActual)
+            ->groupBy('cliente')
+            ->get();
+
+        $supervisoresAQL = AuditoriaAQL::select('team_leader',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereDate('created_at', $fechaActual)
+            ->groupBy('team_leader')
+            ->get();
+
+        $supervisoresProceso = AseguramientoCalidad::select('team_leader',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereDate('created_at', $fechaActual)
+            ->groupBy('team_leader')
+            ->get();
+
+        $modulosAQL = AuditoriaAQL::select('modulo',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereDate('created_at', $fechaActual)
+            ->groupBy('modulo')
+            ->get();
+
+        $modulosProceso = AseguramientoCalidad::select('modulo',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereDate('created_at', $fechaActual)
+            ->groupBy('modulo')
+            ->get();
+
+        // Formatear resultados
+        $clientes = $this->formatearResultadosDia($clientesAQL, $clientesProceso, 'cliente');
+        $supervisores = $this->formatearResultadosDia($supervisoresAQL, $supervisoresProceso, 'team_leader');
+        $modulos = $this->formatearResultadosDia($modulosAQL, $modulosProceso, 'modulo');
+
+        return [
+            'clientes' => $clientes,
+            'supervisores' => $supervisores,
+            'modulos' => $modulos,
+        ];
+    }
+
+    private function formatearResultadosDia($datosAQL, $datosProceso, $campo)
+    {
+        $resultados = [];
+
+        foreach ($datosAQL as $itemAQL) {
+            $resultados[$itemAQL->$campo]['% AQL'] = $itemAQL->total_auditada != 0
+                ? ($itemAQL->total_rechazada / $itemAQL->total_auditada) * 100
+                : 0;
+        }
+
+        foreach ($datosProceso as $itemProceso) {
+            $resultados[$itemProceso->$campo]['% PROCESO'] = $itemProceso->total_auditada != 0
+                ? ($itemProceso->total_rechazada / $itemProceso->total_auditada) * 100
+                : 0;
+        }
+
+        return $resultados;
+    }
+
 }

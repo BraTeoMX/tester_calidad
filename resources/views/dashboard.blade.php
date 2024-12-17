@@ -95,19 +95,15 @@
                                 </tr>
                             </thead>
                             <tbody>
-                              @foreach ($dataGeneral['dataCliente'] as $clienteData)
-                              <tr class="{{ $clienteData['porcentajeErrorProceso'] > 9 && $clienteData['porcentajeErrorProceso'] <= 15 ? 'error-bajo' : ($clienteData['porcentajeErrorProceso'] > 15 ? 'error-alto' : '') }}">
-                                <td>{{ $clienteData['cliente'] }}</td>
-                                <td>{{ number_format($clienteData['porcentajeErrorAQL'], 2) }}%</td>
-                                <td>{{ number_format($clienteData['porcentajeErrorProceso'], 2) }}%</td>
-                              </tr>
-                              @endforeach
+
                             </tbody>
-                            <tr style="background: #1d1c1c;">
-                              <td>GENERAL</td>
-                              <td>{{ number_format($generalAQL, 2) }}%</td>
-                              <td>{{ number_format($generalProceso, 2) }}%</td>
-                            </tr>
+                            <tfoot>
+                                <tr style="background: #1d1c1c;">
+                                <td>GENERAL</td>
+                                <td>{{ number_format($generalAQL, 2) }}%</td>
+                                <td>{{ number_format($generalProceso, 2) }}%</td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -130,13 +126,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($dataGerentesGeneral as $item)
-                                    <tr>
-                                        <td>{{ $item['team_leader'] }}</td>
-                                        <td>{{ $item['porcentaje_error_aql'] !== null ? number_format($item['porcentaje_error_aql'], 2) . '%' : 'N/A' }}</td>
-                                        <td>{{ $item['porcentaje_error_proceso'] !== null ? number_format($item['porcentaje_error_proceso'], 2) . '%' : 'N/A' }}</td>
-                                    </tr>
-                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -160,13 +149,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($dataModulosGeneral as $item)
-                                    <tr>
-                                        <td>{{ $item['modulo'] }}</td>
-                                        <td>{{ $item['porcentaje_error_aql'] !== null ? number_format($item['porcentaje_error_aql'], 2) . '%' : 'N/A' }}</td>
-                                        <td>{{ $item['porcentaje_error_proceso'] !== null ? number_format($item['porcentaje_error_proceso'], 2) . '%' : 'N/A' }}</td>
-                                    </tr>
-                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -175,83 +157,6 @@
         </div>
     </div>
 
-
-    <div class="row">
-        <div class="col-lg-6 col-md-12">
-            <div class="card ">
-                <div class="card-header card-header-success card-header-icon">
-                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general</h3>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table tablesorter" id="tablaAQLGeneral">
-                            <thead class=" text-primary">
-                                <tr>
-                                    <th>Modulo (AQL)</th>
-                                    <th>Numero de Operarios</th>
-                                    <th>Cantidad Paro</th>
-                                    <th>Minutos Paro</th>
-                                    <th>Promedio Minutos Paro</th>
-                                    <th>Cantidad Paro Modular</th>
-                                    <th>% AQL</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($dataModuloAQLGeneral as $item)
-                                    <tr>
-                                        <td>{{ $item['modulo'] }}</td>
-                                        <td>{{ $item['conteoOperario'] }}</td>
-                                        <td>{{ $item['conteoMinutos'] }}</td>
-                                        <td>{{ $item['sumaMinutos'] }}</td>
-                                        <td>{{ $item['promedioMinutosEntero'] }}</td>
-                                        <td>{{ $item['conteParoModular'] }}</td>
-                                        <td>{{ number_format($item['porcentaje_error_aql'], 2) }}%</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6 col-md-12">
-            <div class="card ">
-                <div class="card-header card-header-success card-header-icon">
-                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general</h3>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table tablesorter" id="tablaProcesoGeneral">
-                            <thead class=" text-primary">
-                                <tr>
-                                    <th>Modulo (Proceso)</th>
-                                    <th>Numero de Operarios</th>
-                                    <th>Numero de Utility</th>
-                                    <th>Cantidad Paro</th>
-                                    <th>Minutos Paro</th>
-                                    <th>Promedio Minutos Paro</th>
-                                    <th>% Proceso</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($dataModuloProcesoGeneral as $item)
-                                    <tr>
-                                        <td>{{ $item['modulo'] }}</td>
-                                        <td>{{ $item['conteoOperario'] }}</td>
-                                        <td>{{ $item['conteoUtility'] }}</td>
-                                        <td>{{ $item['conteoMinutos'] }}</td>
-                                        <td>{{ $item['sumaMinutos'] }}</td>
-                                        <td>{{ $item['promedioMinutosEntero'] }}</td>
-                                        <td>{{ number_format($item['porcentaje_error_proceso'], 2) }}%</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="row">
         <div class="col-lg-4">
@@ -593,6 +498,180 @@
     <script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
     <script src="https://code.highcharts.com/modules/export-data.js"></script>
     <script src="{{ asset('js/highcharts/dark-unica.js') }}"></script>
+
+    <script>
+        $(document).ready(function () {
+            fetchDataDia();
+    
+            function fetchDataDia() {
+                $.ajax({
+                    url: "{{ route('dashboard.dataDia') }}",
+                    type: "GET",
+                    success: function (data) {
+                        renderTablaClientes(data.clientes);
+                        renderTablaSupervisores(data.supervisores);
+                        renderTablaModulos(data.modulos);
+    
+                        // Llamar funciones para generar las gráficas
+                        renderGraficaClientes(data.clientes);
+                        renderGraficaSupervisores(data.supervisores);
+                        renderGraficaModulos(data.modulos);
+                    },
+                    error: function () {
+                        alert('Error al cargar los datos del día.');
+                    }
+                });
+            }
+
+            // Configuración global de Highcharts
+            Highcharts.setOptions({
+                chart: {
+                    style: {
+                        fontFamily: 'Arial, sans-serif' // Tipografía global
+                    }
+                },
+                tooltip: {
+                    shared: true, // Tooltip combinado
+                    formatter: function () {
+                        let tooltip = `<b>${this.x}</b><br/>`;
+                        this.points.forEach(point => {
+                            tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                        });
+                        return tooltip;
+                    },
+                    backgroundColor: '#000000', // Fondo negro
+                    style: { color: '#ffffff' } // Texto blanco
+                },
+                plotOptions: {
+                    column: {
+                        pointPadding: 0.2,
+                        borderWidth: 0
+                    },
+                    series: {
+                        cursor: 'pointer',
+                        states: {
+                            hover: {
+                                enabled: true,
+                                brightness: 0.1 // Iluminación al pasar el mouse
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Función para generar gráfica de Clientes
+            function renderGraficaClientes(clientes) {
+                const categorias = Object.keys(clientes);
+                const dataAQL = categorias.map(c => clientes[c]['% AQL'] || 0);
+                const dataProceso = categorias.map(c => clientes[c]['% PROCESO'] || 0);
+
+                Highcharts.chart('graficaClientePorDia', {
+                    chart: { type: 'column', backgroundColor: null },
+                    title: { text: 'Comparativo AQL y PROCESO - Clientes (Día Actual)' },
+                    xAxis: {
+                        categories: categorias,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: { text: 'Porcentaje (%)' }
+                    },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+
+            // Función para generar gráfica de Supervisores
+            function renderGraficaSupervisores(supervisores) {
+                const categorias = Object.keys(supervisores);
+                const dataAQL = categorias.map(c => supervisores[c]['% AQL'] || 0);
+                const dataProceso = categorias.map(c => supervisores[c]['% PROCESO'] || 0);
+
+                Highcharts.chart('graficaSupervisorPorDia', {
+                    chart: { type: 'column', backgroundColor: null },
+                    title: { text: 'Comparativo AQL y PROCESO - Supervisores (Día Actual)' },
+                    xAxis: {
+                        categories: categorias,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: { text: 'Porcentaje (%)' }
+                    },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+
+            // Función para generar gráfica de Módulos
+            function renderGraficaModulos(modulos) {
+                const categorias = Object.keys(modulos);
+                const dataAQL = categorias.map(c => modulos[c]['% AQL'] || 0);
+                const dataProceso = categorias.map(c => modulos[c]['% PROCESO'] || 0);
+
+                Highcharts.chart('graficaModuloPorDia', {
+                    chart: { type: 'column', backgroundColor: null },
+                    title: { text: 'Comparativo AQL y PROCESO - Módulos (Día Actual)' },
+                    xAxis: {
+                        categories: categorias,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: { text: 'Porcentaje (%)' }
+                    },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+            
+            // Funciones para llenar las tablas (Ya las tienes implementadas)
+            function renderTablaClientes(clientes) {
+                let html = '';
+                $.each(clientes, function (cliente, valores) {
+                    html += `
+                        <tr>
+                            <td>${cliente}</td>
+                            <td>${valores['% AQL'] ? valores['% AQL'].toFixed(2) + '%' : '0%'}</td>
+                            <td>${valores['% PROCESO'] ? valores['% PROCESO'].toFixed(2) + '%' : '0%'}</td>
+                        </tr>`;
+                });
+                $('#tablaClientes tbody').html(html);
+            }
+    
+            function renderTablaSupervisores(supervisores) {
+                let html = '';
+                $.each(supervisores, function (supervisor, valores) {
+                    html += `
+                        <tr>
+                            <td>${supervisor}</td>
+                            <td>${valores['% AQL'] ? valores['% AQL'].toFixed(2) + '%' : '0%'}</td>
+                            <td>${valores['% PROCESO'] ? valores['% PROCESO'].toFixed(2) + '%' : '0%'}</td>
+                        </tr>`;
+                });
+                $('#tablaResponsables tbody').html(html);
+            }
+    
+            function renderTablaModulos(modulos) {
+                let html = '';
+                $.each(modulos, function (modulo, valores) {
+                    html += `
+                        <tr>
+                            <td>${modulo}</td>
+                            <td>${valores['% AQL'] ? valores['% AQL'].toFixed(2) + '%' : '0%'}</td>
+                            <td>${valores['% PROCESO'] ? valores['% PROCESO'].toFixed(2) + '%' : '0%'}</td>
+                        </tr>`;
+                });
+                $('#tablaModulos tbody').html(html);
+            }
+        });
+    </script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -1304,142 +1383,6 @@
                 }, {
                     name: '% PROCESO',
                     data: @json(array_column($modulosSemana, '% PROCESO')),
-                    color: '#dd4dc7' // Color definido para PROCESO
-                }]
-            });
-        });
-
-    </script>
-
-    <script>
-        //misma grafica pero ahora por dia
-        // Configuración global de Highcharts para la fuente y estilo
-        Highcharts.setOptions({
-            chart: {
-                style: {
-                    fontFamily: 'Arial, sans-serif' // Establecer la tipografía global
-                }
-            }
-        });
-
-        // Script para Clientes por día
-        document.addEventListener('DOMContentLoaded', function () {
-            Highcharts.chart('graficaClientePorDia', {
-                chart: {
-                    type: 'column',
-                    backgroundColor: null // Fondo transparente
-                },
-                title: {
-                    text: 'Comparativo AQL y PROCESO - Clientes (Día Actual)'
-                },
-                xAxis: {
-                    categories: @json(array_column($dataGeneral['dataCliente'], 'cliente')), // Lista de clientes
-                    crosshair: true
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: 'Porcentaje (%)'
-                    }
-                },
-                tooltip: {
-                    shared: true
-                },
-                plotOptions: {
-                    column: {
-                        pointPadding: 0.2,
-                        borderWidth: 0
-                    }
-                },
-                series: [{
-                    name: '% AQL',
-                    data: @json(array_column($dataGeneral['dataCliente'], 'porcentajeErrorAQL')), // Datos de AQL
-                    color: '#00f0c1' // Color definido para AQL
-                }, {
-                    name: '% PROCESO',
-                    data: @json(array_column($dataGeneral['dataCliente'], 'porcentajeErrorProceso')), // Datos de PROCESO
-                    color: '#dd4dc7' // Color definido para PROCESO
-                }]
-            });
-        });
-
-        // Script para Supervisores por día
-        document.addEventListener('DOMContentLoaded', function () {
-            Highcharts.chart('graficaSupervisorPorDia', {
-                chart: {
-                    type: 'column',
-                    backgroundColor: null // Fondo transparente
-                },
-                title: {
-                    text: 'Comparativo AQL y PROCESO - Supervisores (Día Actual)'
-                },
-                xAxis: {
-                    categories: @json(array_column($dataGerentesGeneral, 'team_leader')), // Lista de supervisores
-                    crosshair: true
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: 'Porcentaje (%)'
-                    }
-                },
-                tooltip: {
-                    shared: true
-                },
-                plotOptions: {
-                    column: {
-                        pointPadding: 0.2,
-                        borderWidth: 0
-                    }
-                },
-                series: [{
-                    name: '% AQL',
-                    data: @json(array_column($dataGerentesGeneral, 'porcentaje_error_aql')), // Datos de AQL
-                    color: '#00f0c1' // Color definido para AQL
-                }, {
-                    name: '% PROCESO',
-                    data: @json(array_column($dataGerentesGeneral, 'porcentaje_error_proceso')), // Datos de PROCESO
-                    color: '#dd4dc7' // Color definido para PROCESO
-                }]
-            });
-        });
-
-        // Script para Módulos por día
-        document.addEventListener('DOMContentLoaded', function () {
-            Highcharts.chart('graficaModuloPorDia', {
-                chart: {
-                    type: 'column',
-                    backgroundColor: null // Fondo transparente
-                },
-                title: {
-                    text: 'Comparativo AQL y PROCESO - Módulos (Día Actual)'
-                },
-                xAxis: {
-                    categories: @json(array_column($dataModulosGeneral, 'modulo')), // Lista de módulos
-                    crosshair: true
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: 'Porcentaje (%)'
-                    }
-                },
-                tooltip: {
-                    shared: true
-                },
-                plotOptions: {
-                    column: {
-                        pointPadding: 0.2,
-                        borderWidth: 0
-                    }
-                },
-                series: [{
-                    name: '% AQL',
-                    data: @json(array_column($dataModulosGeneral, 'porcentaje_error_aql')), // Datos de AQL
-                    color: '#00f0c1' // Color definido para AQL
-                }, {
-                    name: '% PROCESO',
-                    data: @json(array_column($dataModulosGeneral, 'porcentaje_error_proceso')), // Datos de PROCESO
                     color: '#dd4dc7' // Color definido para PROCESO
                 }]
             });
