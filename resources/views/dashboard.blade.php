@@ -271,16 +271,10 @@
                                 <label class="btn btn-sm btn-primary btn-simple active" id="cliente0">
                                     <input type="radio" name="clienteOptions" checked>
                                     <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-single-02"></i>
-                                    </span>
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="cliente1">
-                                    <input type="radio" class="d-none d-sm-none" name="clienteOptions">
+                                    <input type="radio" name="clienteOptions">
                                     <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Proceso</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-gift-2"></i>
-                                    </span>
                                 </label>
                             </div>
                         </div>
@@ -923,8 +917,23 @@
                     success: function (data) {
                         chartAQL = renderGraficaPorCliente(data, 'AQL', 'clienteChartAQL');
                         chartProceso = renderGraficaPorCliente(data, 'PROCESO', 'clienteChartProcesos');
+
+                        // Inicialización de la vista
                         $('#clienteChartAQL').show();
                         $('#clienteChartProcesos').hide();
+
+                        // Botones dinámicos para cambiar de gráfico
+                        $('#cliente0').on('click', function () {
+                            $('#clienteChartAQL').show();
+                            $('#clienteChartProcesos').hide();
+                            chartAQL.reflow();
+                        });
+
+                        $('#cliente1').on('click', function () {
+                            $('#clienteChartAQL').hide();
+                            $('#clienteChartProcesos').show();
+                            chartProceso.reflow();
+                        });
                     },
                     error: function () {
                         alert('Error al cargar los datos mensuales por cliente.');
@@ -935,16 +944,18 @@
             function renderGraficaPorCliente(data, tipo, containerId) {
                 const series = [];
 
+                // Configuración de las series con datos
                 Object.keys(data).forEach(cliente => {
                     const valores = data[cliente].map(item => item[tipo]);
                     series.push({
                         name: cliente,
                         data: valores,
-                        type: 'spline',
+                        type: 'spline', // Gráfica curva
                         marker: { enabled: false }
                     });
                 });
 
+                // Generar la gráfica
                 const chart = Highcharts.chart(containerId, {
                     chart: {
                         backgroundColor: null,
@@ -952,7 +963,7 @@
                             load: function () {
                                 const chart = this;
 
-                                // Crear botón personalizado
+                                // Crear botón interno en la gráfica
                                 chart.renderer.button('Mostrar/Ocultar Todo', 10, 10)
                                     .attr({
                                         zIndex: 3,
@@ -1000,17 +1011,18 @@
                         }
                     },
                     plotOptions: {
-                        line: { lineWidth: 2 }
+                        spline: {
+                            lineWidth: 2
+                        }
                     },
                     legend: {
-                        enabled: true // Mostrar leyenda para interactividad
+                        enabled: true
                     },
                     series: series
                 });
 
                 return chart;
             }
-
         });
 
     </script>

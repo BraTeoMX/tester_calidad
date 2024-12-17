@@ -312,6 +312,7 @@ Route::get('/dashboard-data-dia', [HomeController::class, 'getDashboardDataDia']
 Route::get('/dashboard-data-semana', [HomeController::class, 'getDashboardDataSemana'])->name('dashboard.dataSemana')->middleware('auth');
 Route::get('/dashboard-mensual-general', [HomeController::class, 'getMensualGeneral'])->name('dashboard.mensualGeneral')->middleware('auth');
 Route::get('/dashboard/mensual-por-cliente', [HomeController::class, 'getMensualPorCliente'])->name('dashboard.mensualPorCliente');
+Route::get('/dashboard/mensualPorModulo', [HomeController::class, 'getMensualPorModulo'])->name('dashboard.mensualPorModulo');
 
 
 //Segundas
