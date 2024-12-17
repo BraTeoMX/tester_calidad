@@ -831,6 +831,57 @@ class HomeController extends Controller
     }
 
 
+    public function getMensualPorCliente()
+    {
+        $fechaFin = Carbon::now()->toDateString();
+        $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
+
+        $fechas = CarbonPeriod::create($fechaInicio, $fechaFin); // Rango de fechas
+        $clientes = DB::table('auditoria_aql')->distinct()->pluck('cliente');
+
+        $datos = [];
+
+        foreach ($clientes as $cliente) {
+            $dataPorCliente = [];
+
+            foreach ($fechas as $fecha) {
+                $fechaLog = $fecha->toDateString();
+
+                // Consulta para AQL
+                $aql = DB::table('auditoria_aql')
+                    ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
+                    ->where('cliente', $cliente)
+                    ->whereDate('created_at', $fechaLog)
+                    ->first();
+
+                // Consulta para PROCESO
+                $proceso = DB::table('aseguramientos_calidad')
+                    ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
+                    ->where('cliente', $cliente)
+                    ->whereDate('created_at', $fechaLog)
+                    ->first();
+
+                $porcentajeAQL = $aql->cantidad_auditada > 0 
+                    ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2)
+                    : 0;
+
+                $porcentajeProceso = $proceso->cantidad_auditada > 0 
+                    ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2)
+                    : 0;
+
+                $dataPorCliente[] = [
+                    'dia' => $fecha->format('j'),
+                    'AQL' => $porcentajeAQL,
+                    'PROCESO' => $porcentajeProceso
+                ];
+            }
+
+            $datos[$cliente] = $dataPorCliente;
+        }
+
+        return response()->json($datos);
+    }
+
 
 
 }

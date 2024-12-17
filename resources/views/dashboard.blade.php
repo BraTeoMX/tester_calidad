@@ -256,6 +256,7 @@
             </div>
         </div>
     </div>
+    
     <!-- Graficas -->
     <div class="row">
         <div class="col-12">
@@ -279,13 +280,6 @@
                                     <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Proceso</span>
                                     <span class="d-block d-sm-none">
                                         <i class="tim-icons icon-gift-2"></i>
-                                    </span>
-                                </label>
-                                <label class="btn btn-sm btn-primary btn-simple" id="toggleAll">
-                                    <input type="checkbox" name="toggleAllOptions">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Mostrar/Ocultar Todo</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-bullet-list-67"></i>
                                     </span>
                                 </label>
                             </div>
@@ -914,6 +908,111 @@
                 });
             }
         });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            fetchMensualPorCliente();
+
+            let chartAQL, chartProceso;
+
+            function fetchMensualPorCliente() {
+                $.ajax({
+                    url: "{{ route('dashboard.mensualPorCliente') }}",
+                    type: "GET",
+                    success: function (data) {
+                        chartAQL = renderGraficaPorCliente(data, 'AQL', 'clienteChartAQL');
+                        chartProceso = renderGraficaPorCliente(data, 'PROCESO', 'clienteChartProcesos');
+                        $('#clienteChartAQL').show();
+                        $('#clienteChartProcesos').hide();
+                    },
+                    error: function () {
+                        alert('Error al cargar los datos mensuales por cliente.');
+                    }
+                });
+            }
+
+            function renderGraficaPorCliente(data, tipo, containerId) {
+                const series = [];
+
+                Object.keys(data).forEach(cliente => {
+                    const valores = data[cliente].map(item => item[tipo]);
+                    series.push({
+                        name: cliente,
+                        data: valores,
+                        type: 'spline',
+                        marker: { enabled: false }
+                    });
+                });
+
+                const chart = Highcharts.chart(containerId, {
+                    chart: {
+                        backgroundColor: null,
+                        events: {
+                            load: function () {
+                                const chart = this;
+
+                                // Crear botón personalizado
+                                chart.renderer.button('Mostrar/Ocultar Todo', 10, 10)
+                                    .attr({
+                                        zIndex: 3,
+                                        fill: '#007bff', // Color del botón
+                                        stroke: '#0056b3',
+                                        'stroke-width': 1,
+                                        padding: 5,
+                                        r: 5, // Bordes redondeados
+                                        style: {
+                                            color: '#ffffff',
+                                            cursor: 'pointer'
+                                        }
+                                    })
+                                    .on('click', function () {
+                                        // Alternar visibilidad de todas las series
+                                        const allVisible = chart.series.every(s => s.visible);
+                                        chart.series.forEach(series => {
+                                            series.setVisible(!allVisible, false);
+                                        });
+                                        chart.redraw();
+                                    })
+                                    .add();
+                            }
+                        }
+                    },
+                    title: {
+                        text: `Indicador Mensual por Cliente - ${tipo}`
+                    },
+                    xAxis: {
+                        categories: Array.from({ length: data[Object.keys(data)[0]].length }, (_, i) => i + 1),
+                        title: { text: 'Días del Mes' }
+                    },
+                    yAxis: {
+                        title: { text: 'Porcentaje (%)' },
+                        min: 0
+                    },
+                    tooltip: {
+                        shared: true,
+                        formatter: function () {
+                            let tooltip = `<b>Día ${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        }
+                    },
+                    plotOptions: {
+                        line: { lineWidth: 2 }
+                    },
+                    legend: {
+                        enabled: true // Mostrar leyenda para interactividad
+                    },
+                    series: series
+                });
+
+                return chart;
+            }
+
+        });
+
     </script>
 
     <script>
