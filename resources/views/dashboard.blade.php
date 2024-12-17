@@ -289,6 +289,7 @@
             </div>
         </div>
     </div>
+    <!-- Gráficas de Módulo -->
     <div class="row">
         <div class="col-12">
             <div class="card card-chart">
@@ -301,24 +302,11 @@
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
                                 <label class="btn btn-sm btn-primary btn-simple active" id="modulo0">
                                     <input type="radio" name="moduloOptions" checked>
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-single-02"></i>
-                                    </span>
+                                    <span class="d-none d-sm-block">AQL</span>
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="modulo1">
-                                    <input type="radio" class="d-none d-sm-none" name="moduloOptions">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Proceso</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-gift-2"></i>
-                                    </span>
-                                </label>
-                                <label class="btn btn-sm btn-primary btn-simple" id="toggleAllModulos">
-                                    <input type="checkbox" name="toggleAllModulosOptions">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Mostrar/Ocultar Todo</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-bullet-list-67"></i>
-                                    </span>
+                                    <input type="radio" name="moduloOptions">
+                                    <span class="d-none d-sm-block">Proceso</span>
                                 </label>
                             </div>
                         </div>
@@ -333,6 +321,7 @@
             </div>
         </div>
     </div>
+
 
     <div class="row">
         <div class="col-lg-4">
@@ -1018,6 +1007,122 @@
                     legend: {
                         enabled: true
                     },
+                    series: series
+                });
+
+                return chart;
+            }
+        });
+
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            fetchMensualPorModulo();
+
+            let chartAQLModulo, chartProcesoModulo;
+
+            function fetchMensualPorModulo() {
+                $.ajax({
+                    url: "{{ route('dashboard.mensualPorModulo') }}",
+                    type: "GET",
+                    success: function (data) {
+                        chartAQLModulo = renderGraficaPorModulo(data, 'AQL', 'moduloChartAQL');
+                        chartProcesoModulo = renderGraficaPorModulo(data, 'PROCESO', 'moduloChartProcesos');
+
+                        // Inicialización: mostrar AQL, ocultar Proceso
+                        $('#moduloChartAQL').show();
+                        $('#moduloChartProcesos').hide();
+
+                        // Botones externos para alternar entre AQL y PROCESO
+                        $('#modulo0').on('click', function () {
+                            $('#moduloChartAQL').show();
+                            $('#moduloChartProcesos').hide();
+                            chartAQLModulo.reflow();
+                        });
+
+                        $('#modulo1').on('click', function () {
+                            $('#moduloChartAQL').hide();
+                            $('#moduloChartProcesos').show();
+                            chartProcesoModulo.reflow();
+                        });
+                    },
+                    error: function () {
+                        alert('Error al cargar los datos mensuales por módulo.');
+                    }
+                });
+            }
+
+            function renderGraficaPorModulo(data, tipo, containerId) {
+                const series = [];
+
+                // Preparar los datos
+                Object.keys(data).forEach(modulo => {
+                    const valores = data[modulo].map(item => item[tipo]);
+                    series.push({
+                        name: modulo,
+                        data: valores,
+                        type: 'spline',
+                        marker: { enabled: false }
+                    });
+                });
+
+                // Crear la gráfica
+                const chart = Highcharts.chart(containerId, {
+                    chart: {
+                        backgroundColor: null,
+                        events: {
+                            load: function () {
+                                const chart = this;
+
+                                // Crear botón interno para mostrar/ocultar todas las series
+                                chart.renderer.button('Mostrar/Ocultar Todo', 10, 10)
+                                    .attr({
+                                        zIndex: 3,
+                                        fill: '#007bff',
+                                        stroke: '#0056b3',
+                                        'stroke-width': 1,
+                                        padding: 5,
+                                        r: 5,
+                                        style: {
+                                            color: '#ffffff',
+                                            cursor: 'pointer'
+                                        }
+                                    })
+                                    .on('click', function () {
+                                        const allVisible = chart.series.every(s => s.visible);
+                                        chart.series.forEach(series => {
+                                            series.setVisible(!allVisible, false);
+                                        });
+                                        chart.redraw();
+                                    })
+                                    .add();
+                            }
+                        }
+                    },
+                    title: { text: `Indicador Mensual por Módulo - ${tipo}` },
+                    xAxis: {
+                        categories: Array.from({ length: data[Object.keys(data)[0]].length }, (_, i) => i + 1),
+                        title: { text: 'Días del Mes' }
+                    },
+                    yAxis: {
+                        title: { text: 'Porcentaje (%)' },
+                        min: 0
+                    },
+                    tooltip: {
+                        shared: true,
+                        formatter: function () {
+                            let tooltip = `<b>Día ${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        }
+                    },
+                    plotOptions: {
+                        spline: { lineWidth: 2 }
+                    },
+                    legend: { enabled: true },
                     series: series
                 });
 

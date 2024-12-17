@@ -882,6 +882,57 @@ class HomeController extends Controller
         return response()->json($datos);
     }
 
+    public function getMensualPorModulo()
+    {
+        $fechaFin = Carbon::now()->toDateString();
+        $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
+
+        $fechas = CarbonPeriod::create($fechaInicio, $fechaFin); // Rango de fechas
+        $modulos = DB::table('auditoria_aql')->distinct()->pluck('modulo');
+
+        $datos = [];
+
+        foreach ($modulos as $modulo) {
+            $dataPorModulo = [];
+
+            foreach ($fechas as $fecha) {
+                $fechaLog = $fecha->toDateString();
+
+                // Consulta para AQL
+                $aql = DB::table('auditoria_aql')
+                    ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
+                    ->where('modulo', $modulo)
+                    ->whereDate('created_at', $fechaLog)
+                    ->first();
+
+                // Consulta para PROCESO
+                $proceso = DB::table('aseguramientos_calidad')
+                    ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
+                    ->where('modulo', $modulo)
+                    ->whereDate('created_at', $fechaLog)
+                    ->first();
+
+                // Calcular porcentajes
+                $porcentajeAQL = $aql->cantidad_auditada > 0 
+                    ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2)
+                    : 0;
+
+                $porcentajeProceso = $proceso->cantidad_auditada > 0 
+                    ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2)
+                    : 0;
+
+                $dataPorModulo[] = [
+                    'dia' => $fecha->format('j'),
+                    'AQL' => $porcentajeAQL,
+                    'PROCESO' => $porcentajeProceso
+                ];
+            }
+
+            $datos[$modulo] = $dataPorModulo;
+        }
+
+        return response()->json($datos);
+    }
 
 
 }
