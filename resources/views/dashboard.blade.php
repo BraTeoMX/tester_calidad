@@ -250,41 +250,9 @@
 
 
     <div class="row">
-        <div class="col-12">
-            <div class="card card-chart">
-                <div class="card-header ">
-                    <div class="row">
-                        <div class="col-sm-6 text-left">
-                            <h2 class="card-title">
-                                <a href="{{ route('dashboar.dashboarAProcesoAQL') }}">Intimark Mensual General</a>
-                            </h2>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-                                <label class="btn btn-sm btn-success btn-simple active" id="btnAQL">
-                                    <input type="radio" name="options" checked>
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-app text-success"></i> AQL</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-single-02"></i>
-                                    </span>
-                                </label>
-                                <label class="btn btn-sm btn-info btn-simple" id="btnProcesos">
-                                    <input type="radio" class="d-none d-sm-none" name="options">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-vector text-primary"></i> Proceso</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-gift-2"></i>
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="chart-area" style="height: 500px;">
-                        <div id="chartAQLContainer"></div>
-                        <div id="chartProcesosContainer" style="display: none;"></div>
-                    </div>
-                </div>
+        <div class="col-lg-12">
+            <div class="card card-body">
+                <div id="graficaMensualGeneral" style="width:100%; height:500px;"></div>
             </div>
         </div>
     </div>
@@ -869,370 +837,85 @@
     </script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Datos para las gráficas
-            const fechas = @json($fechas);
-            const porcentajesAQL = @json($porcentajesAQL);
-            const porcentajesProceso = @json($porcentajesProceso);
+        $(document).ready(function () {
+            fetchMensualGeneral();
 
-            // Función para convertir los datos y manejar valores nulos o cero
-            function prepareData(data) {
-                return data.map(value => value === null ? null : parseFloat(value));
-            }
-
-            // Configuración común para ambas gráficas
-            const commonOptions = {
-                chart: {
-                    type: 'areaspline',
-                    backgroundColor: '#27293D',
-                    events: {
-                        load: function() {
-                            this.reflow();
-                        }
-                    }
-                },
-                title: {
-                    text: null
-                },
-                xAxis: {
-                    categories: fechas,
-                    tickmarkPlacement: 'on',
-                    title: { enabled: false },
-                    labels: { style: { color: '#ffffff' } }
-                },
-                yAxis: {
-                    title: {
-                        text: 'Porcentaje',
-                        style: { color: '#ffffff' }
+            function fetchMensualGeneral() {
+                $.ajax({
+                    url: "{{ route('dashboard.mensualGeneral') }}",
+                    type: "GET",
+                    success: function (data) {
+                        renderGraficaMensualGeneral(data);
                     },
-                    labels: {
-                        formatter: function () {
-                            return this.value + '%';
-                        },
-                        style: { color: '#ffffff' }
-                    },
-                    gridLineColor: '#707073'
-                },
-                tooltip: {
-                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}%</b><br/>',
-                    valueDecimals: 2
-                },
-                plotOptions: {
-                    areaspline: {
-                        fillOpacity: 0.5,
-                        marker: {
-                            radius: 2
-                        },
-                        lineWidth: 1,
-                        states: {
-                            hover: {
-                                lineWidth: 1
-                            }
-                        },
-                        threshold: null
+                    error: function () {
+                        alert('Error al cargar los datos mensuales generales.');
                     }
-                },
-                legend: {
-                    itemStyle: { color: '#ffffff' }
-                }
-            };
-
-            // Gráfica AQL
-            const chartAQL = Highcharts.chart('chartAQLContainer', Highcharts.merge(commonOptions, {
-                series: [{
-                    name: 'AQL',
-                    data: prepareData(porcentajesAQL),
-                    color: '#00F0BA', // Color de la línea y el fondo de la línea
-                    showInLegend: false // Ocultar nombre en la leyenda
-                }]
-            }));
-
-            // Gráfica Procesos
-            const chartProcesos = Highcharts.chart('chartProcesosContainer', Highcharts.merge(commonOptions, {
-                series: [{
-                    name: 'Procesos',
-                    data: prepareData(porcentajesProceso),
-                    color: '#E146A1', // Color de la línea y el fondo de la línea
-                    showInLegend: false // Ocultar nombre en la leyenda
-                }]
-            }));
-
-            // Funcionalidad de los botones
-            document.getElementById('btnAQL').addEventListener('click', function() {
-                document.getElementById('chartAQLContainer').style.display = 'block';
-                document.getElementById('chartProcesosContainer').style.display = 'none';
-                chartAQL.reflow();
-            });
-
-            document.getElementById('btnProcesos').addEventListener('click', function() {
-                document.getElementById('chartAQLContainer').style.display = 'none';
-                document.getElementById('chartProcesosContainer').style.display = 'block';
-                chartProcesos.reflow();
-            });
-
-            // Ajuste responsivo
-            window.addEventListener('resize', function() {
-                chartAQL.reflow();
-                chartProcesos.reflow();
-            });
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Datos para las gráficas
-            const fechasGrafica = @json($fechasGrafica);
-            const datasetsAQL = @json($datasetsAQL);
-            const datasetsProceso = @json($datasetsProceso);
-
-            // Lista de colores
-            const colores = [
-                '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB', '#FFCE56',
-                '#FF9F40', '#C7C7C7', '#FF63FF', '#63FF84', '#6384FF',
-                '#8463FF', '#C04BC0', '#EBA236', '#56FFCE', '#40AFFF'
-            ];
-
-            // Función para preparar datasets para Highcharts
-            function prepareDatasets(datasets) {
-                return datasets.map((dataset, index) => {
-                    return {
-                        name: dataset.label,
-                        data: dataset.data.map((value, i) => [new Date(fechasGrafica[i]).getTime(), parseFloat(value)]),
-                        color: colores[index % colores.length],
-                        //showInLegend: false // Ocultar nombre en la leyenda
-                    };
                 });
             }
 
-            // Configuración común para ambas gráficas
-            const commonOptions = {
-                chart: {
-                    type: 'spline', // Cambiado a 'spline' para curvas suaves
-                    backgroundColor: '#27293D',
-                    events: {
-                        load: function() {
-                            this.reflow();
-                        }
-                    }
-                },
-                // Eliminar el título de la gráfica
-                title: {
-                    text: null
-                },
-                xAxis: {
-                    type: 'datetime',
-                    labels: {
-                        style: { color: '#ffffff' }
-                    }
-                },
-                yAxis: {
+            function renderGraficaMensualGeneral(data) {
+                const dias = data.map(item => item.dia); // Eje X: Días del mes
+                const dataAQL = data.map(item => item.AQL); // Eje Y: AQL
+                const dataProceso = data.map(item => item.PROCESO); // Eje Y: Proceso
+                // Obtener el nombre del mes actual
+                const fechaHoy = new Date();
+                const nombreMes = fechaHoy.toLocaleString('es-ES', { month: 'long' }); // Ejemplo: "diciembre"
+
+                Highcharts.chart('graficaMensualGeneral', {
+                    chart: {
+                        type: 'areaspline', // Cambio a gráfica de área
+                        backgroundColor: null // Fondo transparente
+                    },
                     title: {
-                        text: 'Porcentaje',
-                        style: { color: '#ffffff' }
+                        text: 'Indicador mensual general - AQL y PROCESO'
                     },
-                    labels: {
+                    xAxis: {
+                        categories: dias, // Eje X: Días del mes
+                        crosshair: true,
+                        title: { text: `Días del Mes - ${nombreMes}` } // Agrega el nombre del mes
+                    },
+                    yAxis: {
+                        title: { text: 'Porcentaje (%)' },
+                        min: 0
+                    },
+                    tooltip: {
+                        shared: true,
                         formatter: function () {
-                            return this.value + '%';
-                        },
-                        style: { color: '#ffffff' }
+                            let tooltip = `<b>Día ${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        }
                     },
-                    gridLineColor: '#707073'
-                },
-                tooltip: {
-                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}%</b><br/>',
-                    valueDecimals: 2
-                },
-                plotOptions: {
-                    spline: { // Opciones específicas para 'spline'
-                        marker: {
-                            radius: 2
-                        },
-                        lineWidth: 1,
-                        states: {
-                            hover: {
-                                lineWidth: 1
+                    plotOptions: {
+                        areaspline: {
+                            fillOpacity: 0.7, // Nivel de transparencia del relleno (0.3 = 30%)
+                            lineWidth: 2, // Grosor de la línea
+                            marker: {
+                                enabled: false // Ocultar los marcadores en los puntos
                             }
-                        },
-                        threshold: null
-                    }
-                },
-                legend: {
-                    itemStyle: { color: '#ffffff' }
-                }
-            };
-
-            // Gráfica AQL
-            const chartClienteAQL = Highcharts.chart('clienteChartAQL', Highcharts.merge(commonOptions, {
-                series: prepareDatasets(datasetsAQL)
-            }));
-
-            // Gráfica Procesos
-            const chartClienteProcesos = Highcharts.chart('clienteChartProcesos', Highcharts.merge(commonOptions, {
-                series: prepareDatasets(datasetsProceso)
-            }));
-
-            // Funcionalidad de los botones
-            document.getElementById('cliente0').addEventListener('click', function() {
-                document.getElementById('clienteChartAQL').style.display = 'block';
-                document.getElementById('clienteChartProcesos').style.display = 'none';
-                chartClienteAQL.reflow();
-            });
-
-            document.getElementById('cliente1').addEventListener('click', function() {
-                document.getElementById('clienteChartAQL').style.display = 'none';
-                document.getElementById('clienteChartProcesos').style.display = 'block';
-                chartClienteProcesos.reflow();
-            });
-
-            document.getElementById('toggleAll').addEventListener('click', function() {
-                const showAll = document.getElementById('toggleAll').querySelector('input').checked;
-                const toggleVisibility = function(chart) {
-                    chart.series.forEach(function(series) {
-                        series.setVisible(showAll, false);
-                    });
-                    chart.redraw();
-                };
-
-                toggleVisibility(chartClienteAQL);
-                toggleVisibility(chartClienteProcesos);
-            });
-
-            // Ajuste responsivo
-            window.addEventListener('resize', function() {
-                chartClienteAQL.reflow();
-                chartClienteProcesos.reflow();
-            });
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Datos para las gráficas
-            const fechasGraficaModulos = @json($fechasGraficaModulos);
-            const datasetsAQLModulos = @json($datasetsAQLModulos);
-            const datasetsProcesoModulos = @json($datasetsProcesoModulos);
-
-            // Lista de colores
-            const colores = [
-                '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB', '#FFCE56',
-                '#FF9F40', '#C7C7C7', '#FF63FF', '#63FF84', '#6384FF',
-                '#8463FF', '#C04BC0', '#EBA236', '#56FFCE', '#40AFFF'
-            ];
-
-            // Función para preparar datasets para Highcharts
-            function prepareDatasets(datasets) {
-                return datasets.map((dataset, index) => {
-                    return {
-                        name: dataset.label,
-                        data: dataset.data.map((value, i) => [new Date(fechasGraficaModulos[i]).getTime(), parseFloat(value)]),
-                        color: colores[index % colores.length],
-                        //showInLegend: false // Ocultar nombre en la leyenda
-                    };
+                        }
+                    },
+                    series: [
+                        {
+                            name: '% AQL',
+                            data: dataAQL,
+                            color: '#00f0c1', // Color de la línea y el relleno
+                            zIndex: 1 // Asegura que quede al frente
+                        },    
+                        {
+                            name: '% PROCESO',
+                            data: dataProceso,
+                            color: '#dd4dc7', // Color de la línea y el relleno
+                            zIndex: 0 // Asegura que quede detrás
+                        }
+                    ]
                 });
             }
-
-            // Configuración común para ambas gráficas
-            const commonOptions = {
-                chart: {
-                    type: 'spline', // Cambiado a 'spline' para curvas suaves
-                    backgroundColor: '#27293D',
-                    events: {
-                        load: function() {
-                            this.reflow();
-                        }
-                    }
-                },
-                // Eliminar el título de la gráfica
-                title: {
-                    text: null
-                },
-                xAxis: {
-                    type: 'datetime',
-                    labels: {
-                        style: { color: '#ffffff' }
-                    }
-                },
-                yAxis: {
-                    title: {
-                        text: 'Porcentaje',
-                        style: { color: '#ffffff' }
-                    },
-                    labels: {
-                        formatter: function () {
-                            return this.value + '%';
-                        },
-                        style: { color: '#ffffff' }
-                    },
-                    gridLineColor: '#707073'
-                },
-                tooltip: {
-                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}%</b><br/>',
-                    valueDecimals: 2
-                },
-                plotOptions: {
-                    spline: { // Opciones específicas para 'spline'
-                        marker: {
-                            radius: 2
-                        },
-                        lineWidth: 1,
-                        states: {
-                            hover: {
-                                lineWidth: 1
-                            }
-                        },
-                        threshold: null
-                    }
-                },
-                legend: {
-                    itemStyle: { color: '#ffffff' }
-                }
-            };
-
-            // Gráfica AQL
-            const chartModuloAQL = Highcharts.chart('moduloChartAQL', Highcharts.merge(commonOptions, {
-                series: prepareDatasets(datasetsAQLModulos)
-            }));
-
-            // Gráfica Procesos
-            const chartModuloProcesos = Highcharts.chart('moduloChartProcesos', Highcharts.merge(commonOptions, {
-                series: prepareDatasets(datasetsProcesoModulos)
-            }));
-
-            // Funcionalidad de los botones
-            document.getElementById('modulo0').addEventListener('click', function() {
-                document.getElementById('moduloChartAQL').style.display = 'block';
-                document.getElementById('moduloChartProcesos').style.display = 'none';
-                chartModuloAQL.reflow();
-            });
-
-            document.getElementById('modulo1').addEventListener('click', function() {
-                document.getElementById('moduloChartAQL').style.display = 'none';
-                document.getElementById('moduloChartProcesos').style.display = 'block';
-                chartModuloProcesos.reflow();
-            });
-
-            document.getElementById('toggleAllModulos').addEventListener('click', function() {
-                const showAll = document.getElementById('toggleAllModulos').querySelector('input').checked;
-                const toggleVisibility = function(chart) {
-                    chart.series.forEach(function(series) {
-                        series.setVisible(showAll, false);
-                    });
-                    chart.redraw();
-                };
-
-                toggleVisibility(chartModuloAQL);
-                toggleVisibility(chartModuloProcesos);
-            });
-
-            // Ajuste responsivo
-            window.addEventListener('resize', function() {
-                chartModuloAQL.reflow();
-                chartModuloProcesos.reflow();
-            });
         });
     </script>
-    <!-- nothing-->
-    <!-- nothing-->
+
     <script>
         const topDefectosAQL = @json($topDefectosAQL);
         const topDefectosProceso = @json($topDefectosProceso);
