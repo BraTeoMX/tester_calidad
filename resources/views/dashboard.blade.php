@@ -1268,8 +1268,8 @@
         });
 
         // Calcular el porcentaje para Segundas y Terceras
-        let porcentajeSegundas = (segundas * 100) / totalQty * 100;
-        let porcentajeTerceras = (terceras * 100) / totalQty * 100;
+        let porcentajeSegundas = (segundas * 100) / totalQty;
+        let porcentajeTerceras = (terceras * 100) / totalQty;
 
         // Mostrar en consola para verificar
         console.log("Total QTY: ", totalQty);
