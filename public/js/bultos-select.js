@@ -25,15 +25,8 @@ var select2Options = {
   placeholder: 'Selecciona una opción',
   allowClear: true
 };
-// Función para obtener un parámetro de la URL si lo necesitas
-function getParameterByName(name) {
-  var url = new URL(window.location.href);
-  return url.searchParams.get(name);
-}
-// Función para cargar opciones de bulto
-function cargarOpcionesBulto() {
-  // Ahora, en lugar de obtener el valor de otro select, obtendremos el valor de 'op' de la URL
-  var opSeleccionada = getParameterByName('op');
+// Función para cargar opciones de bulto basado en la OP seleccionada
+function cargarOpcionesBulto(opSeleccionada) {
   if (!opSeleccionada) {
     console.error('No se ha proporcionado una OP para cargar los bultos.');
     return;
@@ -53,7 +46,7 @@ function cargarOpcionesBulto() {
       data.forEach(function (item) {
         bultoSelect.append(new Option(item.prodpackticketid));
       });
-      // Inicializa select2 en el select de bulto
+      // Inicializa o actualiza select2 en el select de bulto
       bultoSelect.select2(select2Options);
     },
     error: function error(_error) {
@@ -61,9 +54,23 @@ function cargarOpcionesBulto() {
     }
   });
 }
-// Como ya no dependemos del cambio de otro select, simplemente cargamos al inicio
+// Detectar cambios en el select de OP (op-seleccion-ts)
+function configurarActualizacionBulto() {
+  var opSelect = (0, jquery_1["default"])('#op-seleccion-ts');
+  if (opSelect.length) {
+    opSelect.on('change', function () {
+      var nuevaOpSeleccionada = (0, jquery_1["default"])(this).val(); // Obtiene el valor seleccionado
+      cargarOpcionesBulto(nuevaOpSeleccionada); // Llama a la función de carga con la nueva OP
+    });
+  }
+}
+// Inicializa el comportamiento en la carga de la página
 (0, jquery_1["default"])(document).ready(function () {
-  cargarOpcionesBulto();
+  // Carga inicial basada en el valor actual de la OP
+  var opSeleccionadaInicial = (0, jquery_1["default"])('#op-seleccion-ts').val();
+  cargarOpcionesBulto(opSeleccionadaInicial);
+  // Configura el evento para actualizaciones dinámicas
+  configurarActualizacionBulto();
 });
 
 /***/ }),

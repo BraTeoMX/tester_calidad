@@ -7,17 +7,8 @@ const select2Options: JQuery.Select2Options = {
     allowClear: true,
 };
 
-// Función para obtener un parámetro de la URL si lo necesitas
-function getParameterByName(name: string): string | null {
-    const url = new URL(window.location.href);
-    return url.searchParams.get(name);
-}
-
-// Función para cargar opciones de bulto
-function cargarOpcionesBulto() {
-    // Ahora, en lugar de obtener el valor de otro select, obtendremos el valor de 'op' de la URL
-    const opSeleccionada = getParameterByName('op');
-
+// Función para cargar opciones de bulto basado en la OP seleccionada
+function cargarOpcionesBulto(opSeleccionada: string | null) {
     if (!opSeleccionada) {
         console.error('No se ha proporcionado una OP para cargar los bultos.');
         return;
@@ -39,7 +30,7 @@ function cargarOpcionesBulto() {
                 bultoSelect.append(new Option(item.prodpackticketid));
             });
 
-            // Inicializa select2 en el select de bulto
+            // Inicializa o actualiza select2 en el select de bulto
             bultoSelect.select2(select2Options);
         },
         error: function (error) {
@@ -48,7 +39,23 @@ function cargarOpcionesBulto() {
     });
 }
 
-// Como ya no dependemos del cambio de otro select, simplemente cargamos al inicio
+// Detectar cambios en el select de OP (op-seleccion-ts)
+function configurarActualizacionBulto() {
+    const opSelect = $('#op-seleccion-ts');
+    if (opSelect.length) {
+        opSelect.on('change', function () {
+            const nuevaOpSeleccionada = $(this).val() as string | null; // Obtiene el valor seleccionado
+            cargarOpcionesBulto(nuevaOpSeleccionada); // Llama a la función de carga con la nueva OP
+        });
+    }
+}
+
+// Inicializa el comportamiento en la carga de la página
 $(document).ready(() => {
-    cargarOpcionesBulto();
+    // Carga inicial basada en el valor actual de la OP
+    const opSeleccionadaInicial = $('#op-seleccion-ts').val() as string | null;
+    cargarOpcionesBulto(opSeleccionadaInicial);
+
+    // Configura el evento para actualizaciones dinámicas
+    configurarActualizacionBulto();
 });

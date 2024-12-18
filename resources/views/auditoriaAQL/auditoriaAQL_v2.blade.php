@@ -193,7 +193,7 @@
                                         <input type="text" class="form-control texto-blanco" name="modulo" id="modulo" value="{{ $data['modulo'] }}" readonly>
                                     </td>
                                     <td>
-                                        <select class="form-control texto-blanco" name="op-seleccion" id="op-seleccion-ts" required title="Selecciona una OP">
+                                        <select class="form-control texto-blanco" name="op-seleccion" id="op-seleccion" required title="Selecciona una OP">
                                             <option value="">Cargando opciones...</option>
                                         </select>
                                     </td>
@@ -398,7 +398,157 @@
         }
     </style>
 
-    <script src="{{ asset('js/op-select.js') }}"></script>
-    <script src="{{ asset('js/bultos-select.js') }}"></script>
+    <script>
+        $(document).ready(function () {
+            // Configuración de Select2
+            const select2Options = {
+                placeholder: 'Selecciona una opción',
+                allowClear: true,
+                language: {
+                    noResults: function () {
+                        return "No se encontraron resultados";
+                    },
+                },
+                ajax: {
+                    url: "{{ route('obtener.opciones.op') }}",
+                    type: 'GET',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term || '', // Enviar búsqueda o vacío para obtener todos
+                        };
+                    },
+                    processResults: function (data) {
+                        // Si no hay datos, Select2 mostrará automáticamente el mensaje "No se encontraron resultados"
+                        return {
+                            results: data.map(item => ({
+                                id: item.prodid,
+                                text: item.prodid,
+                            })),
+                        };
+                    },
+                    cache: true,
+                },
+            };
+
+            const opSelect = $('#op-seleccion');
+
+            // Inicializa Select2
+            opSelect.select2(select2Options);
+
+            // Función para obtener el parámetro de la URL
+            function getParameterByName(name) {
+                const url = new URL(window.location.href);
+                return url.searchParams.get(name);
+            }
+
+            // Función para preseleccionar el valor basado en el parámetro de la URL
+            function preselectValue() {
+                const selectedValue = getParameterByName('op'); // Obtiene el valor del parámetro 'op'
+                if (selectedValue) {
+                    // Crea una opción temporal y selecciónala
+                    const optionExists = opSelect.find(`option[value="${selectedValue}"]`).length > 0;
+                    if (!optionExists) {
+                        const newOption = new Option(selectedValue, selectedValue, true, true);
+                        opSelect.append(newOption).trigger('change');
+                    } else {
+                        opSelect.val(selectedValue).trigger('change');
+                    }
+                }
+            }
+
+            // Llama a la función para preseleccionar el valor al cargar
+            preselectValue();
+
+            // Maneja el evento 'change' para no actualizar la URL
+            opSelect.on('change', function () {
+                const selectedValue = $(this).val();
+                console.log('Valor seleccionado:', selectedValue); // Realiza acciones según sea necesario
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            // Configuración de Select2 para "op-seleccion"
+            const opSelect = $('#op-seleccion');
+            opSelect.select2({
+                placeholder: 'Selecciona una OP',
+                allowClear: true,
+                ajax: {
+                    url: "{{ route('obtener.opciones.op') }}",
+                    type: 'GET',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term || '', // Enviar búsqueda o vacío para obtener todos
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.map(item => ({
+                                id: item.prodid,
+                                text: item.prodid,
+                            })),
+                        };
+                    },
+                    cache: true,
+                },
+                language: {
+                    noResults: function () {
+                        return "No se encontraron resultados";
+                    },
+                },
+            });
+
+            // Configuración de Select2 para "bulto-seleccion"
+            const bultoSelect = $('#bulto-seleccion');
+            bultoSelect.select2({
+                placeholder: 'Selecciona un bulto',
+                allowClear: true,
+                ajax: {
+                    url: "{{ route('obtener.opciones.bulto') }}",
+                    type: 'GET',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        const selectedOp = opSelect.val(); // Obtén el valor seleccionado del select "op-seleccion"
+                        if (!selectedOp) {
+                            return { search: params.term || '' }; // Enviar búsqueda, aunque esté vacío
+                        }
+                        return {
+                            op: selectedOp,
+                            search: params.term || '', // Incluye el término de búsqueda
+                        };
+                    },
+                    processResults: function (data) {
+                        if (data.error) {
+                            console.error(data.error);
+                            return { results: [] };
+                        }
+                        return {
+                            results: data.map(item => ({
+                                id: item.prodpackticketid,
+                                text: item.prodpackticketid,
+                            })),
+                        };
+                    },
+                    cache: true,
+                },
+                language: {
+                    noResults: function () {
+                        return "No se encontraron resultados";
+                    },
+                },
+            });
+
+            // Evento para recargar "bulto-seleccion" al cambiar "op-seleccion"
+            opSelect.on('change', function () {
+                bultoSelect.val(null).trigger('change'); // Limpia la selección actual de "bulto-seleccion"
+            });
+        });
+    </script>
 
 @endsection

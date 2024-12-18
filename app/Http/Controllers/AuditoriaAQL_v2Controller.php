@@ -75,6 +75,28 @@ class AuditoriaAQL_v2Controller extends Controller
                 'listaModulos', 'procesoActualAQL', 'procesoFinalAQL', 'gerenteProduccion'));
     }
 
+    public function formAltaProcesoAQL_v2(Request $request) 
+    {
+        $pageSlug ='';
+
+        $datoUnicoOP = JobAQL::where('prodid', $request->op)
+            ->first();
+        //dd($datoUnicoOP);
+        $data = [
+            'area' => $request->area,
+            'modulo' => $request->modulo,
+            'estilo' => $request->estilo,
+            'op' => $request->op,
+            'cliente' => $datoUnicoOP->customername,
+            'auditor' => $request->auditor,
+            'turno' => $request->turno,
+            'team_leader' => $request->team_leader,
+            'gerente_produccion' => $request->gerente_produccion,
+        ];
+        //dd($data);
+        return redirect()->route('auditoriaAQL.auditoriaAQL_v2', $data)->with('cambio-estatus', 'Iniciando en modulo: '. $data['modulo'])->with('pageSlug', $pageSlug);
+    }
+
     public function auditoriaAQL_v2(Request $request)
     {
 
@@ -274,9 +296,13 @@ class AuditoriaAQL_v2Controller extends Controller
 
     public function obtenerOpcionesOP(Request $request)
     {
+        $query = $request->input('search', '');
+
         $datosOP = JobAQL::select('prodid')
+            ->where('prodid', 'like', "%{$query}%")
             ->union(
                 JobAQLTemporal::select('prodid')
+                    ->where('prodid', 'like', "%{$query}%")
             )
             ->distinct()
             ->orderBy('prodid')
@@ -285,354 +311,31 @@ class AuditoriaAQL_v2Controller extends Controller
         return response()->json($datosOP);
     }
 
+
     public function obtenerOpcionesBulto(Request $request)
     {
-        // Obtén el valor enviado desde el select "op-seleccion-ts"
-        $opSeleccionada = $request->input('op');
+        $opSeleccionada = $request->input('op'); // Valor del select "op-seleccion"
 
         if (!$opSeleccionada) {
             return response()->json(['error' => 'El valor del select OP no fue proporcionado.'], 400);
         }
 
-        // Realiza la consulta basada en el valor de "op-seleccion-ts"
-        $datosBulto = JobAQL::where('prodid', $opSeleccionada) // Ajusta según la columna que almacene la relación con OP
+        $datosBulto = JobAQL::where('prodid', $opSeleccionada) // Filtra por la OP seleccionada
             ->select('prodid', 'prodpackticketid')
             ->union(
-                JobAQLTemporal::where('prodid', $opSeleccionada) // Ajusta el modelo y la columna si es necesario
+                JobAQLTemporal::where('prodid', $opSeleccionada)
                     ->select('prodid', 'prodpackticketid')
             )
             ->distinct()
             ->orderBy('prodpackticketid')
             ->get();
 
-        // Devuelve los datos en formato JSON
-        Log::info('bultos: ' . $datosBulto);
+        if ($datosBulto->isEmpty()) {
+            return response()->json([]); // Devuelve una lista vacía para que Select2 muestre "No se encontraron resultados"
+        }
+
         return response()->json($datosBulto);
     }
 
-    
-
-
-
-    public function getBultosByOp_v2(Request $request)
-    {
-        $op = $request->input('op');
-        $modulo = $request->input('modulo');
-    
-        $datoBultos = JobAQL::where('prodid', $op)
-            //->where('moduleid', $modulo) 
-            ->select('prodpackticketid', 'qty', 'itemid', 'colorname', 'inventsizeid')
-            ->distinct()
-            ->get();
-            
-        return response()->json($datoBultos);
-    }
-
-
-    public function formAltaProcesoAQL_v2(Request $request) 
-    {
-        $pageSlug ='';
-
-        $datoUnicoOP = JobAQL::where('prodid', $request->op)
-            ->first();
-        //dd($datoUnicoOP);
-        $data = [
-            'area' => $request->area,
-            'modulo' => $request->modulo,
-            'estilo' => $request->estilo,
-            'op' => $request->op,
-            'cliente' => $datoUnicoOP->customername,
-            'auditor' => $request->auditor,
-            'turno' => $request->turno,
-            'team_leader' => $request->team_leader,
-            'gerente_produccion' => $request->gerente_produccion,
-        ];
-        //dd($data);
-        return redirect()->route('auditoriaAQL.auditoriaAQL_v2', $data)->with('cambio-estatus', 'Iniciando en modulo: '. $data['modulo'])->with('pageSlug', $pageSlug);
-    }
-
-    public function formRegistroAuditoriaProcesoAQL_v2(Request $request)
-    {
-        $pageSlug ='';
-
-        $fechaHoraActual= now();
-
-        // Verificar el día de la semana
-        $diaSemana = $fechaHoraActual ->dayOfWeek;
-
-        // Obtener el ID seleccionado desde el formulario
-        $plantaBusqueda = CategoriaSupervisor::where('moduleid', $request->modulo)
-            ->pluck('prodpoolid')
-            ->first(); 
-        //dd($plantaBusqueda);
-        $jefeProduccionBusqueda = CategoriaTeamLeader::where('nombre', $request->team_leader)
-            ->where('jefe_produccion', 1)
-            ->first();
-
-        $fechaActual = Carbon::now()->toDateString();
-
-        $conteoParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $request->modulo)
-            ->where('op', $request->op)
-            ->where('team_leader', $request->team_leader)
-            ->where('cantidad_rechazada', '>', 0)
-            ->count();
-        //
-        $nombreFinal = $request->nombre;
-        $nombreFinalValidado = null;
-        $numeroEmpleado = null;
-        if ($nombreFinal) {
-            // Convertimos los nombres en un array, eliminando espacios adicionales
-            $nombres = array_map('trim', explode(',', $nombreFinal));
-            
-            $nombresValidados = [];
-            $numerosEmpleados = [];
-            
-            foreach ($nombres as $nombre) {
-                $nombreValidado = trim($nombre);
-                $nombresValidados[] = $nombreValidado;
-                
-                // Intentamos buscar primero en el modelo AuditoriaProceso
-                $numeroEmpleado = AuditoriaProceso::where('name', $nombreValidado)->pluck('personnelnumber')->first();
-        
-                // Si no lo encontramos en AuditoriaProceso, intentamos buscar en CategoriaUtility
-                if (!$numeroEmpleado) {
-                    $numeroEmpleado = CategoriaUtility::where('nombre', $nombreValidado)->pluck('numero_empleado')->first();
-                }
-        
-                // Si tampoco se encuentra en CategoriaUtility, devolvemos un valor de 0 para que tenga almacenado algo y no marque error
-                $numerosEmpleados[] = $numeroEmpleado ? $numeroEmpleado : "0000000";
-            }
-            
-            // Concatenamos los nombres y números de empleados con comas
-            $nombreFinalValidado = implode(', ', $nombresValidados);
-            $numeroEmpleado = implode(', ', $numerosEmpleados);
-        }
-        $buscarCliente = JobAQL::where('prodid', $request->op)
-            ->first(['customername']);
-        $buscarClienteResultado = $buscarCliente->customername ?? $request->cliente;
-
-        //dd($nombreFinalValidado, $numeroEmpleado, $request->all());
-        $nuevoRegistro = new AuditoriaAQL();
-        $nuevoRegistro->numero_empleado = $numeroEmpleado;
-        $nuevoRegistro->nombre = $nombreFinalValidado;
-        $nuevoRegistro->modulo = $request->modulo;
-        $nuevoRegistro->op = $request->op;
-        $nuevoRegistro->cliente = $buscarClienteResultado;
-        $nuevoRegistro->team_leader = $request->team_leader;
-        $nuevoRegistro->gerente_produccion = $request->gerente_produccion;
-        $nuevoRegistro->auditor = $request->auditor;
-        $nuevoRegistro->turno = $request->turno;
-        $nuevoRegistro->planta = $plantaBusqueda;
-
-        $nuevoRegistro->bulto = $request->bulto;
-        $nuevoRegistro->pieza = $request->pieza;
-        $nuevoRegistro->estilo = $request->estilo;
-        $nuevoRegistro->color = $request->color;
-        $nuevoRegistro->talla = $request->talla;
-        $nuevoRegistro->cantidad_auditada = $request->cantidad_auditada;
-        $nuevoRegistro->cantidad_rechazada = $request->cantidad_rechazada;
-        if($request->cantidad_rechazada > 0){
-            $nuevoRegistro->inicio_paro = Carbon::now();
-        }
-
-        // Verificar la hora para determinar el valor de "tiempo_extra"
-        if ($diaSemana >= 1 && $diaSemana <= 4) { // De lunes a jueves
-            if ($fechaHoraActual->hour >= 19) { // Después de las 7:00 pm
-                $nuevoRegistro->tiempo_extra = 1;
-            } else {
-                $nuevoRegistro->tiempo_extra = null;
-            }
-        } elseif ($diaSemana == 5) { // Viernes
-            if ($fechaHoraActual->hour >= 14) { // Después de las 2:00 pm
-                $nuevoRegistro->tiempo_extra = 1;
-            } else {
-                $nuevoRegistro->tiempo_extra = null;
-            }
-        } else { // Sábado y domingo
-            $nuevoRegistro->tiempo_extra = 1;
-        }
-
-        if ((($conteoParos == 1) && ($request->cantidad_rechazada > 0)) || (($conteoParos == 3) && ($request->cantidad_rechazada > 0))) {
-            $nuevoRegistro->paro_modular = 1;
-        }
-        $nuevoRegistro->ac = $request->ac;
-        $nuevoRegistro->save();
-
-         // Obtener el ID del nuevo registro
-        $nuevoRegistroId = $nuevoRegistro->id;
-
-        // Almacenar los valores de tp en la tabla tp_auditoria_aql
-
-        // Asegúrate de que $request->tp sea un arreglo y contenga "NINGUNO" si está vacío o es null
-        $tp = $request->input('tp', ['NINGUNO']);
-
-        // Itera sobre el arreglo $tp y guarda cada valor
-        foreach ($tp as $valorTp) {
-            $nuevoTp = new TpAuditoriaAQL();
-            $nuevoTp->auditoria_aql_id = $nuevoRegistroId; // Asegúrate de que $nuevoRegistroId esté definido
-            $nuevoTp->tp = $valorTp;
-            $nuevoTp->save();
-        }
-
-
-        return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
-    }
-
-
-    public function formUpdateDeleteProceso_v2(Request $request){
-        $pageSlug ='';
-        $action = $request->input('action');
-
-        $id = $request->input('id');
-        //dd($request->all());
-        if($action == 'update'){
-            $actualizarRegistro = AuditoriaAQL::where('id', $id)->first();
-            $actualizarRegistro->cantidad_auditada = $request->cantidad_auditada;
-            $actualizarRegistro->cantidad_rechazada = $request->cantidad_rechazada;
-            $actualizarRegistro->tp = $request->tp;
-            $actualizarRegistro->save();
-
-            //dd($request->all(), $actualizarRegistro, $id);
-            return back()->with('sobre-escribir', 'Registro actualizado correctamente.')->with('pageSlug', $pageSlug);
-
-            // Lógica para actualizar el registro
-        } elseif ($action == 'delete'){
-            // Lógica para eliminar el registro
-            AuditoriaAQL::where('id', $id)->delete();
-            return back()->with('error', 'Registro eliminado.')->with('pageSlug', $pageSlug);
-        }
-
-        //dd($request->all(), $request->input('descripcion_parte1'), $id);
-        return back()->with('cambio-estatus', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
-    }
-
-    public function formFinalizarProceso_v2(Request $request)
-    {
-        $pageSlug ='';
-        // Obtener el ID seleccionado desde el formulario
-        $area = $request->input('area');
-        $modulo = $request->input('modulo');
-        $observacion = $request->input('observacion');
-        $estatus=1;
-        //dd($request->all(), $area);
-        // Asegurarse de que la variable $data esté definida
-        $data = $data ?? [];
-        $fechaActual = Carbon::now()->toDateString();
-
-        // Actualizar todos los registros que cumplan con las condiciones
-        AuditoriaAQL::whereDate('created_at', $fechaActual)
-        ->where('modulo', $modulo)
-        ->update(['observacion' => $observacion, 'estatus' => $estatus]);
-
-
-        return back()->with('success', 'Finalizacion aplicada correctamente.')->with('pageSlug', $pageSlug);
-    }
-
-    public function cambiarEstadoInicioParoAQL_v2(Request $request)
-    {
-        $pageSlug ='';
-        $id = $request->idCambio;
-        $reparacionRechazo = $request->reparacion_rechazo;
-
-        $registro = AuditoriaAQL::find($id);
-
-        if($request->finalizar_paro_modular == 1){
-            // Obtener la fecha actual
-            $fechaActual = Carbon::now()->toDateString();
-
-            // Obtener la hora actual
-            $horaActual = Carbon::now()->toTimeString();
-
-            //dd($request->all());
-
-             // Obtener el segundo y cuarto registro
-            $segundoRegistro = AuditoriaAQL::whereDate('created_at', $fechaActual)
-                ->where('modulo', $request->modulo)
-                //->where('op', $request->op)
-                //->where('team_leader', $request->team_leader)
-                ->where('cantidad_rechazada', '>', 0)
-                ->orderBy('created_at', 'asc')
-                ->skip(1) // Saltar el primer registro
-                ->first();
-
-            $cuartoRegistro = AuditoriaAQL::whereDate('created_at', $fechaActual)
-                ->where('modulo', $request->modulo)
-                //->where('op', $request->op)
-                //->where('team_leader', $request->team_leader)
-                ->where('cantidad_rechazada', '>', 0)
-                ->orderBy('created_at', 'asc')
-                ->skip(3) // Saltar los primeros tres registros
-                ->first();
-
-            // Evaluar el segundo registro
-            if ($segundoRegistro && is_null($segundoRegistro->minutos_paro_modular)) {
-                // Actualizar la columna "fin_paro_modular" con la hora actual
-                $segundoRegistro->fin_paro_modular = $horaActual;
-
-                // Calcular la diferencia en minutos entre "inicio_paro" y "fin_paro_modular"
-                $inicioParo = Carbon::parse($segundoRegistro->inicio_paro);
-                $finParoModular = Carbon::parse($horaActual);
-                $diferenciaEnMinutos = $inicioParo->diffInMinutes($finParoModular);
-
-                // Actualizar la columna "minutos_paro_modular" con la diferencia en minutos
-                $segundoRegistro->minutos_paro_modular = $diferenciaEnMinutos;
-
-                // Guardar los cambios
-                $segundoRegistro->save();
-            }
-
-            // Evaluar el cuarto registro si el segundo ya tiene "minutos_paro_modular"
-            if ($segundoRegistro && !is_null($segundoRegistro->minutos_paro_modular) && $cuartoRegistro && is_null($cuartoRegistro->minutos_paro_modular)) {
-                // Actualizar la columna "fin_paro_modular" con la hora actual
-                $cuartoRegistro->fin_paro_modular = $horaActual;
-
-                // Calcular la diferencia en minutos entre "inicio_paro" y "fin_paro_modular"
-                $inicioParo = Carbon::parse($cuartoRegistro->inicio_paro);
-                $finParoModular = Carbon::parse($horaActual);
-                $diferenciaEnMinutos = $inicioParo->diffInMinutes($finParoModular);
-
-                // Actualizar la columna "minutos_paro_modular" con la diferencia en minutos
-                $cuartoRegistro->minutos_paro_modular = $diferenciaEnMinutos;
-
-                // Guardar los cambios
-                $cuartoRegistro->save();
-            }
-
-            //dd($request->all(), $registro);
-
-        }else{
-            $registro->fin_paro = Carbon::now();
-
-            // Calcular la duración del paro en minutos
-            $inicioParo = Carbon::parse($registro->inicio_paro);
-            $finParo = Carbon::parse($registro->fin_paro);
-            $minutosParo = $inicioParo->diffInMinutes($finParo);
-
-            // Almacenar la duración en minutos
-            $registro->minutos_paro = $minutosParo;
-            $registro->reparacion_rechazo = $reparacionRechazo;
-
-            $registro->save();
-        }
-
-        return back()->with('success', 'Fin de Paro Aplicado.')->with('pageSlug', $pageSlug);
-    }
-    //Ya no recuerdo
-    public function storeCategoriaTipoProblemaAQL_v2(Request $request)
-    {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'area' => 'required|string|max:255',
-        ]);
-
-        $categoriaTipoProblema = new CategoriaTipoProblema();
-        $categoriaTipoProblema->nombre = strtoupper($request->nombre);
-        $categoriaTipoProblema->area = $request->area;
-        $categoriaTipoProblema->estado = 1;
-        $categoriaTipoProblema->save();
-
-        return response()->json(['success' => true]);
-    }
 
 }
