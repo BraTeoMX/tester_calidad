@@ -95,19 +95,15 @@
                                 </tr>
                             </thead>
                             <tbody>
-                              @foreach ($dataGeneral['dataCliente'] as $clienteData)
-                              <tr class="{{ $clienteData['porcentajeErrorProceso'] > 9 && $clienteData['porcentajeErrorProceso'] <= 15 ? 'error-bajo' : ($clienteData['porcentajeErrorProceso'] > 15 ? 'error-alto' : '') }}">
-                                <td>{{ $clienteData['cliente'] }}</td>
-                                <td>{{ number_format($clienteData['porcentajeErrorAQL'], 2) }}%</td>
-                                <td>{{ number_format($clienteData['porcentajeErrorProceso'], 2) }}%</td>
-                              </tr>
-                              @endforeach
+
                             </tbody>
-                            <tr style="background: #1d1c1c;">
-                              <td>GENERAL</td>
-                              <td>{{ number_format($generalAQL, 2) }}%</td>
-                              <td>{{ number_format($generalProceso, 2) }}%</td>
-                            </tr>
+                            <tfoot>
+                                <tr style="background: #1d1c1c;">
+                                <td>GENERAL</td>
+                                <td>{{ number_format($generalAQL, 2) }}%</td>
+                                <td>{{ number_format($generalProceso, 2) }}%</td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -130,13 +126,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($dataGerentesGeneral as $item)
-                                    <tr>
-                                        <td>{{ $item['team_leader'] }}</td>
-                                        <td>{{ $item['porcentaje_error_aql'] !== null ? number_format($item['porcentaje_error_aql'], 2) . '%' : 'N/A' }}</td>
-                                        <td>{{ $item['porcentaje_error_proceso'] !== null ? number_format($item['porcentaje_error_proceso'], 2) . '%' : 'N/A' }}</td>
-                                    </tr>
-                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -160,13 +149,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($dataModulosGeneral as $item)
-                                    <tr>
-                                        <td>{{ $item['modulo'] }}</td>
-                                        <td>{{ $item['porcentaje_error_aql'] !== null ? number_format($item['porcentaje_error_aql'], 2) . '%' : 'N/A' }}</td>
-                                        <td>{{ $item['porcentaje_error_proceso'] !== null ? number_format($item['porcentaje_error_proceso'], 2) . '%' : 'N/A' }}</td>
-                                    </tr>
-                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -175,83 +157,6 @@
         </div>
     </div>
 
-
-    <div class="row">
-        <div class="col-lg-6 col-md-12">
-            <div class="card ">
-                <div class="card-header card-header-success card-header-icon">
-                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general</h3>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table tablesorter" id="tablaAQLGeneral">
-                            <thead class=" text-primary">
-                                <tr>
-                                    <th>Modulo (AQL)</th>
-                                    <th>Numero de Operarios</th>
-                                    <th>Cantidad Paro</th>
-                                    <th>Minutos Paro</th>
-                                    <th>Promedio Minutos Paro</th>
-                                    <th>Cantidad Paro Modular</th>
-                                    <th>% AQL</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($dataModuloAQLGeneral as $item)
-                                    <tr>
-                                        <td>{{ $item['modulo'] }}</td>
-                                        <td>{{ $item['conteoOperario'] }}</td>
-                                        <td>{{ $item['conteoMinutos'] }}</td>
-                                        <td>{{ $item['sumaMinutos'] }}</td>
-                                        <td>{{ $item['promedioMinutosEntero'] }}</td>
-                                        <td>{{ $item['conteParoModular'] }}</td>
-                                        <td>{{ number_format($item['porcentaje_error_aql'], 2) }}%</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6 col-md-12">
-            <div class="card ">
-                <div class="card-header card-header-success card-header-icon">
-                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general</h3>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table tablesorter" id="tablaProcesoGeneral">
-                            <thead class=" text-primary">
-                                <tr>
-                                    <th>Modulo (Proceso)</th>
-                                    <th>Numero de Operarios</th>
-                                    <th>Numero de Utility</th>
-                                    <th>Cantidad Paro</th>
-                                    <th>Minutos Paro</th>
-                                    <th>Promedio Minutos Paro</th>
-                                    <th>% Proceso</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($dataModuloProcesoGeneral as $item)
-                                    <tr>
-                                        <td>{{ $item['modulo'] }}</td>
-                                        <td>{{ $item['conteoOperario'] }}</td>
-                                        <td>{{ $item['conteoUtility'] }}</td>
-                                        <td>{{ $item['conteoMinutos'] }}</td>
-                                        <td>{{ $item['sumaMinutos'] }}</td>
-                                        <td>{{ $item['promedioMinutosEntero'] }}</td>
-                                        <td>{{ number_format($item['porcentaje_error_proceso'], 2) }}%</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="row">
         <div class="col-lg-4">
@@ -289,13 +194,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($clientesSemana as $cliente)
-                                <tr>
-                                    <td>{{ $cliente['cliente'] }}</td>
-                                    <td>{{ number_format($cliente['% AQL'], 2) }}%</td>
-                                    <td>{{ number_format($cliente['% PROCESO'], 2) }}%</td>
-                                </tr>
-                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -319,13 +217,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($supervisoresSemana as $supervisor)
-                                <tr>
-                                    <td>{{ $supervisor['team_leader'] }}</td>
-                                    <td>{{ number_format($supervisor['% AQL'], 2) }}%</td>
-                                    <td>{{ number_format($supervisor['% PROCESO'], 2) }}%</td>
-                                </tr>
-                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -349,13 +240,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($modulosSemana as $modulo)
-                                <tr>
-                                    <td>{{ $modulo['modulo'] }}</td>
-                                    <td>{{ number_format($modulo['% AQL'], 2) }}%</td>
-                                    <td>{{ number_format($modulo['% PROCESO'], 2) }}%</td>
-                                </tr>
-                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -366,44 +250,13 @@
 
 
     <div class="row">
-        <div class="col-12">
-            <div class="card card-chart">
-                <div class="card-header ">
-                    <div class="row">
-                        <div class="col-sm-6 text-left">
-                            <h2 class="card-title">
-                                <a href="{{ route('dashboar.dashboarAProcesoAQL') }}">Intimark Mensual General</a>
-                            </h2>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-                                <label class="btn btn-sm btn-success btn-simple active" id="btnAQL">
-                                    <input type="radio" name="options" checked>
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-app text-success"></i> AQL</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-single-02"></i>
-                                    </span>
-                                </label>
-                                <label class="btn btn-sm btn-info btn-simple" id="btnProcesos">
-                                    <input type="radio" class="d-none d-sm-none" name="options">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block"><i class="tim-icons icon-vector text-primary"></i> Proceso</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-gift-2"></i>
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="chart-area" style="height: 500px;">
-                        <div id="chartAQLContainer"></div>
-                        <div id="chartProcesosContainer" style="display: none;"></div>
-                    </div>
-                </div>
+        <div class="col-lg-12">
+            <div class="card card-body">
+                <div id="graficaMensualGeneral" style="width:100%; height:500px;"></div>
             </div>
         </div>
     </div>
+    
     <!-- Graficas -->
     <div class="row">
         <div class="col-12">
@@ -418,23 +271,10 @@
                                 <label class="btn btn-sm btn-primary btn-simple active" id="cliente0">
                                     <input type="radio" name="clienteOptions" checked>
                                     <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-single-02"></i>
-                                    </span>
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="cliente1">
-                                    <input type="radio" class="d-none d-sm-none" name="clienteOptions">
+                                    <input type="radio" name="clienteOptions">
                                     <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Proceso</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-gift-2"></i>
-                                    </span>
-                                </label>
-                                <label class="btn btn-sm btn-primary btn-simple" id="toggleAll">
-                                    <input type="checkbox" name="toggleAllOptions">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Mostrar/Ocultar Todo</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-bullet-list-67"></i>
-                                    </span>
                                 </label>
                             </div>
                         </div>
@@ -449,6 +289,7 @@
             </div>
         </div>
     </div>
+    <!-- Gráficas de Módulo -->
     <div class="row">
         <div class="col-12">
             <div class="card card-chart">
@@ -461,24 +302,11 @@
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
                                 <label class="btn btn-sm btn-primary btn-simple active" id="modulo0">
                                     <input type="radio" name="moduloOptions" checked>
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-single-02"></i>
-                                    </span>
+                                    <span class="d-none d-sm-block">AQL</span>
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="modulo1">
-                                    <input type="radio" class="d-none d-sm-none" name="moduloOptions">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Proceso</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-gift-2"></i>
-                                    </span>
-                                </label>
-                                <label class="btn btn-sm btn-primary btn-simple" id="toggleAllModulos">
-                                    <input type="checkbox" name="toggleAllModulosOptions">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Mostrar/Ocultar Todo</span>
-                                    <span class="d-block d-sm-none">
-                                        <i class="tim-icons icon-bullet-list-67"></i>
-                                    </span>
+                                    <input type="radio" name="moduloOptions">
+                                    <span class="d-none d-sm-block">Proceso</span>
                                 </label>
                             </div>
                         </div>
@@ -493,6 +321,7 @@
             </div>
         </div>
     </div>
+
 
     <div class="row">
         <div class="col-lg-4">
@@ -591,371 +420,715 @@
     <script src="https://code.highcharts.com/modules/export-data.js"></script>
     <script src="{{ asset('js/highcharts/dark-unica.js') }}"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Datos para las gráficas
-            const fechas = @json($fechas);
-            const porcentajesAQL = @json($porcentajesAQL);
-            const porcentajesProceso = @json($porcentajesProceso);
-
-            // Función para convertir los datos y manejar valores nulos o cero
-            function prepareData(data) {
-                return data.map(value => value === null ? null : parseFloat(value));
-            }
-
-            // Configuración común para ambas gráficas
-            const commonOptions = {
-                chart: {
-                    type: 'areaspline',
-                    backgroundColor: '#27293D',
-                    events: {
-                        load: function() {
-                            this.reflow();
-                        }
-                    }
-                },
-                title: {
-                    text: null
-                },
-                xAxis: {
-                    categories: fechas,
-                    tickmarkPlacement: 'on',
-                    title: { enabled: false },
-                    labels: { style: { color: '#ffffff' } }
-                },
-                yAxis: {
-                    title: {
-                        text: 'Porcentaje',
-                        style: { color: '#ffffff' }
-                    },
-                    labels: {
-                        formatter: function () {
-                            return this.value + '%';
-                        },
-                        style: { color: '#ffffff' }
-                    },
-                    gridLineColor: '#707073'
-                },
-                tooltip: {
-                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}%</b><br/>',
-                    valueDecimals: 2
-                },
-                plotOptions: {
-                    areaspline: {
-                        fillOpacity: 0.5,
-                        marker: {
-                            radius: 2
-                        },
-                        lineWidth: 1,
-                        states: {
-                            hover: {
-                                lineWidth: 1
-                            }
-                        },
-                        threshold: null
-                    }
-                },
-                legend: {
-                    itemStyle: { color: '#ffffff' }
-                }
-            };
-
-            // Gráfica AQL
-            const chartAQL = Highcharts.chart('chartAQLContainer', Highcharts.merge(commonOptions, {
-                series: [{
-                    name: 'AQL',
-                    data: prepareData(porcentajesAQL),
-                    color: '#00F0BA', // Color de la línea y el fondo de la línea
-                    showInLegend: false // Ocultar nombre en la leyenda
-                }]
-            }));
-
-            // Gráfica Procesos
-            const chartProcesos = Highcharts.chart('chartProcesosContainer', Highcharts.merge(commonOptions, {
-                series: [{
-                    name: 'Procesos',
-                    data: prepareData(porcentajesProceso),
-                    color: '#E146A1', // Color de la línea y el fondo de la línea
-                    showInLegend: false // Ocultar nombre en la leyenda
-                }]
-            }));
-
-            // Funcionalidad de los botones
-            document.getElementById('btnAQL').addEventListener('click', function() {
-                document.getElementById('chartAQLContainer').style.display = 'block';
-                document.getElementById('chartProcesosContainer').style.display = 'none';
-                chartAQL.reflow();
-            });
-
-            document.getElementById('btnProcesos').addEventListener('click', function() {
-                document.getElementById('chartAQLContainer').style.display = 'none';
-                document.getElementById('chartProcesosContainer').style.display = 'block';
-                chartProcesos.reflow();
-            });
-
-            // Ajuste responsivo
-            window.addEventListener('resize', function() {
-                chartAQL.reflow();
-                chartProcesos.reflow();
-            });
-        });
-    </script>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <!-- DataTables JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Datos para las gráficas
-            const fechasGrafica = @json($fechasGrafica);
-            const datasetsAQL = @json($datasetsAQL);
-            const datasetsProceso = @json($datasetsProceso);
-
-            // Lista de colores
-            const colores = [
-                '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB', '#FFCE56',
-                '#FF9F40', '#C7C7C7', '#FF63FF', '#63FF84', '#6384FF',
-                '#8463FF', '#C04BC0', '#EBA236', '#56FFCE', '#40AFFF'
-            ];
-
-            // Función para preparar datasets para Highcharts
-            function prepareDatasets(datasets) {
-                return datasets.map((dataset, index) => {
-                    return {
-                        name: dataset.label,
-                        data: dataset.data.map((value, i) => [new Date(fechasGrafica[i]).getTime(), parseFloat(value)]),
-                        color: colores[index % colores.length],
-                        //showInLegend: false // Ocultar nombre en la leyenda
-                    };
+        $(document).ready(function () {
+            fetchDataDia();
+    
+            function fetchDataDia() {
+                $.ajax({
+                    url: "{{ route('dashboard.dataDia') }}",
+                    type: "GET",
+                    success: function (data) {
+                        renderTablaClientes(data.clientes);
+                        renderTablaSupervisores(data.supervisores);
+                        renderTablaModulos(data.modulos);
+    
+                        // Llamar funciones para generar las gráficas
+                        renderGraficaClientes(data.clientes);
+                        renderGraficaSupervisores(data.supervisores);
+                        renderGraficaModulos(data.modulos);
+                    },
+                    error: function () {
+                        alert('Error al cargar los datos del día.');
+                    }
                 });
             }
 
-            // Configuración común para ambas gráficas
-            const commonOptions = {
+            // Configuración global de Highcharts
+            Highcharts.setOptions({
                 chart: {
-                    type: 'spline', // Cambiado a 'spline' para curvas suaves
-                    backgroundColor: '#27293D',
-                    events: {
-                        load: function() {
-                            this.reflow();
-                        }
+                    style: {
+                        fontFamily: 'Arial, sans-serif' // Tipografía global
                     }
-                },
-                // Eliminar el título de la gráfica
-                title: {
-                    text: null
-                },
-                xAxis: {
-                    type: 'datetime',
-                    labels: {
-                        style: { color: '#ffffff' }
-                    }
-                },
-                yAxis: {
-                    title: {
-                        text: 'Porcentaje',
-                        style: { color: '#ffffff' }
-                    },
-                    labels: {
-                        formatter: function () {
-                            return this.value + '%';
-                        },
-                        style: { color: '#ffffff' }
-                    },
-                    gridLineColor: '#707073'
                 },
                 tooltip: {
-                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}%</b><br/>',
-                    valueDecimals: 2
+                    shared: true, // Tooltip combinado
+                    formatter: function () {
+                        let tooltip = `<b>${this.x}</b><br/>`;
+                        this.points.forEach(point => {
+                            tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                        });
+                        return tooltip;
+                    },
+                    backgroundColor: '#000000', // Fondo negro
+                    style: { color: '#ffffff' } // Texto blanco
                 },
                 plotOptions: {
-                    spline: { // Opciones específicas para 'spline'
-                        marker: {
-                            radius: 2
-                        },
-                        lineWidth: 1,
+                    column: {
+                        pointPadding: 0.2,
+                        borderWidth: 0
+                    },
+                    series: {
+                        cursor: 'pointer',
                         states: {
                             hover: {
-                                lineWidth: 1
+                                enabled: true,
+                                brightness: 0.1 // Iluminación al pasar el mouse
                             }
-                        },
-                        threshold: null
+                        }
                     }
-                },
-                legend: {
-                    itemStyle: { color: '#ffffff' }
                 }
-            };
-
-            // Gráfica AQL
-            const chartClienteAQL = Highcharts.chart('clienteChartAQL', Highcharts.merge(commonOptions, {
-                series: prepareDatasets(datasetsAQL)
-            }));
-
-            // Gráfica Procesos
-            const chartClienteProcesos = Highcharts.chart('clienteChartProcesos', Highcharts.merge(commonOptions, {
-                series: prepareDatasets(datasetsProceso)
-            }));
-
-            // Funcionalidad de los botones
-            document.getElementById('cliente0').addEventListener('click', function() {
-                document.getElementById('clienteChartAQL').style.display = 'block';
-                document.getElementById('clienteChartProcesos').style.display = 'none';
-                chartClienteAQL.reflow();
             });
 
-            document.getElementById('cliente1').addEventListener('click', function() {
-                document.getElementById('clienteChartAQL').style.display = 'none';
-                document.getElementById('clienteChartProcesos').style.display = 'block';
-                chartClienteProcesos.reflow();
-            });
+            // Función para generar gráfica de Clientes
+            function renderGraficaClientes(clientes) {
+                const categorias = Object.keys(clientes);
+                const dataAQL = categorias.map(c => clientes[c]['% AQL'] || 0);
+                const dataProceso = categorias.map(c => clientes[c]['% PROCESO'] || 0);
 
-            document.getElementById('toggleAll').addEventListener('click', function() {
-                const showAll = document.getElementById('toggleAll').querySelector('input').checked;
-                const toggleVisibility = function(chart) {
-                    chart.series.forEach(function(series) {
-                        series.setVisible(showAll, false);
-                    });
-                    chart.redraw();
-                };
+                Highcharts.chart('graficaClientePorDia', {
+                    chart: { type: 'column', backgroundColor: null },
+                    title: { text: 'Comparativo AQL y PROCESO - Clientes (Día Actual)' },
+                    xAxis: {
+                        categories: categorias,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: { text: 'Porcentaje (%)' }
+                    },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
 
-                toggleVisibility(chartClienteAQL);
-                toggleVisibility(chartClienteProcesos);
-            });
+            // Función para generar gráfica de Supervisores
+            function renderGraficaSupervisores(supervisores) {
+                const categorias = Object.keys(supervisores);
+                const dataAQL = categorias.map(c => supervisores[c]['% AQL'] || 0);
+                const dataProceso = categorias.map(c => supervisores[c]['% PROCESO'] || 0);
 
-            // Ajuste responsivo
-            window.addEventListener('resize', function() {
-                chartClienteAQL.reflow();
-                chartClienteProcesos.reflow();
-            });
+                Highcharts.chart('graficaSupervisorPorDia', {
+                    chart: { type: 'column', backgroundColor: null },
+                    title: { text: 'Comparativo AQL y PROCESO - Supervisores (Día Actual)' },
+                    xAxis: {
+                        categories: categorias,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: { text: 'Porcentaje (%)' }
+                    },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+
+            // Función para generar gráfica de Módulos
+            function renderGraficaModulos(modulos) {
+                const categorias = Object.keys(modulos);
+                const dataAQL = categorias.map(c => modulos[c]['% AQL'] || 0);
+                const dataProceso = categorias.map(c => modulos[c]['% PROCESO'] || 0);
+
+                Highcharts.chart('graficaModuloPorDia', {
+                    chart: { type: 'column', backgroundColor: null },
+                    title: { text: 'Comparativo AQL y PROCESO - Módulos (Día Actual)' },
+                    xAxis: {
+                        categories: categorias,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: { text: 'Porcentaje (%)' }
+                    },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+            
+            // Funciones para llenar las tablas (Ya las tienes implementadas)
+            function renderTablaClientes(clientes) {
+                const tableId = '#tablaClientes';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy(); // Destruir la instancia previa
+                }
+
+                let html = '';
+                $.each(clientes, function (cliente, valores) {
+                    html += `
+                        <tr>
+                            <td>${cliente}</td>
+                            <td>${valores['% AQL'] ? valores['% AQL'].toFixed(2) + '%' : '0%'}</td>
+                            <td>${valores['% PROCESO'] ? valores['% PROCESO'].toFixed(2) + '%' : '0%'}</td>
+                        </tr>`;
+                });
+                $(tableId + ' tbody').html(html); // Reemplazar el contenido de la tabla
+
+                // Re-inicializar DataTable
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
+
+            function renderTablaSupervisores(supervisores) {
+                const tableId = '#tablaResponsables';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
+                let html = '';
+                $.each(supervisores, function (supervisor, valores) {
+                    html += `
+                        <tr>
+                            <td>${supervisor}</td>
+                            <td>${valores['% AQL'] ? valores['% AQL'].toFixed(2) + '%' : '0%'}</td>
+                            <td>${valores['% PROCESO'] ? valores['% PROCESO'].toFixed(2) + '%' : '0%'}</td>
+                        </tr>`;
+                });
+                $(tableId + ' tbody').html(html);
+
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
+
+            function renderTablaModulos(modulos) {
+                const tableId = '#tablaModulos';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
+                let html = '';
+                $.each(modulos, function (modulo, valores) {
+                    html += `
+                        <tr>
+                            <td>${modulo}</td>
+                            <td>${valores['% AQL'] ? valores['% AQL'].toFixed(2) + '%' : '0%'}</td>
+                            <td>${valores['% PROCESO'] ? valores['% PROCESO'].toFixed(2) + '%' : '0%'}</td>
+                        </tr>`;
+                });
+                $(tableId + ' tbody').html(html);
+
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
         });
     </script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Datos para las gráficas
-            const fechasGraficaModulos = @json($fechasGraficaModulos);
-            const datasetsAQLModulos = @json($datasetsAQLModulos);
-            const datasetsProcesoModulos = @json($datasetsProcesoModulos);
+        $(document).ready(function () {
+            fetchDataSemana();
 
-            // Lista de colores
-            const colores = [
-                '#4BC0C0', '#9966FF', '#FF6384', '#36A2EB', '#FFCE56',
-                '#FF9F40', '#C7C7C7', '#FF63FF', '#63FF84', '#6384FF',
-                '#8463FF', '#C04BC0', '#EBA236', '#56FFCE', '#40AFFF'
-            ];
+            function fetchDataSemana() {
+                $.ajax({
+                    url: "{{ route('dashboard.dataSemana') }}",
+                    type: "GET",
+                    success: function (data) {
+                        // Actualizar tablas
+                        renderTablaClientesSemanal(data.clientes);
+                        renderTablaResponsablesSemanal(data.supervisores);
+                        renderTablaModulosSemanal(data.modulos);
 
-            // Función para preparar datasets para Highcharts
-            function prepareDatasets(datasets) {
-                return datasets.map((dataset, index) => {
-                    return {
-                        name: dataset.label,
-                        data: dataset.data.map((value, i) => [new Date(fechasGraficaModulos[i]).getTime(), parseFloat(value)]),
-                        color: colores[index % colores.length],
-                        //showInLegend: false // Ocultar nombre en la leyenda
-                    };
+                        // Generar gráficas
+                        renderGraficaClientesSemanal(data.clientes);
+                        renderGraficaSupervisoresSemanal(data.supervisores);
+                        renderGraficaModulosSemanal(data.modulos);
+                    },
+                    error: function () {
+                        alert('Error al cargar los datos de la semana.');
+                    }
                 });
             }
 
-            // Configuración común para ambas gráficas
-            const commonOptions = {
-                chart: {
-                    type: 'spline', // Cambiado a 'spline' para curvas suaves
-                    backgroundColor: '#27293D',
-                    events: {
-                        load: function() {
-                            this.reflow();
-                        }
-                    }
-                },
-                // Eliminar el título de la gráfica
-                title: {
-                    text: null
-                },
-                xAxis: {
-                    type: 'datetime',
-                    labels: {
-                        style: { color: '#ffffff' }
-                    }
-                },
-                yAxis: {
-                    title: {
-                        text: 'Porcentaje',
-                        style: { color: '#ffffff' }
-                    },
-                    labels: {
-                        formatter: function () {
-                            return this.value + '%';
-                        },
-                        style: { color: '#ffffff' }
-                    },
-                    gridLineColor: '#707073'
-                },
-                tooltip: {
-                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}%</b><br/>',
-                    valueDecimals: 2
-                },
-                plotOptions: {
-                    spline: { // Opciones específicas para 'spline'
-                        marker: {
-                            radius: 2
-                        },
-                        lineWidth: 1,
-                        states: {
-                            hover: {
-                                lineWidth: 1
-                            }
-                        },
-                        threshold: null
-                    }
-                },
-                legend: {
-                    itemStyle: { color: '#ffffff' }
+            // Función para actualizar la tabla de Clientes
+            function renderTablaClientesSemanal(clientes) {
+                const tableId = '#tablaClientesSemanal';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
                 }
-            };
 
-            // Gráfica AQL
-            const chartModuloAQL = Highcharts.chart('moduloChartAQL', Highcharts.merge(commonOptions, {
-                series: prepareDatasets(datasetsAQLModulos)
-            }));
+                let html = '';
+                clientes.forEach(cliente => {
+                    html += `
+                        <tr>
+                            <td>${cliente.cliente}</td>
+                            <td>${cliente['% AQL'].toFixed(2)}%</td>
+                            <td>${cliente['% PROCESO'].toFixed(2)}%</td>
+                        </tr>`;
+                });
+                $('#tablaClientesSemanal tbody').html(html);
 
-            // Gráfica Procesos
-            const chartModuloProcesos = Highcharts.chart('moduloChartProcesos', Highcharts.merge(commonOptions, {
-                series: prepareDatasets(datasetsProcesoModulos)
-            }));
+                // Re-inicializar DataTable
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
 
-            // Funcionalidad de los botones
-            document.getElementById('modulo0').addEventListener('click', function() {
-                document.getElementById('moduloChartAQL').style.display = 'block';
-                document.getElementById('moduloChartProcesos').style.display = 'none';
-                chartModuloAQL.reflow();
-            });
+            // Función para actualizar la tabla de Supervisores
+            function renderTablaResponsablesSemanal(supervisores) {
+                const tableId = '#tablaResponsablesSemanal';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
 
-            document.getElementById('modulo1').addEventListener('click', function() {
-                document.getElementById('moduloChartAQL').style.display = 'none';
-                document.getElementById('moduloChartProcesos').style.display = 'block';
-                chartModuloProcesos.reflow();
-            });
+                let html = '';
+                supervisores.forEach(supervisor => {
+                    html += `
+                        <tr>
+                            <td>${supervisor.team_leader}</td>
+                            <td>${supervisor['% AQL'].toFixed(2)}%</td>
+                            <td>${supervisor['% PROCESO'].toFixed(2)}%</td>
+                        </tr>`;
+                });
+                $('#tablaResponsablesSemanal tbody').html(html);
 
-            document.getElementById('toggleAllModulos').addEventListener('click', function() {
-                const showAll = document.getElementById('toggleAllModulos').querySelector('input').checked;
-                const toggleVisibility = function(chart) {
-                    chart.series.forEach(function(series) {
-                        series.setVisible(showAll, false);
-                    });
-                    chart.redraw();
-                };
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
 
-                toggleVisibility(chartModuloAQL);
-                toggleVisibility(chartModuloProcesos);
-            });
+            // Función para actualizar la tabla de Módulos
+            function renderTablaModulosSemanal(modulos) {
+                const tableId = '#tablaModulosSemanal';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+                
+                let html = '';
+                modulos.forEach(modulo => {
+                    html += `
+                        <tr>
+                            <td>${modulo.modulo}</td>
+                            <td>${modulo['% AQL'].toFixed(2)}%</td>
+                            <td>${modulo['% PROCESO'].toFixed(2)}%</td>
+                        </tr>`;
+                });
+                $('#tablaModulosSemanal tbody').html(html);
 
-            // Ajuste responsivo
-            window.addEventListener('resize', function() {
-                chartModuloAQL.reflow();
-                chartModuloProcesos.reflow();
-            });
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
+
+            // Función para generar la gráfica de Clientes
+            function renderGraficaClientesSemanal(clientes) {
+                const categorias = clientes.map(c => c.cliente);
+                const dataAQL = clientes.map(c => c['% AQL']);
+                const dataProceso = clientes.map(c => c['% PROCESO']);
+
+                Highcharts.chart('graficaClientesSemanal', {
+                    chart: { type: 'column', backgroundColor: null },
+                    title: { text: 'Comparativo AQL y PROCESO - Clientes (Semana Actual)' },
+                    xAxis: { categories: categorias, crosshair: true },
+                    yAxis: { min: 0, title: { text: 'Porcentaje (%)' } },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+
+            // Función para generar la gráfica de Supervisores
+            function renderGraficaSupervisoresSemanal(supervisores) {
+                const categorias = supervisores.map(s => s.team_leader);
+                const dataAQL = supervisores.map(s => s['% AQL']);
+                const dataProceso = supervisores.map(s => s['% PROCESO']);
+
+                Highcharts.chart('graficaSupervisoresSemanal', {
+                    chart: { type: 'column', backgroundColor: null },
+                    title: { text: 'Comparativo AQL y PROCESO - Supervisores (Semana Actual)' },
+                    xAxis: { categories: categorias, crosshair: true },
+                    yAxis: { min: 0, title: { text: 'Porcentaje (%)' } },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+
+            // Función para generar la gráfica de Módulos
+            function renderGraficaModulosSemanal(modulos) {
+                const categorias = modulos.map(m => m.modulo);
+                const dataAQL = modulos.map(m => m['% AQL']);
+                const dataProceso = modulos.map(m => m['% PROCESO']);
+
+                Highcharts.chart('graficaModulosSemanal', {
+                    chart: { type: 'column', backgroundColor: null },
+                    title: { text: 'Comparativo AQL y PROCESO - Módulos (Semana Actual)' },
+                    xAxis: { categories: categorias, crosshair: true },
+                    yAxis: { min: 0, title: { text: 'Porcentaje (%)' } },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
         });
     </script>
-    <!-- nothing-->
-    <!-- nothing-->
+
+    <script>
+        $(document).ready(function () {
+            fetchMensualGeneral();
+
+            function fetchMensualGeneral() {
+                $.ajax({
+                    url: "{{ route('dashboard.mensualGeneral') }}",
+                    type: "GET",
+                    success: function (data) {
+                        renderGraficaMensualGeneral(data);
+                    },
+                    error: function () {
+                        alert('Error al cargar los datos mensuales generales.');
+                    }
+                });
+            }
+
+            function renderGraficaMensualGeneral(data) {
+                const dias = data.map(item => item.dia); // Eje X: Días del mes
+                const dataAQL = data.map(item => item.AQL); // Eje Y: AQL
+                const dataProceso = data.map(item => item.PROCESO); // Eje Y: Proceso
+                // Obtener el nombre del mes actual
+                const fechaHoy = new Date();
+                const nombreMes = fechaHoy.toLocaleString('es-ES', { month: 'long' }); // Ejemplo: "diciembre"
+
+                Highcharts.chart('graficaMensualGeneral', {
+                    chart: {
+                        type: 'areaspline', // Cambio a gráfica de área
+                        backgroundColor: null // Fondo transparente
+                    },
+                    title: {
+                        text: 'Indicador mensual general - AQL y PROCESO'
+                    },
+                    xAxis: {
+                        categories: dias, // Eje X: Días del mes
+                        crosshair: true,
+                        title: { text: `Días del Mes - ${nombreMes}` } // Agrega el nombre del mes
+                    },
+                    yAxis: {
+                        title: { text: 'Porcentaje (%)' },
+                        min: 0
+                    },
+                    tooltip: {
+                        shared: true,
+                        formatter: function () {
+                            let tooltip = `<b>Día ${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        }
+                    },
+                    plotOptions: {
+                        areaspline: {
+                            fillOpacity: 0.7, // Nivel de transparencia del relleno (0.3 = 30%)
+                            lineWidth: 2, // Grosor de la línea
+                            marker: {
+                                enabled: false // Ocultar los marcadores en los puntos
+                            }
+                        }
+                    },
+                    series: [
+                        {
+                            name: '% AQL',
+                            data: dataAQL,
+                            color: '#00f0c1', // Color de la línea y el relleno
+                            zIndex: 1 // Asegura que quede al frente
+                        },    
+                        {
+                            name: '% PROCESO',
+                            data: dataProceso,
+                            color: '#dd4dc7', // Color de la línea y el relleno
+                            zIndex: 0 // Asegura que quede detrás
+                        }
+                    ]
+                });
+            }
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            fetchMensualPorCliente();
+
+            let chartAQL, chartProceso;
+
+            function fetchMensualPorCliente() {
+                $.ajax({
+                    url: "{{ route('dashboard.mensualPorCliente') }}",
+                    type: "GET",
+                    success: function (data) {
+                        chartAQL = renderGraficaPorCliente(data, 'AQL', 'clienteChartAQL');
+                        chartProceso = renderGraficaPorCliente(data, 'PROCESO', 'clienteChartProcesos');
+
+                        // Inicialización de la vista
+                        $('#clienteChartAQL').show();
+                        $('#clienteChartProcesos').hide();
+
+                        // Botones dinámicos para cambiar de gráfico
+                        $('#cliente0').on('click', function () {
+                            $('#clienteChartAQL').show();
+                            $('#clienteChartProcesos').hide();
+                            chartAQL.reflow();
+                        });
+
+                        $('#cliente1').on('click', function () {
+                            $('#clienteChartAQL').hide();
+                            $('#clienteChartProcesos').show();
+                            chartProceso.reflow();
+                        });
+                    },
+                    error: function () {
+                        alert('Error al cargar los datos mensuales por cliente.');
+                    }
+                });
+            }
+
+            function renderGraficaPorCliente(data, tipo, containerId) {
+                const series = [];
+
+                // Configuración de las series con datos
+                Object.keys(data).forEach(cliente => {
+                    const valores = data[cliente].map(item => item[tipo]);
+                    series.push({
+                        name: cliente,
+                        data: valores,
+                        type: 'spline', // Gráfica curva
+                        marker: { enabled: false }
+                    });
+                });
+
+                // Generar la gráfica
+                const chart = Highcharts.chart(containerId, {
+                    chart: {
+                        backgroundColor: null,
+                        events: {
+                            load: function () {
+                                const chart = this;
+
+                                // Crear botón interno en la gráfica
+                                chart.renderer.button('Mostrar/Ocultar Todo', 10, 10)
+                                    .attr({
+                                        zIndex: 3,
+                                        fill: '#007bff', // Color del botón
+                                        stroke: '#0056b3',
+                                        'stroke-width': 1,
+                                        padding: 5,
+                                        r: 5, // Bordes redondeados
+                                        style: {
+                                            color: '#ffffff',
+                                            cursor: 'pointer'
+                                        }
+                                    })
+                                    .on('click', function () {
+                                        // Alternar visibilidad de todas las series
+                                        const allVisible = chart.series.every(s => s.visible);
+                                        chart.series.forEach(series => {
+                                            series.setVisible(!allVisible, false);
+                                        });
+                                        chart.redraw();
+                                    })
+                                    .add();
+                            }
+                        }
+                    },
+                    title: {
+                        text: `Indicador Mensual por Cliente - ${tipo}`
+                    },
+                    xAxis: {
+                        categories: Array.from({ length: data[Object.keys(data)[0]].length }, (_, i) => i + 1),
+                        title: { text: 'Días del Mes' }
+                    },
+                    yAxis: {
+                        title: { text: 'Porcentaje (%)' },
+                        min: 0
+                    },
+                    tooltip: {
+                        shared: true,
+                        formatter: function () {
+                            let tooltip = `<b>Día ${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        }
+                    },
+                    plotOptions: {
+                        spline: {
+                            lineWidth: 2
+                        }
+                    },
+                    legend: {
+                        enabled: true
+                    },
+                    series: series
+                });
+
+                return chart;
+            }
+        });
+
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            fetchMensualPorModulo();
+
+            let chartAQLModulo, chartProcesoModulo;
+
+            function fetchMensualPorModulo() {
+                $.ajax({
+                    url: "{{ route('dashboard.mensualPorModulo') }}",
+                    type: "GET",
+                    success: function (data) {
+                        chartAQLModulo = renderGraficaPorModulo(data, 'AQL', 'moduloChartAQL');
+                        chartProcesoModulo = renderGraficaPorModulo(data, 'PROCESO', 'moduloChartProcesos');
+
+                        // Inicialización: mostrar AQL, ocultar Proceso
+                        $('#moduloChartAQL').show();
+                        $('#moduloChartProcesos').hide();
+
+                        // Botones externos para alternar entre AQL y PROCESO
+                        $('#modulo0').on('click', function () {
+                            $('#moduloChartAQL').show();
+                            $('#moduloChartProcesos').hide();
+                            chartAQLModulo.reflow();
+                        });
+
+                        $('#modulo1').on('click', function () {
+                            $('#moduloChartAQL').hide();
+                            $('#moduloChartProcesos').show();
+                            chartProcesoModulo.reflow();
+                        });
+                    },
+                    error: function () {
+                        alert('Error al cargar los datos mensuales por módulo.');
+                    }
+                });
+            }
+
+            function renderGraficaPorModulo(data, tipo, containerId) {
+                const series = [];
+
+                // Preparar los datos
+                Object.keys(data).forEach(modulo => {
+                    const valores = data[modulo].map(item => item[tipo]);
+                    series.push({
+                        name: modulo,
+                        data: valores,
+                        type: 'spline',
+                        marker: { enabled: false }
+                    });
+                });
+
+                // Crear la gráfica
+                const chart = Highcharts.chart(containerId, {
+                    chart: {
+                        backgroundColor: null,
+                        events: {
+                            load: function () {
+                                const chart = this;
+
+                                // Crear botón interno para mostrar/ocultar todas las series
+                                chart.renderer.button('Mostrar/Ocultar Todo', 10, 10)
+                                    .attr({
+                                        zIndex: 3,
+                                        fill: '#007bff',
+                                        stroke: '#0056b3',
+                                        'stroke-width': 1,
+                                        padding: 5,
+                                        r: 5,
+                                        style: {
+                                            color: '#ffffff',
+                                            cursor: 'pointer'
+                                        }
+                                    })
+                                    .on('click', function () {
+                                        const allVisible = chart.series.every(s => s.visible);
+                                        chart.series.forEach(series => {
+                                            series.setVisible(!allVisible, false);
+                                        });
+                                        chart.redraw();
+                                    })
+                                    .add();
+                            }
+                        }
+                    },
+                    title: { text: `Indicador Mensual por Módulo - ${tipo}` },
+                    xAxis: {
+                        categories: Array.from({ length: data[Object.keys(data)[0]].length }, (_, i) => i + 1),
+                        title: { text: 'Días del Mes' }
+                    },
+                    yAxis: {
+                        title: { text: 'Porcentaje (%)' },
+                        min: 0
+                    },
+                    tooltip: {
+                        shared: true,
+                        formatter: function () {
+                            let tooltip = `<b>Día ${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        }
+                    },
+                    plotOptions: {
+                        spline: { lineWidth: 2 }
+                    },
+                    legend: { enabled: true },
+                    series: series
+                });
+
+                return chart;
+            }
+        });
+
+    </script>
+
     <script>
         const topDefectosAQL = @json($topDefectosAQL);
         const topDefectosProceso = @json($topDefectosProceso);
@@ -1169,379 +1342,6 @@
       });
     });
   </script>
-
-
-
-
-    <script>
-        // Configuración global de Highcharts para la fuente y estilo
-        Highcharts.setOptions({
-            chart: {
-                style: {
-                    fontFamily: 'Arial, sans-serif' // Establecer la tipografía global
-                }
-            }
-        });
-        //script para cliente por semana
-        document.addEventListener('DOMContentLoaded', function () {
-            Highcharts.chart('graficaClientesSemanal', {
-                chart: {
-                    type: 'column', // Cambiar a 'bar' si prefieres barras horizontales
-                    backgroundColor: null // Fondo transparente
-                },
-                title: {
-                    text: 'Comparativo AQL y PROCESO - Clientes (Semana Actual)'
-                },
-                xAxis: {
-                    categories: @json(array_column($clientesSemana, 'cliente')), // Lista de clientes
-                    crosshair: true
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: 'Porcentaje (%)'
-                    }
-                },
-                tooltip: {
-                    shared: true
-                },
-                plotOptions: {
-                    column: {
-                        pointPadding: 0.2,
-                        borderWidth: 0
-                    }
-                },
-                series: [{
-                    name: '% AQL',
-                    data: @json(array_column($clientesSemana, '% AQL')), // Datos de AQL
-                    color: '#00f0c1' // Color definido para AQL
-                }, {
-                    name: '% PROCESO',
-                    data: @json(array_column($clientesSemana, '% PROCESO')), // Datos de PROCESO
-                    color: '#dd4dc7' // Color definido para PROCESO
-                }]
-            });
-        });
-
-        //Supervisores por semana
-        document.addEventListener('DOMContentLoaded', function () {
-            Highcharts.chart('graficaSupervisoresSemanal', {
-                chart: {
-                    type: 'column',
-                    backgroundColor: null // Fondo transparente
-                },
-                title: {
-                    text: 'Comparativo AQL y PROCESO - Supervisores (Semana Actual)'
-                },
-                xAxis: {
-                    categories: @json(array_column($supervisoresSemana, 'team_leader')),
-                    crosshair: true
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: 'Porcentaje (%)'
-                    }
-                },
-                tooltip: {
-                    shared: true
-                },
-                plotOptions: {
-                    column: {
-                        pointPadding: 0.2,
-                        borderWidth: 0
-                    }
-                },
-                series: [{
-                    name: '% AQL',
-                    data: @json(array_column($supervisoresSemana, '% AQL')),
-                    color: '#00f0c1' // Color definido para AQL
-                }, {
-                    name: '% PROCESO',
-                    data: @json(array_column($supervisoresSemana, '% PROCESO')),
-                    color: '#dd4dc7' // Color definido para PROCESO
-
-                }]
-            });
-        });
-
-        //Modulo por semana
-        document.addEventListener('DOMContentLoaded', function () {
-            Highcharts.chart('graficaModulosSemanal', {
-                chart: {
-                    type: 'column',
-                    backgroundColor: null // Fondo transparente
-                },
-                title: {
-                    text: 'Comparativo AQL y PROCESO - Módulos (Semana Actual)'
-                },
-                xAxis: {
-                    categories: @json(array_column($modulosSemana, 'modulo')),
-                    crosshair: true
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: 'Porcentaje (%)'
-                    }
-                },
-                tooltip: {
-                    shared: true
-                },
-                plotOptions: {
-                    column: {
-                        pointPadding: 0.2,
-                        borderWidth: 0
-                    }
-                },
-                series: [{
-                    name: '% AQL',
-                    data: @json(array_column($modulosSemana, '% AQL')),
-                    color: '#00f0c1' // Color definido para AQL
-                }, {
-                    name: '% PROCESO',
-                    data: @json(array_column($modulosSemana, '% PROCESO')),
-                    color: '#dd4dc7' // Color definido para PROCESO
-                }]
-            });
-        });
-
-    </script>
-
-    <script>
-        //misma grafica pero ahora por dia
-        // Configuración global de Highcharts para la fuente y estilo
-        Highcharts.setOptions({
-            chart: {
-                style: {
-                    fontFamily: 'Arial, sans-serif' // Establecer la tipografía global
-                }
-            }
-        });
-
-        // Script para Clientes por día
-        document.addEventListener('DOMContentLoaded', function () {
-            Highcharts.chart('graficaClientePorDia', {
-                chart: {
-                    type: 'column',
-                    backgroundColor: null // Fondo transparente
-                },
-                title: {
-                    text: 'Comparativo AQL y PROCESO - Clientes (Día Actual)'
-                },
-                xAxis: {
-                    categories: @json(array_column($dataGeneral['dataCliente'], 'cliente')), // Lista de clientes
-                    crosshair: true
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: 'Porcentaje (%)'
-                    }
-                },
-                tooltip: {
-                    shared: true
-                },
-                plotOptions: {
-                    column: {
-                        pointPadding: 0.2,
-                        borderWidth: 0
-                    }
-                },
-                series: [{
-                    name: '% AQL',
-                    data: @json(array_column($dataGeneral['dataCliente'], 'porcentajeErrorAQL')), // Datos de AQL
-                    color: '#00f0c1' // Color definido para AQL
-                }, {
-                    name: '% PROCESO',
-                    data: @json(array_column($dataGeneral['dataCliente'], 'porcentajeErrorProceso')), // Datos de PROCESO
-                    color: '#dd4dc7' // Color definido para PROCESO
-                }]
-            });
-        });
-
-        // Script para Supervisores por día
-        document.addEventListener('DOMContentLoaded', function () {
-            Highcharts.chart('graficaSupervisorPorDia', {
-                chart: {
-                    type: 'column',
-                    backgroundColor: null // Fondo transparente
-                },
-                title: {
-                    text: 'Comparativo AQL y PROCESO - Supervisores (Día Actual)'
-                },
-                xAxis: {
-                    categories: @json(array_column($dataGerentesGeneral, 'team_leader')), // Lista de supervisores
-                    crosshair: true
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: 'Porcentaje (%)'
-                    }
-                },
-                tooltip: {
-                    shared: true
-                },
-                plotOptions: {
-                    column: {
-                        pointPadding: 0.2,
-                        borderWidth: 0
-                    }
-                },
-                series: [{
-                    name: '% AQL',
-                    data: @json(array_column($dataGerentesGeneral, 'porcentaje_error_aql')), // Datos de AQL
-                    color: '#00f0c1' // Color definido para AQL
-                }, {
-                    name: '% PROCESO',
-                    data: @json(array_column($dataGerentesGeneral, 'porcentaje_error_proceso')), // Datos de PROCESO
-                    color: '#dd4dc7' // Color definido para PROCESO
-                }]
-            });
-        });
-
-        // Script para Módulos por día
-        document.addEventListener('DOMContentLoaded', function () {
-            Highcharts.chart('graficaModuloPorDia', {
-                chart: {
-                    type: 'column',
-                    backgroundColor: null // Fondo transparente
-                },
-                title: {
-                    text: 'Comparativo AQL y PROCESO - Módulos (Día Actual)'
-                },
-                xAxis: {
-                    categories: @json(array_column($dataModulosGeneral, 'modulo')), // Lista de módulos
-                    crosshair: true
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: 'Porcentaje (%)'
-                    }
-                },
-                tooltip: {
-                    shared: true
-                },
-                plotOptions: {
-                    column: {
-                        pointPadding: 0.2,
-                        borderWidth: 0
-                    }
-                },
-                series: [{
-                    name: '% AQL',
-                    data: @json(array_column($dataModulosGeneral, 'porcentaje_error_aql')), // Datos de AQL
-                    color: '#00f0c1' // Color definido para AQL
-                }, {
-                    name: '% PROCESO',
-                    data: @json(array_column($dataModulosGeneral, 'porcentaje_error_proceso')), // Datos de PROCESO
-                    color: '#dd4dc7' // Color definido para PROCESO
-                }]
-            });
-        });
-
-    </script>
-
-@endpush
-
-@push('js')
-    <script src="{{ asset('black') }}/js/plugins/chartjs.min.js"></script>
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    <!-- DataTables JavaScript -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            $.fn.dataTable.ext.type.order['custom-num-pre'] = function(a) {
-                // Si es "N/A", devolver un valor que lo coloque al final
-                if (a === "N/A") return -Infinity;
-
-                // Convertir a número flotante
-                var x = parseFloat(a);
-
-                // Si no es un número válido, devolver -Infinity
-                return isNaN(x) ? -Infinity : x;
-            };
-
-            $.fn.dataTable.ext.type.order['custom-num-desc'] = function(a, b) {
-                return b - a;
-            };
-            const tableIds = ['#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaResponsables', '#tablaModulos', '#tablaResponsable', '#tablaClientes',
-                            '#tablaModulosSemanal', '#tablaResponsablesSemanal', '#tablaClientesSemanal',
-            ];
-
-            tableIds.forEach(tableId => {
-                if (!$.fn.dataTable.isDataTable(tableId)) {
-                    $(tableId).DataTable({
-                        lengthChange: false,
-                        searching: true,
-                        paging: true,
-                        pageLength: 5,
-                        autoWidth: false,
-                        responsive: true,
-                        columnDefs: [
-                            {
-                                searchable: false,
-                                orderable: false,
-                            },
-                            {
-                                targets: 0, // La primera columna (índice 0)
-                                type: "string", // Tratar como texto
-                                render: function(data, type, row) {
-                                    // Asegúrate de manejar correctamente el texto
-                                    return type === 'sort' ? data : data;
-                                }
-                            },
-                            {
-                                targets: "_all", // Todas las demás columnas numéricas
-                                type: "custom-num",  // Usar tipo personalizado
-                                render: function(data, type, row) {
-                                    // Esto ayuda a manejar la presentación de "N/A"
-                                    return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
-                                }
-                            }
-                        ],
-                        language: {
-                            "sProcessing":     "Procesando...",
-                            "sLengthMenu":     "Mostrar _MENU_ registros",
-                            "sZeroRecords":    "No se encontraron resultados",
-                            "sEmptyTable":     "Ningún dato disponible en esta tabla",
-                            "sInfo":           "Registros _START_ - _END_ de _TOTAL_ mostrados",
-                            "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
-                            "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-                            "sInfoPostFix":    "",
-                            "sSearch":         "Buscar:",
-                            "sUrl":            "",
-                            "sInfoThousands":  ",",
-                            "sLoadingRecords": "Cargando...",
-                            "oPaginate": {
-                                "sFirst":    "Primero",
-                                "sLast":     "Último",
-                                "sNext":     "Siguiente",
-                                "sPrevious": "Anterior"
-                            },
-                            "oAria": {
-                                "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-                                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                            }
-                        },
-                        initComplete: function(settings, json) {
-                            if ($('body').hasClass('dark-mode')) {
-                                $(tableId + '_wrapper').addClass('dark-mode');
-                            }
-                        }
-                    });
-                }
-            });
-        });
-    </script>
-
-
 
 
 @endpush

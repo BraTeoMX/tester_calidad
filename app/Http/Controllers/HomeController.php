@@ -41,173 +41,101 @@ class HomeController extends Controller
         $fechaFin = Carbon::now()->toDateString();
         $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
         $SegundasTerceras = '';
-        //dd($fechaFin, $fechaInicio, $fechaActual);
         // Verifica si el usuario tiene los roles 'Administrador' o 'Gerente de Calidad'
         /**
          * @var User $user
-         */
+        */
         $user = Auth::user();
         if ($user->hasRole('Administrador') || $user->hasRole('Gerente de Calidad')) {
 
-            function calcularPorcentaje($modelo, $fecha, $planta = null) {
-                $query = $modelo::whereDate('created_at', $fecha);
-                if ($planta) {
-                    $query->where('planta', $planta);
+            // Consulta consolidada (una sola ejecución para las dos tablas)
+            $resultados = Cache::remember('resultados_consolidados_'.$fechaActual, 60, function() use ($fechaActual) {
+                $generalAseguramiento = DB::table('aseguramientos_calidad')
+                    ->selectRaw("
+                        'Proceso' as tipo,
+                        'General' as planta,
+                        SUM(cantidad_auditada) as cantidad_auditada,
+                        SUM(cantidad_rechazada) as cantidad_rechazada
+                    ")
+                    ->whereDate('created_at', $fechaActual);
+            
+                $generalAQL = DB::table('auditoria_aql')
+                    ->selectRaw("
+                        'AQL' as tipo,
+                        'General' as planta,
+                        SUM(cantidad_auditada) as cantidad_auditada,
+                        SUM(cantidad_rechazada) as cantidad_rechazada
+                    ")
+                    ->whereDate('created_at', $fechaActual);
+            
+                $aseguramientoPorPlanta = DB::table('aseguramientos_calidad')
+                    ->selectRaw("
+                        'Proceso' as tipo,
+                        COALESCE(planta, 'General') as planta,
+                        SUM(cantidad_auditada) as cantidad_auditada,
+                        SUM(cantidad_rechazada) as cantidad_rechazada
+                    ")
+                    ->whereDate('created_at', $fechaActual)
+                    ->groupBy('planta');
+            
+                $aqlPorPlanta = DB::table('auditoria_aql')
+                    ->selectRaw("
+                        'AQL' as tipo,
+                        COALESCE(planta, 'General') as planta,
+                        SUM(cantidad_auditada) as cantidad_auditada,
+                        SUM(cantidad_rechazada) as cantidad_rechazada
+                    ")
+                    ->whereDate('created_at', $fechaActual)
+                    ->groupBy('planta');
+            
+                return $generalAseguramiento
+                    ->unionAll($generalAQL)
+                    ->unionAll($aseguramientoPorPlanta)
+                    ->unionAll($aqlPorPlanta)
+                    ->get();
+            });
+            
+            
+            // Inicializamos variables
+            $generalProceso = $generalAQL = 0;
+            $generalProcesoPlanta1 = $generalProcesoPlanta2 = 0;
+            $generalAQLPlanta1 = $generalAQLPlanta2 = 0;
+
+            // Recorrer resultados y asignar valores
+            foreach ($resultados as $item) {
+                if ($item->tipo == 'Proceso') { // AseguramientoCalidad
+                    if ($item->planta == 'General') {
+                        $generalProceso = $item->cantidad_auditada != 0 
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                            : 0;
+                    } elseif ($item->planta == 'Intimark1') {
+                        $generalProcesoPlanta1 = $item->cantidad_auditada != 0 
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                            : 0;
+                    } elseif ($item->planta == 'Intimark2') {
+                        $generalProcesoPlanta2 = $item->cantidad_auditada != 0 
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                            : 0;
+                    }
+                } elseif ($item->tipo == 'AQL') { // AuditoriaAQL
+                    if ($item->planta == 'General') {
+                        $generalAQL = $item->cantidad_auditada != 0 
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                            : 0;
+                    } elseif ($item->planta == 'Intimark1') {
+                        $generalAQLPlanta1 = $item->cantidad_auditada != 0 
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                            : 0;
+                    } elseif ($item->planta == 'Intimark2') {
+                        $generalAQLPlanta2 = $item->cantidad_auditada != 0 
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                            : 0;
+                    }
                 }
-                $data = $query->selectRaw('SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada')
-                              ->first();
-                return $data->cantidad_auditada != 0 ? number_format(($data->cantidad_rechazada / $data->cantidad_auditada) * 100, 2) : 0;
             }
-        
-            // Información General - Consultas del día actual (cache 1 hora = 60 min)
-            $generalProceso = Cache::remember('generalProceso_'.$fechaActual, 60, function() use ($fechaActual) {
-                return calcularPorcentaje(AseguramientoCalidad::class, $fechaActual);
-            });
-        
-            $generalAQL = Cache::remember('generalAQL_'.$fechaActual, 60, function() use ($fechaActual) {
-                return calcularPorcentaje(AuditoriaAQL::class, $fechaActual);
-            });
-        
-            // Planta 1 Ixtlahuaca - Consultas del día actual (1 hora)
-            $generalProcesoPlanta1 = Cache::remember('generalProcesoPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
-                return calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark1');
-            });
-        
-            $generalAQLPlanta1 = Cache::remember('generalAQLPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
-                return calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark1');
-            });
-        
-            // Planta 2 San Bartolo - Consultas del día actual (1 hora)
-            $generalProcesoPlanta2 = Cache::remember('generalProcesoPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
-                return calcularPorcentaje(AseguramientoCalidad::class, $fechaActual, 'Intimark2');
-            });
-        
-            $generalAQLPlanta2 = Cache::remember('generalAQLPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
-                return calcularPorcentaje(AuditoriaAQL::class, $fechaActual, 'Intimark2');
-            });
-        
-            // Nueva consulta para obtener datos por fecha - No es una consulta a BD, solo genera fechas
-            $fechas = collect();
-            $period = Carbon::parse($fechaInicio)->daysUntil(Carbon::parse($fechaFin));
-            foreach ($period as $date) {
-                $fechas->push($date->format('Y-m-d'));
-            }
-        
-            // Rango de fechas (5 horas = 300 min)
-            $porcentajesAQL = Cache::remember('porcentajesAQL_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechas) {
-                return $fechas->map(function($fecha) {
-                    return calcularPorcentaje(AuditoriaAQL::class, $fecha);
-                });
-            });
-        
-            $porcentajesProceso = Cache::remember('porcentajesProceso_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechas) {
-                return $fechas->map(function($fecha) {
-                    return calcularPorcentaje(AseguramientoCalidad::class, $fecha);
-                });
-            });
-        
-            // Obtención y cálculo de datos generales para AQL y Proceso (Consultas del día actual - 1 hora)
-            $dataGerentesAQLGeneral = Cache::remember('dataGerentesAQLGeneral_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataGerentesProduccionAQL($fechaActual);
-            });
-        
-            $dataGerentesProcesoGeneral = Cache::remember('dataGerentesProcesoGeneral_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataGerentesProduccionProceso($fechaActual);
-            });
-        
-            // Obtención y cálculo de datos por planta para gerentes de producción (Consultas del día actual - 1 hora)
-            $dataGerentesAQLPlanta1 = Cache::remember('dataGerentesAQLPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataGerentesProduccionAQL($fechaActual, 'Intimark1');
-            });
-        
-            $dataGerentesAQLPlanta2 = Cache::remember('dataGerentesAQLPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataGerentesProduccionAQL($fechaActual, 'Intimark2');
-            });
-        
-            $dataGerentesProcesoPlanta1 = Cache::remember('dataGerentesProcesoPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataGerentesProduccionProceso($fechaActual, 'Intimark1');
-            });
-        
-            $dataGerentesProcesoPlanta2 = Cache::remember('dataGerentesProcesoPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataGerentesProduccionProceso($fechaActual, 'Intimark2');
-            });
-        
-            // Combinar los datos - (No es consulta a BD)
-            $dataGerentesGeneral = $this->combineDataGerentes($dataGerentesAQLGeneral, $dataGerentesProcesoGeneral);
-        
-            // Datos generales (Consultas del día actual - 1 hora)
-            $dataGeneral = Cache::remember('dataGeneral_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->obtenerDatosClientesPorFiltro($fechaActual);
-            });
-        
-            // Datos planta Intimark1 (Consultas del día actual - 1 hora)
-            $dataPlanta1 = Cache::remember('dataPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->obtenerDatosClientesPorFiltro($fechaActual, 'Intimark1');
-            });
-        
-            // Datos planta Intimark2 (Consultas del día actual - 1 hora)
-            $dataPlanta2 = Cache::remember('dataPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->obtenerDatosClientesPorFiltro($fechaActual, 'Intimark2');
-            });
-        
-            // Datos para las gráficas usando el rango de fechas (5 horas)
-            $dataGrafica = Cache::remember('dataGrafica_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechaInicio, $fechaFin) {
-                return $this->obtenerDatosClientesPorRangoFechas($fechaInicio, $fechaFin);
-            });
-        
-            $clientesGrafica = !empty($dataGrafica['clientesUnicos']) ? collect($dataGrafica['clientesUnicos'])->toArray() : [0];
-            $fechasGrafica = !empty($dataGrafica['dataCliente'][0]['fechas']) ? collect($dataGrafica['dataCliente'][0]['fechas'])->toArray() : [0];
-        
-            $datasetsAQL = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
-                return [
-                    'label' => $clienteData['cliente'],
-                    'data' => $clienteData['porcentajesErrorAQL'],
-                    'borderColor' => 'rgba(75, 192, 192, 1)',
-                    'borderWidth' => 1,
-                    'fill' => false
-                ];
-            })->toArray();
-        
-            $datasetsProceso = collect($dataGrafica['dataCliente'])->map(function ($clienteData) {
-                return [
-                    'label' => $clienteData['cliente'],
-                    'data' => $clienteData['porcentajesErrorProceso'],
-                    'borderColor' => 'rgba(153, 102, 255, 1)',
-                    'borderWidth' => 1,
-                    'fill' => false
-                ];
-            })->toArray();
-        
-            //apartado para mostrar datos de gerente de producción, en este caso por dia AseguramientoCalidad y AuditoriaAQL
-            // Obtención y cálculo de datos generales para AQL y Proceso (Consultas del día actual - 1 hora)
-            $dataModuloAQLGeneral = Cache::remember('dataModuloAQLGeneral_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataModuloAQL($fechaActual);
-            });
-        
-            $dataModuloProcesoGeneral = Cache::remember('dataModuloProcesoGeneral_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataModuloProceso($fechaActual);
-            });
-        
-            // Obtención y cálculo de datos por planta para Auditoria AQL (Consultas del día actual - 1 hora)
-            $dataModuloAQLPlanta1 = Cache::remember('dataModuloAQLPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataModuloAQL($fechaActual, 'Intimark1');
-            });
-        
-            $dataModuloAQLPlanta2 = Cache::remember('dataModuloAQLPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataModuloAQL($fechaActual, 'Intimark2');
-            });
-        
-            // Obtención y cálculo de datos por planta para Aseguramiento Calidad (Consultas del día actual - 1 hora)
-            $dataModuloProcesoPlanta1 = Cache::remember('dataModuloProcesoPlanta1_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataModuloProceso($fechaActual, 'Intimark1');
-            });
-        
-            $dataModuloProcesoPlanta2 = Cache::remember('dataModuloProcesoPlanta2_'.$fechaActual, 60, function() use ($fechaActual) {
-                return $this->getDataModuloProceso($fechaActual, 'Intimark2');
-            });
-        
-            // Combinar los datos (No es consulta a BD)
-            $dataModulosGeneral = $this->combineDataModulos($dataModuloAQLGeneral, $dataModuloProcesoGeneral);
+
+            $porcentajesAQL = $generalAQL;
+            $porcentajesProceso = $generalProceso;
         
             // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO' (Rango de fechas - 5 horas)
             $topDefectosAQL = Cache::remember('topDefectosAQL_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechaInicio, $fechaFin) {
@@ -230,74 +158,10 @@ class HomeController extends Controller
                     ->get();
             });
         
-            // Datos de modulos por rango de fechas (5 horas)
-            $dataGraficaModulos = Cache::remember('dataGraficaModulos_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechaInicio, $fechaFin) {
-                return $this->obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin);
-            });
-        
-            $modulosGrafica = !empty($dataGraficaModulos['modulosUnicos']) ? collect($dataGraficaModulos['modulosUnicos'])->toArray() : [0];
-            $fechasGraficaModulos = !empty($dataGraficaModulos['dataModulo'][0]['fechas']) ? collect($dataGraficaModulos['dataModulo'][0]['fechas'])->toArray() : [0];
-        
-            $datasetsAQLModulos = collect($dataGraficaModulos['dataModulo'])->map(function ($moduloData) {
-                return [
-                    'label' => $moduloData['modulo'],
-                    'data' => $moduloData['porcentajesErrorAQL'],
-                    'borderColor' => 'rgba(75, 192, 192, 1)',
-                    'borderWidth' => 1,
-                    'fill' => false
-                ];
-            })->toArray();
-        
-            $datasetsProcesoModulos = collect($dataGraficaModulos['dataModulo'])->map(function ($moduloData) {
-                return [
-                    'label' => $moduloData['modulo'],
-                    'data' => $moduloData['porcentajesErrorProceso'],
-                    'borderColor' => 'rgba(153, 102, 255, 1)',
-                    'borderWidth' => 1,
-                    'fill' => false
-                ];
-            })->toArray();
-        
-            // Obtener los clientes únicos - Sin fecha. Se puede considerar como datos menos cambiantes, se puede aplicar 5 horas
-            $clientesAseguramientoBusqueda = Cache::remember('clientesAseguramientoBusqueda', 300, function() {
-                return AseguramientoCalidad::select('cliente')
-                    ->distinct()
-                    ->pluck('cliente');
-            });
-        
-            $clientesAuditoriaBusqueda = Cache::remember('clientesAuditoriaBusqueda', 300, function() {
-                return AuditoriaAQL::select('cliente')
-                    ->distinct()
-                    ->pluck('cliente');
-            });
-        
-            // Combinar ambas listas y eliminar duplicados
-            $clientesUnicosBusqueda = $clientesAseguramientoBusqueda->merge($clientesAuditoriaBusqueda)->unique();
-            $clientesUnicosArrayBusqueda = $clientesUnicosBusqueda->values()->all();
-        
-            // Datos de la semana (Rango semanal - 5 horas)
-            $datosSemana = Cache::remember('datosSemana_'.$fechaActual, 300, function() {
-                return $this->calcularPorcentajesSemanaActual();
-            });
-        
-            // Clientes, Supervisores y Módulos por semana
-            $clientesSemana = $datosSemana['clientes'];
-            $supervisoresSemana = $datosSemana['supervisores'];
-            $modulosSemana = $datosSemana['modulos'];
-        
             return view('dashboard', compact(
                 'title', 'topDefectosAQL', 'topDefectosProceso',
-                'dataModuloAQLPlanta1', 'dataModuloAQLPlanta2', 'dataModuloProcesoPlanta1', 'dataModuloProcesoPlanta2',
-                'dataModuloAQLGeneral', 'dataModuloProcesoGeneral',
-                'dataGerentesAQLGeneral', 'dataGerentesProcesoGeneral', 'dataGerentesAQLPlanta1', 'dataGerentesAQLPlanta2', 'dataGerentesProcesoPlanta1', 'dataGerentesProcesoPlanta2',
                 'generalProceso', 'generalAQL', 'generalAQLPlanta1', 'generalAQLPlanta2','generalProcesoPlanta1', 'generalProcesoPlanta2',
-                'dataGeneral', 'dataPlanta1', 'dataPlanta2',
-                'dataGerentesGeneral', 'dataModulosGeneral',
-                'fechas', 'porcentajesAQL', 'porcentajesProceso',
-                'fechasGrafica', 'datasetsAQL', 'datasetsProceso', 'clientesGrafica',
-                'fechasGraficaModulos', 'datasetsAQLModulos', 'datasetsProcesoModulos', 'modulosGrafica',
-                'clientesUnicosArrayBusqueda',
-                'clientesSemana', 'supervisoresSemana', 'modulosSemana'
+                'porcentajesAQL', 'porcentajesProceso',
             ));
         } else {
             // Si el usuario no tiene esos roles, redirige a listaFormularios
@@ -477,154 +341,6 @@ class HomeController extends Controller
     }
 
 
-
-    private function getDataModuloAQL($fecha, $planta = null)
-    {
-        $query = AuditoriaAQL::whereDate('created_at', $fecha);
-
-        if (!is_null($planta)) {
-            $query->where('planta', $planta);
-        }
-
-        $modulosAQL = $query->select('modulo')
-                            ->distinct()
-                            ->pluck('modulo')
-                            ->all();
-
-        $dataModuloAQL = [];
-        foreach ($modulosAQL as $modulo) {
-            $queryModulo = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha);
-
-            if (!is_null($planta)) {
-                $queryModulo->where('planta', $planta);
-            }
-
-            $modulosUnicos = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->distinct()
-                                ->count('modulo');
-
-            $sumaAuditadaAQL = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->sum('cantidad_auditada');
-
-            $sumaRechazadaAQL = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->sum('cantidad_rechazada');
-
-            $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
-
-            $conteoOperario = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->distinct()
-                                ->count('nombre');
-
-            $conteoMinutos = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->count('minutos_paro');
-
-            $conteParoModular = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->count('minutos_paro_modular');
-
-            $sumaMinutos = AuditoriaAQL::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->sum('minutos_paro');
-
-            $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
-            $promedioMinutosEntero = ceil($promedioMinutos);
-
-            $dataModuloAQL[] = [
-                'modulo' => $modulo,
-                'modulos_unicos' => $modulosUnicos,
-                'porcentaje_error_aql' => $porcentajeErrorAQL,
-                'conteoOperario' => $conteoOperario,
-                'conteoMinutos' => $conteoMinutos,
-                'sumaMinutos' => $sumaMinutos,
-                'promedioMinutosEntero' => $promedioMinutosEntero,
-                'conteParoModular' => $conteParoModular,
-            ];
-        }
-
-        return $dataModuloAQL;
-    }
-
-    private function getDataModuloProceso($fecha, $planta = null)
-    {
-        $query = AseguramientoCalidad::whereDate('created_at', $fecha);
-
-        if (!is_null($planta)) {
-            $query->where('planta', $planta);
-        }
-
-        $modulosProceso = $query->select('modulo')
-                                ->distinct()
-                                ->pluck('modulo')
-                                ->all();
-
-        $dataModuloProceso = [];
-        foreach ($modulosProceso as $modulo) {
-            $queryModulo = AseguramientoCalidad::where('modulo', $modulo)
-                                        ->whereDate('created_at', $fecha);
-
-            if (!is_null($planta)) {
-                $queryModulo->where('planta', $planta);
-            }
-
-            $modulosUnicos = AseguramientoCalidad::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->distinct()
-                                ->count('modulo');
-
-            $sumaAuditadaProceso = AseguramientoCalidad::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->sum('cantidad_auditada');
-
-            $sumaRechazadaProceso = AseguramientoCalidad::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->sum('cantidad_rechazada');
-
-            $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
-
-            $conteoOperario = AseguramientoCalidad::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->where('utility', null)
-                                ->distinct()
-                                ->count('nombre');
-
-            $conteoUtility = AseguramientoCalidad::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->where('utility', 1)
-                                ->distinct()
-                                ->count('nombre');
-
-            $conteoMinutos = AseguramientoCalidad::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->count('minutos_paro');
-
-            $sumaMinutos = AseguramientoCalidad::where('modulo', $modulo)
-                                ->whereDate('created_at', $fecha)
-                                ->sum('minutos_paro');
-
-            $promedioMinutos = $conteoMinutos != 0 ? $sumaMinutos / $conteoMinutos : 0;
-            $promedioMinutosEntero = ceil($promedioMinutos);
-
-            $dataModuloProceso[] = [
-                'modulo' => $modulo,
-                'modulos_unicos' => $modulosUnicos,
-                'porcentaje_error_proceso' => $porcentajeErrorProceso,
-                'conteoOperario' => $conteoOperario,
-                'conteoUtility' => $conteoUtility,
-                'conteoMinutos' => $conteoMinutos,
-                'sumaMinutos' => $sumaMinutos,
-                'promedioMinutosEntero' => $promedioMinutosEntero,
-            ];
-        }
-
-        return $dataModuloProceso;
-    }
-
     private function getDataGerentesProduccionAQL($fecha, $planta = null)
     {
         $query = AuditoriaAQL::whereDate('created_at', $fecha);
@@ -803,43 +519,6 @@ class HomeController extends Controller
         return $combinedData;
     }
 
-    private function combineDataModulos($dataAQL, $dataProceso)
-    {
-        $combinedData = [];
-
-        // Indexar datos de Proceso por modulo
-        $dataProcesoIndexed = [];
-        foreach ($dataProceso as $item) {
-            $dataProcesoIndexed[$item['modulo']] = $item;
-        }
-
-        // Combinar datos
-        foreach ($dataAQL as $itemAQL) {
-            $modulo = $itemAQL['modulo'];
-            $itemProceso = $dataProcesoIndexed[$modulo] ?? null;
-
-            $combinedData[] = [
-                'modulo' => $modulo,
-                'porcentaje_error_aql' => $itemAQL['porcentaje_error_aql'],
-                'porcentaje_error_proceso' => $itemProceso['porcentaje_error_proceso'] ?? null
-            ];
-
-            // Eliminar el entry del array indexado para evitar duplicados
-            unset($dataProcesoIndexed[$modulo]);
-        }
-
-        // Agregar cualquier item de Proceso que no haya sido combinado
-        foreach ($dataProcesoIndexed as $itemProceso) {
-            $combinedData[] = [
-                'modulo' => $itemProceso['modulo'],
-                'porcentaje_error_aql' => null,
-                'porcentaje_error_proceso' => $itemProceso['porcentaje_error_proceso']
-            ];
-        }
-
-        return $combinedData;
-    }
-
     private function obtenerDatosModulosPorRangoFechas($fechaInicio, $fechaFin)
     {
         $modulosUnicos = collect();
@@ -911,6 +590,18 @@ class HomeController extends Controller
             'modulosUnicos' => $modulosUnicos,
             'dataModulo' => $dataModulo
         ];
+    }
+
+    public function getDashboardDataSemana()
+    {
+        $fechaActual = Carbon::now()->toDateString();
+
+        // Cacheamos los datos semanales por 5 horas (18000 segundos)
+        $datosSemana = Cache::remember('datosSemana_' . $fechaActual, 18000, function () {
+            return $this->calcularPorcentajesSemanaActual();
+        });
+
+        return response()->json($datosSemana);
     }
 
     private function calcularPorcentajesSemanaActual()
@@ -1003,4 +694,261 @@ class HomeController extends Controller
 
         return $resultados;
     }
+
+    public function getDashboardDataDia()
+    {
+        $fechaActual = Carbon::now()->toDateString();
+
+        // Cacheamos los datos del día actual por 5 minutos
+        $datosDia = Cache::remember('datosDia_' . $fechaActual, 3600, function () use ($fechaActual) {
+            return $this->calcularPorcentajesDia($fechaActual);
+        });
+
+        return response()->json($datosDia);
+    }
+
+    private function calcularPorcentajesDia($fechaActual)
+    {
+        // Consultas para Clientes, Supervisores y Módulos
+        $clientesAQL = AuditoriaAQL::select('cliente',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereDate('created_at', $fechaActual)
+            ->groupBy('cliente')
+            ->get();
+
+        $clientesProceso = AseguramientoCalidad::select('cliente',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereDate('created_at', $fechaActual)
+            ->groupBy('cliente')
+            ->get();
+
+        $supervisoresAQL = AuditoriaAQL::select('team_leader',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereDate('created_at', $fechaActual)
+            ->groupBy('team_leader')
+            ->get();
+
+        $supervisoresProceso = AseguramientoCalidad::select('team_leader',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereDate('created_at', $fechaActual)
+            ->groupBy('team_leader')
+            ->get();
+
+        $modulosAQL = AuditoriaAQL::select('modulo',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereDate('created_at', $fechaActual)
+            ->groupBy('modulo')
+            ->get();
+
+        $modulosProceso = AseguramientoCalidad::select('modulo',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
+                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+            ->whereDate('created_at', $fechaActual)
+            ->groupBy('modulo')
+            ->get();
+
+        // Formatear resultados
+        $clientes = $this->formatearResultadosDia($clientesAQL, $clientesProceso, 'cliente');
+        $supervisores = $this->formatearResultadosDia($supervisoresAQL, $supervisoresProceso, 'team_leader');
+        $modulos = $this->formatearResultadosDia($modulosAQL, $modulosProceso, 'modulo');
+
+        return [
+            'clientes' => $clientes,
+            'supervisores' => $supervisores,
+            'modulos' => $modulos,
+        ];
+    }
+
+    private function formatearResultadosDia($datosAQL, $datosProceso, $campo)
+    {
+        $resultados = [];
+
+        foreach ($datosAQL as $itemAQL) {
+            $resultados[$itemAQL->$campo]['% AQL'] = $itemAQL->total_auditada != 0
+                ? ($itemAQL->total_rechazada / $itemAQL->total_auditada) * 100
+                : 0;
+        }
+
+        foreach ($datosProceso as $itemProceso) {
+            $resultados[$itemProceso->$campo]['% PROCESO'] = $itemProceso->total_auditada != 0
+                ? ($itemProceso->total_rechazada / $itemProceso->total_auditada) * 100
+                : 0;
+        }
+
+        return $resultados;
+    }
+
+    public function getMensualGeneral()
+    {
+        $fechaFin = Carbon::now()->toDateString();
+        $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
+
+        // Almacenar en caché por 1 hora (3600 segundos)
+        $cacheKey = "mensual_general_{$fechaInicio}_{$fechaFin}";
+
+        $datos = Cache::remember($cacheKey, 3600, function () use ($fechaInicio, $fechaFin) {
+            $fechas = CarbonPeriod::create($fechaInicio, $fechaFin); // Rango de fechas
+            $datos = [];
+
+            foreach ($fechas as $fecha) {
+                $fechaLog = $fecha->toDateString();
+
+                // Consulta para AQL
+                $aql = DB::table('auditoria_aql')
+                    ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
+                    ->whereDate('created_at', $fechaLog)
+                    ->first();
+
+                // Consulta para Proceso
+                $proceso = DB::table('aseguramientos_calidad')
+                    ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
+                    ->whereDate('created_at', $fechaLog)
+                    ->first();
+
+                // Calcular porcentajes
+                $porcentajeAQL = $aql->cantidad_auditada > 0 
+                    ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2) 
+                    : 0;
+
+                $porcentajeProceso = $proceso->cantidad_auditada > 0 
+                    ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2) 
+                    : 0;
+
+                $datos[] = [
+                    'dia' => $fecha->format('j'),
+                    'AQL' => $porcentajeAQL,
+                    'PROCESO' => $porcentajeProceso
+                ];
+            }
+
+            return $datos;
+        });
+
+        return response()->json($datos);
+    }
+
+
+
+    public function getMensualPorCliente()
+    {
+        $fechaFin = Carbon::now()->toDateString();
+        $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
+
+        // Almacenar en caché por 1 hora (3600 segundos)
+        $cacheKey = "mensual_por_cliente_{$fechaInicio}_{$fechaFin}";
+
+        $datos = Cache::remember($cacheKey, 3600, function () use ($fechaInicio, $fechaFin) {
+            $fechas = CarbonPeriod::create($fechaInicio, $fechaFin);
+            $clientes = DB::table('auditoria_aql')->distinct()->pluck('cliente');
+
+            $datos = [];
+
+            foreach ($clientes as $cliente) {
+                $dataPorCliente = [];
+
+                foreach ($fechas as $fecha) {
+                    $fechaLog = $fecha->toDateString();
+
+                    // Consulta para AQL
+                    $aql = DB::table('auditoria_aql')
+                        ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
+                        ->where('cliente', $cliente)
+                        ->whereDate('created_at', $fechaLog)
+                        ->first();
+
+                    // Consulta para PROCESO
+                    $proceso = DB::table('aseguramientos_calidad')
+                        ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
+                        ->where('cliente', $cliente)
+                        ->whereDate('created_at', $fechaLog)
+                        ->first();
+
+                    $porcentajeAQL = $aql->cantidad_auditada > 0 
+                        ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2)
+                        : 0;
+
+                    $porcentajeProceso = $proceso->cantidad_auditada > 0 
+                        ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2)
+                        : 0;
+
+                    $dataPorCliente[] = [
+                        'dia' => $fecha->format('j'),
+                        'AQL' => $porcentajeAQL,
+                        'PROCESO' => $porcentajeProceso
+                    ];
+                }
+
+                $datos[$cliente] = $dataPorCliente;
+            }
+
+            return $datos;
+        });
+
+        return response()->json($datos);
+    }
+
+    public function getMensualPorModulo()
+    {
+        $fechaFin = Carbon::now()->toDateString();
+        $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
+
+        // Almacenar en caché por 1 hora (3600 segundos)
+        $cacheKey = "mensual_por_modulo_{$fechaInicio}_{$fechaFin}";
+
+        $datos = Cache::remember($cacheKey, 3600, function () use ($fechaInicio, $fechaFin) {
+            $fechas = CarbonPeriod::create($fechaInicio, $fechaFin);
+            $modulos = DB::table('auditoria_aql')->distinct()->pluck('modulo');
+
+            $datos = [];
+
+            foreach ($modulos as $modulo) {
+                $dataPorModulo = [];
+
+                foreach ($fechas as $fecha) {
+                    $fechaLog = $fecha->toDateString();
+
+                    // Consulta para AQL
+                    $aql = DB::table('auditoria_aql')
+                        ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
+                        ->where('modulo', $modulo)
+                        ->whereDate('created_at', $fechaLog)
+                        ->first();
+
+                    // Consulta para PROCESO
+                    $proceso = DB::table('aseguramientos_calidad')
+                        ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
+                        ->where('modulo', $modulo)
+                        ->whereDate('created_at', $fechaLog)
+                        ->first();
+
+                    $porcentajeAQL = $aql->cantidad_auditada > 0 
+                        ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2)
+                        : 0;
+
+                    $porcentajeProceso = $proceso->cantidad_auditada > 0 
+                        ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2)
+                        : 0;
+
+                    $dataPorModulo[] = [
+                        'dia' => $fecha->format('j'),
+                        'AQL' => $porcentajeAQL,
+                        'PROCESO' => $porcentajeProceso
+                    ];
+                }
+
+                $datos[$modulo] = $dataPorModulo;
+            }
+
+            return $datos;
+        });
+
+        return response()->json($datos);
+    }
+
+
 }
