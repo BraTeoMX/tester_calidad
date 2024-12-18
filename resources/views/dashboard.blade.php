@@ -256,7 +256,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Graficas -->
     <div class="row">
         <div class="col-12">
@@ -430,7 +430,7 @@
     <script>
         $(document).ready(function () {
             fetchDataDia();
-    
+
             function fetchDataDia() {
                 $.ajax({
                     url: "{{ route('dashboard.dataDia') }}",
@@ -439,7 +439,7 @@
                         renderTablaClientes(data.clientes);
                         renderTablaSupervisores(data.supervisores);
                         renderTablaModulos(data.modulos);
-    
+
                         // Llamar funciones para generar las gráficas
                         renderGraficaClientes(data.clientes);
                         renderGraficaSupervisores(data.supervisores);
@@ -558,7 +558,7 @@
                     ]
                 });
             }
-            
+
             // Funciones para llenar las tablas (Ya las tienes implementadas)
             function renderTablaClientes(clientes) {
                 const tableId = '#tablaClientes';
@@ -732,7 +732,7 @@
                 if ($.fn.DataTable.isDataTable(tableId)) {
                     $(tableId).DataTable().destroy();
                 }
-                
+
                 let html = '';
                 modulos.forEach(modulo => {
                     html += `
@@ -877,7 +877,7 @@
                             data: dataAQL,
                             color: '#00f0c1', // Color de la línea y el relleno
                             zIndex: 1 // Asegura que quede al frente
-                        },    
+                        },
                         {
                             name: '% PROCESO',
                             data: dataProceso,
@@ -1268,8 +1268,8 @@
         });
 
         // Calcular el porcentaje para Segundas y Terceras
-        let porcentajeSegundas = (segundas * totalQty) / 100;
-        let porcentajeTerceras = (terceras * totalQty) / 100;
+        let porcentajeSegundas = (segundas * 100) / totalQty * 100;
+        let porcentajeTerceras = (terceras * 100) / totalQty * 100;
 
         // Mostrar en consola para verificar
         console.log("Total QTY: ", totalQty);
