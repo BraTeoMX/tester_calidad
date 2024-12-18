@@ -529,9 +529,6 @@
 
         <div class="col-lg-8">
             <div class="card card-chart">
-                <div class="card-header">
-                    <h2 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> Segundas/Terceras Acomulado Mensual</h2>
-                </div>
                 <div class="card-body">
                     <div id="SegundasTercerasChart"></div>
                     <div id="spinner" class="spinner"></div>
@@ -1098,8 +1095,8 @@
         });
 
         // Calcular el porcentaje para Segundas y Terceras
-        let porcentajeSegundas = (segundas / totalQty) * 100;
-        let porcentajeTerceras = (terceras / totalQty) * 100;
+        let porcentajeSegundas = (segundas * totalQty) / 100;
+        let porcentajeTerceras = (terceras * totalQty) / 100;
 
         // Mostrar en consola para verificar
         console.log("Total QTY: ", totalQty);
