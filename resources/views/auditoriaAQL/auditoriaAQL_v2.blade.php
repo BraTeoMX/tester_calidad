@@ -233,8 +233,8 @@
                             <tbody>
                                 <tr>
                                     <td>
-                                        <select name="bulto" id="bulto" class="form-control" required title="Por favor, selecciona una opción">
-                                            <option value="">Selecciona una opción</option>
+                                        <select name="bulto-seleccion" id="bulto-seleccion" class="form-control" required title="Por favor, selecciona una opción">
+                                            <option value="">Cargando bultos...</option>
                                         </select>
                                     </td>
                                     <td><input type="text" class="form-control texto-blanco" name="pieza" id="pieza" readonly></td>
@@ -399,5 +399,6 @@
     </style>
 
     <script src="{{ asset('js/op-select.js') }}"></script>
+    <script src="{{ asset('js/bultos-select.js') }}"></script>
 
 @endsection

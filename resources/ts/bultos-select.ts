@@ -1,46 +1,45 @@
-import $ from 'jquery'; // Importa jQuery
-import 'select2'; // Habilita el método `select2` en jQuery
-import 'select2/dist/css/select2.css'; // Incluye los estilos de select2 desde npm (opcional)
+import $ from 'jquery';
+import 'select2';
+import 'select2/dist/css/select2.css';
 
-// Opciones para inicializar Select2
 const select2Options: JQuery.Select2Options = {
     placeholder: 'Selecciona una opción',
     allowClear: true,
 };
 
-// Función para obtener el valor de un parámetro en la URL
+// Función para obtener un parámetro de la URL si lo necesitas
 function getParameterByName(name: string): string | null {
     const url = new URL(window.location.href);
     return url.searchParams.get(name);
 }
 
-// Función para cargar opciones al inicio
+// Función para cargar opciones de bulto
 function cargarOpcionesBulto() {
-    // Obtén el valor seleccionado del select OP
-    const opSeleccionada = $('#op-seleccion-ts').val();
+    // Ahora, en lugar de obtener el valor de otro select, obtendremos el valor de 'op' de la URL
+    const opSeleccionada = getParameterByName('op');
 
     if (!opSeleccionada) {
-        console.error('No se ha seleccionado un valor para OP.');
+        console.error('No se ha proporcionado una OP para cargar los bultos.');
         return;
     }
 
     $.ajax({
         url: '/obtener-opciones-bulto',
         method: 'GET',
-        data: { op: opSeleccionada }, // Enviar el valor seleccionado como parámetro
+        data: { op: opSeleccionada },
         success: function (data) {
-            const bultoSelect = $('#bulto');
+            const bultoSelect = $('#bulto-seleccion');
             bultoSelect.empty(); // Limpia cualquier opción previa
 
             // Agrega una opción por defecto
             bultoSelect.append(new Option('Selecciona una opción', ''));
 
             // Agrega las nuevas opciones desde la respuesta
-            data.forEach((item: { id: string; nombre: string }) => {
-                bultoSelect.append(new Option(item.nombre, item.id));
+            data.forEach((item: { id: string; prodpackticketid: string }) => {
+                bultoSelect.append(new Option(item.prodpackticketid));
             });
 
-            // Inicializa select2
+            // Inicializa select2 en el select de bulto
             bultoSelect.select2(select2Options);
         },
         error: function (error) {
@@ -49,12 +48,7 @@ function cargarOpcionesBulto() {
     });
 }
 
-// Llama a la función cuando cambie el valor del select OP
-$('#op-seleccion-ts').on('change', function () {
-    cargarOpcionesBulto();
-});
-
-// Llama a la función para cargar las opciones al inicio
+// Como ya no dependemos del cambio de otro select, simplemente cargamos al inicio
 $(document).ready(() => {
     cargarOpcionesBulto();
 });

@@ -16,6 +16,7 @@ use App\Models\TpAuditoriaAQL;
 use App\Models\CategoriaSupervisor; 
 use App\Models\ModuloEstilo;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
+use Illuminate\Support\Facades\Log;
 
 class AuditoriaAQL_v2Controller extends Controller
 {
@@ -294,17 +295,18 @@ class AuditoriaAQL_v2Controller extends Controller
         }
 
         // Realiza la consulta basada en el valor de "op-seleccion-ts"
-        $datosBulto = JobAQL::where('op', $opSeleccionada) // Ajusta según la columna que almacene la relación con OP
-            ->select('id', 'nombre')
+        $datosBulto = JobAQL::where('prodid', $opSeleccionada) // Ajusta según la columna que almacene la relación con OP
+            ->select('prodid', 'prodpackticketid')
             ->union(
-                JobAQLTemporal::where('op', $opSeleccionada) // Ajusta el modelo y la columna si es necesario
-                    ->select('id', 'nombre')
+                JobAQLTemporal::where('prodid', $opSeleccionada) // Ajusta el modelo y la columna si es necesario
+                    ->select('prodid', 'prodpackticketid')
             )
             ->distinct()
-            ->orderBy('nombre')
+            ->orderBy('prodpackticketid')
             ->get();
 
         // Devuelve los datos en formato JSON
+        Log::info('bultos: ' . $datosBulto);
         return response()->json($datosBulto);
     }
 
