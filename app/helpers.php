@@ -16,17 +16,15 @@ if (!function_exists('obtenerSegundasTerceras')) {
     function obtenerSegundasTerceras(): Collection
     {
         try {
-            return Cache::remember('CountsApprov_views', 1800, function() {
-                $result = DB::connection('sqlsrv')
-                    ->table('CountsApprov_views')
-                    ->select('Total_QTY', 'QUALITY','PRODPOOLID','TRANSDATE')
-                    ->get();
+            $result = DB::connection('sqlsrv')
+                ->table('CountsApprov_views')
+                ->select('Total_QTY', 'QUALITY', 'PRODPOOLID', 'TRANSDATE')
+                ->get();
 
-                // Loguea la cantidad de registros obtenidos
-                Log::info('Cantidad de registros obtenidos en CountsApprov_views: ' . $result);
+            // Loguea la cantidad de registros obtenidos
+            Log::info('Cantidad de registros obtenidos en CountsApprov_views: ' . $result);
 
-                return $result;
-            });
+            return $result;
         } catch (\Exception $e) {
             // Manejar la excepción, por ejemplo, loguear el error
             Log::error('Error al obtener SegundasTerceras de CountsApprov_views: ' . $e->getMessage());
@@ -35,6 +33,7 @@ if (!function_exists('obtenerSegundasTerceras')) {
             return collect();
         }
     }
+
 
 }
 if (!function_exists('ObtenerSegundas')) {
