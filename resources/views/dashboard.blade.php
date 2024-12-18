@@ -1296,7 +1296,7 @@
           },
           tooltip: {
             pointFormatter: function() {
-              return `<b>${this.series.name}:</b> ${this.y} <br><b>Porcentaje:</b> ${(this.y * 100) / totalQty}%`;
+              return `<b>${this.series.name}:</b> ${this.y} <br><b>Porcentaje:</b> ${(this.y * 1) / totalQty}%`;
             }
           },
           series: [{
