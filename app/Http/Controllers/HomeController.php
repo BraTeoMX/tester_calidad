@@ -788,61 +788,12 @@ class HomeController extends Controller
         $fechaFin = Carbon::now()->toDateString();
         $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
 
+        // Almacenar en caché por 1 hora (3600 segundos)
+        $cacheKey = "mensual_general_{$fechaInicio}_{$fechaFin}";
 
-        $fechas = CarbonPeriod::create($fechaInicio, $fechaFin); // Rango de fechas
-        $datos = [];
-
-        foreach ($fechas as $fecha) {
-            $fechaLog = $fecha->toDateString();
-            Log::info("Fecha procesada: {$fechaLog}");
-
-            // Consulta para AQL
-            $aql = DB::table('auditoria_aql')
-                ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
-                ->whereDate('created_at', $fechaLog)
-                ->first();
-
-            // Consulta para Proceso
-            $proceso = DB::table('aseguramientos_calidad')
-                ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
-                ->whereDate('created_at', $fechaLog)
-                ->first();
-
-
-            // Calcular porcentajes
-            $porcentajeAQL = $aql->cantidad_auditada > 0 
-                ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2) 
-                : 0;
-
-            $porcentajeProceso = $proceso->cantidad_auditada > 0 
-                ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2) 
-                : 0;
-
-
-            $datos[] = [
-                'dia' => $fecha->format('j'), // Día del mes (1, 2, ..., 17)
-                'AQL' => $porcentajeAQL,
-                'PROCESO' => $porcentajeProceso
-            ];
-        }
-
-
-        return response()->json($datos);
-    }
-
-
-    public function getMensualPorCliente()
-    {
-        $fechaFin = Carbon::now()->toDateString();
-        $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
-
-        $fechas = CarbonPeriod::create($fechaInicio, $fechaFin); // Rango de fechas
-        $clientes = DB::table('auditoria_aql')->distinct()->pluck('cliente');
-
-        $datos = [];
-
-        foreach ($clientes as $cliente) {
-            $dataPorCliente = [];
+        $datos = Cache::remember($cacheKey, 3600, function () use ($fechaInicio, $fechaFin) {
+            $fechas = CarbonPeriod::create($fechaInicio, $fechaFin); // Rango de fechas
+            $datos = [];
 
             foreach ($fechas as $fecha) {
                 $fechaLog = $fecha->toDateString();
@@ -850,34 +801,93 @@ class HomeController extends Controller
                 // Consulta para AQL
                 $aql = DB::table('auditoria_aql')
                     ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
-                    ->where('cliente', $cliente)
                     ->whereDate('created_at', $fechaLog)
                     ->first();
 
-                // Consulta para PROCESO
+                // Consulta para Proceso
                 $proceso = DB::table('aseguramientos_calidad')
                     ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
-                    ->where('cliente', $cliente)
                     ->whereDate('created_at', $fechaLog)
                     ->first();
 
+                // Calcular porcentajes
                 $porcentajeAQL = $aql->cantidad_auditada > 0 
-                    ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2)
+                    ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2) 
                     : 0;
 
                 $porcentajeProceso = $proceso->cantidad_auditada > 0 
-                    ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2)
+                    ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2) 
                     : 0;
 
-                $dataPorCliente[] = [
+                $datos[] = [
                     'dia' => $fecha->format('j'),
                     'AQL' => $porcentajeAQL,
                     'PROCESO' => $porcentajeProceso
                 ];
             }
 
-            $datos[$cliente] = $dataPorCliente;
-        }
+            return $datos;
+        });
+
+        return response()->json($datos);
+    }
+
+
+
+    public function getMensualPorCliente()
+    {
+        $fechaFin = Carbon::now()->toDateString();
+        $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
+
+        // Almacenar en caché por 1 hora (3600 segundos)
+        $cacheKey = "mensual_por_cliente_{$fechaInicio}_{$fechaFin}";
+
+        $datos = Cache::remember($cacheKey, 3600, function () use ($fechaInicio, $fechaFin) {
+            $fechas = CarbonPeriod::create($fechaInicio, $fechaFin);
+            $clientes = DB::table('auditoria_aql')->distinct()->pluck('cliente');
+
+            $datos = [];
+
+            foreach ($clientes as $cliente) {
+                $dataPorCliente = [];
+
+                foreach ($fechas as $fecha) {
+                    $fechaLog = $fecha->toDateString();
+
+                    // Consulta para AQL
+                    $aql = DB::table('auditoria_aql')
+                        ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
+                        ->where('cliente', $cliente)
+                        ->whereDate('created_at', $fechaLog)
+                        ->first();
+
+                    // Consulta para PROCESO
+                    $proceso = DB::table('aseguramientos_calidad')
+                        ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
+                        ->where('cliente', $cliente)
+                        ->whereDate('created_at', $fechaLog)
+                        ->first();
+
+                    $porcentajeAQL = $aql->cantidad_auditada > 0 
+                        ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2)
+                        : 0;
+
+                    $porcentajeProceso = $proceso->cantidad_auditada > 0 
+                        ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2)
+                        : 0;
+
+                    $dataPorCliente[] = [
+                        'dia' => $fecha->format('j'),
+                        'AQL' => $porcentajeAQL,
+                        'PROCESO' => $porcentajeProceso
+                    ];
+                }
+
+                $datos[$cliente] = $dataPorCliente;
+            }
+
+            return $datos;
+        });
 
         return response()->json($datos);
     }
@@ -887,49 +897,55 @@ class HomeController extends Controller
         $fechaFin = Carbon::now()->toDateString();
         $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
 
-        $fechas = CarbonPeriod::create($fechaInicio, $fechaFin); // Rango de fechas
-        $modulos = DB::table('auditoria_aql')->distinct()->pluck('modulo');
+        // Almacenar en caché por 1 hora (3600 segundos)
+        $cacheKey = "mensual_por_modulo_{$fechaInicio}_{$fechaFin}";
 
-        $datos = [];
+        $datos = Cache::remember($cacheKey, 3600, function () use ($fechaInicio, $fechaFin) {
+            $fechas = CarbonPeriod::create($fechaInicio, $fechaFin);
+            $modulos = DB::table('auditoria_aql')->distinct()->pluck('modulo');
 
-        foreach ($modulos as $modulo) {
-            $dataPorModulo = [];
+            $datos = [];
 
-            foreach ($fechas as $fecha) {
-                $fechaLog = $fecha->toDateString();
+            foreach ($modulos as $modulo) {
+                $dataPorModulo = [];
 
-                // Consulta para AQL
-                $aql = DB::table('auditoria_aql')
-                    ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
-                    ->where('modulo', $modulo)
-                    ->whereDate('created_at', $fechaLog)
-                    ->first();
+                foreach ($fechas as $fecha) {
+                    $fechaLog = $fecha->toDateString();
 
-                // Consulta para PROCESO
-                $proceso = DB::table('aseguramientos_calidad')
-                    ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
-                    ->where('modulo', $modulo)
-                    ->whereDate('created_at', $fechaLog)
-                    ->first();
+                    // Consulta para AQL
+                    $aql = DB::table('auditoria_aql')
+                        ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
+                        ->where('modulo', $modulo)
+                        ->whereDate('created_at', $fechaLog)
+                        ->first();
 
-                // Calcular porcentajes
-                $porcentajeAQL = $aql->cantidad_auditada > 0 
-                    ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2)
-                    : 0;
+                    // Consulta para PROCESO
+                    $proceso = DB::table('aseguramientos_calidad')
+                        ->selectRaw("SUM(cantidad_auditada) as cantidad_auditada, SUM(cantidad_rechazada) as cantidad_rechazada")
+                        ->where('modulo', $modulo)
+                        ->whereDate('created_at', $fechaLog)
+                        ->first();
 
-                $porcentajeProceso = $proceso->cantidad_auditada > 0 
-                    ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2)
-                    : 0;
+                    $porcentajeAQL = $aql->cantidad_auditada > 0 
+                        ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2)
+                        : 0;
 
-                $dataPorModulo[] = [
-                    'dia' => $fecha->format('j'),
-                    'AQL' => $porcentajeAQL,
-                    'PROCESO' => $porcentajeProceso
-                ];
+                    $porcentajeProceso = $proceso->cantidad_auditada > 0 
+                        ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2)
+                        : 0;
+
+                    $dataPorModulo[] = [
+                        'dia' => $fecha->format('j'),
+                        'AQL' => $porcentajeAQL,
+                        'PROCESO' => $porcentajeProceso
+                    ];
+                }
+
+                $datos[$modulo] = $dataPorModulo;
             }
 
-            $datos[$modulo] = $dataPorModulo;
-        }
+            return $datos;
+        });
 
         return response()->json($datos);
     }
