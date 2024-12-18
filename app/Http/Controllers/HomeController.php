@@ -58,7 +58,7 @@ class HomeController extends Controller
                         SUM(cantidad_rechazada) as cantidad_rechazada
                     ")
                     ->whereDate('created_at', $fechaActual);
-            
+
                 $generalAQL = DB::table('auditoria_aql')
                     ->selectRaw("
                         'AQL' as tipo,
@@ -67,7 +67,7 @@ class HomeController extends Controller
                         SUM(cantidad_rechazada) as cantidad_rechazada
                     ")
                     ->whereDate('created_at', $fechaActual);
-            
+
                 $aseguramientoPorPlanta = DB::table('aseguramientos_calidad')
                     ->selectRaw("
                         'Proceso' as tipo,
@@ -77,7 +77,7 @@ class HomeController extends Controller
                     ")
                     ->whereDate('created_at', $fechaActual)
                     ->groupBy('planta');
-            
+
                 $aqlPorPlanta = DB::table('auditoria_aql')
                     ->selectRaw("
                         'AQL' as tipo,
@@ -87,15 +87,15 @@ class HomeController extends Controller
                     ")
                     ->whereDate('created_at', $fechaActual)
                     ->groupBy('planta');
-            
+
                 return $generalAseguramiento
                     ->unionAll($generalAQL)
                     ->unionAll($aseguramientoPorPlanta)
                     ->unionAll($aqlPorPlanta)
                     ->get();
             });
-            
-            
+
+
             // Inicializamos variables
             $generalProceso = $generalAQL = 0;
             $generalProcesoPlanta1 = $generalProcesoPlanta2 = 0;
@@ -105,30 +105,30 @@ class HomeController extends Controller
             foreach ($resultados as $item) {
                 if ($item->tipo == 'Proceso') { // AseguramientoCalidad
                     if ($item->planta == 'General') {
-                        $generalProceso = $item->cantidad_auditada != 0 
-                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                        $generalProceso = $item->cantidad_auditada != 0
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2)
                             : 0;
                     } elseif ($item->planta == 'Intimark1') {
-                        $generalProcesoPlanta1 = $item->cantidad_auditada != 0 
-                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                        $generalProcesoPlanta1 = $item->cantidad_auditada != 0
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2)
                             : 0;
                     } elseif ($item->planta == 'Intimark2') {
-                        $generalProcesoPlanta2 = $item->cantidad_auditada != 0 
-                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                        $generalProcesoPlanta2 = $item->cantidad_auditada != 0
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2)
                             : 0;
                     }
                 } elseif ($item->tipo == 'AQL') { // AuditoriaAQL
                     if ($item->planta == 'General') {
-                        $generalAQL = $item->cantidad_auditada != 0 
-                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                        $generalAQL = $item->cantidad_auditada != 0
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2)
                             : 0;
                     } elseif ($item->planta == 'Intimark1') {
-                        $generalAQLPlanta1 = $item->cantidad_auditada != 0 
-                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                        $generalAQLPlanta1 = $item->cantidad_auditada != 0
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2)
                             : 0;
                     } elseif ($item->planta == 'Intimark2') {
-                        $generalAQLPlanta2 = $item->cantidad_auditada != 0 
-                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2) 
+                        $generalAQLPlanta2 = $item->cantidad_auditada != 0
+                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2)
                             : 0;
                     }
                 }
@@ -136,7 +136,7 @@ class HomeController extends Controller
 
             $porcentajesAQL = $generalAQL;
             $porcentajesProceso = $generalProceso;
-        
+
             // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO' (Rango de fechas - 5 horas)
             $topDefectosAQL = Cache::remember('topDefectosAQL_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechaInicio, $fechaFin) {
                 return TpAuditoriaAQL::select('tp', DB::raw('count(*) as total'))
@@ -147,7 +147,7 @@ class HomeController extends Controller
                     ->limit(3)
                     ->get();
             });
-        
+
             $topDefectosProceso = Cache::remember('topDefectosProceso_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechaInicio, $fechaFin) {
                 return TpAseguramientoCalidad::select('tp', DB::raw('count(*) as total'))
                     ->whereBetween('created_at', [$fechaInicio, $fechaFin])
@@ -157,7 +157,7 @@ class HomeController extends Controller
                     ->limit(3)
                     ->get();
             });
-        
+
             return view('dashboard', compact(
                 'title', 'topDefectosAQL', 'topDefectosProceso',
                 'generalProceso', 'generalAQL', 'generalAQLPlanta1', 'generalAQLPlanta2','generalProcesoPlanta1', 'generalProcesoPlanta2',
@@ -173,7 +173,7 @@ class HomeController extends Controller
         try {
             // Obtener Segundas y Terceras Generales
             $SegundasTerceras = obtenerSegundasTerceras();
-
+        Log::info('SegundasTerceras'. $SegundasTerceras);
             return response()->json([
                 'data' => $SegundasTerceras,
                 'status' => 'success'
@@ -611,43 +611,43 @@ class HomeController extends Controller
         $fechaFinSemana = Carbon::now()->endOfWeek()->toDateString();
 
         // Consultas para cada caso y modelo
-        $clientesAQL = AuditoriaAQL::select('cliente', 
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'), 
+        $clientesAQL = AuditoriaAQL::select('cliente',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
                 DB::raw('SUM(cantidad_auditada) as total_auditada'))
             ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
             ->groupBy('cliente')
             ->get();
 
-        $clientesProceso = AseguramientoCalidad::select('cliente', 
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'), 
+        $clientesProceso = AseguramientoCalidad::select('cliente',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
                 DB::raw('SUM(cantidad_auditada) as total_auditada'))
             ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
             ->groupBy('cliente')
             ->get();
 
-        $supervisoresAQL = AuditoriaAQL::select('team_leader', 
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'), 
+        $supervisoresAQL = AuditoriaAQL::select('team_leader',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
                 DB::raw('SUM(cantidad_auditada) as total_auditada'))
             ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
             ->groupBy('team_leader')
             ->get();
 
-        $supervisoresProceso = AseguramientoCalidad::select('team_leader', 
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'), 
+        $supervisoresProceso = AseguramientoCalidad::select('team_leader',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
                 DB::raw('SUM(cantidad_auditada) as total_auditada'))
             ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
             ->groupBy('team_leader')
             ->get();
 
-        $modulosAQL = AuditoriaAQL::select('modulo', 
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'), 
+        $modulosAQL = AuditoriaAQL::select('modulo',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
                 DB::raw('SUM(cantidad_auditada) as total_auditada'))
             ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
             ->groupBy('modulo')
             ->get();
 
-        $modulosProceso = AseguramientoCalidad::select('modulo', 
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'), 
+        $modulosProceso = AseguramientoCalidad::select('modulo',
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
                 DB::raw('SUM(cantidad_auditada) as total_auditada'))
             ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
             ->groupBy('modulo')
@@ -677,12 +677,12 @@ class HomeController extends Controller
             $aql = $aqlData->firstWhere($columna, $clave);
             $proceso = $procesoData->firstWhere($columna, $clave);
 
-            $porcentajeAQL = $aql && $aql->total_auditada > 0 
-                ? ($aql->total_rechazada / $aql->total_auditada) * 100 
+            $porcentajeAQL = $aql && $aql->total_auditada > 0
+                ? ($aql->total_rechazada / $aql->total_auditada) * 100
                 : 0;
 
-            $porcentajeProceso = $proceso && $proceso->total_auditada > 0 
-                ? ($proceso->total_rechazada / $proceso->total_auditada) * 100 
+            $porcentajeProceso = $proceso && $proceso->total_auditada > 0
+                ? ($proceso->total_rechazada / $proceso->total_auditada) * 100
                 : 0;
 
             $resultados[] = [
@@ -811,12 +811,12 @@ class HomeController extends Controller
                     ->first();
 
                 // Calcular porcentajes
-                $porcentajeAQL = $aql->cantidad_auditada > 0 
-                    ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2) 
+                $porcentajeAQL = $aql->cantidad_auditada > 0
+                    ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2)
                     : 0;
 
-                $porcentajeProceso = $proceso->cantidad_auditada > 0 
-                    ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2) 
+                $porcentajeProceso = $proceso->cantidad_auditada > 0
+                    ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2)
                     : 0;
 
                 $datos[] = [
@@ -868,11 +868,11 @@ class HomeController extends Controller
                         ->whereDate('created_at', $fechaLog)
                         ->first();
 
-                    $porcentajeAQL = $aql->cantidad_auditada > 0 
+                    $porcentajeAQL = $aql->cantidad_auditada > 0
                         ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2)
                         : 0;
 
-                    $porcentajeProceso = $proceso->cantidad_auditada > 0 
+                    $porcentajeProceso = $proceso->cantidad_auditada > 0
                         ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2)
                         : 0;
 
@@ -926,11 +926,11 @@ class HomeController extends Controller
                         ->whereDate('created_at', $fechaLog)
                         ->first();
 
-                    $porcentajeAQL = $aql->cantidad_auditada > 0 
+                    $porcentajeAQL = $aql->cantidad_auditada > 0
                         ? round(($aql->cantidad_rechazada / $aql->cantidad_auditada) * 100, 2)
                         : 0;
 
-                    $porcentajeProceso = $proceso->cantidad_auditada > 0 
+                    $porcentajeProceso = $proceso->cantidad_auditada > 0
                         ? round(($proceso->cantidad_rechazada / $proceso->cantidad_auditada) * 100, 2)
                         : 0;
 
