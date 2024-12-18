@@ -1230,118 +1230,128 @@
         mostrarGrafica('AQL');
     </script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
       // Crear una bandera global para evitar múltiples cargas
       if (window.datosCargados) return; // Detener si ya se ha cargado
       window.datosCargados = true; // Marcar como cargado
-
+  
       // Mostrar el spinner al iniciar la petición
       document.getElementById("spinner").style.display = "block";
-
+  
       fetch("/SegundasTerceras", {
         method: "GET",
         headers: {
           "Content-Type": "application/json"
         }
       })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Error en la respuesta de la red");
-        }
-        return response.json();
-      })
-      .then(data => {
-        let segundas = 0;
-        let terceras = 0;
-        let totalQty = 0; // Variable para almacenar el total de Total_QTY
-
-        // Sumamos las cantidades de Total_QTY
-        data.data.forEach(item => {
-          let qty = parseFloat(item.Total_QTY); // Asegúrate de que el valor es numérico
-          totalQty += qty; // Sumar al total de QTY
-          // Sumar para segundas y terceras
-          if (item.QUALITY === "1") {
-            segundas += qty; // Suma para "Segundas"
-          } else if (item.QUALITY === "2") {
-            terceras += qty; // Suma para "Terceras"
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Error en la respuesta de la red");
           }
-        });
-
-        // Calcular el porcentaje para Segundas y Terceras
-        let porcentajeSegundas = (segundas * 100) / totalQty;
-        let porcentajeTerceras = (terceras * 100) / totalQty;
-
-        // Mostrar en consola para verificar
-        console.log("Total QTY: ", totalQty);
-        console.log("Segundas: ", segundas, " | Porcentaje Segundas: ", porcentajeSegundas);
-        console.log("Terceras: ", terceras, " | Porcentaje Terceras: ", porcentajeTerceras);
-
-        // Generamos la gráfica con los datos
-        Highcharts.chart("SegundasTercerasChart", {
-          chart: {
-            type: "column",
-            backgroundColor: "transparent"
-          },
-          title: {
-            text: "Segundas y Terceras"
-          },
-          xAxis: {
-            categories: ["Segundas", "Terceras"]
-          },
-          yAxis: {
-            min: 0,
-            title: {
-              text: "Cantidad"
+          return response.json();
+        })
+        .then(data => {
+          let segundas = 0;
+          let terceras = 0;
+          let totalQty = 0; // Variable para almacenar el total de Total_QTY
+  
+          // Sumamos las cantidades de Total_QTY
+          data.data.forEach(item => {
+            let qty = parseFloat(item.Total_QTY); // Asegúrate de que el valor es numérico
+            totalQty += qty; // Sumar al total de QTY
+            // Sumar para segundas y terceras
+            if (item.QUALITY === "1") {
+              segundas += qty; // Suma para "Segundas"
+            } else if (item.QUALITY === "2") {
+              terceras += qty; // Suma para "Terceras"
             }
-          },
-          tooltip: {
-            pointFormatter: function() {
-              return `<b>${this.series.name}:</b> ${this.y}<b>Porcentaje:</b> ${(this.y * 100) / totalQty}%`;
-            }
-          },
-          series: [{
-            name: "Segundas",
-            id: "segundas",
-            data: [{
-              y: segundas,
-            }],
-            color: "#7cb5ec",
-            dataLabels: {
-              enabled: false,
+          });
+  
+          // Calcular el porcentaje para Segundas y Terceras
+          let porcentajeSegundas = ((segundas * 100) / totalQty).toFixed(2);
+          let porcentajeTerceras = ((terceras * 100) / totalQty).toFixed(2);
+  
+          // Generamos la gráfica con los datos
+          Highcharts.chart("SegundasTercerasChart", {
+            chart: {
+              type: "column",
+              backgroundColor: "transparent"
             },
-            events: {
-              click: function(event) {
-                if (this.options.id === "segundas") {
-                  window.location.href = "/Segundas";
+            title: {
+              text: "Segundas y Terceras"
+            },
+            xAxis: {
+              categories: ["Segundas", "Terceras"]
+            },
+            yAxis: {
+              min: 0,
+              title: {
+                text: "Cantidad"
+              }
+            },
+            tooltip: {
+              shared: true,
+              formatter: function () {
+                // Tooltip personalizado
+                if (this.series.name === "Segundas") {
+                  return `
+                    <b>Segundas</b><br>
+                    <b>Cantidad:</b> ${segundas}<br>
+                    <b>Porcentaje:</b> ${porcentajeSegundas}%
+                     <br>
+                     <br>
+                    <b>Terceras</b><br>
+                    <b>Cantidad:</b> ${terceras}<br>
+                    <b>Porcentaje:</b> ${porcentajeTerceras}%
+                  `;
+                }
+              },
+              backgroundColor: "#000000", // Fondo negro
+              style: { color: "#ffffff" } // Texto blanco
+            },
+            series: [
+              {
+                name: "Segundas",
+                id: "segundas",
+                data: [segundas],
+                color: "#7cb5ec",
+                dataLabels: {
+                  enabled: true
+                },
+                events: {
+                  click: function (event) {
+                    if (this.options.id === "segundas") {
+                      window.location.href = "/Segundas";
+                    }
+                  }
+                }
+              },
+              {
+                name: "Terceras",
+                id: "terceras",
+                data: [terceras],
+                color: "#434348",
+                dataLabels: {
+                  enabled: true
                 }
               }
+            ],
+            legend: {
+              enabled: true
             }
-          }, {
-            name: "Terceras",
-            id: "terceras",
-            data: [{
-              y: terceras,
-            }],
-            color: "#434348",
-            dataLabels: {
-              enabled: false,
-            }
-          }],
-          legend: {
-            enabled: true
-          }
+          });
+  
+          // Ocultar el spinner después de que se haya generado la gráfica
+          document.getElementById("spinner").style.display = "none";
+        })
+        .catch(error => {
+          console.error("Error al cargar los datos:", error);
+          // Ocultar el spinner en caso de error
+          document.getElementById("spinner").style.display = "none";
         });
-
-        // Ocultar el spinner después de que se haya generado la gráfica
-        document.getElementById("spinner").style.display = "none";
-      })
-      .catch(error => {
-        console.error("Error al cargar los datos:", error);
-        // Ocultar el spinner en caso de error
-        document.getElementById("spinner").style.display = "none";
-      });
     });
   </script>
+  
 
 
 @endpush
