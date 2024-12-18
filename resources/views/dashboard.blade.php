@@ -1294,11 +1294,6 @@
               text: "Cantidad"
             }
           },
-          tooltip: {
-            pointFormatter: function() {
-              return `<b>${this.series.name}:</b> ${this.y}<b>Porcentaje:</b> ${(this.y * 100) / totalQty}%`;
-            }
-          },
           series: [{
             name: "Segundas",
             id: "segundas",
