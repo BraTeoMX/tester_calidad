@@ -516,7 +516,8 @@
                     data: function (params) {
                         const selectedOp = opSelect.val(); // Obtén el valor seleccionado del select "op-seleccion"
                         if (!selectedOp) {
-                            return { search: params.term || '' }; // Enviar búsqueda, aunque esté vacío
+                            console.error("Debes seleccionar una OP primero.");
+                            return {};
                         }
                         return {
                             op: selectedOp,
@@ -524,8 +525,8 @@
                         };
                     },
                     processResults: function (data) {
-                        if (data.error) {
-                            console.error(data.error);
+                        // Si no hay datos o se encuentra un error, muestra un mensaje vacío
+                        if (!data || data.length === 0) {
                             return { results: [] };
                         }
                         return {
@@ -550,5 +551,7 @@
             });
         });
     </script>
+
+
 
 @endsection

@@ -314,28 +314,40 @@ class AuditoriaAQL_v2Controller extends Controller
 
     public function obtenerOpcionesBulto(Request $request)
     {
-        $opSeleccionada = $request->input('op'); // Valor del select "op-seleccion"
+        $opSeleccionada = $request->input('op');
+        $search = $request->input('search', '');
 
+        // Si no se proporciona la OP, devuelve vacío
         if (!$opSeleccionada) {
-            return response()->json(['error' => 'El valor del select OP no fue proporcionado.'], 400);
+            return response()->json([]);
         }
 
-        $datosBulto = JobAQL::where('prodid', $opSeleccionada) // Filtra por la OP seleccionada
+        // Construye la consulta base
+        $query = JobAQL::where('prodid', $opSeleccionada)
             ->select('prodid', 'prodpackticketid')
             ->union(
                 JobAQLTemporal::where('prodid', $opSeleccionada)
                     ->select('prodid', 'prodpackticketid')
             )
-            ->distinct()
-            ->orderBy('prodpackticketid')
-            ->get();
+            ->distinct();
 
+        // Aplica filtro de búsqueda si existe un término
+        if ($search !== '') {
+            // Ajusta el campo de búsqueda si es necesario. 
+            // Aquí asumo que se filtra por 'prodpackticketid'.
+            $query = $query->where('prodpackticketid', 'like', "%{$search}%");
+        }
+
+        $datosBulto = $query->orderBy('prodpackticketid')->get();
+
+        // Si no se encuentran resultados, devolver arreglo vacío
         if ($datosBulto->isEmpty()) {
-            return response()->json([]); // Devuelve una lista vacía para que Select2 muestre "No se encontraron resultados"
+            return response()->json([]);
         }
 
         return response()->json($datosBulto);
     }
+
 
 
 }
