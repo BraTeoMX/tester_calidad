@@ -221,9 +221,9 @@
                                     <th>TALLA</th>
                                     <th>PIEZAS INSPECCIONADAS</th>
                                     <th>PIEZAS RECHAZADAS</th>
-                                    <th id="tp-column-header">TIPO DE DEFECTO</th>
-                                    <th id="ac-column-header">ACCION CORRECTIVA</th>
-                                    <th id="nombre-column-header">NOMBRE</th>
+                                    <th>TIPO DE DEFECTO</th>
+                                    <th>ACCION CORRECTIVA</th>
+                                    <th>NOMBRE</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -239,26 +239,16 @@
                                     <td><input type="text" class="form-control texto-blanco" name="talla" id="talla-seleccion" readonly></td>
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
-                                    <td class="tp-column"> 
+                                    <td> 
                                         <select id="tpSelectAQL" class="form-control w-100" title="Por favor, selecciona una opción">
                                         </select>
+                                        <div id="selectedOptionsContainerAQL" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
                                     </td>
-                                    <td class="ac-column"><input type="text" class="form-control" name="ac" id="ac" required></td>
-                                    <td class="nombre-column">
+                                    <td><input type="text" class="form-control" name="ac" id="accion_correctiva" required></td>
+                                    <td>
                                         <select name="nombre-none" id="nombreSelect" class="form-control"> 
-                                            <option value="">Selecciona una opción</option> 
-                                            @foreach($nombreProceso as $opcion)
-                                                <option value="{{ $opcion['name'] }}">{{ $opcion['name'] }}</option>
-                                            @endforeach
-                                            @foreach($nombrePorModulo as $moduleid => $nombres)
-                                                <option disabled>--- Módulo {{ $moduleid }} ---</option>
-                                                @foreach($nombres as $opcion)
-                                                    <option value="{{ $opcion['name'] }}">{{ $opcion['name'] }}</option>
-                                                @endforeach
-                                            @endforeach
                                         </select> 
                                         <div id="selectedOptionsContainerNombre" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
-                                        <input type="hidden" name="nombre" id="nombreHidden">
                                     </td>
                                 </tr>
                             </tbody>
@@ -593,8 +583,9 @@
     <script>
         $(document).ready(function () {
             const tpSelect = $('#tpSelectAQL');
+            const selectedOptionsContainer = $('#selectedOptionsContainerAQL');
 
-            // Configuración de Select2 para "tpSelectAQL"
+            // Configuración de Select2
             tpSelect.select2({
                 placeholder: 'Selecciona una o más opciones',
                 allowClear: true,
@@ -604,22 +595,15 @@
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
-                        return {
-                            search: params.term || '',
-                        };
+                        return { search: params.term || '' };
                     },
                     processResults: function (data) {
                         const options = data.map(item => ({
                             id: item.nombre,
                             text: item.nombre,
                         }));
-
-                        // Agregar la opción para crear defecto
                         options.unshift({ id: 'CREAR_DEFECTO', text: 'CREAR DEFECTO', action: true });
-
-                        return {
-                            results: options,
-                        };
+                        return { results: options };
                     },
                     cache: true,
                 },
@@ -636,14 +620,44 @@
                 },
             });
 
-            // Evento para manejar la selección de "CREAR DEFECTO"
+            // Evento al seleccionar una opción
             tpSelect.on('select2:select', function (e) {
                 const selected = e.params.data;
+
                 if (selected.id === 'CREAR_DEFECTO') {
                     $('#nuevoConceptoModal').modal('show');
                     tpSelect.val(null).trigger('change'); // Resetea la selección
+                    return;
                 }
+
+                // Agregar la selección al contenedor
+                addOptionToContainer(selected.id, selected.text);
+                tpSelect.val(null).trigger('change');
             });
+
+            // Agregar la opción seleccionada al contenedor
+            function addOptionToContainer(id, text) {
+                // Crear un elemento de la lista
+                const optionElement = $(`
+                    <div class="selected-option d-flex align-items-center justify-content-between border p-2 mb-1">
+                        <button class="btn btn-primary btn-sm duplicate-option">+</button>
+                        <span class="option-text flex-grow-1 mx-2">${text}</span>
+                        <button class="btn btn-danger btn-sm remove-option">Eliminar</button>
+                    </div>
+                `);
+
+                // Añadir eventos para los botones
+                optionElement.find('.duplicate-option').on('click', function () {
+                    addOptionToContainer(id, text); // Duplicar la opción
+                });
+
+                optionElement.find('.remove-option').on('click', function () {
+                    optionElement.remove(); // Eliminar la opción
+                });
+
+                // Agregar la opción al contenedor
+                selectedOptionsContainer.append(optionElement);
+            }
 
             // Evento para abrir el modal y crear un nuevo defecto
             $('#guardarNuevoConcepto').on('click', function () {
@@ -663,14 +677,10 @@
                         _token: '{{ csrf_token() }}',
                     },
                     success: function (data) {
-                        // Añadir la nueva opción al select y seleccionarla
                         const newOption = new Option(data.nombre, data.nombre, true, true);
                         tpSelect.append(newOption).trigger('change');
-
-                        // Cerrar el modal
+                        addOptionToContainer(data.nombre, data.nombre); // Agregar al contenedor
                         $('#nuevoConceptoModal').modal('hide');
-
-                        // Limpiar el input
                         $('#nuevoConceptoInput').val('');
                     },
                     error: function (xhr) {

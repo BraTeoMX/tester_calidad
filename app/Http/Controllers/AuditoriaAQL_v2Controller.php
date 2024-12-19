@@ -369,7 +369,20 @@ class AuditoriaAQL_v2Controller extends Controller
                 return response()->json(['error' => 'El nombre es obligatorio'], 400);
             }
 
-            // Crear un nuevo defecto
+            // Convertir el nombre a mayúsculas para la búsqueda y creación
+            $nombre = strtoupper($nombre);
+
+            // Verificar si el defecto ya existe
+            $defectoExistente = CategoriaTipoProblema::where('nombre', $nombre)
+                ->where('area', 'aql') // Opcional: para buscar solo en el área "aql"
+                ->first();
+
+            if ($defectoExistente) {
+                // Si ya existe, devolver el registro existente
+                return response()->json($defectoExistente);
+            }
+
+            // Crear un nuevo defecto si no existe
             $nuevoDefecto = CategoriaTipoProblema::create([
                 'nombre' => $nombre,
                 'area' => 'aql',
@@ -380,6 +393,8 @@ class AuditoriaAQL_v2Controller extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+
 
 
 }
