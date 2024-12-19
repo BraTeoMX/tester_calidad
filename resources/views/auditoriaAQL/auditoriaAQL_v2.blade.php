@@ -180,7 +180,6 @@
                                 <tr>
                                     <th>MODULO</th>
                                     <th>OP</th>
-                                    <th>CLIENTE</th>
                                     <th>SUPERVISOR</th>
                                     <th>GERENTE PRODUCCION</th>
                                     <th>AUDITOR</th>
@@ -196,9 +195,6 @@
                                         <select class="form-control texto-blanco" name="op-seleccion" id="op-seleccion" required title="Selecciona una OP">
                                             <option value="">Cargando opciones...</option>
                                         </select>
-                                    </td>
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" name="cliente" id="cliente" value="{{ $nombreCliente }}" readonly>
                                     </td>
                                     <td>
                                         <input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader" value="{{ $data['team_leader'] }}" readonly>
@@ -237,20 +233,15 @@
                                             <option value="">Cargando bultos...</option>
                                         </select>
                                     </td>
-                                    <td><input type="text" class="form-control texto-blanco" name="pieza" id="pieza" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="estilo" id="estilo" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="color" id="color" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="talla" id="talla" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" name="pieza" id="pieza-seleccion" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" name="estilo" id="estilo-seleccion" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" name="color" id="color-seleccion" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" name="talla" id="talla-seleccion" readonly></td>
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
                                     <td class="tp-column"> 
-                                        <select id="tpSelectAQL" class="form-control w-100" multiple title="Por favor, selecciona una opción">
-                                            <option value="OTRO">OTRO</option>
-                                            @foreach ($categoriaTPProceso as $proceso)
-                                                <option value="{{ $proceso->nombre }}">{{ $proceso->nombre }}</option>
-                                            @endforeach
+                                        <select id="tpSelectAQL" class="form-control w-100" title="Por favor, selecciona una opción">
                                         </select>
-                                        <div id="selectedOptionsContainerAQL" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
                                     </td>
                                     <td class="ac-column"><input type="text" class="form-control" name="ac" id="ac" required></td>
                                     <td class="nombre-column">
@@ -274,6 +265,26 @@
                         </table>
                     </div>
                     <button type="submit" class="btn-verde-xd">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal para crear un nuevo defecto -->
+    <div class="modal fade" id="nuevoConceptoModal" tabindex="-1" role="dialog" aria-labelledby="nuevoConceptoModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 id="nuevoConceptoModalLabel">Introduce el nuevo defecto</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true" class="text-white">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control bg-dark text-white" id="nuevoConceptoInput" placeholder="Nuevo defecto">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="guardarNuevoConcepto">Guardar</button>
                 </div>
             </div>
         </div>
@@ -471,8 +482,10 @@
 
     <script>
         $(document).ready(function () {
-            // Configuración de Select2 para "op-seleccion"
             const opSelect = $('#op-seleccion');
+            const bultoSelect = $('#bulto-seleccion');
+
+            // Configuración de Select2 para "op-seleccion"
             opSelect.select2({
                 placeholder: 'Selecciona una OP',
                 allowClear: true,
@@ -483,7 +496,7 @@
                     delay: 250,
                     data: function (params) {
                         return {
-                            search: params.term || '', // Enviar búsqueda o vacío para obtener todos
+                            search: params.term || '',
                         };
                     },
                     processResults: function (data) {
@@ -504,7 +517,6 @@
             });
 
             // Configuración de Select2 para "bulto-seleccion"
-            const bultoSelect = $('#bulto-seleccion');
             bultoSelect.select2({
                 placeholder: 'Selecciona un bulto',
                 allowClear: true,
@@ -514,14 +526,14 @@
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
-                        const selectedOp = opSelect.val(); // Obtén el valor seleccionado del select "op-seleccion"
+                        const selectedOp = opSelect.val();
                         if (!selectedOp) {
                             console.error("Debes seleccionar una OP primero.");
                             return {};
                         }
                         return {
                             op: selectedOp,
-                            search: params.term || '', // Incluye el término de búsqueda
+                            search: params.term || '',
                         };
                     },
                     processResults: function (data) {
@@ -533,6 +545,7 @@
                             results: data.map(item => ({
                                 id: item.prodpackticketid,
                                 text: item.prodpackticketid,
+                                extra: item, // Almacena datos adicionales
                             })),
                         };
                     },
@@ -547,11 +560,125 @@
 
             // Evento para recargar "bulto-seleccion" al cambiar "op-seleccion"
             opSelect.on('change', function () {
-                bultoSelect.val(null).trigger('change'); // Limpia la selección actual de "bulto-seleccion"
+                bultoSelect.val(null).trigger('change');
+            });
+
+            // Evento para manejar selección de "bulto-seleccion"
+            bultoSelect.on('select2:select', function (e) {
+                const data = e.params.data.extra; // Obtén los datos adicionales del registro seleccionado
+
+                if (data) {
+                    $('#pieza-seleccion').val(data.qty || '');
+                    $('#estilo-seleccion').val(data.itemid || '');
+                    $('#color-seleccion').val(data.colorname || '');
+                    $('#talla-seleccion').val(data.inventsizeid || '');
+
+                    // Opcional: Almacena datos adicionales en inputs ocultos
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'customername',
+                        value: data.customername || '',
+                    }).appendTo('form');
+
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'inventcolorid',
+                        value: data.inventcolorid || '',
+                    }).appendTo('form');
+                }
             });
         });
     </script>
 
+    <script>
+        $(document).ready(function () {
+            const tpSelect = $('#tpSelectAQL');
 
+            // Configuración de Select2 para "tpSelectAQL"
+            tpSelect.select2({
+                placeholder: 'Selecciona una o más opciones',
+                allowClear: true,
+                ajax: {
+                    url: "{{ route('obtener.defectos.aql') }}",
+                    type: 'GET',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term || '',
+                        };
+                    },
+                    processResults: function (data) {
+                        const options = data.map(item => ({
+                            id: item.nombre,
+                            text: item.nombre,
+                        }));
+
+                        // Agregar la opción para crear defecto
+                        options.unshift({ id: 'CREAR_DEFECTO', text: 'CREAR DEFECTO', action: true });
+
+                        return {
+                            results: options,
+                        };
+                    },
+                    cache: true,
+                },
+                templateResult: function (data) {
+                    if (data.action) {
+                        return $('<span style="color: #007bff; font-weight: bold;">' + data.text + '</span>');
+                    }
+                    return data.text;
+                },
+                language: {
+                    noResults: function () {
+                        return "No se encontraron resultados";
+                    },
+                },
+            });
+
+            // Evento para manejar la selección de "CREAR DEFECTO"
+            tpSelect.on('select2:select', function (e) {
+                const selected = e.params.data;
+                if (selected.id === 'CREAR_DEFECTO') {
+                    $('#nuevoConceptoModal').modal('show');
+                    tpSelect.val(null).trigger('change'); // Resetea la selección
+                }
+            });
+
+            // Evento para abrir el modal y crear un nuevo defecto
+            $('#guardarNuevoConcepto').on('click', function () {
+                const nuevoDefecto = $('#nuevoConceptoInput').val();
+
+                if (!nuevoDefecto) {
+                    alert('Por favor, ingresa un defecto válido.');
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('crear.defecto.aql') }}",
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        nombre: nuevoDefecto,
+                        _token: '{{ csrf_token() }}',
+                    },
+                    success: function (data) {
+                        // Añadir la nueva opción al select y seleccionarla
+                        const newOption = new Option(data.nombre, data.nombre, true, true);
+                        tpSelect.append(newOption).trigger('change');
+
+                        // Cerrar el modal
+                        $('#nuevoConceptoModal').modal('hide');
+
+                        // Limpiar el input
+                        $('#nuevoConceptoInput').val('');
+                    },
+                    error: function (xhr) {
+                        alert('Ocurrió un error al guardar el defecto: ' + xhr.responseJSON.error);
+                    },
+                });
+            });
+        });
+    </script>
 
 @endsection

@@ -107,7 +107,6 @@ class AuditoriaAQL_v2Controller extends Controller
         $fechaActual = Carbon::now()->toDateString();
         $auditorDato = Auth::user()->name;
         $auditorPlanta = Auth::user()->Planta;
-        $categoriaTPProceso = CategoriaTipoProblema::whereIn('area', ['proceso', 'playera'])->get();
         
         if($auditorPlanta == 'Planta1'){
             $detectarPlanta = "Intimark1";
@@ -119,15 +118,6 @@ class AuditoriaAQL_v2Controller extends Controller
         $data = $request->all();
         // Asegurarse de que la variable $data esté definida
         $data = $data ?? [];
-
-        $datoBultos = JobAQL::whereIn('prodid', (array) $data['op'])
-            ->where('moduleid', $data['modulo'])
-            ->select('prodpackticketid', 'qty', 'itemid', 'colorname', 'inventsizeid')
-            ->distinct()
-            ->get();
-
-        $nombreCliente = $data['cliente'];
-        //dd($nombreCliente);
 
         $fechaActual = Carbon::now()->toDateString();
 
@@ -286,7 +276,7 @@ class AuditoriaAQL_v2Controller extends Controller
             ->orderBy('modulo', 'asc')
             ->get();
 
-        return view('auditoriaAQL.auditoriaAQL_v2', compact('mesesEnEspanol', 'pageSlug', 'datoBultos', 'nombreCliente', 'categoriaTPProceso',
+        return view('auditoriaAQL.auditoriaAQL_v2', compact('mesesEnEspanol', 'pageSlug',
             'data', 'total_auditada','total_rechazada','total_porcentaje','registrosIndividual','total_auditadaIndividual',
             'total_rechazadaIndividual', 'total_porcentajeIndividual','estatusFinalizar','registrosIndividualPieza', 'conteoBultos',
             'conteoPiezaConRechazo','porcentajeBulto','mostrarRegistro', 'conteoParos', 'finParoModular1','finParoModular2','nombreProceso',
@@ -324,10 +314,10 @@ class AuditoriaAQL_v2Controller extends Controller
 
         // Construye la consulta base
         $query = JobAQL::where('prodid', $opSeleccionada)
-            ->select('prodid', 'prodpackticketid')
+            ->select('prodid', 'prodpackticketid', 'qty', 'itemid', 'colorname', 'customername', 'inventcolorid', 'inventsizeid')
             ->union(
                 JobAQLTemporal::where('prodid', $opSeleccionada)
-                    ->select('prodid', 'prodpackticketid')
+                    ->select('prodid', 'prodpackticketid', 'qty', 'itemid', 'colorname', 'customername', 'inventcolorid', 'inventsizeid')
             )
             ->distinct();
 
@@ -348,6 +338,44 @@ class AuditoriaAQL_v2Controller extends Controller
         return response()->json($datosBulto);
     }
 
+    public function obtenerDefectosAQL(Request $request)
+    {
+        $search = $request->input('search', '');
+    
+        // Construye la consulta base
+        $query = CategoriaTipoProblema::whereIn('area', ['proceso', 'playera', 'aql']);
+    
+        // Aplica filtro de búsqueda si existe un término
+        if ($search !== '') {
+            $query = $query->where('nombre', 'like', "%{$search}%");
+        }
+    
+        $categorias = $query->get();
+    
+        // Si no se encuentran resultados, devolver arreglo vacío
+        if ($categorias->isEmpty()) {
+            return response()->json([]);
+        }
+    
+        return response()->json($categorias);
+    }
+    
+    public function crearDefectoAQL(Request $request)
+    {
+        $nombre = $request->input('nombre');
+
+        if (!$nombre) {
+            return response()->json(['error' => 'El nombre es obligatorio'], 400);
+        }
+
+        // Crear un nuevo defecto
+        $nuevoDefecto = CategoriaTipoProblema::create([
+            'nombre' => $nombre,
+            'area' => 'aql',
+        ]);
+
+        return response()->json($nuevoDefecto);
+    }
 
 
 }
