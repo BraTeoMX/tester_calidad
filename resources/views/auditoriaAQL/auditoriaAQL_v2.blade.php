@@ -172,10 +172,9 @@
                 <hr>
                 <!-- Contenido del card -->
                 <div class="card-body">
-                    <input type="hidden" class="form-control" name="area" id="area" value="AQL PROCESO">
                     <!-- Tabla responsiva -->
                     <div class="table-responsive">
-                        <table class="table">
+                        <table class="table" id="tabla-datos-principales">
                             <thead class="thead-primary table-100">
                                 <tr>
                                     <th>MODULO</th>
@@ -211,7 +210,7 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <table class="table table32">
+                        <table class="table table32" id="tabla-datos-secundarios">
                             <thead class="thead-primary">
                                 <tr>
                                     <th># BULTO</th>
@@ -771,6 +770,113 @@
             }
         });
 
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            // Identificadores de las tablas específicas
+            const tablasObjetivo = ['#tabla-datos-principales', '#tabla-datos-secundarios'];
+
+            // Inicializa las columnas ocultas
+            const columnasPosteriores = $('th:contains("TIPO DE DEFECTO"), th:contains("ACCION CORRECTIVA"), th:contains("NOMBRE")')
+                .add('td:nth-child(8), td:nth-child(9), td:nth-child(10)');
+            columnasPosteriores.hide(); // Ocultar al inicio
+
+            // Detectar cambios en el campo cantidad_rechazada
+            $('#cantidad_rechazada').on('input', function () {
+                const valor = $(this).val();
+
+                if (valor > 0) {
+                    columnasPosteriores.show(); // Mostrar columnas
+                    columnasPosteriores.find('input, select').prop('required', true); // Hacer obligatorios
+                } else {
+                    columnasPosteriores.hide(); // Ocultar columnas
+                    columnasPosteriores.find('input, select').prop('required', false); // Quitar obligatoriedad
+                }
+            });
+
+            // Evento del botón "Guardar"
+            $('.btn-verde-xd').on('click', function (e) {
+                e.preventDefault(); // Prevenir el envío estándar
+
+                let esValido = true;
+                let formData = {};
+
+                // Obtenemos el valor actual de cantidad_rechazada para saber si validamos ciertos campos
+                const valorCantidadRechazada = $('#cantidad_rechazada').val();
+
+                // Validar inputs y selects visibles (excepto los excluidos)
+                $(`${tablasObjetivo.join(', ')} input:visible, ${tablasObjetivo.join(', ')} select:visible`).not('#tpSelectAQL, #nombre_select').each(function () {
+                    const name = $(this).attr('name'); 
+                    const value = $(this).val();
+
+                    if ($(this).prop('required') && !value) {
+                        esValido = false;
+                        $(this).addClass('is-invalid');
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+
+                    if (name) {
+                        formData[name] = value;
+                    }
+                });
+
+                // Si hay algún campo requerido vacío, mostrar alerta genérica
+                if (!esValido) {
+                    alert('Por favor, completa todos los campos requeridos.');
+                    return; 
+                }
+
+                // Si cantidad_rechazada > 0, validamos que se haya seleccionado al menos una opción en Tipo de Defecto y Nombre
+                if (valorCantidadRechazada > 0) {
+                    if ($('#selectedOptionsContainerAQL').children().length === 0) {
+                        alert('Por favor, selecciona al menos una opción en "Tipo de Defecto".');
+                        return;
+                    }
+
+                    if ($('#selectedOptionsContainerNombre').children().length === 0) {
+                        alert('Por favor, selecciona al menos una opción en "Nombre".');
+                        return;
+                    }
+                }
+
+                // Solo serializamos estos arrays si cantidad_rechazada > 0
+                if (valorCantidadRechazada > 0) {
+                    const selectedAQL = [];
+                    $('#selectedOptionsContainerAQL .selected-option').each(function () {
+                        selectedAQL.push($(this).text().trim());
+                    });
+                    formData['selectedAQL'] = selectedAQL;
+
+                    const selectedNombre = [];
+                    $('#selectedOptionsContainerNombre .selected-option').each(function () {
+                        selectedNombre.push($(this).text().trim());
+                    });
+                    formData['selectedNombre'] = selectedNombre;
+                } else {
+                    // Si es 0, no agregamos estos datos
+                    formData['selectedAQL'] = [];
+                    formData['selectedNombre'] = [];
+                }
+
+                // Enviar datos mediante AJAX
+                $.ajax({
+                    url: "{{ route('guardar.registro.aql') }}", // Reemplaza con la ruta correcta
+                    type: 'POST',
+                    data: {
+                        ...formData,
+                        _token: '{{ csrf_token() }}',
+                    },
+                    success: function (response) {
+                        alert('Datos guardados correctamente.');
+                    },
+                    error: function (xhr) {
+                        alert('Hubo un error al guardar los datos. Por favor, intenta nuevamente.');
+                    }
+                });
+            });
+        });
     </script>
 
 @endsection

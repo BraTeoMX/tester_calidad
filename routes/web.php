@@ -346,6 +346,7 @@ Route::get('/obtener-opciones-bulto', [AuditoriaAQL_v2Controller::class, 'obtene
 Route::get('/obtener-defectos-aql', [AuditoriaAQL_v2Controller::class, 'obtenerDefectosAQL'])->name('obtener.defectos.aql');
 Route::post('/crear-defectos-aql', [AuditoriaAQL_v2Controller::class, 'crearDefectoAQL'])->name('crear.defecto.aql');
 Route::get('/obtener-nobres-proceso', [AuditoriaAQL_v2Controller::class, 'obtenerNombresProceso'])->name('obtener.nombres.proceso');
+Route::get('/guardar-registros-aql', [AuditoriaAQL_v2Controller::class, 'guardarRegistrosAql'])->name('guardar.registro.aql');
 
 
 

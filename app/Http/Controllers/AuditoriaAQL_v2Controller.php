@@ -395,9 +395,6 @@ class AuditoriaAQL_v2Controller extends Controller
                 ->distinct()
                 ->get();
 
-            // Log de registros asociados
-            Log::info('Consulta asociada: ', $registrosAsociados->toArray());
-
             // Consulta para los registros generales, excluyendo los asociados
             $registrosGenerales = AuditoriaProceso::query()
                 ->select('name')
@@ -407,8 +404,6 @@ class AuditoriaAQL_v2Controller extends Controller
                 })
                 ->get();
 
-            // Log de registros generales
-            Log::info('Consulta general: ', $registrosGenerales->toArray());
 
             // Combina los resultados de forma manual
             $nombres = array_merge(
@@ -416,8 +411,6 @@ class AuditoriaAQL_v2Controller extends Controller
                 $registrosGenerales->toArray()
             );
 
-            // Log de la combinación final
-            Log::info('Consulta unificada: ', $nombres);
 
             // Devuelve los nombres en formato JSON
             return response()->json($nombres);
@@ -426,6 +419,30 @@ class AuditoriaAQL_v2Controller extends Controller
         }
     }
 
-
+    public function guardarRegistrosAql(Request $request)
+    {
+        try {
+            // Valida los datos recibidos
+            $validatedData = $request->validate([
+                'modulo' => 'required|string',
+                'op-seleccion' => 'required|string',
+                'cantidad_auditada' => 'required|integer|min:1',
+                'cantidad_rechazada' => 'required|integer|min:0',
+                'tpSelectAQL' => 'sometimes|string',
+                'ac' => 'sometimes|string',
+                'nombre-none' => 'sometimes|string',
+                // Agrega más reglas según tus necesidades
+            ]);
+    
+            // Procesa los datos (por ejemplo, guárdalos en la base de datos)
+            // Ejemplo:
+            AuditoriaAQL::create($validatedData);
+    
+            return response()->json(['message' => 'Datos guardados correctamente.'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al guardar los datos: ' . $e->getMessage()], 500);
+        }
+    }
+    
 
 }
