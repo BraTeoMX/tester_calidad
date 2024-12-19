@@ -423,23 +423,120 @@ class AuditoriaAQL_v2Controller extends Controller
     {
         try {
             // Registrar los datos recibidos en el archivo de log
-            //Log::info('Datos recibidos en guardarRegistrosAql:', $request->all());
+            Log::info('Datos recibidos en guardarRegistrosAql:', $request->selectedAQL);
+            Log::info('Datos recibidos en guardarRegistrosAql:', $request->selectedNombre);
+            $fechaHoraActual= now();
 
-            // Valida los datos recibidos
-            $validatedData = $request->validate([
-                'modulo' => 'required|string',
-                'op-seleccion' => 'required|string',
-                'cantidad_auditada' => 'required|integer|min:1',
-                'cantidad_rechazada' => 'required|integer|min:0',
-                'tpSelectAQL' => 'sometimes|string',
-                'ac' => 'sometimes|string',
-                'nombre-none' => 'sometimes|string',
-                // Agrega más reglas según tus necesidades
-            ]);
+            // Verificar el día de la semana
+            $diaSemana = $fechaHoraActual ->dayOfWeek;
+            $fechaActual = Carbon::now()->toDateString();
+            $conteoParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
+                ->where('area', $request->area)
+                ->where('modulo', $request->modulo)
+                ->where('op', $request->op)
+                ->where('team_leader', $request->team_leader)
+                ->where('cantidad_rechazada', '>', 0)
+                ->count();
+            
+            // Obtener el ID seleccionado desde el formulario
+            $plantaBusqueda = CategoriaSupervisor::where('moduleid', $request->modulo)
+            ->pluck('prodpoolid')
+            ->first(); 
+            //dd($plantaBusqueda);
 
-            // Procesa los datos (por ejemplo, guárdalos en la base de datos)
-            AuditoriaAQL::create($validatedData);
+            $nombreFinal = $request->selectedNombre;
+            $nombreFinalValidado = null;
+            $numeroEmpleado = null;
+            
+            if ($nombreFinal) {
+                // Convertimos los nombres en un array, eliminando espacios adicionales
+                $nombres = array_map('trim', explode(',', $nombreFinal));
+                
+                $nombresValidados = [];
+                $numerosEmpleados = [];
+                
+                foreach ($nombres as $nombre) {
+                    $nombreValidado = trim($nombre);
+                    $nombresValidados[] = $nombreValidado;
+                    
+                    // Intentamos buscar primero en el modelo AuditoriaProceso
+                    $numeroEmpleado = AuditoriaProceso::where('name', $nombreValidado)->pluck('personnelnumber')->first();
+            
+                    // Si no lo encontramos en AuditoriaProceso, intentamos buscar en CategoriaUtility
+                    if (!$numeroEmpleado) {
+                        $numeroEmpleado = CategoriaUtility::where('nombre', $nombreValidado)->pluck('numero_empleado')->first();
+                    }
+            
+                    // Si tampoco se encuentra en CategoriaUtility, devolvemos un valor de 0 para que tenga almacenado algo y no marque error
+                    $numerosEmpleados[] = $numeroEmpleado ? $numeroEmpleado : "0000000";
+                }
+                
+                // Concatenamos los nombres y números de empleados con comas
+                $nombreFinalValidado = implode(', ', $nombresValidados);
+                $numeroEmpleado = implode(', ', $numerosEmpleados);
+            }
 
+            $nuevoRegistro = new AuditoriaAQL();
+            $nuevoRegistro->numero_empleado = $numeroEmpleado;
+            $nuevoRegistro->nombre = $nombreFinalValidado;
+            $nuevoRegistro->modulo = $request->modulo;
+            $nuevoRegistro->op = $request->op_seleccion;
+            $nuevoRegistro->cliente = $request->customername;
+            $nuevoRegistro->team_leader = $request->team_leader;
+            $nuevoRegistro->gerente_produccion = $request->gerente_produccion;
+            $nuevoRegistro->auditor = $request->auditor;
+            $nuevoRegistro->turno = $request->turno;
+            $nuevoRegistro->planta = $plantaBusqueda;
+
+            $nuevoRegistro->bulto = $request->bulto_seleccion;
+            $nuevoRegistro->pieza = $request->pieza;
+            $nuevoRegistro->estilo = $request->estilo;
+            $nuevoRegistro->color = $request->color;
+            $nuevoRegistro->talla = $request->talla;
+            $nuevoRegistro->cantidad_auditada = $request->cantidad_auditada;
+            $nuevoRegistro->cantidad_rechazada = $request->cantidad_rechazada;
+            if($request->cantidad_rechazada > 0){
+                $nuevoRegistro->inicio_paro = Carbon::now();
+            }
+
+            // Verificar la hora para determinar el valor de "tiempo_extra"
+            if ($diaSemana >= 1 && $diaSemana <= 4) { // De lunes a jueves
+                if ($fechaHoraActual->hour >= 19) { // Después de las 7:00 pm
+                    $nuevoRegistro->tiempo_extra = 1;
+                } else {
+                    $nuevoRegistro->tiempo_extra = null;
+                }
+            } elseif ($diaSemana == 5) { // Viernes
+                if ($fechaHoraActual->hour >= 14) { // Después de las 2:00 pm
+                    $nuevoRegistro->tiempo_extra = 1;
+                } else {
+                    $nuevoRegistro->tiempo_extra = null;
+                }
+            } else { // Sábado y domingo
+                $nuevoRegistro->tiempo_extra = 1;
+            }
+
+            if ((($conteoParos == 1) && ($request->cantidad_rechazada > 0)) || (($conteoParos == 3) && ($request->cantidad_rechazada > 0))) {
+                $nuevoRegistro->paro_modular = 1;
+            }
+            $nuevoRegistro->ac = $request->accion_correctiva;
+            $nuevoRegistro->save();
+
+            // Obtener el ID del nuevo registro
+            $nuevoRegistroId = $nuevoRegistro->id;
+
+            // Almacenar los valores de tp en la tabla tp_auditoria_aql
+
+            // Asegúrate de que $request->tp sea un arreglo y contenga "NINGUNO" si está vacío o es null
+            $tp = $request->input('selectedAQL', ['NINGUNO']);
+
+            // Itera sobre el arreglo $tp y guarda cada valor
+            foreach ($tp as $valorTp) {
+                $nuevoTp = new TpAuditoriaAQL();
+                $nuevoTp->auditoria_aql_id = $nuevoRegistroId; // Asegúrate de que $nuevoRegistroId esté definido
+                $nuevoTp->tp = $valorTp;
+                $nuevoTp->save();
+            }
             // Registrar confirmación de éxito
             //Log::info('Registro guardado correctamente:', $validatedData);
 

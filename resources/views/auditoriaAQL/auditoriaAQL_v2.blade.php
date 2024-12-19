@@ -192,7 +192,7 @@
                                         <input type="text" class="form-control texto-blanco" name="modulo" id="modulo" value="{{ $data['modulo'] }}" readonly>
                                     </td>
                                     <td>
-                                        <select class="form-control texto-blanco" name="op-seleccion" id="op-seleccion" required title="Selecciona una OP">
+                                        <select class="form-control texto-blanco" name="op_seleccion" id="op_seleccion" required title="Selecciona una OP">
                                             <option value="">Cargando opciones...</option>
                                         </select>
                                     </td>
@@ -232,7 +232,7 @@
                             <tbody>
                                 <tr>
                                     <td>
-                                        <select name="bulto-seleccion" id="bulto-seleccion" class="form-control" required title="Por favor, selecciona una opción">
+                                        <select name="bulto_seleccion" id="bulto_seleccion" class="form-control" required title="Por favor, selecciona una opción">
                                             <option value="">Cargando bultos...</option>
                                         </select>
                                     </td>
@@ -246,7 +246,7 @@
                                         <select id="tpSelectAQL" class="form-control w-100" title="Por favor, selecciona una opción"></select>
                                         <div id="selectedOptionsContainerAQL" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
                                     </td>
-                                    <td><input type="text" class="form-control" name="ac" id="accion_correctiva" required></td>
+                                    <td><input type="text" class="form-control" name="accion_correctiva" id="accion_correctiva" required></td>
                                     <td>
                                         <select name="nombre-none" id="nombre_select" class="form-control"></select> 
                                         <div id="selectedOptionsContainerNombre" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
@@ -434,7 +434,7 @@
                 },
             };
 
-            const opSelect = $('#op-seleccion');
+            const opSelect = $('#op_seleccion');
 
             // Inicializa Select2
             opSelect.select2(select2Options);
@@ -473,10 +473,10 @@
 
     <script>
         $(document).ready(function () {
-            const opSelect = $('#op-seleccion');
-            const bultoSelect = $('#bulto-seleccion');
+            const opSelect = $('#op_seleccion');
+            const bultoSelect = $('#bulto_seleccion');
 
-            // Configuración de Select2 para "op-seleccion"
+            // Configuración de Select2 para "op_seleccion"
             opSelect.select2({
                 placeholder: 'Selecciona una OP',
                 allowClear: true,
@@ -507,7 +507,7 @@
                 },
             });
 
-            // Configuración de Select2 para "bulto-seleccion"
+            // Configuración de Select2 para "bulto_seleccion"
             bultoSelect.select2({
                 placeholder: 'Selecciona un bulto',
                 allowClear: true,
@@ -549,12 +549,12 @@
                 },
             });
 
-            // Evento para recargar "bulto-seleccion" al cambiar "op-seleccion"
+            // Evento para recargar "bulto_seleccion" al cambiar "op_seleccion"
             opSelect.on('change', function () {
                 bultoSelect.val(null).trigger('change');
             });
 
-            // Evento para manejar selección de "bulto-seleccion"
+            // Evento para manejar selección de "bulto_seleccion"
             bultoSelect.on('select2:select', function (e) {
                 const data = e.params.data.extra; // Obtén los datos adicionales del registro seleccionado
 
