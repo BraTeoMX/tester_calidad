@@ -422,6 +422,9 @@ class AuditoriaAQL_v2Controller extends Controller
     public function guardarRegistrosAql(Request $request)
     {
         try {
+            // Registrar los datos recibidos en el archivo de log
+            //Log::info('Datos recibidos en guardarRegistrosAql:', $request->all());
+
             // Valida los datos recibidos
             $validatedData = $request->validate([
                 'modulo' => 'required|string',
@@ -433,13 +436,16 @@ class AuditoriaAQL_v2Controller extends Controller
                 'nombre-none' => 'sometimes|string',
                 // Agrega más reglas según tus necesidades
             ]);
-    
+
             // Procesa los datos (por ejemplo, guárdalos en la base de datos)
-            // Ejemplo:
             AuditoriaAQL::create($validatedData);
-    
+
+            // Registrar confirmación de éxito
+            //Log::info('Registro guardado correctamente:', $validatedData);
+
             return response()->json(['message' => 'Datos guardados correctamente.'], 200);
         } catch (\Exception $e) {
+
             return response()->json(['error' => 'Error al guardar los datos: ' . $e->getMessage()], 500);
         }
     }

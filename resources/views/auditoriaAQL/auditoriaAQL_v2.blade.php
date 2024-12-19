@@ -183,6 +183,7 @@
                                     <th>GERENTE PRODUCCION</th>
                                     <th>AUDITOR</th>
                                     <th>TURNO</th>
+                                    <th>CLIENTE</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -206,6 +207,9 @@
                                     </td>
                                     <td>
                                         <input type="text" class="form-control texto-blanco" name="turno" id="turno" value="{{ $data['turno'] }}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" name="customername" id="customername_hidden" readonly>
                                     </td>
                                 </tr>
                             </tbody>
@@ -239,14 +243,12 @@
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
                                     <td> 
-                                        <select id="tpSelectAQL" class="form-control w-100" title="Por favor, selecciona una opción">
-                                        </select>
+                                        <select id="tpSelectAQL" class="form-control w-100" title="Por favor, selecciona una opción"></select>
                                         <div id="selectedOptionsContainerAQL" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
                                     </td>
                                     <td><input type="text" class="form-control" name="ac" id="accion_correctiva" required></td>
                                     <td>
-                                        <select name="nombre-none" id="nombre_select" class="form-control"> 
-                                        </select> 
+                                        <select name="nombre-none" id="nombre_select" class="form-control"></select> 
                                         <div id="selectedOptionsContainerNombre" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
                                     </td>
                                 </tr>
@@ -561,14 +563,8 @@
                     $('#estilo-seleccion').val(data.itemid || '');
                     $('#color-seleccion').val(data.colorname || '');
                     $('#talla-seleccion').val(data.inventsizeid || '');
-
+                    $('#customername_hidden').val(data.customername || '');
                     // Opcional: Almacena datos adicionales en inputs ocultos
-                    $('<input>').attr({
-                        type: 'hidden',
-                        name: 'customername',
-                        value: data.customername || '',
-                    }).appendTo('form');
-
                     $('<input>').attr({
                         type: 'hidden',
                         name: 'inventcolorid',
@@ -828,7 +824,7 @@
                     return; 
                 }
 
-                // Si cantidad_rechazada > 0, validamos que se haya seleccionado al menos una opción en Tipo de Defecto y Nombre
+                // Validaciones adicionales si cantidad_rechazada > 0
                 if (valorCantidadRechazada > 0) {
                     if ($('#selectedOptionsContainerAQL').children().length === 0) {
                         alert('Por favor, selecciona al menos una opción en "Tipo de Defecto".');
@@ -839,9 +835,16 @@
                         alert('Por favor, selecciona al menos una opción en "Nombre".');
                         return;
                     }
+
+                    const defectCount = $('#selectedOptionsContainerAQL .selected-option').length;
+                    const cantRechazadaNum = parseInt(valorCantidadRechazada, 10);
+                    if (defectCount !== cantRechazadaNum) {
+                        alert(`La cantidad de defectos seleccionados (${defectCount}) debe coincidir con las piezas rechazadas (${cantRechazadaNum}).`);
+                        return;
+                    }
                 }
 
-                // Solo serializamos estos arrays si cantidad_rechazada > 0
+                // Serializar las opciones seleccionadas en caso de que cantidad_rechazada > 0
                 if (valorCantidadRechazada > 0) {
                     const selectedAQL = [];
                     $('#selectedOptionsContainerAQL .selected-option').each(function () {
@@ -859,6 +862,17 @@
                     formData['selectedAQL'] = [];
                     formData['selectedNombre'] = [];
                 }
+
+                // ** Ajuste adicional **
+                // Reasignamos siempre los valores de la primera tabla para asegurarnos 
+                // de que se incluyan sin importar el valor de cantidad_rechazada.
+                $('#tabla-datos-principales input, #tabla-datos-principales select').each(function () {
+                    const name = $(this).attr('name'); 
+                    const value = $(this).val();
+                    if (name && typeof formData[name] === 'undefined') {
+                        formData[name] = value;
+                    }
+                });
 
                 // Enviar datos mediante AJAX
                 $.ajax({
