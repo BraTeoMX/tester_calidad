@@ -423,8 +423,8 @@ class AuditoriaAQL_v2Controller extends Controller
     {
         try {
             // Registrar los datos recibidos en el archivo de log
-            Log::info('Datos recibidos en guardarRegistrosAql:', $request->selectedAQL);
-            Log::info('Datos recibidos en guardarRegistrosAql:', $request->selectedNombre);
+            Log::info('Aqui va bien, donde rompe?:');
+            //Log::info('Datos recibidos en guardarRegistrosAql:', $request->selectedNombre);
             $fechaHoraActual= now();
 
             // Verificar el día de la semana
@@ -447,34 +447,37 @@ class AuditoriaAQL_v2Controller extends Controller
             $nombreFinal = $request->selectedNombre;
             $nombreFinalValidado = null;
             $numeroEmpleado = null;
-            
-            if ($nombreFinal) {
-                // Convertimos los nombres en un array, eliminando espacios adicionales
-                $nombres = array_map('trim', explode(',', $nombreFinal));
-                
+            Log::info('Antes del if');
+            if ($nombreFinal && is_array($nombreFinal)) {
+                Log::info('Inicia procesamiento de nombres:', $nombreFinal);
                 $nombresValidados = [];
                 $numerosEmpleados = [];
-                
-                foreach ($nombres as $nombre) {
+    
+                foreach ($nombreFinal as $nombre) {
+                    Log::info('Procesando nombre individual:', ['nombre' => $nombre]);
                     $nombreValidado = trim($nombre);
                     $nombresValidados[] = $nombreValidado;
-                    
+    
                     // Intentamos buscar primero en el modelo AuditoriaProceso
                     $numeroEmpleado = AuditoriaProceso::where('name', $nombreValidado)->pluck('personnelnumber')->first();
-            
+    
                     // Si no lo encontramos en AuditoriaProceso, intentamos buscar en CategoriaUtility
                     if (!$numeroEmpleado) {
                         $numeroEmpleado = CategoriaUtility::where('nombre', $nombreValidado)->pluck('numero_empleado')->first();
                     }
-            
+    
                     // Si tampoco se encuentra en CategoriaUtility, devolvemos un valor de 0 para que tenga almacenado algo y no marque error
                     $numerosEmpleados[] = $numeroEmpleado ? $numeroEmpleado : "0000000";
                 }
-                
+    
                 // Concatenamos los nombres y números de empleados con comas
                 $nombreFinalValidado = implode(', ', $nombresValidados);
                 $numeroEmpleado = implode(', ', $numerosEmpleados);
             }
+            Log::info('despues del if y comeinza el new de nuevos registros');
+    
+            //Log::info('Nombres validados:', $nombresValidados);
+            //Log::info('Números de empleados:', $numerosEmpleados);
 
             $nuevoRegistro = new AuditoriaAQL();
             $nuevoRegistro->numero_empleado = $numeroEmpleado;
@@ -495,6 +498,7 @@ class AuditoriaAQL_v2Controller extends Controller
             $nuevoRegistro->talla = $request->talla;
             $nuevoRegistro->cantidad_auditada = $request->cantidad_auditada;
             $nuevoRegistro->cantidad_rechazada = $request->cantidad_rechazada;
+            Log::info('antes del if del registro');
             if($request->cantidad_rechazada > 0){
                 $nuevoRegistro->inicio_paro = Carbon::now();
             }
@@ -537,6 +541,7 @@ class AuditoriaAQL_v2Controller extends Controller
                 $nuevoTp->tp = $valorTp;
                 $nuevoTp->save();
             }
+            Log::info('fin del new registro');
             // Registrar confirmación de éxito
             //Log::info('Registro guardado correctamente:', $validatedData);
 

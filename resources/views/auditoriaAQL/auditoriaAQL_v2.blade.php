@@ -846,15 +846,23 @@
 
                 // Serializar las opciones seleccionadas en caso de que cantidad_rechazada > 0
                 if (valorCantidadRechazada > 0) {
+                    // Procesar `selectedAQL` eliminando el texto de los botones (por ejemplo, "Eliminar")
                     const selectedAQL = [];
                     $('#selectedOptionsContainerAQL .selected-option').each(function () {
-                        selectedAQL.push($(this).text().trim());
+                        let text = $(this).text().trim();
+                        // Remover palabras específicas como "Eliminar"
+                        text = text.replace(/^\+/, '').replace(/\bEliminar\b/g, '').trim();
+                        selectedAQL.push(text);
                     });
                     formData['selectedAQL'] = selectedAQL;
 
+                    // Procesar `selectedNombre` eliminando el texto de los botones (por ejemplo, "Eliminar")
                     const selectedNombre = [];
                     $('#selectedOptionsContainerNombre .selected-option').each(function () {
-                        selectedNombre.push($(this).text().trim());
+                        let text = $(this).text().trim();
+                        // Remover palabras específicas como "Eliminar"
+                        text = text.replace(/\bEliminar\b/g, '').trim();
+                        selectedNombre.push(text);
                     });
                     formData['selectedNombre'] = selectedNombre;
                 } else {
