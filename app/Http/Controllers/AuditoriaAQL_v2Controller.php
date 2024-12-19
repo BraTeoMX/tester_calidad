@@ -341,40 +341,44 @@ class AuditoriaAQL_v2Controller extends Controller
     public function obtenerDefectosAQL(Request $request)
     {
         $search = $request->input('search', '');
-    
+
         // Construye la consulta base
         $query = CategoriaTipoProblema::whereIn('area', ['proceso', 'playera', 'aql']);
-    
+
         // Aplica filtro de búsqueda si existe un término
         if ($search !== '') {
             $query = $query->where('nombre', 'like', "%{$search}%");
         }
-    
+
         $categorias = $query->get();
-    
+
         // Si no se encuentran resultados, devolver arreglo vacío
         if ($categorias->isEmpty()) {
             return response()->json([]);
         }
-    
+
         return response()->json($categorias);
     }
-    
+
     public function crearDefectoAQL(Request $request)
     {
-        $nombre = $request->input('nombre');
+        try {
+            $nombre = $request->input('nombre');
 
-        if (!$nombre) {
-            return response()->json(['error' => 'El nombre es obligatorio'], 400);
+            if (!$nombre) {
+                return response()->json(['error' => 'El nombre es obligatorio'], 400);
+            }
+
+            // Crear un nuevo defecto
+            $nuevoDefecto = CategoriaTipoProblema::create([
+                'nombre' => $nombre,
+                'area' => 'aql',
+            ]);
+
+            return response()->json($nuevoDefecto);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        // Crear un nuevo defecto
-        $nuevoDefecto = CategoriaTipoProblema::create([
-            'nombre' => $nombre,
-            'area' => 'aql',
-        ]);
-
-        return response()->json($nuevoDefecto);
     }
 
 
