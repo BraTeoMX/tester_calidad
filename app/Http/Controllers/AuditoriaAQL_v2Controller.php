@@ -242,18 +242,6 @@ class AuditoriaAQL_v2Controller extends Controller
             ->pluck('customername')
             ->first();
 
-        $nombreProceso = AuditoriaProceso::where('moduleid', $data['modulo'])
-            ->select('name')
-            ->distinct()
-            ->get()
-            ->toArray();
-        //dd($nombreProcesoToAQL, $data['modulo']);
-        // Filtrar para omitir datos que comiencen con "1" o "2"
-        $nombreProceso = array_filter($nombreProceso, function($item) {
-            // Verifica si el valor de 'name' comienza con "1" o "2"
-            return !in_array(substr($item['name'], 0, 1), ['1', '2']);
-        });
-
         // Nueva consulta para obtener los nombres únicos agrupados por módulo
         $nombrePorModulo = AuditoriaProceso::select('moduleid', 'name')
             ->where('prodpoolid', $detectarPlanta)
@@ -279,7 +267,7 @@ class AuditoriaAQL_v2Controller extends Controller
         return view('auditoriaAQL.auditoriaAQL_v2', compact('mesesEnEspanol', 'pageSlug',
             'data', 'total_auditada','total_rechazada','total_porcentaje','registrosIndividual','total_auditadaIndividual',
             'total_rechazadaIndividual', 'total_porcentajeIndividual','estatusFinalizar','registrosIndividualPieza', 'conteoBultos',
-            'conteoPiezaConRechazo','porcentajeBulto','mostrarRegistro', 'conteoParos', 'finParoModular1','finParoModular2','nombreProceso',
+            'conteoPiezaConRechazo','porcentajeBulto','mostrarRegistro', 'conteoParos', 'finParoModular1','finParoModular2',
             'registrosIndividualTE','registrosIndividualPiezaTE','conteoBultosTE','conteoPiezaConRechazoTE','porcentajeBultoTE',
             'nombrePorModulo','procesoActualAQL'));
     }
@@ -394,6 +382,49 @@ class AuditoriaAQL_v2Controller extends Controller
         }
     }
 
+    public function obtenerNombresProceso(Request $request)
+    {
+        try {
+            // Obtén el módulo desde la solicitud
+            $modulo = $request->input('modulo');
+
+            // Consulta base para los registros asociados al módulo
+            $registrosAsociados = AuditoriaProceso::query()
+                ->where('moduleid', $modulo)
+                ->select('name')
+                ->distinct()
+                ->get();
+
+            // Log de registros asociados
+            Log::info('Consulta asociada: ', $registrosAsociados->toArray());
+
+            // Consulta para los registros generales, excluyendo los asociados
+            $registrosGenerales = AuditoriaProceso::query()
+                ->select('name')
+                ->distinct()
+                ->when($registrosAsociados->isNotEmpty(), function ($query) use ($registrosAsociados) {
+                    return $query->whereNotIn('name', $registrosAsociados->pluck('name'));
+                })
+                ->get();
+
+            // Log de registros generales
+            Log::info('Consulta general: ', $registrosGenerales->toArray());
+
+            // Combina los resultados de forma manual
+            $nombres = array_merge(
+                $registrosAsociados->toArray(),
+                $registrosGenerales->toArray()
+            );
+
+            // Log de la combinación final
+            Log::info('Consulta unificada: ', $nombres);
+
+            // Devuelve los nombres en formato JSON
+            return response()->json($nombres);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 
 
 

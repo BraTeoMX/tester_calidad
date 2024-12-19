@@ -246,7 +246,7 @@
                                     </td>
                                     <td><input type="text" class="form-control" name="ac" id="accion_correctiva" required></td>
                                     <td>
-                                        <select name="nombre-none" id="nombreSelect" class="form-control"> 
+                                        <select name="nombre-none" id="nombre_select" class="form-control"> 
                                         </select> 
                                         <div id="selectedOptionsContainerNombre" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
                                     </td>
@@ -689,6 +689,88 @@
                 });
             });
         });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            const nombreSelect = $('#nombre_select');
+            const selectedOptionsContainerNombre = $('#selectedOptionsContainerNombre');
+            const selectedIds = new Set(); // Usamos un Set para almacenar los IDs seleccionados
+
+            // Configuración de Select2 con datos cargados desde el servidor
+            nombreSelect.select2({
+                placeholder: 'Selecciona una opción',
+                allowClear: true,
+                ajax: {
+                    url: "{{ route('obtener.nombres.proceso') }}", // Ruta al controlador que devuelve los datos
+                    type: 'GET',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function () {
+                        return {
+                            modulo: $('#modulo').val(), // Obtén el valor del input con id "modulo"
+                        };
+                    },
+                    processResults: function (data) {
+                        // Mapeo de resultados
+                        const options = data.map(item => ({
+                            id: item.name, // Asume que los nombres vienen en la propiedad "name"
+                            text: item.name,
+                        }));
+
+                        return { results: options };
+                    },
+                    cache: true,
+                },
+                language: {
+                    noResults: function () {
+                        return "No se encontraron resultados";
+                    },
+                },
+            });
+
+            // Evento al seleccionar una opción
+            nombreSelect.on('select2:select', function (e) {
+                const selected = e.params.data;
+
+                // Verifica si ya existe en el contenedor
+                if (selectedIds.has(selected.id)) {
+                    alert('Esta opción ya ha sido seleccionada.');
+                    nombreSelect.val(null).trigger('change'); // Resetea el select
+                    return;
+                }
+
+                // Agregar la selección al contenedor
+                addOptionToContainer(selected.id, selected.text);
+                nombreSelect.val(null).trigger('change');
+            });
+
+            // Agregar la opción seleccionada al contenedor
+            function addOptionToContainer(id, text) {
+                // Marcar el ID como seleccionado
+                selectedIds.add(id);
+
+                // Crear un elemento de la lista
+                const optionElement = $(`
+                    <div class="selected-option d-flex align-items-center justify-content-between border p-2 mb-1" data-id="${id}">
+                        <span class="option-text flex-grow-1 mx-2">${text}</span>
+                        <button class="btn btn-danger btn-sm remove-option">Eliminar</button>
+                    </div>
+                `);
+
+                // Añadir evento para eliminar
+                optionElement.find('.remove-option').on('click', function () {
+                    // Eliminar del contenedor
+                    optionElement.remove();
+                    // Eliminar el ID de la lista de seleccionados
+                    selectedIds.delete(id);
+                });
+
+                // Agregar la opción al contenedor
+                selectedOptionsContainerNombre.append(optionElement);
+            }
+        });
+
     </script>
 
 @endsection
