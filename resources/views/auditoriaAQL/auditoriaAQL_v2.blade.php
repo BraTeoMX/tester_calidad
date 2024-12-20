@@ -920,6 +920,8 @@
                     success: function (response) {
                         alert('Datos guardados correctamente.');
 
+                        
+
                         // Si cantidad_rechazada es mayor a 0, recargar la página
                         if ($('#cantidad_rechazada').val() > 0) {
                             location.reload(); // Recargar la página
@@ -936,6 +938,9 @@
                             $('#accion_correctiva').val('');
                             $('#selectedOptionsContainerNombre').empty();
 
+                            // Disparar evento personalizado
+                            const event = new Event('registroGuardado');
+                            window.dispatchEvent(event);
                         }
                     },
                     error: function (xhr) {
@@ -990,6 +995,11 @@
 
                         // Vuelve a asignar eventos a los nuevos botones
                         asignarEventosEliminar();
+
+                        // Escuchar el evento personalizado para actualizar la tabla
+                        window.addEventListener('registroGuardado', function () {
+                            cargarRegistros();
+                        });
                     },
                     error: function (error) {
                         console.error("Error al cargar los registros:", error);
