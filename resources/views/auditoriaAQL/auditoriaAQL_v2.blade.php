@@ -258,6 +258,37 @@
                     <button type="submit" class="btn-verde-xd">Guardar</button>
                 </div>
             </div>
+            <div class="card">
+                <div class="card-header card-header-primary">
+                    <h3>Registros</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="tabla_registros_dia">
+                            <thead class="thead-primary">
+                                <tr>
+                                    <th>PARO</th>
+                                    <th># BULTO</th>
+                                    <th>PIEZAS</th>
+                                    <th>TALLA</th>
+                                    <th>COLOR</th>
+                                    <th>ESTILO</th>
+                                    <th>PIEZAS INSPECCIONADAS</th>
+                                    <th>PIEZAS RECHAZADAS</th>
+                                    <th>DEFECTO(S)</th>
+                                    <th>Eliminar </th>
+                                    <th>Hora</th>
+                                    <th>Reparación Piezas</th> <!-- Nueva columna --> 
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <!-- Modal para crear un nuevo defecto -->
@@ -377,10 +408,6 @@
                 min-width: 100px;
                 /* Ajusta el ancho mínimo para móviles */
             }
-        }
-
-        #ac-column-header, .ac-column, #nombre-column-header, .nombre-column {
-            display: none;
         }
 
         .texto-blanco {
@@ -916,6 +943,58 @@
                     }
                 });
             });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function cargarRegistros() {
+                const fechaActual = new Date().toISOString().slice(0, 10);
+                const modulo = document.getElementById('modulo').value;
+
+                if (!modulo) {
+                    console.error("El módulo no está definido.");
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('mostrar.registros.aql.dia') }}",
+                    type: "GET",
+                    data: {
+                        fechaActual: fechaActual,
+                        modulo: modulo
+                    },
+                    success: function (response) {
+                        const tbody = document.querySelector("#tabla_registros_dia tbody");
+                        tbody.innerHTML = ""; // Limpiar el contenido actual
+
+                        response.forEach(function (registro) {
+                            const fila = `
+                                <tr class="${registro.tiempo_extra ? 'tiempo-extra' : ''}">
+                                    <td>${registro.inicio_paro === null ? '-' : registro.fin_paro ? registro.minutos_paro : '<button class="btn btn-primary">Fin Paro AQL</button>'}</td>
+                                    <td><input type="text" class="form-control texto-blanco" value="${registro.bulto}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" value="${registro.pieza}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" value="${registro.talla}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" value="${registro.color}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" value="${registro.estilo}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_auditada}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_rechazada}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" readonly value="${registro.tp_auditoria_a_q_l ? registro.tp_auditoria_a_q_l.map(tp => tp.tp).join(', ') : ''}"></td>
+                                    <td><button class="btn btn-danger">Eliminar</button></td>
+                                    <td>${registro.created_at ? new Date(registro.created_at).toLocaleTimeString() : ''}</td>
+                                    <td>${registro.reparacion_rechazo !== null ? `<input type="text" class="form-control texto-blanco" value="${registro.reparacion_rechazo}" readonly>` : `<input type="number" class="form-control texto-blanco" placeholder="Ingrese cantidad">`}</td>
+                                </tr>
+                            `;
+                            tbody.insertAdjacentHTML('beforeend', fila);
+                        });
+                    },
+                    error: function (error) {
+                        console.error("Error al cargar los registros:", error);
+                    }
+                });
+            }
+
+            cargarRegistros();
         });
     </script>
 

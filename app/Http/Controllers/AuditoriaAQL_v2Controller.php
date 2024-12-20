@@ -552,5 +552,20 @@ class AuditoriaAQL_v2Controller extends Controller
         }
     }
     
+    public function mostrarRegistrosAqlDia(Request $request)
+    {
+        $fechaActual = $request->input('fechaActual'); // Recibir la fecha actual desde la petición AJAX
+        $modulo = $request->input('modulo'); // Recibir el módulo desde la petición AJAX
+
+        // Cargar registros junto con los datos relacionados
+        $mostrarRegistro = AuditoriaAQL::whereDate('created_at', $fechaActual)
+            ->where('modulo', $modulo)
+            ->with('tpAuditoriaAQL') // Cargar relación
+            ->get();
+
+        return response()->json($mostrarRegistro);
+    }
+
+
 
 }
