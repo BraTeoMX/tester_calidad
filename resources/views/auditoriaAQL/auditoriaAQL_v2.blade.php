@@ -892,6 +892,24 @@
                     },
                     success: function (response) {
                         alert('Datos guardados correctamente.');
+
+                        // Si cantidad_rechazada es mayor a 0, recargar la página
+                        if ($('#cantidad_rechazada').val() > 0) {
+                            location.reload(); // Recargar la página
+                        } else {
+                            // Limpiar los campos de la segunda tabla
+                            $('#bulto_seleccion').val('').trigger('change');
+                            $('#pieza-seleccion').val('');
+                            $('#estilo-seleccion').val('');
+                            $('#color-seleccion').val('');
+                            $('#talla-seleccion').val('');
+                            $('#cantidad_auditada').val('');
+                            $('#cantidad_rechazada').val('');
+                            $('#selectedOptionsContainerAQL').empty();
+                            $('#accion_correctiva').val('');
+                            $('#selectedOptionsContainerNombre').empty();
+
+                        }
                     },
                     error: function (xhr) {
                         alert('Hubo un error al guardar los datos. Por favor, intenta nuevamente.');
