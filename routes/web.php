@@ -348,6 +348,8 @@ Route::post('/crear-defectos-aql', [AuditoriaAQL_v2Controller::class, 'crearDefe
 Route::get('/obtener-nobres-proceso', [AuditoriaAQL_v2Controller::class, 'obtenerNombresProceso'])->name('obtener.nombres.proceso');
 Route::post('/guardar-registros-aql', [AuditoriaAQL_v2Controller::class, 'guardarRegistrosAql'])->name('guardar.registro.aql');
 Route::get('/mostrar-registros-aql-dia', [AuditoriaAQL_v2Controller::class, 'mostrarRegistrosAqlDia'])->name('mostrar.registros.aql.dia');
+Route::post('/eliminar-registro-aql', [AuditoriaAQL_v2Controller::class, 'eliminarRegistroAql'])->name('eliminar.registro.aql');
+
 
 
 

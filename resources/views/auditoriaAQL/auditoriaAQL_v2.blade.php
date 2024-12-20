@@ -980,13 +980,16 @@
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_auditada}" readonly></td>
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_rechazada}" readonly></td>
                                     <td><input type="text" class="form-control texto-blanco" readonly value="${registro.tp_auditoria_a_q_l ? registro.tp_auditoria_a_q_l.map(tp => tp.tp).join(', ') : ''}"></td>
-                                    <td><button class="btn btn-danger">Eliminar</button></td>
+                                    <td><button class="btn btn-danger btn-eliminar" data-id="${registro.id}">Eliminar</button></td>
                                     <td>${registro.created_at ? new Date(registro.created_at).toLocaleTimeString() : ''}</td>
                                     <td>${registro.reparacion_rechazo !== null ? `<input type="text" class="form-control texto-blanco" value="${registro.reparacion_rechazo}" readonly>` : `<input type="number" class="form-control texto-blanco" placeholder="Ingrese cantidad">`}</td>
                                 </tr>
                             `;
                             tbody.insertAdjacentHTML('beforeend', fila);
                         });
+
+                        // Vuelve a asignar eventos a los nuevos botones
+                        asignarEventosEliminar();
                     },
                     error: function (error) {
                         console.error("Error al cargar los registros:", error);
@@ -994,8 +997,41 @@
                 });
             }
 
+            function asignarEventosEliminar() {
+                const botonesEliminar = document.querySelectorAll('.btn-eliminar');
+                botonesEliminar.forEach(function (boton) {
+                    boton.addEventListener('click', function () {
+                        const id = this.getAttribute('data-id');
+                        eliminarRegistro(id);
+                    });
+                });
+            }
+
+            function eliminarRegistro(id) {
+                if (!confirm("¿Estás seguro de que deseas eliminar este registro?")) return;
+
+                $.ajax({
+                    url: "{{ route('eliminar.registro.aql') }}", // Define esta ruta en tu web.php
+                    type: "POST", // O "DELETE" si manejas REST
+                    data: {
+                        id: id,
+                        _token: "{{ csrf_token() }}" // Incluye el token CSRF
+                    },
+                    success: function (response) {
+                        alert("Registro eliminado exitosamente.");
+                        cargarRegistros(); // Recarga la tabla
+                    },
+                    error: function (error) {
+                        console.error("Error al eliminar el registro:", error);
+                        alert("Hubo un error al eliminar el registro.");
+                    }
+                });
+            }
+
+            // Inicialización
             cargarRegistros();
         });
+
     </script>
 
 @endsection
