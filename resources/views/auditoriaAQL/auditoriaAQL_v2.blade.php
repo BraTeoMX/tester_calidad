@@ -260,7 +260,7 @@
             </div>
             <div class="card">
                 <div class="card-header card-header-primary">
-                    <h3>Registros</h3>
+                    <h3>Registros - Turno normal</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -288,6 +288,153 @@
 
                     </div>
                 </div>
+            </div>
+            <!-- Acordeón para Tiempo Extra -->
+            <div class="accordion" id="accordionTiempoExtra">
+                <div class="card">
+                    <div class="card-header card-header-primary" id="headingTiempoExtra">
+                        <h3 class="mb-0">
+                            <button class="btn btn-link text-white collapsed" type="button" data-toggle="collapse" data-target="#collapseTiempoExtra" aria-expanded="false" aria-controls="collapseTiempoExtra">
+                                Registros - Tiempo Extra
+                            </button>
+                        </h3>
+                    </div>
+                    <div id="collapseTiempoExtra" class="collapse" aria-labelledby="headingTiempoExtra" data-parent="#accordionTiempoExtra">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table" id="tabla_registros_tiempo_extra">
+                                    <thead class="thead-primary">
+                                        <tr>
+                                            <th>PARO</th>
+                                            <th># BULTO</th>
+                                            <th>PIEZAS</th>
+                                            <th>TALLA</th>
+                                            <th>COLOR</th>
+                                            <th>ESTILO</th>
+                                            <th>PIEZAS INSPECCIONADAS</th>
+                                            <th>PIEZAS RECHAZADAS</th>
+                                            <th>DEFECTO(S)</th>
+                                            <th>Eliminar </th>
+                                            <th>Hora</th>
+                                            <th>Reparación Piezas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Registros dinámicos para Tiempo Extra -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <h2>Piezas auditadas por dia - TURNO NORMAL</h2>
+                    <table class="table">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Total de piezas Muestra Auditadas </th>
+                                <th>Total de piezas Muestra Rechazadas</th>
+                                <th>Porcentaje AQL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <hr>
+                <table class="table contenedor-tabla">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Total de piezas en bultos Auditados</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <hr>
+                <div class="table-responsive">
+                    <h2>Total por Bultos </h2>
+                    <table class="table">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>total de Bultos Auditados</th>
+                                <th>total de Bultos Rechazados</th>
+                                <th>Porcentaje Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="text" class="form-control texto-blanco" name="conteo_bulto"
+                                            id="conteo_bulto" value="" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" name="total_rechazada"
+                                            id="total_rechazada" value="" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" name="total_porcentaje"
+                                            id="total_porcentaje" value=""
+                                            readonly></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <!-- Apartado para mostrar turno extra"-->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">  
+                    <h2>Piezas auditadas por dia - TIEMPO EXTRA</h2>
+                    <table class="table">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Total de piezas Muestra Auditadas </th>
+                                <th>Total de piezas Muestra Rechazadas</th>
+                                <th>Porcentaje AQL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <hr>
+                <table class="table contenedor-tabla">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Total de piezas en bultos Auditados</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+    
+                <hr>
+                <div class="table-responsive">
+                    <h2>Total por Bultos </h2>
+                    <table class="table">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>total de Bultos Auditados</th>
+                                <th>total de Bultos Rechazados</th> 
+                                <th>Porcentaje Total</th> 
+                            </tr> 
+                        </thead> 
+                        <tbody> 
+                            <tr> 
+                                <td><input type="text" class="form-control texto-blanco" name="conteo_bulto" 
+                                            id="conteo_bulto" value="" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" name="total_rechazada" 
+                                            id="total_rechazada" value="" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" name="total_porcentaje" 
+                                            id="total_porcentaje" value="" 
+                                            readonly></td> 
+                            </tr> 
+                        </tbody> 
+                    </table> 
+                </div> 
             </div>
         </div>
     </div>
@@ -1044,4 +1191,96 @@
 
     </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function cargarRegistros() {
+                const fechaActual = new Date().toISOString().slice(0, 10);
+                const modulo = document.getElementById('modulo').value;
+
+                if (!modulo) {
+                    console.error("El módulo no está definido.");
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('mostrar.registros.aql.dia.TE') }}",
+                    type: "GET",
+                    data: {
+                        fechaActual: fechaActual,
+                        modulo: modulo
+                    },
+                    success: function (response) {
+                        const tbody = document.querySelector("#tabla_registros_tiempo_extra tbody");
+                        tbody.innerHTML = ""; // Limpiar el contenido actual
+
+                        response.forEach(function (registro) {
+                            const fila = `
+                                <tr class="${registro.tiempo_extra ? 'tiempo-extra' : ''}">
+                                    <td>${registro.inicio_paro === null ? '-' : registro.fin_paro ? registro.minutos_paro : '<button class="btn btn-primary">Fin Paro AQL</button>'}</td>
+                                    <td><input type="text" class="form-control texto-blanco" value="${registro.bulto}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" value="${registro.pieza}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" value="${registro.talla}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" value="${registro.color}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" value="${registro.estilo}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_auditada}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_rechazada}" readonly></td>
+                                    <td><input type="text" class="form-control texto-blanco" readonly value="${registro.tp_auditoria_a_q_l ? registro.tp_auditoria_a_q_l.map(tp => tp.tp).join(', ') : ''}"></td>
+                                    <td><button class="btn btn-danger btn-eliminar" data-id="${registro.id}">Eliminar</button></td>
+                                    <td>${registro.created_at ? new Date(registro.created_at).toLocaleTimeString() : ''}</td>
+                                    <td>${registro.reparacion_rechazo !== null ? `<input type="text" class="form-control texto-blanco" value="${registro.reparacion_rechazo}" readonly>` : `<input type="number" class="form-control texto-blanco" placeholder="Ingrese cantidad">`}</td>
+                                </tr>
+                            `;
+                            tbody.insertAdjacentHTML('beforeend', fila);
+                        });
+
+                        // Vuelve a asignar eventos a los nuevos botones
+                        asignarEventosEliminar();
+
+                        // Escuchar el evento personalizado para actualizar la tabla
+                        window.addEventListener('registroGuardado', function () {
+                            cargarRegistros();
+                        });
+                    },
+                    error: function (error) {
+                        console.error("Error al cargar los registros:", error);
+                    }
+                });
+            }
+
+            function asignarEventosEliminar() {
+                const botonesEliminar = document.querySelectorAll('.btn-eliminar');
+                botonesEliminar.forEach(function (boton) {
+                    boton.addEventListener('click', function () {
+                        const id = this.getAttribute('data-id');
+                        eliminarRegistro(id);
+                    });
+                });
+            }
+
+            function eliminarRegistro(id) {
+                if (!confirm("¿Estás seguro de que deseas eliminar este registro?")) return;
+
+                $.ajax({
+                    url: "{{ route('eliminar.registro.aql') }}", // Define esta ruta en tu web.php
+                    type: "POST", // O "DELETE" si manejas REST
+                    data: {
+                        id: id,
+                        _token: "{{ csrf_token() }}" // Incluye el token CSRF
+                    },
+                    success: function (response) {
+                        alert("Registro eliminado exitosamente.");
+                        cargarRegistros(); // Recarga la tabla
+                    },
+                    error: function (error) {
+                        console.error("Error al eliminar el registro:", error);
+                        alert("Hubo un error al eliminar el registro.");
+                    }
+                });
+            }
+
+            // Inicialización
+            cargarRegistros();
+        });
+
+    </script>
 @endsection
