@@ -333,8 +333,8 @@
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
-                    <h2>Piezas auditadas por dia - TURNO NORMAL</h2>
-                    <table class="table">
+                    <h2>Piezas auditadas por dia - TURNO NORMAL</h2> 
+                    <table class="table" id="tabla-piezas-dia">
                         <thead class="thead-primary">
                             <tr>
                                 <th>Total de piezas Muestra Auditadas </th>
@@ -1120,6 +1120,9 @@
                         const tbody = document.querySelector("#tabla_registros_dia tbody");
                         tbody.innerHTML = ""; // Limpiar el contenido actual
 
+                        let totalPiezasAuditadas = 0;
+                        let totalPiezasRechazadas = 0;
+
                         response.forEach(function (registro) {
                             const fila = `
                                 <tr class="${registro.tiempo_extra ? 'tiempo-extra' : ''}">
@@ -1138,7 +1141,13 @@
                                 </tr>
                             `;
                             tbody.insertAdjacentHTML('beforeend', fila);
+
+                            // Acumular valores para las tablas secundarias
+                            totalPiezasAuditadas += registro.cantidad_auditada || 0;
+                            totalPiezasRechazadas += registro.cantidad_rechazada || 0;
                         });
+
+                        actualizarTablasSecundarias(totalPiezasAuditadas, totalPiezasRechazadas);
 
                         // Vuelve a asignar eventos a los nuevos botones
                         asignarEventosEliminar();
@@ -1152,6 +1161,32 @@
                         console.error("Error al cargar los registros:", error);
                     }
                 });
+            }
+
+            function actualizarTablasSecundarias(totalAuditadas, totalRechazadas) {
+                const porcentajeAQL = totalAuditadas > 0 ? ((totalRechazadas / totalAuditadas) * 100).toFixed(2) : 0;
+
+                // Encuentra las filas donde actualizar los valores
+                const tabla = document.getElementById("tabla-piezas-dia");
+                const filas = tabla.querySelectorAll("tbody tr");
+
+                // Asegurarse de que exista una fila para editar (o agregarla si no existe)
+                if (filas.length === 0) {
+                    const nuevaFila = `
+                        <tr>
+                            <td><input type="text" class="form-control texto-blanco" readonly></td>
+                            <td><input type="text" class="form-control texto-blanco" readonly></td>
+                            <td><input type="text" class="form-control texto-blanco" readonly></td>
+                        </tr>
+                    `;
+                    tabla.querySelector("tbody").insertAdjacentHTML("beforeend", nuevaFila);
+                }
+
+                // Actualiza los inputs con los valores calculados
+                const inputs = tabla.querySelectorAll("tbody tr:first-child input");
+                inputs[0].value = totalAuditadas || 0;
+                inputs[1].value = totalRechazadas || 0;
+                inputs[2].value = `${porcentajeAQL}%` || "0%";
             }
 
             function asignarEventosEliminar() {
@@ -1169,7 +1204,7 @@
 
                 $.ajax({
                     url: "{{ route('eliminar.registro.aql') }}", // Define esta ruta en tu web.php
-                    type: "POST", // O "DELETE" si manejas REST
+                    type: "POST",
                     data: {
                         id: id,
                         _token: "{{ csrf_token() }}" // Incluye el token CSRF
@@ -1188,6 +1223,7 @@
             // Inicialización
             cargarRegistros();
         });
+
 
     </script>
 
