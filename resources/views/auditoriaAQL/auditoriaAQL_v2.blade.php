@@ -359,7 +359,7 @@
                 <hr>
                 <div class="table-responsive">
                     <h2>Total por Bultos </h2>
-                    <table class="table">
+                    <table class="table" id="tabla-bultos-totales">
                         <thead class="thead-primary">
                             <tr>
                                 <th>total de Bultos Auditados</th>
@@ -367,16 +367,7 @@
                                 <th>Porcentaje Total</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td><input type="text" class="form-control texto-blanco" name="conteo_bulto"
-                                            id="conteo_bulto" value="" readonly></td>
-                                <td><input type="text" class="form-control texto-blanco" name="total_rechazada"
-                                            id="total_rechazada" value="" readonly></td>
-                                <td><input type="text" class="form-control texto-blanco" name="total_porcentaje"
-                                            id="total_porcentaje" value=""
-                                            readonly></td>
-                            </tr>
+                        <tbody> 
                         </tbody>
                     </table>
                 </div>
@@ -1100,6 +1091,10 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Asignar el listener para registroGuardado UNA sola vez
+            window.addEventListener('registroGuardado', function () {
+                cargarRegistros();
+            });
             function cargarRegistros() {
                 const fechaActual = new Date().toISOString().slice(0, 10);
                 const modulo = document.getElementById('modulo').value;
@@ -1147,6 +1142,7 @@
                             totalPiezasRechazadas += registro.cantidad_rechazada || 0;
                         });
 
+                        // Actualizar las tablas secundarias
                         actualizarTablasSecundarias(totalPiezasAuditadas, totalPiezasRechazadas);
 
                         // Vuelve a asignar eventos a los nuevos botones
@@ -1191,31 +1187,42 @@
 
             function asignarEventosEliminar() {
                 const botonesEliminar = document.querySelectorAll('.btn-eliminar');
-                botonesEliminar.forEach(function (boton) {
-                    boton.addEventListener('click', function () {
-                        const id = this.getAttribute('data-id');
-                        eliminarRegistro(id);
-                    });
+                botonesEliminar.forEach(boton => {
+                    boton.removeEventListener('click', manejarEliminar); // Limpia eventos previos
+                    boton.addEventListener('click', manejarEliminar);    // Asigna el evento una vez
                 });
             }
 
-            function eliminarRegistro(id) {
-                if (!confirm("¿Estás seguro de que deseas eliminar este registro?")) return;
+            function manejarEliminar() {
+                const id = this.getAttribute('data-id');
 
+                if (!confirm("¿Estás seguro de que deseas eliminar este registro?")) {
+                    return; // Si cancela, no hace nada
+                }
+
+                eliminarRegistro(id);
+            }
+
+            function eliminarRegistro(id) {
                 $.ajax({
-                    url: "{{ route('eliminar.registro.aql') }}", // Define esta ruta en tu web.php
+                    url: "{{ route('eliminar.registro.aql') }}",
                     type: "POST",
                     data: {
                         id: id,
-                        _token: "{{ csrf_token() }}" // Incluye el token CSRF
+                        _token: "{{ csrf_token() }}"
                     },
                     success: function (response) {
-                        alert("Registro eliminado exitosamente.");
-                        cargarRegistros(); // Recarga la tabla
+                        if (response.success) {
+                            alert("Registro eliminado exitosamente.");
+                            cargarRegistros(); // Recarga la tabla y actualiza todo
+                        } else {
+                            console.error("Error en la respuesta del servidor:", response);
+                            alert("No se pudo eliminar el registro. Intente nuevamente.");
+                        }
                     },
-                    error: function (error) {
-                        console.error("Error al eliminar el registro:", error);
-                        alert("Hubo un error al eliminar el registro.");
+                    error: function (xhr, status, error) {
+                        console.error("Error al eliminar el registro:", xhr, status, error);
+                        alert("Hubo un error al intentar eliminar el registro.");
                     }
                 });
             }
@@ -1223,9 +1230,8 @@
             // Inicialización
             cargarRegistros();
         });
-
-
     </script>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
