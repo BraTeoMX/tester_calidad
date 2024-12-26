@@ -294,7 +294,7 @@
                 <div class="card">
                     <div class="card-header card-header-primary" id="headingTiempoExtra">
                         <h3 class="mb-0">
-                            <button class="btn btn-link text-white collapsed" type="button" data-toggle="collapse" data-target="#collapseTiempoExtra" aria-expanded="false" aria-controls="collapseTiempoExtra">
+                            <button class="btn btn-link btn-block text-white collapsed" type="button" data-toggle="collapse" data-target="#collapseTiempoExtra" aria-expanded="false" aria-controls="collapseTiempoExtra">
                                 Registros - Tiempo Extra
                             </button>
                         </h3>
@@ -347,7 +347,7 @@
                     </table>
                 </div>
                 <hr>
-                <table class="table contenedor-tabla">
+                <table class="table contenedor-tabla" id="tabla-piezas-bultos">
                     <thead class="thead-primary">
                         <tr>
                             <th>Total de piezas en bultos Auditados</th>
@@ -1095,6 +1095,7 @@
             window.addEventListener('registroGuardado', function () {
                 cargarRegistros();
             });
+
             function cargarRegistros() {
                 const fechaActual = new Date().toISOString().slice(0, 10);
                 const modulo = document.getElementById('modulo').value;
@@ -1112,13 +1113,22 @@
                         modulo: modulo
                     },
                     success: function (response) {
+                        // Tabla principal
                         const tbody = document.querySelector("#tabla_registros_dia tbody");
                         tbody.innerHTML = ""; // Limpiar el contenido actual
 
                         let totalPiezasAuditadas = 0;
                         let totalPiezasRechazadas = 0;
 
+                        // Para la tabla "Total por Bultos"
+                        let totalBultosAuditados = 0;
+                        let totalBultosRechazados = 0;
+
+                        // NUEVA VARIABLE para la tabla de "Total de piezas en bultos Auditados"
+                        let totalPiezasEnBultos = 0;
+
                         response.forEach(function (registro) {
+                            // Construir la fila de la tabla principal
                             const fila = `
                                 <tr class="${registro.tiempo_extra ? 'tiempo-extra' : ''}">
                                     <td>${registro.inicio_paro === null ? '-' : registro.fin_paro ? registro.minutos_paro : '<button class="btn btn-primary">Fin Paro AQL</button>'}</td>
@@ -1129,29 +1139,55 @@
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.estilo}" readonly></td>
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_auditada}" readonly></td>
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_rechazada}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" readonly value="${registro.tp_auditoria_a_q_l ? registro.tp_auditoria_a_q_l.map(tp => tp.tp).join(', ') : ''}"></td>
-                                    <td><button class="btn btn-danger btn-eliminar" data-id="${registro.id}">Eliminar</button></td>
+                                    <td><input type="text" class="form-control texto-blanco" readonly value="${
+                                        registro.tp_auditoria_a_q_l 
+                                            ? registro.tp_auditoria_a_q_l.map(tp => tp.tp).join(', ') 
+                                            : ''}">
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-danger btn-eliminar" data-id="${registro.id}">
+                                            Eliminar
+                                        </button>
+                                    </td>
                                     <td>${registro.created_at ? new Date(registro.created_at).toLocaleTimeString() : ''}</td>
-                                    <td>${registro.reparacion_rechazo !== null ? `<input type="text" class="form-control texto-blanco" value="${registro.reparacion_rechazo}" readonly>` : `<input type="number" class="form-control texto-blanco" placeholder="Ingrese cantidad">`}</td>
+                                    <td>
+                                        ${
+                                        registro.reparacion_rechazo !== null 
+                                        ? `<input type="text" class="form-control texto-blanco" value="${registro.reparacion_rechazo}" readonly>`
+                                        : `<input type="number" class="form-control texto-blanco" placeholder="Ingrese cantidad">`
+                                        }
+                                    </td>
                                 </tr>
                             `;
                             tbody.insertAdjacentHTML('beforeend', fila);
 
-                            // Acumular valores para las tablas secundarias
+                            // Acumular valores para las tablas secundarias de piezas
                             totalPiezasAuditadas += registro.cantidad_auditada || 0;
                             totalPiezasRechazadas += registro.cantidad_rechazada || 0;
+
+                            // Acumular valores para "Total por Bultos"
+                            totalBultosAuditados += 1;
+                            if ((registro.cantidad_rechazada || 0) > 0) {
+                                totalBultosRechazados += 1;
+                            }
+
+                            // ACUMULAR valor para "Total de piezas en bultos Auditados"
+                            // Asumiendo que `registro.pieza` es numérico:
+                            totalPiezasEnBultos += parseInt(registro.pieza) || 0;
                         });
 
-                        // Actualizar las tablas secundarias
+                        // Actualizar la tabla de "Piezas auditadas por día"
                         actualizarTablasSecundarias(totalPiezasAuditadas, totalPiezasRechazadas);
+
+                        // Actualizar la tabla de "Total por Bultos"
+                        actualizarBultosTotales(totalBultosAuditados, totalBultosRechazados);
+
+                        // NUEVA llamada: Actualizar la tabla de "Total de piezas en bultos Auditados"
+                        actualizarTablaPiezasEnBultos(totalPiezasEnBultos);
 
                         // Vuelve a asignar eventos a los nuevos botones
                         asignarEventosEliminar();
 
-                        // Escuchar el evento personalizado para actualizar la tabla
-                        window.addEventListener('registroGuardado', function () {
-                            cargarRegistros();
-                        });
                     },
                     error: function (error) {
                         console.error("Error al cargar los registros:", error);
@@ -1160,13 +1196,15 @@
             }
 
             function actualizarTablasSecundarias(totalAuditadas, totalRechazadas) {
-                const porcentajeAQL = totalAuditadas > 0 ? ((totalRechazadas / totalAuditadas) * 100).toFixed(2) : 0;
+                const porcentajeAQL = totalAuditadas > 0 
+                    ? ((totalRechazadas / totalAuditadas) * 100).toFixed(2) 
+                    : 0;
 
                 // Encuentra las filas donde actualizar los valores
                 const tabla = document.getElementById("tabla-piezas-dia");
                 const filas = tabla.querySelectorAll("tbody tr");
 
-                // Asegurarse de que exista una fila para editar (o agregarla si no existe)
+                // Asegurarse de que exista al menos una fila para editar (o agregarla si no existe)
                 if (filas.length === 0) {
                     const nuevaFila = `
                         <tr>
@@ -1182,14 +1220,64 @@
                 const inputs = tabla.querySelectorAll("tbody tr:first-child input");
                 inputs[0].value = totalAuditadas || 0;
                 inputs[1].value = totalRechazadas || 0;
-                inputs[2].value = `${porcentajeAQL}%` || "0%";
+                inputs[2].value = `${porcentajeAQL}%`;
+            }
+
+            function actualizarBultosTotales(totalBultosAuditados, totalBultosRechazados) {
+                // Calcular el porcentaje
+                const porcentajeTotal = totalBultosAuditados > 0 
+                    ? ((totalBultosRechazados / totalBultosAuditados) * 100).toFixed(2) 
+                    : 0;
+
+                const tablaBultos = document.getElementById("tabla-bultos-totales");
+                const filasBultos = tablaBultos.querySelectorAll("tbody tr");
+
+                // Asegurar que la tabla tenga al menos una fila
+                if (filasBultos.length === 0) {
+                    const nuevaFilaBultos = `
+                        <tr>
+                            <td><input type="text" class="form-control texto-blanco" readonly></td>
+                            <td><input type="text" class="form-control texto-blanco" readonly></td>
+                            <td><input type="text" class="form-control texto-blanco" readonly></td>
+                        </tr>
+                    `;
+                    tablaBultos.querySelector("tbody").insertAdjacentHTML("beforeend", nuevaFilaBultos);
+                }
+
+                const inputsBultos = tablaBultos.querySelectorAll("tbody tr:first-child input");
+                inputsBultos[0].value = totalBultosAuditados || 0;
+                inputsBultos[1].value = totalBultosRechazados || 0;
+                inputsBultos[2].value = `${porcentajeTotal}%`;
+            }
+
+            // NUEVA FUNCIÓN para actualizar "Total de piezas en bultos Auditados"
+            function actualizarTablaPiezasEnBultos(totalPiezasEnBultos) {
+                // Seleccionamos la tabla (usa el ID o clase que le asignaste)
+                const tablaPiezasBultos = document.getElementById("tabla-piezas-bultos");
+                const filas = tablaPiezasBultos.querySelectorAll("tbody tr");
+
+                // Si no hay filas, creamos una fila con un solo campo
+                if (filas.length === 0) {
+                    const nuevaFila = `
+                        <tr>
+                            <td>
+                                <input type="text" class="form-control texto-blanco" readonly>
+                            </td>
+                        </tr>
+                    `;
+                    tablaPiezasBultos.querySelector("tbody").insertAdjacentHTML("beforeend", nuevaFila);
+                }
+
+                // Asignamos el valor (o 0 si no hay nada)
+                const input = tablaPiezasBultos.querySelector("tbody tr:first-child input");
+                input.value = totalPiezasEnBultos || 0;
             }
 
             function asignarEventosEliminar() {
                 const botonesEliminar = document.querySelectorAll('.btn-eliminar');
                 botonesEliminar.forEach(boton => {
-                    boton.removeEventListener('click', manejarEliminar); // Limpia eventos previos
-                    boton.addEventListener('click', manejarEliminar);    // Asigna el evento una vez
+                    boton.removeEventListener('click', manejarEliminar);
+                    boton.addEventListener('click', manejarEliminar);
                 });
             }
 
@@ -1267,7 +1355,7 @@
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_auditada}" readonly></td>
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_rechazada}" readonly></td>
                                     <td><input type="text" class="form-control texto-blanco" readonly value="${registro.tp_auditoria_a_q_l ? registro.tp_auditoria_a_q_l.map(tp => tp.tp).join(', ') : ''}"></td>
-                                    <td><button class="btn btn-danger btn-eliminar" data-id="${registro.id}">Eliminar</button></td>
+                                    <td><button class="btn btn-danger btn-eliminar-te" data-id="${registro.id}">Eliminar</button></td>
                                     <td>${registro.created_at ? new Date(registro.created_at).toLocaleTimeString() : ''}</td>
                                     <td>${registro.reparacion_rechazo !== null ? `<input type="text" class="form-control texto-blanco" value="${registro.reparacion_rechazo}" readonly>` : `<input type="number" class="form-control texto-blanco" placeholder="Ingrese cantidad">`}</td>
                                 </tr>
@@ -1278,10 +1366,6 @@
                         // Vuelve a asignar eventos a los nuevos botones
                         asignarEventosEliminar();
 
-                        // Escuchar el evento personalizado para actualizar la tabla
-                        window.addEventListener('registroGuardado', function () {
-                            cargarRegistros();
-                        });
                     },
                     error: function (error) {
                         console.error("Error al cargar los registros:", error);
@@ -1290,8 +1374,10 @@
             }
 
             function asignarEventosEliminar() {
-                const botonesEliminar = document.querySelectorAll('.btn-eliminar');
-                botonesEliminar.forEach(function (boton) {
+                const tablaTE = document.getElementById('tabla_registros_tiempo_extra');
+                // Buscamos la clase real que diste a los botones
+                const botonesEliminarTE = tablaTE.querySelectorAll('.btn-eliminar-te');
+                botonesEliminarTE.forEach(function (boton) {
                     boton.addEventListener('click', function () {
                         const id = this.getAttribute('data-id');
                         eliminarRegistro(id);
