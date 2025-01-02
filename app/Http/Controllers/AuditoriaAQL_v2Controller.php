@@ -505,7 +505,7 @@ class AuditoriaAQL_v2Controller extends Controller
 
             // Verificar la hora para determinar el valor de "tiempo_extra"
             if ($diaSemana >= 1 && $diaSemana <= 4) { // De lunes a jueves
-                if ($fechaHoraActual->hour >= 12) { // Después de las 7:00 pm
+                if ($fechaHoraActual->hour >= 19) { // Después de las 7:00 pm
                     $nuevoRegistro->tiempo_extra = 1;
                 } else {
                     $nuevoRegistro->tiempo_extra = null;
