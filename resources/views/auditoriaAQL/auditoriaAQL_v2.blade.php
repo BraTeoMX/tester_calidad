@@ -171,6 +171,14 @@
                 </div>
                 <hr>
                 <!-- Contenido del card -->
+                @if($resultadoFinal == true)
+                <div class="card-body">
+                    <!-- Aquí ya NO necesitamos la tabla, pero sí necesitamos mantener los valores -->
+                    <input type="hidden" name="modulo" id="modulo" value="{{ $data['modulo'] }}">
+                    <p>Es Tru</p>
+                    <button class="btn btn-primary">Fin Paro Modular</button>
+                </div>
+                @else
                 <div class="card-body">
                     <!-- Tabla responsiva -->
                     <div class="table-responsive">
@@ -257,6 +265,7 @@
                     </div>
                     <button type="submit" class="btn-verde-xd">Guardar</button>
                 </div>
+                @endif
             </div>
             <div class="card">
                 <div class="card-header card-header-primary">

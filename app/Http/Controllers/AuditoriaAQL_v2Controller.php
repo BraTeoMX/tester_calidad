@@ -119,157 +119,46 @@ class AuditoriaAQL_v2Controller extends Controller
         // Asegurarse de que la variable $data esté definida
         $data = $data ?? [];
 
-        $fechaActual = Carbon::now()->toDateString();
 
-        $mostrarRegistro = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $data['modulo'])
-            ->get();
-        $estatusFinalizar = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $data['modulo'])
-            ->where('estatus', 1)
-            ->exists();
-
+        // 1. Filtrar registros con cantidad_rechazada > 0
         $registros = AuditoriaAQL::whereDate('created_at', $fechaActual)
+            ->where('cantidad_rechazada', '>', 0)
             ->where('modulo', $data['modulo'])
-            ->selectRaw('COALESCE(SUM(cantidad_auditada), 0) as total_auditada, COALESCE(SUM(cantidad_rechazada), 0) as total_rechazada')
-            ->first();
-        $total_auditada = $registros->total_auditada ?? 0;
-        $total_rechazada = $registros->total_rechazada ?? 0;
-        $total_porcentaje = $total_auditada != 0 ? ($total_rechazada / $total_auditada) * 100 : 0;
-
-
-        $registrosIndividual = AuditoriaAQL::whereDate('created_at', $fechaActual) 
-            ->where('modulo', $data['modulo'])
-            ->where('tiempo_extra', null)
-            ->selectRaw('SUM(cantidad_auditada) as total_auditada, SUM(cantidad_rechazada) as total_rechazada')
             ->get();
 
-        //apartado para suma de piezas por cada bulto
-        $registrosIndividualPieza = AuditoriaAQL::whereDate('created_at', $fechaActual) 
-            ->where('modulo', $data['modulo'])
-            ->where('tiempo_extra', null)
-            ->selectRaw('SUM(pieza) as total_pieza, SUM(cantidad_rechazada) as total_rechazada')
-            ->get();
-        // Inicializa las variables para evitar errores
-        $total_auditadaIndividual = 0;
-        $total_rechazadaIndividual = 0;
-
-        // Calcula la suma total solo si hay registros individuales
-        if ($registrosIndividual->isNotEmpty()) {
-            $total_auditadaIndividual = $registrosIndividual->sum('total_auditada');
-            $total_rechazadaIndividual = $registrosIndividual->sum('total_rechazada');
+        // Si no hay al menos 2 registros, devuelves false de inmediato:
+        if ($registros->count() < 2) {
+            $resultadoFinal = false;
+            return view('auditoriaAQL.auditoriaAQL_v2', compact(
+                'mesesEnEspanol',
+                'pageSlug',
+                'data',
+                'resultadoFinal'
+            ));
         }
-        //dd($registros, $fechaActual);
-         //conteo de registros del dia respecto a la cantidad de bultos, que es lo mismo a los bultos
-        $conteoBultos = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $data['modulo'])
-            ->where('tiempo_extra', null)
-            ->count();
-        //conteo de registros del dia respecto a los rechazos
-        $conteoPiezaConRechazo = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $data['modulo'])
-            ->where('cantidad_rechazada', '>', 0)
-            ->where('tiempo_extra', null)
-            ->count('pieza');
-        $porcentajeBulto = $conteoBultos != 0 ? ($conteoPiezaConRechazo / $conteoBultos) * 100: 0;
-        // Calcula el porcentaje total
-        $total_porcentajeIndividual = $total_auditadaIndividual != 0 ? ($total_rechazadaIndividual / $total_auditadaIndividual) * 100 : 0;
 
-        //apartado para mostrar Tiempo Extra
-        $registrosIndividualTE = AuditoriaAQL::whereDate('created_at', $fechaActual) 
-            ->where('modulo', $data['modulo'])
-            ->where('tiempo_extra', 1)
-            ->selectRaw('SUM(cantidad_auditada) as total_auditada, SUM(cantidad_rechazada) as total_rechazada')
-            ->get();
+        // 2. Contador para ir contando cuáles van
+        $contador = 0;
 
-        //apartado para suma de piezas por cada bulto
-        $registrosIndividualPiezaTE = AuditoriaAQL::whereDate('created_at', $fechaActual) 
-            ->where('modulo', $data['modulo'])
-            ->where('tiempo_extra', 1)
-            ->selectRaw('SUM(pieza) as total_pieza, SUM(cantidad_rechazada) as total_rechazada')
-            ->get();
-        // Inicializa las variables para evitar errores
-        $total_auditadaIndividualTE = 0;
-        $total_rechazadaIndividualTE = 0;
+        // 3. Variable booleana para el resultado final
+        $resultadoFinal = true; // asume que al inicio todo es 'True'
 
-        // Calcula la suma total solo si hay registros individuales
-        if ($registrosIndividualTE->isNotEmpty()) {
-            $total_auditadaIndividualTE = $registrosIndividualTE->sum('total_auditada');
-            $total_rechazadaIndividualTE = $registrosIndividualTE->sum('total_rechazada');
+        foreach ($registros as $registro) {
+            $contador++;
+
+            // Cuando encontramos el 2.°, 4.°, 6.°, etc. registro
+            if ($contador % 2 == 0) {
+                // Evaluamos fin_paro_modular
+                if (!is_null($registro->fin_paro_modular)) {
+                    // En cuanto uno falle, ponemos false y salimos.
+                    $resultadoFinal = false;
+                    break;
+                }
+            }
         }
-         //conteo de registros del dia respecto a la cantidad de bultos, que es lo mismo a los bultos
-        $conteoBultosTE = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $data['modulo'])
-            ->where('tiempo_extra', 1)
-            ->count();
-        //conteo de registros del dia respecto a los rechazos
-        $conteoPiezaConRechazoTE = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $data['modulo'])
-            ->where('cantidad_rechazada', '>', 0)
-            ->where('tiempo_extra', 1)
-            ->count('pieza');
-        $porcentajeBultoTE = $conteoBultosTE != 0 ? ($conteoPiezaConRechazoTE / $conteoBultosTE) * 100: 0;
-        // Calcula el porcentaje total
-        $total_porcentajeIndividualTE = $total_auditadaIndividualTE != 0 ? ($total_rechazadaIndividualTE / $total_auditadaIndividualTE) * 100 : 0;
-
-        $registrosOriginales = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $data['modulo'])
-            ->where('cantidad_rechazada', '>', 0)
-            ->orderBy('created_at', 'asc') // Ordenar por created_at ascendente
-            ->get();
-
-        // Aplicar filtro adicional para registros 2 y 4
-        $registro2 = $registrosOriginales->get(1); // Obtener el segundo registro
-        $registro4 = $registrosOriginales->get(3); // Obtener el cuarto registro
-
-        // Verificar si los registros 2 y 4 cumplen con el criterio adicional
-        $evaluacionRegistro2 = $registro2 && is_null($registro2->fin_paro_modular); // Usar is_null() o el operador ??
-        $evaluacionRegistro4 = $registro4 && is_null($registro4->fin_paro_modular); // Usar is_null() o el operador ??
-
-        // Almacenar los resultados en variables
-        $finParoModular1 = $evaluacionRegistro2;
-        $finParoModular2 = $evaluacionRegistro4;
-
-
-        $conteoParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $data['modulo'])
-            ->where('cantidad_rechazada', '>', 0)
-            ->where('tiempo_extra', null)
-            ->count();
-
-        //dd($conteoParos, $registrosOriginales, $registro2, $registro4, $evaluacionRegistro2, $evaluacionRegistro4, $finParoModular1, $finParoModular2);
-        $customerName = JobAQL::where('prodid', $data['op'])
-            ->pluck('customername')
-            ->first();
-
-        // Nueva consulta para obtener los nombres únicos agrupados por módulo
-        $nombrePorModulo = AuditoriaProceso::select('moduleid', 'name')
-            ->where('prodpoolid', $detectarPlanta)
-            ->distinct()
-            ->orderBy('moduleid')
-            ->get()
-            ->filter(function($item) {
-                // Verifica si el valor de 'name' comienza con "1" o "2"
-                return !in_array(substr($item->name, 0, 1), ['1', '2']);
-            })
-            ->groupBy('moduleid')
-            ->toArray();
-        
-        $procesoActualAQL =AuditoriaAQL::where('estatus', NULL)
-            ->where('auditor', $auditorDato)
-            ->where('planta', $detectarPlanta)
-            ->whereDate('created_at', $fechaActual)
-            ->select('modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
-            ->distinct()
-            ->orderBy('modulo', 'asc')
-            ->get();
-
+        //dd($registros, $resultadoFinal);
         return view('auditoriaAQL.auditoriaAQL_v2', compact('mesesEnEspanol', 'pageSlug',
-            'data', 'total_auditada','total_rechazada','total_porcentaje','registrosIndividual','total_auditadaIndividual',
-            'total_rechazadaIndividual', 'total_porcentajeIndividual','estatusFinalizar','registrosIndividualPieza', 'conteoBultos',
-            'conteoPiezaConRechazo','porcentajeBulto','mostrarRegistro', 'conteoParos', 'finParoModular1','finParoModular2',
-            'registrosIndividualTE','registrosIndividualPiezaTE','conteoBultosTE','conteoPiezaConRechazoTE','porcentajeBultoTE',
-            'nombrePorModulo','procesoActualAQL'));
+            'data', 'resultadoFinal'));
     }
 
     public function obtenerOpcionesOP(Request $request)
@@ -554,7 +443,7 @@ class AuditoriaAQL_v2Controller extends Controller
     
     public function mostrarRegistrosAqlDia(Request $request)
     {
-        $fechaActual = $request->input('fechaActual'); // Recibir la fecha actual desde la petición AJAX
+        $fechaActual = Carbon::now()->toDateString(); // Recibir la fecha actual desde la petición AJAX
         $modulo = $request->input('modulo'); // Recibir el módulo desde la petición AJAX
 
         // Cargar registros junto con los datos relacionados
@@ -591,7 +480,7 @@ class AuditoriaAQL_v2Controller extends Controller
 
     public function mostrarRegistrosAqlDiaTE(Request $request)
     {
-        $fechaActual = $request->input('fechaActual'); // Recibir la fecha actual desde la petición AJAX
+        $fechaActual = Carbon::now()->toDateString(); // Recibir la fecha actual desde la petición AJAX
         $modulo = $request->input('modulo'); // Recibir el módulo desde la petición AJAX
 
         // Cargar registros junto con los datos relacionados
