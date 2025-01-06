@@ -263,20 +263,20 @@ class AuditoriaProcesoController extends Controller
         // Actualizar $data con el nuevo estilo
         $data['estilo'] = $estiloSeleccionado;
  
-        $nombresPlanta = AuditoriaProceso::where('prodpoolid', $detectarPlanta)
-            ->where('moduleid', $data['modulo'])
-            ->whereNotIn('name', ['831A-EMPAQUE P2 T1','830A-EMPAQUE P1 T1', 'VIRTUAL P2T1 02', 'VIRTUAL P2T1 01'])
+        $nombresGenerales = AuditoriaProceso::where('prodpoolid', $detectarPlanta)
+            ->whereNotIn('name', [
+                '831A-EMPAQUE P2 T1', 
+                '830A-EMPAQUE P1 T1', 
+                'VIRTUAL P2T1 02', 
+                'VIRTUAL P2T1 01'
+            ])
             ->where('name', 'not like', '1%')
             ->where('name', 'not like', '2%')
-            ->select('name')
+            ->select('personnelnumber', 'name', 'moduleid')
             ->distinct()
+            ->orderByRaw("CASE WHEN moduleid = ? THEN 0 ELSE 1 END, name ASC", [$data['modulo']])
             ->get();
 
-        $utilityPlanta = CategoriaUtility::where('planta', 'Intimark1') 
-            ->where('estado', 1)
-            ->where('planta', $detectarPlanta)
-            ->get();
-        //dd($utilityPlanta1->all(), $utilityPlanta2);
         //$fechaActual = Carbon::now()->toDateString();
 
         $mostrarRegistro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
@@ -400,8 +400,6 @@ class AuditoriaProcesoController extends Controller
             'mesesEnEspanol' => $mesesEnEspanol, 
             'pageSlug' => $pageSlug,
             'data' => $data, 
-            'nombresPlanta' => $nombresPlanta, 
-            'utilityPlanta' => $utilityPlanta,
             'total_auditada' => $total_auditada, 
             'total_rechazada' => $total_rechazada,
             'total_porcentaje' => $total_porcentaje,
@@ -422,6 +420,7 @@ class AuditoriaProcesoController extends Controller
             'finParoModular1' => $finParoModular1,
             'finParoModular2' => $finParoModular2,
             'procesoActual' => $procesoActual,
+            'nombresGenerales' => $nombresGenerales,
             ]));
     }
 
