@@ -493,4 +493,91 @@ class AuditoriaAQL_v2Controller extends Controller
         return response()->json($mostrarRegistro);
     }
 
+    public function buscarUltimoRegistro(Request $request)
+    {
+        // Obtener el módulo enviado desde el formulario
+        $modulo = $request->input('modulo');
+        $fechaActual = now()->toDateString();
+
+        // Buscar el último registro que coincida con las condiciones
+        $registro = AuditoriaAQL::whereDate('created_at', $fechaActual)
+            ->where('cantidad_rechazada', '>', 0)
+            ->where('modulo', $modulo)
+            ->latest('created_at') // Trae el último registro por fecha
+            ->first();
+
+        // Si se encuentra un registro, actualizar las columnas
+        if ($registro) {
+            // Obtener la hora actual para fin_paro_modular
+            $horaActual = now();
+
+            // Actualizar la columna "fin_paro_modular" con la hora actual
+            $registro->fin_paro_modular = $horaActual;
+
+            // Calcular la diferencia en minutos entre "inicio_paro" y "fin_paro_modular"
+            $inicioParo = Carbon::parse($registro->inicio_paro);
+            $diferenciaEnMinutos = $inicioParo->diffInMinutes($horaActual);
+
+            // Actualizar la columna "minutos_paro_modular" con la diferencia
+            $registro->minutos_paro_modular = $diferenciaEnMinutos;
+
+            // Guardar los cambios en la base de datos
+            $registro->save();
+
+            // Redirigir con mensaje de éxito
+            return redirect()->back()->with('success', 'Paro modular finalizado correctamente. Tiempo acumulado: ' . $diferenciaEnMinutos . ' minutos.');
+        }
+
+        // Si no se encuentra ningún registro
+        return redirect()->back()->with('error', 'No se encontró ningún registro para finalizar el paro modular.');
+    }
+
+    public function finalizarParoAQL(Request $request)
+    {
+        try {
+            // 🔍 Log del request completo
+            Log::info('Datos recibidos en finalizarParoAQL:', $request->all());
+
+            // 🔍 Log de validación exitosa
+            Log::info('Validación exitosa. ID recibido: ' . $request->id);
+
+            // 🔍 Buscar el registro por ID
+            $registro = AuditoriaAQL::findOrFail($request->id);
+            Log::info('Registro encontrado:', $registro->toArray());
+
+            // 🔍 Actualizar la columna fin_paro con la fecha y hora actual
+            $registro->fin_paro = Carbon::now();
+
+            // 🔍 Calcular la duración del paro en minutos
+            $inicioParo = Carbon::parse($registro->inicio_paro);
+            $finParo = Carbon::parse($registro->fin_paro);
+            $registro->minutos_paro = $inicioParo->diffInMinutes($finParo);
+            Log::info('Minutos de paro calculados: ' . $registro->minutos_paro);
+
+            // 🔍 Almacenar la cantidad de piezas reparadas
+            $registro->reparacion_rechazo = $request->piezasReparadas;
+            Log::info('Piezas reparadas almacenadas: ' . $registro->reparacion_rechazo);
+
+            // 🔍 Guardar los cambios en la base de datos
+            $registro->save();
+
+            Log::info('Registro actualizado y guardado correctamente.');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Paro finalizado y piezas reparadas almacenadas correctamente.',
+                'minutos_paro' => $registro->minutos_paro,
+                'reparacion_rechazo' => $registro->reparacion_rechazo
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error en finalizarParoAQL:', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al finalizar el paro: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

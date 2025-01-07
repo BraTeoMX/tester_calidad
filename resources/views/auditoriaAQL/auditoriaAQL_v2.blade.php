@@ -175,8 +175,12 @@
                 <div class="card-body">
                     <!-- Aquí ya NO necesitamos la tabla, pero sí necesitamos mantener los valores -->
                     <input type="hidden" name="modulo" id="modulo" value="{{ $data['modulo'] }}">
-                    <p>Es Tru</p>
-                    <button class="btn btn-primary">Fin Paro Modular</button>
+                    <!-- Formulario que envía la solicitud al controlador -->
+                    <form action="{{ route('buscarUltimoRegistro') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="modulo" value="{{ $data['modulo'] }}">
+                        <button type="submit" class="btn btn-primary">Fin Paro Modular</button>
+                    </form>
                 </div>
                 @else
                 <div class="card-body">
@@ -1130,7 +1134,15 @@
                             // Construir la fila de la tabla principal
                             const fila = `
                                 <tr class="${registro.tiempo_extra ? 'tiempo-extra' : ''}">
-                                    <td>${registro.inicio_paro === null ? '-' : registro.fin_paro ? registro.minutos_paro : '<button class="btn btn-primary">Fin Paro AQL</button>'}</td>
+                                    <td>
+                                        ${
+                                            registro.inicio_paro === null 
+                                            ? '-' 
+                                            : registro.fin_paro 
+                                                ? registro.minutos_paro 
+                                                : `<button class="btn btn-primary btn-finalizar-paro" data-id="${registro.id}">Fin Paro AQL</button>`
+                                        }
+                                    </td>
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.bulto}" readonly></td>
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.pieza}" readonly></td>
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.talla}" readonly></td>
@@ -1151,9 +1163,9 @@
                                     <td>${registro.created_at ? new Date(registro.created_at).toLocaleTimeString() : ''}</td>
                                     <td>
                                         ${
-                                        registro.reparacion_rechazo !== null 
-                                        ? `<input type="text" class="form-control texto-blanco" value="${registro.reparacion_rechazo}" readonly>`
-                                        : `<input type="number" class="form-control texto-blanco" placeholder="Ingrese cantidad">`
+                                        registro.reparacion_rechazo !== null && registro.reparacion_rechazo !== '' 
+                                        ? `<input type="text" class="form-control texto-blanco" value="${registro.reparacion_rechazo}" readonly>` 
+                                        : `<input type="text" class="form-control texto-blanco" value="-" readonly>`
                                         }
                                     </td>
                                 </tr>
@@ -1186,6 +1198,7 @@
 
                         // Vuelve a asignar eventos a los nuevos botones
                         asignarEventosEliminar();
+                        asignarEventosFinalizarParo();
 
                     },
                     error: function (error) {
@@ -1313,6 +1326,51 @@
                     }
                 });
             }
+            function asignarEventosFinalizarParo() {
+                const botonesFinalizarParo = document.querySelectorAll('.btn-finalizar-paro');
+                botonesFinalizarParo.forEach(boton => {
+                    // Primero removemos cualquier listener previo para evitar duplicados
+                    boton.removeEventListener('click', manejarFinalizarParo);
+                    boton.addEventListener('click', manejarFinalizarParo);
+                });
+            }
+
+            function manejarFinalizarParo() {
+                const id = this.getAttribute('data-id');
+
+                // Pedimos la cantidad de piezas reparadas
+                const piezasReparadas = prompt("Ingrese la cantidad de piezas reparadas:");
+                
+                // Si el usuario cancela o no ingresa nada, no hacemos nada
+                if (piezasReparadas === null || piezasReparadas === "") {
+                    return;
+                }
+
+                // Hacemos la llamada AJAX para finalizar el paro
+                $.ajax({
+                    url: "{{ route('finalizar.paro.aql') }}",
+                    type: "POST",
+                    data: {
+                        id: id,
+                        piezasReparadas: piezasReparadas,
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert("Paro finalizado correctamente.\nMinutos de paro: " + response.minutos_paro + "\nPiezas reparadas: " + response.reparacion_rechazo);
+                            // Recargar la tabla y así desaparece el botón
+                            cargarRegistros();
+                        } else {
+                            console.error("Error en la respuesta del servidor:", response);
+                            alert("No se pudo finalizar el paro. Intente nuevamente.");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error al finalizar el paro:", xhr, status, error);
+                        alert("Hubo un error al intentar finalizar el paro.");
+                    }
+                });
+            }
 
             // Inicialización
             cargarRegistros();
@@ -1354,7 +1412,15 @@
                             // Insertamos filas en la tabla
                             const fila = `
                                 <tr class="${registro.tiempo_extra ? 'tiempo-extra' : ''}">
-                                    <td>${registro.inicio_paro === null ? '-' : registro.fin_paro ? registro.minutos_paro : '<button class="btn btn-primary">Fin Paro AQL</button>'}</td>
+                                    <td>
+                                        ${
+                                            registro.inicio_paro === null 
+                                            ? '-' 
+                                            : registro.fin_paro 
+                                                ? registro.minutos_paro 
+                                                : `<button class="btn btn-primary btn-finalizar-paro" data-id="${registro.id}">Fin Paro AQL</button>`
+                                        }
+                                    </td>
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.bulto}" readonly></td>
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.pieza}" readonly></td>
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.talla}" readonly></td>
@@ -1365,7 +1431,13 @@
                                     <td><input type="text" class="form-control texto-blanco" readonly value="${registro.tp_auditoria_a_q_l ? registro.tp_auditoria_a_q_l.map(tp => tp.tp).join(', ') : ''}"></td>
                                     <td><button class="btn btn-danger btn-eliminar-te" data-id="${registro.id}">Eliminar</button></td>
                                     <td>${registro.created_at ? new Date(registro.created_at).toLocaleTimeString() : ''}</td>
-                                    <td>${registro.reparacion_rechazo !== null ? `<input type="text" class="form-control texto-blanco" value="${registro.reparacion_rechazo}" readonly>` : `<input type="number" class="form-control texto-blanco" placeholder="Ingrese cantidad">`}</td>
+                                    <td>
+                                        ${
+                                        registro.reparacion_rechazo !== null && registro.reparacion_rechazo !== '' 
+                                        ? `<input type="text" class="form-control texto-blanco" value="${registro.reparacion_rechazo}" readonly>` 
+                                        : `<input type="text" class="form-control texto-blanco" value="-" readonly>`
+                                        }
+                                    </td>
                                 </tr>
                             `;
                             tbody.insertAdjacentHTML('beforeend', fila);
@@ -1389,6 +1461,7 @@
         
                         // Asignar eventos de eliminar
                         asignarEventosEliminar();
+                        asignarEventosFinalizarParoTE();
                     },
                     error: function (error) {
                         console.error("Error al cargar los registros TE:", error);
@@ -1497,6 +1570,52 @@
                 });
             }
         
+            function asignarEventosFinalizarParoTE() {
+                const botonesFinalizarParo = document.querySelectorAll('.btn-finalizar-paro');
+                botonesFinalizarParo.forEach(boton => {
+                    // Primero removemos cualquier listener previo para evitar duplicados
+                    boton.removeEventListener('click', manejarFinalizarParo);
+                    boton.addEventListener('click', manejarFinalizarParo);
+                });
+            }
+
+            function manejarFinalizarParoTE() {
+                const id = this.getAttribute('data-id');
+
+                // Pedimos la cantidad de piezas reparadas
+                const piezasReparadas = prompt("Ingrese la cantidad de piezas reparadas:");
+                
+                // Si el usuario cancela o no ingresa nada, no hacemos nada
+                if (piezasReparadas === null || piezasReparadas === "") {
+                    return;
+                }
+
+                // Hacemos la llamada AJAX para finalizar el paro
+                $.ajax({
+                    url: "{{ route('finalizar.paro.aql') }}",
+                    type: "POST",
+                    data: {
+                        id: id,
+                        piezasReparadas: piezasReparadas,
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert("Paro finalizado correctamente.\nMinutos de paro: " + response.minutos_paro + "\nPiezas reparadas: " + response.reparacion_rechazo);
+                            // Recargar la tabla y así desaparece el botón
+                            cargarRegistros();
+                        } else {
+                            console.error("Error en la respuesta del servidor:", response);
+                            alert("No se pudo finalizar el paro. Intente nuevamente.");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error al finalizar el paro:", xhr, status, error);
+                        alert("Hubo un error al intentar finalizar el paro.");
+                    }
+                });
+            }
+
             // Inicialización
             cargarRegistros();
         });

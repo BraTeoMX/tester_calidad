@@ -350,6 +350,9 @@ Route::post('/guardar-registros-aql', [AuditoriaAQL_v2Controller::class, 'guarda
 Route::get('/mostrar-registros-aql-dia', [AuditoriaAQL_v2Controller::class, 'mostrarRegistrosAqlDia'])->name('mostrar.registros.aql.dia');
 Route::get('/mostrar-registros-aql-dia-TE', [AuditoriaAQL_v2Controller::class, 'mostrarRegistrosAqlDiaTE'])->name('mostrar.registros.aql.dia.TE');
 Route::post('/eliminar-registro-aql', [AuditoriaAQL_v2Controller::class, 'eliminarRegistroAql'])->name('eliminar.registro.aql');
+Route::post('/buscar-ultimo-registro', [AuditoriaAQL_v2Controller::class, 'buscarUltimoRegistro'])->name('buscarUltimoRegistro');
+Route::post('/finalizar-paro-aql', [AuditoriaAQL_v2Controller::class, 'finalizarParoAQL'])->name('finalizar.paro.aql');
+
 
 
 
