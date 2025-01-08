@@ -33,6 +33,7 @@ use App\Http\Controllers\DashboardCostosController;
 use App\Http\Controllers\DashboardComparativoModuloPlanta1Controller;
 use App\Http\Controllers\GestionController;
 use App\Http\Controllers\AuditoriaAQL_v2Controller;
+use App\Http\Controllers\ConsutlaEstatusController;
 
 
 /*
@@ -369,3 +370,6 @@ Route::get('/RechazosParoAQL_v2', [AuditoriaAQL_v2Controller::class, 'RechazosPa
 Route::post('/cargarOrdenesOP_v2', [AuditoriaAQL_v2Controller::class, 'metodoNombre_v2'])->name('metodoNombre_v2');
 Route::post('/categoria-tipo-problema-aql_v2', [AuditoriaAQL_v2Controller::class, 'storeCategoriaTipoProblemaAQL'])->name('categoria_tipo_problema_aql.store_v2');
 Route::get('/get-bultos-by-op_v2', [AuditoriaAQL_v2Controller::class, 'getBultosByOp_v2'])->name('getBultosByOp_v2');
+
+//apartado para las vistas de 
+Route::get('/consultaEstatus', [ConsutlaEstatusController::class, 'consultaEstatus'])->name('consultas.consultaEstatus');
