@@ -331,10 +331,10 @@
                                             <tr>
                                                 <td> 
                                                     <!-- Incluye Select2 en el select -->
-                                                    <select name="nombre" id="nombre" class="form-control select2" required>
+                                                    <select name="nombre_final" id="nombre" class="form-control select2" required>
                                                         <option value="">Selecciona una opción</option>
                                                         @foreach ($nombresGenerales as $nombre)
-                                                            <option value="{{ $nombre->personnelnumber }}">{{ $nombre->personnelnumber }} - {{ $nombre->name }}</option>
+                                                            <option value="{{ $nombre->name }}">{{ $nombre->personnelnumber }} - {{ $nombre->name }}</option>
                                                         @endforeach
                                                     </select>
                                                 </td> 

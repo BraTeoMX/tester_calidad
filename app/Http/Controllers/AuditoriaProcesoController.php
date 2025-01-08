@@ -507,6 +507,7 @@ class AuditoriaProcesoController extends Controller
     {
         $pageSlug ='';
 
+        //dd($request->all());
         $fechaHoraActual = now();
         
         // Verificar el día de la semana
@@ -526,12 +527,6 @@ class AuditoriaProcesoController extends Controller
             $obtenerCliente = ModuloEstiloTemporal::where('itemid', $request->estilo)->value('custname');
         }
 
-        //dd($obtenerCliente, $obtenerEstilo);
-        $modulo = $request->modulo;
-        $moduloAdicional = $request->modulo_adicional;
-        // Extraer la parte numérica del módulo
-        $modulo_num = intval(substr($modulo, 0, 3));
-        //dd($request->all());
         // Procesar el nombre final
         $nombreFinal = $request->nombre_final;
         $nombreFinalValidado = $nombreFinal ? trim($nombreFinal) : null;
@@ -540,7 +535,11 @@ class AuditoriaProcesoController extends Controller
         $numeroEmpleado = AuditoriaProceso::where('name', $nombreFinalValidado)
             ->pluck('personnelnumber')
             ->first();
-
+        
+        $moduloAdicional = AuditoriaProceso::where('name', $nombreFinalValidado)
+            ->pluck('moduleid')
+            ->first();
+            //dd($moduloAdicional);
         // Si no se encuentra, asignar un valor predeterminado
         $numeroEmpleado = $numeroEmpleado ?: '0000000';
 
