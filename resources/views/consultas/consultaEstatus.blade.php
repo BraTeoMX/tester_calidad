@@ -14,18 +14,53 @@
 
     <div class="row">
         <div class="col-4">
-            <div class="card card-body">
-                <h2>Corte</h2>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Corte </h2>
+                </div>
+                <div class="card-body">
+                    <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Amet inventore voluptas quae tenetur quisquam aut facere odit consectetur non corporis quibusdam saepe veritatis quas voluptates fuga, iure voluptatibus sit. Natus.</p>
+                </div>
             </div>
         </div>
         <div class="col-4">
-            <div class="card card-body">
-                <h2>Etiqueta</h2>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Etiqueta </h2>
+                </div>
+                <div class="card-body">
+                    <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Amet inventore voluptas quae tenetur quisquam aut facere odit consectetur non corporis quibusdam saepe veritatis quas voluptates fuga, iure voluptatibus sit. Natus.</p>
+                </div>
             </div>
         </div>
         <div class="col-4">
-            <div class="card card-body">
-                <h2>Screen</h2>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Screen </h2>
+                </div>
+                <div class="card-body">
+                    <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Amet inventore voluptas quae tenetur quisquam aut facere odit consectetur non corporis quibusdam saepe veritatis quas voluptates fuga, iure voluptatibus sit. Natus.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Etiqueta </h2>
+                </div>
+                <div class="card-body">
+                    <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Amet inventore voluptas quae tenetur quisquam aut facere odit consectetur non corporis quibusdam saepe veritatis quas voluptates fuga, iure voluptatibus sit. Natus.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Screen </h2>
+                </div>
+                <div class="card-body">
+                    <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Amet inventore voluptas quae tenetur quisquam aut facere odit consectetur non corporis quibusdam saepe veritatis quas voluptates fuga, iure voluptatibus sit. Natus.</p>
+                </div>
             </div>
         </div>
     </div>
