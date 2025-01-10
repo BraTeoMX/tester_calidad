@@ -34,6 +34,7 @@ use App\Http\Controllers\DashboardComparativoModuloPlanta1Controller;
 use App\Http\Controllers\GestionController;
 use App\Http\Controllers\AuditoriaAQL_v2Controller;
 use App\Http\Controllers\ConsutlaEstatusController;
+use App\Http\Controllers\EtiquetasV2Controller;
 
 
 /*
@@ -373,3 +374,7 @@ Route::get('/get-bultos-by-op_v2', [AuditoriaAQL_v2Controller::class, 'getBultos
 
 //apartado para las vistas de 
 Route::get('/consultaEstatus', [ConsutlaEstatusController::class, 'consultaEstatus'])->name('consultas.consultaEstatus');
+
+
+//nuevo apartado para el desarrollo de etiquetas
+Route::get('/etiquetas_v2', [EtiquetasV2Controller::class, 'etiquetas_v2'])->name('etiquetas_v2');
