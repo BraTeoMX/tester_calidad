@@ -378,3 +378,5 @@ Route::get('/consultaEstatus', [ConsutlaEstatusController::class, 'consultaEstat
 
 //nuevo apartado para el desarrollo de etiquetas
 Route::get('/etiquetas_v2', [EtiquetasV2Controller::class, 'etiquetas_v2'])->name('etiquetas_v2');
+// Ruta para procesar el formulario
+Route::post('/procesarFormularioEtiqueta', [EtiquetasV2Controller::class, 'procesarFormularioEtiqueta'])->name('procesarFormularioEtiqueta');
