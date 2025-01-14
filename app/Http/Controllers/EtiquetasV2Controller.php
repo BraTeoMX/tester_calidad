@@ -155,25 +155,25 @@ class EtiquetasV2Controller extends Controller
 
         if ($tipoBusqueda === 'OC') {
             $campoBusqueda2 = 'OrdenCompra';
-            $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View');
-            $selectCampos = ['OrdenCompra', 'Estilos', 'Cantidad', 'Talla', 'Color'];
-            $campoCantidad = 'Cantidad';
+            $modelo         = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View');
+            $selectCampos   = ['OrdenCompra', 'Estilos', 'Cantidad', 'Talla', 'Color'];
+            $campoCantidad  = 'Cantidad';
 
             // Buscar datos
             $datos = $modelo->where('Estilos', $estilo)
-                ->where($campoBusqueda2, $orden)
-                ->where('Talla', $talla)
-                ->select($selectCampos)
-                ->get();
+                            ->where($campoBusqueda2, $orden)
+                            ->where('Talla', $talla)
+                            ->select($selectCampos)
+                            ->get();
 
             // Búsqueda secundaria si no encuentra en EtiquetasOC_View
             if ($datos->isEmpty()) {
                 $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC2_View');
-                $datos = $modelo->where('Estilos', $estilo)
-                    ->where($campoBusqueda2, $orden)
-                    ->where('Talla', $talla)
-                    ->select($selectCampos)
-                    ->get();
+                $datos  = $modelo->where('Estilos', $estilo)
+                                 ->where($campoBusqueda2, $orden)
+                                 ->where('Talla', $talla)
+                                 ->select($selectCampos)
+                                 ->get();
             }
         } else {
             // OP, PO, OV
@@ -183,15 +183,15 @@ class EtiquetasV2Controller extends Controller
                 'OV' => 'SALESID',
             ][$tipoBusqueda];
 
-            $modelo = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
-            $selectCampos = [$campoBusqueda2, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
+            $modelo        = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+            $selectCampos  = [$campoBusqueda2, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
             $campoCantidad = 'qty';
 
             $datos = $modelo->where('Estilos', $estilo)
-                ->where($campoBusqueda2, $orden)
-                ->where('sizename', $talla)
-                ->select($selectCampos)
-                ->get();
+                            ->where($campoBusqueda2, $orden)
+                            ->where('sizename', $talla)
+                            ->select($selectCampos)
+                            ->get();
         }
 
         // Si tuvieras que filtrar para que no repita lo que ya existe en ReporteAuditoriaEtiqueta:
@@ -207,7 +207,7 @@ class EtiquetasV2Controller extends Controller
 
         // Filtrar duplicados
         $datosFiltrados = $datos->filter(function ($dato) use ($registrosExistentesArray, $tipoBusqueda, $campoBusqueda2) {
-            $color = ($tipoBusqueda == 'OC') ? $dato->Color : $dato->inventcolorid;
+            $color     = ($tipoBusqueda == 'OC') ? $dato->Color : $dato->inventcolorid;
             $tallaReal = ($tipoBusqueda == 'OC') ? $dato->Talla : $dato->sizename;
             $ordenValor = $dato->$campoBusqueda2;
 
@@ -221,34 +221,39 @@ class EtiquetasV2Controller extends Controller
             return !in_array($combinacion, $registrosExistentesArray);
         });
 
-        // Supongamos que normalmente solo obtendrás un registro, pero si fueran varios, 
-        // calculamos tamaño_muestra para cada uno:
+        // Calculamos el tamaño de muestra para cada registro
         foreach ($datosFiltrados as $dato) {
             $cantidad = $dato->$campoCantidad;
             $tamaño_muestra = $this->calcularTamanoMuestra($cantidad);
-
             $dato->tamaño_muestra = $tamaño_muestra;
         }
 
-        // En este ejemplo, retornamos el primer registro. Si quieres todos, ajusta la lógica.
+        // Si hubiera varios registros y quisieras solo el primero, lo tomas así:
         $respuesta = null;
         if ($datosFiltrados->count() > 0) {
             $primer = $datosFiltrados->first();
+
+            // Definimos el campo de color según el tipo de búsqueda
+            $colorCol = ($tipoBusqueda === 'OC') ? 'Color' : 'inventcolorid';
+
+            // Usamos el operador ?? para poner "N/A" si no viene color
             $respuesta = [
                 'cantidad'       => $primer->$campoCantidad,
                 'tamaño_muestra' => $primer->tamaño_muestra,
+                'color'          => $primer->$colorCol ?? 'N/A',
             ];
         } else {
-            // Si no hay nada filtrado o todo estaba duplicado
+            // Si no hay nada filtrado
             $respuesta = [
                 'cantidad'       => 0,
-                'tamaño_muestra' => ''
+                'tamaño_muestra' => '',
+                'color'          => 'N/A'
             ];
         }
 
         return response()->json([
-            'success'  => true,
-            'data'     => $respuesta
+            'success' => true,
+            'data'    => $respuesta
         ]);
     }
 

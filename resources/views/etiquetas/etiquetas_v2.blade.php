@@ -66,6 +66,7 @@
                                 <tr>
                                     <th style="min-width: 150px;">Estilo</th>
                                     <th style="min-width: 150px;">Talla</th>
+                                    <th style="min-width: 150px;">Color</th>
                                     <th style="min-width: 150px;">Cantidad</th>
                                     <th style="min-width: 180px;">Tamaño de Muestra</th>
                                 </tr>
@@ -89,6 +90,11 @@
                                         <select id="tallaSelect" class="form-control" disabled>
                                             <option value="">-- Seleccionar --</option>
                                         </select>
+                                    </td>
+
+                                    <!-- Input Color -->
+                                    <td>
+                                        <input type="text" class="form-control" id="colorInput" readonly>
                                     </td>
 
                                     <!-- Input Cantidad -->
@@ -121,19 +127,20 @@
 
     <script>
     $(document).ready(function(){
-        // Inicia select2
+        // Inicia select2 (opcional si usas select2)
         $('#estilosSelect').select2();
         $('#tallaSelect').select2();
 
         // Cuando cambia el Estilo
         $('#estilosSelect').on('change', function() {
             var estiloSeleccionado = $(this).val();
-            var tipoBusqueda = $('#tipoEtiqueta').val();
-            var orden = $('#valorEtiqueta').val();
+            var tipoBusqueda       = $('#tipoEtiqueta').val(); // asumiendo que tienes este input
+            var orden             = $('#valorEtiqueta').val(); // asumiendo que tienes este input
 
             // Limpiar el segundo select y los inputs
             $('#tallaSelect').html('<option value="">-- Seleccionar --</option>');
             $('#tallaSelect').prop('disabled', true).trigger('change'); 
+            $('#colorInput').val('');       // limpiamos color
             $('#cantidadInput').val('');
             $('#tamanoMuestraInput').val('');
 
@@ -141,7 +148,7 @@
 
             // Petición AJAX para obtener Tallas
             $.ajax({
-                url: "{{ route('ajaxGetTallas') }}",
+                url: "{{ route('ajaxGetTallas') }}", // Ajusta tu ruta
                 method: 'GET',
                 data: {
                     tipoBusqueda: tipoBusqueda,
@@ -168,20 +175,21 @@
 
         // Cuando cambia la Talla
         $('#tallaSelect').on('change', function() {
-            var tallaSeleccionada = $(this).val();
+            var tallaSeleccionada  = $(this).val();
             var estiloSeleccionado = $('#estilosSelect').val();
-            var tipoBusqueda = $('#tipoEtiqueta').val();
-            var orden = $('#valorEtiqueta').val();
+            var tipoBusqueda       = $('#tipoEtiqueta').val();
+            var orden             = $('#valorEtiqueta').val();
 
             // Limpiar inputs
+            $('#colorInput').val('');
             $('#cantidadInput').val('');
             $('#tamanoMuestraInput').val('');
 
             if(!tallaSeleccionada || !estiloSeleccionado) return;
 
-            // Petición AJAX para obtener Cantidad y Tamaño de muestra
+            // Petición AJAX para obtener Cantidad, Tamaño de muestra y Color
             $.ajax({
-                url: "{{ route('ajaxGetData') }}",
+                url: "{{ route('ajaxGetData') }}", // Ajusta tu ruta
                 method: 'GET',
                 data: {
                     tipoBusqueda: tipoBusqueda,
@@ -191,10 +199,12 @@
                 },
                 success: function(response) {
                     if(response.success && response.data) {
+                        $('#colorInput').val(response.data.color); // Asignar color
                         $('#cantidadInput').val(response.data.cantidad);
                         $('#tamanoMuestraInput').val(response.data.tamaño_muestra);
                     } else {
                         // No encontró data
+                        $('#colorInput').val('N/A');
                         $('#cantidadInput').val('0');
                         $('#tamanoMuestraInput').val('');
                     }
