@@ -7,6 +7,8 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\DB; // Importa la clase DB
 use Illuminate\Http\Request;
+use App\Models\Cat_DefEtiquetas;
+use App\Models\ReporteAuditoriaEtiqueta;
 
 class EtiquetasV2Controller extends Controller
 {
@@ -18,16 +20,21 @@ class EtiquetasV2Controller extends Controller
     // Función para mostrar la vista principal
     public function etiquetas_v2()
     {
-        return view('etiquetas.etiquetas_v2', ['title' => '']);
+        return view('etiquetas.etiquetas_v2', [
+            'title' => '',
+            'estilos' => session('estilos', collect([])),
+            'tipoBusqueda' => session('tipoBusqueda', null),
+            'orden' => session('orden', null),
+        ]);
     }
 
-    // Procesar el formulario y buscar estilos
+    /**
+     * Procesa el formulario: busca los estilos y retorna la vista con el primer select lleno.
+     */
     public function procesarFormularioEtiqueta(Request $request)
     {
         $tipoBusqueda = $request->input('tipoEtiqueta');
         $orden = $request->input('valorEtiqueta');
-
-        //Log::info("Datos ingresados: $orden, $tipoBusqueda");
 
         $conexion = null;
         $campoBusqueda = null;
@@ -47,16 +54,15 @@ class EtiquetasV2Controller extends Controller
             $conexion = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
         }
 
-        // Ejecutar la consulta para buscar estilos
+        // Ejecutar la consulta
         $estilos = $conexion
             ->where($campoBusqueda, $orden)
             ->select('Estilos')
             ->distinct()
             ->get();
 
-        // Si no se encontraron resultados y el tipo de búsqueda es OC, realizar una búsqueda secundaria
+        // Búsqueda secundaria (si es OC y no hay resultados)
         if ($tipoBusqueda === 'OC' && $estilos->isEmpty()) {
-            //Log::info('No se encontraron resultados en EtiquetasOC_View, buscando en EtiquetasOC2_View...');
             $campoBusqueda2 = 'OrdenCompra';
             $conexion2 = DB::connection('sqlsrv_ax')->table('EtiquetasOC2_View');
 
@@ -67,7 +73,223 @@ class EtiquetasV2Controller extends Controller
                 ->get();
         }
 
-        // Redirigir a la misma vista con los estilos encontrados
-        return view('etiquetas.etiquetas_v2', ['title' => '', 'estilos' => $estilos]);
+        // Redirigir a la vista principal con datos de sesión flash
+        return redirect()->route('etiquetas_v2')->with([
+            'estilos' => $estilos,
+            'tipoBusqueda' => $tipoBusqueda,
+            'orden' => $orden,
+        ]);
     }
+
+    /**
+     * AJAX: Retorna las tallas para un Estilo específico,
+     *       en base a la lógica y el tipo de búsqueda.
+     */
+    public function ajaxGetTallas(Request $request)
+    {
+        $tipoBusqueda = $request->input('tipoBusqueda');
+        $orden = $request->input('orden');
+        $estilo = $request->input('estilo');
+
+        // Según tipo de búsqueda, definimos el modelo y campos
+        if ($tipoBusqueda === 'OC') {
+            $campoBusqueda2 = 'OrdenCompra';
+            $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View');
+            $selectCampos = ['OrdenCompra', 'Estilos', 'Cantidad', 'Talla', 'Color'];
+
+            // Buscar datos para ese estilo+orden
+            $datos = $modelo->where('Estilos', $estilo)
+                ->where($campoBusqueda2, $orden)
+                ->select($selectCampos)
+                ->get();
+
+            // Búsqueda secundaria en EtiquetasOC2_View si no hay resultados
+            if ($datos->isEmpty()) {
+                $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC2_View');
+                $datos = $modelo->where('Estilos', $estilo)
+                    ->where($campoBusqueda2, $orden)
+                    ->select($selectCampos)
+                    ->get();
+            }
+
+            // Extraemos la lista única de tallas
+            $tallas = $datos->pluck('Talla')->unique()->values();
+
+        } else {
+            // Para OP, PO, OV
+            $campoBusqueda2 = [
+                'OP' => 'OP',
+                'PO' => 'CPO',
+                'OV' => 'SALESID',
+            ][$tipoBusqueda];
+
+            $modelo = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+            $selectCampos = [$campoBusqueda2, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
+
+            $datos = $modelo->where('Estilos', $estilo)
+                ->where($campoBusqueda2, $orden)
+                ->select($selectCampos)
+                ->get();
+
+            // Extraemos la lista única de tallas (en este caso, sizename)
+            $tallas = $datos->pluck('sizename')->unique()->values();
+        }
+
+        // Retornamos la lista de tallas como JSON para que el front-end llene el segundo select
+        return response()->json([
+            'success' => true,
+            'tallas'  => $tallas
+        ]);
+    }
+
+    /**
+     * AJAX: Dado un Estilo + Talla específicos, retorna la Cantidad y Tamaño de muestra
+     *       para ese registro (o registros).
+     */
+    public function ajaxGetData(Request $request)
+    {
+        $tipoBusqueda = $request->input('tipoBusqueda');
+        $orden = $request->input('orden');
+        $estilo = $request->input('estilo');
+        $talla = $request->input('talla');  // o sizename, dependiendo del tipo
+
+        if ($tipoBusqueda === 'OC') {
+            $campoBusqueda2 = 'OrdenCompra';
+            $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View');
+            $selectCampos = ['OrdenCompra', 'Estilos', 'Cantidad', 'Talla', 'Color'];
+            $campoCantidad = 'Cantidad';
+
+            // Buscar datos
+            $datos = $modelo->where('Estilos', $estilo)
+                ->where($campoBusqueda2, $orden)
+                ->where('Talla', $talla)
+                ->select($selectCampos)
+                ->get();
+
+            // Búsqueda secundaria si no encuentra en EtiquetasOC_View
+            if ($datos->isEmpty()) {
+                $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC2_View');
+                $datos = $modelo->where('Estilos', $estilo)
+                    ->where($campoBusqueda2, $orden)
+                    ->where('Talla', $talla)
+                    ->select($selectCampos)
+                    ->get();
+            }
+        } else {
+            // OP, PO, OV
+            $campoBusqueda2 = [
+                'OP' => 'OP',
+                'PO' => 'CPO',
+                'OV' => 'SALESID',
+            ][$tipoBusqueda];
+
+            $modelo = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+            $selectCampos = [$campoBusqueda2, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
+            $campoCantidad = 'qty';
+
+            $datos = $modelo->where('Estilos', $estilo)
+                ->where($campoBusqueda2, $orden)
+                ->where('sizename', $talla)
+                ->select($selectCampos)
+                ->get();
+        }
+
+        // Si tuvieras que filtrar para que no repita lo que ya existe en ReporteAuditoriaEtiqueta:
+        $registrosExistentes = ReporteAuditoriaEtiqueta::all();
+        $registrosExistentesArray = $registrosExistentes->map(function ($item) {
+            return [
+                'Orden'   => $item->Orden,
+                'Estilos' => $item->Estilos,
+                'Color'   => $item->Color,
+                'Talla'   => $item->Talla,
+            ];
+        })->toArray();
+
+        // Filtrar duplicados
+        $datosFiltrados = $datos->filter(function ($dato) use ($registrosExistentesArray, $tipoBusqueda, $campoBusqueda2) {
+            $color = ($tipoBusqueda == 'OC') ? $dato->Color : $dato->inventcolorid;
+            $tallaReal = ($tipoBusqueda == 'OC') ? $dato->Talla : $dato->sizename;
+            $ordenValor = $dato->$campoBusqueda2;
+
+            $combinacion = [
+                'Orden'   => $ordenValor,
+                'Estilos' => $dato->Estilos,
+                'Color'   => $color,
+                'Talla'   => $tallaReal,
+            ];
+
+            return !in_array($combinacion, $registrosExistentesArray);
+        });
+
+        // Supongamos que normalmente solo obtendrás un registro, pero si fueran varios, 
+        // calculamos tamaño_muestra para cada uno:
+        foreach ($datosFiltrados as $dato) {
+            $cantidad = $dato->$campoCantidad;
+            $tamaño_muestra = $this->calcularTamanoMuestra($cantidad);
+
+            $dato->tamaño_muestra = $tamaño_muestra;
+        }
+
+        // En este ejemplo, retornamos el primer registro. Si quieres todos, ajusta la lógica.
+        $respuesta = null;
+        if ($datosFiltrados->count() > 0) {
+            $primer = $datosFiltrados->first();
+            $respuesta = [
+                'cantidad'       => $primer->$campoCantidad,
+                'tamaño_muestra' => $primer->tamaño_muestra,
+            ];
+        } else {
+            // Si no hay nada filtrado o todo estaba duplicado
+            $respuesta = [
+                'cantidad'       => 0,
+                'tamaño_muestra' => ''
+            ];
+        }
+
+        return response()->json([
+            'success'  => true,
+            'data'     => $respuesta
+        ]);
+    }
+
+    /**
+     * Función helper para calcular el tamaño de muestra con base en la cantidad.
+     */
+    private function calcularTamanoMuestra($cantidad)
+    {
+        if ($cantidad >= 2 && $cantidad <= 8) {
+            return '2';
+        } elseif ($cantidad >= 9 && $cantidad <= 15) {
+            return '3';
+        } elseif ($cantidad >= 16 && $cantidad <= 25) {
+            return '5';
+        } elseif ($cantidad >= 26 && $cantidad <= 50) {
+            return '8';
+        } elseif ($cantidad >= 51 && $cantidad <= 90) {
+            return '13';
+        } elseif ($cantidad >= 91 && $cantidad <= 150) {
+            return '20';
+        } elseif ($cantidad >= 151 && $cantidad <= 280) {
+            return '32';
+        } elseif ($cantidad >= 281 && $cantidad <= 500) {
+            return '50';
+        } elseif ($cantidad >= 501 && $cantidad <= 1200) {
+            return '80';
+        } elseif ($cantidad >= 1201 && $cantidad <= 3200) {
+            return '125';
+        } elseif ($cantidad >= 3201 && $cantidad <= 10000) {
+            return '200';
+        } elseif ($cantidad >= 10001 && $cantidad <= 35000) {
+            return '315';
+        } elseif ($cantidad >= 35001 && $cantidad <= 150000) {
+            return '500';
+        } elseif ($cantidad >= 150001 && $cantidad <= 5000000) {
+            return '800';
+        } elseif ($cantidad > 5000000) {
+            return '2000';
+        }
+
+        return '';
+    }
+
 }

@@ -380,3 +380,8 @@ Route::get('/consultaEstatus', [ConsutlaEstatusController::class, 'consultaEstat
 Route::get('/etiquetas_v2', [EtiquetasV2Controller::class, 'etiquetas_v2'])->name('etiquetas_v2');
 // Ruta para procesar el formulario
 Route::post('/procesarFormularioEtiqueta', [EtiquetasV2Controller::class, 'procesarFormularioEtiqueta'])->name('procesarFormularioEtiqueta');
+// Importante: ruta para AJAX (GET) de tallas
+Route::get('/etiquetas_v2/tallas', [EtiquetasV2Controller::class, 'ajaxGetTallas'])->name('ajaxGetTallas');
+
+// Ruta AJAX para la cantidad y tamaño de muestra
+Route::get('/etiquetas_v2/data', [EtiquetasV2Controller::class, 'ajaxGetData'])->name('ajaxGetData');
