@@ -16,7 +16,13 @@
             {{ session('warning') }}
         </div>
     @endif
-
+    <script>
+        setTimeout(function(){
+            $('.alert').fadeOut('slow', function(){
+                $(this).remove();
+            });
+        }, 5000);
+    </script>
     <div class="row">
         <div class="card">
             <div class="card-header">
@@ -75,8 +81,10 @@
                                         <th style="min-width: 150px;">Color</th>
                                         <th style="min-width: 150px;">Cantidad</th>
                                         <th style="min-width: 180px;">Tamaño de Muestra</th>
-                                        <th style="min-width: 200px;">Defectos</th>
+                                        <th style="min-width: 250px;">Defectos</th>
                                         <th style="min-width: 200px;">Acciones Correctivas</th>
+                                        <!-- Nueva columna Comentarios -->
+                                        <th style="min-width: 250px;" id="comentariosHeader" class="d-none">Comentarios</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -92,30 +100,20 @@
                                                 @endforeach
                                             </select>
                                         </td>
-            
-                                        <!-- Select Talla (se cargará con AJAX) -->
                                         <td>
-                                            <select name="talla" id="tallaSelect" class="form-control" disabled>
+                                            <select name="talla" id="tallaSelect" class="form-control" disabled required>
                                                 <option value="">-- Seleccionar --</option>
                                             </select>
                                         </td>
-            
-                                        <!-- Input Color -->
                                         <td>
                                             <input type="text" name="color" class="form-control texto-blanco" id="colorInput" readonly>
                                         </td>
-            
-                                        <!-- Input Cantidad -->
                                         <td>
                                             <input type="text" name="cantidad" class="form-control texto-blanco" id="cantidadInput" readonly>
                                         </td>
-            
-                                        <!-- Input Tamaño de Muestra -->
                                         <td>
                                             <input type="text" name="muestreo" class="form-control texto-blanco" id="tamanoMuestraInput" readonly>
                                         </td>
-
-                                        <!-- Select Defectos (con AJAX y Select2) -->
                                         <td>
                                             <select id="defectosSelect" class="form-control">
                                                 <option value="">-- Seleccionar Defectos --</option>
@@ -123,15 +121,16 @@
                                             <!-- Un contenedor donde se irán agregando los defectos -->
                                             <div id="listaDefectosContainer"></div>
                                         </td>
-            
-                                        <!-- Select Acciones Correctivas -->
                                         <td>
                                             <select name="accion_correctiva" id="accionesSelect" class="form-control" required>
                                                 <option value="">-- Seleccionar --</option>
                                                 <option value="Aprobado">Aprobado</option>
-                                                <option value="Aprobado con condiciones">Aprobado con condiciones</option>
+                                                <option value="Aprobado con condicion">Aprobado con condicion</option>
                                                 <option value="Rechazado">Rechazado</option>
                                             </select>
+                                        </td>
+                                        <td id="comentariosCell" class="d-none">
+                                            <input type="text" name="comentarios" id="comentariosInput" class="form-control" placeholder="Escribe un comentario">
                                         </td>
                                     </tr>
                                 </tbody>
@@ -168,6 +167,7 @@
                                     <th>Muestreo</th>
                                     <th>Estatus</th>
                                     <th>Defectos</th>
+                                    <th>Comentarios</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -181,16 +181,13 @@
                                         <td>{{ $registro->muestreo }}</td>
                                         <td>{{ $registro->estatus }}</td>
                                         <td>
-                                            @if($registro->defectos->isNotEmpty())
-                                                <ul>
-                                                    @foreach($registro->defectos as $defecto)
-                                                        <li>{{ $defecto->nombre }} ({{ $defecto->cantidad }})</li>
-                                                    @endforeach
-                                                </ul>
-                                            @else
-                                                Sin defectos
-                                            @endif
+                                            <ul>
+                                                @foreach($registro->defectos_formateados as $defecto)
+                                                    <li>{{ $defecto }}</li>
+                                                @endforeach
+                                            </ul>
                                         </td>
+                                        <td>{{ $registro->comentario }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -504,6 +501,27 @@
             });
         });
     </script>
-    
+    <script>
+        $(document).ready(function() {
+            // No uses .hide() al cargar la página; basta con la clase d-none que ya tienes en el HTML
+            
+            // Detecta cambios en el select de Acciones Correctivas
+            $('#accionesSelect').on('change', function() {
+                let selectedValue = $(this).val();
+                
+                if (selectedValue === 'Aprobado con condicion') {
+                    // Quita la clase d-none para mostrar la columna "Comentarios"
+                    $('#comentariosHeader, #comentariosCell').removeClass('d-none');
+                    // Hace obligatorio el campo
+                    $('#comentariosInput').attr('required', true);
+                } else {
+                    // Vuelve a poner la clase d-none para ocultar la columna "Comentarios"
+                    $('#comentariosHeader, #comentariosCell').addClass('d-none');
+                    // Quita la obligatoriedad
+                    $('#comentariosInput').removeAttr('required');
+                }
+            });
+        });
+    </script>    
     
 @endsection

@@ -23,9 +23,19 @@ class EtiquetasV2Controller extends Controller
     {
         // Obtén los registros del día actual y sus defectos asociados
         $registrosDelDia = ReporteAuditoriaEtiqueta::whereDate('created_at', Carbon::today())
-            ->with('defectos') // Relación con TpReporteAuditoriaEtiqueta
-            ->get();
+        ->with('defectos') // Relación con TpReporteAuditoriaEtiqueta
+        ->get()
+        ->map(function ($registro) {
+            // Si no hay defectos, asigna "Sin defectos"
+            $registro->defectos_formateados = $registro->defectos->isNotEmpty()
+                ? $registro->defectos->map(fn($defecto) => "{$defecto->nombre} ({$defecto->cantidad})")->toArray()
+                : ['Sin defectos'];
 
+            // Si el comentario es NULL, asigna "N/A"
+            $registro->comentario = $registro->comentario ?? 'N/A';
+
+            return $registro;
+        });
         // Retorna la vista con los datos
         return view('etiquetas.etiquetas_v2', [
             'title' => '',
@@ -336,6 +346,7 @@ class EtiquetasV2Controller extends Controller
     public function guardarAuditoriaEtiqueta(Request $request)
     {
         // Guardar el reporte principal
+        //dd($request->all());
         $reporte = ReporteAuditoriaEtiqueta::create([
             'tipo' => $request->tipoEtiqueta,
             'orden' => $request->valorEtiqueta,
@@ -345,6 +356,7 @@ class EtiquetasV2Controller extends Controller
             'cantidad' => $request->cantidad,
             'muestreo' => $request->muestreo,
             'estatus' => $request->accion_correctiva,
+            'comentario' => $request->comentarios,
         ]);
 
         //dd($request->has('defectos'));

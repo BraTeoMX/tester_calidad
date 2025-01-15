@@ -20,6 +20,7 @@ class ReporteAuditoriaEtiqueta extends Model
         'cantidad',
         'muestreo',
         'estatus',
+        'comentario',
     ];
 
     // Relación: Un reporte puede tener muchos defectos asociados
