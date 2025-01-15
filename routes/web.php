@@ -387,4 +387,5 @@ Route::get('/etiquetas_v2/tallas', [EtiquetasV2Controller::class, 'ajaxGetTallas
 Route::get('/etiquetas_v2/data', [EtiquetasV2Controller::class, 'ajaxGetData'])->name('ajaxGetData');
 Route::get('/obtener-defectos-etiquetas', [EtiquetasV2Controller::class, 'obtenerDefectosEtiquetas'])->name('obtenerDefectosEtiquetas');
 Route::post('/guardar-defecto-etiqueta', [EtiquetasV2Controller::class, 'guardarDefectoEtiqueta'])->name('guardarDefectoEtiqueta');
+Route::post('/guardar-auditoria-etiqueta', [EtiquetasV2Controller::class, 'guardarAuditoriaEtiqueta'])->name('guardarAuditoriaEtiqueta');
 

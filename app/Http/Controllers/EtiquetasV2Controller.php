@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB; // Importa la clase DB
 use Illuminate\Http\Request;
 use App\Models\Cat_DefEtiquetas;
 use App\Models\ReporteAuditoriaEtiqueta;
+use App\Models\TpReporteAuditoriaEtiqueta;
 
 class EtiquetasV2Controller extends Controller
 {
@@ -324,6 +325,36 @@ class EtiquetasV2Controller extends Controller
             'id'      => $defecto->id
         ]);
     }
+
+    public function guardarAuditoriaEtiqueta(Request $request)
+    {
+        // Guardar el reporte principal
+        $reporte = ReporteAuditoriaEtiqueta::create([
+            'tipo' => $request->tipoEtiqueta,
+            'orden' => $request->valorEtiqueta,
+            'estilo' => $request->estilo,
+            'color' => $request->color,
+            'talla' => $request->talla,
+            'cantidad' => $request->cantidad,
+            'muestreo' => $request->muestreo,
+            'estatus' => $request->accion_correctiva,
+        ]);
+
+        // Guardar los defectos asociados, solo si existen
+        if ($request->has('defectos')) {
+            foreach ($request->defectos as $defecto) {
+                TpReporteAuditoriaEtiqueta::create([
+                    'id_reporte_auditoria_etiquetas' => $reporte->id,
+                    'nombre' => $defecto['nombre'],
+                    'cantidad' => $defecto['cantidad'],
+                ]);
+            }
+        }
+        dd($request->has('defectos'));
+
+        return redirect()->back()->with('success', 'Auditoría guardada correctamente.');
+    }
+
 
 
 }

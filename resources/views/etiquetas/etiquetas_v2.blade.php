@@ -58,77 +58,90 @@
                 <!-- Resultados de la búsqueda: si se encontraron Estilos -->
                 @if(isset($estilos) && $estilos->count() > 0)
                     <h4 class="mt-4">Estilos encontrados:</h4>
-                    
-                    <!-- Tabla responsiva con un solo row de selects/inputs -->
-                    <div class="table-responsive">
-                        <table class="table align-items-center table-flush">
-                            <thead class="thead-primary">
-                                <tr>
-                                    <th style="min-width: 150px;">Estilo</th>
-                                    <th style="min-width: 150px;">Talla</th>
-                                    <th style="min-width: 150px;">Color</th>
-                                    <th style="min-width: 150px;">Cantidad</th>
-                                    <th style="min-width: 180px;">Tamaño de Muestra</th>
-                                    <th style="min-width: 200px;">Defectos</th>
-                                    <th style="min-width: 200px;">Acciones Correctivas</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <!-- Select Estilo -->
-                                    <td>
-                                        <select id="estilosSelect" class="form-control">
-                                            <option value="">-- Seleccionar --</option>
-                                            @foreach($estilos as $estiloObj)
-                                                <option value="{{ $estiloObj->Estilos }}">
-                                                    {{ $estiloObj->Estilos }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
+                    <!-- Formulario para enviar los datos al controlador -->
+                    <form action="{{ route('guardarAuditoriaEtiqueta') }}" method="POST">
+                        @csrf
+                        <!-- Inputs ocultos para enviar el tipo de búsqueda y el valor de la orden -->
+                        <input type="hidden" name="tipoEtiqueta" value="{{ old('tipoEtiqueta', $tipoBusqueda) }}">
+                        <input type="hidden" name="valorEtiqueta" value="{{ old('valorEtiqueta', $orden) }}">
 
-                                    <!-- Select Talla (se cargará con AJAX) -->
-                                    <td>
-                                        <select id="tallaSelect" class="form-control" disabled>
-                                            <option value="">-- Seleccionar --</option>
-                                        </select>
-                                    </td>
+                        <!-- Tabla responsiva con un solo row de selects/inputs -->
+                        <div class="table-responsive">
+                            <table class="table align-items-center table-flush">
+                                <thead class="thead-primary">
+                                    <tr>
+                                        <th style="min-width: 150px;">Estilo</th>
+                                        <th style="min-width: 150px;">Talla</th>
+                                        <th style="min-width: 150px;">Color</th>
+                                        <th style="min-width: 150px;">Cantidad</th>
+                                        <th style="min-width: 180px;">Tamaño de Muestra</th>
+                                        <th style="min-width: 200px;">Defectos</th>
+                                        <th style="min-width: 200px;">Acciones Correctivas</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <!-- Select Estilo -->
+                                        <td>
+                                            <select name="estilo" id="estilosSelect" class="form-control" required>
+                                                <option value="">-- Seleccionar --</option>
+                                                @foreach($estilos as $estiloObj)
+                                                    <option value="{{ $estiloObj->Estilos }}">
+                                                        {{ $estiloObj->Estilos }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+            
+                                        <!-- Select Talla (se cargará con AJAX) -->
+                                        <td>
+                                            <select name="talla" id="tallaSelect" class="form-control" disabled>
+                                                <option value="">-- Seleccionar --</option>
+                                            </select>
+                                        </td>
+            
+                                        <!-- Input Color -->
+                                        <td>
+                                            <input type="text" name="color" class="form-control texto-blanco" id="colorInput" readonly>
+                                        </td>
+            
+                                        <!-- Input Cantidad -->
+                                        <td>
+                                            <input type="text" name="cantidad" class="form-control texto-blanco" id="cantidadInput" readonly>
+                                        </td>
+            
+                                        <!-- Input Tamaño de Muestra -->
+                                        <td>
+                                            <input type="text" name="muestreo" class="form-control texto-blanco" id="tamanoMuestraInput" readonly>
+                                        </td>
 
-                                    <!-- Input Color -->
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" id="colorInput" readonly>
-                                    </td>
-
-                                    <!-- Input Cantidad -->
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" id="cantidadInput" readonly>
-                                    </td>
-
-                                    <!-- Input Tamaño de Muestra -->
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" id="tamanoMuestraInput" readonly>
-                                    </td>
-
-                                    <!-- Select Defectos (con AJAX y Select2) -->
-                                    <td>
-                                        <select id="defectosSelect" class="form-control">
-                                            <option value="">-- Seleccionar Defectos --</option>
-                                        </select>
-                                    </td>
-
-                                    <!-- Select Acciones Correctivas -->
-                                    <td>
-                                        <select id="accionesSelect" class="form-control">
-                                            <option value="">-- Seleccionar --</option>
-                                            <option value="Aprobado">Aprobado</option>
-                                            <option value="Aprobado con condiciones">Aprobado con condiciones</option>
-                                            <option value="Rechazado">Rechazado</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                                        <!-- Select Defectos (con AJAX y Select2) -->
+                                        <td>
+                                            <select id="defectosSelect" class="form-control">
+                                                <option value="">-- Seleccionar Defectos --</option>
+                                            </select>
+                                            <!-- Un contenedor donde se irán agregando los defectos -->
+                                            <div id="listaDefectosContainer"></div>
+                                        </td>
+            
+                                        <!-- Select Acciones Correctivas -->
+                                        <td>
+                                            <select name="accion_correctiva" id="accionesSelect" class="form-control" required>
+                                                <option value="">-- Seleccionar --</option>
+                                                <option value="Aprobado">Aprobado</option>
+                                                <option value="Aprobado con condiciones">Aprobado con condiciones</option>
+                                                <option value="Rechazado">Rechazado</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <!-- Botón para enviar los datos -->
+                            <div class="text-right mt-3">
+                                <button type="submit" class="btn btn-primary">Guardar Auditoría</button>
+                            </div>
+                        </div>
+                    </form>
                 @else
                     <h4 class="mt-4">No se encontraron estilos.</h4>
                 @endif
@@ -247,7 +260,78 @@
                 placeholder: '-- Seleccionar Defectos --',
                 allowClear: true,
             });
-        
+
+            // Array para almacenar la lista de defectos seleccionados
+            let defectosSeleccionados = [];
+
+            // Función para redibujar la lista de defectos en el contenedor
+            function renderizarListaDefectos() {
+                // Limpiar el contenedor
+                $('#listaDefectosContainer').empty();
+
+                // Limpiar inputs ocultos existentes en el formulario
+                $('#guardarFormulario input[name^="defectos"]').remove();
+
+                // Recorrer cada defecto en el arreglo y crear un “item” en la lista
+                defectosSeleccionados.forEach(function(defecto, index) {
+                    // Estructura contenedora de cada fila de defecto
+                    let $defectoItem = $('<div class="defecto-item" style="margin-bottom: 5px;">');
+
+                    // Span con el nombre del defecto
+                    let $nombreDefecto = $('<span style="margin-right: 5px;">').text(defecto.nombre + ':');
+
+                    // Input numérico para la cantidad
+                    let $inputCantidad = $('<input type="number" min="0" step="1" style="width: 80px; margin-right: 5px;">')
+                        .val(defecto.cantidad || 0)
+                        .on('input', function() {
+                            defecto.cantidad = $(this).val();
+                        });
+
+                    // Botón para eliminar
+                    let $btnEliminar = $('<button class="btn btn-sm btn-danger">').text('Eliminar');
+
+                    // Evento click para eliminar el defecto de la lista
+                    $btnEliminar.on('click', function() {
+                        // Remover del arreglo "defectosSeleccionados"
+                        defectosSeleccionados = defectosSeleccionados.filter(function(item) {
+                            return item.id !== defecto.id;
+                        });
+
+                        // Devolver la opción eliminada al select
+                        $('#defectosSelect').append(
+                            $('<option>', {
+                                value: defecto.id,
+                                text: defecto.nombre
+                            })
+                        );
+
+                        // Volver a renderizar la lista
+                        renderizarListaDefectos();
+                    });
+
+                    // Agregamos todo al item
+                    $defectoItem.append($nombreDefecto);
+                    $defectoItem.append($inputCantidad);
+                    $defectoItem.append($btnEliminar);
+
+                    // Finalmente agregamos el item al contenedor
+                    $('#listaDefectosContainer').append($defectoItem);
+
+                    // Crear inputs ocultos para enviar en el formulario
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: `defectos[${index}][nombre]`,
+                        value: defecto.nombre
+                    }).appendTo('#guardarFormulario');
+
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: `defectos[${index}][cantidad]`,
+                        value: defecto.cantidad || 0
+                    }).appendTo('#guardarFormulario');
+                });
+            }
+
             // Cargar defectos mediante AJAX
             $.ajax({
                 url: "{{ route('obtenerDefectosEtiquetas') }}",
@@ -261,6 +345,8 @@
                                 text: 'OTRO'
                             })
                         );
+
+                        // Agregar defectos retornados por AJAX
                         response.forEach(function(defecto) {
                             $('#defectosSelect').append(
                                 $('<option>', {
@@ -269,21 +355,23 @@
                                 })
                             );
                         });
-        
-                        
                     }
                 },
                 error: function(xhr) {
                     console.log("Error al cargar defectos:", xhr.responseText);
                 }
             });
-        
-            // Detectar cuando se selecciona la opción "OTRO"
+
+            // Detectar cuando se selecciona algo en el select de defectos
             $('#defectosSelect').on('change', function() {
-                if ($(this).val() === 'otro') {
-                    // Mostrar modal para capturar nuevo defecto
+                let seleccionado = $(this).val();
+                let textoSeleccionado = $(this).find('option:selected').text();
+
+                // Verificar si se selecciona la opción 'OTRO'
+                if (seleccionado === 'otro') {
+                    // Mostrar prompt para capturar nuevo defecto
                     let nuevoDefecto = prompt("Por favor, introduce el nuevo defecto:");
-        
+
                     if (nuevoDefecto) {
                         // Petición AJAX para guardar el nuevo defecto
                         $.ajax({
@@ -320,6 +408,33 @@
                     } else {
                         // Si el usuario no introduce nada, reiniciamos el select
                         $('#defectosSelect').val(null).trigger('change');
+                    }
+                }
+                else if (seleccionado) {
+                    // Si NO es "otro" y es un defecto válido
+                    // Verificar si ya existe en defectosSeleccionados
+                    let existe = defectosSeleccionados.some(function(def) {
+                        return def.id == seleccionado;
+                    });
+
+                    if (!existe) {
+                        // 1. Agregamos el defecto al arreglo
+                        defectosSeleccionados.push({
+                            id: seleccionado,
+                            nombre: textoSeleccionado
+                        });
+
+                        // 2. Removemos la opción del select para no volver a seleccionarla
+                        $(this).find('option[value="' + seleccionado + '"]').remove();
+
+                        // 3. Limpiamos el valor del select para que quede en placeholder
+                        $(this).val(null).trigger('change');
+
+                        // 4. Renderizamos la lista
+                        renderizarListaDefectos();
+                    } else {
+                        // Si ya existe, simplemente podemos resetear el select
+                        $(this).val(null).trigger('change');
                     }
                 }
             });
