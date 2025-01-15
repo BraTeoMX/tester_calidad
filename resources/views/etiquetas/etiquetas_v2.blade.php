@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageSlug' => 'Gestion', 'titlePage' => __('Gestion')])
+@extends('layouts.app', ['pageSlug' => 'Etiquetas', 'titlePage' => __('Etiquetas')])
 
 @section('content')
     @if (session('success'))
@@ -18,7 +18,7 @@
     @endif
 
     <div class="row">
-        <div class="card card-chart">
+        <div class="card">
             <div class="card-header">
                 <h2>Auditoria Etiquetas</h2>
             </div>
@@ -145,7 +145,61 @@
                 @else
                     <h4 class="mt-4">No se encontraron estilos.</h4>
                 @endif
-            </div>            
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="card">
+            <div class="card-header">
+                <h2>Registros del dia</h2>
+            </div>
+            <div class="card-body">
+                @if($registrosDelDia->isNotEmpty())
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Orden</th>
+                                    <th>Estilo</th>
+                                    <th>Color</th>
+                                    <th>Cantidad</th>
+                                    <th>Muestreo</th>
+                                    <th>Estatus</th>
+                                    <th>Defectos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($registrosDelDia as $registro)
+                                    <tr>
+                                        <td>{{ $registro->tipo }}</td>
+                                        <td>{{ $registro->orden }}</td>
+                                        <td>{{ $registro->estilo }}</td>
+                                        <td>{{ $registro->color }}</td>
+                                        <td>{{ $registro->cantidad }}</td>
+                                        <td>{{ $registro->muestreo }}</td>
+                                        <td>{{ $registro->estatus }}</td>
+                                        <td>
+                                            @if($registro->defectos->isNotEmpty())
+                                                <ul>
+                                                    @foreach($registro->defectos as $defecto)
+                                                        <li>{{ $defecto->nombre }} ({{ $defecto->cantidad }})</li>
+                                                    @endforeach
+                                                </ul>
+                                            @else
+                                                Sin defectos
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <p>No se encontraron registros para el día de hoy.</p>
+                @endif
+            </div>
         </div>
     </div>
 
@@ -283,7 +337,7 @@
 
                     // Input numérico visible
                     let $inputCantidad = $('<input type="number" min="0" step="1" style="width: 80px; margin-right: 5px;">')
-                        .val(defecto.cantidad || 0)
+                        .val(defecto.cantidad || 1)
                         .on('input', function() {
                             // Actualizamos la cantidad en el array
                             defecto.cantidad = $(this).val();
@@ -325,7 +379,7 @@
                     let $inputOcultoCantidad = $('<input>').attr({
                         type: 'hidden',
                         name: `defectos[${index}][cantidad]`,
-                        value: defecto.cantidad || 0
+                        value: defecto.cantidad || 1
                     });
 
                     // Agregamos todo al defecto-item

@@ -21,11 +21,18 @@ class EtiquetasV2Controller extends Controller
     // Función para mostrar la vista principal
     public function etiquetas_v2()
     {
+        // Obtén los registros del día actual y sus defectos asociados
+        $registrosDelDia = ReporteAuditoriaEtiqueta::whereDate('created_at', Carbon::today())
+            ->with('defectos') // Relación con TpReporteAuditoriaEtiqueta
+            ->get();
+
+        // Retorna la vista con los datos
         return view('etiquetas.etiquetas_v2', [
             'title' => '',
             'estilos' => session('estilos', collect([])),
             'tipoBusqueda' => session('tipoBusqueda', null),
             'orden' => session('orden', null),
+            'registrosDelDia' => $registrosDelDia, // Pasa los registros a la vista
         ]);
     }
 
