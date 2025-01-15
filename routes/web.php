@@ -385,3 +385,6 @@ Route::get('/etiquetas_v2/tallas', [EtiquetasV2Controller::class, 'ajaxGetTallas
 
 // Ruta AJAX para la cantidad y tamaño de muestra
 Route::get('/etiquetas_v2/data', [EtiquetasV2Controller::class, 'ajaxGetData'])->name('ajaxGetData');
+Route::get('/obtener-defectos-etiquetas', [EtiquetasV2Controller::class, 'obtenerDefectosEtiquetas'])->name('obtenerDefectosEtiquetas');
+Route::post('/guardar-defecto-etiqueta', [EtiquetasV2Controller::class, 'guardarDefectoEtiqueta'])->name('guardarDefectoEtiqueta');
+

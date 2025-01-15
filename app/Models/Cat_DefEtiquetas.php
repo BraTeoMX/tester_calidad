@@ -12,5 +12,6 @@ class Cat_DefEtiquetas extends Model
     protected $fillable = [
     'id',
     'Defectos',
+    'estatus'
     ];
 }

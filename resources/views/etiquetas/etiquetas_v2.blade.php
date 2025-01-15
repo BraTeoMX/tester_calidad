@@ -69,6 +69,8 @@
                                     <th style="min-width: 150px;">Color</th>
                                     <th style="min-width: 150px;">Cantidad</th>
                                     <th style="min-width: 180px;">Tamaño de Muestra</th>
+                                    <th style="min-width: 200px;">Defectos</th>
+                                    <th style="min-width: 200px;">Acciones Correctivas</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -94,17 +96,34 @@
 
                                     <!-- Input Color -->
                                     <td>
-                                        <input type="text" class="form-control" id="colorInput" readonly>
+                                        <input type="text" class="form-control texto-blanco" id="colorInput" readonly>
                                     </td>
 
                                     <!-- Input Cantidad -->
                                     <td>
-                                        <input type="text" class="form-control" id="cantidadInput" readonly>
+                                        <input type="text" class="form-control texto-blanco" id="cantidadInput" readonly>
                                     </td>
 
                                     <!-- Input Tamaño de Muestra -->
                                     <td>
-                                        <input type="text" class="form-control" id="tamanoMuestraInput" readonly>
+                                        <input type="text" class="form-control texto-blanco" id="tamanoMuestraInput" readonly>
+                                    </td>
+
+                                    <!-- Select Defectos (con AJAX y Select2) -->
+                                    <td>
+                                        <select id="defectosSelect" class="form-control">
+                                            <option value="">-- Seleccionar Defectos --</option>
+                                        </select>
+                                    </td>
+
+                                    <!-- Select Acciones Correctivas -->
+                                    <td>
+                                        <select id="accionesSelect" class="form-control">
+                                            <option value="">-- Seleccionar --</option>
+                                            <option value="Aprobado">Aprobado</option>
+                                            <option value="Aprobado con condiciones">Aprobado con condiciones</option>
+                                            <option value="Rechazado">Rechazado</option>
+                                        </select>
                                     </td>
                                 </tr>
                             </tbody>
@@ -123,97 +142,189 @@
             background-color: #59666e54;
             color: #333; /* Color del texto */
         }
+        .texto-blanco {
+            color: white !important;
+        }
+
     </style>
 
     <script>
-    $(document).ready(function(){
-        // Inicia select2 (opcional si usas select2)
-        $('#estilosSelect').select2();
-        $('#tallaSelect').select2();
+        $(document).ready(function(){
+            // Inicia select2 (opcional si usas select2)
+            $('#estilosSelect').select2();
+            $('#tallaSelect').select2();
 
-        // Cuando cambia el Estilo
-        $('#estilosSelect').on('change', function() {
-            var estiloSeleccionado = $(this).val();
-            var tipoBusqueda       = $('#tipoEtiqueta').val(); // asumiendo que tienes este input
-            var orden             = $('#valorEtiqueta').val(); // asumiendo que tienes este input
+            // Cuando cambia el Estilo
+            $('#estilosSelect').on('change', function() {
+                var estiloSeleccionado = $(this).val();
+                var tipoBusqueda       = $('#tipoEtiqueta').val(); // asumiendo que tienes este input
+                var orden             = $('#valorEtiqueta').val(); // asumiendo que tienes este input
 
-            // Limpiar el segundo select y los inputs
-            $('#tallaSelect').html('<option value="">-- Seleccionar --</option>');
-            $('#tallaSelect').prop('disabled', true).trigger('change'); 
-            $('#colorInput').val('');       // limpiamos color
-            $('#cantidadInput').val('');
-            $('#tamanoMuestraInput').val('');
+                // Limpiar el segundo select y los inputs
+                $('#tallaSelect').html('<option value="">-- Seleccionar --</option>');
+                $('#tallaSelect').prop('disabled', true).trigger('change'); 
+                $('#colorInput').val('');       // limpiamos color
+                $('#cantidadInput').val('');
+                $('#tamanoMuestraInput').val('');
 
-            if(!estiloSeleccionado) return;
+                if(!estiloSeleccionado) return;
 
-            // Petición AJAX para obtener Tallas
+                // Petición AJAX para obtener Tallas
+                $.ajax({
+                    url: "{{ route('ajaxGetTallas') }}", // Ajusta tu ruta
+                    method: 'GET',
+                    data: {
+                        tipoBusqueda: tipoBusqueda,
+                        orden:       orden,
+                        estilo:      estiloSeleccionado
+                    },
+                    success: function(response) {
+                        if(response.success) {
+                            // Llenamos el select de Tallas
+                            var tallas = response.tallas;
+                            tallas.forEach(function(t) {
+                                $('#tallaSelect').append(
+                                    $('<option>', { value: t, text: t })
+                                );
+                            });
+                            $('#tallaSelect').prop('disabled', false).trigger('change');
+                        }
+                    },
+                    error: function(xhr) {
+                        console.log(xhr.responseText);
+                    }
+                });
+            });
+
+            // Cuando cambia la Talla
+            $('#tallaSelect').on('change', function() {
+                var tallaSeleccionada  = $(this).val();
+                var estiloSeleccionado = $('#estilosSelect').val();
+                var tipoBusqueda       = $('#tipoEtiqueta').val();
+                var orden             = $('#valorEtiqueta').val();
+
+                // Limpiar inputs
+                $('#colorInput').val('');
+                $('#cantidadInput').val('');
+                $('#tamanoMuestraInput').val('');
+
+                if(!tallaSeleccionada || !estiloSeleccionado) return;
+
+                // Petición AJAX para obtener Cantidad, Tamaño de muestra y Color
+                $.ajax({
+                    url: "{{ route('ajaxGetData') }}", // Ajusta tu ruta
+                    method: 'GET',
+                    data: {
+                        tipoBusqueda: tipoBusqueda,
+                        orden:       orden,
+                        estilo:      estiloSeleccionado,
+                        talla:       tallaSeleccionada
+                    },
+                    success: function(response) {
+                        if(response.success && response.data) {
+                            $('#colorInput').val(response.data.color); // Asignar color
+                            $('#cantidadInput').val(response.data.cantidad);
+                            $('#tamanoMuestraInput').val(response.data.tamaño_muestra);
+                        } else {
+                            // No encontró data
+                            $('#colorInput').val('N/A');
+                            $('#cantidadInput').val('0');
+                            $('#tamanoMuestraInput').val('');
+                        }
+                    },
+                    error: function(xhr) {
+                        console.log(xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            // Inicializar Select2 en el select de defectos
+            $('#defectosSelect').select2({
+                placeholder: '-- Seleccionar Defectos --',
+                allowClear: true,
+            });
+        
+            // Cargar defectos mediante AJAX
             $.ajax({
-                url: "{{ route('ajaxGetTallas') }}", // Ajusta tu ruta
+                url: "{{ route('obtenerDefectosEtiquetas') }}",
                 method: 'GET',
-                data: {
-                    tipoBusqueda: tipoBusqueda,
-                    orden:       orden,
-                    estilo:      estiloSeleccionado
-                },
                 success: function(response) {
-                    if(response.success) {
-                        // Llenamos el select de Tallas
-                        var tallas = response.tallas;
-                        tallas.forEach(function(t) {
-                            $('#tallaSelect').append(
-                                $('<option>', { value: t, text: t })
+                    if (response) {
+                        // Agregar la opción "OTRO"
+                        $('#defectosSelect').append(
+                            $('<option>', {
+                                value: 'otro',
+                                text: 'OTRO'
+                            })
+                        );
+                        response.forEach(function(defecto) {
+                            $('#defectosSelect').append(
+                                $('<option>', {
+                                    value: defecto.id,
+                                    text: defecto.Defectos
+                                })
                             );
                         });
-                        $('#tallaSelect').prop('disabled', false).trigger('change');
+        
+                        
                     }
                 },
                 error: function(xhr) {
-                    console.log(xhr.responseText);
+                    console.log("Error al cargar defectos:", xhr.responseText);
                 }
             });
-        });
+        
+            // Detectar cuando se selecciona la opción "OTRO"
+            $('#defectosSelect').on('change', function() {
+                if ($(this).val() === 'otro') {
+                    // Mostrar modal para capturar nuevo defecto
+                    let nuevoDefecto = prompt("Por favor, introduce el nuevo defecto:");
+        
+                    if (nuevoDefecto) {
+                        // Petición AJAX para guardar el nuevo defecto
+                        $.ajax({
+                            url: "{{ route('guardarDefectoEtiqueta') }}",
+                            method: 'POST',
+                            data: {
+                                _token: "{{ csrf_token() }}",
+                                Defectos: nuevoDefecto
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    alert("El defecto se ha guardado correctamente.");
 
-        // Cuando cambia la Talla
-        $('#tallaSelect').on('change', function() {
-            var tallaSeleccionada  = $(this).val();
-            var estiloSeleccionado = $('#estilosSelect').val();
-            var tipoBusqueda       = $('#tipoEtiqueta').val();
-            var orden             = $('#valorEtiqueta').val();
+                                    // Agregar el nuevo defecto al select y seleccionarlo
+                                    $('#defectosSelect').append(
+                                        $('<option>', {
+                                            value: response.id,
+                                            text: nuevoDefecto
+                                        })
+                                    );
 
-            // Limpiar inputs
-            $('#colorInput').val('');
-            $('#cantidadInput').val('');
-            $('#tamanoMuestraInput').val('');
-
-            if(!tallaSeleccionada || !estiloSeleccionado) return;
-
-            // Petición AJAX para obtener Cantidad, Tamaño de muestra y Color
-            $.ajax({
-                url: "{{ route('ajaxGetData') }}", // Ajusta tu ruta
-                method: 'GET',
-                data: {
-                    tipoBusqueda: tipoBusqueda,
-                    orden:       orden,
-                    estilo:      estiloSeleccionado,
-                    talla:       tallaSeleccionada
-                },
-                success: function(response) {
-                    if(response.success && response.data) {
-                        $('#colorInput').val(response.data.color); // Asignar color
-                        $('#cantidadInput').val(response.data.cantidad);
-                        $('#tamanoMuestraInput').val(response.data.tamaño_muestra);
+                                    // Seleccionar el nuevo defecto automáticamente
+                                    $('#defectosSelect').val(response.id).trigger('change');
+                                } else {
+                                    alert("Ocurrió un error al guardar el defecto.");
+                                }
+                            },
+                            error: function(xhr) {
+                                console.log("Estado del error:", xhr.status);
+                                console.log("Detalle del error:", xhr.responseText);
+                                alert("Ocurrió un error. Inténtalo de nuevo.");
+                            }
+                        });
                     } else {
-                        // No encontró data
-                        $('#colorInput').val('N/A');
-                        $('#cantidadInput').val('0');
-                        $('#tamanoMuestraInput').val('');
+                        // Si el usuario no introduce nada, reiniciamos el select
+                        $('#defectosSelect').val(null).trigger('change');
                     }
-                },
-                error: function(xhr) {
-                    console.log(xhr.responseText);
                 }
             });
         });
-    });
     </script>
+    
+    
 @endsection

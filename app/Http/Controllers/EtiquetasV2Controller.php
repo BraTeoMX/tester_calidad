@@ -297,4 +297,33 @@ class EtiquetasV2Controller extends Controller
         return '';
     }
 
+    public function obtenerDefectosEtiquetas()
+    {
+        $tiposDefectos = Cat_DefEtiquetas::where('estatus', 1)
+            ->get();
+
+        return response()->json($tiposDefectos);
+    }
+
+    public function guardarDefectoEtiqueta(Request $request)
+    {
+        // Validar que el campo Defectos no esté vacío
+        $request->validate([
+            'Defectos' => 'required|string|max:255',
+        ]);
+
+        // Crear un nuevo defecto
+        $defecto = Cat_DefEtiquetas::create([
+            'Defectos' => $request->input('Defectos'),
+            'estatus'  => 1 // Asumiendo que "1" es activo
+        ]);
+
+        // Devolver respuesta JSON
+        return response()->json([
+            'success' => true,
+            'id'      => $defecto->id
+        ]);
+    }
+
+
 }
