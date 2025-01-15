@@ -340,6 +340,7 @@ class EtiquetasV2Controller extends Controller
             'estatus' => $request->accion_correctiva,
         ]);
 
+        //dd($request->has('defectos'));
         // Guardar los defectos asociados, solo si existen
         if ($request->has('defectos')) {
             foreach ($request->defectos as $defecto) {
@@ -350,7 +351,7 @@ class EtiquetasV2Controller extends Controller
                 ]);
             }
         }
-        dd($request->has('defectos'));
+        
 
         return redirect()->back()->with('success', 'Auditoría guardada correctamente.');
     }

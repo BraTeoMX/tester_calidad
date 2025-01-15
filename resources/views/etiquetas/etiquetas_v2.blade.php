@@ -59,7 +59,7 @@
                 @if(isset($estilos) && $estilos->count() > 0)
                     <h4 class="mt-4">Estilos encontrados:</h4>
                     <!-- Formulario para enviar los datos al controlador -->
-                    <form action="{{ route('guardarAuditoriaEtiqueta') }}" method="POST">
+                    <form id="guardarFormulario"  action="{{ route('guardarAuditoriaEtiqueta') }}" method="POST">
                         @csrf
                         <!-- Inputs ocultos para enviar el tipo de búsqueda y el valor de la orden -->
                         <input type="hidden" name="tipoEtiqueta" value="{{ old('tipoEtiqueta', $tipoBusqueda) }}">
@@ -272,32 +272,35 @@
                 // Limpiar inputs ocultos existentes en el formulario
                 $('#guardarFormulario input[name^="defectos"]').remove();
 
-                // Recorrer cada defecto en el arreglo y crear un “item” en la lista
+                // Recorrer cada defecto en el arreglo
                 defectosSeleccionados.forEach(function(defecto, index) {
-                    // Estructura contenedora de cada fila de defecto
+                    // Contenedor principal
                     let $defectoItem = $('<div class="defecto-item" style="margin-bottom: 5px;">');
 
-                    // Span con el nombre del defecto
-                    let $nombreDefecto = $('<span style="margin-right: 5px;">').text(defecto.nombre + ':');
+                    // Nombre del defecto
+                    let $nombreDefecto = $('<span style="margin-right: 5px;">')
+                        .text(defecto.nombre + ':');
 
-                    // Input numérico para la cantidad
+                    // Input numérico visible
                     let $inputCantidad = $('<input type="number" min="0" step="1" style="width: 80px; margin-right: 5px;">')
                         .val(defecto.cantidad || 0)
                         .on('input', function() {
+                            // Actualizamos la cantidad en el array
                             defecto.cantidad = $(this).val();
+                            // También actualizamos el input oculto
+                            $inputOcultoCantidad.val(defecto.cantidad);
                         });
 
                     // Botón para eliminar
                     let $btnEliminar = $('<button class="btn btn-sm btn-danger">').text('Eliminar');
 
-                    // Evento click para eliminar el defecto de la lista
                     $btnEliminar.on('click', function() {
-                        // Remover del arreglo "defectosSeleccionados"
+                        // Remover del arreglo principal
                         defectosSeleccionados = defectosSeleccionados.filter(function(item) {
                             return item.id !== defecto.id;
                         });
 
-                        // Devolver la opción eliminada al select
+                        // Devolver la opción al select
                         $('#defectosSelect').append(
                             $('<option>', {
                                 value: defecto.id,
@@ -305,30 +308,37 @@
                             })
                         );
 
-                        // Volver a renderizar la lista
+                        // Volver a dibujar
                         renderizarListaDefectos();
                     });
 
-                    // Agregamos todo al item
+                    // --- Inputs ocultos para envío en el formulario --- //
+                    // Nombre
+                    let $inputOcultoNombre = $('<input>').attr({
+                        type: 'hidden',
+                        name: `defectos[${index}][nombre]`,
+                        value: defecto.nombre
+                    });
+
+                    // Cantidad (se creará con el valor inicial
+                    // y se actualiza en el on('input') anterior)
+                    let $inputOcultoCantidad = $('<input>').attr({
+                        type: 'hidden',
+                        name: `defectos[${index}][cantidad]`,
+                        value: defecto.cantidad || 0
+                    });
+
+                    // Agregamos todo al defecto-item
                     $defectoItem.append($nombreDefecto);
                     $defectoItem.append($inputCantidad);
                     $defectoItem.append($btnEliminar);
 
-                    // Finalmente agregamos el item al contenedor
+                    // Agregamos el item al contenedor en la vista
                     $('#listaDefectosContainer').append($defectoItem);
 
-                    // Crear inputs ocultos para enviar en el formulario
-                    $('<input>').attr({
-                        type: 'hidden',
-                        name: `defectos[${index}][nombre]`,
-                        value: defecto.nombre
-                    }).appendTo('#guardarFormulario');
-
-                    $('<input>').attr({
-                        type: 'hidden',
-                        name: `defectos[${index}][cantidad]`,
-                        value: defecto.cantidad || 0
-                    }).appendTo('#guardarFormulario');
+                    // Agregamos los inputs ocultos directamente al formulario
+                    $('#guardarFormulario').append($inputOcultoNombre);
+                    $('#guardarFormulario').append($inputOcultoCantidad);
                 });
             }
 
