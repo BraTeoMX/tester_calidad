@@ -172,7 +172,7 @@
                             </thead>
                             <tbody>
                                 @foreach($registrosDelDia as $registro)
-                                    <tr>
+                                    <tr class="{{ $registro->isRechazado ? 'table-danger1' : '' }}">
                                         <td>{{ $registro->tipo }}</td>
                                         <td>{{ $registro->orden }}</td>
                                         <td>{{ $registro->estilo }}</td>
@@ -217,6 +217,11 @@
         }
         .texto-blanco {
             color: white !important;
+        }
+
+        .table-danger1 {
+            background-color: #580202  !important; /* Rojo oscuro */
+            color: #ffffff; /* Texto blanco para contraste */
         }
 
     </style>

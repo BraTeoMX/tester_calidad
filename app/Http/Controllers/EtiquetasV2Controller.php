@@ -23,19 +23,23 @@ class EtiquetasV2Controller extends Controller
     {
         // Obtén los registros del día actual y sus defectos asociados
         $registrosDelDia = ReporteAuditoriaEtiqueta::whereDate('created_at', Carbon::today())
-        ->with('defectos') // Relación con TpReporteAuditoriaEtiqueta
-        ->get()
-        ->map(function ($registro) {
-            // Si no hay defectos, asigna "Sin defectos"
-            $registro->defectos_formateados = $registro->defectos->isNotEmpty()
-                ? $registro->defectos->map(fn($defecto) => "{$defecto->nombre} ({$defecto->cantidad})")->toArray()
-                : ['Sin defectos'];
+            ->with('defectos') // Relación con TpReporteAuditoriaEtiqueta
+            ->get()
+            ->map(function ($registro) {
+                // Si no hay defectos, asigna "Sin defectos"
+                $registro->defectos_formateados = $registro->defectos->isNotEmpty()
+                    ? $registro->defectos->map(fn($defecto) => "{$defecto->nombre} ({$defecto->cantidad})")->toArray()
+                    : ['Sin defectos'];
 
-            // Si el comentario es NULL, asigna "N/A"
-            $registro->comentario = $registro->comentario ?? 'N/A';
+                // Si el comentario es NULL, asigna "N/A"
+                $registro->comentario = $registro->comentario ?? 'N/A';
 
-            return $registro;
-        });
+                // Agrega el indicador "isRechazado" para registros con estatus = "Rechazado"
+                $registro->isRechazado = $registro->estatus === 'Rechazado';
+
+                return $registro;
+            });
+
         // Retorna la vista con los datos
         return view('etiquetas.etiquetas_v2', [
             'title' => '',
