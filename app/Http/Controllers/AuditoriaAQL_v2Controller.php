@@ -161,6 +161,33 @@ class AuditoriaAQL_v2Controller extends Controller
             'data', 'resultadoFinal'));
     }
 
+    public function obtenerAQLenProceso(Request $request)
+    {
+        // Datos de entrada
+        $fechaActual = now()->toDateString(); 
+        $tipoUsuario = Auth::user()->puesto; 
+        $auditorDato = Auth::user()->name; 
+
+        // Construimos la consulta
+        $procesoActualAQL = AuditoriaAQL::whereNull('estatus')
+            ->where('area', 'AUDITORIA AQL')
+            ->whereDate('created_at', $fechaActual)
+            ->select('modulo', 'op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
+            ->distinct()
+            ->orderBy('modulo', 'asc');
+
+        // Aplicar filtro si no es Administrador o Gerente de Calidad
+        if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
+            $procesoActualAQL->where('auditor', $auditorDato);
+        }
+
+        // Ejecutar la consulta
+        $procesos = $procesoActualAQL->get();
+
+        // Retornar la respuesta
+        return response()->json($procesos);
+    }
+
     public function obtenerOpcionesOP(Request $request)
     {
         $query = $request->input('search', '');
@@ -312,7 +339,7 @@ class AuditoriaAQL_v2Controller extends Controller
     {
         try {
             // Registrar los datos recibidos en el archivo de log
-            Log::info('Aqui va bien, donde rompe?:');
+            //Log::info('Aqui va bien, donde rompe?:');
             //Log::info('Datos recibidos en guardarRegistrosAql:', $request->selectedNombre);
             $fechaHoraActual= now();
 
@@ -336,14 +363,14 @@ class AuditoriaAQL_v2Controller extends Controller
             $nombreFinal = $request->selectedNombre;
             $nombreFinalValidado = null;
             $numeroEmpleado = null;
-            Log::info('Antes del if');
+            //Log::info('Antes del if');
             if ($nombreFinal && is_array($nombreFinal)) {
-                Log::info('Inicia procesamiento de nombres:', $nombreFinal);
+                //Log::info('Inicia procesamiento de nombres:', $nombreFinal);
                 $nombresValidados = [];
                 $numerosEmpleados = [];
     
                 foreach ($nombreFinal as $nombre) {
-                    Log::info('Procesando nombre individual:', ['nombre' => $nombre]);
+                    //Log::info('Procesando nombre individual:', ['nombre' => $nombre]);
                     $nombreValidado = trim($nombre);
                     $nombresValidados[] = $nombreValidado;
     
@@ -363,7 +390,7 @@ class AuditoriaAQL_v2Controller extends Controller
                 $nombreFinalValidado = implode(', ', $nombresValidados);
                 $numeroEmpleado = implode(', ', $numerosEmpleados);
             }
-            Log::info('despues del if y comeinza el new de nuevos registros');
+            //Log::info('despues del if y comeinza el new de nuevos registros');
     
             //Log::info('Nombres validados:', $nombresValidados);
             //Log::info('Números de empleados:', $numerosEmpleados);
@@ -387,7 +414,7 @@ class AuditoriaAQL_v2Controller extends Controller
             $nuevoRegistro->talla = $request->talla;
             $nuevoRegistro->cantidad_auditada = $request->cantidad_auditada;
             $nuevoRegistro->cantidad_rechazada = $request->cantidad_rechazada;
-            Log::info('antes del if del registro');
+            //Log::info('antes del if del registro');
             if($request->cantidad_rechazada > 0){
                 $nuevoRegistro->inicio_paro = Carbon::now();
             }
@@ -430,9 +457,6 @@ class AuditoriaAQL_v2Controller extends Controller
                 $nuevoTp->tp = $valorTp;
                 $nuevoTp->save();
             }
-            Log::info('fin del new registro');
-            // Registrar confirmación de éxito
-            //Log::info('Registro guardado correctamente:', $validatedData);
 
             return response()->json(['message' => 'Datos guardados correctamente.'], 200);
         } catch (\Exception $e) {
@@ -535,33 +559,14 @@ class AuditoriaAQL_v2Controller extends Controller
     public function finalizarParoAQL(Request $request)
     {
         try {
-            // 🔍 Log del request completo
-            Log::info('Datos recibidos en finalizarParoAQL:', $request->all());
-
-            // 🔍 Log de validación exitosa
-            Log::info('Validación exitosa. ID recibido: ' . $request->id);
-
-            // 🔍 Buscar el registro por ID
             $registro = AuditoriaAQL::findOrFail($request->id);
-            Log::info('Registro encontrado:', $registro->toArray());
-
-            // 🔍 Actualizar la columna fin_paro con la fecha y hora actual
             $registro->fin_paro = Carbon::now();
 
-            // 🔍 Calcular la duración del paro en minutos
             $inicioParo = Carbon::parse($registro->inicio_paro);
             $finParo = Carbon::parse($registro->fin_paro);
             $registro->minutos_paro = $inicioParo->diffInMinutes($finParo);
-            Log::info('Minutos de paro calculados: ' . $registro->minutos_paro);
-
-            // 🔍 Almacenar la cantidad de piezas reparadas
             $registro->reparacion_rechazo = $request->piezasReparadas;
-            Log::info('Piezas reparadas almacenadas: ' . $registro->reparacion_rechazo);
-
-            // 🔍 Guardar los cambios en la base de datos
             $registro->save();
-
-            Log::info('Registro actualizado y guardado correctamente.');
 
             return response()->json([
                 'success' => true,
@@ -571,7 +576,6 @@ class AuditoriaAQL_v2Controller extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error en finalizarParoAQL:', ['error' => $e->getMessage()]);
 
             return response()->json([
                 'success' => false,

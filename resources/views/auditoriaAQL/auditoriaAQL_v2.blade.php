@@ -31,6 +31,26 @@
             {{ session('cambio-estatus') }}
         </div>
     @endif
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Seleccionamos todos los elementos de alerta
+            const alerts = document.querySelectorAll('.alert');
+    
+            // Iteramos por cada alerta para aplicar el desvanecido
+            alerts.forEach(alert => {
+                // Esperamos 6 segundos antes de iniciar el desvanecido
+                setTimeout(() => {
+                    // Cambiamos la opacidad para el efecto de desvanecido
+                    alert.style.transition = 'opacity 1s ease';
+                    alert.style.opacity = '0';
+    
+                    // Eliminamos el elemento del DOM después de 1 segundo (duración del desvanecido)
+                    setTimeout(() => alert.remove(), 1000);
+                }, 5000); // Tiempo de espera antes de desvanecer (6 segundos)
+            });
+        });
+    </script>
+    
     <style>
         .alerta-exito {
             background-color: #32CD32;
@@ -163,9 +183,37 @@
                             <h3 class="card-title">AUDITORIA AQL</h3>
                         </div>
                         <div class="col-auto">
-                            <h4>
-                                Fecha: {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
-                            </h4>
+                            <!-- Botón para abrir el modal -->
+                            <button type="button" class="btn btn-link" id="openModalAQL">
+                                <h4>Fecha: {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}</h4>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Modal -->
+                    <div id="customModalAQL" class="custom-modal">
+                        <div class="custom-modal-content">
+                            <div class="custom-modal-header">
+                                <h5 class="modal-title texto-blanco">Detalles del Proceso</h5>
+                                <button id="closeModalAQL" class="btn btn-danger">CERRAR</button>
+                            </div>
+                            <div class="custom-modal-body">
+                                <!-- Contenido de la tabla -->
+                                <div class="table-responsive">
+                                    <input type="text" id="searchInputAQL" class="form-control mb-3" placeholder="Buscar Módulo u OP">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Accion</th>
+                                                <th>Módulo</th>
+                                                <th>OP</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaProcesosAQL">
+                                            <!-- Aquí se insertarán dinámicamente las filas -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1618,6 +1666,66 @@
 
             // Inicialización
             cargarRegistros();
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const openModalBtn = document.getElementById('openModalAQL');
+            const closeModalBtn = document.getElementById('closeModalAQL');
+            const modal = document.getElementById('customModalAQL');
+            const tbody = document.getElementById('tablaProcesosAQL');
+
+            // Abrir el modal y cargar los datos con AJAX
+            openModalBtn.addEventListener('click', function () {
+                modal.style.display = 'block';
+
+                // Hacer la petición AJAX
+                fetch('{{ route('auditoriaAQL.obtenerAQLenProceso') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({})
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Limpiar la tabla
+                        tbody.innerHTML = '';
+
+                        // Insertar las filas dinámicamente
+                        data.forEach(proceso => {
+                            const row = `
+                                <tr>
+                                    <td>
+                                        <form method="POST" action="{{ route('auditoriaAQL.formAltaProcesoAQL_v2') }}">
+                                            @csrf
+                                            <input type="hidden" name="modulo" value="${proceso.modulo}">
+                                            <input type="hidden" name="op" value="${proceso.op}">
+                                            <input type="hidden" name="estilo" value="${proceso.estilo}">
+                                            <input type="hidden" name="cliente" value="${proceso.cliente}">
+                                            <input type="hidden" name="team_leader" value="${proceso.team_leader}">
+                                            <input type="hidden" name="gerente_produccion" value="${proceso.gerente_produccion}">
+                                            <input type="hidden" name="auditor" value="${proceso.auditor}">
+                                            <input type="hidden" name="turno" value="${proceso.turno}">
+                                            <button type="submit" class="btn btn-primary">Acceder</button>
+                                        </form>
+                                    </td>
+                                    <td>${proceso.modulo}</td>
+                                    <td>${proceso.op}</td>
+                                </tr>
+                            `;
+                            tbody.innerHTML += row;
+                        });
+                    })
+                    .catch(error => console.error('Error al cargar los procesos:', error));
+            });
+
+            // Cerrar el modal
+            closeModalBtn.addEventListener('click', function () {
+                modal.style.display = 'none';
+            });
         });
     </script>
 @endsection

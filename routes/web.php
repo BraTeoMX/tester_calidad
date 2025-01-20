@@ -371,6 +371,8 @@ Route::get('/RechazosParoAQL_v2', [AuditoriaAQL_v2Controller::class, 'RechazosPa
 Route::post('/cargarOrdenesOP_v2', [AuditoriaAQL_v2Controller::class, 'metodoNombre_v2'])->name('metodoNombre_v2');
 Route::post('/categoria-tipo-problema-aql_v2', [AuditoriaAQL_v2Controller::class, 'storeCategoriaTipoProblemaAQL'])->name('categoria_tipo_problema_aql.store_v2');
 Route::get('/get-bultos-by-op_v2', [AuditoriaAQL_v2Controller::class, 'getBultosByOp_v2'])->name('getBultosByOp_v2');
+Route::post('/auditoriaAQL_v2/obtenerAQLenProceso', [AuditoriaAQL_v2Controller::class, 'obtenerAQLenProceso'])->name('auditoriaAQL.obtenerAQLenProceso');
+
 
 //apartado para las vistas de 
 Route::get('/consultaEstatus', [ConsutlaEstatusController::class, 'consultaEstatus'])->name('consultas.consultaEstatus');
