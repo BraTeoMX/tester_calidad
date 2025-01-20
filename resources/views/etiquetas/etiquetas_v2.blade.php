@@ -136,7 +136,7 @@
                                 </tbody>
                             </table>
                             <!-- Botón para enviar los datos -->
-                            <div class="text-right mt-3">
+                            <div class="mt-3">
                                 <button type="submit" class="btn btn-primary">Guardar Auditoría</button>
                             </div>
                         </div>

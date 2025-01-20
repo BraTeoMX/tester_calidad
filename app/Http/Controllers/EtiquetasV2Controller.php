@@ -54,9 +54,19 @@ class EtiquetasV2Controller extends Controller
         $tipoBusqueda = $request->input('tipoEtiqueta');
         $orden = $request->input('valorEtiqueta');
 
-        $conexion = null;
-        $campoBusqueda = null;
+        // Usamos la función que extrae toda la lógica de conexión
+        $estilos = $this->obtenerEstilos($tipoBusqueda, $orden);
 
+        // Redirigir a la vista principal con datos de sesión
+        return redirect()->route('etiquetas_v2')->with([
+            'estilos' => $estilos,
+            'tipoBusqueda' => $tipoBusqueda,
+            'orden' => $orden,
+        ]);
+    }
+
+    private function obtenerEstilos($tipoBusqueda, $orden)
+    {
         // Definir la conexión y el campo de búsqueda según el tipo de búsqueda
         if ($tipoBusqueda === 'OC') {
             $campoBusqueda = 'ordenCompra';
@@ -91,12 +101,7 @@ class EtiquetasV2Controller extends Controller
                 ->get();
         }
 
-        // Redirigir a la vista principal con datos de sesión flash
-        return redirect()->route('etiquetas_v2')->with([
-            'estilos' => $estilos,
-            'tipoBusqueda' => $tipoBusqueda,
-            'orden' => $orden,
-        ]);
+        return $estilos;
     }
 
     /**
@@ -377,7 +382,20 @@ class EtiquetasV2Controller extends Controller
             }
         }
 
-        return redirect()->back()->with('success', 'Auditoría guardada correctamente.');
+        // 2. Volvemos a obtener la lista de estilos usando la misma lógica
+        $tipoBusqueda = $request->tipoEtiqueta;
+        $orden = $request->valorEtiqueta;
+        $estilos = $this->obtenerEstilos($tipoBusqueda, $orden);
+
+        // 3. Redirigimos a la misma vista y llenamos la sesión con los datos.
+        return redirect()
+            ->route('etiquetas_v2')
+            ->with([
+                'estilos' => $estilos,
+                'tipoBusqueda' => $tipoBusqueda,
+                'orden' => $orden,
+            ])
+            ->with('success', 'Auditoría guardada correctamente.');
     }
 
 
