@@ -510,6 +510,20 @@ class DashboardPlanta1PorDiaController extends Controller
                 ->pluck('auditor')
                 ->implode(', ');
 
+            //
+            // Obtener supervisores únicos
+            $supervisoresUnicos = AuditoriaAQL::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->distinct()
+                ->pluck('team_leader')
+                ->implode(', ');
+
             // Obtener modulos únicos y otras métricas específicas para AQL
             $modulosUnicos = AuditoriaAQL::where('modulo', $modulo)
                 ->where('estilo', $estilo)
@@ -759,6 +773,7 @@ class DashboardPlanta1PorDiaController extends Controller
                 'modulo' => $modulo,
                 'estilo' => $estilo,
                 'auditoresUnicos' => $auditoresUnicos,
+                'supervisoresUnicos' => $supervisoresUnicos,
                 'modulosUnicos' => $modulosUnicos,
                 'sumaAuditadaAQL' => $sumaAuditadaAQL,
                 'sumaRechazadaAQL' => $sumaRechazadaAQL,
@@ -824,6 +839,20 @@ class DashboardPlanta1PorDiaController extends Controller
                 })
                 ->distinct()
                 ->pluck('auditor')
+                ->implode(', ');
+
+            //
+            // Obtener supervisores únicos
+            $supervisoresUnicos = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->whereDate('created_at', $fecha)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->distinct()
+                ->pluck('team_leader')
                 ->implode(', ');
 
             // Obtener el valor de cantidadRecorridos
@@ -1012,6 +1041,7 @@ class DashboardPlanta1PorDiaController extends Controller
                 'modulo' => $modulo,
                 'estilo' => $estilo,
                 'auditoresUnicos' => $auditoresUnicos,
+                'supervisoresUnicos' => $supervisoresUnicos,
                 'cantidadRecorridos' => $cantidadRecorridos,
                 'sumaAuditadaProceso' => $sumaAuditadaProceso,
                 'sumaRechazadaProceso' => $sumaRechazadaProceso,
@@ -1133,6 +1163,19 @@ class DashboardPlanta1PorDiaController extends Controller
                 })
                 ->distinct()
                 ->pluck('auditor')
+                ->implode(', ');
+            
+            //
+            $supervisoresUnicos = AuditoriaAQL::where('modulo', $modulo)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->distinct()
+                ->pluck('team_leader')
                 ->implode(', ');
 
             // Obtener modulos únicos y otras métricas específicas para AQL
@@ -1383,6 +1426,7 @@ class DashboardPlanta1PorDiaController extends Controller
                 'modulo' => $modulo,
                 'cliente' => $cliente,
                 'auditoresUnicos' => $auditoresUnicos,
+                'supervisoresUnicos' => $supervisoresUnicos,
                 'modulosUnicos' => $modulosUnicos,
                 'sumaAuditadaAQL' => $sumaAuditadaAQL,
                 'sumaRechazadaAQL' => $sumaRechazadaAQL,
@@ -1448,6 +1492,19 @@ class DashboardPlanta1PorDiaController extends Controller
                 })
                 ->distinct()
                 ->pluck('auditor')
+                ->implode(', ');
+
+            //
+            $supervisoresUnicos = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('cliente', $cliente)
+                ->whereBetween('created_at', $rangoFechas)
+                ->when(is_null($tiempoExtra), function($query) {
+                    return $query->whereNull('tiempo_extra');
+                }, function($query) use ($tiempoExtra) {
+                    return $query->where('tiempo_extra', $tiempoExtra);
+                })
+                ->distinct()
+                ->pluck('team_leader')
                 ->implode(', ');
 
             // Obtener el valor de cantidadRecorridos
@@ -1635,6 +1692,7 @@ class DashboardPlanta1PorDiaController extends Controller
                 'modulo' => $modulo,
                 'cliente' => $cliente,
                 'auditoresUnicos' => $auditoresUnicos,
+                'supervisoresUnicos' => $supervisoresUnicos,
                 'cantidadRecorridos' => $cantidadRecorridos,
                 'sumaAuditadaProceso' => $sumaAuditadaProceso,
                 'sumaRechazadaProceso' => $sumaRechazadaProceso,

@@ -545,6 +545,7 @@
                                     <tr>
                                         <th>Auditor</th>
                                         <th>Modulo (AQL)</th>
+                                        <th>Supervisor</th>
                                         <th>Estilo</th>
                                         <th>Numero de Operarios</th>
                                         <th>Cantidad Paro</th>
@@ -575,6 +576,7 @@
                                                     {{ $item['modulo'] }}
                                                 </button>
                                             </td>
+                                            <td>{{ $item['supervisoresUnicos'] }}</td>
                                             <td>{{ $item['estilosUnicos'] }}</td>
                                             <td>{{ $item['conteoOperario'] }}</td>
                                             <td>{{ $item['conteoMinutos'] }}</td>
@@ -618,6 +620,7 @@
                                     <tr>
                                         <th>Auditor</th>
                                         <th>Modulo</th>
+                                        <th>Supervisor</th>
                                         <th>Estilo</th>
                                         <th>Recorridos</th>
                                         <th>Numero de Operarios</th>
@@ -645,6 +648,7 @@
                                                     {{ $item['modulo'] }}
                                                 </button>
                                             </td>
+                                            <td>{{ $item['supervisoresUnicos'] }}</td>
                                             <td>{{ $item['estilo'] }}</td>
                                             <td>{{ $item['cantidadRecorridos'] }}</td>
                                             <td>{{ $item['conteoOperario'] }}</td>
@@ -701,6 +705,7 @@
                                     <tr>
                                         <th>Auditor</th>
                                         <th>Modulo (AQL)</th>
+                                        <th>Supervisor</th>
                                         <th>Estilo</th>
                                         <th>Numero de Operarios</th>
                                         <th>Cantidad Paro</th>
@@ -730,6 +735,7 @@
                                                     {{ $item['modulo'] }}
                                                 </button>
                                             </td>
+                                            <td>{{ $item['supervisoresUnicos'] }}</td>
                                             <td>{{ $item['estilosUnicos'] }}</td>
                                             <td>{{ $item['conteoOperario'] }}</td>
                                             <td>{{ $item['conteoMinutos'] }}</td>
@@ -774,6 +780,7 @@
                                     <tr>
                                         <th>Auditor</th>
                                         <th>Modulo</th>
+                                        <th>Supervisor</th>
                                         <th>Estilo</th>
                                         <th>Recorridos</th>
                                         <th>Numero de Operarios</th>
@@ -800,6 +807,7 @@
                                                     {{ $item['modulo'] }}
                                                 </button>
                                             </td>
+                                            <td>{{ $item['supervisoresUnicos'] }}</td>
                                             <td>{{ $item['estilo'] }}</td>
                                             <td>{{ $item['cantidadRecorridos'] }}</td>
                                             <td>{{ $item['conteoOperario'] }}</td>
