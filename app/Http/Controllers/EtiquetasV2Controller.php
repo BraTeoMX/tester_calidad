@@ -345,36 +345,56 @@ class EtiquetasV2Controller extends Controller
 
     public function guardarAuditoriaEtiqueta(Request $request)
     {
-        // Guardar el reporte principal
-        //dd($request->all());
-        $reporte = ReporteAuditoriaEtiqueta::create([
-            'tipo' => $request->tipoEtiqueta,
-            'orden' => $request->valorEtiqueta,
-            'estilo' => $request->estilo,
-            'color' => $request->color,
-            'talla' => $request->talla,
-            'cantidad' => $request->cantidad,
-            'muestreo' => $request->muestreo,
-            'estatus' => $request->accion_correctiva,
-            'comentario' => $request->comentarios,
-        ]);
+        $reporte = new ReporteAuditoriaEtiqueta();
+        $reporte->tipo       = $request->tipoEtiqueta;
+        $reporte->orden      = $request->valorEtiqueta;
+        $reporte->estilo     = $request->estilo;
+        $reporte->color      = $request->color;
+        $reporte->talla      = $request->talla;
+        $reporte->cantidad   = $request->cantidad;
+        $reporte->muestreo   = $request->muestreo;
+        $reporte->estatus    = $request->accion_correctiva;
+        $reporte->comentario = $request->comentarios;
 
-        //dd($request->has('defectos'));
-        // Guardar los defectos asociados, solo si existen
+        // Ahora decides el valor de 'rechazo'
+        if ($request->accion_correctiva === 'Rechazado') {
+            $reporte->rechazo = 1;
+        } else {
+            $reporte->rechazo = null;
+        }
+
+        // Guardas
+        $reporte->save();
+
+        // Guardar defectos asociados
         if ($request->has('defectos')) {
             foreach ($request->defectos as $defecto) {
                 TpReporteAuditoriaEtiqueta::create([
                     'id_reporte_auditoria_etiquetas' => $reporte->id,
-                    'nombre' => $defecto['nombre'],
-                    'cantidad' => $defecto['cantidad'],
+                    'nombre'  => $defecto['nombre'],
+                    'cantidad'=> $defecto['cantidad'],
                 ]);
             }
         }
-        
 
         return redirect()->back()->with('success', 'Auditoría guardada correctamente.');
     }
 
 
+    public function updateStatus(Request $request, $id)
+    {
+        // Buscar registro
+        $registro = ReporteAuditoriaEtiqueta::findOrFail($id);
+        // Actualizar estatus
+        $registro->estatus = $request->estatus;
+        // Registramos la fecha/hora del cambio
+        // (Suponiendo que agregaste la columna `fecha_cambio_estatus` en tu tabla)
+        $registro->fecha_cambio_estatus = \Carbon\Carbon::now();
+    
+        $registro->save();
+    
+        return response()->json(['success' => true]);
+    }
+    
 
 }

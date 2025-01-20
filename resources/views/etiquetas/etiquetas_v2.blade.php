@@ -179,7 +179,16 @@
                                         <td>{{ $registro->color }}</td>
                                         <td>{{ $registro->cantidad }}</td>
                                         <td>{{ $registro->muestreo }}</td>
-                                        <td>{{ $registro->estatus }}</td>
+                                        <td>
+                                            @if($registro->estatus === 'Rechazado')
+                                                <select class="form-control select-estatus" data-id="{{ $registro->id }}">
+                                                    <option value="Rechazado" selected>Rechazado</option>
+                                                    <option value="Aprobado">Aprobado</option>
+                                                </select>
+                                            @else
+                                                {{ $registro->estatus }}
+                                            @endif
+                                        </td>
                                         <td>
                                             <ul>
                                                 @foreach($registro->defectos_formateados as $defecto)
@@ -524,4 +533,53 @@
         });
     </script>    
     
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Selecciona todos los <select> con clase "select-estatus"
+            const selects = document.querySelectorAll('.select-estatus');
+        
+            selects.forEach(select => {
+                select.addEventListener('change', function (event) {
+                    // Mostramos alert para confirmar
+                    const confirmar = confirm('¿Deseas cambiar el estatus?');
+                    if (!confirmar) {
+                        // Si el usuario cancela, revertimos el valor a "Rechazado"
+                        event.target.value = 'Rechazado';
+                        return;
+                    }
+        
+                    // Si el usuario confirma, procedemos con la petición AJAX
+                    const registroId = event.target.getAttribute('data-id');
+                    const nuevoEstatus = event.target.value;
+        
+                    fetch(`/reporte-etiquetas/${registroId}/update-status`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}' // Requerido en Laravel
+                        },
+                        body: JSON.stringify({ estatus: nuevoEstatus })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Estatus actualizado correctamente.');
+                            location.reload(); // Recarga la página actual
+                        } else {
+                            alert('Ocurrió un error al actualizar el estatus.');
+                            // Revertimos el valor a Rechazado si falla
+                            event.target.value = 'Rechazado';
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        alert('Error en la petición.');
+                        // Revertimos el valor a Rechazado
+                        event.target.value = 'Rechazado';
+                    });
+                });
+            });
+        });
+    </script>
+        
 @endsection
