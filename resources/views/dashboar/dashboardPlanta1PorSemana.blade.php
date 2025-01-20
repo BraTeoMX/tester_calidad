@@ -36,56 +36,6 @@
             <hr>
         </div>
     </div>
-    
-
-    <div class="row">
-        <div class="col-lg-6 col-md-12">
-            <div class="card">
-                <div class="card-header card-header-success card-header-icon">
-                    <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Auditoria AQL</h3>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table tablesorter">
-                            <tbody>
-                                <tr>
-                                    <td>Porcentaje General :</td>
-                                    <td>{{ $generalAQL }}%</td> 
-                                </tr>
-                                <tr>
-                                    <td>Planta I :</td>
-                                    <td>{{ $generalAQLPlanta1 }}%</td> 
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6 col-md-12">
-            <div class="card">
-                <div class="card-header card-header-success card-header-icon">
-                    <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Auditoria de Proceso</h3>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table tablesorter">
-                            <tbody>
-                                <tr>
-                                    <td>Porcentaje General :</td>
-                                    <td>{{ $generalProceso }}%</td>
-                                </tr>
-                                <tr>
-                                    <td>Planta I :</td>
-                                    <td>{{ $generalProcesoPlanta1 }}%</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Botones de selección -->
     <div class="card">
@@ -437,7 +387,7 @@
                                     <th>PIEZAS INSPECCIONADAS</th>
                                     <th>PIEZAS RECHAZADAS</th>
                                     <th>TIPO DE DEFECTO</th>
-                                    <th>Hora</th>
+                                    <th>FECHA</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -489,7 +439,7 @@
                                 <th>PIEZAS INSPECCIONADAS</th>
                                 <th>PIEZAS RECHAZADAS</th>
                                 <th>TIPO DE DEFECTO</th>
-                                <th>Hora</th>
+                                <th>FECHA</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -540,7 +490,7 @@
                                 <th>Tipo de Problema</th>
                                 <th>Accion Correctiva</th>
                                 <th>pxp</th>
-                                <th>Hora</th>
+                                <th>FECHA</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -591,7 +541,7 @@
                                 <th>Tipo de Problema</th>
                                 <th>Accion Correctiva</th>
                                 <th>pxp</th>
-                                <th>Hora</th>
+                                <th>FECHA</th>
                             </tr>
                         </thead>
                         <tbody>
