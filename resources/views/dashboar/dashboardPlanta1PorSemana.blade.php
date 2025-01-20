@@ -113,6 +113,7 @@
                                     <tr>
                                         <th>Auditor</th>
                                         <th>Modulo (AQL)</th>
+                                        <th>Supervisor</th>
                                         <th>Cliente</th>
                                         <th>Numero de Operarios</th>
                                         <th>Cantidad Paro</th>
@@ -145,6 +146,7 @@
                                                     {{ $item['modulo'] }}
                                                 </button>
                                             </td>
+                                            <td>{{ $item['supervisoresUnicos'] }}</td>
                                             <td>{{ $item['estilosUnicos'] }}</td>
                                             <td>{{ $item['conteoOperario'] }}</td>
                                             <td>{{ $item['conteoMinutos'] }}</td>
@@ -188,6 +190,7 @@
                                     <tr>
                                         <th>Auditor</th>
                                         <th>Modulo</th>
+                                        <th>Supervisor</th>
                                         <th>Cliente</th>
                                         <th>Recorridos</th>
                                         <th>Numero de Operarios</th>
@@ -217,6 +220,7 @@
                                                     {{ $item['modulo'] }}
                                                 </button>
                                             </td>
+                                            <td>{{ $item['supervisoresUnicos'] }}</td>
                                             <td>{{ $item['cliente'] }}</td>
                                             <td>{{ $item['cantidadRecorridos'] }}</td>
                                             <td>{{ $item['conteoOperario'] }}</td>
@@ -273,6 +277,7 @@
                                     <tr>
                                         <th>Auditor</th>
                                         <th>Modulo (AQL)</th>
+                                        <th>Supervisor</th>
                                         <th>Cliente</th>
                                         <th>Numero de Operarios</th>
                                         <th>Cantidad Paro</th>
@@ -305,6 +310,7 @@
                                                     {{ $item['modulo'] }}
                                                 </button>
                                             </td>
+                                            <td>{{ $item['supervisoresUnicos'] }}</td>
                                             <td>{{ $item['estilosUnicos'] }}</td>
                                             <td>{{ $item['conteoOperario'] }}</td>
                                             <td>{{ $item['conteoMinutos'] }}</td>
@@ -349,6 +355,7 @@
                                     <tr>
                                         <th>Auditor</th>
                                         <th>Modulo</th>
+                                        <th>Supervisor</th>
                                         <th>Cliente</th>
                                         <th>Recorridos</th>
                                         <th>Numero de Operarios</th>
@@ -378,6 +385,7 @@
                                                     {{ $item['modulo'] }}
                                                 </button>
                                             </td>
+                                            <td>{{ $item['supervisoresUnicos'] }}</td>
                                             <td>{{ $item['cliente'] }}</td>
                                             <td>{{ $item['cantidadRecorridos'] }}</td>
                                             <td>{{ $item['conteoOperario'] }}</td>
@@ -444,7 +452,9 @@
                                         <td>{{ $registro->cantidad_auditada ?? 'N/A' }}</td>
                                         <td>{{ $registro->cantidad_rechazada ?? 'N/A' }}</td>
                                         <td>{{ $registro->tpAuditoriaAQL->pluck('tp')->isEmpty() ? 'N/A' : implode(', ', $registro->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
-                                        <td>{{ $registro->created_at ? $registro->created_at->format('H:i:s') : 'N/A' }}</td>
+                                        <td>
+                                            {{ $registro->created_at ? $registro->created_at->format('d/m/Y - H:i:s') : 'N/A' }}
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -494,7 +504,9 @@
                                     <td>{{ $registro->cantidad_auditada ?? 'N/A' }}</td>
                                     <td>{{ $registro->cantidad_rechazada ?? 'N/A' }}</td>
                                     <td>{{ $registro->tpAuditoriaAQL->pluck('tp')->isEmpty() ? 'N/A' : implode(', ', $registro->tpAuditoriaAQL->pluck('tp')->toArray()) }}</td>
-                                    <td>{{ $registro->created_at ? $registro->created_at->format('H:i:s') : 'N/A' }}</td>
+                                    <td>
+                                        {{ $registro->created_at ? $registro->created_at->format('d/m/Y - H:i:s') : 'N/A' }}
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -543,7 +555,9 @@
                                     <td>{{ $registro->tpAseguramientoCalidad->pluck('tp')->isEmpty() ? 'N/A' : implode(', ', $registro->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
                                     <td>{{ $registro->ac ?? 'N/A' }}</td>
                                     <td>{{ $registro->pxp ?? 'N/A' }}</td>
-                                    <td>{{ $registro->created_at ? $registro->created_at->format('H:i:s') : 'N/A' }}</td>
+                                    <td>
+                                        {{ $registro->created_at ? $registro->created_at->format('d/m/Y - H:i:s') : 'N/A' }}
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -592,7 +606,9 @@
                                     <td>{{ $registro->tpAseguramientoCalidad->pluck('tp')->isEmpty() ? 'N/A' : implode(', ', $registro->tpAseguramientoCalidad->pluck('tp')->toArray()) }}</td>
                                     <td>{{ $registro->ac ?? 'N/A' }}</td>
                                     <td>{{ $registro->pxp ?? 'N/A' }}</td>
-                                    <td>{{ $registro->created_at ? $registro->created_at->format('H:i:s') : 'N/A' }}</td>
+                                    <td>
+                                        {{ $registro->created_at ? $registro->created_at->format('d/m/Y - H:i:s') : 'N/A' }}
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
