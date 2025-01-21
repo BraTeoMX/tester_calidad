@@ -119,34 +119,47 @@ class AuditoriaAQL_v2Controller extends Controller
         // Asegurarse de que la variable $data esté definida
         $data = $data ?? [];
 
-        // 1. Filtrar registros
+        // 1. Consulta general
         $registros = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('cantidad_rechazada', '>', 0)
             ->where('modulo', $data['modulo'])
             ->orderBy('created_at', 'asc')
             ->get();
+        //dd($registros->count(), $registros->pluck('id')); // Ejemplo para ver cuántos y cuáles IDs
 
-        // 2. Si hay < 2, false
-        if ($registros->count() < 2) {
-        $resultadoFinal = false;
-        return view('auditoriaAQL.auditoriaAQL_v2', compact(
-            'mesesEnEspanol',
-            'pageSlug',
-            'data',
-            'resultadoFinal'
-        ));
+        // 2. Dividir en dos subconjuntos
+        $registrosSinTE = $registros->filter(function ($r) {
+            return is_null($r->tiempo_extra);
+        })->values();
+
+        $registrosConTE = $registros->filter(function ($r) {
+            return $r->tiempo_extra == 1;
+        })->values();
+        function evaluarSubconjunto($registros)
+        {
+            // Si hay menos de 2, retorna false
+            if ($registros->count() < 2) {
+                return false;
+            }
+    
+            $total = $registros->count();
+            // Hallar el último par
+            $ultimoPar = floor($total / 2) * 2;  // 3 => 2; 4 =>4; 5 =>4; 6 =>6, etc.
+            $indice = $ultimoPar - 1;           // Para indexar en base 0
+    
+            // Registro a evaluar
+            $registroEvaluar = $registros[$indice];
+    
+            // true si fin_paro_modular es null, false de lo contrario
+            return is_null($registroEvaluar->fin_paro_modular);
         }
+        // 3. Evaluar cada subconjunto
+        $resultadoFinalSinTE = evaluarSubconjunto($registrosSinTE); 
+        $resultadoFinalConTE = evaluarSubconjunto($registrosConTE); 
 
-        // 3. Caso contrario, vemos el “último par”
-        $total = $registros->count();
-        $ultimoPar = floor($total / 2) * 2;   // Si hay 3 registros, $ultimoPar=2; si hay 4 => 4; 5 =>4; 6 =>6; etc.
-        $indice = $ultimoPar - 1;            // para acceder en base 0
-
-        // 4. Evaluamos fin_paro_modular únicamente en ese registro
-        $registroEvaluar = $registros[$indice];
-
-        // 5. resultadoFinal => true si es nulo, false si no
-        $resultadoFinal = is_null($registroEvaluar->fin_paro_modular);
+        // 4. El resultado final es TRUE si al menos uno de los 2 casos da true
+        $resultadoFinal = $resultadoFinalSinTE || $resultadoFinalConTE;
+        
 
         return view('auditoriaAQL.auditoriaAQL_v2', compact('mesesEnEspanol', 'pageSlug',
             'data', 'resultadoFinal'));
