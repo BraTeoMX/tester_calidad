@@ -120,13 +120,14 @@ class AuditoriaAQL_v2Controller extends Controller
         $data = $data ?? [];
 
 
-        // 1. Filtrar registros con cantidad_rechazada > 0
+        // 1. Filtrar registros según tu criterio
         $registros = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('cantidad_rechazada', '>', 0)
             ->where('modulo', $data['modulo'])
+            ->orderBy('created_at', 'asc')
             ->get();
 
-        // Si no hay al menos 2 registros, devuelves false de inmediato:
+        // 2. Si hay menos de 2 registros, devolvemos false
         if ($registros->count() < 2) {
             $resultadoFinal = false;
             return view('auditoriaAQL.auditoriaAQL_v2', compact(
@@ -137,26 +138,25 @@ class AuditoriaAQL_v2Controller extends Controller
             ));
         }
 
-        // 2. Contador para ir contando cuáles van
-        $contador = 0;
+        // 3. Asumimos que el resultado es true y lo ponemos en false cuando falle algo
+        $resultadoFinal = true;
 
-        // 3. Variable booleana para el resultado final
-        $resultadoFinal = true; // asume que al inicio todo es 'True'
-
-        foreach ($registros as $registro) {
-            $contador++;
-
-            // Cuando encontramos el 2.°, 4.°, 6.°, etc. registro
-            if ($contador % 2 == 0) {
-                // Evaluamos fin_paro_modular
-                if (!is_null($registro->fin_paro_modular)) {
-                    // En cuanto uno falle, ponemos false y salimos.
-                    $resultadoFinal = false;
-                    break;
-                }
+        // 4. Revisa los registros que son 2°, 4°, 6°... etc.
+        //    Es decir, en índices de arreglo 1, 3, 5... (porque 0 es el 1er registro).
+        $total = $registros->count();
+        // $i irá tomando los valores 2, 4, 6,... mientras no excedan el total de registros
+        for ($i = 2; $i <= $total; $i += 2) {
+            // Recuerda que en el arreglo, el índice empieza en 0, así que el 2° registro es $registros[1], 4° es $registros[3], etc.
+            $registro = $registros[$i - 1]; // por ejemplo, cuando $i=2 => $i - 1 = 1 (2° registro)
+            
+            // Verificar si fin_paro_modular es null
+            if (!is_null($registro->fin_paro_modular)) {
+                // Si NO es nulo, cambia a false y rompe el bucle
+                $resultadoFinal = false;
+                break;
             }
         }
-        //dd($registros, $resultadoFinal);
+        dd($registros, $resultadoFinal);
         return view('auditoriaAQL.auditoriaAQL_v2', compact('mesesEnEspanol', 'pageSlug',
             'data', 'resultadoFinal'));
     }
