@@ -1428,6 +1428,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            window.addEventListener('registroGuardado', function () {
+                cargarRegistros();
+            });
             function cargarRegistros() {
                 const fechaActual = new Date().toISOString().slice(0, 10);
                 const modulo = document.getElementById('modulo').value;
@@ -1436,7 +1439,7 @@
                     console.error("El módulo no está definido.");
                     return;
                 }
-        
+
                 $.ajax({
                     url: "{{ route('mostrar.registros.aql.dia.TE') }}",
                     type: "GET",
@@ -1445,28 +1448,28 @@
                         modulo: modulo
                     },
                     success: function (response) {
-                        // Limpia la tabla principal del tiempo extra
+                        // Limpia la tabla principal de tiempo extra
                         const tbody = document.querySelector("#tabla_registros_tiempo_extra tbody");
                         tbody.innerHTML = "";
-        
+
                         // Definimos contadores
                         let totalPiezasAuditadasTE = 0;
                         let totalPiezasRechazadasTE = 0;
                         let totalBultosAuditadosTE = 0;
                         let totalBultosRechazadosTE = 0;
                         let totalPiezasEnBultosTE = 0;
-        
+
+                        // Recorremos los registros y construimos las filas
                         response.forEach(function (registro) {
-                            // Insertamos filas en la tabla
                             const fila = `
                                 <tr class="${registro.tiempo_extra ? 'tiempo-extra' : ''}">
                                     <td>
                                         ${
                                             registro.inicio_paro === null 
-                                            ? '-' 
-                                            : registro.fin_paro 
-                                                ? registro.minutos_paro 
-                                                : `<button class="btn btn-primary btn-finalizar-paro" data-id="${registro.id}">Fin Paro AQL</button>`
+                                                ? '-' 
+                                                : registro.fin_paro 
+                                                    ? registro.minutos_paro 
+                                                    : `<button class="btn btn-primary btn-finalizar-paro" data-id="${registro.id}">Fin Paro AQL</button>`
                                         }
                                     </td>
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.bulto}" readonly></td>
@@ -1476,39 +1479,52 @@
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.estilo}" readonly></td>
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_auditada}" readonly></td>
                                     <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_rechazada}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" readonly value="${registro.tp_auditoria_a_q_l ? registro.tp_auditoria_a_q_l.map(tp => tp.tp).join(', ') : ''}"></td>
-                                    <td><button class="btn btn-danger btn-eliminar-te" data-id="${registro.id}">Eliminar</button></td>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" 
+                                            readonly 
+                                            value="${
+                                                registro.tp_auditoria_a_q_l 
+                                                    ? registro.tp_auditoria_a_q_l.map(tp => tp.tp).join(', ') 
+                                                    : ''
+                                            }">
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-danger btn-eliminar-te" data-id="${registro.id}">
+                                            Eliminar
+                                        </button>
+                                    </td>
                                     <td>${registro.created_at ? new Date(registro.created_at).toLocaleTimeString() : ''}</td>
                                     <td>
                                         ${
-                                        registro.reparacion_rechazo !== null && registro.reparacion_rechazo !== '' 
-                                        ? `<input type="text" class="form-control texto-blanco" value="${registro.reparacion_rechazo}" readonly>` 
-                                        : `<input type="text" class="form-control texto-blanco" value="-" readonly>`
+                                            registro.reparacion_rechazo !== null && registro.reparacion_rechazo !== '' 
+                                            ? `<input type="text" class="form-control texto-blanco" value="${registro.reparacion_rechazo}" readonly>` 
+                                            : `<input type="text" class="form-control texto-blanco" value="-" readonly>`
                                         }
                                     </td>
                                 </tr>
                             `;
                             tbody.insertAdjacentHTML('beforeend', fila);
-        
-                            // Acumulamos los valores
+
+                            // Acumulamos valores para las tablas secundarias
                             totalPiezasAuditadasTE += registro.cantidad_auditada || 0;
                             totalPiezasRechazadasTE += registro.cantidad_rechazada || 0;
-        
+
                             totalBultosAuditadosTE += 1;
                             if ((registro.cantidad_rechazada || 0) > 0) {
                                 totalBultosRechazadosTE += 1;
                             }
-        
+
+                            // Asumiendo que 'registro.pieza' es numérico
                             totalPiezasEnBultosTE += parseInt(registro.pieza) || 0;
                         });
-        
-                        // Actualizamos las tablas secundarias
+
+                        // Actualizamos tablas secundarias
                         actualizarTablasSecundariasTE(totalPiezasAuditadasTE, totalPiezasRechazadasTE);
                         actualizarBultosTotalesTE(totalBultosAuditadosTE, totalBultosRechazadosTE);
                         actualizarTablaPiezasEnBultosTE(totalPiezasEnBultosTE);
-        
-                        // Asignar eventos de eliminar
-                        asignarEventosEliminar();
+
+                        // Asignamos los eventos a los nuevos botones
+                        asignarEventosEliminarTE();
                         asignarEventosFinalizarParoTE();
                     },
                     error: function (error) {
@@ -1516,16 +1532,16 @@
                     }
                 });
             }
-        
+
             function actualizarTablasSecundariasTE(totalAuditadasTE, totalRechazadasTE) {
-                // (Igual que en el primer script pero con IDs de TE)
                 const porcentajeAQLTE = totalAuditadasTE > 0 
                     ? ((totalRechazadasTE / totalAuditadasTE) * 100).toFixed(2)
                     : 0;
-        
+                
                 const tablaTE = document.getElementById("tabla-piezas-dia-TE");
                 const filasTE = tablaTE.querySelectorAll("tbody tr");
-        
+
+                // Si no hay fila, creamos una nueva
                 if (filasTE.length === 0) {
                     const nuevaFilaTE = `
                         <tr>
@@ -1536,21 +1552,21 @@
                     `;
                     tablaTE.querySelector("tbody").insertAdjacentHTML("beforeend", nuevaFilaTE);
                 }
-        
+
                 const inputsTE = tablaTE.querySelectorAll("tbody tr:first-child input");
                 inputsTE[0].value = totalAuditadasTE || 0;
                 inputsTE[1].value = totalRechazadasTE || 0;
                 inputsTE[2].value = `${porcentajeAQLTE}%`;
             }
-        
+
             function actualizarBultosTotalesTE(totalBultosAuditadosTE, totalBultosRechazadosTE) {
                 const porcentajeTotalTE = totalBultosAuditadosTE > 0
                     ? ((totalBultosRechazadosTE / totalBultosAuditadosTE) * 100).toFixed(2)
                     : 0;
-        
+
                 const tablaBultosTE = document.getElementById("tabla-bultos-totales-TE");
                 const filasBultosTE = tablaBultosTE.querySelectorAll("tbody tr");
-        
+
                 if (filasBultosTE.length === 0) {
                     const nuevaFila = `
                         <tr>
@@ -1561,17 +1577,17 @@
                     `;
                     tablaBultosTE.querySelector("tbody").insertAdjacentHTML("beforeend", nuevaFila);
                 }
-        
+
                 const inputs = tablaBultosTE.querySelectorAll("tbody tr:first-child input");
                 inputs[0].value = totalBultosAuditadosTE || 0;
                 inputs[1].value = totalBultosRechazadosTE || 0;
                 inputs[2].value = `${porcentajeTotalTE}%`;
             }
-        
+
             function actualizarTablaPiezasEnBultosTE(totalPiezasEnBultosTE) {
                 const tablaPiezasBultosTE = document.getElementById("tabla-piezas-bultos-TE");
                 const filasTE = tablaPiezasBultosTE.querySelectorAll("tbody tr");
-        
+
                 if (filasTE.length === 0) {
                     const nuevaFila = `
                         <tr>
@@ -1580,26 +1596,36 @@
                     `;
                     tablaPiezasBultosTE.querySelector("tbody").insertAdjacentHTML("beforeend", nuevaFila);
                 }
-        
+
                 const inputTE = tablaPiezasBultosTE.querySelector("tbody tr:first-child input");
                 inputTE.value = totalPiezasEnBultosTE || 0;
             }
-        
-            function asignarEventosEliminar() {
+
+            // -------------------------------
+            //   EVENTOS PARA ELIMINAR
+            // -------------------------------
+            function asignarEventosEliminarTE() {
                 const tablaTE = document.getElementById('tabla_registros_tiempo_extra');
                 const botonesEliminarTE = tablaTE.querySelectorAll('.btn-eliminar-te');
-        
+
+                // Importante: remover antes de asignar para evitar duplicados
                 botonesEliminarTE.forEach((boton) => {
-                    boton.addEventListener('click', function () {
-                        const id = this.getAttribute('data-id');
-                        eliminarRegistro(id);
-                    });
+                    boton.removeEventListener('click', manejarEliminarTE);
+                    boton.addEventListener('click', manejarEliminarTE);
                 });
             }
-        
-            function eliminarRegistro(id) {
-                if (!confirm("¿Estás seguro de que deseas eliminar este registro?")) return;
-        
+
+            function manejarEliminarTE() {
+                const id = this.getAttribute('data-id');
+                
+                if (!confirm("¿Estás seguro de que deseas eliminar este registro?")) {
+                    return; // Si cancela, no hace nada
+                }
+
+                eliminarRegistroTE(id);
+            }
+
+            function eliminarRegistroTE(id) {
                 $.ajax({
                     url: "{{ route('eliminar.registro.aql') }}",
                     type: "POST",
@@ -1608,22 +1634,32 @@
                         _token: "{{ csrf_token() }}"
                     },
                     success: function (response) {
-                        alert("Registro eliminado exitosamente.");
-                        cargarRegistros();
+                        if (response.success) {
+                            alert("Registro eliminado exitosamente.");
+                            cargarRegistros(); // Recarga para actualizar la tabla
+                        } else {
+                            console.error("Error en la respuesta del servidor:", response);
+                            alert("No se pudo eliminar el registro. Intente nuevamente.");
+                        }
                     },
-                    error: function (error) {
-                        console.error("Error al eliminar el registro TE:", error);
+                    error: function (xhr, status, error) {
+                        console.error("Error al eliminar el registro TE:", xhr, status, error);
                         alert("Hubo un error al eliminar el registro.");
                     }
                 });
             }
-        
+
+            // -------------------------------
+            //   EVENTOS PARA FINALIZAR PARO
+            // -------------------------------
             function asignarEventosFinalizarParoTE() {
-                const botonesFinalizarParo = document.querySelectorAll('.btn-finalizar-paro');
+                const tablaTE = document.getElementById('tabla_registros_tiempo_extra');
+                const botonesFinalizarParo = tablaTE.querySelectorAll('.btn-finalizar-paro');
+
+                // Removemos listener previo antes de asignar
                 botonesFinalizarParo.forEach(boton => {
-                    // Primero removemos cualquier listener previo para evitar duplicados
-                    boton.removeEventListener('click', manejarFinalizarParo);
-                    boton.addEventListener('click', manejarFinalizarParo);
+                    boton.removeEventListener('click', manejarFinalizarParoTE);
+                    boton.addEventListener('click', manejarFinalizarParoTE);
                 });
             }
 
@@ -1632,13 +1668,13 @@
 
                 // Pedimos la cantidad de piezas reparadas
                 const piezasReparadas = prompt("Ingrese la cantidad de piezas reparadas:");
-                
+
                 // Si el usuario cancela o no ingresa nada, no hacemos nada
                 if (piezasReparadas === null || piezasReparadas === "") {
                     return;
                 }
 
-                // Hacemos la llamada AJAX para finalizar el paro
+                // Llamada AJAX para finalizar el paro
                 $.ajax({
                     url: "{{ route('finalizar.paro.aql') }}",
                     type: "POST",
@@ -1649,8 +1685,12 @@
                     },
                     success: function (response) {
                         if (response.success) {
-                            alert("Paro finalizado correctamente.\nMinutos de paro: " + response.minutos_paro + "\nPiezas reparadas: " + response.reparacion_rechazo);
-                            // Recargar la tabla y así desaparece el botón
+                            alert(
+                                "Paro finalizado correctamente.\n" +
+                                "Minutos de paro: " + response.minutos_paro + "\n" +
+                                "Piezas reparadas: " + response.reparacion_rechazo
+                            );
+                            // Recargar la tabla para que desaparezca el botón
                             cargarRegistros();
                         } else {
                             console.error("Error en la respuesta del servidor:", response);
@@ -1658,7 +1698,7 @@
                         }
                     },
                     error: function (xhr, status, error) {
-                        console.error("Error al finalizar el paro:", xhr, status, error);
+                        console.error("Error al finalizar el paro TE:", xhr, status, error);
                         alert("Hubo un error al intentar finalizar el paro.");
                     }
                 });
