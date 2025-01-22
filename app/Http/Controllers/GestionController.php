@@ -103,13 +103,16 @@ class GestionController extends Controller
         $fechaLimite = now()->subDays(15); // Fecha límite: 15 días antes de hoy
         JobAQLTemporal::where('created_at', '<', $fechaLimite)->delete();
         foreach ($items as $item) {
-            // Evitar duplicados basados en itemid
-            $exists = ModuloEstiloTemporal::where('itemid', $item['itemid'])->exists();
+            // Validar que ambos campos, `itemid` y `moduleid`, no estén duplicados
+            $exists = ModuloEstiloTemporal::where('itemid', $item['itemid'])
+                ->where('moduleid', $item['modulo']) // Asegurarte de usar el nombre correcto de la columna en la base de datos
+                ->exists();
 
             if (!$exists) {
                 ModuloEstiloTemporal::create([
                     'itemid' => $item['itemid'],
                     'custname' => $item['customername'],
+                    'moduleid' => $item['modulo'], // Almacenar el valor del módulo
                 ]);
             }
         }

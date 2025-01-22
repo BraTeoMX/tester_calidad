@@ -63,6 +63,7 @@
                         <table class="table table-bordered" id="selected-items-table">
                             <thead>
                                 <tr>
+                                    <th>Modulo</th>
                                     <th>Estilo</th>
                                     <th>Cliente</th>
                                     <th>Quitar</th>
@@ -214,7 +215,7 @@
             // Array para almacenar los datos seleccionados
             let selectedItems = [];
 
-            // Inicializa Select2 y asegura que el evento `change` no se duplique
+            // Inicializa Select2
             const selectEstilo = $('#select-estilo');
             selectEstilo.select2({
                 placeholder: "Seleccione un estilo",
@@ -222,27 +223,30 @@
                 width: '100%'
             });
 
-            // Elimina cualquier evento previo y asigna el evento `change`
+            // Evento change del select
             selectEstilo.off('change').on('change', function () {
-                const itemid = $(this).val(); // Obtiene el valor seleccionado
-                const customername = $(this).find(':selected').data('customer'); // Obtiene el atributo data-customer
+                const itemid = $(this).val();
+                const customername = $(this).find(':selected').data('customer');
 
                 if (!itemid) {
-                    return; // No se seleccionó un valor válido
+                    return;
                 }
 
-                // Verificar si el estilo ya existe en la lista
+                // Verificar si el estilo ya está en la lista
                 if (selectedItems.some(item => item.itemid === itemid)) {
                     alert('Este estilo ya está en la lista.');
                     return;
                 }
 
-                // Agregar el estilo a la lista
-                selectedItems.push({ itemid, customername });
+                // Agregar el estilo al array
+                selectedItems.push({ itemid, customername, modulo: '' });
 
                 // Agregar fila a la tabla
                 const row = `
-                    <tr>
+                    <tr data-itemid="${itemid}">
+                        <td>
+                            <input type="text" class="form-control input-modulo" placeholder="Ingresar módulo" />
+                        </td>
                         <td>${itemid}</td>
                         <td>${customername}</td>
                         <td>
@@ -253,7 +257,7 @@
                 tableBody.insertAdjacentHTML('beforeend', row);
             });
 
-            // Quitar un registro de la tabla
+            // Evento para quitar un registro
             tableBody.addEventListener('click', function (event) {
                 if (event.target.classList.contains('btn-remove')) {
                     const itemid = event.target.dataset.itemid;
@@ -266,20 +270,32 @@
                 }
             });
 
-            // Asegúrate de eliminar eventos duplicados
-            saveButton.removeEventListener('click', guardarRegistros);
-            saveButton.addEventListener('click', guardarRegistros);
+            // Evento para capturar el valor del módulo ingresado
+            tableBody.addEventListener('input', function (event) {
+                if (event.target.classList.contains('input-modulo')) {
+                    const row = event.target.closest('tr');
+                    const itemid = row.dataset.itemid;
+                    
+                    // Convertir el valor a mayúsculas
+                    event.target.value = event.target.value.toUpperCase();
 
-            // Función para guardar los registros
-            function guardarRegistros() {
-                // Validar si hay registros en la tabla
-                const rows = tableBody.querySelectorAll('tr');
-                if (rows.length === 0) {
+                    const moduloValue = event.target.value;
+
+                    // Actualizar el array con el valor del módulo
+                    const item = selectedItems.find(item => item.itemid === itemid);
+                    if (item) {
+                        item.modulo = moduloValue; // Almacenar siempre en mayúsculas
+                    }
+                }
+            });
+
+            // Botón para guardar registros
+            saveButton.addEventListener('click', function () {
+                if (selectedItems.length === 0) {
                     alert('No hay registros para guardar.');
                     return;
                 }
 
-                // Realizar la petición AJAX
                 fetch('/guardarModuloEstilo', {
                     method: 'POST',
                     headers: {
@@ -292,7 +308,7 @@
                 .then(data => {
                     if (data.status === 'success') {
                         alert(data.message);
-                        // Limpiar la tabla y el array
+                        // Limpiar tabla y array
                         tableBody.innerHTML = '';
                         selectedItems = [];
                     } else {
@@ -303,7 +319,7 @@
                     console.error('Error:', error);
                     alert('Hubo un problema al guardar los registros.');
                 });
-            }
+            });
         });
 
 

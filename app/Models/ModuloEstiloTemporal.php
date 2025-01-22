@@ -11,6 +11,7 @@ class ModuloEstiloTemporal extends Model
     protected $table = 'job_modulo_estilo_temporal';
 
     protected $fillable = [
+        'moduleid',
         'itemid',
         'custname',
     ];

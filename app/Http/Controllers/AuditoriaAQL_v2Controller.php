@@ -174,7 +174,6 @@ class AuditoriaAQL_v2Controller extends Controller
 
         // Construimos la consulta
         $procesoActualAQL = AuditoriaAQL::whereNull('estatus')
-            ->where('area', 'AUDITORIA AQL')
             ->whereDate('created_at', $fechaActual)
             ->select('modulo', 'op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
             ->distinct()

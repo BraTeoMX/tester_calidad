@@ -146,7 +146,7 @@
 
         .custom-modal-content {
             background-color: #1e1e1e;
-            margin: 0 auto;
+            margin: 50px auto;
             padding: 20px;
             width: 90%;
             max-width: 1200px;
@@ -167,8 +167,10 @@
         }
 
         #closeModalAQL {
-            font-size: 14px;
-            padding: 8px 16px;
+            z-index: 1000; /* Asegúrate de que sea mayor que cualquier elemento que pueda superponer */
+            position: relative; /* Esto ayuda a que el z-index funcione */
+            display: inline-block; /* Asegura que el área sea del tamaño del contenido */
+            width: auto; /* Ajusta el tamaño al contenido */
         }
 
     </style>
@@ -1762,9 +1764,16 @@
                     .catch(error => console.error('Error al cargar los procesos:', error));
             });
 
-            // Cerrar el modal
+            // Cerrar el modal con el botón
             closeModalBtn.addEventListener('click', function () {
                 modal.style.display = 'none';
+            });
+
+            // Cerrar el modal con la tecla "ESC"
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    modal.style.display = 'none';
+                }
             });
         });
     </script>
