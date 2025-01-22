@@ -31,6 +31,25 @@
             {{ session('cambio-estatus') }}
         </div>
     @endif
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Seleccionamos todos los elementos de alerta
+            const alerts = document.querySelectorAll('.alert');
+    
+            // Iteramos por cada alerta para aplicar el desvanecido
+            alerts.forEach(alert => {
+                // Esperamos 6 segundos antes de iniciar el desvanecido
+                setTimeout(() => {
+                    // Cambiamos la opacidad para el efecto de desvanecido
+                    alert.style.transition = 'opacity 1s ease';
+                    alert.style.opacity = '0';
+    
+                    // Eliminamos el elemento del DOM después de 1 segundo (duración del desvanecido)
+                    setTimeout(() => alert.remove(), 1000);
+                }, 5000); // Tiempo de espera antes de desvanecer (6 segundos)
+            });
+        });
+    </script>
     <style>
         .alerta-exito {
             background-color: #32CD32;
