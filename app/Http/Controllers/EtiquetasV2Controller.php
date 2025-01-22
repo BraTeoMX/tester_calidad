@@ -73,33 +73,44 @@ class EtiquetasV2Controller extends Controller
     {
         // Definir la conexión y el campo de búsqueda según el tipo de búsqueda
         if ($tipoBusqueda === 'OC') {
-            $campoBusqueda = 'ordenCompra';
-            $conexion = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View');
+            $campoBusqueda1 = 'ordenCompra';
+            $campoBusqueda2 = 'OrdenCompra';
+
+            $conexion1 = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View');
+            $conexion2 = DB::connection('sqlsrv_ax')->table('EtiquetasOC2_View');
+
+            // Unificar los resultados de ambas vistas usando union
+            $estilos = $conexion1
+                ->where($campoBusqueda1, $orden)
+                ->select('Estilos')
+                ->union(
+                    $conexion2
+                        ->where($campoBusqueda2, $orden)
+                        ->select('Estilos')
+                )
+                ->distinct()
+                ->get();
         } elseif ($tipoBusqueda === 'OP') {
             $campoBusqueda = 'OP';
             $conexion = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+            $estilos = $conexion
+                ->where($campoBusqueda, $orden)
+                ->select('Estilos')
+                ->distinct()
+                ->get();
         } elseif ($tipoBusqueda === 'PO') {
             $campoBusqueda = 'CPO';
             $conexion = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+            $estilos = $conexion
+                ->where($campoBusqueda, $orden)
+                ->select('Estilos')
+                ->distinct()
+                ->get();
         } elseif ($tipoBusqueda === 'OV') {
             $campoBusqueda = 'SALESID';
             $conexion = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
-        }
-
-        // Ejecutar la consulta
-        $estilos = $conexion
-            ->where($campoBusqueda, $orden)
-            ->select('Estilos')
-            ->distinct()
-            ->get();
-
-        // Búsqueda secundaria (si es OC y no hay resultados)
-        if ($tipoBusqueda === 'OC' && $estilos->isEmpty()) {
-            $campoBusqueda2 = 'OrdenCompra';
-            $conexion2 = DB::connection('sqlsrv_ax')->table('EtiquetasOC2_View');
-
-            $estilos = $conexion2
-                ->where($campoBusqueda2, $orden)
+            $estilos = $conexion
+                ->where($campoBusqueda, $orden)
                 ->select('Estilos')
                 ->distinct()
                 ->get();
@@ -107,6 +118,7 @@ class EtiquetasV2Controller extends Controller
 
         return $estilos;
     }
+
 
     /**
      * AJAX: Retorna las tallas para un Estilo específico,
