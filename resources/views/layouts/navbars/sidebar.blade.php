@@ -84,7 +84,7 @@
                                     auth()->user()->hasRole('Gerente de Calidad')) &&
                                 auth()->user()->Planta == 'Planta1')
                             <li class="nav-item{{ $pageSlug == 'Etiquetas' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('formulariosCalidad.auditoriaEtiquetas') }}">
+                                <a class="nav-link" href="{{ route('etiquetas_v2') }}">
                                     <i class="material-icons">edit_document</i>
                                     <p>{{ __('FCC-014') }}</p>
                                     <p style="text-align: center;">{{ __('AUDITORIA ETIQUETAS') }}</p>
