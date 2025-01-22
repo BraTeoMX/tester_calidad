@@ -18,6 +18,8 @@ use App\Models\TpAuditoriaAQL;
 use App\Models\CategoriaSupervisor; 
 use App\Models\ModuloEstilo;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
+use App\Models\ModuloEstiloTemporal;
+
 
 class AuditoriaAQLController extends Controller
 {
@@ -120,9 +122,21 @@ class AuditoriaAQLController extends Controller
             $datoPlanta = "Intimark2";
         }
 
-        $listaModulos = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
+        $datosCategoriaSupervisor = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
             ->whereBetween('moduleid', ['100A', '299A'])
-            ->get();
+            ->get(['moduleid']); // Obtener solo la columna necesaria
+
+        // Obtener datos del segundo modelo, asegurando valores únicos
+        $datosModuloEstiloTemporal = ModuloEstiloTemporal::where('prodpoolid', $datoPlanta)
+            ->whereBetween('moduleid', ['100A', '299A'])
+            ->distinct('moduleid') // Asegurarte de que sean únicos
+            ->get(['moduleid']); // Obtener solo la columna necesaria
+
+        // Combinar ambos resultados y eliminar duplicados
+        $listaModulos = $datosCategoriaSupervisor->concat($datosModuloEstiloTemporal)
+            ->unique('moduleid') // Asegurar que no haya duplicados en la columna `moduleid`
+            ->sortBy('moduleid') // Ordenar los resultados (opcional)
+            ->values(); // Resetear los índices
         //dd($listaModulos);
 
         $procesoActualAQL = AuditoriaAQL::where('estatus', NULL)
