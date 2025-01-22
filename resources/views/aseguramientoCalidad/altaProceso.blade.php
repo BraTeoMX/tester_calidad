@@ -106,7 +106,7 @@
                                             <select name="modulo" id="modulo" class="form-control" required title="Por favor, selecciona una opción" onchange="obtenerSupervisor()">
                                                 <option value="" selected>Selecciona una opción</option> 
                                                 @foreach ($listaModulos as $modulo)
-                                                    <option value="{{ $modulo->moduleid }}" data-itemid="{{ $modulo->itemid }}">
+                                                    <option value="{{ $modulo->moduleid }}">
                                                         {{ $modulo->moduleid }}
                                                     </option>
                                                 @endforeach

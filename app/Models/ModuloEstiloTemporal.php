@@ -12,6 +12,7 @@ class ModuloEstiloTemporal extends Model
 
     protected $fillable = [
         'moduleid',
+        'prodpoolid',
         'itemid',
         'custname',
     ];

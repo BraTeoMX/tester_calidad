@@ -102,17 +102,28 @@ class GestionController extends Controller
         // Elimina registros con más de 15 días basándose en `created_at`
         $fechaLimite = now()->subDays(15); // Fecha límite: 15 días antes de hoy
         JobAQLTemporal::where('created_at', '<', $fechaLimite)->delete();
+
         foreach ($items as $item) {
             // Validar que ambos campos, `itemid` y `moduleid`, no estén duplicados
             $exists = ModuloEstiloTemporal::where('itemid', $item['itemid'])
-                ->where('moduleid', $item['modulo']) // Asegurarte de usar el nombre correcto de la columna en la base de datos
+                ->where('moduleid', $item['modulo']) // Asegúrate de usar el nombre correcto de la columna en la base de datos
                 ->exists();
 
             if (!$exists) {
+                // Evaluar el valor inicial de `modulo`
+                $prodpoolid = null;
+                if (strpos($item['modulo'], '1') === 0) {
+                    $prodpoolid = 'Intimark1';
+                } elseif (strpos($item['modulo'], '2') === 0) {
+                    $prodpoolid = 'Intimark2';
+                }
+
+                // Crear el registro con el nuevo campo
                 ModuloEstiloTemporal::create([
                     'itemid' => $item['itemid'],
                     'custname' => $item['customername'],
                     'moduleid' => $item['modulo'], // Almacenar el valor del módulo
+                    'prodpoolid' => $prodpoolid,   // Asignar el valor correspondiente
                 ]);
             }
         }
