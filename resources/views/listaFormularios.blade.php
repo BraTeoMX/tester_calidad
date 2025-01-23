@@ -18,7 +18,7 @@
                                         <img src="{{ asset('material') }}/img/Intimark.png" class="card-img-top" alt="...">
                                         <div class="card-body">
                                             <h5 class="card-title">REPORTE AUDITORIA DE ETIQUETAS <br>FCC-014</h5>
-                                            <a href="{{ route('formulariosCalidad.auditoriaEtiquetas') }}" class="btn btn-primary"  >INICIAR</a>
+                                            <a href="{{ route('etiquetas_v2') }}" class="btn btn-primary"  >INICIAR</a>
                                         </div>
                                     </div>
                                 </div>
