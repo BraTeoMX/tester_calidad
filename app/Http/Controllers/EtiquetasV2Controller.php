@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Models\Cat_DefEtiquetas;
 use App\Models\ReporteAuditoriaEtiqueta;
 use App\Models\TpReporteAuditoriaEtiqueta;
+use Illuminate\Support\Facades\Log;
 
 class EtiquetasV2Controller extends Controller
 {
@@ -100,7 +101,7 @@ class EtiquetasV2Controller extends Controller
                 ->get();
         } elseif ($tipoBusqueda === 'PO') {
             $campoBusqueda1 = 'CPO';
-            $campoBusqueda2 = 'po'; // Suponiendo que el campo se llama igual en ambas vistas
+            $campoBusqueda2 = 'CPO'; // Suponiendo que el campo se llama igual en ambas vistas
         
             $conexion1 = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
             $conexion2 = DB::connection('sqlsrv')->table('MaterializedBacklogTable2_View');
@@ -141,7 +142,7 @@ class EtiquetasV2Controller extends Controller
         $estilo = $request->input('estilo');
 
         // Según tipo de búsqueda, definimos el modelo y campos
-        if ($tipoBusqueda === 'OC') {
+        if ($tipoBusqueda === 'OC') { 
             $campoBusqueda2 = 'OrdenCompra';
             $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View');
             $selectCampos = ['OrdenCompra', 'Estilos', 'Cantidad', 'Talla', 'Color'];
@@ -164,12 +165,77 @@ class EtiquetasV2Controller extends Controller
             // Extraemos la lista única de tallas
             $tallas = $datos->pluck('Talla')->unique()->values();
 
+        } elseif (in_array($tipoBusqueda, ['PO', 'OV'])) { 
+            $campoBusqueda2 = [
+                'PO' => 'CPO',
+                'OV' => 'SALESID',
+            ][$tipoBusqueda];
+        
+            $modelo1 = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+            $modelo2 = DB::connection('sqlsrv')->table('MaterializedBacklogTable2_View'); // Segunda tabla solo para 'PO'
+            $selectCampos = [$campoBusqueda2, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
+        
+            // Log de entrada
+            Log::info('Inicio búsqueda para tipoBusqueda', [
+                'TipoBusqueda' => $tipoBusqueda,
+                'Estilo' => $estilo,
+                'Orden' => $orden,
+                'CampoBusqueda' => $campoBusqueda2,
+            ]);
+        
+            // Buscar en la tabla principal
+            $datosTabla1 = $modelo1
+                ->where('Estilos', $estilo)
+                ->where($campoBusqueda2, $orden)
+                ->select($selectCampos)
+                ->get();
+        
+            // Log resultados de la primera búsqueda
+            Log::info('Resultados de la búsqueda en MaterializedBacklogTable_View', [
+                'Resultados' => $datosTabla1->toArray(),
+            ]);
+        
+            // Si el tipo es 'PO' y no hay resultados, buscar en la segunda tabla
+            $datosTabla2 = collect();
+            if ($tipoBusqueda === 'PO' && $datosTabla1->isEmpty()) {
+                Log::info('No se encontraron resultados en MaterializedBacklogTable_View. Buscando en MaterializedBacklogTable2_View');
+        
+                $datosTabla2 = $modelo2
+                    ->where('Estilos', $estilo)
+                    ->where($campoBusqueda2, $orden)
+                    ->select($selectCampos)
+                    ->get();
+        
+                // Log resultados de la segunda búsqueda
+                Log::info('Resultados de la búsqueda en MaterializedBacklogTable2_View', [
+                    'Resultados' => $datosTabla2->toArray(),
+                ]);
+            }
+        
+            // Combina los datos de ambas tablas (si es necesario)
+            $datos = $datosTabla1->merge($datosTabla2);
+        
+            // Extraemos las tallas únicas como cadenas
+            $tallas = $datos->pluck('sizename')
+                ->map(fn($size) => (string) $size) // Convierte a cadena
+                ->filter(fn($size) => !is_null($size) && trim($size) !== '') // Filtra valores nulos o vacíos
+                ->groupBy(fn($size) => $size) // Agrupa por cadena exacta
+                ->keys(); // Obtiene las claves únicas exactas como tallas
+        
+            // Log de las tallas obtenidas
+            Log::info('Lista de tallas obtenidas', [
+                'Tallas' => $tallas->toArray(),
+            ]);
+        
+            // Retornar las tallas como JSON
+            return response()->json([
+                'success' => true,
+                'tallas'  => $tallas
+            ]);
         } else {
             // Para OP, PO, OV
             $campoBusqueda2 = [
                 'OP' => 'OP',
-                'PO' => 'CPO',
-                'OV' => 'SALESID',
             ][$tipoBusqueda];
 
             $modelo = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
@@ -231,80 +297,108 @@ class EtiquetasV2Controller extends Controller
                 'PO' => 'CPO',
                 'OV' => 'SALESID',
             ][$tipoBusqueda];
-
-            $modelo        = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
-            $selectCampos  = [$campoBusqueda2, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
+        
+            $modelo1 = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+            $modelo2 = DB::connection('sqlsrv')->table('MaterializedBacklogTable2_View');
+            $selectCampos = [$campoBusqueda2, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
             $campoCantidad = 'qty';
-
-            $datos = $modelo->where('Estilos', $estilo)
-                            ->where($campoBusqueda2, $orden)
-                            ->where('sizename', $talla)
-                            ->select($selectCampos)
-                            ->get();
-        }
-
-        // Si tuvieras que filtrar para que no repita lo que ya existe en ReporteAuditoriaEtiqueta:
-        $registrosExistentes = ReporteAuditoriaEtiqueta::all();
-        $registrosExistentesArray = $registrosExistentes->map(function ($item) {
-            return [
-                'Orden'   => $item->Orden,
-                'Estilos' => $item->Estilos,
-                'Color'   => $item->Color,
-                'Talla'   => $item->Talla,
-            ];
-        })->toArray();
-
-        // Filtrar duplicados
-        $datosFiltrados = $datos->filter(function ($dato) use ($registrosExistentesArray, $tipoBusqueda, $campoBusqueda2) {
-            $color     = ($tipoBusqueda == 'OC') ? $dato->Color : $dato->inventcolorid;
-            $tallaReal = ($tipoBusqueda == 'OC') ? $dato->Talla : $dato->sizename;
-            $ordenValor = $dato->$campoBusqueda2;
-
-            $combinacion = [
-                'Orden'   => $ordenValor,
-                'Estilos' => $dato->Estilos,
-                'Color'   => $color,
-                'Talla'   => $tallaReal,
-            ];
-
-            return !in_array($combinacion, $registrosExistentesArray);
-        });
-
-        // Calculamos el tamaño de muestra para cada registro
-        foreach ($datosFiltrados as $dato) {
-            $cantidad = $dato->$campoCantidad;
-            $tamaño_muestra = $this->calcularTamanoMuestra($cantidad);
-            $dato->tamaño_muestra = $tamaño_muestra;
-        }
-
-        // Si hubiera varios registros y quisieras solo el primero, lo tomas así:
-        $respuesta = null;
-        if ($datosFiltrados->count() > 0) {
-            $primer = $datosFiltrados->first();
-
-            // Definimos el campo de color según el tipo de búsqueda
-            $colorCol = ($tipoBusqueda === 'OC') ? 'Color' : 'inventcolorid';
-
-            // Usamos el operador ?? para poner "N/A" si no viene color
-            $respuesta = [
-                'cantidad'       => $primer->$campoCantidad,
-                'tamaño_muestra' => $primer->tamaño_muestra,
-                'color'          => $primer->$colorCol ?? 'N/A',
-            ];
-        } else {
-            // Si no hay nada filtrado
-            $respuesta = [
-                'cantidad'       => 0,
-                'tamaño_muestra' => '',
-                'color'          => 'N/A'
-            ];
-        }
-
-        return response()->json([
-            'success' => true,
-            'data'    => $respuesta
-        ]);
-    }
+        
+            // Buscar en la primera tabla
+            $datosTabla1 = $modelo1
+                ->where('Estilos', $estilo)
+                ->where($campoBusqueda2, $orden)
+                ->where('sizename', $talla)
+                ->select($selectCampos)
+                ->get();
+        
+            // Log resultados de la primera búsqueda
+            Log::info('Resultados de la búsqueda en MaterializedBacklogTable_View', [
+                'Resultados' => $datosTabla1->toArray(),
+            ]);
+        
+            // Buscar en la segunda tabla para los casos 'PO' y 'OV'
+            $datosTabla2 = collect();
+            if (in_array($tipoBusqueda, ['PO', 'OV'])) {
+                $datosTabla2 = $modelo2
+                    ->where('Estilos', $estilo)
+                    ->where($campoBusqueda2, $orden)
+                    ->where('sizename', $talla)
+                    ->select($selectCampos)
+                    ->get();
+        
+                // Log resultados de la segunda búsqueda
+                Log::info('Resultados de la búsqueda en MaterializedBacklogTable2_View', [
+                    'Resultados' => $datosTabla2->toArray(),
+                ]);
+            }
+        
+            // Combina los resultados de ambas tablas
+            $datos = $datosTabla1->merge($datosTabla2);
+        
+            // Log resultados combinados
+            Log::info('Resultados combinados de ambas tablas', [
+                'Resultados' => $datos->toArray(),
+            ]);
+        
+            // Filtrar duplicados comparando con registros existentes
+            $registrosExistentes = ReporteAuditoriaEtiqueta::all();
+            $registrosExistentesArray = $registrosExistentes->map(function ($item) {
+                return [
+                    'Orden'   => $item->Orden,
+                    'Estilos' => $item->Estilos,
+                    'Color'   => $item->Color,
+                    'Talla'   => $item->Talla,
+                ];
+            })->toArray();
+        
+            $datosFiltrados = $datos->filter(function ($dato) use ($registrosExistentesArray, $tipoBusqueda, $campoBusqueda2) {
+                $color = $dato->inventcolorid; // Usar inventcolorid para casos no 'OC'
+                $tallaReal = $dato->sizename; // Usar sizename para casos no 'OC'
+                $ordenValor = $dato->$campoBusqueda2;
+        
+                $combinacion = [
+                    'Orden'   => $ordenValor,
+                    'Estilos' => $dato->Estilos,
+                    'Color'   => $color,
+                    'Talla'   => $tallaReal,
+                ];
+        
+                return !in_array($combinacion, $registrosExistentesArray);
+            });
+        
+            // Calcular el tamaño de muestra para cada registro filtrado
+            foreach ($datosFiltrados as $dato) {
+                $cantidad = $dato->$campoCantidad;
+                $tamaño_muestra = $this->calcularTamanoMuestra($cantidad);
+                $dato->tamaño_muestra = $tamaño_muestra;
+            }
+        
+            // Si hubiera varios registros y quisieras solo el primero
+            $respuesta = null;
+            if ($datosFiltrados->count() > 0) {
+                $primer = $datosFiltrados->first();
+        
+                // Usamos el operador ?? para poner "N/A" si no viene color
+                $respuesta = [
+                    'cantidad'       => $primer->$campoCantidad,
+                    'tamaño_muestra' => $primer->tamaño_muestra,
+                    'color'          => $primer->inventcolorid ?? 'N/A',
+                ];
+            } else {
+                // Si no hay nada filtrado
+                $respuesta = [
+                    'cantidad'       => 0,
+                    'tamaño_muestra' => '',
+                    'color'          => 'N/A',
+                ];
+            }
+        
+            return response()->json([
+                'success' => true,
+                'data'    => $respuesta,
+            ]);
+        }       
+    } 
 
     /**
      * Función helper para calcular el tamaño de muestra con base en la cantidad.
