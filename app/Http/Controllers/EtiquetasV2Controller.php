@@ -99,11 +99,21 @@ class EtiquetasV2Controller extends Controller
                 ->distinct()
                 ->get();
         } elseif ($tipoBusqueda === 'PO') {
-            $campoBusqueda = 'CPO';
-            $conexion = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
-            $estilos = $conexion
-                ->where($campoBusqueda, $orden)
+            $campoBusqueda1 = 'CPO';
+            $campoBusqueda2 = 'po'; // Suponiendo que el campo se llama igual en ambas vistas
+        
+            $conexion1 = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+            $conexion2 = DB::connection('sqlsrv')->table('MaterializedBacklogTable2_View');
+        
+            // Unificar los resultados de ambas vistas usando union
+            $estilos = $conexion1
+                ->where($campoBusqueda1, $orden)
                 ->select('Estilos')
+                ->union(
+                    $conexion2
+                        ->where($campoBusqueda2, $orden)
+                        ->select('Estilos')
+                )
                 ->distinct()
                 ->get();
         } elseif ($tipoBusqueda === 'OV') {
