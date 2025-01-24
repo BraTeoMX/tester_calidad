@@ -4,7 +4,8 @@
             <a href="#" class="simple-text logo-normal">{{ _('INTIMARK') }}</a>
         </div>
         <ul class="nav">
-            @if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Gerente de Calidad')))
+            @if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Gerente de Calidad') 
+                    || auth()->user()->hasRole('Gerente')))
                 <li class="nav-item{{ $pageSlug == 'dashboard' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('home') }}">
                         <i class="tim-icons icon-chart-pie-36"></i>
@@ -97,20 +98,6 @@
                                     <p style="text-align: center;">{{ __('AUDITORIA CORTE') }}</p>
                                 </a>
                             </li>
-                            {{--<li class="nav-item{{ $pageSlug == 'Evaluacion Corte' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('evaluacionCorte.inicioEvaluacionCorte') }}">
-                                    <i class="material-icons">edit_document</i>
-                                    <p>{{ __('F-4') }}</p>
-                                    <p style="text-align: center;">{{ __('EVALUACION DE CORTE') }}</p>
-                                </a>
-                            </li>
-                            <li class="nav-item{{ $pageSlug == 'Proceso Corte' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('auditoriaProcesoCorte.altaProcesoCorte') }}">
-                                    <i class="material-icons">edit_document</i>
-                                    <p>{{ __('FCC-04') }}</p>
-                                    <p style="text-align: center;">{{ __('AUDITORIA PROCESO DE CORTE') }}</p>
-                                </a>
-                            </li> --}}
                             <li class="nav-item{{ $pageSlug == 'proceso' ? ' active' : '' }}">
                                 <a class="nav-link" href="{{ route('aseguramientoCalidad.altaProceso') }}">
                                     <i class="material-icons">edit_document</i>

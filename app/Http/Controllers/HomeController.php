@@ -46,7 +46,7 @@ class HomeController extends Controller
          * @var User $user
         */
         $user = Auth::user();
-        if ($user->hasRole('Administrador') || $user->hasRole('Gerente de Calidad')) {
+        if ($user->hasRole('Administrador') || $user->hasRole('Gerente de Calidad') || $user->hasRole('Gerente')) {
 
             // Consulta consolidada (una sola ejecución para las dos tablas)
             $resultados = Cache::remember('resultados_consolidados_'.$fechaActual, 60, function() use ($fechaActual) {
