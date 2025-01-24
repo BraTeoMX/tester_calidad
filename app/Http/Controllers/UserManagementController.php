@@ -25,63 +25,71 @@ class UserManagementController extends Controller
 
         return response()->json($options);
     }
+
     public function AddUser(Request $request)
-{
-    // Validar los datos del formulario
-    $messages = [
-        'no_empleado.unique' => 'El número de empleado ya ha sido tomado.',
-        'email.unique' => 'El correo electrónico ya ha sido tomado.',
-        // Puedes agregar más mensajes personalizados según tus necesidades
-    ];
+    {
+        // Validar los datos del formulario
+        $messages = [
+            'no_empleado.unique' => 'El número de empleado ya ha sido tomado.',
+            'email.unique' => 'El correo electrónico ya ha sido tomado.',
+            // Puedes agregar más mensajes personalizados según tus necesidades
+        ];
 
-    // Validar los datos del formulario con mensajes personalizados
-    $validator = Validator::make($request->all(), [
-        'name' => 'required|string',
-        'no_empleado' => [
-            'required',
-            'string',
-            Rule::unique('users')->where(function ($query) use ($request) {
-                return $query->where('no_empleado', $request->no_empleado);
-            }),
-        ],
-        'email' => [
-            'required',
-            'string',
-            'email',
-            Rule::unique('users')->where(function ($query) use ($request) {
-                return $query->where('email', $request->email);
-            }),
-        ],
-        'password' => 'required|string|min:8',
-        'editPuesto' => 'required|string',
-        'tipo_auditoria' => 'required|string',
-        'editPlanta' => 'required|string',
-        // Agrega las reglas de validación necesarias para los demás campos
-    ], $messages);
+        // Validar los datos del formulario con mensajes personalizados
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string',
+            'no_empleado' => [
+                'required',
+                'string',
+                Rule::unique('users')->where(function ($query) use ($request) {
+                    return $query->where('no_empleado', $request->no_empleado);
+                }),
+            ],
+            'email' => [
+                'nullable', // Hacemos que el correo sea opcional
+                'string',
+                'email',
+                Rule::unique('users')->where(function ($query) use ($request) {
+                    return $query->where('email', $request->email);
+                }),
+            ],
+            'password' => 'required|string|min:8',
+            'editPuesto' => 'required|string',
+            'tipo_auditoria' => 'required|string',
+            'editPlanta' => 'required|string',
+        ], $messages);
 
-    // Si la validación falla, retorna un error con un mensaje personalizado
-    if ($validator->fails()) {
-        return back()->withErrors($validator)->with('error', 'Número de empleado o correo ya existente, intente con otro diferente.')->withInput();
+        // Si la validación falla, retorna un error con un mensaje personalizado
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->with('error', 'Número de empleado o correo ya existente, intente con otro diferente.')->withInput();
+        }
+
+        // Crear un correo ficticio si el campo de correo no está presente en el request
+        $email = $request->input('email');
+        if (is_null($email) || $email === '') {
+            // Obtener el último ID para generar un correo único
+            $lastId = User::max('id') ?? 0; // Si no hay usuarios, usamos 0 como base
+            $email = ($lastId + 1) . '@auditorx.com';
+        }
+
+        // Crear un nuevo usuario
+        $user = new User([
+            'name' => $request->input('name'),
+            'no_empleado' => $request->input('no_empleado'),
+            'email' => $email, // Usar el correo proporcionado o generado automáticamente
+            'password' => Hash::make($request->input('password')),
+            'puesto' => $request->input('editPuesto'),
+            'tipo_auditor' => $request->input('tipo_auditoria'),
+            'Planta' => $request->input('editPlanta'),
+        ]);
+
+        // Guardar el usuario en la base de datos
+        $user->save();
+
+        // Redirigir con mensajes de éxito o error
+        return back()->with('success', 'Datos guardados correctamente.')->withInput();
     }
 
-    // Crear un nuevo usuario
-    $user = new User([
-        'name' => $request->input('name'),
-        'no_empleado' => $request->input('no_empleado'),
-        'email' => $request->input('email'),
-        'password' => Hash::make($request['password']),
-        'puesto' => $request->input('editPuesto'),
-        'tipo_auditor' => $request->input('tipo_auditoria'),
-        'Planta' => $request->input('editPlanta'),
-        // Agrega asignación de otros campos
-    ]);
-
-    // Guardar el usuario en la base de datos
-    $user->save();
-
-    // Redirigir con mensajes de éxito o error
-    return back()->with('success', 'Datos guardados correctamente.')->withInput();
-}
 public function editUser(Request $request)
 {
     // Obtener el ID del usuario a través del campo editId

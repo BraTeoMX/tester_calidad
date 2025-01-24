@@ -320,6 +320,25 @@
                         {{ session('success') }}
                     </div>
                 @endif
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Seleccionamos todos los elementos de alerta
+                        const alerts = document.querySelectorAll('.alert');
+                
+                        // Iteramos por cada alerta para aplicar el desvanecido
+                        alerts.forEach(alert => {
+                            // Esperamos 6 segundos antes de iniciar el desvanecido
+                            setTimeout(() => {
+                                // Cambiamos la opacidad para el efecto de desvanecido
+                                alert.style.transition = 'opacity 1s ease';
+                                alert.style.opacity = '0';
+                
+                                // Eliminamos el elemento del DOM después de 1 segundo (duración del desvanecido)
+                                setTimeout(() => alert.remove(), 1000);
+                            }, 5000); // Tiempo de espera antes de desvanecer (6 segundos)
+                        });
+                    });
+                </script>
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-md-12">
@@ -331,7 +350,7 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-12 text-right">
-                                            <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addUserModal">
+                                            <button class="btn btn-sm btn-primary" id="openModalButton" >
                                                 Agregar nuevo personal <i class="tim-icons icon-single-02"></i>
                                             </button>
                                         </div>
@@ -387,71 +406,72 @@
                                             </tbody>
                                         </table>
             
-                                        <!-- Modal Add User -->
-                                        <form id="addUserForm" action="{{ route('user.AddUser') }}" method="POST">
-                                            @csrf
-                                            <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content bg-dark text-white">
-                                                        <div class="modal-header">
-                                                            <h3 class="modal-title" style="color: aliceblue" id="addUserModalLabel">Add User</h3>
-                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                                <span aria-hidden="true">&times;</span>
-                                                            </button>
+                                        <!-- Modal personalizado -->
+                                        <div id="customModal" class="custom-modal">
+                                            <div class="custom-modal-content">
+                                                <div class="custom-modal-header">
+                                                    <h3>Agregar Usuario</h3>
+                                                    <button id="closeModalButton" class="btn btn-danger">CERRAR</button>
+                                                </div>
+                                                <div class="custom-modal-body">
+                                                    <form id="addUserForm" action="{{ route('user.AddUser') }}" method="POST">
+                                                        @csrf
+                                                        <div class="mb-3">
+                                                            <label for="name" class="form-label">Nombre</label>
+                                                            <input type="text" class="form-control" name="name" id="name" placeholder="Ingrese el nombre" required>
                                                         </div>
-                                                        <div class="modal-body">
-                                                            <div class="mb-3">
-                                                                <label for="name" class="form-label">Name</label>
-                                                                <input type="text" class="form-control" name="name" id="name" placeholder="Enter name" required>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label for="email" class="form-label">Email</label>
-                                                                <input type="email" class="form-control" name="email" id="email" placeholder="Enter email" required>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label for="no_empleado" class="form-label">No. Empleado</label>
-                                                                <input type="number" class="form-control" name="no_empleado" id="no_empleado" placeholder="Enter no. empleado" maxlength="10" required>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label for="password" class="form-label">Password</label>
-                                                                <div class="input-group">
-                                                                    <input type="password" class="form-control" name="password" id="password" placeholder="Enter password" required>
-                                                                    <button class="btn btn-warning" type="button" onclick="togglePasswordVisibility('password')">Ver
-                                                                    </button>
+                                                        <div class="mb-3">
+                                                            <label for="email" class="form-label">Correo</label>
+                                                            <div class="d-flex align-items-center">
+                                                                <input type="email" class="form-control" name="email" id="email" placeholder="Ingrese el correo" required>
+                                                                <div class="form-check ms-3">
+                                                                    <input type="checkbox" class="form-check-input" id="disableEmailCheckbox" onclick="toggleEmailInput()">
+                                                                    <label class="form-check-label" for="disableEmailCheckbox">Deshabilitar</label>
                                                                 </div>
                                                             </div>
-                                                            <div class="mb-3">
-                                                                <label for="tipo_auditoria" class="form-label">Tipo Auditoria</label>
-                                                                <select class="form-control" id="tipo_auditoria1" name="tipo_auditoria" required>
-                                                                    <option value="" disabled selected hidden>Seleccione el tipo de auditoria</option>
-                                                                    @foreach ($tipoAuditoriaDatos as $tipo)
-                                                                        <option value="{{ $tipo->Tipo_auditoria }}">{{ $tipo->Tipo_auditoria }}</option>
-                                                                    @endforeach
-                                                                </select>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label for="editPuesto" class="form-label">Puesto</label>
-                                                                <select class="form-control" id="editPuesto1" name="editPuesto" required>
-                                                                    <option value="" disabled selected hidden>Seleccione el puesto</option>
-                                                                    @foreach ($puestoDatos as $puesto)
-                                                                        <option value="{{ $puesto->Puesto }}">{{ $puesto->Puesto }}</option>
-                                                                    @endforeach
-                                                                </select>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label for="editPlanta" class="form-label">Planta</label>
-                                                                <select class="form-control" id="editPlanta" name="editPlanta" required>
-                                                                    <option value="" disabled selected hidden>Seleccione la planta</option>
-                                                                    <option value="Planta1">Ixtlahuaca</option>
-                                                                    <option value="Planta2">San Bartolo</option>
-                                                                </select>
-                                                            </div>
-                                                            <button type="submit" class="btn btn-primary">Save</button>
                                                         </div>
-                                                    </div>
+                                                        <div class="mb-3">
+                                                            <label for="no_empleado" class="form-label">No. Empleado</label>
+                                                            <input type="number" class="form-control" name="no_empleado" id="no_empleado" placeholder="Ingrese el número de empleado" maxlength="10" required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="password" class="form-label">Contraseña</label>
+                                                            <div class="input-group">
+                                                                <input type="password" class="form-control" name="password" id="password" placeholder="Ingrese la contraseña" required>
+                                                                <button class="btn btn-warning" type="button" onclick="togglePasswordVisibility('password')">Ver</button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="editPuesto" class="form-label">Puesto</label>
+                                                            <select class="form-control" id="editPuesto" name="editPuesto" required>
+                                                                <option value="" disabled selected hidden>Seleccione el puesto</option>
+                                                                @foreach ($puestoDatos as $puesto)
+                                                                    <option value="{{ $puesto->Puesto }}">{{ $puesto->Puesto }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="tipo_auditoria" class="form-label">Tipo Auditoria</label>
+                                                            <select class="form-control" id="tipo_auditoria" name="tipo_auditoria" required>
+                                                                <option value="" disabled selected hidden>Seleccione el tipo de auditoria</option>
+                                                                @foreach ($tipoAuditoriaDatos as $tipo)
+                                                                    <option value="{{ $tipo->Tipo_auditoria }}">{{ $tipo->Tipo_auditoria }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="editPlanta" class="form-label">Planta</label>
+                                                            <select class="form-control" id="editPlanta" name="editPlanta" required>
+                                                                <option value="" disabled selected hidden>Seleccione la planta</option>
+                                                                <option value="Planta1">Ixtlahuaca</option>
+                                                                <option value="Planta2">San Bartolo</option>
+                                                            </select>
+                                                        </div>
+                                                        <button type="submit" class="btn btn-primary">Guardar</button>
+                                                    </form>
                                                 </div>
                                             </div>
-                                        </form> 
+                                        </div>
 
                                         <!-- Modal Edit User -->
                                         <form id="editUser" action="{{ route('users.editUser') }}" method="POST">
@@ -516,6 +536,112 @@
     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
         @csrf
     </form>
+
+    <style>
+        /* Fondo del modal */
+        .custom-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow-y: auto; /* Permite el desplazamiento vertical del modal completo */
+        }
+    
+        /* Contenido del modal */
+        .custom-modal-content {
+            position: relative; /* Cambiado de 'fixed' a 'relative' */
+            margin: 2rem auto; /* Espaciado superior e inferior */
+            background-color: #1a1a1a;
+            color: #ffffff;
+            border-radius: 10px;
+            width: 500px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+    
+        /* Encabezado */
+        .custom-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ffffff;
+            margin-bottom: 20px;
+        }
+    
+        /* Botón cerrar */
+        .custom-close-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    
+        .custom-close-button:hover {
+            color: #ff4d4d;
+        }
+    
+        /* Botones del formulario */
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script>
+        // Abrir y cerrar el modal
+        document.getElementById('openModalButton').addEventListener('click', function () {
+            document.getElementById('customModal').style.display = 'block';
+        });
+
+        document.getElementById('closeModalButton').addEventListener('click', function () {
+            document.getElementById('customModal').style.display = 'none';
+        });
+
+        // Cerrar modal con tecla "ESC"
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                document.getElementById('customModal').style.display = 'none';
+            }
+        });
+
+        // Cerrar modal al hacer clic fuera del contenido
+        document.getElementById('customModal').addEventListener('click', function (event) {
+            if (event.target === this) {
+                this.style.display = 'none';
+            }
+        });
+
+    </script>
+
+    <script>
+        function toggleEmailInput() {
+            const emailInput = document.getElementById('email');
+            const checkbox = document.getElementById('disableEmailCheckbox');
+            
+            // Si el checkbox está marcado, deshabilita el input y elimina el atributo 'required'
+            if (checkbox.checked) {
+                emailInput.disabled = true;
+                emailInput.removeAttribute('required');
+            } else {
+                // Si el checkbox está desmarcado, habilita el input y agrega el atributo 'required'
+                emailInput.disabled = false;
+                emailInput.setAttribute('required', 'required');
+            }
+        }
+    </script>
+
     <script src="{{ asset('black') }}/js/core/jquery.min.js"></script>
     <script src="{{ asset('black') }}/js/core/popper.min.js"></script>
     <script src="{{ asset('black') }}/js/core/bootstrap.min.js"></script>
