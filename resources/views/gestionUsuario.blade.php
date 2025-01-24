@@ -1,14 +1,18 @@
 @extends('layouts.app', ['pageSlug' => 'Gestion', 'titlePage' => __('Gestion')])
 
 @section('content')
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
     @if (session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
-        </div>
-    @endif
-    @if (session('danger'))
-        <div class="alert alert-danger">
-            {{ session('danger') }}
         </div>
     @endif
     @if (session('warning'))
@@ -31,7 +35,7 @@
     
                     // Eliminamos el elemento del DOM después de 1 segundo (duración del desvanecido)
                     setTimeout(() => alert.remove(), 1000);
-                }, 5000); // Tiempo de espera antes de desvanecer (6 segundos)
+                }, 10000); // Tiempo de espera antes de desvanecer (6 segundos)
             });
         });
     </script>
@@ -81,7 +85,11 @@
                                             @endif
                                             <td class="td-actions text-right">
                                                 <div class="btn-group" role="group" aria-label="Acciones">
-                                                    <button class="btn btn-info btn-link editUserBtn" data-id="{{ $user->no_empleado }}" data-name="{{ $user->name }}" data-toggle="modal" data-target="#editModal">
+                                                    <button 
+                                                        class="btn btn-info btn-link editUserBtn" 
+                                                        data-id="{{ $user->no_empleado }}" 
+                                                        data-name="{{ $user->name }}" 
+                                                        id="openEditModalButton">
                                                         <i class="tim-icons icon-pencil"></i>
                                                     </button>
                                                     <form method="POST" action="{{ route('blockUser', ['noEmpleado' => $user->no_empleado]) }}">
@@ -114,7 +122,8 @@
                                             @csrf
                                             <div class="mb-3">
                                                 <label for="name" class="form-label">Nombre</label>
-                                                <input type="text" class="form-control" name="name" id="name" placeholder="Ingrese el nombre" required>
+                                                <input type="text" class="form-control" name="name" id="name" 
+                                                    placeholder="Ingrese el nombre" oninput="this.value = this.value.toUpperCase();" required>
                                             </div>
                                             <div class="mb-3">
                                                 <label for="email" class="form-label">Correo</label>
@@ -169,49 +178,44 @@
                                 </div>
                             </div>
 
-                            <!-- Modal Edit User -->
-                            <form id="editUser" action="{{ route('users.editUser') }}" method="POST">
-                                @csrf
-                                <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content bg-dark text-white">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="editModalLabel">Editar Usuario</h5>
-                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
+                            <!-- Modal Edit User Personalizado -->
+                            <div id="editCustomModal" class="custom-modal">
+                                <div class="custom-modal-content">
+                                    <div class="custom-modal-header">
+                                        <h3>Editar Usuario</h3>
+                                        <button id="closeEditModalButton" class="btn btn-danger">CERRAR</button>
+                                    </div>
+                                    <div class="custom-modal-body">
+                                        <form id="editUserForm" action="{{ route('users.editUser') }}" method="POST">
+                                            @csrf
+                                            <div class="mb-3">
+                                                <label for="editId" class="form-label">ID</label>
+                                                <input type="text" class="form-control disabled-input" name="editId" id="editId" readonly>
                                             </div>
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <label for="editId" class="form-label">ID</label>
-                                                    <input type="text" class="form-control disabled-input" name="editId" id="editId" readonly>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="editName" class="form-label">Name</label>
-                                                    <input type="text" class="form-control" name="editName" id="editName" placeholder="Nombre del usuario">
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="editTipoAuditoria" class="form-label">Tipo Auditoria</label>
-                                                    <select class="form-control" id="editTipoAuditoria" name="editTipoAuditoria"></select>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="editPuestos" class="form-label">Puesto</label>
-                                                    <select class="form-control" id="editPuestos" name="editPuestos"></select>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="password_update" class="form-label">Password</label>
-                                                    <div class="input-group">
-                                                        <input type="password" class="form-control" name="password_update" id="password_update" placeholder="Cambiar Contraseña">
-                                                        <button class="btn btn-warning" type="button" onclick="togglePasswordVisibility('password_update')">Ver
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <button type="submit" class="btn btn-primary">Guardar</button>
+                                            <div class="mb-3">
+                                                <label for="editName" class="form-label">Nombre</label>
+                                                <input type="text" class="form-control" name="editName" id="editName" placeholder="Nombre del usuario">
                                             </div>
-                                        </div>
+                                            <div class="mb-3">
+                                                <label for="editTipoAuditoria" class="form-label">Tipo Auditoria</label>
+                                                <select class="form-control" id="editTipoAuditoria" name="editTipoAuditoria"></select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="editPuestos" class="form-label">Puesto</label>
+                                                <select class="form-control" id="editPuestos" name="editPuestos"></select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="password_update" class="form-label">Contraseña</label>
+                                                <div class="input-group">
+                                                    <input type="password" class="form-control" name="password_update" id="password_update" placeholder="Cambiar Contraseña">
+                                                    <button class="btn btn-warning" type="button" onclick="togglePasswordVisibility('password_update')">Ver</button>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Guardar</button>
+                                        </form>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -285,29 +289,64 @@
         }
     </style>
     <script>
-        // Abrir y cerrar el modal
+        // Función para abrir un modal específico
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        // Función para cerrar un modal específico
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Evento para abrir el primer modal
         document.getElementById('openModalButton').addEventListener('click', function () {
-            document.getElementById('customModal').style.display = 'block';
+            openModal('customModal');
         });
 
+        // Evento para cerrar el primer modal
         document.getElementById('closeModalButton').addEventListener('click', function () {
-            document.getElementById('customModal').style.display = 'none';
+            closeModal('customModal');
         });
 
-        // Cerrar modal con tecla "ESC"
+        // Evento para manejar múltiples botones de apertura para el segundo modal
+        document.querySelectorAll('.editUserBtn').forEach(function (button) {
+            button.addEventListener('click', function () {
+                // Obtener los datos del botón
+                const userId = this.getAttribute('data-id');
+                const userName = this.getAttribute('data-name');
+
+                // Prellenar el formulario del modal de edición
+                document.getElementById('editId').value = userId;
+                document.getElementById('editName').value = userName;
+
+                // Abrir el modal de edición
+                openModal('editCustomModal');
+            });
+        });
+
+        // Evento para cerrar el segundo modal
+        document.getElementById('closeEditModalButton').addEventListener('click', function () {
+            closeModal('editCustomModal');
+        });
+
+        // Cerrar cualquier modal al presionar la tecla "ESC"
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
-                document.getElementById('customModal').style.display = 'none';
+                closeModal('customModal');
+                closeModal('editCustomModal');
             }
         });
 
-        // Cerrar modal al hacer clic fuera del contenido
-        document.getElementById('customModal').addEventListener('click', function (event) {
-            if (event.target === this) {
-                this.style.display = 'none';
-            }
+        // Cerrar cualquier modal al hacer clic fuera del contenido
+        ['customModal', 'editCustomModal'].forEach(function (modalId) {
+            const modalElement = document.getElementById(modalId);
+            modalElement.addEventListener('click', function (event) {
+                if (event.target === modalElement) {
+                    closeModal(modalId);
+                }
+            });
         });
-
     </script>
 
     <script>
