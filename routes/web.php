@@ -35,6 +35,7 @@ use App\Http\Controllers\GestionController;
 use App\Http\Controllers\AuditoriaAQL_v2Controller;
 use App\Http\Controllers\ConsutlaEstatusController;
 use App\Http\Controllers\EtiquetasV2Controller;
+use App\Http\Controllers\GestionUsuarioController;
 
 
 /*
@@ -71,6 +72,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('profile', ['as' => 'profile.edit', 'uses' => 'App\Http\Controllers\ProfileController@edit']);
     Route::put('profile', ['as' => 'profile.update', 'uses' => 'App\Http\Controllers\ProfileController@update']);
     Route::put('profile/password', ['as' => 'profile.password', 'uses' => 'App\Http\Controllers\ProfileController@password']);
+    Route::get('/gestionUsuario', [GestionUsuarioController::class, 'gestionUsuario'])->name('gestionUsuario');
 
     // Añade aquí el resto de tus rutas protegidas
 });
