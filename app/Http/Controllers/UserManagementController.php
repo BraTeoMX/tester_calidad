@@ -92,6 +92,7 @@ class UserManagementController extends Controller
 
 public function editUser(Request $request)
 {
+    dd($request->all());
     // Obtener el ID del usuario a través del campo editId
     $userId = $request->input('editId');
 

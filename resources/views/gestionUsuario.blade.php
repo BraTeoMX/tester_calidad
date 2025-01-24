@@ -191,30 +191,57 @@
                                     <div class="custom-modal-body">
                                         <form id="editUserForm" action="{{ route('users.editUser') }}" method="POST">
                                             @csrf
-                                            <input type="hidden" name="editId" >
+                                            <input type="hidden" name="editId" id="editId">
+                                            <!-- Numero Empleado (con botón para habilitar/deshabilitar readonly) -->
                                             <div class="mb-3">
                                                 <label for="editNumeroEmpleado" class="form-label">Numero Empleado</label>
-                                                <input type="text" class="form-control disabled-input" name="editNumeroEmpleado" id="editNumeroEmpleado" readonly>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" name="editNumeroEmpleado" id="editNumeroEmpleado" placeholder="Número de empleado" readonly>
+                                                    <button type="button" class="btn btn-outline-secondary" onclick="toggleReadonly('editNumeroEmpleado', this)">
+                                                        <i class="tim-icons icon-pencil"></i>
+                                                    </button>
+                                                </div>
                                             </div>
+                                            <!-- Nombre (con botón para habilitar/deshabilitar readonly) -->
                                             <div class="mb-3">
                                                 <label for="editName" class="form-label">Nombre</label>
-                                                <input type="text" class="form-control" name="editName" id="editName" placeholder="Nombre del usuario">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" name="editName" id="editName" placeholder="Nombre del usuario" readonly>
+                                                    <button type="button" class="btn btn-outline-secondary" onclick="toggleReadonly('editName', this)">
+                                                        <i class="tim-icons icon-pencil"></i>
+                                                    </button>
+                                                </div>
                                             </div>
+                                            <!-- Correo (con botón para habilitar/deshabilitar readonly) -->
                                             <div class="mb-3">
                                                 <label for="editEmail" class="form-label">Correo</label>
-                                                <input type="email" class="form-control" name="editEmail" id="editEmail" placeholder="Correo del usuario">
+                                                <div class="input-group">
+                                                    <input type="email" class="form-control" name="editEmail" id="editEmail" placeholder="Correo del usuario" readonly>
+                                                    <button type="button" class="btn btn-outline-secondary" onclick="toggleReadonly('editEmail', this)">
+                                                        <i class="tim-icons icon-pencil"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div class="mb-3">
                                                 <label for="editPlanta" class="form-label">Planta</label>
-                                                <input type="text" class="form-control" name="editPlanta" id="editPlanta" placeholder="Planta del usuario">
+                                                <select class="form-control" name="editPlanta" id="editPlanta">
+                                                    <option value="Planta1">Ixtlahuaca</option>
+                                                    <option value="Planta2">San Bartolo</option>
+                                                </select>
                                             </div>
+                                            
                                             <div class="mb-3">
                                                 <label for="editTipoAuditoria" class="form-label">Tipo Auditoria</label>
-                                                <select class="form-control" id="editTipoAuditoria" name="editTipoAuditoria"></select>
+                                                <select class="form-control" id="editTipoAuditoria" name="editTipoAuditoria">
+                                                    <!-- Opciones cargadas dinámicamente -->
+                                                </select>
                                             </div>
+                                            
                                             <div class="mb-3">
                                                 <label for="editPuestos" class="form-label">Puesto</label>
-                                                <select class="form-control" id="editPuestos" name="editPuestos"></select>
+                                                <select class="form-control" id="editPuestos" name="editPuestos">
+                                                    <!-- Opciones cargadas dinámicamente -->
+                                                </select>
                                             </div>
                                             <div class="mb-3">
                                                 <label for="password_update" class="form-label">Contraseña</label>
@@ -367,6 +394,92 @@
                 if (event.target === modalElement) {
                     closeModal(modalId);
                 }
+            });
+        });
+    </script>
+
+    <script>
+        function toggleReadonly(inputId, button) {
+            const input = document.getElementById(inputId);
+            if (input.readOnly) {
+                input.readOnly = false; // Habilitar el campo
+                button.classList.remove('btn-outline-secondary');
+                button.classList.add('btn-success');
+            } else {
+                input.readOnly = true; // Deshabilitar el campo
+                button.classList.remove('btn-success');
+                button.classList.add('btn-outline-secondary');
+            }
+        }
+
+        function validateForm() {
+            // Inputs que deben validarse
+            const inputs = ['editNumeroEmpleado', 'editName', 'editEmail'];
+            let isValid = true;
+
+            inputs.forEach(function (inputId) {
+                const input = document.getElementById(inputId);
+                // Verificar si el campo está habilitado y está vacío
+                if (!input.readOnly && input.value.trim() === '') {
+                    isValid = false; // Invalidar el formulario
+                    input.classList.add('is-invalid'); // Agregar clase para marcarlo como inválido
+                } else {
+                    input.classList.remove('is-invalid'); // Remover clase si está válido
+                }
+            });
+
+            if (!isValid) {
+                alert('Por favor, completa todos los campos habilitados antes de enviar.');
+            }
+
+            return isValid; // Evitar el envío del formulario si no es válido
+        }
+    </script>
+
+    <script>
+        // Datos enviados por el controlador
+        const tipoAuditoriaDatosEditar = @json($tipoAuditoriaDatosEditar);
+        const puestoDatosEditar = @json($puestoDatosEditar);
+
+        document.querySelectorAll('.editUserBtn').forEach(function (button) {
+            button.addEventListener('click', function () {
+                // Obtener los datos del botón
+                const userPlanta = this.getAttribute('data-planta');
+                const userTipoAuditoria = this.getAttribute('data-auditor');
+                const userPuesto = this.getAttribute('data-puesto');
+
+                // Preseleccionar "Planta" en el select
+                const plantaSelect = document.getElementById('editPlanta');
+                plantaSelect.value = userPlanta;
+
+                // Cargar opciones en el select "Tipo Auditoria" y seleccionar la correcta
+                const tipoAuditoriaSelect = document.getElementById('editTipoAuditoria');
+                tipoAuditoriaSelect.innerHTML = ''; // Limpiar opciones anteriores
+                tipoAuditoriaDatosEditar.forEach(function (tipo) {
+                    const option = document.createElement('option');
+                    option.value = tipo.Tipo_auditoria;
+                    option.text = tipo.Tipo_auditoria;
+                    if (tipo.Tipo_auditoria === userTipoAuditoria) {
+                        option.selected = true; // Seleccionar la opción correcta
+                    }
+                    tipoAuditoriaSelect.appendChild(option);
+                });
+
+                // Cargar opciones en el select "Puestos" y seleccionar la correcta
+                const puestoSelect = document.getElementById('editPuestos');
+                puestoSelect.innerHTML = ''; // Limpiar opciones anteriores
+                puestoDatosEditar.forEach(function (puesto) {
+                    const option = document.createElement('option');
+                    option.value = puesto.Puesto;
+                    option.text = puesto.Puesto;
+                    if (puesto.Puesto === userPuesto) {
+                        option.selected = true; // Seleccionar la opción correcta
+                    }
+                    puestoSelect.appendChild(option);
+                });
+
+                // Abrir el modal
+                openModal('editCustomModal');
             });
         });
     </script>

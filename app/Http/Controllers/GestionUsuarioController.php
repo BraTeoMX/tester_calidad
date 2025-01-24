@@ -21,10 +21,15 @@ class GestionUsuarioController extends Controller
     {
         $tipoAuditoriaDatos =  tipo_auditoria::all();
         $puestoDatos =  puestos::all();
+
+        $tipoAuditoriaDatosEditar =  tipo_auditoria::all();
+        $puestoDatosEditar =  puestos::all();
         return view('gestionUsuario', [
             'users' => $model->all(),
             'tipoAuditoriaDatos' => $tipoAuditoriaDatos,
             'puestoDatos' => $puestoDatos,
+            'tipoAuditoriaDatosEditar' => $tipoAuditoriaDatosEditar,
+            'puestoDatosEditar' => $puestoDatosEditar,
         ]);
     }
 
