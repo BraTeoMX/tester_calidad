@@ -54,62 +54,6 @@
                                     Agregar nuevo personal <i class="tim-icons icon-single-02"></i>
                                 </button>
                             </div>
-                        </div>
-                        <div class="card-body table-responsive">
-                            <table class="table table-hover table-dark" id="tablaDinamico">
-                                <thead class="text-primary">
-                                    <tr>
-                                        <th>Nombre</th>
-                                        <th>No. Empleado</th>
-                                        <th>Correo </th>
-                                        <th>Auditor</th>
-                                        <th>Puesto</th>
-                                        <th>Fecha de Creacion</th>
-                                        <th>Estatus</th>
-                                        <th class="text-right">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($users as $user)
-                                        <tr>
-                                            <td>{{ $user->name }}</td>
-                                            <td>{{ $user->no_empleado }}</td>
-                                            <td>{{ $user->email }}</td>
-                                            <td>{{ $user->tipo_auditor }}</td>
-                                            <td>{{ $user->puesto }}</td>
-                                            <td>{{ $user->created_at }}</td>
-                                            @if($user->Estatus == "Baja")
-                                                <td style="color: #ff4d4d !important;">{{ $user->Estatus }}</td>
-                                            @else
-                                                <td>{{ $user->Estatus }}</td>
-                                            @endif
-                                            <td class="td-actions text-right">
-                                                <div class="btn-group" role="group" aria-label="Acciones">
-                                                    <button 
-                                                        class="btn btn-info btn-link editUserBtn" 
-                                                        data-id="{{ $user->no_empleado }}" 
-                                                        data-name="{{ $user->name }}" 
-                                                        id="openEditModalButton">
-                                                        <i class="tim-icons icon-pencil"></i>
-                                                    </button>
-                                                    <form method="POST" action="{{ route('blockUser', ['noEmpleado' => $user->no_empleado]) }}">
-                                                        @method('PUT')
-                                                        @csrf
-                                                        <button type="submit" class="btn btn-danger btn-link">
-                                                            @if ($user->Estatus == 'Baja')
-                                                                <i class="tim-icons icon-alert-circle-exc"></i>
-                                                            @else
-                                                                <i class="tim-icons icon-single-02"></i>
-                                                            @endif
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-
                             <!-- Modal personalizado -->
                             <div id="customModal" class="custom-modal">
                                 <div class="custom-modal-content">
@@ -177,7 +121,66 @@
                                     </div>
                                 </div>
                             </div>
-
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="table table-hover table-dark" id="tablaDinamico">
+                                <thead class="text-primary">
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>No. Empleado</th>
+                                        <th>Correo </th>
+                                        <th>Auditor</th>
+                                        <th>Puesto</th>
+                                        <th>Fecha de Creacion</th>
+                                        <th>Estatus</th>
+                                        <th class="text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($users as $user)
+                                        <tr>
+                                            <td>{{ $user->name }}</td>
+                                            <td>{{ $user->no_empleado }}</td>
+                                            <td>{{ $user->email }}</td>
+                                            <td>{{ $user->tipo_auditor }}</td>
+                                            <td>{{ $user->puesto }}</td>
+                                            <td>{{ $user->created_at }}</td>
+                                            @if($user->Estatus == "Baja")
+                                                <td style="color: #ff4d4d !important;">{{ $user->Estatus }}</td>
+                                            @else
+                                                <td>{{ $user->Estatus }}</td>
+                                            @endif
+                                            <td class="td-actions text-right">
+                                                <div class="btn-group" role="group" aria-label="Acciones">
+                                                    <button 
+                                                        class="btn btn-info btn-link editUserBtn" 
+                                                            data-id="{{ $user->id }}"    
+                                                            data-numero_empleado="{{ $user->no_empleado }}" 
+                                                            data-name="{{ $user->name }}" 
+                                                            data-email="{{ $user->email }}" 
+                                                            data-auditor="{{ $user->tipo_auditor }}" 
+                                                            data-puesto="{{ $user->puesto }}" 
+                                                            data-planta="{{ $user->planta }}" 
+                                                            id="openEditModalButton">
+                                                        <i class="tim-icons icon-pencil"></i>
+                                                    </button>
+                                                    <form method="POST" action="{{ route('blockUser', ['noEmpleado' => $user->no_empleado]) }}">
+                                                        @method('PUT')
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-danger btn-link">
+                                                            @if ($user->Estatus == 'Baja')
+                                                                <i class="tim-icons icon-alert-circle-exc"></i>
+                                                            @else
+                                                                <i class="tim-icons icon-single-02"></i>
+                                                            @endif
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                             <!-- Modal Edit User Personalizado -->
                             <div id="editCustomModal" class="custom-modal">
                                 <div class="custom-modal-content">
@@ -188,13 +191,22 @@
                                     <div class="custom-modal-body">
                                         <form id="editUserForm" action="{{ route('users.editUser') }}" method="POST">
                                             @csrf
+                                            <input type="hidden" name="editId" >
                                             <div class="mb-3">
-                                                <label for="editId" class="form-label">ID</label>
-                                                <input type="text" class="form-control disabled-input" name="editId" id="editId" readonly>
+                                                <label for="editNumeroEmpleado" class="form-label">Numero Empleado</label>
+                                                <input type="text" class="form-control disabled-input" name="editNumeroEmpleado" id="editNumeroEmpleado" readonly>
                                             </div>
                                             <div class="mb-3">
                                                 <label for="editName" class="form-label">Nombre</label>
                                                 <input type="text" class="form-control" name="editName" id="editName" placeholder="Nombre del usuario">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="editEmail" class="form-label">Correo</label>
+                                                <input type="email" class="form-control" name="editEmail" id="editEmail" placeholder="Correo del usuario">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="editPlanta" class="form-label">Planta</label>
+                                                <input type="text" class="form-control" name="editPlanta" id="editPlanta" placeholder="Planta del usuario">
                                             </div>
                                             <div class="mb-3">
                                                 <label for="editTipoAuditoria" class="form-label">Tipo Auditoria</label>
@@ -312,13 +324,23 @@
         // Evento para manejar múltiples botones de apertura para el segundo modal
         document.querySelectorAll('.editUserBtn').forEach(function (button) {
             button.addEventListener('click', function () {
-                // Obtener los datos del botón
+                // Obtener los datos del botón 
                 const userId = this.getAttribute('data-id');
+                const userNumeroEmpleado = this.getAttribute('data-numero_empleado');
                 const userName = this.getAttribute('data-name');
+                const userEmail = this.getAttribute('data-email');
+                const userAuditor = this.getAttribute('data-auditor');
+                const userPuesto = this.getAttribute('data-puesto');
+                const userPlanta = this.getAttribute('data-planta');
 
                 // Prellenar el formulario del modal de edición
                 document.getElementById('editId').value = userId;
+                document.getElementById('editNumeroEmpleado').value = userNumeroEmpleado;
                 document.getElementById('editName').value = userName;
+                document.getElementById('editTipoAuditoria').value = userAuditor;
+                document.getElementById('editPuestos').value = userPuesto;
+                document.getElementById('editPlanta').value = userPlanta;
+                document.getElementById('editEmail').value = userEmail;
 
                 // Abrir el modal de edición
                 openModal('editCustomModal');
