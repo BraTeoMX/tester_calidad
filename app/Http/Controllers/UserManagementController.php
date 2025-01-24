@@ -90,35 +90,72 @@ class UserManagementController extends Controller
         return back()->with('success', 'Datos guardados correctamente.')->withInput();
     }
 
-public function editUser(Request $request)
-{
-    dd($request->all());
-    // Obtener el ID del usuario a través del campo editId
-    $userId = $request->input('editId');
+    public function editUser(Request $request)
+    {
+        //dd($request->all());
+        // Obtener el ID del usuario a través del campo editId
+        $userId = $request->input('editId');
 
-    // Buscar el usuario en la base de datos
-    $user = User::where('no_empleado', $userId)->first();
+        // Buscar el usuario en la base de datos
+        $user = User::find($userId);
 
-    // Verificar si se encontró el usuario
-    if (!$user) {
-        return back()->with('error', 'Usuario no encontrado.');
+        // Verificar si se encontró el usuario
+        if (!$user) {
+            return back()->with('error', 'Usuario no encontrado.');
+        }
+
+        // Validar si hubo cambios en "name", "no_empleado" o "email"
+        $changes = [];
+        if ($user->name !== $request->input('editName')) {
+            $changes['name'] = $request->input('editName');
+        }
+        if ($user->no_empleado !== $request->input('editNumeroEmpleado')) {
+            $changes['no_empleado'] = $request->input('editNumeroEmpleado');
+        }
+        if ($user->email !== $request->input('editEmail')) {
+            $changes['email'] = $request->input('editEmail');
+        }
+
+        // Si hubo cambios, validar duplicados en otros registros
+        if (!empty($changes)) {
+            $duplicate = User::where(function ($query) use ($changes, $userId) {
+                if (isset($changes['name'])) {
+                    $query->orWhere('name', $changes['name']);
+                }
+                if (isset($changes['no_empleado'])) {
+                    $query->orWhere('no_empleado', $changes['no_empleado']);
+                }
+                if (isset($changes['email'])) {
+                    $query->orWhere('email', $changes['email']);
+                }
+            })
+            ->where('id', '!=', $userId) // Excluir el registro actual
+            ->exists();
+
+            if ($duplicate) {
+                return back()->with('warning', 'Los datos proporcionados ya están asociados a otro usuario.');
+            }
+        }
+
+        // Actualizar los datos del usuario
+        $user->name = $request->input('editName');
+        $user->no_empleado = $request->input('editNumeroEmpleado');
+        $user->email = $request->input('editEmail');
+        $user->planta = $request->input('editPlanta');
+        $user->puesto = $request->input('editPuestos');
+        $user->tipo_auditor = $request->input('editTipoAuditoria');
+
+        // Verificar si se proporcionó una nueva contraseña
+        $newPassword = $request->input('password_update');
+        if ($newPassword !== null) {
+            $user->password = Hash::make($newPassword);
+        }
+
+        // Guardar los cambios
+        $user->save();
+
+        return back()->with('success', 'Datos guardados correctamente.');
     }
-
-    // Validar y actualizar los campos solo si son diferentes de null
-    $user->puesto = $request->input('editPuestos') ?? $user->puesto;
-    $user->tipo_auditor = $request->input('editTipoAuditoria') ?? $user->tipo_auditor;
-
-    // Verificar si se proporcionó una nueva contraseña
-    $newPassword = $request->input('password_update');
-    if ($newPassword !== null) {
-        $user->password = Hash::make($newPassword);
-    }
-
-    // Guardar los cambios
-    $user->save();
-
-    return back()->with('success', 'Datos guardados correctamente.');
-}
 
     public function blockUser($noEmpleado)
     {

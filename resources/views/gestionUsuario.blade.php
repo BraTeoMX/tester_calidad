@@ -531,5 +531,16 @@
             }
         });
     </script>
+
+    <script>
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text'; // Mostrar la contraseña
+            } else {
+                input.type = 'password'; // Ocultar la contraseña
+            }
+        }
+    </script>
     
 @endpush
