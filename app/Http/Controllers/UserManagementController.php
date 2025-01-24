@@ -92,7 +92,6 @@ class UserManagementController extends Controller
 
     public function editUser(Request $request)
     {
-        //dd($request->all());
         // Obtener el ID del usuario a través del campo editId
         $userId = $request->input('editId');
 
@@ -118,22 +117,38 @@ class UserManagementController extends Controller
 
         // Si hubo cambios, validar duplicados en otros registros
         if (!empty($changes)) {
-            $duplicate = User::where(function ($query) use ($changes, $userId) {
-                if (isset($changes['name'])) {
-                    $query->orWhere('name', $changes['name']);
-                }
-                if (isset($changes['no_empleado'])) {
-                    $query->orWhere('no_empleado', $changes['no_empleado']);
-                }
-                if (isset($changes['email'])) {
-                    $query->orWhere('email', $changes['email']);
-                }
-            })
-            ->where('id', '!=', $userId) // Excluir el registro actual
-            ->exists();
+            $duplicates = [];
 
-            if ($duplicate) {
-                return back()->with('warning', 'Los datos proporcionados ya están asociados a otro usuario.');
+            if (isset($changes['name'])) {
+                $nameExists = User::where('name', $changes['name'])
+                    ->where('id', '!=', $userId)
+                    ->exists();
+                if ($nameExists) {
+                    $duplicates[] = "El nombre '{$changes['name']}' ya está asociado a otro usuario.";
+                }
+            }
+
+            if (isset($changes['no_empleado'])) {
+                $noEmpleadoExists = User::where('no_empleado', $changes['no_empleado'])
+                    ->where('id', '!=', $userId)
+                    ->exists();
+                if ($noEmpleadoExists) {
+                    $duplicates[] = "El número de empleado '{$changes['no_empleado']}' ya está asociado a otro usuario.";
+                }
+            }
+
+            if (isset($changes['email'])) {
+                $emailExists = User::where('email', $changes['email'])
+                    ->where('id', '!=', $userId)
+                    ->exists();
+                if ($emailExists) {
+                    $duplicates[] = "El correo '{$changes['email']}' ya está asociado a otro usuario.";
+                }
+            }
+
+            // Si hay duplicados, retornar con los mensajes específicos
+            if (!empty($duplicates)) {
+                return back()->with('warning', implode('<br>', $duplicates));
             }
         }
 
@@ -154,7 +169,7 @@ class UserManagementController extends Controller
         // Guardar los cambios
         $user->save();
 
-        return back()->with('success', 'Datos guardados correctamente.');
+        return back()->with('success', "Datos guardados correctamente para '{$user->name}'.");
     }
 
     public function blockUser($noEmpleado)

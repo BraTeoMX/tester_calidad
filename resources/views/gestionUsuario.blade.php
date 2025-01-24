@@ -46,6 +46,56 @@
                     <div class="card-header bg-info text-white">
                         <h2 style="color: aliceblue; font-weight: bold;">Usuarios</h2>
                         <p style="color: aliceblue">Apartado para gestionar a los usuarios</p>
+                        <button id="openInfoModalButton" class="btn btn-info">Mostrar Información de Puestos</button>
+                    </div>
+                    <!-- Modal Informativo Personalizado -->
+                    <div id="infoCustomModal" class="info-modal">
+                        <div class="info-modal-content">
+                            <div class="info-modal-header">
+                                <h3>Información Sobre los Puestos</h3>
+                                <button id="closeInfoModalButton" class="btn btn-danger">CERRAR</button>
+                            </div>
+                            <div class="info-modal-body">
+                                <p>
+                                    El sistema de Control de Calidad establece permisos y funcionalidades específicas según el tipo de puesto asignado a cada usuario. A continuación, se describen los roles y sus respectivas responsabilidades:
+                                </p>
+                                <ul>
+                                    <li>
+                                        <strong>Gerente de Calidad:</strong>
+                                        <ul>
+                                            <li>Control total del sistema: administra y gestiona todas las funcionalidades, incluyendo el dashboard, formularios y módulos adicionales.</li>
+                                            <li>Gestión de usuarios: puede crear, modificar, dar de alta y baja usuarios.</li>
+                                            <li>Funciones avanzadas: acceso a la gestión de bultos, creación de nuevos estilos y habilitación de módulos temporales.</li>
+                                            <li>Acceso a auditorías: visualiza y gestiona auditorías, y accede a los formularios de los auditores.</li>
+                                            <li>Responsabilidad: garantiza la operatividad y la actualización del sistema.</li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <strong>Gerente:</strong>
+                                        <ul>
+                                            <li>Acceso a consultas y reportes: visualiza el progreso en el dashboard y realiza consultas por día, semana, mes o comparativos por cliente.</li>
+                                            <li>Restricciones: no tiene acceso a funcionalidades administrativas ni formularios de auditoría.</li>
+                                            <li>Propósito: diseñado para supervisar el desempeño y los datos del sistema.</li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <strong>Auditor:</strong>
+                                        <ul>
+                                            <li>Uso específico: diseñado para usuarios responsables de alimentar el sistema mediante formularios de auditoría.</li>
+                                            <li>Acceso restringido: sólo tienen acceso a sus auditorías correspondientes, sin permisos adicionales.</li>
+                                            <li>Propósito: asegurar el registro correcto de las auditorías.</li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <strong>Administrador:</strong>
+                                        <ul>
+                                            <li>Acceso absoluto: reservado para desarrolladores con acceso completo a todas las funcionalidades, incluyendo debug y mantenimiento técnico.</li>
+                                            <li>Restricciones: no se debe asignar este puesto a usuarios fuera del desarrollo o soporte técnico.</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>                            
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -264,6 +314,70 @@
 @endsection
 
 @push('js')
+    <style>
+        /* Fondo del modal informativo */
+        .info-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        /* Contenido del modal informativo */
+        .info-modal-content {
+            position: relative;
+            margin: 50px auto; /* Espaciado superior de 50px */
+            background-color: #1a1a1a;
+            color: #ffffff;
+            border-radius: 10px;
+            width: 80%; /* Más ancho que los otros modales */
+            max-width: 1200px; /* Tamaño máximo */
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Encabezado del modal informativo */
+        .info-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ffffff;
+            margin-bottom: 20px;
+        }
+
+        /* Botón cerrar */
+        .info-modal-header button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .info-modal-header button:hover {
+            color: #ff4d4d;
+        }
+
+        /* Cuerpo del modal */
+        .info-modal-body {
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .info-modal-body ul {
+            margin-top: 15px;
+            padding-left: 20px;
+        }
+
+        .info-modal-body ul li {
+            margin-bottom: 10px;
+        }
+    </style>
 
     <style>
         /* Fondo del modal */
@@ -330,28 +444,48 @@
     <script>
         // Función para abrir un modal específico
         function openModal(modalId) {
-            document.getElementById(modalId).style.display = 'block';
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'block';
+            } else {
+                console.error(`No se encontró un modal con el ID: ${modalId}`);
+            }
         }
 
         // Función para cerrar un modal específico
         function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+            } else {
+                console.error(`No se encontró un modal con el ID: ${modalId}`);
+            }
         }
 
         // Evento para abrir el primer modal
-        document.getElementById('openModalButton').addEventListener('click', function () {
-            openModal('customModal');
-        });
+        const openModalButton = document.getElementById('openModalButton');
+        if (openModalButton) {
+            openModalButton.addEventListener('click', function () {
+                openModal('customModal');
+            });
+        } else {
+            console.warn("Botón 'openModalButton' no encontrado");
+        }
 
         // Evento para cerrar el primer modal
-        document.getElementById('closeModalButton').addEventListener('click', function () {
-            closeModal('customModal');
-        });
+        const closeModalButton = document.getElementById('closeModalButton');
+        if (closeModalButton) {
+            closeModalButton.addEventListener('click', function () {
+                closeModal('customModal');
+            });
+        } else {
+            console.warn("Botón 'closeModalButton' no encontrado");
+        }
 
         // Evento para manejar múltiples botones de apertura para el segundo modal
         document.querySelectorAll('.editUserBtn').forEach(function (button) {
             button.addEventListener('click', function () {
-                // Obtener los datos del botón 
+                // Obtener los datos del botón
                 const userId = this.getAttribute('data-id');
                 const userNumeroEmpleado = this.getAttribute('data-numero_empleado');
                 const userName = this.getAttribute('data-name');
@@ -375,26 +509,56 @@
         });
 
         // Evento para cerrar el segundo modal
-        document.getElementById('closeEditModalButton').addEventListener('click', function () {
-            closeModal('editCustomModal');
-        });
+        const closeEditModalButton = document.getElementById('closeEditModalButton');
+        if (closeEditModalButton) {
+            closeEditModalButton.addEventListener('click', function () {
+                closeModal('editCustomModal');
+            });
+        } else {
+            console.warn("Botón 'closeEditModalButton' no encontrado");
+        }
+
+        // Evento para abrir el modal informativo
+        const openInfoModalButton = document.getElementById('openInfoModalButton');
+        if (openInfoModalButton) {
+            openInfoModalButton.addEventListener('click', function () {
+                openModal('infoCustomModal');
+            });
+        } else {
+            console.warn("Botón 'openInfoModalButton' no encontrado");
+        }
+
+        // Evento para cerrar el modal informativo
+        const closeInfoModalButton = document.getElementById('closeInfoModalButton');
+        if (closeInfoModalButton) {
+            closeInfoModalButton.addEventListener('click', function () {
+                closeModal('infoCustomModal');
+            });
+        } else {
+            console.warn("Botón 'closeInfoModalButton' no encontrado");
+        }
 
         // Cerrar cualquier modal al presionar la tecla "ESC"
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
                 closeModal('customModal');
                 closeModal('editCustomModal');
+                closeModal('infoCustomModal');
             }
         });
 
         // Cerrar cualquier modal al hacer clic fuera del contenido
-        ['customModal', 'editCustomModal'].forEach(function (modalId) {
+        ['customModal', 'editCustomModal', 'infoCustomModal'].forEach(function (modalId) {
             const modalElement = document.getElementById(modalId);
-            modalElement.addEventListener('click', function (event) {
-                if (event.target === modalElement) {
-                    closeModal(modalId);
-                }
-            });
+            if (modalElement) {
+                modalElement.addEventListener('click', function (event) {
+                    if (event.target === modalElement) {
+                        closeModal(modalId);
+                    }
+                });
+            } else {
+                console.warn(`Modal con ID '${modalId}' no encontrado`);
+            }
         });
     </script>
 
