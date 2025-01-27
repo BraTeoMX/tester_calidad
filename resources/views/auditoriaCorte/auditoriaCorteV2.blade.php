@@ -372,6 +372,7 @@
                                                     name="largo_trazo" id="largo_trazo" placeholder="..."
                                                     value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->largo_trazo : '' }}"
                                                     required />
+                                                <input type="text" class="form-control texto-blanco" id="largo_trazo_mt" readonly placeholder="En metros" />
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
@@ -381,6 +382,7 @@
                                                     name="ancho_trazo" id="ancho_trazo" placeholder="..."
                                                     value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->ancho_trazo : '' }}"
                                                     required />
+                                                <input type="text" class="form-control texto-blanco" id="ancho_trazo_mt" readonly placeholder="En metros" />
                                             </div>
                                         </div>
                                     </div>
@@ -586,6 +588,7 @@
                                                     value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->largo_trazo : '' }}"
                                                     {{ isset($auditoriaMarcada) ? 'readonly' : '' }}
                                                     required />
+                                                <input type="text" class="form-control texto-blanco" id="largo_trazo_mt" readonly placeholder="En metros" />
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
@@ -596,6 +599,7 @@
                                                     value="{{ isset($auditoriaMarcada) ? $auditoriaMarcada->ancho_trazo : '' }}"
                                                     {{ isset($auditoriaMarcada) ? 'readonly' : '' }}
                                                     required />
+                                                <input type="text" class="form-control texto-blanco" id="ancho_trazo_mt" readonly placeholder="En metros" />
                                             </div>
                                         </div>
                                     </div>
@@ -1073,6 +1077,15 @@
                                                 </select>
                                             </div>
                                         </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="comentario_tendido" class="col-sm-6 col-form-label">Comentario: </label>
+                                            <div class="form-check">
+                                                <input type="text" class="form-control texto-blanco"
+                                                    name="comentario_tendido" id="comentario_tendido" placeholder="..."
+                                                    value="{{ isset($auditoriaTendido) ? $auditoriaTendido->comentario_tendido : '' }}"
+                                                    required />
+                                            </div>
+                                        </div>
                                     </div>
                                     <div>
                                         <button type="submit" class="btn-verde-xd">Guardar</button>
@@ -1535,6 +1548,15 @@
                                                         @endforeach
                                                     </select>
                                                 @endif
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="comentario_tendido" class="col-sm-6 col-form-label">Comentario: </label>
+                                            <div class="form-check">
+                                                <input type="text" class="form-control texto-blanco"
+                                                    name="comentario_tendido" id="comentario_tendido" placeholder="..."
+                                                    value="{{ isset($auditoriaTendido) ? $auditoriaTendido->comentario_tendido : '' }}"
+                                                    readonly />
                                             </div>
                                         </div>
                                     </div>
@@ -2057,6 +2079,15 @@
                                                 </select>
                                             </div>
                                         </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="comentario_lectra" class="col-sm-6 col-form-label">Comentario: </label>
+                                            <div class="form-check">
+                                                <input type="text" class="form-control texto-blanco"
+                                                    name="comentario_lectra" id="comentario_lectra" placeholder="..."
+                                                    value="{{ isset($Lectra) ? $Lectra->comentario_lectra : '' }}"
+                                                    required />
+                                            </div>
+                                        </div>
                                     </div>
                                     
                                     <!-- Modal para el nuevo select -->
@@ -2292,6 +2323,15 @@
                                                         @endforeach
                                                     </select>
                                                 @endif
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="comentario_lectra" class="col-sm-6 col-form-label">Comentario: </label>
+                                            <div class="form-check">
+                                                <input type="text" class="form-control texto-blanco"
+                                                    name="comentario_lectra" id="comentario_lectra" placeholder="..."
+                                                    value="{{ isset($Lectra) ? $Lectra->comentario_lectra : '' }}"
+                                                    readonly />
                                             </div>
                                         </div>
                                     </div>
@@ -3001,5 +3041,32 @@
         });
         </script>
         
-
+        <script>
+            document.getElementById('largo_trazo').addEventListener('input', function() {
+                var cmValue = this.value;
+                var mtValue = cmValue / 100;
+                document.getElementById('largo_trazo_mt').value = mtValue.toFixed(2) + ' mt';
+            });
+        
+            document.getElementById('ancho_trazo').addEventListener('input', function() {
+                var cmValue = this.value;
+                var mtValue = cmValue / 100;
+                document.getElementById('ancho_trazo_mt').value = mtValue.toFixed(2) + ' mt';
+            });
+        
+            // Si hay valores iniciales, convertir al cargar la página
+            window.onload = function() {
+                var largoTrazo = document.getElementById('largo_trazo').value;
+                if (largoTrazo) {
+                    var mtValue = largoTrazo / 100;
+                    document.getElementById('largo_trazo_mt').value = mtValue.toFixed(2) + ' mt';
+                }
+        
+                var anchoTrazo = document.getElementById('ancho_trazo').value;
+                if (anchoTrazo) {
+                    var mtValue = anchoTrazo / 100;
+                    document.getElementById('ancho_trazo_mt').value = mtValue.toFixed(2) + ' mt';
+                }
+            };
+        </script>
     @endsection

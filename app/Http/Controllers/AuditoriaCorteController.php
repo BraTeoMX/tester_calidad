@@ -653,6 +653,7 @@ class AuditoriaCorteController extends Controller
             $existeOrden->accion_correctiva = $request->input('accion_correctiva');
             $existeOrden->bio_tension = $request->input('bio_tension'); 
             $existeOrden->velocidad = $request->input('velocidad'); 
+            $existeOrden->comentario_tendido = $request->input('comentario_tendido'); 
             //$existeOrden->libera_tendido = $request->input('libera_tendido');
 
             $existeOrden->save();
@@ -1215,6 +1216,7 @@ class AuditoriaCorteController extends Controller
             $existeOrden->accion_correctiva = $request->input('accion_correctiva');
             $existeOrden->bio_tension = $request->input('bio_tension'); 
             $existeOrden->velocidad = $request->input('velocidad'); 
+            $existeOrden->comentario_tendido = $request->input('comentario_tendido'); 
             //$existeOrden->libera_tendido = $request->input('libera_tendido');
 
             $existeOrden->save();
@@ -1267,6 +1269,7 @@ class AuditoriaCorteController extends Controller
             $existeOrden->porcentaje = $request->input('porcentaje');
             $existeOrden->estado_validacion = $request->input('estado_validacion');
             $existeOrden->nivel_aql = $request->input('nivel_aql');
+            $existeOrden->comentario_lectra = $request->input('comentario_lectra');
 
         
             $existeOrden->save();
