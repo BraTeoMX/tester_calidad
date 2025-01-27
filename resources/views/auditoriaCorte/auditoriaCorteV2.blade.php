@@ -633,11 +633,11 @@
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <div class="row"> 
-                                                <label for="nombre" class="col-sm-6 col-form-label">NOMBRE(S) TENDEDOR(RES)</label>
+                                                <label for="nombre" class="col-sm-6 col-form-label">NOMBRE(S) TENDEDOR(ES)</label>
                                                 <div class="col-sm-6">
                                                     <select class="form-control" name="nombre[]" id="nombre" multiple required>
                                                         <option value="">Selecciona una opción</option>
-                                                        @foreach ($CategoriaTecnico as $nombre)
+                                                        @foreach ($operarioCorte as $nombre)
                                                             <option value="{{ $nombre->nombre }}" {{ isset($auditoriaTendido) && in_array(trim($nombre->nombre), explode(',', trim($auditoriaTendido->nombre))) ? 'selected' : '' }}>
                                                                 {{ $nombre->nombre }}
                                                             </option>
@@ -1100,7 +1100,7 @@
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <div class="row"> 
-                                                <label for="nombre" class="col-sm-6 col-form-label">NOMBRE(S) TENDEDOR(RES)</label>
+                                                <label for="nombre" class="col-sm-6 col-form-label">NOMBRE(S) TENDEDOR(ES)</label>
                                                 <div class="col-sm-6">
                                                     @if (isset($auditoriaTendido))
                                                         @foreach (explode(',', trim($auditoriaTendido->nombre)) as $nombre)
@@ -1109,7 +1109,7 @@
                                                     @else
                                                         <select class="form-control" name="nombre[]" id="nombre" multiple>
                                                             <option value="">Selecciona una opción</option>
-                                                            @foreach ($CategoriaTecnico as $nombre)
+                                                            @foreach ($operarioCorte as $nombre)
                                                                 <option value="{{ $nombre->nombre }}">{{ $nombre->nombre }}</option>
                                                             @endforeach
                                                         </select>
@@ -1596,7 +1596,7 @@
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <select name="nombre[]" id="nombrel" class="form-control" multiple required>
                                                     <option value="">Selecciona una opción</option>
-                                                    @foreach ($CategoriaTecnico as $nombre)
+                                                    @foreach ($operarioCorte as $nombre)
                                                         <option value="{{ $nombre->nombre }}"
                                                             {{ isset($Lectra) && in_array(trim($nombre->nombre), explode(',', trim($Lectra->nombre))) ? 'selected' : '' }}>
                                                             {{ $nombre->nombre }}</option>
@@ -2134,7 +2134,7 @@
                                                 @else
                                                     <select name="nombre[]" id="nombrel" class="form-control" multiple required>
                                                         <option value="">Selecciona una opción</option>
-                                                        @foreach ($CategoriaTecnico as $nombre)
+                                                        @foreach ($operarioCorte as $nombre)
                                                             <option value="{{ $nombre->nombre }}">{{ $nombre->nombre }}</option>
                                                         @endforeach
                                                     </select>
@@ -2370,7 +2370,7 @@
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <select name="nombre[]" id="nombreb" class="form-control" multiple required>
                                                     <option value="">Selecciona una opción</option>
-                                                    @foreach ($CategoriaTecnico as $nombre)
+                                                    @foreach ($operarioCorte as $nombre)
                                                         <option value="{{ $nombre->nombre }}"
                                                             {{ isset($auditoriaBulto) && in_array(trim($nombre->nombre), explode(',', trim($auditoriaBulto->nombre))) ? 'selected' : '' }}>
                                                             {{ $nombre->nombre }}

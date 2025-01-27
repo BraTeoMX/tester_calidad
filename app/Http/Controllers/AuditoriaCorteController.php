@@ -31,6 +31,7 @@ use App\Models\AuditoriaCorteTendido;
 use App\Models\AuditoriaCorteLectra;
 use App\Models\AuditoriaCorteBulto;
 use App\Models\AuditoriaCorteFinal;
+use Illuminate\Support\Facades\DB; // Importa la clase DB
 
 use App\Exports\DatosExport; 
 use App\Models\DatoAX;
@@ -1014,6 +1015,8 @@ class AuditoriaCorteController extends Controller
         //$mostrarFinalizarFinal = $auditoriaFinal ? session('estatus_checked_AuditoriaFinal') : false; 
         $mostrarFinalizarFinal = isset($auditoriaFinal) && $auditoriaFinal->aceptado_rechazado == 1;
         //dd($mostrarFinalizarMarcada);
+        $operarioCorte = DB::connection('sqlsrv')->table('OperariosCorte_View')->get();
+        //dd($operarioCorte);
         return view('auditoriaCorte.auditoriaCorteV2', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
             'pageSlug' => $pageSlug,
@@ -1029,6 +1032,7 @@ class AuditoriaCorteController extends Controller
             'mostrarFinalizarFinal' => $mostrarFinalizarFinal,
             'encabezadoAuditoriaCorte' => $encabezadoAuditoriaCorte,
             'auditoriaMarcadaTalla' => $auditoriaMarcadaTalla,
+            'operarioCorte' => $operarioCorte,
             'auditorDato' => $auditorDato]));
     }
 
