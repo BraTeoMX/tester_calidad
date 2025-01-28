@@ -36,6 +36,7 @@ use App\Http\Controllers\AuditoriaAQL_v2Controller;
 use App\Http\Controllers\ConsutlaEstatusController;
 use App\Http\Controllers\EtiquetasV2Controller;
 use App\Http\Controllers\GestionUsuarioController;
+use App\Http\Controllers\ScreenV2Controller;
 
 
 /*
@@ -75,322 +76,319 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/gestionUsuario', [GestionUsuarioController::class, 'gestionUsuario'])->name('gestionUsuario');
 
     // Añade aquí el resto de tus rutas protegidas
+    Route::get('/tipoAuditorias', [UserManagementController::class, 'tipoAuditorias']);
+    Route::post('/AddUser', [UserManagementController::class, 'AddUser'])->name('user.AddUser');
+    Route::get('/puestos', [UserManagementController::class, 'puestos']);
+    Route::post('/editUser', [UserManagementController::class, 'editUser'])->name('users.editUser');
+
+    Route::post('/blockUser/{noEmpleado}', [UserManagementController::class, 'blockUser'])->name('blockUser');
+    Route::put('/blockUser/{noEmpleado}', [UserManagementController::class, 'blockUser'])->name('blockUser');
+
+    Route::get('/listaFormularios', [viewlistaFormularios::class, 'listaFormularios'])->name('viewlistaFormularios');
+
+    Route::get('/inicioAuditoriaCorte', [AuditoriaCorteController::class, 'inicioAuditoriaCorte'])->name('auditoriaCorte.inicioAuditoriaCorte')->middleware('checkroleandplant1');
+    Route::post('/formAuditoriaCortes', [AuditoriaCorteController::class, 'formAuditoriaCortes'])->name('auditoriaCorte.formAuditoriaCortes');
+    Route::post('/formRechazoCorte', [AuditoriaCorteController::class, 'formRechazoCorte'])->name('auditoriaCorte.formRechazoCorte');
+    Route::post('/formAprobarCorte', [AuditoriaCorteController::class, 'formAprobarCorte'])->name('auditoriaCorte.formAprobarCorte');
+    Route::post('/agregarEventoCorte', [AuditoriaCorteController::class, 'agregarEventoCorte'])->name('auditoriaCorte.agregarEventoCorte')->middleware('checkroleandplant1');
+    Route::get('/auditoriaCorte/{id}/{orden}', [AuditoriaCorteController::class, 'auditoriaCorte'])->name('auditoriaCorte.auditoriaCorte')->middleware('checkroleandplant1');
+    Route::get('/altaAuditoriaCorte/{orden}', [AuditoriaCorteController::class, 'altaAuditoriaCorte'])->name('auditoriaCorte.altaAuditoriaCorte')->middleware('checkroleandplant1');
+    Route::post('/formEncabezadoAuditoriaCorte', [AuditoriaCorteController::class, 'formEncabezadoAuditoriaCorte'])->name('auditoriaCorte.formEncabezadoAuditoriaCorte')->middleware('checkroleandplant1');
+    Route::post('/formAuditoriaMarcada', [AuditoriaCorteController::class, 'formAuditoriaMarcada'])->name('auditoriaCorte.formAuditoriaMarcada');
+    Route::post('/formAuditoriaTendido', [AuditoriaCorteController::class, 'formAuditoriaTendido'])->name('auditoriaCorte.formAuditoriaTendido');
+    Route::post('/formLectra', [AuditoriaCorteController::class, 'formLectra'])->name('auditoriaCorte.formLectra');
+    Route::post('/formAuditoriaBulto', [AuditoriaCorteController::class, 'formAuditoriaBulto'])->name('auditoriaCorte.formAuditoriaBulto');
+    Route::post('/formAuditoriaFinal', [AuditoriaCorteController::class, 'formAuditoriaFinal'])->name('auditoriaCorte.formAuditoriaFinal');
+    Route::post('/auditoriaCorte/agregarDefecto', [AuditoriaCorteController::class, 'agregarDefecto'])->name('auditoriaCorte.agregarDefecto');
+
+    // actualizacion para corte
+    Route::post('/formEncabezadoAuditoriaCorteV2', [AuditoriaCorteController::class, 'formEncabezadoAuditoriaCorteV2'])->name('auditoriaCorte.formEncabezadoAuditoriaCorteV2')->middleware('checkroleandplant1');
+    Route::get('/auditoriaCorteV2/{id}/{orden}', [AuditoriaCorteController::class, 'auditoriaCorteV2'])->name('auditoriaCorte.auditoriaCorteV2')->middleware('checkroleandplant1');
+    Route::post('/agregarEventoCorteV2', [AuditoriaCorteController::class, 'agregarEventoCorteV2'])->name('auditoriaCorte.agregarEventoCorteV2')->middleware('checkroleandplant1');
+    Route::post('/formAuditoriaMarcadaV2', [AuditoriaCorteController::class, 'formAuditoriaMarcadaV2'])->name('auditoriaCorte.formAuditoriaMarcadaV2');
+    Route::post('/formAuditoriaTendidoV2', [AuditoriaCorteController::class, 'formAuditoriaTendidoV2'])->name('auditoriaCorte.formAuditoriaTendidoV2');
+    Route::post('/formLectraV2', [AuditoriaCorteController::class, 'formLectraV2'])->name('auditoriaCorte.formLectraV2');
+    Route::post('/formAuditoriaBultoV2', [AuditoriaCorteController::class, 'formAuditoriaBultoV2'])->name('auditoriaCorte.formAuditoriaBultoV2');
+    Route::post('/formAuditoriaFinalV2', [AuditoriaCorteController::class, 'formAuditoriaFinalV2'])->name('auditoriaCorte.formAuditoriaFinalV2');
+    //fin aprtado Auditoria Corte
+
+    //Inicio apartado para seccion Evaluacion corte
+    Route::get('/inicioEvaluacionCorte', [EvaluacionCorteController::class, 'inicioEvaluacionCorte'])->name('evaluacionCorte.inicioEvaluacionCorte')->middleware('checkroleandplant1');
+    Route::post('/formRegistro', [EvaluacionCorteController::class, 'formRegistro'])->name('evaluacionCorte.formRegistro')->middleware('checkroleandplant1');
+    Route::post('/formAltaEvaluacionCortes', [EvaluacionCorteController::class, 'formAltaEvaluacionCortes'])->name('evaluacionCorte.formAltaEvaluacionCortes');
+    Route::get('/evaluaciondeCorte/{orden}/{evento}', [EvaluacionCorteController::class, 'evaluaciondeCorte'])->name('evaluacionCorte.evaluaciondeCorte')->middleware('checkroleandplant1');
+    Route::post('/obtener-estilo', [EvaluacionCorteController::class, 'obtenerEstilo'])->name('evaluacionCorte.obtenerEstilo');
+    Route::post('/formFinalizarEventoCorte', [EvaluacionCorteController::class, 'formFinalizarEventoCorte'])->name('evaluacionCorte.formFinalizarEventoCorte');
+    Route::post('/formActualizacionEliminacionEvaluacionCorte/{id}', [EvaluacionCorteController::class, 'formActualizacionEliminacionEvaluacionCorte'])->name('evaluacionCorte.formActualizacionEliminacionEvaluacionCorte');
+    Route::post('/crearCategoriaParteCorte', [EvaluacionCorteController::class, 'crearCategoriaParteCorte'])->name('evaluacionCorte.crearCategoriaParteCorte')->middleware('checkroleandplant1');
+
+    //Inicio apartado para seccion Auditoria Proceso de Corte
+    Route::get('/auditoriaProcesoCorte', [AuditoriaProcesoCorteController::class, 'auditoriaProcesoCorte'])->name('auditoriaProcesoCorte.auditoriaProcesoCorte')->middleware('checkroleandplant1');
+    Route::get('/altaProcesoCorte', [AuditoriaProcesoCorteController::class, 'altaProcesoCorte'])->name('auditoriaProcesoCorte.altaProcesoCorte')->middleware('checkroleandplant1');
+    Route::post('/formAltaProcesoCorte', [AuditoriaProcesoCorteController::class, 'formAltaProcesoCorte'])->name('auditoriaProcesoCorte.formAltaProcesoCorte');
+    Route::post('/formRegistroAuditoriaProcesoCorte', [AuditoriaProcesoCorteController::class, 'formRegistroAuditoriaProcesoCorte'])->name('auditoriaProcesoCorte.formRegistroAuditoriaProcesoCorte');
+
+    //Inicio apartado para seccion Auditoria: proceso, playera, empaque
+    Route::get('/auditoriaProceso', [AuditoriaProcesoController::class, 'auditoriaProceso'])->name('aseguramientoCalidad.auditoriaProceso')->middleware('auth');
+    Route::get('/altaProceso', [AuditoriaProcesoController::class, 'altaProceso'])->name('aseguramientoCalidad.altaProceso')->middleware('auth');
+    Route::post('/obtenerItemId', [AuditoriaProcesoController::class, 'obtenerItemId'])->name('obtenerItemId');
+    Route::post('/obtenerCliente1', [AuditoriaProcesoController::class, 'obtenerCliente1'])->name('obtenerCliente1');
+    Route::post('/formAltaProceso', [AuditoriaProcesoController::class, 'formAltaProceso'])->name('aseguramientoCalidad.formAltaProceso');
+    Route::post('/formRegistroAuditoriaProceso', [AuditoriaProcesoController::class, 'formRegistroAuditoriaProceso'])->name('aseguramientoCalidad.formRegistroAuditoriaProceso');
+    Route::post('/formUpdateDeleteProceso', [AuditoriaProcesoController::class, 'formUpdateDeleteProceso'])->name('aseguramientoCalidad.formUpdateDeleteProceso');
+    Route::post('/formFinalizarProceso', [AuditoriaProcesoController::class, 'formFinalizarProceso'])->name('aseguramientoCalidad.formFinalizarProceso');
+    Route::get('/modules', [AuditoriaProcesoController::class, 'getModules'])->name('modules.getModules');
+    Route::get('/names-by-module', [AuditoriaProcesoController::class, 'getNamesByModule'])->name('modules.getNamesByModule');
+    Route::get('/utilities', [AuditoriaProcesoController::class, 'getUtilities'])->name('utilities.getUtilities');
+    Route::post('/cambiarEstadoInicioParo', [AuditoriaProcesoController::class, 'cambiarEstadoInicioParo'])->name('aseguramientoCalidad.cambiarEstadoInicioParo');
+    Route::post('/categoria-tipo-problema', [AuditoriaProcesoController::class, 'storeCategoriaTipoProblema'])->name('categoria_tipo_problema.store');
+    Route::post('/obtenerTodosLosEstilosUnicos', [AuditoriaProcesoController::class, 'obtenerTodosLosEstilosUnicos'])->name('obtenerTodosLosEstilosUnicos');
+    Route::get('/obtener-supervisor', [AuditoriaProcesoController::class, 'obtenerSupervisor']);
+
+
+
+
+    //Inicio apartado para seccion Auditoria AQL
+    Route::get('/auditoriaAQL', [AuditoriaAQLController::class, 'auditoriaAQL'])->name('auditoriaAQL.auditoriaAQL')->middleware('auth');
+    Route::get('/altaAQL', [AuditoriaAQLController::class, 'altaAQL'])->name('auditoriaAQL.altaAQL')->middleware('auth');
+    Route::post('/obtenerItemIdAQL', [AuditoriaAQLController::class, 'obtenerItemIdAQL'])->name('obtenerItemIdAQL');
+    Route::post('/formAltaProcesoAQL', [AuditoriaAQLController::class, 'formAltaProcesoAQL'])->name('auditoriaAQL.formAltaProcesoAQL');
+    Route::post('/formRegistroAuditoriaProcesoAQL', [AuditoriaAQLController::class, 'formRegistroAuditoriaProcesoAQL'])->name('auditoriaAQL.formRegistroAuditoriaProcesoAQL');
+    Route::post('/formUpdateDeleteProcesoAQL', [AuditoriaAQLController::class, 'formUpdateDeleteProceso'])->name('auditoriaAQL.formUpdateDeleteProceso');
+    Route::post('/formFinalizarProcesoAQL', [AuditoriaAQLController::class, 'formFinalizarProceso'])->name('auditoriaAQL.formFinalizarProceso');
+    Route::post('/cambiarEstadoInicioParoAQL', [AuditoriaAQLController::class, 'cambiarEstadoInicioParoAQL'])->name('auditoriaAQL.cambiarEstadoInicioParoAQL');
+    Route::get('/RechazosParoAQL', [AuditoriaAQLController::class, 'RechazosParoAQL'])->name('auditoriaAQL.RechazosParoAQL');
+    Route::post('/cargarOrdenesOP', [AuditoriaAQLController::class, 'metodoNombre'])->name('metodoNombre');
+    Route::post('/categoria-tipo-problema-aql', [AuditoriaAQLController::class, 'storeCategoriaTipoProblemaAQL'])->name('categoria_tipo_problema_aql.store');
+    Route::get('/get-bultos-by-op', [AuditoriaAQLController::class, 'getBultosByOp'])->name('getBultosByOp');
+
+
+
+
+    //Fin apartado para seccion Evaluacion corte
+
+    // Ruta de Screen Print <---Inicio------>
+    Route::get('/ScreenPrint', [CalidadScreenPrintController::class, 'ScreenPrint'])->name('ScreenPlanta2.ScreenPrint');
+    Route::get('/Ordenes', [CalidadScreenPrintController::class, 'Ordenes']);
+    Route::get('/Clientes/{ordenes}', [CalidadScreenPrintController::class, 'Clientes']);
+    Route::get('/Estilo/{ordenes}', [CalidadScreenPrintController::class, 'Estilos']);
+    Route::get('/Tecnicos', [CalidadScreenPrintController::class, 'Tecnicos']);
+    Route::get('/TipoTecnica', [CalidadScreenPrintController::class, 'TipoTecnica']);
+    Route::post('/AgregarTecnica', [CalidadScreenPrintController::class, 'AgregarTecnica']);
+    Route::get('/TipoFibra', [CalidadScreenPrintController::class, 'TipoFibra']);
+    Route::post('/AgregarFibra', [CalidadScreenPrintController::class, 'AgregarFibra']);
+    Route::get('/viewTabl', [CalidadScreenPrintController::class, 'viewTabl']);
+    Route::post('/SendScreenPrint', [CalidadScreenPrintController::class, 'SendScreenPrint']);
+    Route::put('/UpdateScreenPrint/{idValue}', [CalidadScreenPrintController::class, 'UpdateScreenPrint']);
+    Route::get('/obtenerOpcionesACCorrectiva',[CalidadScreenPrintController::class, 'obtenerOpcionesACCorrectiva']);
+    Route::get('/obtenerOpcionesTipoProblema', [CalidadScreenPrintController::class, 'obtenerOpcionesTipoProblema']);
+    Route::get('/OpcionesACCorrectiva',[CalidadScreenPrintController::class, 'OpcionesACCorrectiva']);
+    Route::get('/OpcionesTipoProblema', [CalidadScreenPrintController::class, 'OpcionesTipoProblema']);
+    Route::post('/actualizarStatScrin/{id}', [CalidadScreenPrintController::class, 'actualizarStatScrin']);
+    Route::get('/horno_banda', [CalidadScreenPrintController::class, 'horno_banda']);
+    Route::post('/savedatahorno_banda', [CalidadScreenPrintController::class, 'savedatahorno_banda']);
+    Route::get('/PorcenScreen', [CalidadScreenPrintController::class, 'PorcenScreen']);
+    ////// <-------Fin de Screen Print-------------->
+    // Ruta de Inspeccion Estampado Despues del Horno<-----Inicio------->
+    Route::get('/InspecciondHorno', [InspeccionEstampadoHorno::class, 'InsEstamHorno'])->name('ScreenPlanta2.InsEstamHorno');
+    Route::get('/Ordenes', [InspeccionEstampadoHorno::class, 'Ordenes']);
+    Route::get('/Clientes/{ordenes}', [InspeccionEstampadoHorno::class, 'Clientes']);
+    Route::get('/Estilo/{ordenes}', [InspeccionEstampadoHorno::class, 'Estilo']);
+    Route::get('/Tecnicos', [InspeccionEstampadoHorno::class, 'Tecnicos']);
+    Route::get('/TipoTecnica', [InspeccionEstampadoHorno::class, 'TipoTecnica']);
+    Route::post('/AgregarTecnica', [InspeccionEstampadoHorno::class, 'AgregarTecnica']);
+    Route::get('/TipoFibra', [InspeccionEstampadoHorno::class, 'TipoFibra']);
+    Route::post('/AgregarFibra', [InspeccionEstampadoHorno::class, 'AgregarFibra']);
+    Route::get('/viewTableIns', [InspeccionEstampadoHorno::class, 'viewTableIns']);
+    Route::post('/SendInspeccionEstampadoHornot', [InspeccionEstampadoHorno::class, 'SendInspeccionEstampadoHornot']);
+    Route::put('/UpdateIsnpec/{idValue}', [InspeccionEstampadoHorno::class, 'UpdateIsnpec']);
+    Route::get('/obtenerOpcionesACCorrectiva',[InspeccionEstampadoHorno::class, 'obtenerOpcionesACCorrectiva']);
+    Route::get('/obtenerOpcionesTipoProblema', [InspeccionEstampadoHorno::class, 'obtenerOpcionesTipoProblema']);
+    Route::get('/OpcionesACCorrectiva',[InspeccionEstampadoHorno::class, 'OpcionesACCorrectiva']);
+    Route::get('/OpcionesTipoProblema', [InspeccionEstampadoHorno::class, 'OpcionesTipoProblema']);
+    Route::post('/actualizarEstado/{id}', [InspeccionEstampadoHorno::class, 'actualizarEstado']);
+    Route::get('/PorcenTotalDefec', [InspeccionEstampadoHorno::class, 'PorcenTotalDefec']);
+    ////// <-------Fin de Inspeccion Estampado Despues del Horno-------------->
+    // Ruta de Calidad Proceso Plancha<-----Inicio------->
+    Route::get('/ProcesoPlancha', [CalidadProcesoPlancha::class, 'ProcesoPlancha'])->name('ScreenPlanta2.CalidadProcesoPlancha');
+    Route::get('/Ordenes', [CalidadProcesoPlancha::class, 'Ordenes']);
+    Route::get('/Clientes/{ordenes}', [CalidadProcesoPlancha::class, 'Clientes']);
+    Route::get('/Estilo/{ordenes}', [CalidadProcesoPlancha::class, 'Estilo']);
+    Route::get('/Tecnicos', [CalidadProcesoPlancha::class, 'Tecnicos']);
+    Route::get('/viewTablePlancha', [CalidadProcesoPlancha::class, 'viewTablePlancha']);
+    Route::post('/SendPlancha', [CalidadProcesoPlancha::class, 'SendPlancha']);
+    Route::put('/UpdatePlancha/{idValue}', [CalidadProcesoPlancha::class, 'UpdatePlancha']);
+    Route::get('/obtenerOpcionesACCorrectiva',[CalidadProcesoPlancha::class, 'obtenerOpcionesACCorrectiva']);
+    Route::get('/obtenerOpcionesTipoProblema', [CalidadProcesoPlancha::class, 'obtenerOpcionesTipoProblema']);
+    Route::get('/OpcionesACCorrectiva',[CalidadProcesoPlancha::class, 'OpcionesACCorrectiva']);
+    Route::get('/OpcionesTipoProblema', [CalidadProcesoPlancha::class, 'OpcionesTipoProblema']);
+    Route::post('/actualizarEstado/{id}', [CalidadProcesoPlancha::class, 'actualizarEstado']);
+    Route::get('/PorcenTotalDefecPlancha', [CalidadProcesoPlancha::class, 'PorcenTotalDefecPlancha']);
+    ////// <-------Fin de Calidad Process Plancha-------------->
+    // Ruta de Maquila<-----Inicio------->
+    Route::get('/Maquila', [Maquila::class, 'Maquilas'])->name('ScreenPlanta2.Maquila');
+    Route::get('/Tecnicos', [Maquila::class, 'Tecnicos']);
+    Route::get('/viewTableMaquila', [Maquila::class, 'viewTableMaquila']);
+    Route::post('/SendMaquila', [Maquila::class, 'SendMaquila']);
+    Route::put('/UpdateMaquila/{idValue}', [Maquila::class, 'UpdateMaquila']);
+    Route::get('/obtenerOpcionesACCorrectiva',[Maquila::class, 'obtenerOpcionesACCorrectiva']);
+    Route::get('/obtenerOpcionesTipoProblema', [Maquila::class, 'obtenerOpcionesTipoProblema']);
+    Route::get('/OpcionesACCorrectiva',[Maquila::class, 'OpcionesACCorrectiva']);
+    Route::get('/OpcionesTipoProblema', [Maquila::class, 'OpcionesTipoProblema']);
+    Route::post('/actualizarEstado/{id}', [Maquila::class, 'actualizarEstado']);
+    Route::get('/PorcenTotalDefecMaquila', [Maquila::class, 'PorcenTotalDefecMaquila']);
+    ////// <-------Fin de Maquila-------------->
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    Route::resource('user', 'App\Http\Controllers\UserController', ['except' => ['show']])->middleware('checkrole');
+    Route::get('profile', ['as' => 'profile.edit', 'uses' => 'App\Http\Controllers\ProfileController@edit'])->middleware('checkrole');
+    Route::put('profile', ['as' => 'profile.update', 'uses' => 'App\Http\Controllers\ProfileController@update'])->middleware('checkrole');
+    Route::put('profile/password', ['as' => 'profile.password', 'uses' => 'App\Http\Controllers\ProfileController@password'])->middleware('checkrole');
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    Route::get('/auditoriaEtiquetas',  [DatosAuditoriaEtiquetas::class, 'auditoriaEtiquetas'])->name('formulariosCalidad.auditoriaEtiquetas')->middleware('checkroleandplant1');
+    Route::get('/inicioAuditoriaCorte', 'App\Http\Controllers\AuditoriaCorteController@inicioAuditoriaCorte')->name('auditoriaCorte.inicioAuditoriaCorte')->middleware('checkroleandplant1');
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    Route::get('/ScreenPrint',  [CalidadScreenPrintController::class, 'ScreenPrint'])->name('ScreenPlanta2.ScreenPrint')->middleware('checkroleandplant2');
+    Route::get('/InsEstamHorno', [InspeccionEstampadoHorno::class, 'InsEstamHorno'])->name('ScreenPlanta2.InsEstamHorno')->middleware('checkroleandplant2');
+    Route::get('/ProcesoPlancha',  [CalidadProcesoPlancha::class, 'ProcesoPlancha'])->name('ScreenPlanta2.CalidadProcesoPlancha')->middleware('checkroleandplant2');
+    Route::get('/Maquila',  [Maquila::class, 'Maquilas'])->name('ScreenPlanta2.Maquila')->middleware('checkroleandplant2');
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    Route::view('/error', 'error')->name('error');
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    Route::get('/buscarEstilos', [DatosAuditoriaEtiquetas::class, 'buscarEstilos']);
+    Route::get('/buscarDatosAuditoriaPorEstilo', [DatosAuditoriaEtiquetas::class, 'buscarDatosAuditoriaPorEstilo']);
+    Route::get('/obtenerTiposDefectos', [DatosAuditoriaEtiquetas::class, 'obtenerTiposDefectos']);
+    Route::put('/actualizarStatus', [DatosAuditoriaEtiquetas::class, 'actualizarStatus']);
+    Route::get('/datosinventario', [DatosAuditoriaEtiquetas::class, 'obtenerDatosInventario']);
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Apartado para detalles dashboard
+    Route::get('/buscadorDinamico', [DashboardController::class, 'buscadorDinamico'])->name('dashboar.buscadorDinamico');
+    Route::get('/buscadorDinamico/search', [DashboardController::class, 'search']);
+    Route::get('/dashboarAProcesoPlayera', [DashboardController::class, 'dashboarAProcesoPlayera'])->name('dashboar.dashboarAProcesoPlayera');
+
+    Route::get('/dashboarAProceso', [DashboardController::class, 'dashboarAProceso'])->name('dashboar.dashboarAProceso');
+    Route::get('/dashboarAProcesoPlayera', [DashboardController::class, 'dashboarAProcesoPlayera'])->name('dashboar.dashboarAProcesoPlayera');
+
+    Route::get('/dashboarAProcesoAQL', [DashboardController::class, 'dashboarAProcesoAQL'])->name('dashboar.dashboarAProcesoAQL');
+    Route::get('/detalleXModulo', [DashboardController::class, 'detalleXModulo'])->name('dashboar.detalleXModulo');
+
+    Route::get('/dashboarAProcesoAQL', [DashboardController::class, 'dashboarAProcesoAQL'])->name('dashboar.dashboarAProcesoAQL');
+    Route::get('/detallePorGerente', [DashboardController::class, 'detallePorGerente'])->name('dashboar.detallePorGerente');
+    Route::get('/detallePorCliente', [DashboardController::class, 'detallePorCliente'])->name('dashboar.detallePorCliente');
+    //dashboard Planta 1
+    Route::get('/dashboardPanta1', [DashboardPlanta1Controller::class, 'dashboardPanta1'])->name('dashboar.dashboardPlanta1');
+    Route::get('/dashboardPlanta1Detalle', [DashboardPlanta1DetalleController::class, 'dashboardPlanta1Detalle'])->name('dashboar.dashboardPlanta1Detalle');
+    Route::get('/detalleXModuloPlanta1', [DashboardPlanta1DetalleController::class, 'detalleXModuloPlanta1'])->name('dashboar.detalleXModuloPlanta1');
+    //dashboard Planta 1 consulta por dia
+    Route::get('/dashboardPanta1PorDia', [DashboardPlanta1PorDiaController::class, 'dashboardPanta1PorDia'])->name('dashboar.dashboardPanta1PorDia');
+    //dashboard Planta 1 consulta por Semana
+    Route::get('/dashboardPlanta1PorSemana', [DashboardPlanta1PorDiaController::class, 'dashboardPlanta1PorSemana'])->name('dashboar.dashboardPlanta1PorSemana');
+    //dashboard Planta 1 consulta por MES
+    Route::get('/dashboardPlanta1PorMes', [DashboardPlanta1PorDiaController::class, 'dashboardPlanta1PorMes'])->name('dashboar.dashboardPlanta1PorMes');
+    //dashboard Planta 2
+    Route::get('/dashboardPanta2', [DashboardPlanta2Controller::class, 'dashboardPanta2'])->name('dashboar.dashboardPlanta2');
+    Route::get('/dashboardPlanta2Detalle', [DashboardPlanta2DetalleController::class, 'dashboardPlanta2Detalle'])->name('dashboar.dashboardPlanta2Detalle');
+    Route::get('/detalleXModuloPlanta2', [DashboardPlanta2DetalleController::class, 'detalleXModuloPlanta2'])->name('dashboar.detalleXModuloPlanta2');
+
+    Route::get('/reporteriaInterna',[reporteriaInternaController::class, 'reporteriaInterna'])->name('reporteriaInterna.reporteriaInterna')->middleware('checkrole');
+    Route::get('/obtener_top_defectos', [DashboardController::class, 'Top3Defectos']);
+
+    Route::get('/altaYbaja', [AltaYBajaController::class, 'altaYbaja'])->name('altaYbaja');
+    Route::patch('/altaYbaja/defecto-proceso/{id}', [AltaYBajaController::class, 'actualizarEstadoDefectoProceso'])->name('actualizarEstadoDefectoProceso');
+    Route::patch('/altaYbaja/defecto-playera/{id}', [AltaYBajaController::class, 'actualizarEstadoDefectoPlayera'])->name('actualizarEstadoDefectoPlayera');
+    Route::patch('/altaYbaja/defecto-empaque/{id}', [AltaYBajaController::class, 'actualizarEstadoDefectoEmpaque'])->name('actualizarEstadoDefectoEmpaque');
+    Route::patch('/altaYbaja/gestion-utility/{id}', [AltaYBajaController::class, 'actualizarEstadoUtility'])->name('actualizarEstadoUtility');
+    Route::patch('/altaYbaja/gestion-responsable/{id}', [AltaYBajaController::class, 'actualizarEstadoResponsable'])->name('actualizarEstadoResponsable');
+    Route::patch('/altaYbaja/gestion-tecnico/{id}', [AltaYBajaController::class, 'actualizarEstadoTecnico'])->name('actualizarEstadoTecnico');
+    Route::post('/altaYbaja/defecto-proceso', [AltaYBajaController::class, 'crearDefectoProceso'])->name('crearDefectoProceso');
+    Route::post('/altaYbaja/defecto-playera', [AltaYBajaController::class, 'crearDefectoPlayera'])->name('crearDefectoPlayera');
+    Route::post('/altaYbaja/defecto-empaque', [AltaYBajaController::class, 'crearDefectoEmpaque'])->name('crearDefectoEmpaque');
+    Route::post('/altaYbaja/gestion-utility', [AltaYBajaController::class, 'crearUtility'])->name('crearUtility');
+    Route::post('/altaYbaja/gestion-responsable', [AltaYBajaController::class, 'crearResponsable'])->name('crearResponsable');
+    Route::post('/altaYbaja/gestion-tecnico', [AltaYBajaController::class, 'crearTecnico'])->name('crearTecnico');
+    Route::post('/actualizarClientesPorcentajes', [AltaYBajaController::class, 'actualizarClientesPorcentajes'])->name('actualizarClientesPorcentajes');
+    //ajax para mostrar dato en dashboard principal
+    Route::get('/dashboard-data-dia', [HomeController::class, 'getDashboardDataDia'])->name('dashboard.dataDia')->middleware('auth');
+    Route::get('/dashboard-data-semana', [HomeController::class, 'getDashboardDataSemana'])->name('dashboard.dataSemana')->middleware('auth');
+    Route::get('/dashboard-mensual-general', [HomeController::class, 'getMensualGeneral'])->name('dashboard.mensualGeneral')->middleware('auth');
+    Route::get('/dashboard/mensual-por-cliente', [HomeController::class, 'getMensualPorCliente'])->name('dashboard.mensualPorCliente');
+    Route::get('/dashboard/mensualPorModulo', [HomeController::class, 'getMensualPorModulo'])->name('dashboard.mensualPorModulo');
+
+
+    //Segundas
+    Route::get('/SegundasTerceras',[HomeController::class, 'SegundasTerceras']);
+    Route::get('/Segundas', [Segundas::class, 'Segundas']);
+    Route::get('/ObtenerSegundas', [Segundas::class, 'ObtenerSegundas']);
+    Route::get('/ObtenerPlantas', [Segundas::class, 'ObtenerPlantas']);
+    Route::get('/ObtenerModulos', [Segundas::class, 'ObtenerModulos']);
+    Route::get('/ObtenerClientes', [Segundas::class, 'ObtenerClientes']);
+    Route::get('/obtenerSegundasFiltradas', [Segundas::class, 'obtenerSegundasFiltradas']);
+    //apartado para vistas de nuevas tablas
+    Route::get('/dashboardCostosNoCalidad', [DashboardCostosController::class, 'dashboardCostosNoCalidad'])->name('dashboardCostosNoCalidad');
+
+    //dashboard Planta 1 consulta por Semana del comparativo por cliente modulo
+    Route::get('/planta1PorSemana', [DashboardComparativoModuloPlanta1Controller::class, 'planta1PorSemana'])->name('dashboarComparativaModulo.planta1PorSemana');
+    Route::get('/semanaComparativaGeneral', [DashboardComparativoModuloPlanta1Controller::class, 'semanaComparativaGeneral'])->name('dashboarComparativaModulo.semanaComparativaGeneral');
+    Route::get('/data/semana-comparativa-general', [DashboardComparativoModuloPlanta1Controller::class, 'getSemanaComparativaGeneralData'])->name('dashboarComparativaModulo.semanaComparativaGeneralData');
+    Route::post('/export-semana-comparativa', [DashboardComparativoModuloPlanta1Controller::class, 'exportSemanaComparativa'])->name('export.semana');
+
+    //seccion para gestion por parte del administrador de calidad
+    Route::get('/agregarAqlProceso', [GestionController::class, 'agregarAqlProceso'])->name('gestion.agregarAqlProceso');
+    Route::get('/buscarAql', [GestionController::class, 'buscarAql'])->name('gestion.buscarAql');
+    Route::post('/guardarAql', [GestionController::class, 'guardarAql'])->name('gestion.guardarAql');
+    Route::post('/guardarModuloEstilo', [GestionController::class, 'guardarModuloEstilo'])->name('guardarModuloEstilo');
+
+    //Inicio apartado para seccion Auditoria AQL V2
+    Route::get('/auditoriaAQL_v2', [AuditoriaAQL_v2Controller::class, 'auditoriaAQL_v2'])->name('auditoriaAQL.auditoriaAQL_v2')->middleware('auth');
+    Route::get('/altaAQL_v2', [AuditoriaAQL_v2Controller::class, 'altaAQL_v2'])->name('auditoriaAQL.altaAQL_v2')->middleware('auth');
+    Route::get('/obtener-opciones-op', [AuditoriaAQL_v2Controller::class, 'obtenerOpcionesOP'])->name('obtener.opciones.op');
+    Route::get('/obtener-opciones-bulto', [AuditoriaAQL_v2Controller::class, 'obtenerOpcionesBulto'])->name('obtener.opciones.bulto');
+    Route::get('/obtener-defectos-aql', [AuditoriaAQL_v2Controller::class, 'obtenerDefectosAQL'])->name('obtener.defectos.aql');
+    Route::post('/crear-defectos-aql', [AuditoriaAQL_v2Controller::class, 'crearDefectoAQL'])->name('crear.defecto.aql');
+    Route::get('/obtener-nobres-proceso', [AuditoriaAQL_v2Controller::class, 'obtenerNombresProceso'])->name('obtener.nombres.proceso');
+    Route::post('/guardar-registros-aql', [AuditoriaAQL_v2Controller::class, 'guardarRegistrosAql'])->name('guardar.registro.aql');
+    Route::get('/mostrar-registros-aql-dia', [AuditoriaAQL_v2Controller::class, 'mostrarRegistrosAqlDia'])->name('mostrar.registros.aql.dia');
+    Route::get('/mostrar-registros-aql-dia-TE', [AuditoriaAQL_v2Controller::class, 'mostrarRegistrosAqlDiaTE'])->name('mostrar.registros.aql.dia.TE');
+    Route::post('/eliminar-registro-aql', [AuditoriaAQL_v2Controller::class, 'eliminarRegistroAql'])->name('eliminar.registro.aql');
+    Route::post('/buscar-ultimo-registro', [AuditoriaAQL_v2Controller::class, 'buscarUltimoRegistro'])->name('buscarUltimoRegistro');
+    Route::post('/finalizar-paro-aql', [AuditoriaAQL_v2Controller::class, 'finalizarParoAQL'])->name('finalizar.paro.aql');
+
+
+
+
+
+
+
+    Route::post('/obtenerItemIdAQL_v2', [AuditoriaAQL_v2Controller::class, 'obtenerItemIdAQL_v2'])->name('obtenerItemIdAQL_v2');
+    Route::post('/formAltaProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formAltaProcesoAQL_v2'])->name('auditoriaAQL.formAltaProcesoAQL_v2');
+    Route::post('/formRegistroAuditoriaProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formRegistroAuditoriaProcesoAQL_v2'])->name('auditoriaAQL.formRegistroAuditoriaProcesoAQL_v2');
+    Route::post('/formUpdateDeleteProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formUpdateDeleteProceso_v2'])->name('auditoriaAQL.formUpdateDeleteProceso_v2');
+    Route::post('/formFinalizarProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formFinalizarProceso_v2'])->name('auditoriaAQL.formFinalizarProceso_v2');
+    Route::post('/cambiarEstadoInicioParoAQL_v2', [AuditoriaAQL_v2Controller::class, 'cambiarEstadoInicioParoAQL_v2'])->name('auditoriaAQL.cambiarEstadoInicioParoAQL_v2');
+    Route::get('/RechazosParoAQL_v2', [AuditoriaAQL_v2Controller::class, 'RechazosParoAQL_v2'])->name('auditoriaAQL.RechazosParoAQL_v2');
+    Route::post('/cargarOrdenesOP_v2', [AuditoriaAQL_v2Controller::class, 'metodoNombre_v2'])->name('metodoNombre_v2');
+    Route::post('/categoria-tipo-problema-aql_v2', [AuditoriaAQL_v2Controller::class, 'storeCategoriaTipoProblemaAQL'])->name('categoria_tipo_problema_aql.store_v2');
+    Route::get('/get-bultos-by-op_v2', [AuditoriaAQL_v2Controller::class, 'getBultosByOp_v2'])->name('getBultosByOp_v2');
+    Route::post('/auditoriaAQL_v2/obtenerAQLenProceso', [AuditoriaAQL_v2Controller::class, 'obtenerAQLenProceso'])->name('auditoriaAQL.obtenerAQLenProceso');
+
+
+    //apartado para las vistas de 
+    Route::get('/consultaEstatus', [ConsutlaEstatusController::class, 'consultaEstatus'])->name('consultas.consultaEstatus');
+
+
+    //nuevo apartado para el desarrollo de etiquetas
+    Route::get('/etiquetas_v2', [EtiquetasV2Controller::class, 'etiquetas_v2'])->name('etiquetas_v2');
+    // Ruta para procesar el formulario
+    Route::post('/procesarFormularioEtiqueta', [EtiquetasV2Controller::class, 'procesarFormularioEtiqueta'])->name('procesarFormularioEtiqueta');
+    // Importante: ruta para AJAX (GET) de tallas
+    Route::get('/etiquetas_v2/tallas', [EtiquetasV2Controller::class, 'ajaxGetTallas'])->name('ajaxGetTallas');
+
+    // Ruta AJAX para la cantidad y tamaño de muestra
+    Route::get('/etiquetas_v2/data', [EtiquetasV2Controller::class, 'ajaxGetData'])->name('ajaxGetData');
+    Route::get('/obtener-defectos-etiquetas', [EtiquetasV2Controller::class, 'obtenerDefectosEtiquetas'])->name('obtenerDefectosEtiquetas');
+    Route::post('/guardar-defecto-etiqueta', [EtiquetasV2Controller::class, 'guardarDefectoEtiqueta'])->name('guardarDefectoEtiqueta');
+    Route::post('/guardar-auditoria-etiqueta', [EtiquetasV2Controller::class, 'guardarAuditoriaEtiqueta'])->name('guardarAuditoriaEtiqueta');
+    Route::put('/reporte-etiquetas/{id}/update-status', [EtiquetasV2Controller::class, 'updateStatus'])->name('reporte-etiquetas.updateStatus');
+
+    //nuevo apartado para el desarrollo de inspeccion depues de horno
+    Route::get('/inspeccionEstampadoHorno', [ScreenV2Controller::class, 'inspeccionEstampadoHorno'])->name('inspeccionEstampadoHorno');
 });
-
-
-
-
-Route::get('/tipoAuditorias', [UserManagementController::class, 'tipoAuditorias']);
-Route::post('/AddUser', [UserManagementController::class, 'AddUser'])->name('user.AddUser');
-Route::get('/puestos', [UserManagementController::class, 'puestos']);
-Route::post('/editUser', [UserManagementController::class, 'editUser'])->name('users.editUser');
-
-Route::post('/blockUser/{noEmpleado}', [UserManagementController::class, 'blockUser'])->name('blockUser');
-Route::put('/blockUser/{noEmpleado}', [UserManagementController::class, 'blockUser'])->name('blockUser');
-
-
-Route::get('/listaFormularios', [viewlistaFormularios::class, 'listaFormularios'])->name('viewlistaFormularios')->middleware('auth');
-
-Route::get('/inicioAuditoriaCorte', [AuditoriaCorteController::class, 'inicioAuditoriaCorte'])->name('auditoriaCorte.inicioAuditoriaCorte')->middleware('checkroleandplant1');
-Route::post('/formAuditoriaCortes', [AuditoriaCorteController::class, 'formAuditoriaCortes'])->name('auditoriaCorte.formAuditoriaCortes');
-Route::post('/formRechazoCorte', [AuditoriaCorteController::class, 'formRechazoCorte'])->name('auditoriaCorte.formRechazoCorte');
-Route::post('/formAprobarCorte', [AuditoriaCorteController::class, 'formAprobarCorte'])->name('auditoriaCorte.formAprobarCorte');
-Route::post('/agregarEventoCorte', [AuditoriaCorteController::class, 'agregarEventoCorte'])->name('auditoriaCorte.agregarEventoCorte')->middleware('checkroleandplant1');
-Route::get('/auditoriaCorte/{id}/{orden}', [AuditoriaCorteController::class, 'auditoriaCorte'])->name('auditoriaCorte.auditoriaCorte')->middleware('checkroleandplant1');
-Route::get('/altaAuditoriaCorte/{orden}', [AuditoriaCorteController::class, 'altaAuditoriaCorte'])->name('auditoriaCorte.altaAuditoriaCorte')->middleware('checkroleandplant1');
-Route::post('/formEncabezadoAuditoriaCorte', [AuditoriaCorteController::class, 'formEncabezadoAuditoriaCorte'])->name('auditoriaCorte.formEncabezadoAuditoriaCorte')->middleware('checkroleandplant1');
-Route::post('/formAuditoriaMarcada', [AuditoriaCorteController::class, 'formAuditoriaMarcada'])->name('auditoriaCorte.formAuditoriaMarcada');
-Route::post('/formAuditoriaTendido', [AuditoriaCorteController::class, 'formAuditoriaTendido'])->name('auditoriaCorte.formAuditoriaTendido');
-Route::post('/formLectra', [AuditoriaCorteController::class, 'formLectra'])->name('auditoriaCorte.formLectra');
-Route::post('/formAuditoriaBulto', [AuditoriaCorteController::class, 'formAuditoriaBulto'])->name('auditoriaCorte.formAuditoriaBulto');
-Route::post('/formAuditoriaFinal', [AuditoriaCorteController::class, 'formAuditoriaFinal'])->name('auditoriaCorte.formAuditoriaFinal');
-Route::post('/auditoriaCorte/agregarDefecto', [AuditoriaCorteController::class, 'agregarDefecto'])->name('auditoriaCorte.agregarDefecto');
-
-// actualizacion para corte
-Route::post('/formEncabezadoAuditoriaCorteV2', [AuditoriaCorteController::class, 'formEncabezadoAuditoriaCorteV2'])->name('auditoriaCorte.formEncabezadoAuditoriaCorteV2')->middleware('checkroleandplant1');
-Route::get('/auditoriaCorteV2/{id}/{orden}', [AuditoriaCorteController::class, 'auditoriaCorteV2'])->name('auditoriaCorte.auditoriaCorteV2')->middleware('checkroleandplant1');
-Route::post('/agregarEventoCorteV2', [AuditoriaCorteController::class, 'agregarEventoCorteV2'])->name('auditoriaCorte.agregarEventoCorteV2')->middleware('checkroleandplant1');
-Route::post('/formAuditoriaMarcadaV2', [AuditoriaCorteController::class, 'formAuditoriaMarcadaV2'])->name('auditoriaCorte.formAuditoriaMarcadaV2');
-Route::post('/formAuditoriaTendidoV2', [AuditoriaCorteController::class, 'formAuditoriaTendidoV2'])->name('auditoriaCorte.formAuditoriaTendidoV2');
-Route::post('/formLectraV2', [AuditoriaCorteController::class, 'formLectraV2'])->name('auditoriaCorte.formLectraV2');
-Route::post('/formAuditoriaBultoV2', [AuditoriaCorteController::class, 'formAuditoriaBultoV2'])->name('auditoriaCorte.formAuditoriaBultoV2');
-Route::post('/formAuditoriaFinalV2', [AuditoriaCorteController::class, 'formAuditoriaFinalV2'])->name('auditoriaCorte.formAuditoriaFinalV2');
-//fin aprtado Auditoria Corte
-
-//Inicio apartado para seccion Evaluacion corte
-Route::get('/inicioEvaluacionCorte', [EvaluacionCorteController::class, 'inicioEvaluacionCorte'])->name('evaluacionCorte.inicioEvaluacionCorte')->middleware('checkroleandplant1');
-Route::post('/formRegistro', [EvaluacionCorteController::class, 'formRegistro'])->name('evaluacionCorte.formRegistro')->middleware('checkroleandplant1');
-Route::post('/formAltaEvaluacionCortes', [EvaluacionCorteController::class, 'formAltaEvaluacionCortes'])->name('evaluacionCorte.formAltaEvaluacionCortes');
-Route::get('/evaluaciondeCorte/{orden}/{evento}', [EvaluacionCorteController::class, 'evaluaciondeCorte'])->name('evaluacionCorte.evaluaciondeCorte')->middleware('checkroleandplant1');
-Route::post('/obtener-estilo', [EvaluacionCorteController::class, 'obtenerEstilo'])->name('evaluacionCorte.obtenerEstilo');
-Route::post('/formFinalizarEventoCorte', [EvaluacionCorteController::class, 'formFinalizarEventoCorte'])->name('evaluacionCorte.formFinalizarEventoCorte');
-Route::post('/formActualizacionEliminacionEvaluacionCorte/{id}', [EvaluacionCorteController::class, 'formActualizacionEliminacionEvaluacionCorte'])->name('evaluacionCorte.formActualizacionEliminacionEvaluacionCorte');
-Route::post('/crearCategoriaParteCorte', [EvaluacionCorteController::class, 'crearCategoriaParteCorte'])->name('evaluacionCorte.crearCategoriaParteCorte')->middleware('checkroleandplant1');
-
-//Inicio apartado para seccion Auditoria Proceso de Corte
-Route::get('/auditoriaProcesoCorte', [AuditoriaProcesoCorteController::class, 'auditoriaProcesoCorte'])->name('auditoriaProcesoCorte.auditoriaProcesoCorte')->middleware('checkroleandplant1');
-Route::get('/altaProcesoCorte', [AuditoriaProcesoCorteController::class, 'altaProcesoCorte'])->name('auditoriaProcesoCorte.altaProcesoCorte')->middleware('checkroleandplant1');
-Route::post('/formAltaProcesoCorte', [AuditoriaProcesoCorteController::class, 'formAltaProcesoCorte'])->name('auditoriaProcesoCorte.formAltaProcesoCorte');
-Route::post('/formRegistroAuditoriaProcesoCorte', [AuditoriaProcesoCorteController::class, 'formRegistroAuditoriaProcesoCorte'])->name('auditoriaProcesoCorte.formRegistroAuditoriaProcesoCorte');
-
-//Inicio apartado para seccion Auditoria: proceso, playera, empaque
-Route::get('/auditoriaProceso', [AuditoriaProcesoController::class, 'auditoriaProceso'])->name('aseguramientoCalidad.auditoriaProceso')->middleware('auth');
-Route::get('/altaProceso', [AuditoriaProcesoController::class, 'altaProceso'])->name('aseguramientoCalidad.altaProceso')->middleware('auth');
-Route::post('/obtenerItemId', [AuditoriaProcesoController::class, 'obtenerItemId'])->name('obtenerItemId');
-Route::post('/obtenerCliente1', [AuditoriaProcesoController::class, 'obtenerCliente1'])->name('obtenerCliente1');
-Route::post('/formAltaProceso', [AuditoriaProcesoController::class, 'formAltaProceso'])->name('aseguramientoCalidad.formAltaProceso');
-Route::post('/formRegistroAuditoriaProceso', [AuditoriaProcesoController::class, 'formRegistroAuditoriaProceso'])->name('aseguramientoCalidad.formRegistroAuditoriaProceso');
-Route::post('/formUpdateDeleteProceso', [AuditoriaProcesoController::class, 'formUpdateDeleteProceso'])->name('aseguramientoCalidad.formUpdateDeleteProceso');
-Route::post('/formFinalizarProceso', [AuditoriaProcesoController::class, 'formFinalizarProceso'])->name('aseguramientoCalidad.formFinalizarProceso');
-Route::get('/modules', [AuditoriaProcesoController::class, 'getModules'])->name('modules.getModules');
-Route::get('/names-by-module', [AuditoriaProcesoController::class, 'getNamesByModule'])->name('modules.getNamesByModule');
-Route::get('/utilities', [AuditoriaProcesoController::class, 'getUtilities'])->name('utilities.getUtilities');
-Route::post('/cambiarEstadoInicioParo', [AuditoriaProcesoController::class, 'cambiarEstadoInicioParo'])->name('aseguramientoCalidad.cambiarEstadoInicioParo');
-Route::post('/categoria-tipo-problema', [AuditoriaProcesoController::class, 'storeCategoriaTipoProblema'])->name('categoria_tipo_problema.store');
-Route::post('/obtenerTodosLosEstilosUnicos', [AuditoriaProcesoController::class, 'obtenerTodosLosEstilosUnicos'])->name('obtenerTodosLosEstilosUnicos');
-Route::get('/obtener-supervisor', [AuditoriaProcesoController::class, 'obtenerSupervisor']);
-
-
-
-
-//Inicio apartado para seccion Auditoria AQL
-Route::get('/auditoriaAQL', [AuditoriaAQLController::class, 'auditoriaAQL'])->name('auditoriaAQL.auditoriaAQL')->middleware('auth');
-Route::get('/altaAQL', [AuditoriaAQLController::class, 'altaAQL'])->name('auditoriaAQL.altaAQL')->middleware('auth');
-Route::post('/obtenerItemIdAQL', [AuditoriaAQLController::class, 'obtenerItemIdAQL'])->name('obtenerItemIdAQL');
-Route::post('/formAltaProcesoAQL', [AuditoriaAQLController::class, 'formAltaProcesoAQL'])->name('auditoriaAQL.formAltaProcesoAQL');
-Route::post('/formRegistroAuditoriaProcesoAQL', [AuditoriaAQLController::class, 'formRegistroAuditoriaProcesoAQL'])->name('auditoriaAQL.formRegistroAuditoriaProcesoAQL');
-Route::post('/formUpdateDeleteProcesoAQL', [AuditoriaAQLController::class, 'formUpdateDeleteProceso'])->name('auditoriaAQL.formUpdateDeleteProceso');
-Route::post('/formFinalizarProcesoAQL', [AuditoriaAQLController::class, 'formFinalizarProceso'])->name('auditoriaAQL.formFinalizarProceso');
-Route::post('/cambiarEstadoInicioParoAQL', [AuditoriaAQLController::class, 'cambiarEstadoInicioParoAQL'])->name('auditoriaAQL.cambiarEstadoInicioParoAQL');
-Route::get('/RechazosParoAQL', [AuditoriaAQLController::class, 'RechazosParoAQL'])->name('auditoriaAQL.RechazosParoAQL');
-Route::post('/cargarOrdenesOP', [AuditoriaAQLController::class, 'metodoNombre'])->name('metodoNombre');
-Route::post('/categoria-tipo-problema-aql', [AuditoriaAQLController::class, 'storeCategoriaTipoProblemaAQL'])->name('categoria_tipo_problema_aql.store');
-Route::get('/get-bultos-by-op', [AuditoriaAQLController::class, 'getBultosByOp'])->name('getBultosByOp');
-
-
-
-
-//Fin apartado para seccion Evaluacion corte
-
-// Ruta de Screen Print <---Inicio------>
-Route::get('/ScreenPrint', [CalidadScreenPrintController::class, 'ScreenPrint'])->name('ScreenPlanta2.ScreenPrint');
-Route::get('/Ordenes', [CalidadScreenPrintController::class, 'Ordenes']);
-Route::get('/Clientes/{ordenes}', [CalidadScreenPrintController::class, 'Clientes']);
-Route::get('/Estilo/{ordenes}', [CalidadScreenPrintController::class, 'Estilos']);
-Route::get('/Tecnicos', [CalidadScreenPrintController::class, 'Tecnicos']);
-Route::get('/TipoTecnica', [CalidadScreenPrintController::class, 'TipoTecnica']);
-Route::post('/AgregarTecnica', [CalidadScreenPrintController::class, 'AgregarTecnica']);
-Route::get('/TipoFibra', [CalidadScreenPrintController::class, 'TipoFibra']);
-Route::post('/AgregarFibra', [CalidadScreenPrintController::class, 'AgregarFibra']);
-Route::get('/viewTabl', [CalidadScreenPrintController::class, 'viewTabl']);
-Route::post('/SendScreenPrint', [CalidadScreenPrintController::class, 'SendScreenPrint']);
-Route::put('/UpdateScreenPrint/{idValue}', [CalidadScreenPrintController::class, 'UpdateScreenPrint']);
-Route::get('/obtenerOpcionesACCorrectiva',[CalidadScreenPrintController::class, 'obtenerOpcionesACCorrectiva']);
-Route::get('/obtenerOpcionesTipoProblema', [CalidadScreenPrintController::class, 'obtenerOpcionesTipoProblema']);
-Route::get('/OpcionesACCorrectiva',[CalidadScreenPrintController::class, 'OpcionesACCorrectiva']);
-Route::get('/OpcionesTipoProblema', [CalidadScreenPrintController::class, 'OpcionesTipoProblema']);
-Route::post('/actualizarStatScrin/{id}', [CalidadScreenPrintController::class, 'actualizarStatScrin']);
-Route::get('/horno_banda', [CalidadScreenPrintController::class, 'horno_banda']);
-Route::post('/savedatahorno_banda', [CalidadScreenPrintController::class, 'savedatahorno_banda']);
-Route::get('/PorcenScreen', [CalidadScreenPrintController::class, 'PorcenScreen']);
-////// <-------Fin de Screen Print-------------->
-// Ruta de Inspeccion Estampado Despues del Horno<-----Inicio------->
-Route::get('/InspecciondHorno', [InspeccionEstampadoHorno::class, 'InsEstamHorno'])->name('ScreenPlanta2.InsEstamHorno');
-Route::get('/Ordenes', [InspeccionEstampadoHorno::class, 'Ordenes']);
-Route::get('/Clientes/{ordenes}', [InspeccionEstampadoHorno::class, 'Clientes']);
-Route::get('/Estilo/{ordenes}', [InspeccionEstampadoHorno::class, 'Estilo']);
-Route::get('/Tecnicos', [InspeccionEstampadoHorno::class, 'Tecnicos']);
-Route::get('/TipoTecnica', [InspeccionEstampadoHorno::class, 'TipoTecnica']);
-Route::post('/AgregarTecnica', [InspeccionEstampadoHorno::class, 'AgregarTecnica']);
-Route::get('/TipoFibra', [InspeccionEstampadoHorno::class, 'TipoFibra']);
-Route::post('/AgregarFibra', [InspeccionEstampadoHorno::class, 'AgregarFibra']);
-Route::get('/viewTableIns', [InspeccionEstampadoHorno::class, 'viewTableIns']);
-Route::post('/SendInspeccionEstampadoHornot', [InspeccionEstampadoHorno::class, 'SendInspeccionEstampadoHornot']);
-Route::put('/UpdateIsnpec/{idValue}', [InspeccionEstampadoHorno::class, 'UpdateIsnpec']);
-Route::get('/obtenerOpcionesACCorrectiva',[InspeccionEstampadoHorno::class, 'obtenerOpcionesACCorrectiva']);
-Route::get('/obtenerOpcionesTipoProblema', [InspeccionEstampadoHorno::class, 'obtenerOpcionesTipoProblema']);
-Route::get('/OpcionesACCorrectiva',[InspeccionEstampadoHorno::class, 'OpcionesACCorrectiva']);
-Route::get('/OpcionesTipoProblema', [InspeccionEstampadoHorno::class, 'OpcionesTipoProblema']);
-Route::post('/actualizarEstado/{id}', [InspeccionEstampadoHorno::class, 'actualizarEstado']);
-Route::get('/PorcenTotalDefec', [InspeccionEstampadoHorno::class, 'PorcenTotalDefec']);
-////// <-------Fin de Inspeccion Estampado Despues del Horno-------------->
-// Ruta de Calidad Proceso Plancha<-----Inicio------->
-Route::get('/ProcesoPlancha', [CalidadProcesoPlancha::class, 'ProcesoPlancha'])->name('ScreenPlanta2.CalidadProcesoPlancha');
-Route::get('/Ordenes', [CalidadProcesoPlancha::class, 'Ordenes']);
-Route::get('/Clientes/{ordenes}', [CalidadProcesoPlancha::class, 'Clientes']);
-Route::get('/Estilo/{ordenes}', [CalidadProcesoPlancha::class, 'Estilo']);
-Route::get('/Tecnicos', [CalidadProcesoPlancha::class, 'Tecnicos']);
-Route::get('/viewTablePlancha', [CalidadProcesoPlancha::class, 'viewTablePlancha']);
-Route::post('/SendPlancha', [CalidadProcesoPlancha::class, 'SendPlancha']);
-Route::put('/UpdatePlancha/{idValue}', [CalidadProcesoPlancha::class, 'UpdatePlancha']);
-Route::get('/obtenerOpcionesACCorrectiva',[CalidadProcesoPlancha::class, 'obtenerOpcionesACCorrectiva']);
-Route::get('/obtenerOpcionesTipoProblema', [CalidadProcesoPlancha::class, 'obtenerOpcionesTipoProblema']);
-Route::get('/OpcionesACCorrectiva',[CalidadProcesoPlancha::class, 'OpcionesACCorrectiva']);
-Route::get('/OpcionesTipoProblema', [CalidadProcesoPlancha::class, 'OpcionesTipoProblema']);
-Route::post('/actualizarEstado/{id}', [CalidadProcesoPlancha::class, 'actualizarEstado']);
-Route::get('/PorcenTotalDefecPlancha', [CalidadProcesoPlancha::class, 'PorcenTotalDefecPlancha']);
-////// <-------Fin de Calidad Process Plancha-------------->
-// Ruta de Maquila<-----Inicio------->
-Route::get('/Maquila', [Maquila::class, 'Maquilas'])->name('ScreenPlanta2.Maquila');
-Route::get('/Tecnicos', [Maquila::class, 'Tecnicos']);
-Route::get('/viewTableMaquila', [Maquila::class, 'viewTableMaquila']);
-Route::post('/SendMaquila', [Maquila::class, 'SendMaquila']);
-Route::put('/UpdateMaquila/{idValue}', [Maquila::class, 'UpdateMaquila']);
-Route::get('/obtenerOpcionesACCorrectiva',[Maquila::class, 'obtenerOpcionesACCorrectiva']);
-Route::get('/obtenerOpcionesTipoProblema', [Maquila::class, 'obtenerOpcionesTipoProblema']);
-Route::get('/OpcionesACCorrectiva',[Maquila::class, 'OpcionesACCorrectiva']);
-Route::get('/OpcionesTipoProblema', [Maquila::class, 'OpcionesTipoProblema']);
-Route::post('/actualizarEstado/{id}', [Maquila::class, 'actualizarEstado']);
-Route::get('/PorcenTotalDefecMaquila', [Maquila::class, 'PorcenTotalDefecMaquila']);
-////// <-------Fin de Maquila-------------->
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Route::resource('user', 'App\Http\Controllers\UserController', ['except' => ['show']])->middleware('checkrole');
-Route::get('profile', ['as' => 'profile.edit', 'uses' => 'App\Http\Controllers\ProfileController@edit'])->middleware('checkrole');
-Route::put('profile', ['as' => 'profile.update', 'uses' => 'App\Http\Controllers\ProfileController@update'])->middleware('checkrole');
-Route::put('profile/password', ['as' => 'profile.password', 'uses' => 'App\Http\Controllers\ProfileController@password'])->middleware('checkrole');
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Route::get('/auditoriaEtiquetas',  [DatosAuditoriaEtiquetas::class, 'auditoriaEtiquetas'])->name('formulariosCalidad.auditoriaEtiquetas')->middleware('checkroleandplant1');
-Route::get('/inicioAuditoriaCorte', 'App\Http\Controllers\AuditoriaCorteController@inicioAuditoriaCorte')->name('auditoriaCorte.inicioAuditoriaCorte')->middleware('checkroleandplant1');
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Route::get('/ScreenPrint',  [CalidadScreenPrintController::class, 'ScreenPrint'])->name('ScreenPlanta2.ScreenPrint')->middleware('checkroleandplant2');
-Route::get('/InsEstamHorno', [InspeccionEstampadoHorno::class, 'InsEstamHorno'])->name('ScreenPlanta2.InsEstamHorno')->middleware('checkroleandplant2');
-Route::get('/ProcesoPlancha',  [CalidadProcesoPlancha::class, 'ProcesoPlancha'])->name('ScreenPlanta2.CalidadProcesoPlancha')->middleware('checkroleandplant2');
-Route::get('/Maquila',  [Maquila::class, 'Maquilas'])->name('ScreenPlanta2.Maquila')->middleware('checkroleandplant2');
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Route::view('/error', 'error')->name('error');
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Route::get('/buscarEstilos', [DatosAuditoriaEtiquetas::class, 'buscarEstilos']);
-Route::get('/buscarDatosAuditoriaPorEstilo', [DatosAuditoriaEtiquetas::class, 'buscarDatosAuditoriaPorEstilo']);
-Route::get('/obtenerTiposDefectos', [DatosAuditoriaEtiquetas::class, 'obtenerTiposDefectos']);
-Route::put('/actualizarStatus', [DatosAuditoriaEtiquetas::class, 'actualizarStatus']);
-Route::get('/datosinventario', [DatosAuditoriaEtiquetas::class, 'obtenerDatosInventario']);
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Apartado para detalles dashboard
-Route::get('/buscadorDinamico', [DashboardController::class, 'buscadorDinamico'])->name('dashboar.buscadorDinamico');
-Route::get('/buscadorDinamico/search', [DashboardController::class, 'search']);
-Route::get('/dashboarAProcesoPlayera', [DashboardController::class, 'dashboarAProcesoPlayera'])->name('dashboar.dashboarAProcesoPlayera');
-
-Route::get('/dashboarAProceso', [DashboardController::class, 'dashboarAProceso'])->name('dashboar.dashboarAProceso');
-Route::get('/dashboarAProcesoPlayera', [DashboardController::class, 'dashboarAProcesoPlayera'])->name('dashboar.dashboarAProcesoPlayera');
-
-Route::get('/dashboarAProcesoAQL', [DashboardController::class, 'dashboarAProcesoAQL'])->name('dashboar.dashboarAProcesoAQL');
-Route::get('/detalleXModulo', [DashboardController::class, 'detalleXModulo'])->name('dashboar.detalleXModulo');
-
-Route::get('/dashboarAProcesoAQL', [DashboardController::class, 'dashboarAProcesoAQL'])->name('dashboar.dashboarAProcesoAQL');
-Route::get('/detallePorGerente', [DashboardController::class, 'detallePorGerente'])->name('dashboar.detallePorGerente');
-Route::get('/detallePorCliente', [DashboardController::class, 'detallePorCliente'])->name('dashboar.detallePorCliente');
-//dashboard Planta 1
-Route::get('/dashboardPanta1', [DashboardPlanta1Controller::class, 'dashboardPanta1'])->name('dashboar.dashboardPlanta1');
-Route::get('/dashboardPlanta1Detalle', [DashboardPlanta1DetalleController::class, 'dashboardPlanta1Detalle'])->name('dashboar.dashboardPlanta1Detalle');
-Route::get('/detalleXModuloPlanta1', [DashboardPlanta1DetalleController::class, 'detalleXModuloPlanta1'])->name('dashboar.detalleXModuloPlanta1');
-//dashboard Planta 1 consulta por dia
-Route::get('/dashboardPanta1PorDia', [DashboardPlanta1PorDiaController::class, 'dashboardPanta1PorDia'])->name('dashboar.dashboardPanta1PorDia');
-//dashboard Planta 1 consulta por Semana
-Route::get('/dashboardPlanta1PorSemana', [DashboardPlanta1PorDiaController::class, 'dashboardPlanta1PorSemana'])->name('dashboar.dashboardPlanta1PorSemana');
-//dashboard Planta 1 consulta por MES
-Route::get('/dashboardPlanta1PorMes', [DashboardPlanta1PorDiaController::class, 'dashboardPlanta1PorMes'])->name('dashboar.dashboardPlanta1PorMes');
-//dashboard Planta 2
-Route::get('/dashboardPanta2', [DashboardPlanta2Controller::class, 'dashboardPanta2'])->name('dashboar.dashboardPlanta2');
-Route::get('/dashboardPlanta2Detalle', [DashboardPlanta2DetalleController::class, 'dashboardPlanta2Detalle'])->name('dashboar.dashboardPlanta2Detalle');
-Route::get('/detalleXModuloPlanta2', [DashboardPlanta2DetalleController::class, 'detalleXModuloPlanta2'])->name('dashboar.detalleXModuloPlanta2');
-
-Route::get('/reporteriaInterna',[reporteriaInternaController::class, 'reporteriaInterna'])->name('reporteriaInterna.reporteriaInterna')->middleware('checkrole');
-Route::get('/obtener_top_defectos', [DashboardController::class, 'Top3Defectos']);
-
-Route::get('/altaYbaja', [AltaYBajaController::class, 'altaYbaja'])->name('altaYbaja');
-Route::patch('/altaYbaja/defecto-proceso/{id}', [AltaYBajaController::class, 'actualizarEstadoDefectoProceso'])->name('actualizarEstadoDefectoProceso');
-Route::patch('/altaYbaja/defecto-playera/{id}', [AltaYBajaController::class, 'actualizarEstadoDefectoPlayera'])->name('actualizarEstadoDefectoPlayera');
-Route::patch('/altaYbaja/defecto-empaque/{id}', [AltaYBajaController::class, 'actualizarEstadoDefectoEmpaque'])->name('actualizarEstadoDefectoEmpaque');
-Route::patch('/altaYbaja/gestion-utility/{id}', [AltaYBajaController::class, 'actualizarEstadoUtility'])->name('actualizarEstadoUtility');
-Route::patch('/altaYbaja/gestion-responsable/{id}', [AltaYBajaController::class, 'actualizarEstadoResponsable'])->name('actualizarEstadoResponsable');
-Route::patch('/altaYbaja/gestion-tecnico/{id}', [AltaYBajaController::class, 'actualizarEstadoTecnico'])->name('actualizarEstadoTecnico');
-Route::post('/altaYbaja/defecto-proceso', [AltaYBajaController::class, 'crearDefectoProceso'])->name('crearDefectoProceso');
-Route::post('/altaYbaja/defecto-playera', [AltaYBajaController::class, 'crearDefectoPlayera'])->name('crearDefectoPlayera');
-Route::post('/altaYbaja/defecto-empaque', [AltaYBajaController::class, 'crearDefectoEmpaque'])->name('crearDefectoEmpaque');
-Route::post('/altaYbaja/gestion-utility', [AltaYBajaController::class, 'crearUtility'])->name('crearUtility');
-Route::post('/altaYbaja/gestion-responsable', [AltaYBajaController::class, 'crearResponsable'])->name('crearResponsable');
-Route::post('/altaYbaja/gestion-tecnico', [AltaYBajaController::class, 'crearTecnico'])->name('crearTecnico');
-Route::post('/actualizarClientesPorcentajes', [AltaYBajaController::class, 'actualizarClientesPorcentajes'])->name('actualizarClientesPorcentajes');
-//ajax para mostrar dato en dashboard principal
-Route::get('/dashboard-data-dia', [HomeController::class, 'getDashboardDataDia'])->name('dashboard.dataDia')->middleware('auth');
-Route::get('/dashboard-data-semana', [HomeController::class, 'getDashboardDataSemana'])->name('dashboard.dataSemana')->middleware('auth');
-Route::get('/dashboard-mensual-general', [HomeController::class, 'getMensualGeneral'])->name('dashboard.mensualGeneral')->middleware('auth');
-Route::get('/dashboard/mensual-por-cliente', [HomeController::class, 'getMensualPorCliente'])->name('dashboard.mensualPorCliente');
-Route::get('/dashboard/mensualPorModulo', [HomeController::class, 'getMensualPorModulo'])->name('dashboard.mensualPorModulo');
-
-
-//Segundas
-Route::get('/SegundasTerceras',[HomeController::class, 'SegundasTerceras']);
-Route::get('/Segundas', [Segundas::class, 'Segundas']);
-Route::get('/ObtenerSegundas', [Segundas::class, 'ObtenerSegundas']);
-Route::get('/ObtenerPlantas', [Segundas::class, 'ObtenerPlantas']);
-Route::get('/ObtenerModulos', [Segundas::class, 'ObtenerModulos']);
-Route::get('/ObtenerClientes', [Segundas::class, 'ObtenerClientes']);
-Route::get('/obtenerSegundasFiltradas', [Segundas::class, 'obtenerSegundasFiltradas']);
-//apartado para vistas de nuevas tablas
-Route::get('/dashboardCostosNoCalidad', [DashboardCostosController::class, 'dashboardCostosNoCalidad'])->name('dashboardCostosNoCalidad');
-
-//dashboard Planta 1 consulta por Semana del comparativo por cliente modulo
-Route::get('/planta1PorSemana', [DashboardComparativoModuloPlanta1Controller::class, 'planta1PorSemana'])->name('dashboarComparativaModulo.planta1PorSemana');
-Route::get('/semanaComparativaGeneral', [DashboardComparativoModuloPlanta1Controller::class, 'semanaComparativaGeneral'])->name('dashboarComparativaModulo.semanaComparativaGeneral');
-Route::get('/data/semana-comparativa-general', [DashboardComparativoModuloPlanta1Controller::class, 'getSemanaComparativaGeneralData'])->name('dashboarComparativaModulo.semanaComparativaGeneralData');
-Route::post('/export-semana-comparativa', [DashboardComparativoModuloPlanta1Controller::class, 'exportSemanaComparativa'])->name('export.semana');
-
-//seccion para gestion por parte del administrador de calidad
-Route::get('/agregarAqlProceso', [GestionController::class, 'agregarAqlProceso'])->name('gestion.agregarAqlProceso');
-Route::get('/buscarAql', [GestionController::class, 'buscarAql'])->name('gestion.buscarAql');
-Route::post('/guardarAql', [GestionController::class, 'guardarAql'])->name('gestion.guardarAql');
-Route::post('/guardarModuloEstilo', [GestionController::class, 'guardarModuloEstilo'])->name('guardarModuloEstilo');
-
-//Inicio apartado para seccion Auditoria AQL V2
-Route::get('/auditoriaAQL_v2', [AuditoriaAQL_v2Controller::class, 'auditoriaAQL_v2'])->name('auditoriaAQL.auditoriaAQL_v2')->middleware('auth');
-Route::get('/altaAQL_v2', [AuditoriaAQL_v2Controller::class, 'altaAQL_v2'])->name('auditoriaAQL.altaAQL_v2')->middleware('auth');
-Route::get('/obtener-opciones-op', [AuditoriaAQL_v2Controller::class, 'obtenerOpcionesOP'])->name('obtener.opciones.op');
-Route::get('/obtener-opciones-bulto', [AuditoriaAQL_v2Controller::class, 'obtenerOpcionesBulto'])->name('obtener.opciones.bulto');
-Route::get('/obtener-defectos-aql', [AuditoriaAQL_v2Controller::class, 'obtenerDefectosAQL'])->name('obtener.defectos.aql');
-Route::post('/crear-defectos-aql', [AuditoriaAQL_v2Controller::class, 'crearDefectoAQL'])->name('crear.defecto.aql');
-Route::get('/obtener-nobres-proceso', [AuditoriaAQL_v2Controller::class, 'obtenerNombresProceso'])->name('obtener.nombres.proceso');
-Route::post('/guardar-registros-aql', [AuditoriaAQL_v2Controller::class, 'guardarRegistrosAql'])->name('guardar.registro.aql');
-Route::get('/mostrar-registros-aql-dia', [AuditoriaAQL_v2Controller::class, 'mostrarRegistrosAqlDia'])->name('mostrar.registros.aql.dia');
-Route::get('/mostrar-registros-aql-dia-TE', [AuditoriaAQL_v2Controller::class, 'mostrarRegistrosAqlDiaTE'])->name('mostrar.registros.aql.dia.TE');
-Route::post('/eliminar-registro-aql', [AuditoriaAQL_v2Controller::class, 'eliminarRegistroAql'])->name('eliminar.registro.aql');
-Route::post('/buscar-ultimo-registro', [AuditoriaAQL_v2Controller::class, 'buscarUltimoRegistro'])->name('buscarUltimoRegistro');
-Route::post('/finalizar-paro-aql', [AuditoriaAQL_v2Controller::class, 'finalizarParoAQL'])->name('finalizar.paro.aql');
-
-
-
-
-
-
-
-Route::post('/obtenerItemIdAQL_v2', [AuditoriaAQL_v2Controller::class, 'obtenerItemIdAQL_v2'])->name('obtenerItemIdAQL_v2');
-Route::post('/formAltaProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formAltaProcesoAQL_v2'])->name('auditoriaAQL.formAltaProcesoAQL_v2');
-Route::post('/formRegistroAuditoriaProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formRegistroAuditoriaProcesoAQL_v2'])->name('auditoriaAQL.formRegistroAuditoriaProcesoAQL_v2');
-Route::post('/formUpdateDeleteProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formUpdateDeleteProceso_v2'])->name('auditoriaAQL.formUpdateDeleteProceso_v2');
-Route::post('/formFinalizarProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formFinalizarProceso_v2'])->name('auditoriaAQL.formFinalizarProceso_v2');
-Route::post('/cambiarEstadoInicioParoAQL_v2', [AuditoriaAQL_v2Controller::class, 'cambiarEstadoInicioParoAQL_v2'])->name('auditoriaAQL.cambiarEstadoInicioParoAQL_v2');
-Route::get('/RechazosParoAQL_v2', [AuditoriaAQL_v2Controller::class, 'RechazosParoAQL_v2'])->name('auditoriaAQL.RechazosParoAQL_v2');
-Route::post('/cargarOrdenesOP_v2', [AuditoriaAQL_v2Controller::class, 'metodoNombre_v2'])->name('metodoNombre_v2');
-Route::post('/categoria-tipo-problema-aql_v2', [AuditoriaAQL_v2Controller::class, 'storeCategoriaTipoProblemaAQL'])->name('categoria_tipo_problema_aql.store_v2');
-Route::get('/get-bultos-by-op_v2', [AuditoriaAQL_v2Controller::class, 'getBultosByOp_v2'])->name('getBultosByOp_v2');
-Route::post('/auditoriaAQL_v2/obtenerAQLenProceso', [AuditoriaAQL_v2Controller::class, 'obtenerAQLenProceso'])->name('auditoriaAQL.obtenerAQLenProceso');
-
-
-//apartado para las vistas de 
-Route::get('/consultaEstatus', [ConsutlaEstatusController::class, 'consultaEstatus'])->name('consultas.consultaEstatus');
-
-
-//nuevo apartado para el desarrollo de etiquetas
-Route::get('/etiquetas_v2', [EtiquetasV2Controller::class, 'etiquetas_v2'])->name('etiquetas_v2');
-// Ruta para procesar el formulario
-Route::post('/procesarFormularioEtiqueta', [EtiquetasV2Controller::class, 'procesarFormularioEtiqueta'])->name('procesarFormularioEtiqueta');
-// Importante: ruta para AJAX (GET) de tallas
-Route::get('/etiquetas_v2/tallas', [EtiquetasV2Controller::class, 'ajaxGetTallas'])->name('ajaxGetTallas');
-
-// Ruta AJAX para la cantidad y tamaño de muestra
-Route::get('/etiquetas_v2/data', [EtiquetasV2Controller::class, 'ajaxGetData'])->name('ajaxGetData');
-Route::get('/obtener-defectos-etiquetas', [EtiquetasV2Controller::class, 'obtenerDefectosEtiquetas'])->name('obtenerDefectosEtiquetas');
-Route::post('/guardar-defecto-etiqueta', [EtiquetasV2Controller::class, 'guardarDefectoEtiqueta'])->name('guardarDefectoEtiqueta');
-Route::post('/guardar-auditoria-etiqueta', [EtiquetasV2Controller::class, 'guardarAuditoriaEtiqueta'])->name('guardarAuditoriaEtiqueta');
-Route::put('/reporte-etiquetas/{id}/update-status', [EtiquetasV2Controller::class, 'updateStatus'])->name('reporte-etiquetas.updateStatus');
-
