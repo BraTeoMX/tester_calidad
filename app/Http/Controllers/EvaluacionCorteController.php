@@ -18,6 +18,7 @@ use App\Models\CategoriaDefectoCorte;
 use App\Models\EncabezadoAuditoriaCorte;
 use App\Models\AuditoriaMarcada;
 use App\Models\CategoriaParteCorte;
+use App\Models\EncabezadoAuditoriaCorteV2;
 
 use App\Models\DatoAX;
 use App\Models\EvaluacionCorte;
@@ -57,7 +58,7 @@ class EvaluacionCorteController extends Controller
                            ->with('auditoriasMarcadas')
                            ->get(),
             'DatoAXFin' => DatoAX::where('estatus', 'fin')->get(),
-            'EncabezadoAuditoriaCorte' => EncabezadoAuditoriaCorte::all(),
+            'EncabezadoAuditoriaCorte' => EncabezadoAuditoriaCorteV2::all(),
             'auditoriasMarcadas' => AuditoriaMarcada::all(),
             'procesoActualAQL' => AuditoriaAQL::where('estatus', NULL)
                 ->where('area', 'AUDITORIA EN PROCESO')
