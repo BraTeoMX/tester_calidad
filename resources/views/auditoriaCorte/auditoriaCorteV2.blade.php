@@ -814,7 +814,7 @@
                                                 </div>
                                                 <div class="form-check form-check-inline">
                                                     <input type="text" class="form-control me-2 texto-blanco" name="longitud_tendido" id="longitud_tendido"
-                                                           value="{{ $auditoriaMarcada->largo_trazo }}" readonly required />
+                                                           value="{{ $auditoriaMarcada->largo_trazo / 100, 2 }}" readonly required />
                                                     <input type="hidden" name="longitud_tendido" value="{{ $auditoriaMarcada->largo_trazo }}">
                                                 </div>
                                             </div>
@@ -841,7 +841,7 @@
                                                 </div>
                                                 <div class="form-check form-check-inline">
                                                     <input type="text" class="form-control me-2 texto-blanco" name="ancho_tendido" id="ancho_tendido"
-                                                           value="{{ $auditoriaMarcada->ancho_trazo }}" readonly required />
+                                                           value="{{ $auditoriaMarcada->ancho_trazo / 100, 2}}" readonly required />
                                                     <input type="hidden" name="ancho_tendido" value="{{ $auditoriaMarcada->ancho_trazo }}">
                                                 </div>
                                             </div>
@@ -1120,7 +1120,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="fecha" class="col-sm-6 col-form-label">Fecha</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
+                                                {{ isset($auditoriaTendido) ? $auditoriaTendido->created_at->format('d ') . $mesesEnEspanol[$auditoriaTendido->created_at->format('n') - 1] . $auditoriaTendido->created_at->format(' Y - H:i:s') : '' }}
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
@@ -1145,8 +1145,7 @@
                                             <label for="auditor" class="col-sm-6 col-form-label">AUDITOR</label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <input type="text" class="form-control me-2 texto-blanco" name="auditor" id="auditor"
-                                                    value="{{ $auditorDato }}" readonly required />
-                                                <input type="hidden" name="auditor" value="{{ $auditorDato }}">
+                                                    value="{{ isset($auditoriaTendido) ? $auditoriaTendido->auditor : '' }}" readonly />
                                             </div>
                                         </div>
                                     </div>
@@ -1297,7 +1296,7 @@
                                                 </div>
                                                 <div class="form-check form-check-inline">
                                                     <input type="text" class="form-control me-2 texto-blanco" name="longitud_tendido" id="longitud_tendido"
-                                                        value="{{ $auditoriaMarcada->largo_trazo }}" readonly required />
+                                                        value="{{ $auditoriaMarcada->largo_trazo / 100, 2 }}" readonly required />
                                                     <input type="hidden" name="longitud_tendido" value="{{ $auditoriaMarcada->largo_trazo }}">
                                                 </div>
                                             </div>
@@ -2145,6 +2144,7 @@
                                             <label for="fecha" class="col-sm-6 col-form-label">Fecha</label>
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
+                                                {{ isset($Lectra) ? $Lectra->created_at->format('d ') . $mesesEnEspanol[$Lectra->created_at->format('n') - 1] . $Lectra->created_at->format(' Y - H:i:s') : '' }}
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
@@ -2164,8 +2164,8 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="auditor" class="col-sm-6 col-form-label">AUDITOR</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                <input type="text" class="form-control me-2 texto-blanco" name="auditor" id="auditor" value="{{ $auditorDato }}" readonly required />
-                                                <input type="hidden" name="auditor" value="{{ $auditorDato }}">
+                                                <input type="text" class="form-control me-2 texto-blanco" name="auditor" id="auditor" 
+                                                    value="{{ isset($Lectra) ? $Lectra->auditor : '' }}" readonly />
                                             </div>
                                         </div>
                                     </div>
@@ -2382,7 +2382,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="fecha" class="col-sm-6 col-form-label">Fecha</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
+                                                {{ isset($auditoriaBulto) ? $auditoriaBulto->created_at->format('d ') . $mesesEnEspanol[$auditoriaBulto->created_at->format('n') - 1] . $auditoriaBulto->created_at->format(' Y - H:i:s') : '' }}
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
@@ -2586,7 +2586,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="fecha" class="col-sm-6 col-form-label">Fecha</label>
                                             <div class="col-sm-12 d-flex align-items-center">
-                                                {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
+                                                {{ isset($auditoriaBulto) ? $auditoriaBulto->created_at->format('d ') . $mesesEnEspanol[$auditoriaBulto->created_at->format('n') - 1] . $auditoriaBulto->created_at->format(' Y - H:i:s') : '' }}
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
@@ -2604,8 +2604,7 @@
                                             <div class="col-sm-12 d-flex align-items-center">
                                                 <div class="col-sm-12 d-flex align-items-center">
                                                     <input type="text" class="form-control me-2 texto-blanco" name="auditor" id="auditor"
-                                                        value="{{ $auditorDato }}" readonly required />
-                                                    <input type="hidden" name="auditor" value="{{ $auditorDato }}">
+                                                    value="{{ isset($auditoriaBulto) ? $auditoriaBulto->auditor : '' }}" readonly />
                                                 </div>
                                             </div>
                                         </div>
