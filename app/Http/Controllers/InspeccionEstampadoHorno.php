@@ -235,6 +235,7 @@ class InspeccionEstampadoHorno extends Controller
             ]);
 
             // Puedes realizar acciones adicionales si es necesario después de crear el nuevo registro
+            Log::info($screenPrint );
 
             return response()->json(['mensaje' => 'Datos guardados exitosamente', 'screenPrint' => $screenPrint]);
         }
