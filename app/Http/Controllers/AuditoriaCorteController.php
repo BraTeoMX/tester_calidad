@@ -37,6 +37,7 @@ use App\Exports\DatosExport;
 use App\Models\DatoAX;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
+use Illuminate\Support\Facades\Log;
 
 class AuditoriaCorteController extends Controller
 {
@@ -215,14 +216,22 @@ class AuditoriaCorteController extends Controller
             'auditorDato' => $auditorDato]));
     }
 
-    public function altaAuditoriaCorte($orden)
+    public function altaAuditoriaCorte($orden, $color)
     {
         $pageSlug ='';
         $categorias = $this->cargarCategorias();
         $auditorDato = Auth::user()->name;
         //dd($userName);
         // Obtener el dato con el id seleccionado y el valor de la columna "orden"
-        $datoAX = DatoAX::where('op', $orden)->first();
+        // Prepara la consulta base filtrando por 'op'
+        $query = DB::connection('sqlsrv')->table('OrdenesCorte_View')->where('op', $orden);
+
+        // Si $color tiene algún valor, se añade la condición correspondiente
+        if (!empty($color)) {
+            $query->where('inventcolorid', $color);
+        }
+
+        $datoAX = $query->first();
         //dd($datoAX);
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
@@ -1369,4 +1378,29 @@ class AuditoriaCorteController extends Controller
 
         return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
+
+    public function buscarOrdenCorte(Request $request)
+    {
+        // Obtiene el parámetro 'search' del request
+        $busqueda = $request->input('search');
+        
+        // Conexión a la base de datos SQL Server y consulta en la vista OrdenesCorte_View
+        $BusquedaOrdenCorte = DB::connection('sqlsrv')->table('OrdenesCorte_View')
+            ->select('op', 'inventcolorid', 'estilo') // Selecciona solo los campos que nos interesan
+            ->distinct();                   // Aplica distinct para obtener combinaciones únicas
+
+        if ($busqueda) {
+            $BusquedaOrdenCorte->where('op', 'LIKE', "%{$busqueda}%");
+        }
+
+        // Limitar a 100 resultados (opcional)
+        $resultados = $BusquedaOrdenCorte->limit(100)->get();
+
+        // Log para verificar los resultados obtenidos de la consulta
+        Log::info("Resultados de la búsqueda en OrdenesCorte_View", ['resultados' => $resultados]);
+
+        return response()->json($resultados);
+    }
+
+
 }

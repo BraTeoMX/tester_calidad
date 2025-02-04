@@ -44,7 +44,7 @@
                     <!--Desde aqui inicia la edicion del codigo para mostrar el contenido-->
                     <div class="row">
                         <div class="col-md-6">
-                            {{-- Inicio de Acordeon --}}
+                            {{-- Inicio de Acordeón --}}
                             <div class="accordion" id="accordionExample1">
                                 <div class="card">
                                     <div class="card-header" id="headingOne">
@@ -55,29 +55,26 @@
                                             </button>
                                         </h2>
                                     </div>
-
-                                    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
-                                        data-parent="#accordionExample">
+                        
+                                    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample1">
                                         <div class="card-body">
-                                            <input type="text" id="searchInput" class="form-control" placeholder="Buscar por Orden">
+                                            <div class="form-inline">
+                                                <input type="text" id="searchInput00" class="form-control mr-2" placeholder="Buscar por Orden">
+                                                <button id="searchButton" class="btn btn-primary">Buscar</button>
+                                            </div>
                                             <br>
                                             <div class="table-responsive" data-filter="false">
                                                 <table class="table">
                                                     <thead>
                                                         <tr>
-                                                            <th>Iniciar</th>
+                                                            <th>Acción</th>
                                                             <th>Orden</th>
                                                             <th>Estilo</th>
+                                                            <th>Color</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody id="tablaBody">
-                                                        @foreach ($DatoAXNoIniciado as $inicio)
-                                                        <tr>
-                                                            <td><a href="{{ route('auditoriaCorte.altaAuditoriaCorte', ['orden' => $inicio->op]) }}" class="btn btn-primary">Acceder</a></td>
-                                                            <td>{{ $inicio->op }}</td>
-                                                            <td>{{ $inicio->estilo }}</td>
-                                                        </tr>
-                                                        @endforeach
+                                                        <!-- Los resultados se cargarán aquí mediante AJAX -->
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -86,7 +83,7 @@
                                 </div>
                             </div>
                             <!-- Fin del acordeón -->
-                        </div>
+                        </div>                        
                         <div class="col-md-6">
                             {{-- Inicio de Acordeon --}}
                             <div class="accordion" id="accordionExample2">
@@ -473,4 +470,47 @@
             });
         </script>
     </div>
+
+    <script>
+        $(document).ready(function(){
+            $('#searchButton').on('click', function(){
+                var search = $('#searchInput00').val(); // usar el mismo id del input
+
+                $.ajax({
+                    url: "{{ route('ordenes-corte.buscar') }}",
+                    type: "GET",
+                    data: { search: search },
+                    beforeSend: function(){
+                        $('#searchButton').prop('disabled', true);
+                    },
+                    success: function(data){
+                        // Procesa y muestra los resultados
+                        var html = '';
+
+                        if(data.length > 0) {
+                            $.each(data, function(index, item) {
+                                html += '<tr>' +
+                                            '<td><a href="/altaAuditoriaCorte/' + item.op + '/' + item.inventcolorid + '" class="btn btn-primary">Acceder</a></td>' +
+                                            '<td>' + item.op + '</td>' +
+                                            '<td>' + (item.estilo ? item.estilo : 'N/D') + '</td>' +
+                                            '<td>' + (item.inventcolorid ? item.inventcolorid : 'N/D') + '</td>' +
+                                        '</tr>';
+                            });
+                        } else {
+                            html = '<tr><td colspan="3">No se encontraron resultados.</td></tr>';
+                        }
+                        $('#tablaBody').html(html);
+                    },
+                    error: function(xhr, status, error){
+                        console.error("Ocurrió un error:", error);
+                    },
+                    complete: function(){
+                        $('#searchButton').prop('disabled', false);
+                    }
+                });
+            });
+        });
+    </script>
+
+
 @endsection
