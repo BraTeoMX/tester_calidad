@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\CategoriaAuditor;
 use App\Models\CategoriaTecnico;
-use App\Models\CategoriaCliente;
 use App\Models\CategoriaColor;
 use App\Models\CategoriaEstilo;
 use App\Models\CategoriaNoRecibo;
@@ -57,20 +56,6 @@ class AuditoriaCorteController extends Controller
             'CategoriaDefectoCorteTendido' => CategoriaDefectoCorte::where('estado', 1)->where('area', "tendido")->get(),
             'CategoriaDefectoCorteLectra' => CategoriaDefectoCorte::where('estado', 1)->where('area', "corte lectra")->get(),
             'CategoriaDefectoCorteSellado' => CategoriaDefectoCorte::where('estado', 1)->where('area', "sellado")->get(),
-            'DatoAX' => DatoAX::select('id', 'estilo', 'custorname', 'op')
-            ->whereIn('id', function ($query) {
-                $query->selectRaw('MIN(id)')
-                    ->from('datos_auditorias')
-                    ->groupBy('op');
-            })
-            ->get(),
-            'DatoAXProceso' => DatoAX::whereNotIn('estatus', ['fin'])
-                           ->whereNotNull('estatus')
-                           ->whereNotIn('estatus', [''])
-                           ->with('encabezadoAuditoriasCortes')
-                           ->get(),
-            'DatoAXFin' => DatoAX::where('estatus', 'fin')->get(),
-            'DatoAXRechazado' => DatoAX::where('estatus', 'rechazado')->get(),
             'EncabezadoAuditoriaCorteFiltro' => EncabezadoAuditoriaCorteV2::all(),
             'EncabezadoAuditoriaCorteFinal' => EncabezadoAuditoriaCorteV2::where('estatus', 'fin')->get(),
             'auditoriasMarcadas' => AuditoriaMarcada::all(),
@@ -145,10 +130,6 @@ class AuditoriaCorteController extends Controller
         }
 
         $DatoAXNoIniciado = $query->get();
-
-        if ($request->ajax()) {
-            return view('auditoriaCorte.partials._table', compact('DatoAXNoIniciado'))->render();
-        }
 
         return view('auditoriaCorte.inicioAuditoriaCorte', array_merge($categorias, ['mesesEnEspanol' => $mesesEnEspanol, 'pageSlug' => $pageSlug,
                 'EncabezadoAuditoriaCorte' => $filteredEncabezados, 'DatoAXNoIniciado' => $DatoAXNoIniciado]));

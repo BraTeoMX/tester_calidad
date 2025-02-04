@@ -318,20 +318,6 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody id="tablaBodyRechazo">
-                                                        @foreach ($DatoAXRechazado as $rechazado)
-                                                            <tr>
-                                                                <td>
-                                                                    <form method="POST" action="{{ route('auditoriaCorte.formAprobarCorte', ['id' => $rechazado->id]) }}">
-                                                                        @csrf
-                                                                        <button type="submit" class="btn btn-primary">Aprobarlo</button>
-                                                                    </form>
-                                                                </td>
-                                                                <td>{{ $rechazado->op }} </td>
-                                                                <td>{{ $rechazado->estilo }}</td>
-                                                                <td>{{ $rechazado->planta }}</td>
-                                                                <td>{{ $rechazado->temporada }}</td>
-                                                            </tr>
-                                                        @endforeach
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -417,23 +403,6 @@
                 box-shadow: none, 0 0 0 0.2rem rgba(255, 87, 51, 0.5) !important;
             }
         </style>
-        <script>
-            $(document).ready(function() {
-                $('#searchInput').on('input', function() {
-                    var query = $(this).val();
-                    $.ajax({
-                        url: "{{ route('auditoriaCorte.inicioAuditoriaCorte') }}",
-                        type: "GET",
-                        data: {
-                            'search': query
-                        },
-                        success: function(data) {
-                            $('#tablaBody').html(data);
-                        }
-                    });
-                });
-            });
-        </script>
 
         <script>
             const searchInputFin = document.getElementById('searchInputFin');
@@ -443,23 +412,6 @@
             searchInputFin.addEventListener('input', function() {
                 const busqueda = this.value.toLowerCase();
                 for (const fila of filasFin) {
-                    const orden = fila.getElementsByTagName('td')[1].innerText.toLowerCase();
-                    if (orden.includes(busqueda)) {
-                        fila.style.display = '';
-                    } else {
-                        fila.style.display = 'none';
-                    }
-                }
-            });
-        </script>
-        <script>
-            const searchInputRechazo = document.getElementById('searchInputRechazo');
-            const tablaBodyRechazo = document.getElementById('tablaBodyRechazo');
-            const filasRechazo = tablaBodyRechazo.getElementsByTagName('tr');
-        
-            searchInputRechazo.addEventListener('input', function() {
-                const busqueda = this.value.toLowerCase();
-                for (const fila of filasRechazo) {
                     const orden = fila.getElementsByTagName('td')[1].innerText.toLowerCase();
                     if (orden.includes(busqueda)) {
                         fila.style.display = '';
