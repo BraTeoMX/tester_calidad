@@ -173,10 +173,9 @@ class AuditoriaCorteController extends Controller
         $Lectra = Lectra::where('id', $id)->first();
         $auditoriaBulto = AuditoriaBulto::where('id', $id)->first();
         $auditoriaFinal = AuditoriaFinal::where('id', $id)->first();
-        $auditoriaMarcadaTalla = DatoAX::where('op', $orden)
+        $auditoriaMarcadaTalla = DB::connection('sqlsrv')->table('OrdenesCorte_View')->where('op', $orden) 
             ->whereNotNull('sizename') // Descartar valores NULL
             ->where('sizename', '<>', '') // Descartar valores vacíos
-            ->where('period', '>', '202312') 
             ->select('sizename')
             ->distinct()
             ->pluck('sizename');
@@ -989,7 +988,7 @@ class AuditoriaCorteController extends Controller
         $auditoriaBulto = AuditoriaCorteBulto::where('encabezado_id', $id)->first();
         $auditoriaFinal = AuditoriaCorteFinal::where('encabezado_id', $id)->first();
         //dd($encabezadoAuditoriaCorte, $auditoriaMarcada, $auditoriaTendido, $Lectra,  $auditoriaBulto, $auditoriaFinal);
-        $auditoriaMarcadaTalla = DatoAX::where('op', $orden)
+        $auditoriaMarcadaTalla = DB::connection('sqlsrv')->table('OrdenesCorte_View')->where('op', $orden)
             ->whereNotNull('sizename') // Descartar valores NULL
             ->where('sizename', '<>', '') // Descartar valores vacíos
             ->where('period', '>', '202312') 
@@ -1384,10 +1383,13 @@ class AuditoriaCorteController extends Controller
         // Obtiene el parámetro 'search' del request
         $busqueda = $request->input('search');
         
+        // Log para verificar que el request recibe el dato
+        Log::info("Parámetro 'search' recibido en buscarOrdenCorte", ['busqueda' => $busqueda]);
+
         // Conexión a la base de datos SQL Server y consulta en la vista OrdenesCorte_View
         $BusquedaOrdenCorte = DB::connection('sqlsrv')->table('OrdenesCorte_View')
             ->select('op', 'inventcolorid', 'estilo') // Selecciona solo los campos que nos interesan
-            ->distinct();                   // Aplica distinct para obtener combinaciones únicas
+            ->distinct(); // Aplica distinct para obtener combinaciones únicas
 
         if ($busqueda) {
             $BusquedaOrdenCorte->where('op', 'LIKE', "%{$busqueda}%");
@@ -1396,11 +1398,26 @@ class AuditoriaCorteController extends Controller
         // Limitar a 100 resultados (opcional)
         $resultados = $BusquedaOrdenCorte->limit(100)->get();
 
-        // Log para verificar los resultados obtenidos de la consulta
+        // Por cada resultado, se consulta si ya existe un registro en EncabezadoAuditoriaCorte
+        // que coincida con 'orden_id' (de OrdenesCorte_View->op) y 'color_id' (de inventcolorid)
+        foreach ($resultados as $resultado) {
+            // Se obtiene el registro de EncabezadoAuditoriaCorte
+            $encabezado = EncabezadoAuditoriaCorteV2::where('orden_id', $resultado->op)
+                ->where('color_id', $resultado->inventcolorid)
+                ->first();
+
+            // Se guarda un booleano que indica si ya existe o no
+            $resultado->yaIniciada = $encabezado ? true : false;
+            // Además, se puede adjuntar el registro encontrado (o null) para ver todos sus datos
+            $resultado->datosEncabezado = $encabezado;
+        }
+
+        // Log para verificar los resultados obtenidos de la consulta, ahora incluyendo los datos de encabezado
         Log::info("Resultados de la búsqueda en OrdenesCorte_View", ['resultados' => $resultados]);
 
         return response()->json($resultados);
     }
+
 
 
 }

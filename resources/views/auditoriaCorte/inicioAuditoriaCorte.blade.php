@@ -474,8 +474,8 @@
     <script>
         $(document).ready(function(){
             $('#searchButton').on('click', function(){
-                var search = $('#searchInput00').val(); // usar el mismo id del input
-
+                var search = $('#searchInput00').val(); // Asegúrate de usar el mismo id que en el input
+    
                 $.ajax({
                     url: "{{ route('ordenes-corte.buscar') }}",
                     type: "GET",
@@ -484,20 +484,27 @@
                         $('#searchButton').prop('disabled', true);
                     },
                     success: function(data){
-                        // Procesa y muestra los resultados
                         var html = '';
-
+    
                         if(data.length > 0) {
                             $.each(data, function(index, item) {
+                                // Si ya existe el registro, no se muestra el botón sino un mensaje.
+                                var accionHtml = '';
+                                if(item.yaIniciada) {
+                                    accionHtml = '<span class="text-muted">Orden ya iniciada</span>';
+                                } else {
+                                    accionHtml = '<a href="/altaAuditoriaCorte/' + item.op + '/' + item.inventcolorid + '" class="btn btn-primary">Acceder</a>';
+                                }
+    
                                 html += '<tr>' +
-                                            '<td><a href="/altaAuditoriaCorte/' + item.op + '/' + item.inventcolorid + '" class="btn btn-primary">Acceder</a></td>' +
+                                            '<td>' + accionHtml + '</td>' +
                                             '<td>' + item.op + '</td>' +
                                             '<td>' + (item.estilo ? item.estilo : 'N/D') + '</td>' +
                                             '<td>' + (item.inventcolorid ? item.inventcolorid : 'N/D') + '</td>' +
                                         '</tr>';
                             });
                         } else {
-                            html = '<tr><td colspan="3">No se encontraron resultados.</td></tr>';
+                            html = '<tr><td colspan="4">No se encontraron resultados.</td></tr>';
                         }
                         $('#tablaBody').html(html);
                     },
@@ -510,7 +517,7 @@
                 });
             });
         });
-    </script>
+    </script>    
 
 
 @endsection
