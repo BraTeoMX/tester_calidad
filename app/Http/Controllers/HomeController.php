@@ -434,15 +434,18 @@ class HomeController extends Controller
 
     public function getMensualPorCliente()
     {
-        $fechaFin = Carbon::now()->toDateString();
-        $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
+        $fechaFin = Carbon::now()->endOfDay()->toDateTimeString();
+        $fechaInicio = Carbon::now()->startOfMonth()->startOfDay()->toDateTimeString();
 
         // Almacenar en caché por 1 hora (3600 segundos)
         $cacheKey = "mensual_por_cliente_{$fechaInicio}_{$fechaFin}";
 
         $datos = Cache::remember($cacheKey, 3600, function () use ($fechaInicio, $fechaFin) {
             $fechas = CarbonPeriod::create($fechaInicio, $fechaFin);
-            $clientes = DB::table('auditoria_aql')->distinct()->pluck('cliente');
+            $clientes = DB::table('aseguramientos_calidad')
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->distinct()
+                ->pluck('cliente');
 
             $datos = [];
 
@@ -492,15 +495,18 @@ class HomeController extends Controller
 
     public function getMensualPorModulo()
     {
-        $fechaFin = Carbon::now()->toDateString();
-        $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
+        $fechaFin = Carbon::now()->endOfDay()->toDateTimeString();
+        $fechaInicio = Carbon::now()->startOfMonth()->startOfDay()->toDateTimeString();
 
         // Almacenar en caché por 1 hora (3600 segundos)
         $cacheKey = "mensual_por_modulo_{$fechaInicio}_{$fechaFin}";
 
         $datos = Cache::remember($cacheKey, 3600, function () use ($fechaInicio, $fechaFin) {
             $fechas = CarbonPeriod::create($fechaInicio, $fechaFin);
-            $modulos = DB::table('auditoria_aql')->distinct()->pluck('modulo');
+            $modulos = DB::table('aseguramientos_calidad')
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->distinct()
+                ->pluck('modulo');
 
             $datos = [];
 
