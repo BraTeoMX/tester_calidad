@@ -57,7 +57,6 @@ class AuditoriaCorteController extends Controller
             'CategoriaDefectoCorteLectra' => CategoriaDefectoCorte::where('estado', 1)->where('area', "corte lectra")->get(),
             'CategoriaDefectoCorteSellado' => CategoriaDefectoCorte::where('estado', 1)->where('area', "sellado")->get(),
             'EncabezadoAuditoriaCorteFiltro' => EncabezadoAuditoriaCorteV2::all(),
-            'EncabezadoAuditoriaCorteFinal' => EncabezadoAuditoriaCorteV2::where('estatus', 'fin')->get(),
             'auditoriasMarcadas' => AuditoriaMarcada::all(),
             'CategoriaAccionCorrectiva' => CategoriaAccionCorrectiva::where('estado', 1)->where('area', '0')->get(),
         ];
@@ -79,7 +78,6 @@ class AuditoriaCorteController extends Controller
             'CategoriaDefectoCorteLectra' => CategoriaDefectoCorte::where('estado', 1)->where('area', "corte lectra")->get(),
             'CategoriaDefectoCorteSellado' => CategoriaDefectoCorte::where('estado', 1)->where('area', "sellado")->get(),
             'EncabezadoAuditoriaCorteFiltro' => EncabezadoAuditoriaCorte::all(),
-            'EncabezadoAuditoriaCorteFinal' => EncabezadoAuditoriaCorte::where('estatus', 'fin')->get(),
             'auditoriasMarcadas' => AuditoriaMarcada::all(),
             'CategoriaAccionCorrectiva' => CategoriaAccionCorrectiva::where('estado', 1)->where('area', '0')->get(),
         ];
@@ -89,19 +87,6 @@ class AuditoriaCorteController extends Controller
     {
         $pageSlug ='';
         $categorias = $this->cargarCategorias();
-        $encabezados = EncabezadoAuditoriaCorteV2::all();
-
-        // Filtrar los registros para eliminar aquellos cuya 'orden_id' tenga todos los 'estatus' iguales a 'fin'
-        $filteredEncabezados = $encabezados->filter(function ($item) use ($encabezados) {
-            // Obtén todos los registros con el mismo 'orden_id'
-            $ordenItems = $encabezados->where('orden_id', $item->orden_id);
-            // Verifica si todos los 'estatus' son 'fin'
-            $allFin = $ordenItems->every(function ($value) {
-                return $value->estatus === 'fin';
-            });
-            // Retorna true si no todos los 'estatus' son 'fin', para incluir en el filtrado
-            return !$allFin;
-        });
 
         //dd($filteredEncabezados);
 
@@ -132,7 +117,174 @@ class AuditoriaCorteController extends Controller
         $DatoAXNoIniciado = $query->get();
 
         return view('auditoriaCorte.inicioAuditoriaCorte', array_merge($categorias, ['mesesEnEspanol' => $mesesEnEspanol, 'pageSlug' => $pageSlug,
-                'EncabezadoAuditoriaCorte' => $filteredEncabezados, 'DatoAXNoIniciado' => $DatoAXNoIniciado]));
+                'DatoAXNoIniciado' => $DatoAXNoIniciado]));
+    } 
+
+    public function searchEnProceso(Request $request) 
+    { 
+        $search = $request->get('search'); 
+        
+        // Obtén todos los registros 
+        $encabezados = EncabezadoAuditoriaCorteV2::all(); 
+
+        // Filtrar registros: eliminar grupos donde todos los registros tengan 'estatus' igual a 'fin'
+        $filteredEncabezados = $encabezados->filter(function ($item) use ($encabezados) {
+            $ordenItems = $encabezados->where('orden_id', $item->orden_id);
+            return !$ordenItems->every(function ($value) {
+                return $value->estatus === 'fin';
+            });
+        });
+
+        // Si no hay búsqueda o es menor a 4 caracteres, filtra por el día de hoy
+        if (!$search || strlen($search) < 4) {
+            $today = Carbon::today()->toDateString();
+            $filteredEncabezados = $filteredEncabezados->filter(function ($item) use ($today) {
+                return Carbon::parse($item->created_at)->toDateString() === $today;
+            });
+        } else {
+            // Con 4 o más caracteres, se hace búsqueda global (por ejemplo, en el campo "orden_id")
+            $searchLower = strtolower($search);
+            $filteredEncabezados = $filteredEncabezados->filter(function ($item) use ($searchLower) {
+                return strpos(strtolower($item->orden_id), $searchLower) !== false;
+            });
+        }
+
+        // Agrupar por 'orden_id' para evitar duplicados en el accordion
+        $registros = $filteredEncabezados->unique('orden_id');
+
+        // Generar el HTML del nested accordion. Conserva la estructura original:
+        $html = '';
+        if ($registros->isNotEmpty()) {
+            foreach ($registros as $encabezadoCorte) {
+                $html .= '<div class="card proceso-card" data-proceso="' . $encabezadoCorte->orden_id . '">';
+                $html .= '  <div class="card-header" id="heading' . $encabezadoCorte->orden_id . '">';
+                $html .= '      <h2 class="mb-0">';
+                $html .= '          <button class="btn estado-proceso btn-block" type="button" data-toggle="collapse" data-target="#collapse' . $encabezadoCorte->orden_id . '" aria-expanded="true" aria-controls="collapse' . $encabezadoCorte->orden_id . '">';
+                $html .=                 $encabezadoCorte->orden_id;
+                $html .= '          </button>';
+                $html .= '      </h2>';
+                $html .= '  </div>';
+                $html .= '  <div id="collapse' . $encabezadoCorte->orden_id . '" class="collapse" aria-labelledby="heading' . $encabezadoCorte->orden_id . '" data-parent="#accordionExample">';
+                $html .= '      <div class="card-body">';
+                $html .= '          <div>';
+                $html .= '              <form method="POST" action="' . route('auditoriaCorte.agregarEventoCorteV2') . '">';
+                $html .= '                  ' . csrf_field();
+                $html .= '                  <input type="hidden" name="orden_id" value="' . $encabezadoCorte->orden_id . '">';
+                $html .= '                  <input type="hidden" name="estilo_id" value="' . $encabezadoCorte->estilo_id . '">';
+                $html .= '                  <input type="hidden" name="planta_id" value="' . $encabezadoCorte->planta_id . '">';
+                $html .= '                  <input type="hidden" name="temporada_id" value="' . $encabezadoCorte->temporada_id . '">';
+                $html .= '                  <input type="hidden" name="cliente_id" value="' . $encabezadoCorte->cliente_id . '">';
+                $html .= '                  <input type="hidden" name="color_id" value="' . $encabezadoCorte->color_id . '">';
+                $html .= '                  <input type="hidden" name="estatus_evaluacion_corte" value="' . $encabezadoCorte->estatus_evaluacion_corte . '">';
+                $html .= '                  <input type="hidden" name="material" value="' . $encabezadoCorte->material . '">';
+                $html .= '                  <input type="hidden" name="pieza" value="' . $encabezadoCorte->pieza . '">';
+                $html .= '                  <input type="hidden" name="trazo" value="' . $encabezadoCorte->trazo . '">';
+                $html .= '                  <input type="hidden" name="lienzo" value="' . $encabezadoCorte->lienzo . '">';
+                $html .= '                  <button type="submit" class="btn btn-info">Agregar 1 evento</button>';
+                $html .= '              </form>';
+                $html .= '          </div>';
+                // Aquí se asume que para cada "orden_id" se muestran eventos que no tienen estatus "fin"
+                // Suponiendo que también tienes una colección $EncabezadoAuditoriaCorteFiltro, deberás obtenerla
+                // Para efectos de este ejemplo, se asume que puedes volver a filtrar $encabezados:
+                $html .= '          <table class="table">';
+                $html .= '              <thead>';
+                $html .= '                  <tr>';
+                $html .= '                      <th>Acceso</th>';
+                $html .= '                      <th>Evento</th>';
+                $html .= '                      <th>Estilo</th>';
+                $html .= '                  </tr>';
+                $html .= '              </thead>';
+                $html .= '              <tbody>';
+                // Se filtran los registros del mismo orden y con estatus distinto de "fin"
+                $eventos = $encabezados->where('orden_id', $encabezadoCorte->orden_id)
+                                    ->where('estatus', '!=', 'fin');
+                foreach ($eventos as $evento) {
+                    $html .= '<tr>';
+                    $html .= '  <td><a href="' . route('auditoriaCorte.auditoriaCorteV2', ['id' => $evento->id, 'orden' => $evento->orden_id]) . '" class="btn btn-primary">Acceder</a></td>';
+                    $html .= '  <td>' . $evento->evento . '</td>';
+                    $html .= '  <td>' . $evento->estilo_id . '</td>';
+                    $html .= '</tr>';
+                }
+                $html .= '              </tbody>';
+                $html .= '          </table>';
+                $html .= '      </div>';
+                $html .= '  </div>';
+                $html .= '</div>';
+            }
+        } else {
+            $html = '<p>No se encontraron registros.</p>';
+        }
+
+        return response()->json(['html' => $html]);
+    }
+
+    public function searchFinal(Request $request)
+    {
+        $search = $request->get('search');
+        
+        // Obtén los registros donde 'estatus' es 'fin'
+        $encabezadosFinal = EncabezadoAuditoriaCorteV2::where('estatus', 'fin')->get();
+
+        // Si no hay búsqueda o la longitud es menor a 4 caracteres, filtra por el día de hoy
+        if (!$search || strlen($search) < 4) {
+            $today = Carbon::today()->toDateString();
+            $encabezadosFinal = $encabezadosFinal->filter(function ($item) use ($today) {
+                return Carbon::parse($item->created_at)->toDateString() === $today;
+            });
+        } else {
+            // Con 4 o más caracteres, se realiza búsqueda global (por ejemplo, en 'orden_id')
+            $searchLower = strtolower($search);
+            $encabezadosFinal = $encabezadosFinal->filter(function ($item) use ($searchLower) {
+                return strpos(strtolower($item->orden_id), $searchLower) !== false;
+            });
+        }
+
+        // Agrupar por 'orden_id' para evitar duplicados en el accordion
+        $registrosFinal = $encabezadosFinal->unique('orden_id');
+
+        // Generar el HTML del nested accordion para "FINAL"
+        $html = '';
+        if ($registrosFinal->isNotEmpty()) {
+            foreach ($registrosFinal as $encabezadoCorte) {
+                $html .= '<div class="card proceso-card-final" data-proceso="' . $encabezadoCorte->orden_id . '">';
+                $html .= '  <div class="card-header" id="headingFinal' . $encabezadoCorte->orden_id . '">';
+                $html .= '      <h2 class="mb-0">';
+                $html .= '          <button class="btn btn-success btn-block" type="button" data-toggle="collapse" data-target="#collapseFinal' . $encabezadoCorte->orden_id . '" aria-expanded="true" aria-controls="collapseFinal' . $encabezadoCorte->orden_id . '">';
+                $html .=                 $encabezadoCorte->orden_id;
+                $html .= '          </button>';
+                $html .= '      </h2>';
+                $html .= '  </div>';
+                $html .= '  <div id="collapseFinal' . $encabezadoCorte->orden_id . '" class="collapse" aria-labelledby="headingFinal' . $encabezadoCorte->orden_id . '" data-parent="#accordionExampleFinalSub">';
+                $html .= '      <div class="card-body">';
+                $html .= '          <table class="table">';
+                $html .= '              <thead>';
+                $html .= '                  <tr>';
+                $html .= '                      <th>Acceso</th>';
+                $html .= '                      <th>Evento</th>';
+                $html .= '                      <th>Estilo</th>';
+                $html .= '                  </tr>';
+                $html .= '              </thead>';
+                $html .= '              <tbody>';
+                // Para cada registro final con el mismo 'orden_id'
+                $eventos = $encabezadosFinal->where('orden_id', $encabezadoCorte->orden_id);
+                foreach ($eventos as $evento) {
+                    $html .= '<tr>';
+                    $html .= '  <td><a href="' . route('auditoriaCorte.auditoriaCorteV2', ['id' => $evento->id, 'orden' => $evento->orden_id]) . '" class="btn btn-primary">Acceder</a></td>';
+                    $html .= '  <td>' . $evento->evento . '</td>';
+                    $html .= '  <td>' . $evento->estilo_id . '</td>';
+                    $html .= '</tr>';
+                }
+                $html .= '              </tbody>';
+                $html .= '          </table>';
+                $html .= '      </div>';
+                $html .= '  </div>';
+                $html .= '</div>';
+            }
+        } else {
+            $html = '<p>No se encontraron registros.</p>';
+        }
+
+        return response()->json(['html' => $html]);
     }
 
     public function auditoriaCorte($id, $orden)

@@ -85,7 +85,7 @@
                             <!-- Fin del acordeón -->
                         </div>                        
                         <div class="col-md-6">
-                            {{-- Inicio de Acordeon --}}
+                            {{-- Acordeón EN PROCESO --}}
                             <div class="accordion" id="accordionExample2">
                                 <div class="card">
                                     <div class="card-header" id="headingOne2">
@@ -97,105 +97,57 @@
                                             </button>
                                         </h2>
                                     </div>
-
-                                    <div id="collapseOne2" class="collapse show" aria-labelledby="headingOne2"
-                                        data-parent="#accordionExample2">
+                        
+                                    <div id="collapseOne2" class="collapse show" aria-labelledby="headingOne2" data-parent="#accordionExample2">
                                         <div class="card-body">
-                                            <input type="text" id="searchInputAcordeon" class="form-control"
-                                                placeholder="Buscar por Proceso">
-                                            <!-- Desde aquí inicia la edición del código para mostrar el contenido --> 
+                                            <input type="text" id="searchInputAcordeon" class="form-control" placeholder="Buscar por Proceso">
+                                            <!-- Contenedor que se actualizará vía AJAX -->
                                             <div class="accordion" id="accordionExample">
-                                                @if($EncabezadoAuditoriaCorte->isNotEmpty())
-                                                    @foreach ($EncabezadoAuditoriaCorte->unique('orden_id') as $encabezadoCorte)
-                                                        <div class="card proceso-card" data-proceso="{{ $encabezadoCorte->orden_id }}">
-                                                            <div class="card-header" id="heading{{ $encabezadoCorte->orden_id }}">
-                                                                <h2 class="mb-0">
-                                                                    <button class="btn estado-proceso btn-block" type="button"
-                                                                        data-toggle="collapse"
-                                                                        data-target="#collapse{{ $encabezadoCorte->orden_id }}"
-                                                                        aria-expanded="true"
-                                                                        aria-controls="collapse{{ $encabezadoCorte->orden_id }}">
-                                                                        {{ $encabezadoCorte->orden_id }}
-                                                                    </button>
-                                                                </h2>
-                                                            </div>
-                                                
-                                                            <div id="collapse{{ $encabezadoCorte->orden_id }}" class="collapse"
-                                                                aria-labelledby="heading{{ $encabezadoCorte->orden_id }}"
-                                                                data-parent="#accordionExample">
-                                                                <div class="card-body">
-                                                                    <div>
-                                                                        <form method="POST" action="{{ route('auditoriaCorte.agregarEventoCorteV2') }}">
-                                                                            @csrf
-                                                                            <input type="hidden" name="orden_id" value="{{ $encabezadoCorte->orden_id }}">
-                                                                            <input type="hidden" name="estilo_id" value="{{ $encabezadoCorte->estilo_id }}">
-                                                                            <input type="hidden" name="planta_id" value="{{ $encabezadoCorte->planta_id }}">
-                                                                            <input type="hidden" name="temporada_id" value="{{ $encabezadoCorte->temporada_id }}">
-                                                                            <input type="hidden" name="cliente_id" value="{{ $encabezadoCorte->cliente_id }}">
-                                                                            <input type="hidden" name="color_id" value="{{ $encabezadoCorte->color_id }}">
-                                                                            <input type="hidden" name="estatus_evaluacion_corte" value="{{ $encabezadoCorte->estatus_evaluacion_corte }}">
-                                                                            <input type="hidden" name="material" value="{{ $encabezadoCorte->material }}">
-                                                                            <input type="hidden" name="pieza" value="{{ $encabezadoCorte->pieza }}">
-                                                                            <input type="hidden" name="trazo" value="{{ $encabezadoCorte->trazo }}">
-                                                                            <input type="hidden" name="lienzo" value="{{ $encabezadoCorte->lienzo }}">
-                                                                            <button type="submit" class="btn btn-info">Agregar 1 evento</button>
-                                                                        </form>
-                                                                    </div>
-                                                                    <table class="table">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th>Acceso</th>
-                                                                                <th>Evento</th>
-                                                                                <th>Estilo</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            @foreach ($EncabezadoAuditoriaCorteFiltro->where('orden_id', $encabezadoCorte->orden_id)->where('estatus', '!=', 'fin') as $encabezado)
-                                                                                <tr>
-                                                                                    <td><a href="{{ route('auditoriaCorte.auditoriaCorteV2', ['id' => $encabezado->id, 'orden' => $encabezado->orden_id]) }}"
-                                                                                        class="btn btn-primary">Acceder</a>
-                                                                                    </td>
-                                                                                    <td>{{ $encabezado->evento }}</td>
-                                                                                    <td>{{ $encabezado->estilo_id }}</td>
-                                                                                </tr>
-                                                                            @endforeach
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                @endif
+                                                <div id="contentEnProceso">
+                                                    <p>Cargando datos...</p>
+                                                </div>
                                             </div>
-                                            <!--Fin del cuerpo del acordeon-->
                                         </div>
                                         <script>
                                             document.addEventListener("DOMContentLoaded", function() {
+                                                // Carga inicial: sin búsqueda, se mostrarán los registros del día.
+                                                buscarEnProceso('');
+                        
+                                                // Cada vez que se escriba en el input, se espera 300 ms antes de llamar al AJAX
                                                 const searchInput = document.getElementById('searchInputAcordeon');
-                                                const procesoCards = document.querySelectorAll('.proceso-card');
-
+                                                let timeout = null;
                                                 searchInput.addEventListener('input', function() {
-                                                    const busqueda = this.value.trim().toLowerCase();
-                                                    procesoCards.forEach(card => {
-                                                        const proceso = card.getAttribute('data-proceso').toLowerCase();
-                                                        if (proceso.includes(busqueda)) {
-                                                            card.style.display = 'block'; // Mostrar el acordeón
-                                                        } else {
-                                                            card.style.display = 'none'; // Ocultar el acordeón
-                                                        }
-                                                    });
+                                                    const busqueda = this.value.trim();
+                                                    clearTimeout(timeout);
+                                                    timeout = setTimeout(function() {
+                                                        buscarEnProceso(busqueda);
+                                                    }, 300);
                                                 });
                                             });
+                        
+                                            function buscarEnProceso(busqueda) {
+                                                $.ajax({
+                                                    url: '{{ route("auditoriaCorte.searchEnProceso") }}',
+                                                    method: 'GET',
+                                                    data: { search: busqueda },
+                                                    success: function(response) {
+                                                        $('#contentEnProceso').html(response.html);
+                                                    },
+                                                    error: function() {
+                                                        console.error('Error en la búsqueda de EN PROCESO');
+                                                    }
+                                                });
+                                            }
                                         </script>
                                     </div>
                                 </div>
-                                <!-- Fin del acordeón -->
                             </div>
+                            {{-- Fin del acordeón EN PROCESO --}}
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            {{-- Inicio de Acordeon --}}
+                            {{-- Acordeón FINAL --}}
                             <div class="accordion" id="accordionExampleFinal">
                                 <div class="card">
                                     <div class="card-header" id="headingFinalOne">
@@ -212,74 +164,44 @@
                                         data-parent="#accordionExampleFinal">
                                         <div class="card-body">
                                             <input type="text" id="searchInputAcordeonFinal" class="form-control"
-                                                placeholder="Buscar por Operacion">
-                                            <!-- Desde aquí inicia la edición del código para mostrar el contenido -->
+                                                placeholder="Buscar por Operación">
+                                            <!-- Contenedor que se actualizará vía AJAX -->
                                             <div class="accordion" id="accordionExampleFinalSub">
-                                                @if($EncabezadoAuditoriaCorteFinal->isNotEmpty())
-                                                    @foreach ($EncabezadoAuditoriaCorteFinal->unique('orden_id') as $encabezadoCorte)
-                                                        <div class="card proceso-card-final" data-proceso="{{ $encabezadoCorte->orden_id }}">
-                                                            <div class="card-header" id="headingFinal{{ $encabezadoCorte->orden_id }}">
-                                                                <h2 class="mb-0">
-                                                                    <button class="btn btn-success btn-block" type="button"
-                                                                        data-toggle="collapse"
-                                                                        data-target="#collapseFinal{{ $encabezadoCorte->orden_id }}"
-                                                                        aria-expanded="true"
-                                                                        aria-controls="collapseFinal{{ $encabezadoCorte->orden_id }}">
-                                                                        {{ $encabezadoCorte->orden_id }}
-                                                                    </button>
-                                                                </h2>
-                                                            </div>
-                                                            <div id="collapseFinal{{ $encabezadoCorte->orden_id }}" class="collapse"
-                                                                aria-labelledby="headingFinal{{ $encabezadoCorte->orden_id }}"
-                                                                data-parent="#accordionExampleFinalSub">
-                                                                <div class="card-body">
-                                                                    <div>
-                                                                    </div>
-                                                                    <table class="table">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th>Acceso</th>
-                                                                                <th>Evento</th>
-                                                                                <th>Estilo</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            @foreach ($EncabezadoAuditoriaCorteFinal->where('orden_id', $encabezadoCorte->orden_id) as $encabezado)
-                                                                                <tr>
-                                                                                    <td><a href="{{ route('auditoriaCorte.auditoriaCorteV2', ['id' => $encabezado->id, 'orden' => $encabezado->orden_id]) }}"
-                                                                                        class="btn btn-primary">Acceder</a>
-                                                                                    </td>
-                                                                                    <td>{{ $encabezado->evento }}</td>
-                                                                                    <td>{{ $encabezado->estilo_id }}</td>
-                                                                                </tr>
-                                                                            @endforeach
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                @endif
+                                                <div id="contentFinal">
+                                                    <p>Cargando datos...</p>
+                                                </div>
                                             </div>
-                                            <!--Fin del cuerpo del acordeon-->
                                         </div>
                                         <script>
                                             document.addEventListener("DOMContentLoaded", function() {
-                                                const searchInputFinal = document.getElementById('searchInputAcordeonFinal');
-                                                const procesoCardsFinal = document.querySelectorAll('.proceso-card-final');
+                                                // Carga inicial para FINAL: sin búsqueda, se mostrarán los registros del día.
+                                                buscarFinal('');
                         
+                                                // Cada vez que se escriba en el input, se espera 300 ms antes de llamar a AJAX.
+                                                const searchInputFinal = document.getElementById('searchInputAcordeonFinal');
+                                                let timeoutFinal = null;
                                                 searchInputFinal.addEventListener('input', function() {
-                                                    const busqueda = this.value.trim().toLowerCase();
-                                                    procesoCardsFinal.forEach(card => {
-                                                        const proceso = card.getAttribute('data-proceso').toLowerCase();
-                                                        if (proceso.includes(busqueda)) {
-                                                            card.style.display = 'block'; // Mostrar el acordeón
-                                                        } else {
-                                                            card.style.display = 'none'; // Ocultar el acordeón
-                                                        }
-                                                    });
+                                                    const busqueda = this.value.trim();
+                                                    clearTimeout(timeoutFinal);
+                                                    timeoutFinal = setTimeout(function() {
+                                                        buscarFinal(busqueda);
+                                                    }, 300);
                                                 });
                                             });
+                        
+                                            function buscarFinal(busqueda) {
+                                                $.ajax({
+                                                    url: '{{ route("auditoriaCorte.searchFinal") }}',
+                                                    method: 'GET',
+                                                    data: { search: busqueda },
+                                                    success: function(response) {
+                                                        $('#contentFinal').html(response.html);
+                                                    },
+                                                    error: function() {
+                                                        console.error('Error en la búsqueda de FINAL');
+                                                    }
+                                                });
+                                            }
                                         </script>
                                     </div>
                                 </div>

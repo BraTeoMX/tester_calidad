@@ -111,6 +111,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/formAuditoriaBultoV2', [AuditoriaCorteController::class, 'formAuditoriaBultoV2'])->name('auditoriaCorte.formAuditoriaBultoV2');
     Route::post('/formAuditoriaFinalV2', [AuditoriaCorteController::class, 'formAuditoriaFinalV2'])->name('auditoriaCorte.formAuditoriaFinalV2');
     Route::get('/ordenes-corte/buscar', [AuditoriaCorteController::class, 'buscarOrdenCorte'])->name('ordenes-corte.buscar');
+    // Rutas para búsqueda AJAX en el acordeón “EN PROCESO”
+    Route::get('/auditoria-corte/search-en-proceso', [AuditoriaCorteController::class, 'searchEnProceso'])->name('auditoriaCorte.searchEnProceso');
+    // Rutas para búsqueda AJAX en el acordeón “FINAL”
+    Route::get('/auditoria-corte/search-final', [AuditoriaCorteController::class, 'searchFinal'])->name('auditoriaCorte.searchFinal');
+
     //fin aprtado Auditoria Corte
 
     //Inicio apartado para seccion Evaluacion corte
