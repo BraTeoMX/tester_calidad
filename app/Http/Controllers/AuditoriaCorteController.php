@@ -120,12 +120,12 @@ class AuditoriaCorteController extends Controller
                 'DatoAXNoIniciado' => $DatoAXNoIniciado]));
     } 
 
-    public function searchEnProceso(Request $request) 
-    { 
-        $search = $request->get('search'); 
+    public function searchEnProceso(Request $request)
+    {
+        $search = $request->get('search');
         
-        // Obtén todos los registros 
-        $encabezados = EncabezadoAuditoriaCorteV2::all(); 
+        // Obtén todos los registros
+        $encabezados = EncabezadoAuditoriaCorteV2::all();
 
         // Filtrar registros: eliminar grupos donde todos los registros tengan 'estatus' igual a 'fin'
         $filteredEncabezados = $encabezados->filter(function ($item) use ($encabezados) {
@@ -151,6 +151,16 @@ class AuditoriaCorteController extends Controller
 
         // Agrupar por 'orden_id' para evitar duplicados en el accordion
         $registros = $filteredEncabezados->unique('orden_id');
+
+        // Definir el mapeo para los estatus
+        $statusMapping = [
+            'proceso'                 => 'No iniciado',
+            'estatusAuditoriaMarcada' => 'Marcada',
+            'estatusAuditoriaTendido' => 'Tendido',
+            'estatusLectra'           => 'Lectra',
+            'estatusAuditoriaBulto'   => 'Bulto',
+            'estatusAuditoriaFinal'   => 'Auditoria Final',
+        ];
 
         // Generar el HTML del nested accordion. Conserva la estructura original:
         $html = '';
@@ -183,15 +193,13 @@ class AuditoriaCorteController extends Controller
                 $html .= '                  <button type="submit" class="btn btn-info">Agregar 1 evento</button>';
                 $html .= '              </form>';
                 $html .= '          </div>';
-                // Aquí se asume que para cada "orden_id" se muestran eventos que no tienen estatus "fin"
-                // Suponiendo que también tienes una colección $EncabezadoAuditoriaCorteFiltro, deberás obtenerla
-                // Para efectos de este ejemplo, se asume que puedes volver a filtrar $encabezados:
                 $html .= '          <table class="table">';
                 $html .= '              <thead>';
                 $html .= '                  <tr>';
                 $html .= '                      <th>Acceso</th>';
                 $html .= '                      <th>Evento</th>';
-                $html .= '                      <th>Estilo</th>';
+                $html .= '                      <th>Color</th>';
+                $html .= '                      <th>Estatus</th>';
                 $html .= '                  </tr>';
                 $html .= '              </thead>';
                 $html .= '              <tbody>';
@@ -199,10 +207,14 @@ class AuditoriaCorteController extends Controller
                 $eventos = $encabezados->where('orden_id', $encabezadoCorte->orden_id)
                                     ->where('estatus', '!=', 'fin');
                 foreach ($eventos as $evento) {
+                    // Buscar el valor mapeado, si existe, o se muestra el valor original
+                    $displayStatus = isset($statusMapping[$evento->estatus]) ? $statusMapping[$evento->estatus] : $evento->estatus;
+                    
                     $html .= '<tr>';
                     $html .= '  <td><a href="' . route('auditoriaCorte.auditoriaCorteV2', ['id' => $evento->id, 'orden' => $evento->orden_id]) . '" class="btn btn-primary">Acceder</a></td>';
                     $html .= '  <td>' . $evento->evento . '</td>';
-                    $html .= '  <td>' . $evento->estilo_id . '</td>';
+                    $html .= '  <td>' . $evento->color_id . '</td>';
+                    $html .= '  <td>' . $displayStatus . '</td>';
                     $html .= '</tr>';
                 }
                 $html .= '              </tbody>';
@@ -217,6 +229,7 @@ class AuditoriaCorteController extends Controller
 
         return response()->json(['html' => $html]);
     }
+
 
     public function searchFinal(Request $request)
     {
