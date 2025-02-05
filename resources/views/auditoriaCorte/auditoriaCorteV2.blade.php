@@ -2559,6 +2559,15 @@
                                                 actualizarPorcentaje();
                                             });
                                         </script>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="comentario_bulto" class="col-sm-6 col-form-label">Comentario </label>
+                                            <div class="align-items-center">
+                                                <input type="text" class="form-control texto-blanco" name="comentario_bulto"
+                                                    id="comentario_bulto" placeholder="..."
+                                                    value="{{ isset($auditoriaBulto) ? $auditoriaBulto->comentario : '' }}"
+                                                    required />
+                                            </div>
+                                        </div>
                                     </div>
                                     <div>
                                         <button type="submit" class="btn-verde-xd">Guardar</button>
@@ -2570,7 +2579,7 @@
                                     </div>
                                 </form>
                                 @elseif($encabezadoAuditoriaCorte && ($encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaMarcada' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaTendido' || $encabezadoAuditoriaCorte->estatus == 'estatusLectra' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaBulto' || $encabezadoAuditoriaCorte->estatus == 'estatusAuditoriaFinal' || $encabezadoAuditoriaCorte->estatus == 'fin'))
-                                    <<div class="row"> 
+                                    <div class="row"> 
                                         <div class="col-md-6 mb-3">
                                             <label for="nombre" class="col-sm-6 col-form-label">NOMBRE DEL SELLADOR</label>
                                             <div class="col-sm-12 d-flex align-items-center">
@@ -2684,6 +2693,15 @@
                                                 <input type="text" class="form-control me-2 texto-blanco" name="porcentaje"
                                                     id="porcentaje_bulto" placeholder="..."
                                                     value="{{ isset($auditoriaBulto) ? $auditoriaBulto->porcentaje : '' }}"
+                                                    readonly />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="porcentaje" class="col-sm-6 col-form-label">comentario</label>
+                                            <div class="align-items-center">
+                                                <input type="text" class="form-control me-2 texto-blanco" name="comentario_bulto"
+                                                    id="comentario_bulto" placeholder="..."
+                                                    value="{{ isset($auditoriaBulto) ? $auditoriaBulto->comentario : '' }}"
                                                     readonly />
                                             </div>
                                         </div>

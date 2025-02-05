@@ -945,6 +945,7 @@ class AuditoriaCorteController extends Controller
             $existeOrden->defecto = $request->input('defecto');
             $existeOrden->cantidad_defecto = $request->input('cantidad_defecto');
             $existeOrden->porcentaje = $request->input('porcentaje');
+            $existeOrden->comentario = $request->input('comentario_bulto');
 
         
             $existeOrden->save();
@@ -1476,6 +1477,7 @@ class AuditoriaCorteController extends Controller
             $existeOrden->defecto = $request->input('defecto');
             $existeOrden->cantidad_defecto = $request->input('cantidad_defecto');
             $existeOrden->porcentaje = $request->input('porcentaje');
+            $existeOrden->comentario = $request->input('comentario_bulto');
 
         
             $existeOrden->save();
