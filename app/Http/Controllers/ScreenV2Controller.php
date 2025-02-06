@@ -8,14 +8,13 @@ use App\Models\AccionCorrectScreen;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\Models\DatosAX;
 use Illuminate\Support\Facades\Auth;
 use App\Models\OpcionesDefectosScreen;
-use App\Models\InspeccionEstampadoDHorno;
 use App\Models\Tecnicos;
 use App\Models\Tipo_Fibra;
 use App\Models\Tipo_Tecnica;
 use App\Models\JobAQLHistorial;
+use App\Models\inspeccion_horno;
 
 class ScreenV2Controller extends Controller
 {

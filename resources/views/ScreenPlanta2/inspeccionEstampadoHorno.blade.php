@@ -149,14 +149,11 @@
                 // Inicializa de nuevo el select2 para bultos, ahora con la OP seleccionada
                 $('#bulto-select').select2({
                     placeholder: 'Selecciona un bulto...',
-                    minimumInputLength: 4,
+                    minimumInputLength: 0, // Permite que se muestren resultados sin escribir nada
                     width: '100%', // IMPORTANTE: Hace que se ajuste a la celda
                     dropdownAutoWidth: true,
                     language: {
-                        inputTooShort: function(args) {
-                            var remainingChars = args.minimum - args.input.length;
-                            return `Por favor, ingresa al menos ${remainingChars} caracter(es) más.`;
-                        },
+                        // Puedes quitar la función inputTooShort ya que no será necesaria
                         noResults: function() {
                             return 'No se encontraron bultos para la OP seleccionada';
                         },
@@ -170,8 +167,8 @@
                         delay: 250,
                         data: function(params) {
                             return {
-                                op: selectedOp,  // Le enviamos la OP seleccionada
-                                q: params.term   // Para poder filtrar por bulto
+                                op: selectedOp,  // Enviamos la OP seleccionada
+                                q: params.term   // Para filtrar según lo que se escriba
                             };
                         },
                         processResults: function(data) {
