@@ -35,9 +35,11 @@
                                 </td>
                                 <td>
                                     <select class="form-control select2" name="tipoTecnicaScreen" id="tipoTecnicaScreen"></select>
+                                    <div id="listaTipoTecnicaScreen" class="lista-seleccionados"></div>
                                 </td>
                                 <td>
                                     <select class="form-control select2" name="tipoFibraScreen" id="tipoFibraScreen"></select>
+                                    <div id="listaTipoFibraScreen" class="lista-seleccionados"></div>
                                 </td>
                                 <td>
                                     <input type="text" class="form-control texto-blanco" name="valor_grafica" id="valor_grafica">
@@ -242,6 +244,7 @@
         }
     </style>
 
+    <!-- Script general para los select comunes -->
     <script>
         $(document).ready(function () {
             function cargarSelect2(selector, url, modelo) {
@@ -256,7 +259,6 @@
                                 return { id: item.id, text: item.nombre };
                             });
 
-                            // Agregar la opción "OTRO" al inicio
                             results.unshift({ id: "otro", text: "OTRO" });
 
                             return { results: results };
@@ -265,7 +267,6 @@
                     }
                 });
 
-                // Detectar cuando se selecciona "OTRO"
                 $(selector).on("select2:select", function (e) {
                     let selectedValue = e.params.data.id;
 
@@ -273,9 +274,8 @@
                         let nuevoValor = prompt("Ingrese el nuevo valor para " + modelo + ":");
 
                         if (nuevoValor) {
-                            nuevoValor = nuevoValor.toUpperCase(); // Convertir a mayúsculas
+                            nuevoValor = nuevoValor.toUpperCase();
 
-                            // Enviar el dato al backend por AJAX
                             $.ajax({
                                 url: "/guardarNuevoValor",
                                 type: "POST",
@@ -283,11 +283,10 @@
                                     nombre: nuevoValor,
                                     modelo: modelo,
                                     estatus: 1,
-                                    _token: "{{ csrf_token() }}" // Necesario para Laravel
+                                    _token: "{{ csrf_token() }}"
                                 },
                                 success: function (response) {
                                     if (response.success) {
-                                        // Agregar el nuevo valor al select sin recargar
                                         let newOption = new Option(nuevoValor, response.id, true, true);
                                         $(selector).append(newOption).trigger('change');
                                     } else {
@@ -300,7 +299,6 @@
                             });
                         }
 
-                        // Resetear el select2 para que el usuario pueda seleccionar otro valor si cancela
                         $(selector).val(null).trigger('change');
                     }
                 });
@@ -308,8 +306,134 @@
 
             cargarSelect2("#categoriaTipoPanel", "/categoriaTipoPanel", "CategoriaTipoPanel");
             cargarSelect2("#categoriaTipoMaquina", "/categoriaTipoMaquina", "CategoriaTipoMaquina");
-            cargarSelect2("#tipoTecnicaScreen", "/tipoTecnicaScreen", "Tipo_Tecnica");
-            cargarSelect2("#tipoFibraScreen", "/tipoFibraScreen", "Tipo_Fibra");
+        });
+    </script>
+
+    <!-- Script exclusivo para tipoTecnicaScreen -->
+    <script>
+        $(document).ready(function () {
+            function cargarTipoTecnicaScreen() {
+                $("#tipoTecnicaScreen").select2({
+                    placeholder: "Seleccione una opción",
+                    ajax: {
+                        url: "/tipoTecnicaScreen",
+                        dataType: 'json',
+                        delay: 250,
+                        processResults: function (data) {
+                            let results = $.map(data, function (item) {
+                                return { id: item.id, text: item.nombre };
+                            });
+
+                            results.unshift({ id: "otro", text: "OTRO" });
+
+                            return { results: results };
+                        },
+                        cache: true
+                    }
+                });
+
+                $("#tipoTecnicaScreen").on("select2:select", function (e) {
+                    let selectedValue = e.params.data.id;
+
+                    if (selectedValue === "otro") {
+                        let nuevoValor = prompt("Ingrese el nuevo valor para Tipo_Tecnica:");
+
+                        if (nuevoValor) {
+                            nuevoValor = nuevoValor.toUpperCase();
+
+                            $.ajax({
+                                url: "/guardarNuevoValor",
+                                type: "POST",
+                                data: {
+                                    nombre: nuevoValor,
+                                    modelo: "Tipo_Tecnica",
+                                    estatus: 1,
+                                    _token: "{{ csrf_token() }}"
+                                },
+                                success: function (response) {
+                                    if (response.success) {
+                                        let newOption = new Option(nuevoValor, response.id, true, true);
+                                        $("#tipoTecnicaScreen").append(newOption).trigger('change');
+                                    } else {
+                                        alert("Error al guardar el nuevo valor.");
+                                    }
+                                },
+                                error: function () {
+                                    alert("Ocurrió un error. Intente de nuevo.");
+                                }
+                            });
+                        }
+
+                        $("#tipoTecnicaScreen").val(null).trigger('change');
+                    }
+                });
+            }
+
+            cargarTipoTecnicaScreen();
+        });
+    </script>
+
+    <!-- Script exclusivo para tipoFibraScreen -->
+    <script>
+        $(document).ready(function () {
+            function cargarTipoFibraScreen() {
+                $("#tipoFibraScreen").select2({
+                    placeholder: "Seleccione una opción",
+                    ajax: {
+                        url: "/tipoFibraScreen",
+                        dataType: 'json',
+                        delay: 250,
+                        processResults: function (data) {
+                            let results = $.map(data, function (item) {
+                                return { id: item.id, text: item.nombre };
+                            });
+
+                            results.unshift({ id: "otro", text: "OTRO" });
+
+                            return { results: results };
+                        },
+                        cache: true
+                    }
+                });
+
+                $("#tipoFibraScreen").on("select2:select", function (e) {
+                    let selectedValue = e.params.data.id;
+
+                    if (selectedValue === "otro") {
+                        let nuevoValor = prompt("Ingrese el nuevo valor para Tipo_Fibra:");
+
+                        if (nuevoValor) {
+                            nuevoValor = nuevoValor.toUpperCase();
+
+                            $.ajax({
+                                url: "/guardarNuevoValor",
+                                type: "POST",
+                                data: {
+                                    nombre: nuevoValor,
+                                    modelo: "Tipo_Fibra",
+                                    estatus: 1,
+                                    _token: "{{ csrf_token() }}"
+                                },
+                                success: function (response) {
+                                    if (response.success) {
+                                        let newOption = new Option(nuevoValor, response.id, true, true);
+                                        $("#tipoFibraScreen").append(newOption).trigger('change');
+                                    } else {
+                                        alert("Error al guardar el nuevo valor.");
+                                    }
+                                },
+                                error: function () {
+                                    alert("Ocurrió un error. Intente de nuevo.");
+                                }
+                            });
+                        }
+
+                        $("#tipoFibraScreen").val(null).trigger('change');
+                    }
+                });
+            }
+
+            cargarTipoFibraScreen();
         });
     </script>
     <script>
