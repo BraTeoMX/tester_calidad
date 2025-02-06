@@ -19,4 +19,14 @@ class InspeccionHorno extends Model
     {
         return $this->hasOne(InspeccionHornoPlancha::class, 'inspeccion_horno_id');
     }
+
+    public function tecnicas()
+    {
+        return $this->hasMany(InspeccionHornoTecnica::class, 'inspeccion_horno_id');
+    }
+
+    public function fibras()
+    {
+        return $this->hasMany(InspeccionHornoFibra::class, 'inspeccion_horno_id');
+    }
 }
