@@ -14,6 +14,24 @@
                 </div>
             </div>
             <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Tipo de panel</th>
+                                <th>tipo de maquina</th>
+                                <th>Tipo de tecnica</th>
+                                <th>Tipo de fibra</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-body">
                 {{-- Tabla con los Select2 en sus columnas correspondientes --}}
                 <div class="table-responsive">
                     <table class="table">
@@ -25,6 +43,7 @@
                                 <th>Estilo</th>
                                 <th>Color</th>
                                 <th>Cantidad</th>
+                                <th>Seleccionar</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -44,7 +63,53 @@
                                 <td id="estilo-cell"></td>
                                 <td id="color-cell"></td>
                                 <td id="cantidad-cell"></td>
+                                {{-- Columna con Checkboxes --}}
+                                <td>
+                                    <div class="form-check">
+                                        <input type="checkbox" id="check-screen">
+                                        <label for="check-screen">Screen</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" id="check-plancha">
+                                        <label for="check-plancha">Plancha</label>
+                                    </div>
+                                </td>
                             </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {{-- Tabla para Screen --}}
+            <div class="card-body" id="table-screen" style="display: none;">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Valor de grafico</th>
+                                <th>Defecto</th>
+                                <th>Acción Correctiva</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {{-- Tabla para Plancha --}}
+            <div class="card-body" id="table-plancha" style="display: none;">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Piezas auditadas</th>
+                                <th>Valor de grafico</th>
+                                <th>Defecto</th>
+                                <th>Acción Correctiva</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr></tr>
                         </tbody>
                     </table>
                 </div>
@@ -88,6 +153,60 @@
             border: 1px solid #444; /* Borde más discreto */
         }
 
+    </style>
+     <style>
+        /* Estilos base para el contenedor del checkbox */
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        /* Ocultar el checkbox original */
+        .form-check input[type="checkbox"] {
+            display: none;
+        }
+
+        /* Crear el checkbox personalizado */
+        .form-check label {
+            position: relative;
+            padding-left: 30px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .form-check label::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            border-radius: 4px;
+            background-color: #fff;
+            transition: all 0.3s;
+        }
+
+        /* Icono de la palomita cuando está marcado */
+        .form-check input[type="checkbox"]:checked + label::before {
+            background-color: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        .form-check input[type="checkbox"]:checked + label::after {
+            content: "✔";
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: white;
+            font-weight: bold;
+        }
     </style>
 
     <script>
@@ -205,6 +324,25 @@
                         console.error(xhr);
                     }
                 });
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const checkScreen = document.getElementById("check-screen");
+            const checkPlancha = document.getElementById("check-plancha");
+            const tableScreen = document.getElementById("table-screen");
+            const tablePlancha = document.getElementById("table-plancha");
+
+            // Mostrar/Ocultar la tabla de Screen
+            checkScreen.addEventListener("change", function () {
+                tableScreen.style.display = checkScreen.checked ? "block" : "none";
+            });
+
+            // Mostrar/Ocultar la tabla de Plancha
+            checkPlancha.addEventListener("change", function () {
+                tablePlancha.style.display = checkPlancha.checked ? "block" : "none";
             });
         });
     </script>
