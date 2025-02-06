@@ -28,13 +28,13 @@
                         <tbody>
                             <tr>
                                 <td>
-                                    <select class="form-control select2" name="categoriaTipoPanel" id="categoriaTipoPanel"></select>
+                                    <select class="form-control select2" name="tipo_panel" id="categoriaTipoPanel"></select>
                                 </td>
                                 <td>
-                                    <select class="form-control select2" name="categoriaTipoMaquina" id="categoriaTipoMaquina"></select>
+                                    <select class="form-control select2" name="tipo_maquina" id="categoriaTipoMaquina"></select>
                                 </td>
                                 <td>
-                                    <select class="form-control select2" name="tipoTecnicaScreen" id="tipoTecnicaScreen"></select>
+                                    <select class="form-control select2" name="tecnica_screen" id="tipoTecnicaScreen"></select>
                                     <div id="listaTipoTecnicaScreen" class="mt-2"></div>
                                 </td>
                                 <td>
@@ -68,12 +68,12 @@
                             <tr>
                                 {{-- Columna OP con Select2 --}}
                                 <td>
-                                    <select id="op-select" class="form-control"></select>
+                                    <select id="op-select" name="op_select" class="form-control"></select>
                                 </td>
 
                                 {{-- Columna Bulto con Select2 --}}
                                 <td>
-                                    <select id="bulto-select" class="form-control" disabled></select>
+                                    <select id="bulto-select" name="bulto_select" class="form-control" disabled></select>
                                 </td>
 
                                 {{-- Columnas para mostrar los datos del bulto seleccionado --}}
