@@ -112,6 +112,7 @@
                             <tr>
                                 <td>
                                     <select class="form-control select2" id="defectoScreen"></select>
+                                    <div id="listaDefectoScreen" class="mt-2"></div>
                                 </td>
                                 <td>
                                     <select class="form-control select2" id="accionCorrectivaScreen"></select>
@@ -140,6 +141,7 @@
                                 </td>
                                 <td>
                                     <select class="form-control select2" id="defectoPlancha"></select>
+                                    <div id="listaDefectoPlancha" class="mt-2"></div>
                                 </td>
                                 <td>
                                     <select class="form-control select2" id="accionCorrectivaPlancha"></select>
@@ -503,6 +505,7 @@
                     $("#listaTipoFibraScreen").append(`
                         <div id="opcionFibra-${id}" class="mb-2 p-2 border rounded">
                             ${nombre}
+                            <input type="number" id="cantidad-${id}" class="ms-2" value="1" min="1" style="width: 60px;" />
                             <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcionFibra('${id}')">Eliminar</button>
                         </div>
                     `);
@@ -521,55 +524,55 @@
             cargarTipoFibraScreen();
         });
     </script>
+    <!-- Script exclusivo para defectoScreen -->
     <script>
         $(document).ready(function () {
-            function cargarSelect2(selector, url, modelo, area) {
-                $(selector).select2({
+            let opcionesSeleccionadasDefectoScreen = [];
+    
+            function cargarDefectoScreen() {
+                $("#defectoScreen").select2({
                     placeholder: "Seleccione una opción",
                     ajax: {
-                        url: url,
-                        dataType: 'json',
+                        url: "/defectoScreen",
+                        dataType: "json",
                         delay: 250,
+                        cache: true,
                         processResults: function (data) {
                             let results = $.map(data, function (item) {
-                                return { id: item.id, text: item.nombre };
+                                return { id: String(item.id), text: item.nombre };
                             });
     
-                            // Agregar "OTRO" al inicio
                             results.unshift({ id: "otro", text: "OTRO" });
-    
                             return { results: results };
-                        },
-                        cache: true
+                        }
                     }
                 });
     
-                // Detectar selección de "OTRO"
-                $(selector).on("select2:select", function (e) {
-                    let selectedValue = e.params.data.id;
+                $("#defectoScreen").on("select2:select", function (e) {
+                    let selectedValue = String(e.params.data.id);
+                    let selectedText = e.params.data.text;
     
                     if (selectedValue === "otro") {
-                        let nuevoValor = prompt("Ingrese el nuevo valor para " + modelo + ":");
-    
+                        let nuevoValor = prompt("Ingrese el nuevo valor para CatalogoDefectosScreen:");
                         if (nuevoValor) {
-                            nuevoValor = nuevoValor.toUpperCase(); // Convertir a mayúsculas
-    
-                            // Enviar el dato al backend por AJAX
+                            nuevoValor = nuevoValor.toUpperCase();
                             $.ajax({
                                 url: "/guardarNuevoValorDA",
                                 type: "POST",
                                 data: {
                                     nombre: nuevoValor,
-                                    modelo: modelo,
+                                    modelo: "CatalogoDefectosScreen",
                                     estatus: 1,
-                                    area: area, // Enviar el área según la tabla
-                                    _token: "{{ csrf_token() }}" // CSRF Token para Laravel
+                                    area: "screen",
+                                    _token: "{{ csrf_token() }}"
                                 },
                                 success: function (response) {
                                     if (response.success) {
-                                        // Agregar el nuevo valor al select sin recargar
-                                        let newOption = new Option(nuevoValor, response.id, true, true);
-                                        $(selector).append(newOption).trigger('change');
+                                        let newId = String(response.id);
+                                        let newText = nuevoValor;
+                                        let newOption = new Option(newText, newId, true, true);
+                                        $("#defectoScreen").append(newOption).trigger("change");
+                                        agregarOpcionListaDefectoScreen(newId, newText);
                                     } else {
                                         alert("Error al guardar el nuevo valor.");
                                     }
@@ -579,19 +582,198 @@
                                 }
                             });
                         }
+                        $("#defectoScreen").val(null).trigger("change");
     
-                        // Resetear el select2 si el usuario cancela
-                        $(selector).val(null).trigger('change');
+                    } else {
+                        if (opcionesSeleccionadasDefectoScreen.includes(selectedValue)) {
+                            alert("La opción ya fue seleccionada.");
+                        } else {
+                            agregarOpcionListaDefectoScreen(selectedValue, selectedText);
+                        }
+                        $("#defectoScreen").val(null).trigger("change");
                     }
                 });
             }
     
-            // Cargar Select2 para Screen (área: screen)
-            cargarSelect2("#defectoScreen", "/defectoScreen", "CatalogoDefectosScreen", "screen");
-            cargarSelect2("#accionCorrectivaScreen", "/accionCorrectivaScreen", "CategoriaAccionCorrectScreen", "screen");
+            function agregarOpcionListaDefectoScreen(id, nombre) {
+                if (!opcionesSeleccionadasDefectoScreen.includes(id)) {
+                    opcionesSeleccionadasDefectoScreen.push(id);
+                    $("#listaDefectoScreen").append(`
+                        <div id="opcionDefectoScreen-${id}" class="mb-2 p-2 border rounded">
+                            ${nombre}
+                            <input type="number" id="cantidadDefectoScreen-${id}" class="ms-2" value="1" min="1" style="width: 60px;" />
+                            <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcionDefectoScreen('${id}')">Eliminar</button>
+                        </div>
+                    `);
+                }
+            }
     
-            // Cargar Select2 para Plancha (área: plancha)
-            cargarSelect2("#defectoPlancha", "/defectoPlancha", "CatalogoDefectosScreen", "plancha");
+            window.eliminarOpcionDefectoScreen = function (id) {
+                id = String(id);
+                opcionesSeleccionadasDefectoScreen = opcionesSeleccionadasDefectoScreen.filter(item => item !== id);
+                $("#opcionDefectoScreen-" + id).remove();
+            };
+    
+            cargarDefectoScreen();
+        });
+    </script>
+
+    <!-- Script exclusivo para defectoPlancha -->
+    <script>
+        $(document).ready(function () {
+            let opcionesSeleccionadasDefectoPlancha = [];
+    
+            function cargarDefectoPlancha() {
+                $("#defectoPlancha").select2({
+                    placeholder: "Seleccione una opción",
+                    ajax: {
+                        url: "/defectoPlancha",
+                        dataType: "json",
+                        delay: 250,
+                        cache: true,
+                        processResults: function (data) {
+                            let results = $.map(data, function (item) {
+                                return { id: String(item.id), text: item.nombre };
+                            });
+    
+                            results.unshift({ id: "otro", text: "OTRO" });
+                            return { results: results };
+                        }
+                    }
+                });
+    
+                $("#defectoPlancha").on("select2:select", function (e) {
+                    let selectedValue = String(e.params.data.id);
+                    let selectedText = e.params.data.text;
+    
+                    if (selectedValue === "otro") {
+                        let nuevoValor = prompt("Ingrese el nuevo valor para CatalogoDefectosScreen:");
+                        if (nuevoValor) {
+                            nuevoValor = nuevoValor.toUpperCase();
+                            $.ajax({
+                                url: "/guardarNuevoValorDA",
+                                type: "POST",
+                                data: {
+                                    nombre: nuevoValor,
+                                    modelo: "CatalogoDefectosScreen",
+                                    estatus: 1,
+                                    area: "plancha",
+                                    _token: "{{ csrf_token() }}"
+                                },
+                                success: function (response) {
+                                    if (response.success) {
+                                        let newId = String(response.id);
+                                        let newText = nuevoValor;
+                                        let newOption = new Option(newText, newId, true, true);
+                                        $("#defectoPlancha").append(newOption).trigger("change");
+                                        agregarOpcionListaDefectoPlancha(newId, newText);
+                                    } else {
+                                        alert("Error al guardar el nuevo valor.");
+                                    }
+                                },
+                                error: function () {
+                                    alert("Ocurrió un error. Intente de nuevo.");
+                                }
+                            });
+                        }
+                        $("#defectoPlancha").val(null).trigger("change");
+    
+                    } else {
+                        if (opcionesSeleccionadasDefectoPlancha.includes(selectedValue)) {
+                            alert("La opción ya fue seleccionada.");
+                        } else {
+                            agregarOpcionListaDefectoPlancha(selectedValue, selectedText);
+                        }
+                        $("#defectoPlancha").val(null).trigger("change");
+                    }
+                });
+            }
+    
+            function agregarOpcionListaDefectoPlancha(id, nombre) {
+                if (!opcionesSeleccionadasDefectoPlancha.includes(id)) {
+                    opcionesSeleccionadasDefectoPlancha.push(id);
+                    $("#listaDefectoPlancha").append(`
+                        <div id="opcionDefectoPlancha-${id}" class="mb-2 p-2 border rounded">
+                            ${nombre}
+                            <input type="number" id="cantidadDefectoPlancha-${id}" class="ms-2" value="1" min="1" style="width: 60px;" />
+                            <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcionDefectoPlancha('${id}')">Eliminar</button>
+                        </div>
+                    `);
+                }
+            }
+    
+            window.eliminarOpcionDefectoPlancha = function (id) {
+                id = String(id);
+                opcionesSeleccionadasDefectoPlancha = opcionesSeleccionadasDefectoPlancha.filter(item => item !== id);
+                $("#opcionDefectoPlancha-" + id).remove();
+            };
+    
+            cargarDefectoPlancha();
+        });
+    </script>
+
+    <!-- Script compartido para accionCorrectivaScreen y accionCorrectivaPlancha -->
+    <script>
+        function cargarSelect2(selector, url, modelo, area) {
+            $(selector).select2({
+                placeholder: "Seleccione una opción",
+                ajax: {
+                    url: url,
+                    dataType: 'json',
+                    delay: 250,
+                    processResults: function (data) {
+                        let results = $.map(data, function (item) {
+                            return { id: item.id, text: item.nombre };
+                        });
+
+                        results.unshift({ id: "otro", text: "OTRO" });
+
+                        return { results: results };
+                    },
+                    cache: true
+                }
+            });
+
+            $(selector).on("select2:select", function (e) {
+                let selectedValue = e.params.data.id;
+
+                if (selectedValue === "otro") {
+                    let nuevoValor = prompt("Ingrese el nuevo valor para " + modelo + ":");
+
+                    if (nuevoValor) {
+                        nuevoValor = nuevoValor.toUpperCase();
+
+                        $.ajax({
+                            url: "/guardarNuevoValorDA",
+                            type: "POST",
+                            data: {
+                                nombre: nuevoValor,
+                                modelo: modelo,
+                                estatus: 1,
+                                area: area,
+                                _token: "{{ csrf_token() }}"
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    let newOption = new Option(nuevoValor, response.id, true, true);
+                                    $(selector).append(newOption).trigger('change');
+                                } else {
+                                    alert("Error al guardar el nuevo valor.");
+                                }
+                            },
+                            error: function () {
+                                alert("Ocurrió un error. Intente de nuevo.");
+                            }
+                        });
+                    }
+
+                    $(selector).val(null).trigger('change');
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            cargarSelect2("#accionCorrectivaScreen", "/accionCorrectivaScreen", "CategoriaAccionCorrectScreen", "screen");
             cargarSelect2("#accionCorrectivaPlancha", "/accionCorrectivaPlancha", "CategoriaAccionCorrectScreen", "plancha");
         });
     </script>
