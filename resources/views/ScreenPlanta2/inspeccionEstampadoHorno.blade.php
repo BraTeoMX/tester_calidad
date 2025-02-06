@@ -35,7 +35,7 @@
                                 </td>
                                 <td>
                                     <select class="form-control select2" name="tipoTecnicaScreen" id="tipoTecnicaScreen"></select>
-                                    <div id="listaTipoTecnicaScreen" class="lista-seleccionados"></div>
+                                    <div id="listaTipoTecnicaScreen" class="mt-2"></div>
                                 </td>
                                 <td>
                                     <select class="form-control select2" name="tipoFibraScreen" id="tipoFibraScreen"></select>
@@ -312,67 +312,109 @@
     <!-- Script exclusivo para tipoTecnicaScreen -->
     <script>
         $(document).ready(function () {
-            function cargarTipoTecnicaScreen() {
-                $("#tipoTecnicaScreen").select2({
-                    placeholder: "Seleccione una opción",
-                    ajax: {
-                        url: "/tipoTecnicaScreen",
-                        dataType: 'json',
-                        delay: 250,
-                        processResults: function (data) {
-                            let results = $.map(data, function (item) {
-                                return { id: item.id, text: item.nombre };
-                            });
-
-                            results.unshift({ id: "otro", text: "OTRO" });
-
-                            return { results: results };
-                        },
-                        cache: true
+          // Array para rastrear los IDs de opciones seleccionadas (siempre como string)
+          let opcionesSeleccionadas = [];
+      
+          function cargarTipoTecnicaScreen() {
+            $("#tipoTecnicaScreen").select2({
+              placeholder: "Seleccione una opción",
+              ajax: {
+                url: "/tipoTecnicaScreen",
+                dataType: "json",
+                delay: 250,
+                cache: true,
+                processResults: function (data) {
+                  let results = $.map(data, function (item) {
+                    // Forzamos el ID a string
+                    return { id: String(item.id), text: item.nombre };
+                  });
+      
+                  // Agregamos la opción "OTRO" al inicio (también como string)
+                  results.unshift({ id: "otro", text: "OTRO" });
+                  return { results: results };
+                }
+              }
+            });
+      
+            // Evento de selección
+            $("#tipoTecnicaScreen").on("select2:select", function (e) {
+              let selectedValue = String(e.params.data.id); // forzamos a string
+              let selectedText  = e.params.data.text;
+      
+              if (selectedValue === "otro") {
+                let nuevoValor = prompt("Ingrese el nuevo valor para Tipo_Tecnica:");
+                if (nuevoValor) {
+                  nuevoValor = nuevoValor.toUpperCase();
+                  $.ajax({
+                    url: "/guardarNuevoValor",
+                    type: "POST",
+                    data: {
+                      nombre: nuevoValor,
+                      modelo: "Tipo_Tecnica",
+                      estatus: 1,
+                      _token: "{{ csrf_token() }}"
+                    },
+                    success: function (response) {
+                      if (response.success) {
+                        // Si el backend retorna response.id como número, lo convertimos a string
+                        let newId   = String(response.id);
+                        let newText = nuevoValor;
+                        // Creamos la nueva opción y la seleccionamos
+                        let newOption = new Option(newText, newId, true, true);
+                        $("#tipoTecnicaScreen").append(newOption).trigger("change");
+      
+                        // Agregamos la nueva opción al div
+                        agregarOpcionLista(newId, newText);
+                      } else {
+                        alert("Error al guardar el nuevo valor.");
+                      }
+                    },
+                    error: function () {
+                      alert("Ocurrió un error. Intente de nuevo.");
                     }
-                });
-
-                $("#tipoTecnicaScreen").on("select2:select", function (e) {
-                    let selectedValue = e.params.data.id;
-
-                    if (selectedValue === "otro") {
-                        let nuevoValor = prompt("Ingrese el nuevo valor para Tipo_Tecnica:");
-
-                        if (nuevoValor) {
-                            nuevoValor = nuevoValor.toUpperCase();
-
-                            $.ajax({
-                                url: "/guardarNuevoValor",
-                                type: "POST",
-                                data: {
-                                    nombre: nuevoValor,
-                                    modelo: "Tipo_Tecnica",
-                                    estatus: 1,
-                                    _token: "{{ csrf_token() }}"
-                                },
-                                success: function (response) {
-                                    if (response.success) {
-                                        let newOption = new Option(nuevoValor, response.id, true, true);
-                                        $("#tipoTecnicaScreen").append(newOption).trigger('change');
-                                    } else {
-                                        alert("Error al guardar el nuevo valor.");
-                                    }
-                                },
-                                error: function () {
-                                    alert("Ocurrió un error. Intente de nuevo.");
-                                }
-                            });
-                        }
-
-                        $("#tipoTecnicaScreen").val(null).trigger('change');
-                    }
-                });
+                  });
+                }
+                // Limpiar el select después de "OTRO"
+                $("#tipoTecnicaScreen").val(null).trigger("change");
+      
+              } else {
+                // Antes de agregar, verificamos si ya existe en el array
+                if (opcionesSeleccionadas.includes(selectedValue)) {
+                  alert("La opción ya fue seleccionada.");
+                } else {
+                  agregarOpcionLista(selectedValue, selectedText);
+                }
+                // Limpiar la selección en el select
+                $("#tipoTecnicaScreen").val(null).trigger("change");
+              }
+            });
+          }
+      
+          function agregarOpcionLista(id, nombre) {
+            // id ya viene forzado a string
+            if (!opcionesSeleccionadas.includes(id)) {
+              opcionesSeleccionadas.push(id);
+              $("#listaTipoTecnicaScreen").append(`
+                <div id="opcion-${id}" class="mb-2 p-2 border rounded">
+                  ${nombre}
+                  <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcion('${id}')">Eliminar</button>
+                </div>
+              `);
             }
-
-            cargarTipoTecnicaScreen();
+          }
+      
+          window.eliminarOpcion = function (id) {
+            // Forzamos el id a string, por seguridad
+            id = String(id);
+            // Quitamos el id del array
+            opcionesSeleccionadas = opcionesSeleccionadas.filter(item => item !== id);
+            // Eliminamos el div de la lista
+            $("#opcion-" + id).remove();
+          };
+      
+          cargarTipoTecnicaScreen();
         });
     </script>
-
     <!-- Script exclusivo para tipoFibraScreen -->
     <script>
         $(document).ready(function () {
