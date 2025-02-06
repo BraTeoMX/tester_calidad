@@ -407,6 +407,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/tipoTecnicaScreen', [ScreenV2Controller::class, 'getTipoTecnicaScreen']);
     Route::get('/tipoFibraScreen', [ScreenV2Controller::class, 'getTipoFibraScreen']);
     Route::post('/guardarNuevoValor', [ScreenV2Controller::class, 'guardarNuevoValor']);
+    Route::get('/defectoScreen', [ScreenV2Controller::class, 'getDefectoScreen']);
+    Route::get('/accionCorrectivaScreen', [ScreenV2Controller::class, 'getAccionCorrectivaScreen']);
+    Route::get('/defectoPlancha', [ScreenV2Controller::class, 'getDefectoPlancha']);
+    Route::get('/accionCorrectivaPlancha', [ScreenV2Controller::class, 'getAccionCorrectivaPlancha']);
+    Route::post('/guardarNuevoValorDA', [ScreenV2Controller::class, 'guardarNuevoValorDA']);
+
 
 
 

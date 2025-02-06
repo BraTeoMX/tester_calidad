@@ -4,13 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\AccionCorrectScreen;
+use App\Models\CategoriaAccionCorrectScreen;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\DatosAX;
 use Illuminate\Support\Facades\Auth;
-use App\Models\OpcionesDefectosScreen;
+use App\Models\CatalogoDefectosScreen;
 use App\Models\InspeccionEstampadoDHorno;
 use App\Models\Tecnicos;
 use App\Models\Tipo_Fibra;
@@ -111,14 +111,14 @@ class InspeccionEstampadoHorno extends Controller
     }
     public function OpcionesACCorrectiva()
     {
-        $data = AccionCorrectScreen::pluck('AccionCorrectiva');
+        $data = CategoriaAccionCorrectScreen::pluck('AccionCorrectiva');
 
         return response()->json($data);
     }
 
     public function OpcionesTipoProblema()
     {
-        $data = OpcionesDefectosScreen::pluck('Defecto');
+        $data = CatalogoDefectosScreen::pluck('Defecto');
 
         return response()->json($data);
     }
@@ -303,14 +303,14 @@ class InspeccionEstampadoHorno extends Controller
 
     public function obtenerOpcionesACCorrectiva()
     {
-        $data = AccionCorrectScreen::pluck('AccionCorrectiva');
+        $data = CategoriaAccionCorrectScreen::pluck('AccionCorrectiva');
 
         return response()->json($data);
     }
 
     public function obtenerOpcionesTipoProblema()
     {
-        $data = OpcionesDefectosScreen::pluck('Defecto');
+        $data = CatalogoDefectosScreen::pluck('Defecto');
 
         return response()->json($data);
     }

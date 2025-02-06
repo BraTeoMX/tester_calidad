@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\AccionCorrectScreen;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use App\Models\OpcionesDefectosScreen;
+use App\Models\CatalogoDefectosScreen;
+use App\Models\CategoriaAccionCorrectScreen;
 use App\Models\JobAQLHistorial;
 use App\Models\InspeccionHorno;
 use App\Models\InspeccionHornoScreen;
@@ -147,6 +147,54 @@ class ScreenV2Controller extends Controller
         }
 
         // Crear la nueva instancia y guardarla en la base de datos
+        $nuevoRegistro = new $modeloClass();
+        $nuevoRegistro->nombre = $validatedData['nombre'];
+        $nuevoRegistro->estatus = $validatedData['estatus'];
+        $nuevoRegistro->save();
+
+        return response()->json(['success' => true, 'id' => $nuevoRegistro->id]);
+    }
+
+    public function getDefectoScreen()
+    {
+        $data = CatalogoDefectosScreen::where('estatus', 1)->where('area', 'screen')->select('id', 'nombre')->get();
+        return response()->json($data);
+    }
+
+    public function getAccionCorrectivaScreen()
+    {
+        $data = CategoriaAccionCorrectScreen::where('estatus', 1)->where('area', 'screen')->select('id', 'nombre')->get();
+        return response()->json($data);
+    }
+
+    public function getDefectoPlancha()
+    {
+        $data = CatalogoDefectosScreen::where('estatus', 1)->where('area', 'plancha')->select('id', 'nombre')->get();
+        return response()->json($data);
+    }
+
+    public function getAccionCorrectivaPlancha()
+    {
+        $data = CategoriaAccionCorrectScreen::where('estatus', 1)->where('area', 'plancha')->select('id', 'nombre')->get();
+        return response()->json($data);
+    }
+
+    public function guardarNuevoValorDA(Request $request)
+    {
+        $validatedData = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'modelo' => 'required|string',
+            'estatus' => 'required|integer'
+        ]);
+
+        // Determinar el modelo dinámicamente
+        $modeloClass = '\\App\\Models\\' . $validatedData['modelo'];
+
+        if (!class_exists($modeloClass)) {
+            return response()->json(['success' => false, 'message' => 'Modelo no encontrado.'], 400);
+        }
+
+        // Crear y guardar el nuevo registro
         $nuevoRegistro = new $modeloClass();
         $nuevoRegistro->nombre = $validatedData['nombre'];
         $nuevoRegistro->estatus = $validatedData['estatus'];

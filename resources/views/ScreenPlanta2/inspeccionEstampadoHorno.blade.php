@@ -102,13 +102,19 @@
                     <table class="table">
                         <thead class="thead-primary">
                             <tr>
-                                <th>Valor de grafico</th>
                                 <th>Defecto</th>
                                 <th>Acción Correctiva</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr></tr>
+                            <tr>
+                                <td>
+                                    <select class="form-control select2" id="defectoScreen"></select>
+                                </td>
+                                <td>
+                                    <select class="form-control select2" id="accionCorrectivaScreen"></select>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -121,13 +127,22 @@
                         <thead class="thead-primary">
                             <tr>
                                 <th>Piezas auditadas</th>
-                                <th>Valor de grafico</th>
                                 <th>Defecto</th>
                                 <th>Acción Correctiva</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr></tr>
+                            <tr>
+                                <td>
+                                    <input type="text" class="form-control" name="piezas_auditadas">
+                                </td>
+                                <td>
+                                    <select class="form-control select2" id="defectoPlancha"></select>
+                                </td>
+                                <td>
+                                    <select class="form-control select2" id="accionCorrectivaPlancha"></select>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -297,6 +312,80 @@
             cargarSelect2("#tipoFibraScreen", "/tipoFibraScreen", "Tipo_Fibra");
         });
     </script>
+    <script>
+        $(document).ready(function () {
+            function cargarSelect2(selector, url, modelo) {
+                $(selector).select2({
+                    placeholder: "Seleccione una opción",
+                    ajax: {
+                        url: url,
+                        dataType: 'json',
+                        delay: 250,
+                        processResults: function (data) {
+                            let results = $.map(data, function (item) {
+                                return { id: item.id, text: item.nombre };
+                            });
+    
+                            // Agregar "OTRO" al inicio
+                            results.unshift({ id: "otro", text: "OTRO" });
+    
+                            return { results: results };
+                        },
+                        cache: true
+                    }
+                });
+    
+                // Detectar selección de "OTRO"
+                $(selector).on("select2:select", function (e) {
+                    let selectedValue = e.params.data.id;
+    
+                    if (selectedValue === "otro") {
+                        let nuevoValor = prompt("Ingrese el nuevo valor para " + modelo + ":");
+    
+                        if (nuevoValor) {
+                            nuevoValor = nuevoValor.toUpperCase(); // Convertir a mayúsculas
+    
+                            // Enviar el dato al backend por AJAX
+                            $.ajax({
+                                url: "/guardarNuevoValorDA",
+                                type: "POST",
+                                data: {
+                                    nombre: nuevoValor,
+                                    modelo: modelo,
+                                    estatus: 1,
+                                    _token: "{{ csrf_token() }}" // CSRF Token para Laravel
+                                },
+                                success: function (response) {
+                                    if (response.success) {
+                                        // Agregar el nuevo valor al select sin recargar
+                                        let newOption = new Option(nuevoValor, response.id, true, true);
+                                        $(selector).append(newOption).trigger('change');
+                                    } else {
+                                        alert("Error al guardar el nuevo valor.");
+                                    }
+                                },
+                                error: function () {
+                                    alert("Ocurrió un error. Intente de nuevo.");
+                                }
+                            });
+                        }
+    
+                        // Resetear el select2 si el usuario cancela
+                        $(selector).val(null).trigger('change');
+                    }
+                });
+            }
+    
+            // Cargar Select2 para Screen
+            cargarSelect2("#defectoScreen", "/defectoScreen", "CatalogoDefectosScreen");
+            cargarSelect2("#accionCorrectivaScreen", "/accionCorrectivaScreen", "CategoriaAccionCorrectScreen");
+    
+            // Cargar Select2 para Plancha
+            cargarSelect2("#defectoPlancha", "/defectoPlancha", "CatalogoDefectosScreen");
+            cargarSelect2("#accionCorrectivaPlancha", "/accionCorrectivaPlancha", "CategoriaAccionCorrectScreen");
+        });
+    </script>
+    
     <script>
         $(document).ready(function() {
 
