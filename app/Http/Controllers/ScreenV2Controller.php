@@ -184,7 +184,8 @@ class ScreenV2Controller extends Controller
         $validatedData = $request->validate([
             'nombre' => 'required|string|max:255',
             'modelo' => 'required|string',
-            'estatus' => 'required|integer'
+            'estatus' => 'required|integer',
+            'area' => 'required|string|in:screen,plancha' // Validamos que el área sea válida
         ]);
 
         // Determinar el modelo dinámicamente
@@ -198,6 +199,7 @@ class ScreenV2Controller extends Controller
         $nuevoRegistro = new $modeloClass();
         $nuevoRegistro->nombre = $validatedData['nombre'];
         $nuevoRegistro->estatus = $validatedData['estatus'];
+        $nuevoRegistro->area = $validatedData['area']; // Guardamos el área
         $nuevoRegistro->save();
 
         return response()->json(['success' => true, 'id' => $nuevoRegistro->id]);

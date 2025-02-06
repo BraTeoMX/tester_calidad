@@ -314,7 +314,7 @@
     </script>
     <script>
         $(document).ready(function () {
-            function cargarSelect2(selector, url, modelo) {
+            function cargarSelect2(selector, url, modelo, area) {
                 $(selector).select2({
                     placeholder: "Seleccione una opción",
                     ajax: {
@@ -353,6 +353,7 @@
                                     nombre: nuevoValor,
                                     modelo: modelo,
                                     estatus: 1,
+                                    area: area, // Enviar el área según la tabla
                                     _token: "{{ csrf_token() }}" // CSRF Token para Laravel
                                 },
                                 success: function (response) {
@@ -376,13 +377,13 @@
                 });
             }
     
-            // Cargar Select2 para Screen
-            cargarSelect2("#defectoScreen", "/defectoScreen", "CatalogoDefectosScreen");
-            cargarSelect2("#accionCorrectivaScreen", "/accionCorrectivaScreen", "CategoriaAccionCorrectScreen");
+            // Cargar Select2 para Screen (área: screen)
+            cargarSelect2("#defectoScreen", "/defectoScreen", "CatalogoDefectosScreen", "screen");
+            cargarSelect2("#accionCorrectivaScreen", "/accionCorrectivaScreen", "CategoriaAccionCorrectScreen", "screen");
     
-            // Cargar Select2 para Plancha
-            cargarSelect2("#defectoPlancha", "/defectoPlancha", "CatalogoDefectosScreen");
-            cargarSelect2("#accionCorrectivaPlancha", "/accionCorrectivaPlancha", "CategoriaAccionCorrectScreen");
+            // Cargar Select2 para Plancha (área: plancha)
+            cargarSelect2("#defectoPlancha", "/defectoPlancha", "CatalogoDefectosScreen", "plancha");
+            cargarSelect2("#accionCorrectivaPlancha", "/accionCorrectivaPlancha", "CategoriaAccionCorrectScreen", "plancha");
         });
     </script>
     
