@@ -39,7 +39,7 @@
                                 </td>
                                 <td>
                                     <select class="form-control select2" name="tipoFibraScreen" id="tipoFibraScreen"></select>
-                                    <div id="listaTipoFibraScreen" class="lista-seleccionados"></div>
+                                    <div id="listaTipoFibraScreen" class="mt-2"></div>
                                 </td>
                                 <td>
                                     <input type="text" class="form-control texto-blanco" name="valor_grafica" id="valor_grafica">
@@ -418,35 +418,39 @@
     <!-- Script exclusivo para tipoFibraScreen -->
     <script>
         $(document).ready(function () {
+            // Array para rastrear los IDs de opciones seleccionadas (siempre como string)
+            let opcionesSeleccionadasFibra = [];
+    
             function cargarTipoFibraScreen() {
                 $("#tipoFibraScreen").select2({
                     placeholder: "Seleccione una opción",
                     ajax: {
                         url: "/tipoFibraScreen",
-                        dataType: 'json',
+                        dataType: "json",
                         delay: 250,
+                        cache: true,
                         processResults: function (data) {
                             let results = $.map(data, function (item) {
-                                return { id: item.id, text: item.nombre };
+                                // Forzamos el ID a string
+                                return { id: String(item.id), text: item.nombre };
                             });
-
+    
+                            // Agregamos la opción "OTRO" al inicio (también como string)
                             results.unshift({ id: "otro", text: "OTRO" });
-
                             return { results: results };
-                        },
-                        cache: true
+                        }
                     }
                 });
-
+    
+                // Evento de selección
                 $("#tipoFibraScreen").on("select2:select", function (e) {
-                    let selectedValue = e.params.data.id;
-
+                    let selectedValue = String(e.params.data.id); // Forzamos a string
+                    let selectedText = e.params.data.text;
+    
                     if (selectedValue === "otro") {
                         let nuevoValor = prompt("Ingrese el nuevo valor para Tipo_Fibra:");
-
                         if (nuevoValor) {
                             nuevoValor = nuevoValor.toUpperCase();
-
                             $.ajax({
                                 url: "/guardarNuevoValor",
                                 type: "POST",
@@ -458,8 +462,15 @@
                                 },
                                 success: function (response) {
                                     if (response.success) {
-                                        let newOption = new Option(nuevoValor, response.id, true, true);
-                                        $("#tipoFibraScreen").append(newOption).trigger('change');
+                                        // Convertimos el ID a string por seguridad
+                                        let newId = String(response.id);
+                                        let newText = nuevoValor;
+                                        // Creamos la nueva opción y la seleccionamos
+                                        let newOption = new Option(newText, newId, true, true);
+                                        $("#tipoFibraScreen").append(newOption).trigger("change");
+    
+                                        // Agregamos la nueva opción al div
+                                        agregarOpcionListaFibra(newId, newText);
                                     } else {
                                         alert("Error al guardar el nuevo valor.");
                                     }
@@ -469,12 +480,44 @@
                                 }
                             });
                         }
-
-                        $("#tipoFibraScreen").val(null).trigger('change');
+                        // Limpiar el select después de "OTRO"
+                        $("#tipoFibraScreen").val(null).trigger("change");
+    
+                    } else {
+                        // Antes de agregar, verificamos si ya existe en el array
+                        if (opcionesSeleccionadasFibra.includes(selectedValue)) {
+                            alert("La opción ya fue seleccionada.");
+                        } else {
+                            agregarOpcionListaFibra(selectedValue, selectedText);
+                        }
+                        // Limpiar la selección en el select
+                        $("#tipoFibraScreen").val(null).trigger("change");
                     }
                 });
             }
-
+    
+            function agregarOpcionListaFibra(id, nombre) {
+                // id ya viene forzado a string
+                if (!opcionesSeleccionadasFibra.includes(id)) {
+                    opcionesSeleccionadasFibra.push(id);
+                    $("#listaTipoFibraScreen").append(`
+                        <div id="opcionFibra-${id}" class="mb-2 p-2 border rounded">
+                            ${nombre}
+                            <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcionFibra('${id}')">Eliminar</button>
+                        </div>
+                    `);
+                }
+            }
+    
+            window.eliminarOpcionFibra = function (id) {
+                // Forzamos el id a string, por seguridad
+                id = String(id);
+                // Quitamos el id del array
+                opcionesSeleccionadasFibra = opcionesSeleccionadasFibra.filter(item => item !== id);
+                // Eliminamos el div de la lista
+                $("#opcionFibra-" + id).remove();
+            };
+    
             cargarTipoFibraScreen();
         });
     </script>
