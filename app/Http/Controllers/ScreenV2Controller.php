@@ -10,11 +10,15 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use App\Models\OpcionesDefectosScreen;
+use App\Models\JobAQLHistorial;
+use App\Models\InspeccionHorno;
+use App\Models\InspeccionHornoScreen;
+use App\Models\InspeccionHornoPlancha;
+use App\Models\CategoriaTipoPanel;
+use App\Models\CategoriaTipoMaquina;
 use App\Models\Tecnicos;
 use App\Models\Tipo_Fibra;
 use App\Models\Tipo_Tecnica;
-use App\Models\JobAQLHistorial;
-use App\Models\inspeccion_horno;
 
 class ScreenV2Controller extends Controller
 {
@@ -102,5 +106,54 @@ class ScreenV2Controller extends Controller
             'cantidad' => $bulto->qty,
         ]);
     }
+
+        public function getCategoriaTipoPanel()
+    {
+        $data = CategoriaTipoPanel::where('estatus', 1)->select('id', 'nombre')->get();
+        return response()->json($data);
+    }
+
+    public function getCategoriaTipoMaquina()
+    {
+        $data = CategoriaTipoMaquina::where('estatus', 1)->select('id', 'nombre')->get();
+        return response()->json($data);
+    }
+
+    public function getTipoTecnicaScreen() // Cambio de nombre aquí
+    {
+        $data = Tipo_Tecnica::where('estatus', 1)->select('id', 'nombre')->get();
+        return response()->json($data);
+    }
+
+    public function getTipoFibraScreen() // Cambio de nombre aquí
+    {
+        $data = Tipo_Fibra::where('estatus', 1)->select('id', 'nombre')->get();
+        return response()->json($data);
+    }
+
+    public function guardarNuevoValor(Request $request)
+    {
+        $validatedData = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'modelo' => 'required|string',
+            'estatus' => 'required|integer'
+        ]);
+
+        // Determinar el modelo a usar dinámicamente
+        $modeloClass = '\\App\\Models\\' . $validatedData['modelo'];
+
+        if (!class_exists($modeloClass)) {
+            return response()->json(['success' => false, 'message' => 'Modelo no encontrado.'], 400);
+        }
+
+        // Crear la nueva instancia y guardarla en la base de datos
+        $nuevoRegistro = new $modeloClass();
+        $nuevoRegistro->nombre = $validatedData['nombre'];
+        $nuevoRegistro->estatus = $validatedData['estatus'];
+        $nuevoRegistro->save();
+
+        return response()->json(['success' => true, 'id' => $nuevoRegistro->id]);
+    }
+
 
 }

@@ -8,9 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class Tipo_Tecnica extends Model
 {
     use HasFactory;
-    protected $table = 'tipo_tecnica';
-    protected $fillable = [
-        'id',
-    'Tipo_tecnica'
-    ];
+    protected $table = 'categoria_tipo_tecnica';
 }

@@ -5,8 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Tipo_Fibra extends Model
+class InspeccionHornoScreen extends Model
 {
     use HasFactory;
-    protected $table = 'categoria_tipo_fibra';
+    protected $table = 'inspeccion_horno_screen';
+
+
 }

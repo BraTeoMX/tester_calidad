@@ -19,13 +19,29 @@
                         <thead class="thead-primary">
                             <tr>
                                 <th>Tipo de panel</th>
-                                <th>tipo de maquina</th>
-                                <th>Tipo de tecnica</th>
+                                <th>Tipo de máquina</th>
+                                <th>Tipo de técnica</th>
                                 <th>Tipo de fibra</th>
+                                <th>Valor de gráfica</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
+                                <td>
+                                    <select class="form-control select2" name="categoriaTipoPanel" id="categoriaTipoPanel"></select>
+                                </td>
+                                <td>
+                                    <select class="form-control select2" name="categoriaTipoMaquina" id="categoriaTipoMaquina"></select>
+                                </td>
+                                <td>
+                                    <select class="form-control select2" name="tipoTecnicaScreen" id="tipoTecnicaScreen"></select>
+                                </td>
+                                <td>
+                                    <select class="form-control select2" name="tipoFibraScreen" id="tipoFibraScreen"></select>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control texto-blanco" name="valor_grafica" id="valor_grafica">
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -82,6 +98,7 @@
             {{-- Tabla para Screen --}}
             <div class="card-body" id="table-screen" style="display: none;">
                 <div class="table-responsive">
+                    <p>Screen</p>
                     <table class="table">
                         <thead class="thead-primary">
                             <tr>
@@ -99,6 +116,7 @@
             {{-- Tabla para Plancha --}}
             <div class="card-body" id="table-plancha" style="display: none;">
                 <div class="table-responsive">
+                    <p>Plancha</p>
                     <table class="table">
                         <thead class="thead-primary">
                             <tr>
@@ -209,6 +227,76 @@
         }
     </style>
 
+    <script>
+        $(document).ready(function () {
+            function cargarSelect2(selector, url, modelo) {
+                $(selector).select2({
+                    placeholder: "Seleccione una opción",
+                    ajax: {
+                        url: url,
+                        dataType: 'json',
+                        delay: 250,
+                        processResults: function (data) {
+                            let results = $.map(data, function (item) {
+                                return { id: item.id, text: item.nombre };
+                            });
+
+                            // Agregar la opción "OTRO" al inicio
+                            results.unshift({ id: "otro", text: "OTRO" });
+
+                            return { results: results };
+                        },
+                        cache: true
+                    }
+                });
+
+                // Detectar cuando se selecciona "OTRO"
+                $(selector).on("select2:select", function (e) {
+                    let selectedValue = e.params.data.id;
+
+                    if (selectedValue === "otro") {
+                        let nuevoValor = prompt("Ingrese el nuevo valor para " + modelo + ":");
+
+                        if (nuevoValor) {
+                            nuevoValor = nuevoValor.toUpperCase(); // Convertir a mayúsculas
+
+                            // Enviar el dato al backend por AJAX
+                            $.ajax({
+                                url: "/guardarNuevoValor",
+                                type: "POST",
+                                data: {
+                                    nombre: nuevoValor,
+                                    modelo: modelo,
+                                    estatus: 1,
+                                    _token: "{{ csrf_token() }}" // Necesario para Laravel
+                                },
+                                success: function (response) {
+                                    if (response.success) {
+                                        // Agregar el nuevo valor al select sin recargar
+                                        let newOption = new Option(nuevoValor, response.id, true, true);
+                                        $(selector).append(newOption).trigger('change');
+                                    } else {
+                                        alert("Error al guardar el nuevo valor.");
+                                    }
+                                },
+                                error: function () {
+                                    alert("Ocurrió un error. Intente de nuevo.");
+                                }
+                            });
+                        }
+
+                        // Resetear el select2 para que el usuario pueda seleccionar otro valor si cancela
+                        $(selector).val(null).trigger('change');
+                    }
+                });
+            }
+
+            cargarSelect2("#categoriaTipoPanel", "/categoriaTipoPanel", "CategoriaTipoPanel");
+            cargarSelect2("#categoriaTipoMaquina", "/categoriaTipoMaquina", "CategoriaTipoMaquina");
+            cargarSelect2("#tipoTecnicaScreen", "/tipoTecnicaScreen", "Tipo_Tecnica");
+            cargarSelect2("#tipoFibraScreen", "/tipoFibraScreen", "Tipo_Fibra");
+        });
+    </script>
     <script>
         $(document).ready(function() {
 
