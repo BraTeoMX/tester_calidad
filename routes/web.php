@@ -412,6 +412,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/defectoPlancha', [ScreenV2Controller::class, 'getDefectoPlancha']);
     Route::get('/accionCorrectivaPlancha', [ScreenV2Controller::class, 'getAccionCorrectivaPlancha']);
     Route::post('/guardarNuevoValorDA', [ScreenV2Controller::class, 'guardarNuevoValorDA']);
+    Route::post('/inspeccionEstampadoHorno/store', [ScreenV2Controller::class, 'store'])->name('inspeccionEstampadoHorno.store');
+
 
 
 

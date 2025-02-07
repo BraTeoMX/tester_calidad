@@ -13,147 +13,205 @@
                     </div>
                 </div>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead class="thead-primary">
-                            <tr>
-                                <th>Tipo de panel</th>
-                                <th>Tipo de máquina</th>
-                                <th>Tipo de técnica</th>
-                                <th>Tipo de fibra</th>
-                                <th>Valor de gráfica</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <select class="form-control select2" name="tipo_panel" id="categoriaTipoPanel"></select>
-                                </td>
-                                <td>
-                                    <select class="form-control select2" name="tipo_maquina" id="categoriaTipoMaquina"></select>
-                                </td>
-                                <td>
-                                    <select class="form-control select2" name="tecnica_screen" id="tipoTecnicaScreen"></select>
-                                    <div id="listaTipoTecnicaScreen" class="mt-2"></div>
-                                </td>
-                                <td>
-                                    <select class="form-control select2" name="tipoFibraScreen" id="tipoFibraScreen"></select>
-                                    <div id="listaTipoFibraScreen" class="mt-2"></div>
-                                </td>
-                                <td>
-                                    <input type="text" class="form-control texto-blanco" name="valor_grafica" id="valor_grafica">
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <form id="formInspeccion" method="POST" action="{{ route('inspeccionEstampadoHorno.store') }}">
+                @csrf <!-- Token de seguridad obligatorio en Laravel -->
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead class="thead-primary">
+                                <tr>
+                                    <th>Tipo de panel</th>
+                                    <th>Tipo de máquina</th>
+                                    <th>Tipo de técnica</th>
+                                    <th>Tipo de fibra</th>
+                                    <th>Valor de gráfica</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <select class="form-control select2" name="tipo_panel" id="categoriaTipoPanel"></select>
+                                    </td>
+                                    <td>
+                                        <select class="form-control select2" name="tipo_maquina" id="categoriaTipoMaquina"></select>
+                                    </td>
+                                    <td>
+                                        <select class="form-control select2" name="tecnica_screen" id="tipoTecnicaScreen"></select>
+                                        <div id="listaTipoTecnicaScreen" class="mt-2"></div>
+                                    </td>
+                                    <td>
+                                        <select class="form-control select2" name="tipoFibraScreen" id="tipoFibraScreen"></select>
+                                        <div id="listaTipoFibraScreen" class="mt-2"></div>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" name="valor_grafica" id="valor_grafica">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
-            <div class="card-body">
-                {{-- Tabla con los Select2 en sus columnas correspondientes --}}
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead class="thead-primary">
-                            <tr>
-                                <th>OP</th>
-                                <th>Bulto</th>
-                                <th>Cliente</th>
-                                <th>Estilo</th>
-                                <th>Color</th>
-                                <th>Cantidad</th>
-                                <th>Seleccionar</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                {{-- Columna OP con Select2 --}}
-                                <td>
-                                    <select id="op-select" name="op_select" class="form-control"></select>
-                                </td>
+                <div class="card-body">
+                    {{-- Tabla con los Select2 en sus columnas correspondientes --}}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead class="thead-primary">
+                                <tr>
+                                    <th>OP</th>
+                                    <th>Bulto</th>
+                                    <th>Cliente</th>
+                                    <th>Estilo</th>
+                                    <th>Color</th>
+                                    <th>Cantidad</th>
+                                    <th>Seleccionar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    {{-- Columna OP con Select2 --}}
+                                    <td>
+                                        <select id="op-select" name="op_select" class="form-control"></select>
+                                    </td>
 
-                                {{-- Columna Bulto con Select2 --}}
-                                <td>
-                                    <select id="bulto-select" name="bulto_select" class="form-control" disabled></select>
-                                </td>
+                                    {{-- Columna Bulto con Select2 --}}
+                                    <td>
+                                        <select id="bulto-select" name="bulto_select" class="form-control" disabled></select>
+                                    </td>
 
-                                {{-- Columnas para mostrar los datos del bulto seleccionado --}}
-                                <td id="cliente-cell"></td>
-                                <td id="estilo-cell"></td>
-                                <td id="color-cell"></td>
-                                <td id="cantidad-cell"></td>
-                                {{-- Columna con Checkboxes --}}
-                                <td>
-                                    <div class="form-check">
-                                        <input type="checkbox" id="check-screen">
-                                        <label for="check-screen">Screen</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input type="checkbox" id="check-plancha">
-                                        <label for="check-plancha">Plancha</label>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                    {{-- Columnas para mostrar los datos del bulto seleccionado --}}
+                                    <td id="cliente-cell"></td>
+                                    <td id="estilo-cell"></td>
+                                    <td id="color-cell"></td>
+                                    <td id="cantidad-cell"></td>
+                                    {{-- Columna con Checkboxes --}}
+                                    <td>
+                                        <div class="form-check">
+                                            <input type="checkbox" id="check-screen">
+                                            <label for="check-screen">Screen</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input type="checkbox" id="check-plancha">
+                                            <label for="check-plancha">Plancha</label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
-            {{-- Tabla para Screen --}}
-            <div class="card-body" id="table-screen" style="display: none;">
-                <div class="table-responsive">
-                    <p>Screen</p>
-                    <table class="table">
-                        <thead class="thead-primary">
-                            <tr>
-                                <th>Defecto</th>
-                                <th>Acción Correctiva</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <select class="form-control select2" id="defectoScreen"></select>
-                                    <div id="listaDefectoScreen" class="mt-2"></div>
-                                </td>
-                                <td>
-                                    <select class="form-control select2" id="accionCorrectivaScreen"></select>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                {{-- Tabla para Screen --}}
+                <div class="card-body" id="table-screen" style="display: none;">
+                    <div class="table-responsive">
+                        <p>Screen</p>
+                        <table class="table">
+                            <thead class="thead-primary">
+                                <tr>
+                                    <th>Defecto</th>
+                                    <th>Acción Correctiva</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <select class="form-control select2" id="defectoScreen"></select>
+                                        <div id="listaDefectoScreen" class="mt-2"></div>
+                                    </td>
+                                    <td>
+                                        <select class="form-control select2" id="accionCorrectivaScreen"></select>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
-            {{-- Tabla para Plancha --}}
-            <div class="card-body" id="table-plancha" style="display: none;">
-                <div class="table-responsive">
-                    <p>Plancha</p>
-                    <table class="table">
-                        <thead class="thead-primary">
-                            <tr>
-                                <th>Piezas auditadas</th>
-                                <th>Defecto</th>
-                                <th>Acción Correctiva</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <input type="text" class="form-control" name="piezas_auditadas">
-                                </td>
-                                <td>
-                                    <select class="form-control select2" id="defectoPlancha"></select>
-                                    <div id="listaDefectoPlancha" class="mt-2"></div>
-                                </td>
-                                <td>
-                                    <select class="form-control select2" id="accionCorrectivaPlancha"></select>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                {{-- Tabla para Plancha --}}
+                <div class="card-body" id="table-plancha" style="display: none;">
+                    <div class="table-responsive">
+                        <p>Plancha</p>
+                        <table class="table">
+                            <thead class="thead-primary">
+                                <tr>
+                                    <th>Piezas auditadas</th>
+                                    <th>Defecto</th>
+                                    <th>Acción Correctiva</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <input type="text" class="form-control" name="piezas_auditadas">
+                                    </td>
+                                    <td>
+                                        <select class="form-control select2" id="defectoPlancha"></select>
+                                        <div id="listaDefectoPlancha" class="mt-2"></div>
+                                    </td>
+                                    <td>
+                                        <select class="form-control select2" id="accionCorrectivaPlancha"></select>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+                <!-- Botón de envío -->
+                <div class="mt-4">
+                    <button type="submit" class="btn-verde-xd">Guardar Inspección</button>
+                </div>
+            </form> <!-- Cierre del Formulario -->
         </div>
     </div>
 
+    <style>
+        .btn-verde-xd {
+            color: #fff !important;
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08) !important;
+            padding: 0.5rem 2rem;
+            /* Aumenta el tamaño del botón */
+            font-size: 1rem;
+            /* Aumenta el tamaño de la fuente */
+            font-weight: bold;
+            /* Texto en negritas */
+            border-radius: 10px;
+            /* Ajusta las esquinas redondeadas */
+            transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+            cursor: pointer;
+            /* Cambia el cursor a una mano */
+        }
+
+        .btn-verde-xd:hover {
+            color: #fff !important;
+            background-color: #218838 !important;
+            border-color: #1e7e34 !important;
+        }
+
+        .btn-verde-xd:focus,
+        .btn-verde-xd.focus {
+            box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08), 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
+        }
+
+        .btn-verde-xd:disabled,
+        .btn-verde-xd.disabled {
+            color: #fff !important;
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+        }
+
+        .btn-verde-xd:not(:disabled):not(.disabled).active,
+        .btn-verde-xd:not(:disabled):not(.disabled):active,
+        .show>.btn-verde-xd.dropdown-toggle {
+            color: #fff !important;
+            background-color: #1e7e34 !important;
+            border-color: #1c7430 !important;
+        }
+
+        .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
+        .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
+        .show>.btn-verde-xd.dropdown-toggle:focus {
+            box-shadow: none, 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
+        }
+    </style>
     <style>
         thead.thead-primary {
             background-color: #59666e54; /* Azul claro */
