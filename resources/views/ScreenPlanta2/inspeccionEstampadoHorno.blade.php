@@ -854,7 +854,7 @@
 
     <!-- Script compartido para accionCorrectivaScreen y accionCorrectivaPlancha -->
     <script>
-        function cargarSelect2(selector, url, modelo, area) {
+        function cargarSelect2(selector, url, modelo, area, inputName) {
             $(selector).select2({
                 placeholder: "Seleccione una opción",
                 ajax: {
@@ -876,6 +876,7 @@
 
             $(selector).on("select2:select", function (e) {
                 let selectedValue = e.params.data.id;
+                let selectedText = e.params.data.text;
 
                 if (selectedValue === "otro") {
                     let nuevoValor = prompt("Ingrese el nuevo valor para " + modelo + ":");
@@ -897,6 +898,9 @@
                                 if (response.success) {
                                     let newOption = new Option(nuevoValor, response.id, true, true);
                                     $(selector).append(newOption).trigger('change');
+
+                                    // También agregamos el input hidden con el nuevo valor
+                                    actualizarInputHidden(selector, inputName, nuevoValor);
                                 } else {
                                     alert("Error al guardar el nuevo valor.");
                                 }
@@ -908,13 +912,29 @@
                     }
 
                     $(selector).val(null).trigger('change');
+                } else {
+                    // Actualizamos el input hidden con el nombre de la opción seleccionada
+                    actualizarInputHidden(selector, inputName, selectedText);
                 }
             });
         }
 
+        // Función para actualizar el input hidden
+        function actualizarInputHidden(selector, inputName, valor) {
+            let hiddenInputId = `hidden-${selector.replace("#", "")}`;
+            
+            // Eliminamos el input hidden si ya existe
+            $("#" + hiddenInputId).remove();
+
+            // Creamos un nuevo input hidden con el nombre seleccionado
+            $(selector).after(`
+                <input type="hidden" id="${hiddenInputId}" name="${inputName}" value="${valor}">
+            `);
+        }
+
         $(document).ready(function () {
-            cargarSelect2("#accionCorrectivaScreen", "/accionCorrectivaScreen", "CategoriaAccionCorrectScreen", "screen");
-            cargarSelect2("#accionCorrectivaPlancha", "/accionCorrectivaPlancha", "CategoriaAccionCorrectScreen", "plancha");
+            cargarSelect2("#accionCorrectivaScreen", "/accionCorrectivaScreen", "CategoriaAccionCorrectScreen", "screen", "accion_correctiva_screen");
+            cargarSelect2("#accionCorrectivaPlancha", "/accionCorrectivaPlancha", "CategoriaAccionCorrectScreen", "plancha", "accion_correctiva_plancha");
         });
     </script>
     
@@ -1023,10 +1043,10 @@
                     type: 'GET',
                     success: function(response) {
                         // Llenamos las celdas con los datos del bulto
-                        $('#cliente-cell').text(response.cliente);
-                        $('#estilo-cell').text(response.estilo);
-                        $('#color-cell').text(response.color);
-                        $('#cantidad-cell').text(response.cantidad);
+                        $('#cliente-cell').html(response.cliente + `<input type="hidden" name="cliente_seleccionado" value="${response.cliente}"/>`);
+                        $('#estilo-cell').html(response.estilo + `<input type="hidden" name="estilo_seleccionado" value="${response.estilo}"/>`);
+                        $('#color-cell').html(response.color + `<input type="hidden" name="color_seleccionado" value="${response.color}"/>`);
+                        $('#cantidad-cell').html(response.cantidad + `<input type="hidden" name="cantidad_seleccionado" value="${response.cantidad}"/>`);
                     },
                     error: function(xhr) {
                         alert('Error al obtener los detalles del bulto.');
