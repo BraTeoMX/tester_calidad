@@ -30,10 +30,10 @@
                             <tbody>
                                 <tr>
                                     <td>
-                                        <select class="form-control select2" name="tipo_panel" id="categoriaTipoPanel"></select>
+                                        <select class="form-control select2" name="tipo_panel" id="categoriaTipoPanel" required></select>
                                     </td>
                                     <td>
-                                        <select class="form-control select2" name="tipo_maquina" id="categoriaTipoMaquina"></select>
+                                        <select class="form-control select2" name="tipo_maquina" id="categoriaTipoMaquina" required></select>
                                     </td>
                                     <td>
                                         <select class="form-control select2" name="tecnica_screen" id="tipoTecnicaScreen"></select>
@@ -44,7 +44,7 @@
                                         <div id="listaTipoFibraScreen" class="mt-2"></div>
                                     </td>
                                     <td>
-                                        <input type="text" class="form-control texto-blanco" name="valor_grafica" id="valor_grafica">
+                                        <input type="text" class="form-control texto-blanco" name="valor_grafica" id="valor_grafica" required>
                                     </td>
                                 </tr>
                             </tbody>
@@ -70,12 +70,12 @@
                                 <tr>
                                     {{-- Columna OP con Select2 --}}
                                     <td>
-                                        <select id="op-select" name="op_select" class="form-control"></select>
+                                        <select id="op-select" name="op_select" class="form-control" required></select>
                                     </td>
 
                                     {{-- Columna Bulto con Select2 --}}
                                     <td>
-                                        <select id="bulto-select" name="bulto_select" class="form-control" disabled></select>
+                                        <select id="bulto-select" name="bulto_select" class="form-control" disabled required></select>
                                     </td>
 
                                     {{-- Columnas para mostrar los datos del bulto seleccionado --}}
@@ -117,7 +117,7 @@
                                         <div id="listaDefectoScreen" class="mt-2"></div>
                                     </td>
                                     <td>
-                                        <select class="form-control select2" name="accion_correctiva_screen" id="accionCorrectivaScreen"></select>
+                                        <select class="form-control select2" name="accion_correctiva_screen" id="accionCorrectivaScreen" required></select>
                                     </td>
                                 </tr>
                             </tbody>
@@ -139,14 +139,14 @@
                             <tbody>
                                 <tr>
                                     <td>
-                                        <input type="text" class="form-control" name="piezas_auditadas">
+                                        <input type="text" class="form-control" name="piezas_auditadas" required>
                                     </td>
                                     <td>
                                         <select class="form-control select2" id="defectoPlancha"></select>
                                         <div id="listaDefectoPlancha" class="mt-2"></div>
                                     </td>
                                     <td>
-                                        <select class="form-control select2" name="accion_correctiva_plancha" id="accionCorrectivaPlancha"></select>
+                                        <select class="form-control select2" name="accion_correctiva_plancha" id="accionCorrectivaPlancha" required></select>
                                     </td>
                                 </tr>
                             </tbody>
@@ -167,16 +167,11 @@
             border-color: #28a745 !important;
             box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08) !important;
             padding: 0.5rem 2rem;
-            /* Aumenta el tamaño del botón */
             font-size: 1rem;
-            /* Aumenta el tamaño de la fuente */
             font-weight: bold;
-            /* Texto en negritas */
             border-radius: 10px;
-            /* Ajusta las esquinas redondeadas */
             transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
             cursor: pointer;
-            /* Cambia el cursor a una mano */
         }
 
         .btn-verde-xd:hover {
@@ -192,9 +187,12 @@
 
         .btn-verde-xd:disabled,
         .btn-verde-xd.disabled {
-            color: #fff !important;
-            background-color: #28a745 !important;
-            border-color: #28a745 !important;
+            color: #ffffff !important; 
+            background-color: #4bce67 !important; /* Verde más claro */
+            border-color: #4bce67 !important;
+            cursor: not-allowed !important; /* Cursor de "prohibido" */
+            opacity: 0.6; /* Reduce opacidad */
+            box-shadow: none !important; /* Elimina sombra */
         }
 
         .btn-verde-xd:not(:disabled):not(.disabled).active,
@@ -566,41 +564,113 @@
             function agregarOpcionListaFibra(id, nombre) {
                 if (!opcionesSeleccionadasFibra.includes(id)) {
                     opcionesSeleccionadasFibra.push(id);
-
-                    // Generamos un bloque con el texto, input hidden con el ID, y otro input con la cantidad
+    
+                    // Insertamos el bloque con el texto, input hidden con el ID, y un input para la cantidad.
+                    // Se asigna la clase "cantidad-fibra" para gestionar los eventos en los inputs.
                     $("#listaTipoFibraScreen").append(`
-                    <div id="opcionFibra-${id}" class="mb-2 p-2 border rounded">
-                        <span>${nombre}</span>
-
-                        <!-- El input hidden que guarda el ID de la fibra seleccionada -->
-                        <input type="hidden" name="tipo_fibra_screen[${id}][fibra_id]" value="${id}"/>
-
-                        <!-- El input para la cantidad. Observa el name con la misma clave [${id}] -->
-                        <input 
-                        type="number" 
-                        name="tipo_fibra_screen[${nombre}][cantidad]" 
-                        id="cantidad-${id}" 
-                        class="ms-2" 
-                        value="1" 
-                        min="1" 
-                        style="width: 60px;" 
-                        />
-
-                        <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcionFibra('${id}')">Eliminar</button>
-                    </div>
+                        <div id="opcionFibra-${id}" class="mb-2 p-2 border rounded">
+                            <span>${nombre}</span>
+                            
+                            <!-- Input hidden que guarda el ID de la fibra seleccionada -->
+                            <input type="hidden" name="tipo_fibra_screen[${id}][fibra_id]" value="${id}"/>
+                            
+                            <!-- Input para la cantidad -->
+                            <input 
+                                type="number" 
+                                name="tipo_fibra_screen[${nombre}][cantidad]" 
+                                id="cantidad-${id}" 
+                                class="ms-2 cantidad-fibra" 
+                                value="1" 
+                                min="1" 
+                                style="width: 60px;" 
+                            />
+                            
+                            <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcionFibra('${id}')">Eliminar</button>
+                        </div>
                     `);
                 }
             }
     
+            // Función para eliminar un bloque de fibra
             window.eliminarOpcionFibra = function (id) {
-                // Forzamos el id a string, por seguridad
                 id = String(id);
-                // Quitamos el id del array
                 opcionesSeleccionadasFibra = opcionesSeleccionadasFibra.filter(item => item !== id);
-                // Eliminamos el div de la lista
                 $("#opcionFibra-" + id).remove();
+                // Cada vez que se elimina, se revalida la suma total
+                validarSumaTotal();
             };
     
+            // Función que recorre todos los inputs de cantidad y devuelve la suma total
+            function recalcTotalFibra() {
+                let total = 0;
+                $("#listaTipoFibraScreen .cantidad-fibra").each(function(){
+                    total += parseFloat($(this).val()) || 0;
+                });
+                return total;
+            }
+    
+            // Función para validar la suma total y ajustar el input actual si se excede
+            function validarInputCantidad($input) {
+                // Calculamos la suma de las cantidades de los otros inputs
+                let sumOtros = 0;
+                $(".cantidad-fibra").not($input).each(function(){
+                    sumOtros += parseFloat($(this).val()) || 0;
+                });
+                let currentVal = parseFloat($input.val()) || 0;
+                let maxPermitido = 100 - sumOtros; // Lo máximo que puede tener este input sin exceder el total 100
+    
+                if(currentVal > maxPermitido) {
+                    // Si el valor actual excede lo permitido, lo ajustamos
+                    $input.val(maxPermitido);
+                    alert("El valor máximo permitido para este campo es " + maxPermitido + " para no sobrepasar el total de 100.");
+                }
+            }
+    
+            // Función para validar la suma total; si la suma es menor a 100 y hay más de un registro,
+            // se ajusta el último input para que la suma total sea 100.
+            function validarSumaTotal() {
+                let total = recalcTotalFibra();
+                let $todos = $("#listaTipoFibraScreen .cantidad-fibra");
+                if($todos.length > 0) {
+                    // Si hay más de un registro y la suma es menor a 100, se fuerza en el último el valor restante.
+                    if($todos.length > 1) {
+                        let $ultimo = $todos.last();
+                        let sumOtros = 0;
+                        $todos.not($ultimo).each(function(){
+                            sumOtros += parseFloat($(this).val()) || 0;
+                        });
+                        let nuevoValor = 100 - sumOtros;
+                        // Solo se ajusta si el valor actual del último es distinto al requerido
+                        if(parseFloat($ultimo.val()) !== nuevoValor) {
+                            $ultimo.val(nuevoValor);
+                        }
+                    } else {
+                        // Si es un solo registro, se permite hasta 100.
+                        let $solo = $todos.first();
+                        if(parseFloat($solo.val()) > 100){
+                            $solo.val(100);
+                        }
+                    }
+                }
+            }
+    
+            // Delegamos el evento "input" en los inputs de cantidad (ya que se crean dinámicamente)
+            $(document).on("input", ".cantidad-fibra", function(){
+                let $input = $(this);
+                validarInputCantidad($input);
+                // Se puede actualizar la suma total si se requiere (o mostrarla en algún lado)
+                // Por ejemplo: console.log("Suma total: " + recalcTotalFibra());
+            });
+    
+            // Cuando se pierda el foco (blur) en un input, si es el último, se ajusta automáticamente para completar 100.
+            $(document).on("blur", ".cantidad-fibra", function(){
+                let $todos = $("#listaTipoFibraScreen .cantidad-fibra");
+                if($todos.length > 1 && $(this).is($todos.last())) {
+                    validarSumaTotal();
+                }
+            });
+    
+            // Inicializamos el select
             cargarTipoFibraScreen();
         });
     </script>
@@ -1059,19 +1129,66 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const checkScreen = document.getElementById("check-screen");
-            const checkPlancha = document.getElementById("check-plancha");
-            const tableScreen = document.getElementById("table-screen");
-            const tablePlancha = document.getElementById("table-plancha");
-
-            // Mostrar/Ocultar la tabla de Screen
+            const checkScreen    = document.getElementById("check-screen");
+            const checkPlancha   = document.getElementById("check-plancha");
+            const tableScreen    = document.getElementById("table-screen");
+            const tablePlancha   = document.getElementById("table-plancha");
+            const submitButton   = document.querySelector(".btn-verde-xd");
+        
+            // Función que habilita o deshabilita (y quita la validación "required") todos los campos dentro de una tabla
+            function updateTableFields(table, enable) {
+                // Selecciona todos los elementos de formulario (inputs, selects, textareas) dentro de la tabla
+                const elements = table.querySelectorAll("input, select, textarea");
+                elements.forEach(function(el) {
+                    el.disabled = !enable; // Si no se quiere habilitar, se deshabilita
+                    if (!enable) {
+                        // Quita el atributo "required" para evitar bloqueos en la validación
+                        el.required = false;
+                    }
+                });
+            }
+        
+            // Función para actualizar el estado del botón de enviar
+            function updateSubmitButton() {
+                // Si alguno de los checkboxes está marcado, se habilita el botón, de lo contrario se deshabilita
+                if (checkScreen.checked || checkPlancha.checked) {
+                    submitButton.disabled = false;
+                } else {
+                    submitButton.disabled = true;
+                }
+            }
+        
+            // Inicialmente: ocultamos ambas tablas, deshabilitamos sus campos y deshabilitamos el botón de envío
+            tableScreen.style.display = "none";
+            tablePlancha.style.display = "none";
+            updateTableFields(tableScreen, false);
+            updateTableFields(tablePlancha, false);
+            submitButton.disabled = true;
+        
+            // Evento para el checkbox de Screen
             checkScreen.addEventListener("change", function () {
-                tableScreen.style.display = checkScreen.checked ? "block" : "none";
+                if (checkScreen.checked) {
+                    // Si se marca, mostramos la tabla y habilitamos sus campos
+                    tableScreen.style.display = "block";
+                    updateTableFields(tableScreen, true);
+                } else {
+                    // Si se desmarca, ocultamos la tabla y deshabilitamos sus campos
+                    tableScreen.style.display = "none";
+                    updateTableFields(tableScreen, false);
+                }
+                updateSubmitButton();
             });
-
-            // Mostrar/Ocultar la tabla de Plancha
+        
+            // Evento para el checkbox de Plancha
             checkPlancha.addEventListener("change", function () {
-                tablePlancha.style.display = checkPlancha.checked ? "block" : "none";
+                if (checkPlancha.checked) {
+                    tablePlancha.style.display = "block";
+                    updateTableFields(tablePlancha, true);
+                } else {
+                    tablePlancha.style.display = "none";
+                    updateTableFields(tablePlancha, false);
+                }
+                updateSubmitButton();
             });
         });
     </script>
