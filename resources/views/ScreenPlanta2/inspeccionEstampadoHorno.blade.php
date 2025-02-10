@@ -622,12 +622,14 @@
                                 return { id: String(item.id), text: item.nombre };
                             });
     
+                            // Agregamos la opción "OTRO"
                             results.unshift({ id: "otro", text: "OTRO" });
                             return { results: results };
                         }
                     }
                 });
     
+                // Manejo de selección de una opción
                 $("#defectoScreen").on("select2:select", function (e) {
                     let selectedValue = String(e.params.data.id);
                     let selectedText = e.params.data.text;
@@ -651,7 +653,12 @@
                                         let newId = String(response.id);
                                         let newText = nuevoValor;
                                         let newOption = new Option(newText, newId, true, true);
-                                        $("#defectoScreen").append(newOption).trigger("change");
+    
+                                        $("#defectoScreen")
+                                            .append(newOption)
+                                            .trigger("change");
+    
+                                        // Agregar a la lista
                                         agregarOpcionListaDefectoScreen(newId, newText);
                                     } else {
                                         alert("Error al guardar el nuevo valor.");
@@ -662,9 +669,10 @@
                                 }
                             });
                         }
+                        // Limpia la selección en el select2
                         $("#defectoScreen").val(null).trigger("change");
-    
                     } else {
+                        // Si la opción ya existe, advertimos
                         if (opcionesSeleccionadasDefectoScreen.includes(selectedValue)) {
                             alert("La opción ya fue seleccionada.");
                         } else {
@@ -678,22 +686,44 @@
             function agregarOpcionListaDefectoScreen(id, nombre) {
                 if (!opcionesSeleccionadasDefectoScreen.includes(id)) {
                     opcionesSeleccionadasDefectoScreen.push(id);
+    
+                    // Agregamos el bloque con hidden input y el input para cantidad
                     $("#listaDefectoScreen").append(`
                         <div id="opcionDefectoScreen-${id}" class="mb-2 p-2 border rounded">
-                            ${nombre}
-                            <input type="number" id="cantidadDefectoScreen-${id}" class="ms-2" value="1" min="1" style="width: 60px;" />
-                            <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcionDefectoScreen('${id}')">Eliminar</button>
+                            <span>${nombre}</span>
+                            
+                            <!-- Campo hidden con el nombre del defecto -->
+                            <input type="hidden" name="defecto_screen[${id}][nombre]" value="${nombre}"/>
+    
+                            <!-- Campo para la cantidad -->
+                            <input 
+                                type="number" 
+                                name="defecto_screen[${id}][cantidad]"
+                                id="cantidadDefectoScreen-${id}" 
+                                class="ms-2" 
+                                value="1" 
+                                min="1" 
+                                style="width: 60px;"
+                            />
+    
+                            <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcionDefectoScreen('${id}')">
+                                Eliminar
+                            </button>
                         </div>
                     `);
                 }
             }
     
+            // Función global para eliminar
             window.eliminarOpcionDefectoScreen = function (id) {
                 id = String(id);
+                // Removemos del array
                 opcionesSeleccionadasDefectoScreen = opcionesSeleccionadasDefectoScreen.filter(item => item !== id);
+                // Removemos el elemento del DOM
                 $("#opcionDefectoScreen-" + id).remove();
             };
     
+            // Inicializamos
             cargarDefectoScreen();
         });
     </script>
@@ -716,12 +746,14 @@
                                 return { id: String(item.id), text: item.nombre };
                             });
     
+                            // Agregamos la opción "OTRO"
                             results.unshift({ id: "otro", text: "OTRO" });
                             return { results: results };
                         }
                     }
                 });
     
+                // Manejo de selección
                 $("#defectoPlancha").on("select2:select", function (e) {
                     let selectedValue = String(e.params.data.id);
                     let selectedText = e.params.data.text;
@@ -745,7 +777,12 @@
                                         let newId = String(response.id);
                                         let newText = nuevoValor;
                                         let newOption = new Option(newText, newId, true, true);
-                                        $("#defectoPlancha").append(newOption).trigger("change");
+    
+                                        $("#defectoPlancha")
+                                            .append(newOption)
+                                            .trigger("change");
+    
+                                        // Agregar a la lista
                                         agregarOpcionListaDefectoPlancha(newId, newText);
                                     } else {
                                         alert("Error al guardar el nuevo valor.");
@@ -756,9 +793,10 @@
                                 }
                             });
                         }
+                        // Limpia la selección en el select2
                         $("#defectoPlancha").val(null).trigger("change");
-    
                     } else {
+                        // Verificamos si la opción ya está seleccionada
                         if (opcionesSeleccionadasDefectoPlancha.includes(selectedValue)) {
                             alert("La opción ya fue seleccionada.");
                         } else {
@@ -772,22 +810,44 @@
             function agregarOpcionListaDefectoPlancha(id, nombre) {
                 if (!opcionesSeleccionadasDefectoPlancha.includes(id)) {
                     opcionesSeleccionadasDefectoPlancha.push(id);
+    
+                    // Agregamos el bloque con hidden input y el input para cantidad
                     $("#listaDefectoPlancha").append(`
                         <div id="opcionDefectoPlancha-${id}" class="mb-2 p-2 border rounded">
-                            ${nombre}
-                            <input type="number" id="cantidadDefectoPlancha-${id}" class="ms-2" value="1" min="1" style="width: 60px;" />
-                            <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcionDefectoPlancha('${id}')">Eliminar</button>
+                            <span>${nombre}</span>
+                            
+                            <!-- Campo hidden con el ID del defecto -->
+                            <input type="hidden" name="defecto_plancha[${id}][nombre]" value="${nombre}"/>
+    
+                            <!-- Campo para la cantidad -->
+                            <input 
+                                type="number" 
+                                name="defecto_plancha[${id}][cantidad]" 
+                                id="cantidadDefectoPlancha-${id}" 
+                                class="ms-2" 
+                                value="1" 
+                                min="1" 
+                                style="width: 60px;"
+                            />
+    
+                            <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcionDefectoPlancha('${id}')">
+                                Eliminar
+                            </button>
                         </div>
                     `);
                 }
             }
     
+            // Función global para eliminar
             window.eliminarOpcionDefectoPlancha = function (id) {
                 id = String(id);
+                // Quitamos del array
                 opcionesSeleccionadasDefectoPlancha = opcionesSeleccionadasDefectoPlancha.filter(item => item !== id);
+                // Quitamos del DOM
                 $("#opcionDefectoPlancha-" + id).remove();
             };
     
+            // Inicializamos
             cargarDefectoPlancha();
         });
     </script>
