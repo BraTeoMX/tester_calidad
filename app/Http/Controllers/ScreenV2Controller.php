@@ -111,7 +111,13 @@ class ScreenV2Controller extends Controller
         ]);
     }
 
-        public function getCategoriaTipoPanel()
+    public function getCategoriaTecnicoScreen()
+    {
+        $data = Tecnicos::where('estatus', 1)->select('id', 'nombre')->get();
+        return response()->json($data);
+    }
+
+    public function getCategoriaTipoPanel()
     {
         $data = CategoriaTipoPanel::where('estatus', 1)->select('id', 'nombre')->get();
         return response()->json($data);

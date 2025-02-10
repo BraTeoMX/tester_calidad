@@ -106,12 +106,16 @@
                         <table class="table">
                             <thead class="thead-primary">
                                 <tr>
+                                    <th>Tecnico</th>
                                     <th>Defecto</th>
                                     <th>Acción Correctiva</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
+                                    <td>
+                                        <select class="form-control select2" name="nombre_tecnico_screen" id="nombreTecnicoScreen" required></select>
+                                    </td>
                                     <td>
                                         <select class="form-control select2" id="defectoScreen"></select>
                                         <div id="listaDefectoScreen" class="mt-2"></div>
@@ -131,6 +135,7 @@
                         <table class="table">
                             <thead class="thead-primary">
                                 <tr>
+                                    <th>Tecnico</th>
                                     <th>Piezas auditadas</th>
                                     <th>Defecto</th>
                                     <th>Acción Correctiva</th>
@@ -138,6 +143,9 @@
                             </thead>
                             <tbody>
                                 <tr>
+                                    <td>
+                                        <select class="form-control select2" name="nombre_tecnico_plancha" id="nombreTecnicoPlancha"></select>
+                                    </td>
                                     <td>
                                         <input type="text" class="form-control" name="piezas_auditadas" required>
                                     </td>
@@ -301,6 +309,31 @@
         }
     </style>
 
+    <script>
+        $(document).ready(function () {
+            function cargarSelect2Simple(selector, url) {
+                $(selector).select2({
+                    placeholder: "Seleccione una opción",
+                    ajax: {
+                        url: url,
+                        dataType: 'json',
+                        delay: 250,
+                        processResults: function (data) {
+                            let results = $.map(data, function (item) {
+                                return { id: item.id, text: item.nombre };
+                            });
+                            return { results: results };
+                        },
+                        cache: true
+                    }
+                });
+            }
+
+            // Llamamos a la función sin la opción "OTRO" ni la funcionalidad para agregar nuevos registros.
+            cargarSelect2Simple("#nombreTecnicoScreen", "/categoriaTecnicoScreen");
+            cargarSelect2Simple("#nombreTecnicoPlancha", "/categoriaTecnicoScreen");
+        });
+    </script>
     <!-- Script general para los select comunes -->
     <script>
         $(document).ready(function () {

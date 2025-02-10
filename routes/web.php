@@ -402,6 +402,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/search-bultos-op-screen', [ScreenV2Controller::class, 'searchBultosByOpScreen'])->name('search.bultos.op.screen');
     // Ruta para obtener detalles de un bulto específico
     Route::get('/get-bulto-details-screen/{id}', [ScreenV2Controller::class, 'getBultoDetailsScreen']);
+    Route::get('/categoriaTecnicoScreen', [ScreenV2Controller::class, 'getCategoriaTecnicoScreen']);
     Route::get('/categoriaTipoPanel', [ScreenV2Controller::class, 'getCategoriaTipoPanel']);
     Route::get('/categoriaTipoMaquina', [ScreenV2Controller::class, 'getCategoriaTipoMaquina']);
     Route::get('/tipoTecnicaScreen', [ScreenV2Controller::class, 'getTipoTecnicaScreen']);
