@@ -117,7 +117,7 @@
                                         <div id="listaDefectoScreen" class="mt-2"></div>
                                     </td>
                                     <td>
-                                        <select class="form-control select2" id="accionCorrectivaScreen"></select>
+                                        <select class="form-control select2" name="accion_correctiva_screen" id="accionCorrectivaScreen"></select>
                                     </td>
                                 </tr>
                             </tbody>
@@ -146,18 +146,17 @@
                                         <div id="listaDefectoPlancha" class="mt-2"></div>
                                     </td>
                                     <td>
-                                        <select class="form-control select2" id="accionCorrectivaPlancha"></select>
+                                        <select class="form-control select2" name="accion_correctiva_plancha" id="accionCorrectivaPlancha"></select>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-                <!-- Botón de envío -->
-                <div class="mt-4">
+                <div class="card-body mt-4">
                     <button type="submit" class="btn-verde-xd">Guardar Inspección</button>
                 </div>
-            </form> <!-- Cierre del Formulario -->
+            </form>
         </div>
     </div>
 
@@ -398,79 +397,87 @@
       
             // Evento de selección
             $("#tipoTecnicaScreen").on("select2:select", function (e) {
-              let selectedValue = String(e.params.data.id); // forzamos a string
-              let selectedText  = e.params.data.text;
-      
-              if (selectedValue === "otro") {
-                let nuevoValor = prompt("Ingrese el nuevo valor para Tipo_Tecnica:");
-                if (nuevoValor) {
-                  nuevoValor = nuevoValor.toUpperCase();
-                  $.ajax({
-                    url: "/guardarNuevoValor",
-                    type: "POST",
-                    data: {
-                      nombre: nuevoValor,
-                      modelo: "Tipo_Tecnica",
-                      estatus: 1,
-                      _token: "{{ csrf_token() }}"
-                    },
-                    success: function (response) {
-                      if (response.success) {
-                        // Si el backend retorna response.id como número, lo convertimos a string
-                        let newId   = String(response.id);
-                        let newText = nuevoValor;
-                        // Creamos la nueva opción y la seleccionamos
-                        let newOption = new Option(newText, newId, true, true);
-                        $("#tipoTecnicaScreen").append(newOption).trigger("change");
-      
-                        // Agregamos la nueva opción al div
-                        agregarOpcionLista(newId, newText);
-                      } else {
-                        alert("Error al guardar el nuevo valor.");
-                      }
-                    },
-                    error: function () {
-                      alert("Ocurrió un error. Intente de nuevo.");
+                let selectedValue = String(e.params.data.id); // forzamos a string
+                let selectedText  = e.params.data.text;
+        
+                if (selectedValue === "otro") {
+                    let nuevoValor = prompt("Ingrese el nuevo valor para Tipo_Tecnica:");
+                    if (nuevoValor) {
+                    nuevoValor = nuevoValor.toUpperCase();
+                    $.ajax({
+                        url: "/guardarNuevoValor",
+                        type: "POST",
+                        data: {
+                        nombre: nuevoValor,
+                        modelo: "Tipo_Tecnica",
+                        estatus: 1,
+                        _token: "{{ csrf_token() }}"
+                        },
+                        success: function (response) {
+                        if (response.success) {
+                            // Si el backend retorna response.id como número, lo convertimos a string
+                            let newId   = String(response.id);
+                            let newText = nuevoValor;
+                            // Creamos la nueva opción y la seleccionamos
+                            let newOption = new Option(newText, newId, true, true);
+                            $("#tipoTecnicaScreen").append(newOption).trigger("change");
+        
+                            // Agregamos la nueva opción al div
+                            agregarOpcionLista(newId, newText);
+                        } else {
+                            alert("Error al guardar el nuevo valor.");
+                        }
+                        },
+                        error: function () {
+                        alert("Ocurrió un error. Intente de nuevo.");
+                        }
+                    });
                     }
-                  });
-                }
-                // Limpiar el select después de "OTRO"
-                $("#tipoTecnicaScreen").val(null).trigger("change");
-      
-              } else {
-                // Antes de agregar, verificamos si ya existe en el array
-                if (opcionesSeleccionadas.includes(selectedValue)) {
-                  alert("La opción ya fue seleccionada.");
+                    // Limpiar el select después de "OTRO"
+                    $("#tipoTecnicaScreen").val(null).trigger("change");
+        
                 } else {
-                  agregarOpcionLista(selectedValue, selectedText);
+                    // Antes de agregar, verificamos si ya existe en el array
+                    if (opcionesSeleccionadas.includes(selectedValue)) {
+                    alert("La opción ya fue seleccionada.");
+                    } else {
+                    agregarOpcionLista(selectedValue, selectedText);
+                    }
+                    // Limpiar la selección en el select
+                    $("#tipoTecnicaScreen").val(null).trigger("change");
                 }
-                // Limpiar la selección en el select
-                $("#tipoTecnicaScreen").val(null).trigger("change");
-              }
-            });
-          }
-      
-          function agregarOpcionLista(id, nombre) {
-            // id ya viene forzado a string
-            if (!opcionesSeleccionadas.includes(id)) {
-              opcionesSeleccionadas.push(id);
-              $("#listaTipoTecnicaScreen").append(`
-                <div id="opcion-${id}" class="mb-2 p-2 border rounded">
-                  ${nombre}
-                  <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcion('${id}')">Eliminar</button>
-                </div>
-              `);
+                });
             }
-          }
       
-          window.eliminarOpcion = function (id) {
-            // Forzamos el id a string, por seguridad
-            id = String(id);
-            // Quitamos el id del array
-            opcionesSeleccionadas = opcionesSeleccionadas.filter(item => item !== id);
-            // Eliminamos el div de la lista
-            $("#opcion-" + id).remove();
-          };
+            function agregarOpcionLista(id, nombre) {
+                if (!opcionesSeleccionadas.includes(id)) {
+                    opcionesSeleccionadas.push(id);
+
+                    // Generamos un bloque con el texto y un input hidden
+                    $("#listaTipoTecnicaScreen").append(`
+                    <div id="opcion-${id}" class="mb-2 p-2 border rounded">
+                        <span>${nombre}</span>
+                        <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcion('${id}')">Eliminar</button>
+
+                        <!-- El input hidden que se enviará en el form -->
+                        <input 
+                        type="hidden" 
+                        name="tipo_tecnica_screen[]" 
+                        value="${nombre}" 
+                        />
+                    </div>
+                    `);
+                }
+            }
+      
+            window.eliminarOpcion = function (id) {
+                // Forzamos el id a string, por seguridad
+                id = String(id);
+                // Quitamos el id del array
+                opcionesSeleccionadas = opcionesSeleccionadas.filter(item => item !== id);
+                // Eliminamos el div de la lista
+                $("#opcion-" + id).remove();
+            };
       
           cargarTipoTecnicaScreen();
         });
@@ -557,15 +564,30 @@
             }
     
             function agregarOpcionListaFibra(id, nombre) {
-                // id ya viene forzado a string
                 if (!opcionesSeleccionadasFibra.includes(id)) {
                     opcionesSeleccionadasFibra.push(id);
+
+                    // Generamos un bloque con el texto, input hidden con el ID, y otro input con la cantidad
                     $("#listaTipoFibraScreen").append(`
-                        <div id="opcionFibra-${id}" class="mb-2 p-2 border rounded">
-                            ${nombre}
-                            <input type="number" id="cantidad-${id}" class="ms-2" value="1" min="1" style="width: 60px;" />
-                            <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcionFibra('${id}')">Eliminar</button>
-                        </div>
+                    <div id="opcionFibra-${id}" class="mb-2 p-2 border rounded">
+                        <span>${nombre}</span>
+
+                        <!-- El input hidden que guarda el ID de la fibra seleccionada -->
+                        <input type="hidden" name="tipo_fibra_screen[${id}][fibra_id]" value="${id}"/>
+
+                        <!-- El input para la cantidad. Observa el name con la misma clave [${id}] -->
+                        <input 
+                        type="number" 
+                        name="tipo_fibra_screen[${nombre}][cantidad]" 
+                        id="cantidad-${id}" 
+                        class="ms-2" 
+                        value="1" 
+                        min="1" 
+                        style="width: 60px;" 
+                        />
+
+                        <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcionFibra('${id}')">Eliminar</button>
+                    </div>
                     `);
                 }
             }
