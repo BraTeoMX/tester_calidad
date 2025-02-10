@@ -218,73 +218,83 @@ class ScreenV2Controller extends Controller
 
     public function store(Request $request)
     {
-        dd($request->all());
+        // Para ver el contenido del request, puedes usar dd($request->all());
+        // dd($request->all());
+        
         DB::beginTransaction(); // Iniciar la transacción
 
         try {
-            // Crear el registro en InspeccionHorno
+            // 1. Crear el registro principal en InspeccionHorno
             $inspeccion = new InspeccionHorno();
-            $inspeccion->auditor = $request->input('auditor');
-            $inspeccion->cliente = $request->input('cliente');
-            $inspeccion->panel = $request->input('tipo_panel');
-            $inspeccion->maquina = $request->input('tipo_maquina');
-            $inspeccion->valor_grafica = $request->input('valor_grafica');
+            $inspeccion->panel         = $request->input('tipo_panel');
+            $inspeccion->maquina       = $request->input('tipo_maquina');
+            $inspeccion->grafica      = $request->input('valor_grafica');
+            $inspeccion->op          = $request->input('op_select');
+            $inspeccion->bulto       = $request->input('bulto_select');
+            $inspeccion->cliente            = $request->input('cliente_seleccionado');
+            $inspeccion->estilo             = $request->input('estilo_seleccionado');
+            $inspeccion->color              = $request->input('color_seleccionado');
+            $inspeccion->cantidad           = $request->input('cantidad_seleccionado');
             $inspeccion->save();
 
-            // Guardar Técnicas (desde div `listaTipoTecnicaScreen`)
-            if ($request->has('tecnicas')) {
-                foreach ($request->input('tecnicas') as $tecnica) {
+            // 2. Guardar Técnicas (uno a muchos) en InspeccionHornoTecnica
+            if ($request->has('tipo_tecnica_screen')) {
+                foreach ($request->input('tipo_tecnica_screen') as $tecnica) {
                     $nuevaTecnica = new InspeccionHornoTecnica();
                     $nuevaTecnica->inspeccion_horno_id = $inspeccion->id;
-                    $nuevaTecnica->nombre = $tecnica;
+                    $nuevaTecnica->nombre              = $tecnica;
                     $nuevaTecnica->save();
                 }
             }
 
-            // Guardar Fibras (desde div `listaTipoFibraScreen`)
-            if ($request->has('fibras')) {
-                foreach ($request->input('fibras') as $fibra) {
+            // 3. Guardar Fibras (uno a muchos) en InspeccionHornoFibra
+            if ($request->has('tipo_fibra_screen')) {
+                foreach ($request->input('tipo_fibra_screen') as $key => $fibraData) {
+                    // Cada $fibraData es un arreglo con 'nombre' y 'cantidad'
                     $nuevaFibra = new InspeccionHornoFibra();
                     $nuevaFibra->inspeccion_horno_id = $inspeccion->id;
-                    $nuevaFibra->nombre = $fibra;
+                    $nuevaFibra->nombre              = $fibraData['nombre'] ?? null;
+                    $nuevaFibra->cantidad            = $fibraData['cantidad'] ?? 0;
                     $nuevaFibra->save();
                 }
             }
 
-            // Verificar si se seleccionó "Screen" y guardar su registro
-            if ($request->has('screen')) {
+            // 4. Guardar datos de Screen (uno a uno + uno a muchos para defectos)
+            if ($request->has('nombre_tecnico_screen')) {
                 $screen = new InspeccionHornoScreen();
                 $screen->inspeccion_horno_id = $inspeccion->id;
-                $screen->accion_correctiva = $request->input('accion_correctiva_screen');
+                $screen->nombre_tecnico      = $request->input('nombre_tecnico_screen');
+                $screen->accion_correctiva   = $request->input('accion_correctiva_screen');
                 $screen->save();
 
-                // Guardar los defectos de Screen desde `listaDefectoScreen`
-                if ($request->has('defectos_screen')) {
-                    foreach ($request->input('defectos_screen') as $index => $defecto) {
+                // Guardar defectos de Screen (uno a muchos) en InspeccionHornoScreenDefecto
+                if ($request->has('defecto_screen')) {
+                    foreach ($request->input('defecto_screen') as $key => $defectoData) {
                         $nuevoDefectoScreen = new InspeccionHornoScreenDefecto();
                         $nuevoDefectoScreen->inspeccion_horno_screen_id = $screen->id;
-                        $nuevoDefectoScreen->nombre = $defecto;
-                        $nuevoDefectoScreen->cantidad = $request->input('cant_defectos_screen')[$index] ?? 0;
+                        $nuevoDefectoScreen->nombre  = $defectoData['nombre'] ?? null;
+                        $nuevoDefectoScreen->cantidad = $defectoData['cantidad'] ?? 0;
                         $nuevoDefectoScreen->save();
                     }
                 }
             }
 
-            // Verificar si se seleccionó "Plancha" y guardar su registro
-            if ($request->has('plancha')) {
+            // 5. Guardar datos de Plancha (uno a uno + uno a muchos para defectos)
+            if ($request->has('nombre_tecnico_plancha')) {
                 $plancha = new InspeccionHornoPlancha();
                 $plancha->inspeccion_horno_id = $inspeccion->id;
-                $plancha->piezas_auditas = $request->input('piezas_auditadas');
-                $plancha->accion_correctiva = $request->input('accion_correctiva_plancha');
+                $plancha->nombre_tecnico      = $request->input('nombre_tecnico_plancha');
+                $plancha->piezas_auditadas    = $request->input('piezas_auditadas');
+                $plancha->accion_correctiva   = $request->input('accion_correctiva_plancha');
                 $plancha->save();
 
-                // Guardar los defectos de Plancha desde `listaDefectoPlancha`
-                if ($request->has('defectos_plancha')) {
-                    foreach ($request->input('defectos_plancha') as $index => $defecto) {
+                // Guardar defectos de Plancha (uno a muchos) en InspeccionHornoPlanchaDefecto
+                if ($request->has('defecto_plancha')) {
+                    foreach ($request->input('defecto_plancha') as $key => $defectoData) {
                         $nuevoDefectoPlancha = new InspeccionHornoPlanchaDefecto();
                         $nuevoDefectoPlancha->inspeccion_horno_plancha_id = $plancha->id;
-                        $nuevoDefectoPlancha->nombre = $defecto;
-                        $nuevoDefectoPlancha->cantidad = $request->input('cant_defectos_plancha')[$index] ?? 0;
+                        $nuevoDefectoPlancha->nombre  = $defectoData['nombre'] ?? null;
+                        $nuevoDefectoPlancha->cantidad = $defectoData['cantidad'] ?? 0;
                         $nuevoDefectoPlancha->save();
                     }
                 }
@@ -298,4 +308,5 @@ class ScreenV2Controller extends Controller
             return response()->json(['error' => 'Error al guardar la inspección', 'details' => $e->getMessage()], 500);
         }
     }
+
 }

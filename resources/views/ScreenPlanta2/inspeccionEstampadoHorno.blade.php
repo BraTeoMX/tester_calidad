@@ -320,7 +320,7 @@
                         delay: 250,
                         processResults: function (data) {
                             let results = $.map(data, function (item) {
-                                return { id: item.id, text: item.nombre };
+                                return { id: item.nombre, text: item.nombre }; // Aquí cambiamos item.id por item.nombre
                             });
                             return { results: results };
                         },
