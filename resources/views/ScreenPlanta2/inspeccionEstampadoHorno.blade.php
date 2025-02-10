@@ -571,13 +571,13 @@
                         <div id="opcionFibra-${id}" class="mb-2 p-2 border rounded">
                             <span>${nombre}</span>
                             
-                            <!-- Input hidden que guarda el ID de la fibra seleccionada -->
-                            <input type="hidden" name="tipo_fibra_screen[${id}][fibra_id]" value="${id}"/>
+                            <!-- Campo hidden con el nombre de la fibra -->
+                            <input type="hidden" name="tipo_fibra_screen[${id}][nombre]" value="${nombre}"/>
                             
-                            <!-- Input para la cantidad -->
+                            <!-- Campo para la cantidad -->
                             <input 
                                 type="number" 
-                                name="tipo_fibra_screen[${nombre}][cantidad]" 
+                                name="tipo_fibra_screen[${id}][cantidad]" 
                                 id="cantidad-${id}" 
                                 class="ms-2 cantidad-fibra" 
                                 value="1" 
