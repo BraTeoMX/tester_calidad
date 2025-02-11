@@ -324,6 +324,7 @@ class ScreenV2Controller extends Controller
     {
         // Obtener todos los registros con sus relaciones
         $inspecciones = InspeccionHorno::with(['screen.defectos', 'tecnicas', 'fibras'])
+                            ->whereHas('screen')
                             ->orderBy('created_at', 'desc')
                             ->get();
 
@@ -379,18 +380,59 @@ class ScreenV2Controller extends Controller
                 array_keys($defectosAggregados), array_values($defectosAggregados))) . '</ul>' 
                 : 'Sin defectos';
 
+            //
+            // 🔹 Agrupar y contar técnicas
+            $tecnicasAggregadas = [];
+            foreach ($group as $registro) {
+                if ($registro->tecnicas) {
+                    foreach ($registro->tecnicas as $tecnica) {
+                        $nombre = $tecnica->nombre;
+                        if (isset($tecnicasAggregadas[$nombre])) {
+                            $tecnicasAggregadas[$nombre]++;
+                        } else {
+                            $tecnicasAggregadas[$nombre] = 1;
+                        }
+                    }
+                }
+            }
+            $tecnicasTexto = count($tecnicasAggregadas) 
+                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
+                array_keys($tecnicasAggregadas), array_values($tecnicasAggregadas))) . '</ul>'
+                : 'Sin técnicas';
+
+            // 🔹 Agrupar y contar fibras
+            $fibrasAggregadas = [];
+            foreach ($group as $registro) {
+                if ($registro->fibras) {
+                    foreach ($registro->fibras as $fibra) {
+                        $nombre = $fibra->nombre;
+                        if (isset($fibrasAggregadas[$nombre])) {
+                            $fibrasAggregadas[$nombre]++;
+                        } else {
+                            $fibrasAggregadas[$nombre] = 1;
+                        }
+                    }
+                }
+            }
+            $fibrasTexto = count($fibrasAggregadas) 
+                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
+                array_keys($fibrasAggregadas), array_values($fibrasAggregadas))) . '</ul>'
+                : 'Sin fibras';
+
             return [
                 'op'                => $first->op,
                 'panel'             => $panelesTexto,
                 'maquina'           => $maquinasTexto,
+                'tecnicas'          => $tecnicasTexto,
+                'fibras'            => $fibrasTexto,
                 'grafica'           => $graficasTexto,
                 'cliente'           => $clientesTexto,
                 'estilo'            => $first->estilo,
                 'color'             => $first->color,
                 'tecnico_screen'    => $tecnicosTexto,
                 'cantidad'          => $totalCantidad,
-                'accion_correctiva' => $accionesCorrectivasTexto,
-                'defectos'          => $defectosTexto
+                'defectos'          => $defectosTexto,
+                'accion_correctiva' => $accionesCorrectivasTexto
             ];
         })->values(); // values() para reindexar el array
 

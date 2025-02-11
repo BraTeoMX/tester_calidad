@@ -286,8 +286,8 @@
                             <td>${registro.color}</td>
                             <td>${registro.cantidad}</td>
                             <td>${registro.tecnico_screen}</td>
-                            <td>${registro.accion_correctiva}</td>
                             <td>${registro.defectos}</td>
+                            <td>${registro.accion_correctiva}</td>
                         </tr>`;
                     });
                     $("#tabla-screen tbody").html(tabla);
