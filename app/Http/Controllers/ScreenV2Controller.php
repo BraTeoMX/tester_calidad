@@ -226,11 +226,11 @@ class ScreenV2Controller extends Controller
         try {
             // 1. Crear el registro principal en InspeccionHorno
             $inspeccion = new InspeccionHorno();
-            $inspeccion->panel         = $request->input('tipo_panel');
-            $inspeccion->maquina       = $request->input('tipo_maquina');
-            $inspeccion->grafica      = $request->input('valor_grafica');
-            $inspeccion->op          = $request->input('op_select');
-            $inspeccion->bulto       = $request->input('bulto_select');
+            $inspeccion->panel              = $request->input('tipo_panel');
+            $inspeccion->maquina            = $request->input('tipo_maquina');
+            $inspeccion->grafica            = $request->input('valor_grafica');
+            $inspeccion->op                 = $request->input('op_select');
+            $inspeccion->bulto              = $request->input('bulto_select');
             $inspeccion->cliente            = $request->input('cliente_seleccionado');
             $inspeccion->estilo             = $request->input('estilo_seleccionado');
             $inspeccion->color              = $request->input('color_seleccionado');
@@ -302,10 +302,11 @@ class ScreenV2Controller extends Controller
 
             DB::commit(); // Confirmar la transacción
 
-            return response()->json(['message' => 'Inspección registrada con éxito'], 200);
+            // Redirigir a la misma vista con mensaje de éxito
+            return redirect()->back()->with('success', 'Inspección registrada con éxito');
         } catch (\Exception $e) {
             DB::rollBack(); // Revertir la transacción en caso de error
-            return response()->json(['error' => 'Error al guardar la inspección', 'details' => $e->getMessage()], 500);
+            return redirect()->back()->with('error', 'Error al guardar la inspección. Inténtalo de nuevo.');
         }
     }
 

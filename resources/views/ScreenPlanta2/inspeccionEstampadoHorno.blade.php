@@ -1,6 +1,87 @@
 @extends('layouts.app', ['pageSlug' => 'InspeccionEstampado', 'titlePage' => __('Inspeccion Estampado Despues del Horno')])
 
 @section('content')
+    {{-- ... dentro de tu vista ... --}}
+    @if (session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+    @endif
+    @if (session('success'))
+    <div class="alert alerta-exito">
+        {{ session('success') }}
+        @if (session('sorteo'))
+            <br>{{ session('sorteo') }}
+        @endif
+    </div>
+    @endif
+    @if (session('sobre-escribir'))
+    <div class="alert sobre-escribir">
+        {{ session('sobre-escribir') }}
+    </div>
+    @endif
+    @if (session('status'))
+    {{-- A menudo utilizado para mensajes de estado genéricos --}}
+    <div class="alert alert-secondary">
+        {{ session('status') }}
+    </div>
+    @endif
+    @if (session('cambio-estatus'))
+    <div class="alert cambio-estatus">
+        {{ session('cambio-estatus') }}
+    </div>
+    @endif
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Seleccionamos todos los elementos de alerta
+            const alerts = document.querySelectorAll('.alert');
+    
+            // Iteramos por cada alerta para aplicar el desvanecido
+            alerts.forEach(alert => {
+                // Esperamos 6 segundos antes de iniciar el desvanecido
+                setTimeout(() => {
+                    // Cambiamos la opacidad para el efecto de desvanecido
+                    alert.style.transition = 'opacity 1s ease';
+                    alert.style.opacity = '0';
+    
+                    // Eliminamos el elemento del DOM después de 1 segundo (duración del desvanecido)
+                    setTimeout(() => alert.remove(), 1000);
+                }, 5000); // Tiempo de espera antes de desvanecer (6 segundos)
+            });
+        });
+    </script>
+    <style>
+    .alerta-exito {
+        background-color: #32CD32;
+        /* Color de fondo verde */
+        color: white;
+        /* Color de texto blanco */
+        padding: 20px;
+        border-radius: 15px;
+        font-size: 20px;
+    }
+
+    .sobre-escribir {
+        background-color: #FF8C00;
+        /* Color de fondo verde */
+        color: white;
+        /* Color de texto blanco */
+        padding: 20px;
+        border-radius: 15px;
+        font-size: 20px;
+    }
+
+    .cambio-estatus {
+        background-color: #800080;
+        /* Color de fondo verde */
+        color: white;
+        /* Color de texto blanco */
+        padding: 20px;
+        border-radius: 15px;
+        font-size: 20px;
+    }
+    </style>
+
     <div class="content">
         <div class="card">
             <div class="card-header card-header-primary">
