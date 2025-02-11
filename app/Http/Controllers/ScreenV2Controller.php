@@ -480,6 +480,174 @@ class ScreenV2Controller extends Controller
         ]);
     }
 
+    public function planchaV2(Request $request)
+    {
 
+        $mesesEnEspanol = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+
+        return view('ScreenPlanta2.planchaV2', compact('mesesEnEspanol'));
+    }
+
+    public function getPlanchaData()
+    {
+        // Obtener todos los registros con sus relaciones
+        $inspecciones = InspeccionHorno::with(['plancha.defectos', 'tecnicas', 'fibras'])
+                            ->whereHas('plancha')
+                            ->orderBy('created_at', 'desc')
+                            ->get();
+
+        // Agrupar los registros por la columna "op"
+        $grouped = $inspecciones->groupBy('op');
+
+        // Preparar los datos finales
+        $result = $grouped->map(function ($group) {
+            // Tomamos el primer registro del grupo para campos comunes
+            $first = $group->first();
+
+            // Sumar la cantidad total de los registros del mismo "op"
+            $totalCantidad = $group->sum('plancha.piezas_auditadas');
+
+            // 🔹 Agrupar valores únicos en listas (sin cantidad)
+            $panelesTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
+                $group->pluck('panel')->unique()->toArray())) . '</ul>';
+
+            $maquinasTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
+                $group->pluck('maquina')->unique()->toArray())) . '</ul>';
+
+            $graficasTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
+                $group->pluck('grafica')->unique()->toArray())) . '</ul>';
+
+            $clientesTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
+                $group->pluck('cliente')->unique()->toArray())) . '</ul>';
+
+            $tecnicosTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
+                $group->pluck('plancha.nombre_tecnico')->unique()->toArray())) . '</ul>';
+
+            // 🔹 Agrupar acciones correctivas y evitar listas vacías
+            $accionesCorrectivasTexto = $group->pluck('plancha.accion_correctiva')->unique()->filter()->toArray();
+            $accionesCorrectivasTexto = count($accionesCorrectivasTexto) 
+                ? '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", $accionesCorrectivasTexto)) . '</ul>' 
+                : 'N/A';
+
+            // Agrupar y sumar la cantidad de defectos por nombre
+            $defectosAggregados = [];
+            foreach ($group as $registro) {
+                if ($registro->plancha && $registro->plancha->defectos) {
+                    foreach ($registro->plancha->defectos as $defecto) {
+                        $nombre = trim($defecto->nombre);
+                        $cantidadDefecto = $defecto->cantidad;  // Asumiendo que "cantidad" es un campo numérico
+                        if (isset($defectosAggregados[$nombre])) {
+                            $defectosAggregados[$nombre] += $cantidadDefecto;
+                        } else {
+                            $defectosAggregados[$nombre] = $cantidadDefecto;
+                        }
+                    }
+                }
+            }
+            $defectosTexto = count($defectosAggregados) 
+                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
+                array_keys($defectosAggregados), array_values($defectosAggregados))) . '</ul>' 
+                : 'Sin defectos';
+
+            //
+            // 🔹 Agrupar y contar técnicas
+            $tecnicasAggregadas = [];
+            foreach ($group as $registro) {
+                if ($registro->tecnicas) {
+                    foreach ($registro->tecnicas as $tecnica) {
+                        $nombre = $tecnica->nombre;
+                        if (isset($tecnicasAggregadas[$nombre])) {
+                            $tecnicasAggregadas[$nombre]++;
+                        } else {
+                            $tecnicasAggregadas[$nombre] = 1;
+                        }
+                    }
+                }
+            }
+            $tecnicasTexto = count($tecnicasAggregadas) 
+                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
+                array_keys($tecnicasAggregadas), array_values($tecnicasAggregadas))) . '</ul>'
+                : 'Sin técnicas';
+
+            // 🔹 Agrupar y contar fibras
+            $fibrasAggregadas = [];
+            foreach ($group as $registro) {
+                if ($registro->fibras) {
+                    foreach ($registro->fibras as $fibra) {
+                        $nombre = $fibra->nombre;
+                        if (isset($fibrasAggregadas[$nombre])) {
+                            $fibrasAggregadas[$nombre]++;
+                        } else {
+                            $fibrasAggregadas[$nombre] = 1;
+                        }
+                    }
+                }
+            }
+            $fibrasTexto = count($fibrasAggregadas) 
+                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
+                array_keys($fibrasAggregadas), array_values($fibrasAggregadas))) . '</ul>'
+                : 'Sin fibras';
+
+            return [
+                'op'                => $first->op,
+                'panel'             => $panelesTexto,
+                'maquina'           => $maquinasTexto,
+                'tecnicas'          => $tecnicasTexto,
+                'fibras'            => $fibrasTexto,
+                'grafica'           => $graficasTexto,
+                'cliente'           => $clientesTexto,
+                'estilo'            => $first->estilo,
+                'color'             => $first->color,
+                'tecnico_screen'    => $tecnicosTexto,
+                'cantidad'          => $totalCantidad,
+                'defectos'          => $defectosTexto,
+                'accion_correctiva' => $accionesCorrectivasTexto
+            ];
+        })->values(); // values() para reindexar el array
+
+        return response()->json($result);
+    }
+
+    public function getPlanchaStats()
+    {
+        // Obtener las inspecciones que tengan la relación "plancha" (y sus defectos)
+        $inspecciones = InspeccionHorno::with(['plancha.defectos'])
+                            ->whereHas('plancha')
+                            ->get();
+
+        // Calcular la Cantidad total revisada (suma de la columna "cantidad" de InspeccionHorno)
+        $cantidad_total_revisada = $inspecciones->sum('plancha.piezas_auditadas');
+
+        // Inicializar la variable para la cantidad total de defectos
+        $cantidad_defectos = 0;
+
+        // Recorrer cada inspección y sumar la cantidad de defectos de la relación "screen.defectos"
+        foreach ($inspecciones as $inspeccion) {
+            if ($inspeccion->plancha && $inspeccion->plancha->defectos) {
+                foreach ($inspeccion->plancha->defectos as $defecto) {
+                    // Se asume que $defecto->cantidad es un valor numérico
+                    $cantidad_defectos += $defecto->cantidad;
+                }
+            }
+        }
+
+        // Calcular el porcentaje de defectos
+        // Se asume que "Porcentaje de defectos" es: (Cantidad de defectos / Cantidad total revisada) * 100
+        $porcentaje_defectos = 0;
+        if ($cantidad_total_revisada > 0) {
+            $porcentaje_defectos = ($cantidad_defectos / $cantidad_total_revisada) * 100;
+        }
+        // Redondear el porcentaje a 2 decimales (opcional)
+        $porcentaje_defectos = round($porcentaje_defectos, 2);
+
+        // Retornar los datos estadísticos en formato JSON
+        return response()->json([
+            'cantidad_total_revisada' => $cantidad_total_revisada,
+            'cantidad_defectos'       => $cantidad_defectos,
+            'porcentaje_defectos'     => $porcentaje_defectos
+        ]);
+    }
 
 }
