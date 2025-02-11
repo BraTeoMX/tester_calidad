@@ -311,6 +311,95 @@ class ScreenV2Controller extends Controller
         }
     }
 
+    public function bultosPorDia(Request $request)
+    {
+        // Obtener el inicio y fin del día actual
+        $inicioDia = \Carbon\Carbon::now()->startOfDay();
+        $finDia    = \Carbon\Carbon::now()->endOfDay();
+
+        // Traer las inspecciones del día con las relaciones necesarias
+        $inspecciones = InspeccionHorno::with([
+            'tecnicas',             // Relación con InspeccionHornoTecnica
+            'fibras',               // Relación con InspeccionHornoFibra
+            'screen.defectos',      // Relación: InspeccionHornoScreen y sus defectos
+            'plancha.defectos'      // Relación: InspeccionHornoPlancha y sus defectos
+        ])
+        ->whereBetween('created_at', [$inicioDia, $finDia])
+        ->get();
+
+        // Procesar cada registro para formatear los datos a mostrar
+        $data = $inspecciones->map(function ($inspeccion) {
+            // Técnicas: Se muestran únicas y formateadas como <ul><li>...</li></ul>
+            $tecnicas = '';
+            if ($inspeccion->tecnicas->isNotEmpty()) {
+                $tecnicaItems = $inspeccion->tecnicas
+                                    ->pluck('nombre')
+                                    ->unique()
+                                    ->map(function ($tecnica) {
+                                        return '<li>' . $tecnica . '</li>';
+                                    });
+                $tecnicas = '<ul>' . $tecnicaItems->implode('') . '</ul>';
+            }
+
+            // Fibras: Se muestran con cantidad en paréntesis, formateadas como lista <ul><li>...</li></ul>
+            $fibras = '';
+            if ($inspeccion->fibras->isNotEmpty()) {
+                $fibraItems = $inspeccion->fibras
+                                    ->map(function ($fibra) {
+                                        return '<li>' . $fibra->nombre . ' (' . $fibra->cantidad . ')</li>';
+                                    })
+                                    ->unique();
+                $fibras = '<ul>' . $fibraItems->implode('') . '</ul>';
+            }
+
+            // Defectos de Screen: Se muestran como <ul><li>...</li></ul>
+            $screenDefectos = '';
+            if ($inspeccion->screen && $inspeccion->screen->defectos->isNotEmpty()) {
+                $screenDefectoItems = $inspeccion->screen->defectos
+                                                ->map(function ($defecto) {
+                                                    return '<li>' . $defecto->nombre . ' (' . $defecto->cantidad . ')</li>';
+                                                })
+                                                ->unique();
+                $screenDefectos = '<ul>' . $screenDefectoItems->implode('') . '</ul>';
+            }
+            // Defectos de Plancha: se formatean como lista desordenada (<ul><li>...</li></ul>)
+            $planchaDefectos = '';
+            if ($inspeccion->plancha && $inspeccion->plancha->defectos->isNotEmpty()) {
+                $planchaItems = $inspeccion->plancha->defectos
+                                        ->map(function ($defecto) {
+                                            return '<li>' . $defecto->nombre . ' (' . $defecto->cantidad . ')</li>';
+                                        })
+                                        ->unique();
+                $planchaDefectos = '<ul>' . $planchaItems->implode('') . '</ul>';
+            }
+
+            // Nombre del técnico para Screen y para Plancha
+            $tecnicoScreen  = $inspeccion->screen ? $inspeccion->screen->nombre_tecnico : '';
+            $tecnicoPlancha = $inspeccion->plancha ? $inspeccion->plancha->nombre_tecnico : '';
+
+            return [
+                'bulto'            => $inspeccion->bulto ?? 'N/A',
+                'op'               => $inspeccion->op ?? 'N/A',
+                'cliente'          => $inspeccion->cliente ?? 'N/A',
+                'estilo'           => $inspeccion->estilo ?? 'N/A',
+                'color'            => $inspeccion->color ?? 'N/A',
+                'cantidad'         => $inspeccion->cantidad ?? 'N/A',
+                'panel'            => $inspeccion->panel ?? 'N/A',
+                'maquina'          => $inspeccion->maquina ?? 'N/A',
+                'grafica'          => $inspeccion->grafica ?? 'N/A',
+                'tecnicas'         => !empty($tecnicas) ? $tecnicas : 'N/A',
+                'fibras'           => !empty($fibras) ? $fibras : 'N/A',
+                'screenDefectos'   => !empty($screenDefectos) ? $screenDefectos : 'N/A',
+                'planchaDefectos'  => !empty($planchaDefectos) ? $planchaDefectos : 'N/A',
+                'tecnico_screen'   => !empty($tecnicoScreen) ? $tecnicoScreen : 'N/A',
+                'tecnico_plancha'  => !empty($tecnicoPlancha) ? $tecnicoPlancha : 'N/A',
+                'fecha'            => $inspeccion->created_at ? $inspeccion->created_at->format('H:i:s') : 'N/A'
+            ];            
+        });
+
+        return response()->json(['data' => $data]);
+    }
+
     public function screenV2(Request $request)
     {
 

@@ -247,6 +247,36 @@
                 </div>
             </form>
         </div>
+        <div class="card card-body">
+            <div class="table-responsive">
+                <!-- Tabla para mostrar los registros del día -->
+                <table class="table table-striped" id="tabla-bultos-por-dia">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Bulto</th>
+                            <th>OP</th>
+                            <th>Cliente</th>
+                            <th>Estilo</th>
+                            <th>Color</th>
+                            <th>Cantidad</th>
+                            <th>Panel</th>
+                            <th>Maquina</th>
+                            <th>Grafica</th>
+                            <th>Técnicas</th>
+                            <th>Fibras</th>
+                            <th>Tecnico Screen</th>
+                            <th>Defectos Screen</th>
+                            <th>Tecnico Plancha</th>
+                            <th>Defectos Plancha</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Aquí se insertarán los registros -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <style>
@@ -1309,4 +1339,55 @@
             });
         });
     </script>
+
+    <script>
+        $(document).ready(function(){
+            // Función para cargar los registros del día vía AJAX
+            function cargarBultosPorDia() {
+                $.ajax({
+                    url: '{{ route("bultosPorDia") }}', // Ruta definida para el método bultosPorDia
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        var tbody = $("#tabla-bultos-por-dia tbody");
+                        tbody.empty(); // Limpiar la tabla
+
+                        // Iterar sobre cada registro y construir la fila
+                        $.each(response.data, function(index, registro) {
+                            var row = "<tr>";
+                            row += "<td>" + registro.bulto + "</td>";              // Primera columna: Bulto
+                            row += "<td>" + registro.op + "</td>";
+                            row += "<td>" + registro.cliente + "</td>";
+                            row += "<td>" + registro.estilo + "</td>";
+                            row += "<td>" + registro.color + "</td>";
+                            row += "<td>" + registro.cantidad + "</td>";
+                            row += "<td>" + registro.panel + "</td>";
+                            row += "<td>" + registro.maquina + "</td>";
+                            row += "<td>" + registro.grafica + "</td>";
+                            row += "<td>" + registro.tecnicas + "</td>";
+                            row += "<td>" + registro.fibras + "</td>";
+                            row += "<td>" + registro.tecnico_screen + "</td>";      // Técnico de Screen
+                            row += "<td>" + registro.screenDefectos + "</td>";
+                            row += "<td>" + registro.tecnico_plancha + "</td>";       // Técnico de Plancha
+                            row += "<td>" + registro.planchaDefectos + "</td>";       // Defectos de Plancha (en lista HTML)
+                            row += "<td>" + registro.fecha + "</td>";
+                            row += "</tr>";
+                            tbody.append(row);
+                        });
+                    },
+                    error: function() {
+                        alert("Error al cargar los registros del día");
+                    }
+                });
+            }
+
+            // Llamar a la función al cargar la página
+            cargarBultosPorDia();
+
+            // Opcional: refrescar cada cierto tiempo
+            // setInterval(cargarBultosPorDia, 60000); // cada 60 segundos
+        });
+    </script>
+
+
 @endsection

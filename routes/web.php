@@ -420,6 +420,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/screenV2/strart', [ScreenV2Controller::class, 'getScreenStats'])->name('screenV2.strart');
     Route::get('/planchaV2/data', [ScreenV2Controller::class, 'getPlanchaData'])->name('planchaV2.data');
     Route::get('/planchaV2/strart', [ScreenV2Controller::class, 'getPlanchaStats'])->name('planchaV2.strart');
+    Route::get('/bultosPorDia', [ScreenV2Controller::class, 'bultosPorDia'])->name('bultosPorDia');
     Route::post('/formControlHorno', [ScreenV2Controller::class, 'formControlHorno'])->name('formControlHorno');
 
 
