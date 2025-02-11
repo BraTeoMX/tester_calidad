@@ -338,6 +338,28 @@ class ScreenV2Controller extends Controller
             // Sumar la cantidad total de los registros del mismo "op"
             $totalCantidad = $group->sum('cantidad');
 
+            // 🔹 Agrupar valores únicos en listas (sin cantidad)
+            $panelesTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
+                $group->pluck('panel')->unique()->toArray())) . '</ul>';
+
+            $maquinasTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
+                $group->pluck('maquina')->unique()->toArray())) . '</ul>';
+
+            $graficasTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
+                $group->pluck('grafica')->unique()->toArray())) . '</ul>';
+
+            $clientesTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
+                $group->pluck('cliente')->unique()->toArray())) . '</ul>';
+
+            $tecnicosTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
+                $group->pluck('screen.nombre_tecnico')->unique()->toArray())) . '</ul>';
+
+            // 🔹 Agrupar acciones correctivas y evitar listas vacías
+            $accionesCorrectivasTexto = $group->pluck('screen.accion_correctiva')->unique()->filter()->toArray();
+            $accionesCorrectivasTexto = count($accionesCorrectivasTexto) 
+                ? '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", $accionesCorrectivasTexto)) . '</ul>' 
+                : 'N/A';
+
             // 🔹 Agrupar y contar defectos
             $defectosAggregados = [];
             foreach ($group as $registro) {
@@ -354,60 +376,20 @@ class ScreenV2Controller extends Controller
             }
             $defectosTexto = count($defectosAggregados) 
                 ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($defectosAggregados), array_values($defectosAggregados))) . '</ul>'
+                array_keys($defectosAggregados), array_values($defectosAggregados))) . '</ul>' 
                 : 'Sin defectos';
-
-            // 🔹 Agrupar y contar técnicas
-            $tecnicasAggregadas = [];
-            foreach ($group as $registro) {
-                if ($registro->tecnicas) {
-                    foreach ($registro->tecnicas as $tecnica) {
-                        $nombre = $tecnica->nombre;
-                        if (isset($tecnicasAggregadas[$nombre])) {
-                            $tecnicasAggregadas[$nombre]++;
-                        } else {
-                            $tecnicasAggregadas[$nombre] = 1;
-                        }
-                    }
-                }
-            }
-            $tecnicasTexto = count($tecnicasAggregadas) 
-                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($tecnicasAggregadas), array_values($tecnicasAggregadas))) . '</ul>'
-                : 'Sin técnicas';
-
-            // 🔹 Agrupar y contar fibras
-            $fibrasAggregadas = [];
-            foreach ($group as $registro) {
-                if ($registro->fibras) {
-                    foreach ($registro->fibras as $fibra) {
-                        $nombre = $fibra->nombre;
-                        if (isset($fibrasAggregadas[$nombre])) {
-                            $fibrasAggregadas[$nombre]++;
-                        } else {
-                            $fibrasAggregadas[$nombre] = 1;
-                        }
-                    }
-                }
-            }
-            $fibrasTexto = count($fibrasAggregadas) 
-                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($fibrasAggregadas), array_values($fibrasAggregadas))) . '</ul>'
-                : 'Sin fibras';
 
             return [
                 'op'                => $first->op,
-                'panel'             => $first->panel,
-                'maquina'           => $first->maquina,
-                'tecnicas'          => $tecnicasTexto,
-                'fibras'            => $fibrasTexto,
-                'grafica'           => $first->grafica,
-                'cliente'           => $first->cliente,
+                'panel'             => $panelesTexto,
+                'maquina'           => $maquinasTexto,
+                'grafica'           => $graficasTexto,
+                'cliente'           => $clientesTexto,
                 'estilo'            => $first->estilo,
                 'color'             => $first->color,
+                'tecnico_screen'    => $tecnicosTexto,
                 'cantidad'          => $totalCantidad,
-                'tecnico_screen'    => $first->screen ? $first->screen->nombre_tecnico : 'N/A',
-                'accion_correctiva' => $first->screen ? $first->screen->accion_correctiva : 'N/A',
+                'accion_correctiva' => $accionesCorrectivasTexto,
                 'defectos'          => $defectosTexto
             ];
         })->values(); // values() para reindexar el array
