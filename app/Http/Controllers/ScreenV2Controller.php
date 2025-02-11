@@ -23,6 +23,7 @@ use App\Models\CategoriaTipoMaquina;
 use App\Models\Tecnicos;
 use App\Models\Tipo_Fibra;
 use App\Models\Tipo_Tecnica;
+use App\Models\Horno_Banda;
 
 class ScreenV2Controller extends Controller
 {
@@ -316,8 +317,19 @@ class ScreenV2Controller extends Controller
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
+        // Obtener el inicio y fin del día
+        $inicioDia = Carbon::now()->startOfDay(); // 00:00:00
+        $finDia = Carbon::now()->endOfDay(); // 23:59:59
 
-        return view('ScreenPlanta2.screenV2', compact('mesesEnEspanol'));
+        // Obtener registros del día y formatear la hora
+        $registroHornoDia = Horno_Banda::whereBetween('created_at', [$inicioDia, $finDia])
+            ->get()
+            ->map(function ($registro) {
+                $registro->hora = Carbon::parse($registro->created_at)->format('H:i:s'); // Formato 24h
+                return $registro;
+            });
+
+        return view('ScreenPlanta2.screenV2', compact('mesesEnEspanol', 'registroHornoDia'));
     }
 
     public function getScreenData()
@@ -649,5 +661,20 @@ class ScreenV2Controller extends Controller
             'porcentaje_defectos'     => $porcentaje_defectos
         ]);
     }
+
+    public function formControlHorno(Request $request) 
+    {
+        
+        //dd($request->all());
+        // Guardar el registro
+        $registro = new Horno_Banda();
+        $registro->temperatura_horno = $request->grados;
+        $registro->velocidad_banda = "{$request->minuto}:{$request->segundo}"; // Formato mm:ss
+        $registro->save();
+
+        // Redirigir a la misma vista con un mensaje de éxito
+        return redirect()->back()->with('success', 'Datos guardados correctamente.');
+    }
+
 
 }

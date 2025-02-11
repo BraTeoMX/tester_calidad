@@ -3,39 +3,39 @@
 @section('content')
     {{-- ... dentro de tu vista ... --}}
     @if (session('error'))
-    <div class="alert alert-danger">
-        {{ session('error') }}
-    </div>
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
     @endif
     @if (session('success'))
-    <div class="alert alerta-exito">
-        {{ session('success') }}
-        @if (session('sorteo'))
-            <br>{{ session('sorteo') }}
-        @endif
-    </div>
+        <div class="alert alerta-exito">
+            {{ session('success') }}
+            @if (session('sorteo'))
+                <br>{{ session('sorteo') }}
+            @endif
+        </div>
     @endif
     @if (session('sobre-escribir'))
-    <div class="alert sobre-escribir">
-        {{ session('sobre-escribir') }}
-    </div>
+        <div class="alert sobre-escribir">
+            {{ session('sobre-escribir') }}
+        </div>
     @endif
     @if (session('status'))
-    {{-- A menudo utilizado para mensajes de estado genéricos --}}
-    <div class="alert alert-secondary">
-        {{ session('status') }}
-    </div>
+        {{-- A menudo utilizado para mensajes de estado genéricos --}}
+        <div class="alert alert-secondary">
+            {{ session('status') }}
+        </div>
     @endif
     @if (session('cambio-estatus'))
-    <div class="alert cambio-estatus">
-        {{ session('cambio-estatus') }}
-    </div>
+        <div class="alert cambio-estatus">
+            {{ session('cambio-estatus') }}
+        </div>
     @endif
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Seleccionamos todos los elementos de alerta
             const alerts = document.querySelectorAll('.alert');
-    
+
             // Iteramos por cada alerta para aplicar el desvanecido
             alerts.forEach(alert => {
                 // Esperamos 6 segundos antes de iniciar el desvanecido
@@ -43,7 +43,7 @@
                     // Cambiamos la opacidad para el efecto de desvanecido
                     alert.style.transition = 'opacity 1s ease';
                     alert.style.opacity = '0';
-    
+
                     // Eliminamos el elemento del DOM después de 1 segundo (duración del desvanecido)
                     setTimeout(() => alert.remove(), 1000);
                 }, 5000); // Tiempo de espera antes de desvanecer (6 segundos)
@@ -95,9 +95,9 @@
                 </div>
             </div>
         </div>
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card card-body table-responsive">
                     <table class="table table-striped" id="tabla-screen-strart">
                         <thead class="thead-primary">
                             <tr>
@@ -112,10 +112,57 @@
                     </table>
                 </div>
             </div>
+            <div class="col-md-6">
+                <div class="card card-body table-responsive">
+                    <h4>Control de horno</h4>
+                    <form id="formInspeccion" method="POST" action="{{ route('formControlHorno') }}">
+                        @csrf
+                        <table class="table table-striped" id="control-horno">
+                            <thead class="thead-primary">
+                                <tr>
+                                    <th>Temperatura horno</th>
+                                    <th>Velocidad de banda</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <!-- Columna de Temperatura con Select -->
+                                    <td>
+                                        <select class="form-control temperatura-horno" name="grados">
+                                            <option value="160">160 °</option>
+                                            <option value="180">180 °</option>
+                                        </select>
+                                    </td>
+                                    <!-- Columna de Velocidad de Banda con Selects para Minutos y Segundos -->
+                                    <td>
+                                        <div class="d-flex">
+                                            <select class="form-control velocidad-min"
+                                                style="width: 60px; margin-right: 5px;" name="minuto">
+                                                <!-- Se generarán dinámicamente las opciones -->
+                                            </select>
+                                            <span>:</span>
+                                            <select class="form-control velocidad-sec"
+                                                style="width: 60px; margin-left: 5px;" name="segundo">
+                                                <!-- Se generarán dinámicamente las opciones -->
+                                            </select>
+                                        </div>
+                                    </td>
+                                    <!-- Botón de Acción -->
+                                    <td>
+                                        <button class="btn-verde-xd btn-accion">Guardar</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>
+                </div>
+            </div>
         </div>
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
+                    <h3>Registros por dia</h3>
                     <table class="table table-striped" id="tabla-screen">
                         <thead class="thead-primary">
                             <tr>
@@ -136,6 +183,31 @@
                         </thead>
                         <tbody>
                             <!-- Aquí se insertarán los datos dinámicos con AJAX -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card card-body table-responsive">
+                    <h4>Control de horno</h4>
+                    <table class="table table-striped">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Temperatura horno</th>
+                                <th>Velocidad de banda</th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($registroHornoDia as $horno)
+                                <tr>
+                                    <td>{{ $horno->temperatura_horno }}</td>
+                                    <td>{{ $horno->velocidad_banda }}</td>
+                                    <td>{{ $horno->hora }}</td>
+                                </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -170,12 +242,16 @@
 
         .btn-verde-xd:disabled,
         .btn-verde-xd.disabled {
-            color: #ffffff !important; 
-            background-color: #4bce67 !important; /* Verde más claro */
+            color: #ffffff !important;
+            background-color: #4bce67 !important;
+            /* Verde más claro */
             border-color: #4bce67 !important;
-            cursor: not-allowed !important; /* Cursor de "prohibido" */
-            opacity: 0.6; /* Reduce opacidad */
-            box-shadow: none !important; /* Elimina sombra */
+            cursor: not-allowed !important;
+            /* Cursor de "prohibido" */
+            opacity: 0.6;
+            /* Reduce opacidad */
+            box-shadow: none !important;
+            /* Elimina sombra */
         }
 
         .btn-verde-xd:not(:disabled):not(.disabled).active,
@@ -191,14 +267,18 @@
         .show>.btn-verde-xd.dropdown-toggle:focus {
             box-shadow: none, 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
         }
-        
+
         thead.thead-primary {
-            background-color: #59666e54; /* Azul claro */
-            color: #333;                 /* Color del texto */
+            background-color: #59666e54;
+            /* Azul claro */
+            color: #333;
+            /* Color del texto */
         }
+
         .texto-blanco {
             color: white !important;
         }
+
         /* Ajusta Select2 dentro de las celdas de la tabla */
         td .select2-container {
             width: 100% !important;
@@ -222,9 +302,12 @@
 
         /* Si usas un tema oscuro, cambia los colores del Select2 */
         .select2-container--default .select2-selection--single {
-            background-color: #1e1e1e; /* Color de fondo oscuro */
-            color: #ffffff; /* Texto blanco */
-            border: 1px solid #444; /* Borde más discreto */
+            background-color: #1e1e1e;
+            /* Color de fondo oscuro */
+            color: #ffffff;
+            /* Texto blanco */
+            border: 1px solid #444;
+            /* Borde más discreto */
         }
 
         /* Estilos base para el contenedor del checkbox */
@@ -264,12 +347,12 @@
         }
 
         /* Icono de la palomita cuando está marcado */
-        .form-check input[type="checkbox"]:checked + label::before {
+        .form-check input[type="checkbox"]:checked+label::before {
             background-color: #4CAF50;
             border-color: #4CAF50;
         }
 
-        .form-check input[type="checkbox"]:checked + label::after {
+        .form-check input[type="checkbox"]:checked+label::after {
             content: "✔";
             position: absolute;
             left: 5px;
@@ -288,7 +371,7 @@
 
         function cargarRegistros() {
             $.ajax({
-                url: "{{ route('screenV2.data') }}", 
+                url: "{{ route('screenV2.data') }}",
                 method: "GET",
                 dataType: "json",
                 success: function(data) {
@@ -320,7 +403,7 @@
     </script>
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             cargarDatosEstadisticos();
         });
 
@@ -329,7 +412,7 @@
                 url: "{{ route('screenV2.strart') }}", // Llamamos a la ruta de la función getScreenStats
                 method: "GET",
                 dataType: "json",
-                success: function (data) {
+                success: function(data) {
                     let fila = `
                         <tr>
                             <td>${data.cantidad_total_revisada}</td>
@@ -340,11 +423,29 @@
 
                     $("#tabla-screen-strart tbody").html(fila);
                 },
-                error: function (error) {
+                error: function(error) {
                     console.error("Error al obtener datos estadísticos:", error);
                 }
             });
         }
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            // Generar opciones para los minutos (01 al 05)
+            let minutosSelect = $(".velocidad-min");
+            for (let i = 1; i <= 5; i++) {
+                let valorFormateado = i.toString().padStart(2, '0'); // Asegura "01", "02", etc.
+                minutosSelect.append(new Option(valorFormateado, valorFormateado));
+            }
+
+            // Generar opciones para los segundos (00, 10, 20, ..., 50)
+            let segundosSelect = $(".velocidad-sec");
+            for (let i = 0; i <= 50; i += 10) {
+                let valorFormateado = i.toString().padStart(2, '0'); // Asegura "00", "10", etc.
+                segundosSelect.append(new Option(valorFormateado, valorFormateado));
+            }
+        });
     </script>
 
 @endsection
