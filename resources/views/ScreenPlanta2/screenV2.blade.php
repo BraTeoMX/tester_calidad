@@ -102,6 +102,8 @@
                                 <th>OP</th>
                                 <th>Panel</th>
                                 <th>Máquina</th>
+                                <th>Técnicas</th> <!-- Nueva columna -->
+                                <th>Fibras</th> <!-- Nueva columna -->
                                 <th>Gráfica</th>
                                 <th>Cliente</th>
                                 <th>Estilo</th>
@@ -117,7 +119,7 @@
                         </tbody>
                     </table>
                 </div>
-            </div>            
+            </div>
         </div>
     </div>
 
@@ -276,6 +278,8 @@
                             <td>${registro.op}</td>
                             <td>${registro.panel}</td>
                             <td>${registro.maquina}</td>
+                            <td>${registro.tecnicas}</td>
+                            <td>${registro.fibras}</td>
                             <td>${registro.grafica}</td>
                             <td>${registro.cliente}</td>
                             <td>${registro.estilo}</td>
@@ -294,5 +298,6 @@
             });
         }
     </script>
+
 
 @endsection

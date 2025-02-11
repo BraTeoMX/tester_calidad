@@ -322,7 +322,7 @@ class ScreenV2Controller extends Controller
 
     public function getScreenData()
     {
-        // Obtiene todos los registros con sus relaciones
+        // Obtener todos los registros con sus relaciones
         $inspecciones = InspeccionHorno::with(['screen.defectos', 'tecnicas', 'fibras'])
                             ->orderBy('created_at', 'desc')
                             ->get();
@@ -330,41 +330,77 @@ class ScreenV2Controller extends Controller
         // Agrupar los registros por la columna "op"
         $grouped = $inspecciones->groupBy('op');
 
-        // Para cada grupo, se prepara un array con la información agregada
+        // Preparar los datos finales
         $result = $grouped->map(function ($group) {
-            // Tomamos el primer registro del grupo para campos comunes (asumiendo que son iguales)
+            // Tomamos el primer registro del grupo para campos comunes
             $first = $group->first();
 
             // Sumar la cantidad total de los registros del mismo "op"
             $totalCantidad = $group->sum('cantidad');
 
-            // Agregar los defectos: se acumulan por nombre para evitar repeticiones y contar la cantidad total
+            // 🔹 Agrupar y contar defectos
             $defectosAggregados = [];
             foreach ($group as $registro) {
                 if ($registro->screen && $registro->screen->defectos) {
                     foreach ($registro->screen->defectos as $defecto) {
                         $nombre = $defecto->nombre;
-                        $cantidad = $defecto->cantidad;
                         if (isset($defectosAggregados[$nombre])) {
-                            $defectosAggregados[$nombre] += $cantidad;
+                            $defectosAggregados[$nombre]++;
                         } else {
-                            $defectosAggregados[$nombre] = $cantidad;
+                            $defectosAggregados[$nombre] = 1;
                         }
                     }
                 }
             }
+            $defectosTexto = count($defectosAggregados) 
+                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
+                array_keys($defectosAggregados), array_values($defectosAggregados))) . '</ul>'
+                : 'Sin defectos';
 
-            // Se arma un string para defectos, por ejemplo: "exceso de escarcha (4), otro defecto (2)"
-            $defectosTexto = [];
-            foreach ($defectosAggregados as $nombre => $cantidad) {
-                $defectosTexto[] = "{$nombre} ({$cantidad})";
+            // 🔹 Agrupar y contar técnicas
+            $tecnicasAggregadas = [];
+            foreach ($group as $registro) {
+                if ($registro->tecnicas) {
+                    foreach ($registro->tecnicas as $tecnica) {
+                        $nombre = $tecnica->nombre;
+                        if (isset($tecnicasAggregadas[$nombre])) {
+                            $tecnicasAggregadas[$nombre]++;
+                        } else {
+                            $tecnicasAggregadas[$nombre] = 1;
+                        }
+                    }
+                }
             }
-            $defectosFinal = count($defectosTexto) ? implode(', ', $defectosTexto) : 'Sin defectos';
+            $tecnicasTexto = count($tecnicasAggregadas) 
+                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
+                array_keys($tecnicasAggregadas), array_values($tecnicasAggregadas))) . '</ul>'
+                : 'Sin técnicas';
+
+            // 🔹 Agrupar y contar fibras
+            $fibrasAggregadas = [];
+            foreach ($group as $registro) {
+                if ($registro->fibras) {
+                    foreach ($registro->fibras as $fibra) {
+                        $nombre = $fibra->nombre;
+                        if (isset($fibrasAggregadas[$nombre])) {
+                            $fibrasAggregadas[$nombre]++;
+                        } else {
+                            $fibrasAggregadas[$nombre] = 1;
+                        }
+                    }
+                }
+            }
+            $fibrasTexto = count($fibrasAggregadas) 
+                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
+                array_keys($fibrasAggregadas), array_values($fibrasAggregadas))) . '</ul>'
+                : 'Sin fibras';
 
             return [
                 'op'                => $first->op,
                 'panel'             => $first->panel,
                 'maquina'           => $first->maquina,
+                'tecnicas'          => $tecnicasTexto,
+                'fibras'            => $fibrasTexto,
                 'grafica'           => $first->grafica,
                 'cliente'           => $first->cliente,
                 'estilo'            => $first->estilo,
@@ -372,7 +408,7 @@ class ScreenV2Controller extends Controller
                 'cantidad'          => $totalCantidad,
                 'tecnico_screen'    => $first->screen ? $first->screen->nombre_tecnico : 'N/A',
                 'accion_correctiva' => $first->screen ? $first->screen->accion_correctiva : 'N/A',
-                'defectos'          => $defectosFinal,
+                'defectos'          => $defectosTexto
             ];
         })->values(); // values() para reindexar el array
 
