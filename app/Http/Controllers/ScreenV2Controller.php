@@ -303,7 +303,7 @@ class ScreenV2Controller extends Controller
             DB::commit(); // Confirmar la transacción
 
             // Redirigir a la misma vista con mensaje de éxito
-            return redirect()->back()->with('success', 'Inspección registrada con éxito');
+            return redirect()->back()->with('success', 'Inspección registrada con éxito')->withInput();
         } catch (\Exception $e) {
             DB::rollBack(); // Revertir la transacción en caso de error
             return redirect()->back()->with('error', 'Error al guardar la inspección. Inténtalo de nuevo.');

@@ -125,7 +125,7 @@
                                         <div id="listaTipoFibraScreen" class="mt-2"></div>
                                     </td>
                                     <td>
-                                        <input type="text" class="form-control texto-blanco" name="valor_grafica" id="valor_grafica" required>
+                                        <input type="text" class="form-control texto-blanco" name="valor_grafica" id="valor_grafica" value="{{ old('valor_grafica') }}" required>
                                     </td>
                                 </tr>
                             </tbody>
@@ -418,65 +418,49 @@
     <!-- Script general para los select comunes -->
     <script>
         $(document).ready(function () {
-            function cargarSelect2(selector, url, modelo) {
+            function cargarSelect2(selector, url, modelo, valorSeleccionado) {
                 $(selector).select2({
                     placeholder: "Seleccione una opción",
                     ajax: {
                         url: url,
-                        dataType: 'json',
+                        dataType: "json",
                         delay: 250,
                         processResults: function (data) {
-                            let results = $.map(data, function (item) {
-                                return { id: item.id, text: item.nombre };
-                            });
-
-                            results.unshift({ id: "otro", text: "OTRO" });
-
-                            return { results: results };
+                            return {
+                                results: $.map(data, function (item) {
+                                    // Se asigna el texto con item.nombre
+                                    return { id: item.id, text: item.nombre };
+                                }),
+                            };
                         },
-                        cache: true
-                    }
+                        cache: true,
+                    },
                 });
 
-                $(selector).on("select2:select", function (e) {
-                    let selectedValue = e.params.data.id;
-
-                    if (selectedValue === "otro") {
-                        let nuevoValor = prompt("Ingrese el nuevo valor para " + modelo + ":");
-
-                        if (nuevoValor) {
-                            nuevoValor = nuevoValor.toUpperCase();
-
-                            $.ajax({
-                                url: "/guardarNuevoValor",
-                                type: "POST",
-                                data: {
-                                    nombre: nuevoValor,
-                                    modelo: modelo,
-                                    estatus: 1,
-                                    _token: "{{ csrf_token() }}"
-                                },
-                                success: function (response) {
-                                    if (response.success) {
-                                        let newOption = new Option(nuevoValor, response.id, true, true);
-                                        $(selector).append(newOption).trigger('change');
-                                    } else {
-                                        alert("Error al guardar el nuevo valor.");
-                                    }
-                                },
-                                error: function () {
-                                    alert("Ocurrió un error. Intente de nuevo.");
-                                }
-                            });
-                        }
-
-                        $(selector).val(null).trigger('change');
-                    }
-                });
+                // Si hay un valor guardado en old(), lo buscamos y lo agregamos manualmente.
+                if (valorSeleccionado) {
+                    $.ajax({
+                        url: url,
+                        data: { id: valorSeleccionado },
+                        success: function (response) {
+                            // Se asume que la respuesta es un arreglo que contiene el objeto con el id buscado.
+                            let item = response.find((el) => el.id == valorSeleccionado);
+                            if (item) {
+                                // Usamos item.nombre para el texto (ya que en processResults definimos text: item.nombre)
+                                let newOption = new Option(item.nombre, item.id, true, true);
+                                $(selector).append(newOption).trigger("change");
+                            }
+                        },
+                        error: function () {
+                            console.error("Error al obtener el valor seleccionado de " + modelo);
+                        },
+                    });
+                }
             }
 
-            cargarSelect2("#categoriaTipoPanel", "/categoriaTipoPanel", "CategoriaTipoPanel");
-            cargarSelect2("#categoriaTipoMaquina", "/categoriaTipoMaquina", "CategoriaTipoMaquina");
+            // Llamamos a la función pasando el valor almacenado (old) para que se muestre seleccionado.
+            cargarSelect2("#categoriaTipoPanel", "/categoriaTipoPanel", "CategoriaTipoPanel", "{{ old('tipo_panel') }}");
+            cargarSelect2("#categoriaTipoMaquina", "/categoriaTipoMaquina", "CategoriaTipoMaquina", "{{ old('tipo_maquina') }}");
         });
     </script>
 
@@ -1124,10 +1108,8 @@
     
     <script>
         $(document).ready(function() {
-
-            /**
-             * 1) Inicializa el select2 para la OP (prodid)
-             */
+        
+            // 1) Inicializar op-select con Select2
             $('#op-select').select2({
                 placeholder: 'Busca una OP...',
                 minimumInputLength: 4,
@@ -1162,22 +1144,37 @@
                     cache: true
                 }
             });
-
-            /**
-             * 2) Cuando seleccionamos una OP, habilitamos y cargamos el select2 de bultos
-             */
+        
+            // Si ya hay un valor seleccionado (old) para op-select,
+            // lo agregamos y forzamos la inicialización de bulto-select.
+            let opSeleccionada = "{{ old('op_select') }}";
+            if (opSeleccionada) {
+                // Nota: Si el valor old es solo un string, usaremos ese mismo valor
+                // para el id y el texto (idealmente deberías obtener el texto completo del servidor).
+                let newOption = new Option(opSeleccionada, opSeleccionada, true, true);
+                $('#op-select').append(newOption).trigger("change");
+        
+                // Llamar a la función que reconfigura bulto-select
+                inicializarBultoSelect(opSeleccionada);
+            }
+        
+            // 2) Cuando se selecciona una OP manualmente, se habilita y carga el select2 de bultos.
             $('#op-select').on('select2:select', function(e) {
                 var selectedOp = e.params.data.id;
-
+                inicializarBultoSelect(selectedOp);
+            });
+        
+            // Función para inicializar y habilitar bulto-select según la OP seleccionada
+            function inicializarBultoSelect(selectedOp) {
                 // Limpiar y deshabilitar el select de bultos antes de volverlo a llenar
                 $('#bulto-select').html('').prop('disabled', true).val(null).trigger('change');
-
+        
                 // Limpiar celdas de la tabla
                 $('#cliente-cell').text('');
                 $('#estilo-cell').text('');
                 $('#color-cell').text('');
                 $('#cantidad-cell').text('');
-
+        
                 // Inicializa de nuevo el select2 para bultos, ahora con la OP seleccionada
                 $('#bulto-select').select2({
                     placeholder: 'Selecciona un bulto...',
@@ -1185,7 +1182,6 @@
                     width: '100%', // IMPORTANTE: Hace que se ajuste a la celda
                     dropdownAutoWidth: true,
                     language: {
-                        // Puedes quitar la función inputTooShort ya que no será necesaria
                         noResults: function() {
                             return 'No se encontraron bultos para la OP seleccionada';
                         },
@@ -1199,7 +1195,7 @@
                         delay: 250,
                         data: function(params) {
                             return {
-                                op: selectedOp,  // Enviamos la OP seleccionada
+                                op: selectedOp,  // Enviar la OP seleccionada
                                 q: params.term   // Para filtrar según lo que se escriba
                             };
                         },
@@ -1211,22 +1207,20 @@
                         cache: true
                     }
                 });
-
-                // Habilitamos el select de bultos
+        
+                // Habilitar el select de bultos y enfocar
                 $('#bulto-select').prop('disabled', false).focus();
-            });
-
-            /**
-             * 3) Cuando seleccionamos un bulto, consultamos sus datos y los mostramos
-             */
+            }
+        
+            // 3) Cuando se selecciona un bulto, se consultan sus datos y se muestran en la tabla.
             $('#bulto-select').on('select2:select', function(e) {
-                var bultoId = e.params.data.id; // Este es el ID de la tabla JobAQLHistorial
-
+                var bultoId = e.params.data.id; // Este es el ID del bulto
+        
                 $.ajax({
                     url: '/get-bulto-details-screen/' + bultoId,
                     type: 'GET',
                     success: function(response) {
-                        // Llenamos las celdas con los datos del bulto
+                        // Llenar celdas con los datos del bulto
                         $('#cliente-cell').html(response.cliente + `<input type="hidden" name="cliente_seleccionado" value="${response.cliente}"/>`);
                         $('#estilo-cell').html(response.estilo + `<input type="hidden" name="estilo_seleccionado" value="${response.estilo}"/>`);
                         $('#color-cell').html(response.color + `<input type="hidden" name="color_seleccionado" value="${response.color}"/>`);
@@ -1239,7 +1233,7 @@
                 });
             });
         });
-    </script>
+    </script>        
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
