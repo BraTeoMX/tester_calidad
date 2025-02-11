@@ -110,8 +110,8 @@
                                 <th>Color</th>
                                 <th>Cantidad</th>
                                 <th>Técnico Screen</th>
-                                <th>Acción Correctiva</th>
                                 <th>Defectos</th>
+                                <th>Acción Correctiva</th>
                             </tr>
                         </thead>
                         <tbody>

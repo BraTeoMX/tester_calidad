@@ -51,35 +51,35 @@
         });
     </script>
     <style>
-    .alerta-exito {
-        background-color: #32CD32;
-        /* Color de fondo verde */
-        color: white;
-        /* Color de texto blanco */
-        padding: 20px;
-        border-radius: 15px;
-        font-size: 20px;
-    }
+        .alerta-exito {
+            background-color: #32CD32;
+            /* Color de fondo verde */
+            color: white;
+            /* Color de texto blanco */
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 20px;
+        }
 
-    .sobre-escribir {
-        background-color: #FF8C00;
-        /* Color de fondo verde */
-        color: white;
-        /* Color de texto blanco */
-        padding: 20px;
-        border-radius: 15px;
-        font-size: 20px;
-    }
+        .sobre-escribir {
+            background-color: #FF8C00;
+            /* Color de fondo verde */
+            color: white;
+            /* Color de texto blanco */
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 20px;
+        }
 
-    .cambio-estatus {
-        background-color: #800080;
-        /* Color de fondo verde */
-        color: white;
-        /* Color de texto blanco */
-        padding: 20px;
-        border-radius: 15px;
-        font-size: 20px;
-    }
+        .cambio-estatus {
+            background-color: #800080;
+            /* Color de fondo verde */
+            color: white;
+            /* Color de texto blanco */
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 20px;
+        }
     </style>
 
     <div class="content">
@@ -418,7 +418,7 @@
     <!-- Script general para los select comunes -->
     <script>
         $(document).ready(function () {
-            function cargarSelect2(selector, url, modelo, valorSeleccionado) {
+            function cargarSelect2(selector, url, modelo, valorSeleccionado, campoOculto) {
                 $(selector).select2({
                     placeholder: "Seleccione una opción",
                     ajax: {
@@ -428,7 +428,6 @@
                         processResults: function (data) {
                             return {
                                 results: $.map(data, function (item) {
-                                    // Se asigna el texto con item.nombre
                                     return { id: item.id, text: item.nombre };
                                 }),
                             };
@@ -443,12 +442,11 @@
                         url: url,
                         data: { id: valorSeleccionado },
                         success: function (response) {
-                            // Se asume que la respuesta es un arreglo que contiene el objeto con el id buscado.
                             let item = response.find((el) => el.id == valorSeleccionado);
                             if (item) {
-                                // Usamos item.nombre para el texto (ya que en processResults definimos text: item.nombre)
                                 let newOption = new Option(item.nombre, item.id, true, true);
                                 $(selector).append(newOption).trigger("change");
+                                $(campoOculto).val(item.nombre); // Guardar el nombre en el campo oculto
                             }
                         },
                         error: function () {
@@ -456,12 +454,23 @@
                         },
                     });
                 }
+
+                // Evento para capturar el texto seleccionado y almacenarlo en el campo oculto
+                $(selector).on("select2:select", function (e) {
+                    let selectedText = e.params.data.text; // Obtener el nombre seleccionado
+                    $(campoOculto).val(selectedText); // Guardar el nombre en el campo oculto
+                });
             }
 
+            // Agregar campos ocultos en el formulario para almacenar el nombre
+            $("#categoriaTipoPanel").after('<input type="hidden" name="tipo_panel_nombre" id="tipo_panel_nombre">');
+            $("#categoriaTipoMaquina").after('<input type="hidden" name="tipo_maquina_nombre" id="tipo_maquina_nombre">');
+
             // Llamamos a la función pasando el valor almacenado (old) para que se muestre seleccionado.
-            cargarSelect2("#categoriaTipoPanel", "/categoriaTipoPanel", "CategoriaTipoPanel", "{{ old('tipo_panel') }}");
-            cargarSelect2("#categoriaTipoMaquina", "/categoriaTipoMaquina", "CategoriaTipoMaquina", "{{ old('tipo_maquina') }}");
+            cargarSelect2("#categoriaTipoPanel", "/categoriaTipoPanel", "CategoriaTipoPanel", "{{ old('tipo_panel') }}", "#tipo_panel_nombre");
+            cargarSelect2("#categoriaTipoMaquina", "/categoriaTipoMaquina", "CategoriaTipoMaquina", "{{ old('tipo_maquina') }}", "#tipo_maquina_nombre");
         });
+
     </script>
 
     <!-- Script exclusivo para tipoTecnicaScreen -->

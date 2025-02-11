@@ -219,15 +219,15 @@ class ScreenV2Controller extends Controller
     public function store(Request $request)
     {
         // Para ver el contenido del request, puedes usar dd($request->all());
-        // dd($request->all());
+        //dd($request->all());
         
         DB::beginTransaction(); // Iniciar la transacción
 
         try {
             // 1. Crear el registro principal en InspeccionHorno
             $inspeccion = new InspeccionHorno();
-            $inspeccion->panel              = $request->input('tipo_panel');
-            $inspeccion->maquina            = $request->input('tipo_maquina');
+            $inspeccion->panel              = $request->input('tipo_panel_nombre');
+            $inspeccion->maquina            = $request->input('tipo_maquina_nombre');
             $inspeccion->grafica            = $request->input('valor_grafica');
             $inspeccion->op                 = $request->input('op_select');
             $inspeccion->bulto              = $request->input('bulto_select');
@@ -361,16 +361,17 @@ class ScreenV2Controller extends Controller
                 ? '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", $accionesCorrectivasTexto)) . '</ul>' 
                 : 'N/A';
 
-            // 🔹 Agrupar y contar defectos
+            // Agrupar y sumar la cantidad de defectos por nombre
             $defectosAggregados = [];
             foreach ($group as $registro) {
                 if ($registro->screen && $registro->screen->defectos) {
                     foreach ($registro->screen->defectos as $defecto) {
-                        $nombre = $defecto->nombre;
+                        $nombre = trim($defecto->nombre);
+                        $cantidadDefecto = $defecto->cantidad;  // Asumiendo que "cantidad" es un campo numérico
                         if (isset($defectosAggregados[$nombre])) {
-                            $defectosAggregados[$nombre]++;
+                            $defectosAggregados[$nombre] += $cantidadDefecto;
                         } else {
-                            $defectosAggregados[$nombre] = 1;
+                            $defectosAggregados[$nombre] = $cantidadDefecto;
                         }
                     }
                 }
