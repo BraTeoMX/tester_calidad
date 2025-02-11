@@ -440,5 +440,46 @@ class ScreenV2Controller extends Controller
         return response()->json($result);
     }
 
+    public function getScreenStats()
+    {
+        // Obtener las inspecciones que tengan la relación "screen" (y sus defectos)
+        $inspecciones = InspeccionHorno::with(['screen.defectos'])
+                            ->whereHas('screen')
+                            ->get();
+
+        // Calcular la Cantidad total revisada (suma de la columna "cantidad" de InspeccionHorno)
+        $cantidad_total_revisada = $inspecciones->sum('cantidad');
+
+        // Inicializar la variable para la cantidad total de defectos
+        $cantidad_defectos = 0;
+
+        // Recorrer cada inspección y sumar la cantidad de defectos de la relación "screen.defectos"
+        foreach ($inspecciones as $inspeccion) {
+            if ($inspeccion->screen && $inspeccion->screen->defectos) {
+                foreach ($inspeccion->screen->defectos as $defecto) {
+                    // Se asume que $defecto->cantidad es un valor numérico
+                    $cantidad_defectos += $defecto->cantidad;
+                }
+            }
+        }
+
+        // Calcular el porcentaje de defectos
+        // Se asume que "Porcentaje de defectos" es: (Cantidad de defectos / Cantidad total revisada) * 100
+        $porcentaje_defectos = 0;
+        if ($cantidad_total_revisada > 0) {
+            $porcentaje_defectos = ($cantidad_defectos / $cantidad_total_revisada) * 100;
+        }
+        // Redondear el porcentaje a 2 decimales (opcional)
+        $porcentaje_defectos = round($porcentaje_defectos, 2);
+
+        // Retornar los datos estadísticos en formato JSON
+        return response()->json([
+            'cantidad_total_revisada' => $cantidad_total_revisada,
+            'cantidad_defectos'       => $cantidad_defectos,
+            'porcentaje_defectos'     => $porcentaje_defectos
+        ]);
+    }
+
+
 
 }

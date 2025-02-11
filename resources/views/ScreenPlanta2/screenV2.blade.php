@@ -94,10 +94,30 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped" id="tabla-screen-strart">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Gran total revisado</th>
+                                <th>Gran total de defectos</th>
+                                <th>Porcentaje de defectos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Aquí se insertarán los datos dinámicos con AJAX -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-striped" id="tabla-screen">
-                        <thead>
+                        <thead class="thead-primary">
                             <tr>
                                 <th>OP</th>
                                 <th>Panel</th>
@@ -299,5 +319,32 @@
         }
     </script>
 
+    <script>
+        $(document).ready(function () {
+            cargarDatosEstadisticos();
+        });
+
+        function cargarDatosEstadisticos() {
+            $.ajax({
+                url: "{{ route('screenV2.strart') }}", // Llamamos a la ruta de la función getScreenStats
+                method: "GET",
+                dataType: "json",
+                success: function (data) {
+                    let fila = `
+                        <tr>
+                            <td>${data.cantidad_total_revisada}</td>
+                            <td>${data.cantidad_defectos}</td>
+                            <td>${data.porcentaje_defectos} %</td>
+                        </tr>
+                    `;
+
+                    $("#tabla-screen-strart tbody").html(fila);
+                },
+                error: function (error) {
+                    console.error("Error al obtener datos estadísticos:", error);
+                }
+            });
+        }
+    </script>
 
 @endsection
