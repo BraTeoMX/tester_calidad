@@ -397,6 +397,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     //nuevo apartado para el desarrollo de inspeccion depues de horno
     Route::get('/inspeccionEstampadoHorno', [ScreenV2Controller::class, 'inspeccionEstampadoHorno'])->name('inspeccionEstampadoHorno');
+    Route::get('/screenV2', [ScreenV2Controller::class, 'screenV2'])->name('screenV2');
     // Rutas para buscar OPs y bultos
     Route::get('/search-ops-screen', [ScreenV2Controller::class, 'searchOpsScreen'])->name('search.ops.screen');
     Route::get('/search-bultos-op-screen', [ScreenV2Controller::class, 'searchBultosByOpScreen'])->name('search.bultos.op.screen');
@@ -414,6 +415,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/accionCorrectivaPlancha', [ScreenV2Controller::class, 'getAccionCorrectivaPlancha']);
     Route::post('/guardarNuevoValorDA', [ScreenV2Controller::class, 'guardarNuevoValorDA']);
     Route::post('/inspeccionEstampadoHorno/store', [ScreenV2Controller::class, 'store'])->name('inspeccionEstampadoHorno.store');
+    Route::get('/screenV2/data', [ScreenV2Controller::class, 'getScreenData'])->name('screenV2.data');
+
 
 
 

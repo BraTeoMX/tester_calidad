@@ -310,4 +310,74 @@ class ScreenV2Controller extends Controller
         }
     }
 
+    public function screenV2(Request $request)
+    {
+
+        $mesesEnEspanol = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+
+        return view('ScreenPlanta2.screenV2', compact('mesesEnEspanol'));
+    }
+
+    public function getScreenData()
+    {
+        // Obtiene todos los registros con sus relaciones
+        $inspecciones = InspeccionHorno::with(['screen.defectos', 'tecnicas', 'fibras'])
+                            ->orderBy('created_at', 'desc')
+                            ->get();
+
+        // Agrupar los registros por la columna "op"
+        $grouped = $inspecciones->groupBy('op');
+
+        // Para cada grupo, se prepara un array con la información agregada
+        $result = $grouped->map(function ($group) {
+            // Tomamos el primer registro del grupo para campos comunes (asumiendo que son iguales)
+            $first = $group->first();
+
+            // Sumar la cantidad total de los registros del mismo "op"
+            $totalCantidad = $group->sum('cantidad');
+
+            // Agregar los defectos: se acumulan por nombre para evitar repeticiones y contar la cantidad total
+            $defectosAggregados = [];
+            foreach ($group as $registro) {
+                if ($registro->screen && $registro->screen->defectos) {
+                    foreach ($registro->screen->defectos as $defecto) {
+                        $nombre = $defecto->nombre;
+                        $cantidad = $defecto->cantidad;
+                        if (isset($defectosAggregados[$nombre])) {
+                            $defectosAggregados[$nombre] += $cantidad;
+                        } else {
+                            $defectosAggregados[$nombre] = $cantidad;
+                        }
+                    }
+                }
+            }
+
+            // Se arma un string para defectos, por ejemplo: "exceso de escarcha (4), otro defecto (2)"
+            $defectosTexto = [];
+            foreach ($defectosAggregados as $nombre => $cantidad) {
+                $defectosTexto[] = "{$nombre} ({$cantidad})";
+            }
+            $defectosFinal = count($defectosTexto) ? implode(', ', $defectosTexto) : 'Sin defectos';
+
+            return [
+                'op'                => $first->op,
+                'panel'             => $first->panel,
+                'maquina'           => $first->maquina,
+                'grafica'           => $first->grafica,
+                'cliente'           => $first->cliente,
+                'estilo'            => $first->estilo,
+                'color'             => $first->color,
+                'cantidad'          => $totalCantidad,
+                'tecnico_screen'    => $first->screen ? $first->screen->nombre_tecnico : 'N/A',
+                'accion_correctiva' => $first->screen ? $first->screen->accion_correctiva : 'N/A',
+                'defectos'          => $defectosFinal,
+            ];
+        })->values(); // values() para reindexar el array
+
+        return response()->json($result);
+    }
+
+
 }
