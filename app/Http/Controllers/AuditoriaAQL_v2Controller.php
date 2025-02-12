@@ -499,23 +499,26 @@ class AuditoriaAQL_v2Controller extends Controller
     public function eliminarRegistroAql(Request $request)
     {
         $id = $request->input('id');
-
-        // Encuentra el registro principal
         $registro = AuditoriaAQL::find($id);
 
-        if ($registro) {
-            // Eliminar los registros relacionados
-            $registro->tpAuditoriaAQL()->delete();
-
-            // Eliminar el registro principal
-            $registro->delete();
-
-            return response()->json(['success' => true, 'message' => 'Registro eliminado exitosamente.']);
+        if (!$registro) {
+            return response()->json(['success' => false, 'message' => 'Registro no encontrado.'], 404);
         }
 
-        return response()->json(['success' => false, 'message' => 'Registro no encontrado.'], 404);
-    }
+        // Validar si el estatus es 1 (Auditoría finalizada)
+        if ($registro->estatus == 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Auditoria finalizada, no se puede borrar el registro'
+            ]);
+        }
 
+        // Si no está finalizada, proceder a eliminar
+        $registro->tpAuditoriaAQL()->delete();
+        $registro->delete();
+
+        return response()->json(['success' => true, 'message' => 'Registro eliminado exitosamente.']);
+    }
 
     public function mostrarRegistrosAqlDiaTE(Request $request)
     {

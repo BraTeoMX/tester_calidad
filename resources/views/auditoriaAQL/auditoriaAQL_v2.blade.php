@@ -1369,6 +1369,8 @@
             }
 
             function eliminarRegistro(id) {
+                if (!confirm('¿Estás seguro de eliminar este registro?')) return;
+                
                 $.ajax({
                     url: "{{ route('eliminar.registro.aql') }}",
                     type: "POST",
@@ -1379,10 +1381,14 @@
                     success: function (response) {
                         if (response.success) {
                             alert("Registro eliminado exitosamente.");
-                            cargarRegistros(); // Recarga la tabla y actualiza todo
+                            cargarRegistros();
                         } else {
-                            console.error("Error en la respuesta del servidor:", response);
-                            alert("No se pudo eliminar el registro. Intente nuevamente.");
+                            // Manejar específicamente el error de auditoría finalizada
+                            if (response.message.includes('finalizada')) {
+                                alert('Advertencia: ' + response.message);
+                            } else {
+                                alert("Error: " + response.message);
+                            }
                         }
                     },
                     error: function (xhr, status, error) {
