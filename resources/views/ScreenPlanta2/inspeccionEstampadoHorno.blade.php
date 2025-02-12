@@ -450,57 +450,96 @@
     <!-- Script general para los select comunes -->
     <script>
         $(document).ready(function () {
-            function cargarSelect2(selector, url, modelo, valorSeleccionado, campoOculto) {
-                $(selector).select2({
-                    placeholder: "Seleccione una opción",
-                    ajax: {
-                        url: url,
-                        dataType: "json",
-                        delay: 250,
-                        processResults: function (data) {
-                            return {
-                                results: $.map(data, function (item) {
-                                    return { id: item.id, text: item.nombre };
-                                }),
-                            };
-                        },
-                        cache: true,
-                    },
-                });
-
-                // Si hay un valor guardado en old(), lo buscamos y lo agregamos manualmente.
-                if (valorSeleccionado) {
-                    $.ajax({
-                        url: url,
-                        data: { id: valorSeleccionado },
-                        success: function (response) {
-                            let item = response.find((el) => el.id == valorSeleccionado);
-                            if (item) {
-                                let newOption = new Option(item.nombre, item.id, true, true);
-                                $(selector).append(newOption).trigger("change");
-                                $(campoOculto).val(item.nombre); // Guardar el nombre en el campo oculto
-                            }
-                        },
-                        error: function () {
-                            console.error("Error al obtener el valor seleccionado de " + modelo);
-                        },
-                    });
-                }
-
-                // Evento para capturar el texto seleccionado y almacenarlo en el campo oculto
-                $(selector).on("select2:select", function (e) {
-                    let selectedText = e.params.data.text; // Obtener el nombre seleccionado
-                    $(campoOculto).val(selectedText); // Guardar el nombre en el campo oculto
-                });
+          function cargarSelect2(selector, url, modelo, valorSeleccionado, campoOculto) {
+            $(selector).select2({
+              placeholder: "Seleccione una opción",
+              ajax: {
+                url: url,
+                dataType: "json",
+                delay: 250,
+                processResults: function (data) {
+                  // Mapeamos la data para mostrar cada elemento
+                  let results = $.map(data, function (item) {
+                    return { id: item.id, text: item.nombre };
+                  });
+                  // Insertamos la opción "OTRO" al inicio del array
+                  results.unshift({ id: "otro", text: "OTRO" });
+                  return { results: results };
+                },
+                cache: true,
+              },
+            });
+      
+            // Si hay un valor previamente seleccionado (old), lo buscamos y lo agregamos manualmente
+            if (valorSeleccionado) {
+              $.ajax({
+                url: url,
+                data: { id: valorSeleccionado },
+                success: function (response) {
+                  let item = response.find(function (el) {
+                    return el.id == valorSeleccionado;
+                  });
+                  if (item) {
+                    let newOption = new Option(item.nombre, item.id, true, true);
+                    $(selector).append(newOption).trigger("change");
+                    $(campoOculto).val(item.nombre);
+                  }
+                },
+                error: function () {
+                  console.error("Error al obtener el valor seleccionado de " + modelo);
+                },
+              });
             }
-
-            // Agregar campos ocultos en el formulario para almacenar el nombre
-            $("#categoriaTipoPanel").after('<input type="hidden" name="tipo_panel_nombre" id="tipo_panel_nombre">');
-            $("#categoriaTipoMaquina").after('<input type="hidden" name="tipo_maquina_nombre" id="tipo_maquina_nombre">');
-
-            // Llamamos a la función pasando el valor almacenado (old) para que se muestre seleccionado.
-            cargarSelect2("#categoriaTipoPanel", "/categoriaTipoPanel", "CategoriaTipoPanel", "{{ old('tipo_panel') }}", "#tipo_panel_nombre");
-            cargarSelect2("#categoriaTipoMaquina", "/categoriaTipoMaquina", "CategoriaTipoMaquina", "{{ old('tipo_maquina') }}", "#tipo_maquina_nombre");
+      
+            // Evento para manejar la selección
+            $(selector).on("select2:select", function (e) {
+              let selectedValue = e.params.data.id;
+              if (selectedValue === "otro") {
+                // Si se selecciona "OTRO", mostramos un prompt para ingresar el nuevo valor
+                let nuevoValor = prompt("Ingrese el nuevo valor para " + modelo + ":");
+                if (nuevoValor) {
+                  nuevoValor = nuevoValor.toUpperCase();
+                  $.ajax({
+                    url: "/guardarNuevoValor",
+                    type: "POST",
+                    data: {
+                      nombre: nuevoValor,
+                      modelo: modelo,
+                      estatus: 1,
+                      _token: "{{ csrf_token() }}"
+                    },
+                    success: function (response) {
+                      if (response.success) {
+                        // Creamos y agregamos la nueva opción, la marcamos como seleccionada y actualizamos el campo oculto
+                        let newOption = new Option(nuevoValor, response.id, true, true);
+                        $(selector).append(newOption).trigger("change");
+                        $(campoOculto).val(nuevoValor);
+                      } else {
+                        alert("Error al guardar el nuevo valor.");
+                      }
+                    },
+                    error: function () {
+                      alert("Ocurrió un error. Intente de nuevo.");
+                    }
+                  });
+                }
+                // Reiniciamos el select para que no quede "OTRO" seleccionado
+                $(selector).val(null).trigger("change");
+              } else {
+                // Si se selecciona una opción distinta a "OTRO", actualizamos el campo oculto
+                let selectedText = e.params.data.text;
+                $(campoOculto).val(selectedText);
+              }
+            });
+          }
+      
+          // Agregamos los campos ocultos para almacenar el nombre seleccionado
+          $("#categoriaTipoPanel").after('<input type="hidden" name="tipo_panel_nombre" id="tipo_panel_nombre">');
+          $("#categoriaTipoMaquina").after('<input type="hidden" name="tipo_maquina_nombre" id="tipo_maquina_nombre">');
+      
+          // Llamamos a la función para cada select pasando el valor almacenado (old)
+          cargarSelect2("#categoriaTipoPanel", "/categoriaTipoPanel", "CategoriaTipoPanel", "{{ old('tipo_panel') }}", "#tipo_panel_nombre");
+          cargarSelect2("#categoriaTipoMaquina", "/categoriaTipoMaquina", "CategoriaTipoMaquina", "{{ old('tipo_maquina') }}", "#tipo_maquina_nombre");
         });
 
     </script>
