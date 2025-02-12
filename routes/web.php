@@ -357,6 +357,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/eliminar-registro-aql', [AuditoriaAQL_v2Controller::class, 'eliminarRegistroAql'])->name('eliminar.registro.aql');
     Route::post('/buscar-ultimo-registro', [AuditoriaAQL_v2Controller::class, 'buscarUltimoRegistro'])->name('buscarUltimoRegistro');
     Route::post('/finalizar-paro-aql', [AuditoriaAQL_v2Controller::class, 'finalizarParoAQL'])->name('finalizar.paro.aql');
+    Route::get('/auditoriaAQLverificarFinalizacion', [AuditoriaAQL_v2Controller::class, 'verificarFinalizacion'])->name('auditoriaAQL.verificarFinalizacion');
 
 
 

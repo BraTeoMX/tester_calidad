@@ -609,11 +609,28 @@ class AuditoriaAQL_v2Controller extends Controller
         $estatus = 1;
         $fechaActual = \Carbon\Carbon::now()->toDateString();
 
-        // Actualizar los registros que cumplan las condiciones (sin usar tiempo_extra, u otro criterio, según tu lógica)
+        // Verificar si hay registros con 'inicio_paro' NO nulo y 'fin_paro' en NULL
+        $parosPendientes = AuditoriaAQL::whereDate('created_at', $fechaActual)
+            ->where('modulo', $modulo)
+            ->whereNotNull('inicio_paro')  // Tiene un inicio de paro registrado
+            ->whereNull('fin_paro')        // Pero no ha finalizado el paro
+            ->exists();
+
+        if ($parosPendientes) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tiene paros pendientes, finalicelos e intente de nuevo.'
+            ]);
+        }
+
+        // Si no hay paros pendientes, proceder con la actualización
         AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('modulo', $modulo)
             ->where('tiempo_extra', null)
-            ->update(['observacion' => $observacion, 'estatus' => $estatus]);
+            ->update([
+                'observacion' => $observacion,
+                'estatus' => $estatus
+            ]);
 
         return response()->json([
             'success'     => true,
@@ -622,6 +639,24 @@ class AuditoriaAQL_v2Controller extends Controller
         ]);
     }
 
+
+    public function verificarFinalizacion(Request $request)
+    {
+        $modulo = $request->input('modulo'); 
+        $fechaActual = Carbon::now()->toDateString();
+
+        // Buscar si ya se finalizó el módulo para la fecha actual
+        $registro = AuditoriaAQL::whereDate('created_at', $fechaActual)
+                    ->where('modulo', $modulo)
+                    ->where('tiempo_extra', null)
+                    ->where('estatus', 1)
+                    ->first();
+
+        return response()->json([
+            'finalizado'  => $registro ? true : false,
+            'observacion' => $registro ? $registro->observacion : '',
+        ]);
+    }
 
 
 }
