@@ -599,4 +599,26 @@ class AuditoriaAQL_v2Controller extends Controller
         }
     }
 
+    public function formFinalizarProceso_v2(Request $request)
+    {
+        $modulo = $request->input('modulo');
+        $observacion = $request->input('observacion');
+        $estatus = 1;
+        $fechaActual = \Carbon\Carbon::now()->toDateString();
+
+        // Actualizar los registros que cumplan las condiciones (sin usar tiempo_extra, u otro criterio, según tu lógica)
+        AuditoriaAQL::whereDate('created_at', $fechaActual)
+            ->where('modulo', $modulo)
+            ->where('tiempo_extra', null)
+            ->update(['observacion' => $observacion, 'estatus' => $estatus]);
+
+        return response()->json([
+            'success'     => true,
+            'observacion' => $observacion,
+            'message'     => 'Finalización aplicada correctamente.'
+        ]);
+    }
+
+
+
 }

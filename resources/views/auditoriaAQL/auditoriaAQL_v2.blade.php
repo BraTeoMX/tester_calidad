@@ -348,7 +348,22 @@
 
                             </tbody>
                         </table>
-
+                        <!-- Contenedor principal (puedes usar un data-attribute para el módulo) -->
+                        <div id="observacion-container" data-modulo="{{ $data['modulo'] }}">
+                            <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="observacion" class="col-sm-6 col-form-label">Observaciones:</label>
+                                <div class="col-sm-12">
+                                    <textarea class="form-control texto-blanco" id="observacion" rows="3" placeholder="comentarios" required></textarea>
+                                </div>
+                            </div>
+                            </div>
+                            <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <button id="btn-finalizar" class="btn btn-danger">Finalizar</button>
+                            </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1774,6 +1789,58 @@
                 if (event.key === 'Escape') {
                     modal.style.display = 'none';
                 }
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Obtenemos el contenedor para extraer el valor de módulo
+            const container = document.getElementById('observacion-container');
+            const modulo = container.getAttribute('data-modulo');  
+
+            // Seleccionamos el botón y el textarea
+            const btnFinalizar = document.getElementById('btn-finalizar');
+            const textarea = document.getElementById('observacion');
+
+            btnFinalizar.addEventListener('click', function (e) {
+                e.preventDefault(); // Evitamos cualquier acción por defecto
+
+                // Obtenemos el valor de la observación
+                const observacion = textarea.value.trim();
+                if (observacion === '') {
+                alert("Por favor, ingrese una observación.");
+                return;
+                }
+
+                // Realizamos la llamada AJAX con jQuery
+                $.ajax({
+                url: "{{ route('auditoriaAQL.formFinalizarProceso_v2') }}", // Ruta definida en Laravel
+                type: "POST",
+                data: {
+                    modulo: modulo,
+                    observacion: observacion,
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function (response) {
+                    if (response.success) {
+                    alert(response.message || "Finalización aplicada correctamente.");
+
+                    // Actualizamos el textarea con el valor devuelto (por si el servidor lo modifica o se requiere formatearlo)
+                    textarea.value = response.observacion;
+                    // Convertimos el textarea a modo readonly
+                    textarea.setAttribute('readonly', true);
+                    // Inhabilitamos el botón de finalizar
+                    btnFinalizar.disabled = true;
+                    } else {
+                    alert("No se pudo aplicar la finalización.");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error en la solicitud AJAX:", error);
+                    alert("Hubo un error al procesar la solicitud.");
+                }
+                });
             });
         });
     </script>
