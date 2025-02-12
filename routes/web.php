@@ -358,6 +358,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/buscar-ultimo-registro', [AuditoriaAQL_v2Controller::class, 'buscarUltimoRegistro'])->name('buscarUltimoRegistro');
     Route::post('/finalizar-paro-aql', [AuditoriaAQL_v2Controller::class, 'finalizarParoAQL'])->name('finalizar.paro.aql');
     Route::get('/auditoriaAQLverificarFinalizacion', [AuditoriaAQL_v2Controller::class, 'verificarFinalizacion'])->name('auditoriaAQL.verificarFinalizacion');
+    Route::get('/verificarAQLFinalizacionTE', [AuditoriaAQL_v2Controller::class, 'verificarFinalizacionTE'])->name('auditoriaAQL.verificarFinalizacionTE');
 
 
 
@@ -370,6 +371,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/formRegistroAuditoriaProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formRegistroAuditoriaProcesoAQL_v2'])->name('auditoriaAQL.formRegistroAuditoriaProcesoAQL_v2');
     Route::post('/formUpdateDeleteProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formUpdateDeleteProceso_v2'])->name('auditoriaAQL.formUpdateDeleteProceso_v2');
     Route::post('/formFinalizarProcesoAQL_v2', [AuditoriaAQL_v2Controller::class, 'formFinalizarProceso_v2'])->name('auditoriaAQL.formFinalizarProceso_v2');
+    Route::post('/formFinalizarProcesoAQL_v2TE', [AuditoriaAQL_v2Controller::class, 'formFinalizarProceso_v2TE'])->name('auditoriaAQL.formFinalizarProceso_v2TE');
     Route::post('/cambiarEstadoInicioParoAQL_v2', [AuditoriaAQL_v2Controller::class, 'cambiarEstadoInicioParoAQL_v2'])->name('auditoriaAQL.cambiarEstadoInicioParoAQL_v2');
     Route::get('/RechazosParoAQL_v2', [AuditoriaAQL_v2Controller::class, 'RechazosParoAQL_v2'])->name('auditoriaAQL.RechazosParoAQL_v2');
     Route::post('/cargarOrdenesOP_v2', [AuditoriaAQL_v2Controller::class, 'metodoNombre_v2'])->name('metodoNombre_v2');

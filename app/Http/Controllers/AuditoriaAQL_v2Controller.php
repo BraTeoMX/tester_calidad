@@ -658,5 +658,61 @@ class AuditoriaAQL_v2Controller extends Controller
         ]);
     }
 
+    public function formFinalizarProceso_v2TE(Request $request)
+    {
+        $modulo = $request->input('modulo');
+        $observacion = $request->input('observacion');
+        $estatus = 1;
+        $fechaActual = \Carbon\Carbon::now()->toDateString();
+
+        // Verificar si hay registros con 'inicio_paro' NO nulo y 'fin_paro' en NULL
+        $parosPendientes = AuditoriaAQL::whereDate('created_at', $fechaActual)
+            ->where('modulo', $modulo)
+            ->whereNotNull('inicio_paro')
+            ->whereNull('fin_paro')
+            ->where('tiempo_extra', 1) // Filtra solo tiempo extra
+            ->exists();
+
+        if ($parosPendientes) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tiene paros pendientes en tiempo extra, finalícelos e intente de nuevo.'
+            ]);
+        }
+
+        // Si no hay paros pendientes, proceder con la actualización
+        AuditoriaAQL::whereDate('created_at', $fechaActual)
+            ->where('modulo', $modulo)
+            ->where('tiempo_extra', 1) // Filtra solo tiempo extra
+            ->update([
+                'observacion' => $observacion,
+                'estatus' => $estatus
+            ]);
+
+        return response()->json([
+            'success'     => true,
+            'observacion' => $observacion,
+            'message'     => 'Finalización de tiempo extra aplicada correctamente.'
+        ]);
+    }
+
+    public function verificarFinalizacionTE(Request $request)
+    {
+        $modulo = $request->input('modulo'); 
+        $fechaActual = Carbon::now()->toDateString();
+
+        // Buscar si ya se finalizó el módulo para la fecha actual en tiempo extra
+        $registro = AuditoriaAQL::whereDate('created_at', $fechaActual)
+                    ->where('modulo', $modulo)
+                    ->where('tiempo_extra', 1) // Filtra solo tiempo extra
+                    ->where('estatus', 1)
+                    ->first();
+
+        return response()->json([
+            'finalizado'  => $registro ? true : false,
+            'observacion' => $registro ? $registro->observacion : '',
+        ]);
+    }
+
 
 }

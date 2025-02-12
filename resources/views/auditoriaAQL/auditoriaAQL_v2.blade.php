@@ -400,6 +400,21 @@
                                         <!-- Registros dinámicos para Tiempo Extra -->
                                     </tbody>
                                 </table>
+                                <div id="observacion-container-TE" data-modulo="{{ $data['modulo'] }}">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="observacion-TE" class="col-sm-6 col-form-label">Observaciones Tiempo Extra:</label>
+                                            <div class="col-sm-12">
+                                                <textarea class="form-control texto-blanco" id="observacion-TE" rows="3" placeholder="comentarios" required></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <button id="btn-finalizar-TE" class="btn btn-danger">Finalizar Tiempo Extra</button>
+                                        </div>
+                                    </div>
+                                </div>                                
                             </div>
                         </div>
                     </div>
@@ -1863,4 +1878,124 @@
             });
         });
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modulo = document.getElementById('observacion-container').getAttribute('data-modulo');
+            const btnFinalizar = document.getElementById('btn-finalizar');
+            const textarea = document.getElementById('observacion');
+
+            const moduloTE = document.getElementById('observacion-container-TE').getAttribute('data-modulo');
+            const btnFinalizarTE = document.getElementById('btn-finalizar-TE');
+            const textareaTE = document.getElementById('observacion-TE');
+
+            // Función para cargar el estado del tiempo normal
+            function cargarEstado() {
+                $.ajax({
+                    url: "{{ route('auditoriaAQL.verificarFinalizacion') }}",
+                    type: "GET",
+                    data: { modulo: modulo },
+                    success: function (response) {
+                        if (response.finalizado) {
+                            textarea.value = response.observacion;
+                            textarea.setAttribute('readonly', true);
+                            btnFinalizar.disabled = true;
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error al verificar el estado:", error);
+                    }
+                });
+            }
+
+            // Función para cargar el estado del tiempo extra
+            function cargarEstadoTE() {
+                $.ajax({
+                    url: "{{ route('auditoriaAQL.verificarFinalizacionTE') }}",
+                    type: "GET",
+                    data: { modulo: moduloTE },
+                    success: function (response) {
+                        if (response.finalizado) {
+                            textareaTE.value = response.observacion;
+                            textareaTE.setAttribute('readonly', true);
+                            btnFinalizarTE.disabled = true;
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error al verificar el estado del tiempo extra:", error);
+                    }
+                });
+            }
+
+            // Llamar a las funciones al cargar la página
+            cargarEstado();
+            cargarEstadoTE();
+
+            // Evento para finalizar tiempo normal
+            btnFinalizar.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const observacion = textarea.value.trim();
+                if (observacion === '') {
+                    alert("Por favor, ingrese una observación.");
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('auditoriaAQL.formFinalizarProceso_v2') }}",
+                    type: "POST",
+                    data: {
+                        modulo: modulo,
+                        observacion: observacion,
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message || "Finalización aplicada correctamente.");
+                            cargarEstado();
+                        } else {
+                            alert(response.message || "No se pudo aplicar la finalización.");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error en la solicitud AJAX:", error);
+                        alert("Hubo un error al procesar la solicitud.");
+                    }
+                });
+            });
+
+            // Evento para finalizar tiempo extra
+            btnFinalizarTE.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const observacion = textareaTE.value.trim();
+                if (observacion === '') {
+                    alert("Por favor, ingrese una observación.");
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('auditoriaAQL.formFinalizarProceso_v2TE') }}",
+                    type: "POST",
+                    data: {
+                        modulo: moduloTE,
+                        observacion: observacion,
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message || "Finalización aplicada correctamente.");
+                            cargarEstadoTE();
+                        } else {
+                            alert(response.message || "No se pudo aplicar la finalización.");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error en la solicitud AJAX:", error);
+                        alert("Hubo un error al procesar la solicitud.");
+                    }
+                });
+            }); 
+        }); 
+    </script> 
 @endsection
