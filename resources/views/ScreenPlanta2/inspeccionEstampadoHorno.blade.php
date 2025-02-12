@@ -249,6 +249,7 @@
         </div>
         <div class="card card-body">
             <div class="table-responsive">
+                <h3>Registros por dia</h3>
                 <!-- Tabla para mostrar los registros del día -->
                 <table class="table table-striped" id="tabla-bultos-por-dia">
                     <thead class="thead-primary">
@@ -269,6 +270,7 @@
                             <th>Tecnico Plancha</th>
                             <th>Defectos Plancha</th>
                             <th>Fecha</th>
+                            <th>Accion</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1371,8 +1373,14 @@
                             row += "<td>" + registro.tecnico_plancha + "</td>";       // Técnico de Plancha
                             row += "<td>" + registro.planchaDefectos + "</td>";       // Defectos de Plancha (en lista HTML)
                             row += "<td>" + registro.fecha + "</td>";
+                            row += "<td><button class='btn btn-danger btn-sm eliminarRegistro' data-id='" + registro.id + "'>Eliminar</button></td>"; // Botón de eliminar
                             row += "</tr>";
                             tbody.append(row);
+                        });
+                        // Asignar evento de eliminación a los botones
+                        $(".eliminarRegistro").click(function() {
+                            var id = $(this).data("id");
+                            eliminarRegistro(id);
                         });
                     },
                     error: function() {
@@ -1381,6 +1389,29 @@
                 });
             }
 
+            // Función para eliminar un registro
+            function eliminarRegistro(id) {
+                if(confirm("¿Estás seguro de que deseas eliminar este registro?")) {
+                    $.ajax({
+                        url: "/inspeccion/" + id,
+                        method: "DELETE",
+                        data: {
+                            _token: '{{ csrf_token() }}' // Para autenticación en Laravel
+                        },
+                        success: function(response) {
+                            if(response.success) {
+                                alert(response.message);
+                                cargarBultosPorDia(); // Recargar tabla tras eliminar
+                            } else {
+                                alert("No se pudo eliminar el registro.");
+                            }
+                        },
+                        error: function() {
+                            alert("Error en la solicitud de eliminación.");
+                        }
+                    });
+                }
+            }
             // Llamar a la función al cargar la página
             cargarBultosPorDia();
 

@@ -378,6 +378,7 @@ class ScreenV2Controller extends Controller
             $tecnicoPlancha = $inspeccion->plancha ? $inspeccion->plancha->nombre_tecnico : '';
 
             return [
+                'id'               => $inspeccion->id, // SE AGREGA EL ID
                 'bulto'            => $inspeccion->bulto ?? 'N/A',
                 'op'               => $inspeccion->op ?? 'N/A',
                 'cliente'          => $inspeccion->cliente ?? 'N/A',
@@ -398,6 +399,21 @@ class ScreenV2Controller extends Controller
         });
 
         return response()->json(['data' => $data]);
+    }
+
+    public function eliminarBulto($id)
+    {
+        try {
+            // Buscar el registro
+            $inspeccion = InspeccionHorno::findOrFail($id);
+
+            // Eliminar el registro (y sus relaciones si aplica por "cascade")
+            $inspeccion->delete();
+
+            return response()->json(['success' => true, 'message' => 'Registro eliminado correctamente.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al eliminar el registro.']);
+        }
     }
 
     public function screenV2(Request $request)

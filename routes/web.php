@@ -422,6 +422,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/planchaV2/strart', [ScreenV2Controller::class, 'getPlanchaStats'])->name('planchaV2.strart');
     Route::get('/bultosPorDia', [ScreenV2Controller::class, 'bultosPorDia'])->name('bultosPorDia');
     Route::post('/formControlHorno', [ScreenV2Controller::class, 'formControlHorno'])->name('formControlHorno');
+    Route::delete('/inspeccion/{id}', [ScreenV2Controller::class, 'eliminarBulto'])->name('eliminarBulto');
+
 
 
 
