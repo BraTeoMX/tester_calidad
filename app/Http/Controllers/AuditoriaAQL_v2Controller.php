@@ -715,4 +715,14 @@ class AuditoriaAQL_v2Controller extends Controller
     }
 
 
+    public function bultosNoFinalizados(Request $request){
+        $diasAnteriores = Carbon::now()->toDateString();
+        $modulo = $request->input('modulo');
+        $registro = AuditoriaAQL::whereDate('created_at', $diasAnteriores)
+            ->where('modulo', $modulo)
+            ->whereNotNull('inicio_paro')
+            ->whereNull('fin_paro')
+            ->get();
+
+    }
 }

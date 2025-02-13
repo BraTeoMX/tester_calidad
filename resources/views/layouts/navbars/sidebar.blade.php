@@ -112,20 +112,20 @@
                                     auth()->user()->hasRole('Administrador') ||
                                     auth()->user()->hasRole('Gerente de Calidad')) &&
                                 auth()->user()->Planta == 'Planta2')
-                            <li class="nav-item{{ $pageSlug == 'ScreenPrint' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('ScreenPlanta2.ScreenPrint') }}">
-                                    <i class="material-icons">edit_document</i>
-                                    <p>{{ __('Screen Print') }}</p>
-                                </a>
-                            </li>
-                            <li class="nav-item{{ $pageSlug == 'InspeccionEstampado' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('ScreenPlanta2.InsEstamHorno') }}">
+                            <li class="nav-item{{ $pageSlug == 'Horno' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('inspeccionEstampadoHorno') }}">
                                     <i class="material-icons">edit_document</i>
                                     <p>{{ __('Inspección Después De Horno') }}</p>
                                 </a>
                             </li>
-                            <li class="nav-item{{ $pageSlug == 'CalidadProcesoPlancha' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('ScreenPlanta2.CalidadProcesoPlancha') }}">
+                            <li class="nav-item{{ $pageSlug == 'Screen' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('screenV2') }}">
+                                    <i class="material-icons">edit_document</i>
+                                    <p>{{ __('Screen Print') }}</p>
+                                </a>
+                            </li>
+                            <li class="nav-item{{ $pageSlug == 'Plancha' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('planchaV2') }}">
                                     <i class="material-icons">edit_document</i>
                                     <p>{{ __('Proceso Plancha') }}</p>
                                 </a>

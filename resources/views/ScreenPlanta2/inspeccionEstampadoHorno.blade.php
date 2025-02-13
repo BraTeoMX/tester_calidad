@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageSlug' => 'InspeccionEstampado', 'titlePage' => __('Inspeccion Estampado Despues del Horno')])
+@extends('layouts.app', ['pageSlug' => 'Horno', 'titlePage' => __('Inspeccion Estampado Despues del Horno')])
 
 @section('content')
     {{-- ... dentro de tu vista ... --}}
