@@ -321,6 +321,25 @@
                 </div>
                 @endif
             </div>
+
+            <div class="card card-body">
+                <div class="accordion" id="accordionBultos">
+                    <div class="card">
+                        <div class="card-header p-0" id="headingBultos">
+                            <h2 class="mb-0">
+                                <button class="btn btn-link text-light text-decoration-none w-100 text-left" type="button" data-toggle="collapse" data-target="#collapseBultos" aria-expanded="false" aria-controls="collapseBultos">
+                                    <i class="fa fa-box mr-2"></i> Mostrar Bultos No Finalizados
+                                </button>
+                            </h2>
+                        </div>
+                        <div id="collapseBultos" class="collapse" aria-labelledby="headingBultos" data-parent="#accordionBultos">
+                            <div class="card-body" id="bultos-container" data-modulo="{{ $data['modulo'] }}">
+                                <p class="text-muted">Abre el acordeón para cargar los datos.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>                
+            </div>            
             <div class="card">
                 <div class="card-header card-header-primary">
                     <h3>Registros - Turno normal</h3>
@@ -1998,4 +2017,115 @@
             }); 
         }); 
     </script> 
+    <script>
+        $(document).ready(function () {
+            let datosCargados = false;
+
+            $('#collapseBultos').on('show.bs.collapse', function () {
+                if (!datosCargados) {
+                    const modulo = $('#bultos-container').data('modulo');
+
+                    $.ajax({
+                        url: '/api/bultos-no-finalizados',
+                        method: 'GET',
+                        data: { modulo: modulo }, 
+                        beforeSend: function () {
+                            $('#bultos-container').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Cargando datos...</p></div>');
+                        },
+                        success: function (response) {
+                            if (response.length > 0) {
+                                let contenido = `
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead class="thead-primary">
+                                                <tr>
+                                                    <th>Bulto</th>
+                                                    <th>Estilo</th>
+                                                    <th>Inicio Paro</th>
+                                                    <th>Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                `;
+                                response.forEach(item => {
+                                    contenido += `
+                                        <tr>
+                                            <td>${item.bulto}</td>
+                                            <td>${item.estilo}</td>
+                                            <td>${item.inicio_paro}</td>
+                                            <td>
+                                                <button class="btn btn-danger btn-sm finalizar-paro" data-id="${item.id}">
+                                                    Finalizar Paro Pendiente
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `;
+                                });
+                                contenido += '</tbody></table></div>';
+                                $('#bultos-container').html(contenido);
+                            } else {
+                                $('#bultos-container').html('<p class="text-warning text-center">No se encontraron bultos no finalizados.</p>');
+                            }
+                            datosCargados = true;
+                        },
+                        error: function () {
+                            $('#bultos-container').html('<p class="text-danger text-center">Error al cargar los datos.</p>');
+                        }
+                    });
+                }
+            });
+
+             // Delegamos el evento click para los botones "Finalizar Paro Pendiente"
+            $(document).on('click', '.finalizar-paro', function () {
+                let id = $(this).data('id');
+
+                // Preguntamos primero por las piezas reparadas
+                let piezasReparadas = prompt("Ingresa el número de piezas reparadas:", "0");
+
+                // Si el usuario cancela o deja vacío, no continuamos
+                if (piezasReparadas === null) return;
+
+                // Confirmación de la acción
+                if (confirm("¿Estás seguro de que deseas finalizar este paro?")) {
+
+                    // Agregamos un spinner temporal en la parte superior
+                    const spinnerHtml = `
+                        <div id="processing-spinner" class="position-fixed top-0 start-50 translate-middle-x mt-3 p-2 bg-dark text-white rounded shadow" style="z-index: 1050;">
+                            <div class="spinner-border spinner-border-sm text-light" role="status"></div>
+                            Procesando solicitud...
+                        </div>`;
+                    $('body').append(spinnerHtml);
+
+                    $.ajax({
+                        url: '/api/finalizar-paro-aql-despues',
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        data: {
+                            id: id,
+                            piezasReparadas: piezasReparadas
+                        },
+                        success: function (response) {
+                            // Eliminamos el spinner al finalizar la operación
+                            $('#processing-spinner').remove();
+
+                            if (response.success) {
+                                alert(`✅ Paro finalizado correctamente.\nMinutos Paro: ${response.minutos_paro}\nPiezas Reparadas: ${response.reparacion_rechazo}`);
+                                $('#collapseBultos').collapse('hide');
+                                datosCargados = false;
+                            } else {
+                                alert(`❌ Error: ${response.message}`);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            $('#processing-spinner').remove();
+                            alert("⚠️ Ocurrió un error al intentar finalizar el paro.");
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+        
+        
+    
 @endsection

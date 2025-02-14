@@ -715,14 +715,50 @@ class AuditoriaAQL_v2Controller extends Controller
     }
 
 
-    public function bultosNoFinalizados(Request $request){
-        $diasAnteriores = Carbon::now()->toDateString();
+    public function bultosNoFinalizados(Request $request)
+    {
         $modulo = $request->input('modulo');
-        $registro = AuditoriaAQL::whereDate('created_at', $diasAnteriores)
+
+        // Calcular las fechas para los últimos 7 días (sin contar hoy)
+        $fechaInicio = Carbon::now()->subDays(7)->startOfDay(); // 7 días atrás a las 00:00:00
+        $fechaFin = Carbon::yesterday()->endOfDay(); // Ayer hasta las 23:59:59
+
+        // Consulta de registros en el rango de los últimos 7 días
+        $bultos = AuditoriaAQL::whereBetween('created_at', [$fechaInicio, $fechaFin])
             ->where('modulo', $modulo)
             ->whereNotNull('inicio_paro')
             ->whereNull('fin_paro')
             ->get();
 
+        return response()->json($bultos);
     }
+
+
+    public function finalizarParoAQLdespues(Request $request)
+    {
+        try {
+            $registro = AuditoriaAQL::findOrFail($request->id);
+            $registro->fin_paro = Carbon::now();
+
+            $inicioParo = Carbon::parse($registro->inicio_paro);
+            $finParo = Carbon::parse($registro->fin_paro);
+            $registro->minutos_paro = $inicioParo->diffInMinutes($finParo);
+            $registro->reparacion_rechazo = $request->piezasReparadas;
+            $registro->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Paro finalizado y piezas reparadas almacenadas correctamente.',
+                'minutos_paro' => $registro->minutos_paro,
+                'reparacion_rechazo' => $registro->reparacion_rechazo
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al finalizar el paro: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

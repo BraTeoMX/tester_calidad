@@ -378,6 +378,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/categoria-tipo-problema-aql_v2', [AuditoriaAQL_v2Controller::class, 'storeCategoriaTipoProblemaAQL'])->name('categoria_tipo_problema_aql.store_v2');
     Route::get('/get-bultos-by-op_v2', [AuditoriaAQL_v2Controller::class, 'getBultosByOp_v2'])->name('getBultosByOp_v2');
     Route::post('/auditoriaAQL_v2/obtenerAQLenProceso', [AuditoriaAQL_v2Controller::class, 'obtenerAQLenProceso'])->name('auditoriaAQL.obtenerAQLenProceso');
+    Route::get('/api/bultos-no-finalizados', [AuditoriaAQL_v2Controller::class, 'bultosNoFinalizados']);
+    Route::post('/api/finalizar-paro-aql-despues', [AuditoriaAQL_v2Controller::class, 'finalizarParoAQLdespues']);
 
 
     //apartado para las vistas de 
