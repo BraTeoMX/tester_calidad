@@ -738,11 +738,16 @@ class AuditoriaAQL_v2Controller extends Controller
     {
         try {
             $registro = AuditoriaAQL::findOrFail($request->id);
-            $registro->fin_paro = Carbon::now();
+            $registro->fin_paro = Carbon::now(); // Almacenamos la fecha actual como "fin_paro"
 
-            $inicioParo = Carbon::parse($registro->inicio_paro);
-            $finParo = Carbon::parse($registro->fin_paro);
-            $registro->minutos_paro = $inicioParo->diffInMinutes($finParo);
+            // Usamos created_at como punto de inicio del cálculo
+            $inicio = Carbon::parse($registro->created_at);
+            $fin = Carbon::now();
+
+            // Calcular minutos considerando horarios laborales
+            $minutosParo = $this->calcularMinutosParoDesdeCreatedAt($inicio, $fin);
+
+            $registro->minutos_paro = $minutosParo;
             $registro->reparacion_rechazo = $request->piezasReparadas;
             $registro->save();
 
@@ -761,4 +766,48 @@ class AuditoriaAQL_v2Controller extends Controller
         }
     }
 
+    /**
+     * Calcula los minutos de paro basándose en created_at hasta el momento actual.
+     * Respeta los horarios laborales establecidos:
+     * - Lunes a jueves: 08:00 - 19:00
+     * - Viernes: 08:00 - 14:00
+     * - Fines de semana: no se cuentan.
+     */
+    private function calcularMinutosParoDesdeCreatedAt(Carbon $inicio, Carbon $fin)
+    {
+        $totalMinutos = 0;
+        $actual = $inicio->copy();
+
+        while ($actual->lessThan($fin)) {
+            // Saltar fines de semana
+            if ($actual->isWeekend()) {
+                $actual->addDay()->startOfDay();
+                continue;
+            }
+
+            // Determinar horarios del día actual
+            $inicioJornada = $actual->copy()->setTime(8, 0, 0);
+            if ($actual->dayOfWeek == Carbon::FRIDAY) {
+                $finJornada = $actual->copy()->setTime(14, 0, 0);
+            } else {
+                $finJornada = $actual->copy()->setTime(19, 0, 0);
+            }
+
+            // Calcular minutos dentro del horario laboral
+            if ($actual->lessThanOrEqualTo($finJornada) && $fin->greaterThanOrEqualTo($inicioJornada)) {
+                $inicioEfectivo = $actual->greaterThan($inicioJornada) ? $actual : $inicioJornada;
+                $finEfectivo = $fin->lessThan($finJornada) ? $fin : $finJornada;
+
+                if ($inicioEfectivo->lessThan($finEfectivo)) {
+                    $minutosHoy = $inicioEfectivo->diffInMinutes($finEfectivo);
+                    $totalMinutos += max($minutosHoy, 0);
+                }
+            }
+
+            // Avanzar al siguiente día
+            $actual->addDay()->startOfDay();
+        }
+
+        return $totalMinutos;
+    }
 }
