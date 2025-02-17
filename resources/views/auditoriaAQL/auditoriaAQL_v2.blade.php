@@ -1157,7 +1157,7 @@
                         _token: '{{ csrf_token() }}',
                     },
                     success: function (response) {
-                        alert('Datos guardados correctamente.');
+                        alert('✅ Datos guardados correctamente.');
 
                         
 
@@ -1183,7 +1183,7 @@
                         }
                     },
                     error: function (xhr) {
-                        alert('Hubo un error al guardar los datos. Por favor, intenta nuevamente.');
+                        alert('❌ Hubo un error al guardar los datos. Por favor, intenta nuevamente.');
                     }
                 });
             });
@@ -1413,20 +1413,20 @@
                     },
                     success: function (response) {
                         if (response.success) {
-                            alert("Registro eliminado exitosamente.");
+                            alert("✅ Registro eliminado exitosamente.");
                             cargarRegistros();
                         } else {
                             // Manejar específicamente el error de auditoría finalizada
                             if (response.message.includes('finalizada')) {
-                                alert('Advertencia: ' + response.message);
+                                alert('⚠ Advertencia: ' + response.message);
                             } else {
-                                alert("Error: " + response.message);
+                                alert("❌ Error: " + response.message);
                             }
                         }
                     },
                     error: function (xhr, status, error) {
-                        console.error("Error al eliminar el registro:", xhr, status, error);
-                        alert("Hubo un error al intentar eliminar el registro.");
+                        console.error("❌ Error al eliminar el registro:", xhr, status, error);
+                        alert("❌ Hubo un error al intentar eliminar el registro.");
                     }
                 });
             }
@@ -1461,17 +1461,17 @@
                     },
                     success: function (response) {
                         if (response.success) {
-                            alert("Paro finalizado correctamente.\nMinutos de paro: " + response.minutos_paro + "\nPiezas reparadas: " + response.reparacion_rechazo);
+                            alert("✅ Paro finalizado correctamente.\nMinutos de paro: " + response.minutos_paro + "\nPiezas reparadas: " + response.reparacion_rechazo);
                             // Recargar la tabla y así desaparece el botón
                             cargarRegistros();
                         } else {
-                            console.error("Error en la respuesta del servidor:", response);
-                            alert("No se pudo finalizar el paro. Intente nuevamente.");
+                            console.error("❌ Error en la respuesta del servidor:", response);
+                            alert("❌ No se pudo finalizar el paro. Intente nuevamente.");
                         }
                     },
                     error: function (xhr, status, error) {
                         console.error("Error al finalizar el paro:", xhr, status, error);
-                        alert("Hubo un error al intentar finalizar el paro.");
+                        alert("❌ Hubo un error al intentar finalizar el paro.");
                     }
                 });
             }
@@ -1691,16 +1691,16 @@
                     },
                     success: function (response) {
                         if (response.success) {
-                            alert("Registro eliminado exitosamente.");
+                            alert("✅ Registro eliminado exitosamente.");
                             cargarRegistros(); // Recarga para actualizar la tabla
                         } else {
-                            console.error("Error en la respuesta del servidor:", response);
+                            console.error("❌ Error en la respuesta del servidor:", response);
                             alert("No se pudo eliminar el registro. Intente nuevamente.");
                         }
                     },
                     error: function (xhr, status, error) {
-                        console.error("Error al eliminar el registro TE:", xhr, status, error);
-                        alert("Hubo un error al eliminar el registro.");
+                        console.error("❌ Error al eliminar el registro TE:", xhr, status, error);
+                        alert("❌ Hubo un error al eliminar el registro.");
                     }
                 });
             }
@@ -1742,7 +1742,7 @@
                     success: function (response) {
                         if (response.success) {
                             alert(
-                                "Paro finalizado correctamente.\n" +
+                                "✅ Paro finalizado correctamente.\n" +
                                 "Minutos de paro: " + response.minutos_paro + "\n" +
                                 "Piezas reparadas: " + response.reparacion_rechazo
                             );
@@ -1750,12 +1750,12 @@
                             cargarRegistros();
                         } else {
                             console.error("Error en la respuesta del servidor:", response);
-                            alert("No se pudo finalizar el paro. Intente nuevamente.");
+                            alert("❌ No se pudo finalizar el paro. Intente nuevamente.");
                         }
                     },
                     error: function (xhr, status, error) {
                         console.error("Error al finalizar el paro TE:", xhr, status, error);
-                        alert("Hubo un error al intentar finalizar el paro.");
+                        alert("❌ Hubo un error al intentar finalizar el paro.");
                     }
                 });
             }
@@ -1882,7 +1882,7 @@
                     },
                     success: function (response) {
                         if (response.success) {
-                            alert(response.message || "Finalización aplicada correctamente.");
+                            alert(response.message || "✅ Finalización aplicada correctamente.");
                             cargarEstado(); // Volver a cargar el estado para actualizar UI
                         } else {
                             alert(response.message || "No se pudo aplicar la finalización.");
@@ -1890,7 +1890,7 @@
                     },
                     error: function (xhr, status, error) {
                         console.error("Error en la solicitud AJAX:", error);
-                        alert("Hubo un error al procesar la solicitud.");
+                        alert("❌ Hubo un error al procesar la solicitud.");
                     }
                 });
 
@@ -1970,15 +1970,15 @@
                     },
                     success: function (response) {
                         if (response.success) {
-                            alert(response.message || "Finalización aplicada correctamente.");
+                            alert(response.message || "✅ Finalización aplicada correctamente.");
                             cargarEstado();
                         } else {
-                            alert(response.message || "No se pudo aplicar la finalización.");
+                            alert(response.message || "❌ No se pudo aplicar la finalización.");
                         }
                     },
                     error: function (xhr, status, error) {
                         console.error("Error en la solicitud AJAX:", error);
-                        alert("Hubo un error al procesar la solicitud.");
+                        alert("❌ Hubo un error al procesar la solicitud.");
                     }
                 });
             });
@@ -2003,7 +2003,7 @@
                     },
                     success: function (response) {
                         if (response.success) {
-                            alert(response.message || "Finalización aplicada correctamente.");
+                            alert(response.message || "✅ Finalización aplicada correctamente.");
                             cargarEstadoTE();
                         } else {
                             alert(response.message || "No se pudo aplicar la finalización.");
@@ -2011,7 +2011,7 @@
                     },
                     error: function (xhr, status, error) {
                         console.error("Error en la solicitud AJAX:", error);
-                        alert("Hubo un error al procesar la solicitud.");
+                        alert("❌ Hubo un error al procesar la solicitud.");
                     }
                 });
             }); 
@@ -2109,7 +2109,7 @@
                             $('#processing-spinner').remove();
 
                             if (response.success) {
-                                alert(`✅ Paro finalizado correctamente.\nMinutos Paro: ${response.minutos_paro}\nPiezas Reparadas: ${response.reparacion_rechazo}`);
+                                alert(`✅ Paro finalizado correctamente.\nMinutos Paro: ${response.minutos_paro}\nPiezas Reparadas: ${response.reparacion_rechazo}`); 
                                 $('#collapseBultos').collapse('hide');
                                 datosCargados = false;
                             } else {
