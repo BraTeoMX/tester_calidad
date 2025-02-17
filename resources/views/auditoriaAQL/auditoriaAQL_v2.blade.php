@@ -1298,12 +1298,57 @@
                         asignarEventosEliminar();
                         asignarEventosFinalizarParo();
 
+                        // Al finalizar la creación de filas, inicia la monitorización
+                        setInterval(verificarTiemposParo, 60000); // Comprobar cada minuto
+                        verificarTiemposParo(); // Comprobar inmediatamente
+
+
                     },
                     error: function (error) {
                         console.error("Error al cargar los registros:", error);
                     }
                 });
             }
+
+            function verificarTiemposParo() {
+                const ahora = new Date();
+
+                // Seleccionamos todas las filas
+                document.querySelectorAll('#tabla_registros_dia tbody tr').forEach(fila => {
+                    const botonParo = fila.querySelector('.btn-finalizar-paro');
+                    const celdaHora = fila.querySelector('td:nth-last-child(2)'); // Penúltima columna
+
+                    // Si no hay botón o no hay hora, limpiar colores
+                    if (!botonParo || !celdaHora) {
+                        fila.style.backgroundColor = "";
+                        return;
+                    }
+
+                    // Obtener la hora del registro
+                    const horaRegistroTexto = celdaHora.textContent.trim();
+                    if (!horaRegistroTexto) return;
+
+                    const [hora, minuto, segundo] = horaRegistroTexto.split(':').map(Number);
+                    const horaRegistro = new Date();
+                    horaRegistro.setHours(hora, minuto, segundo || 0);
+
+                    // Calcular la diferencia en minutos
+                    const diferenciaMinutos = Math.floor((ahora - horaRegistro) / 60000);
+
+                    // Limpiar colores previos
+                    fila.style.backgroundColor = "";
+
+                    // Aplicar color según el tiempo
+                    if (diferenciaMinutos >= 10 && diferenciaMinutos < 15) {
+                        fila.style.backgroundColor = "#996515"; // Amarillo Oscuro
+                        fila.style.color = "#fff";
+                    } else if (diferenciaMinutos >= 15) {
+                        fila.style.backgroundColor = "#8B0000"; // Rojo Oscuro
+                        fila.style.color = "#fff";
+                    }
+                });
+            }
+
 
             function actualizarTablasSecundarias(totalAuditadas, totalRechazadas) {
                 const porcentajeAQL = totalAuditadas > 0 
