@@ -25,29 +25,29 @@
     <!-- CSS -->
     <link href="{{ asset('black') }}/css/black-dashboard.css?v=1.0.0" rel="stylesheet" />
     <link href="{{ asset('black') }}/css/theme.css" rel="stylesheet" />
-       <!-- Select2 -->
-       <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-       <!-- jQuery -->
-       <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-       <script src="{{ asset('material') }}/js/plugins/jquery-jvectormap.js"></script>
-       <script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ asset('material') }}/js/plugins/jquery-jvectormap.js"></script>
+    <script>
         jQuery.event.special.touchstart = {
-          setup: function (_, ns, handle) {
-            this.addEventListener("touchstart", handle, { passive: !ns.includes("noPreventDefault") });
-          }
+            setup: function (_, ns, handle) {
+                this.addEventListener("touchstart", handle, { passive: !ns.includes("noPreventDefault") });
+            }
         };
 
         jQuery.event.special.touchmove = {
-          setup: function (_, ns, handle) {
-            this.addEventListener("touchmove", handle, { passive: !ns.includes("noPreventDefault") });
-          }
+            setup: function (_, ns, handle) {
+                this.addEventListener("touchmove", handle, { passive: !ns.includes("noPreventDefault") });
+            }
         };
 
         jQuery.event.special.wheel = {
-          setup: function (_, ns, handle) {
-            this.addEventListener("wheel", handle, { passive: true });
-          }
+            setup: function (_, ns, handle) {
+                this.addEventListener("wheel", handle, { passive: true });
+            }
         };
 
         jQuery.event.special.mousewheel = {
@@ -109,7 +109,7 @@
             </div>
         </div>
     @endauth
-   <!--  <script src="{{ asset('black') }}/js/core/jquery.min.js"></script>
+    <!--  <script src="{{ asset('black') }}/js/core/jquery.min.js"></script>
     <script src="{{ asset('black') }}/js/core/popper.min.js"></script>
     <script src="{{ asset('black') }}/js/core/bootstrap.min.js"></script>
     <script src="{{ asset('black') }}/js/plugins/perfect-scrollbar.jquery.min.js"></script>-->
@@ -121,20 +121,20 @@
     <script src="{{ asset('black') }}/js/theme.js"></script>
 
     @stack('js')
-  <!-- Other Scripts -->
-  <script src="{{ asset('material') }}/js/plugins/moment.min.js"></script>
-  <script src="{{ asset('material') }}/js/plugins/sweetalert2.js"></script>
-  <script src="{{ asset('material') }}/js/plugins/jquery.validate.min.js"></script>
-  <script src="{{ asset('material') }}/js/plugins/jquery.bootstrap-wizard.js"></script>
-  <script src="{{ asset('material') }}/js/plugins/bootstrap-datetimepicker.min.js"></script>
-  <script src="{{ asset('material') }}/js/plugins/jquery.dataTables.min.js"></script>
-  <script src="{{ asset('material') }}/js/plugins/bootstrap-tagsinput.js"></script>
-  <script src="{{ asset('material') }}/js/plugins/jasny-bootstrap.min.js"></script>
-  <script src="{{ asset('material') }}/js/plugins/fullcalendar.min.js"></script>
-  <script src="{{ asset('material') }}/js/plugins/nouislider.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.js"></script>
-  <script src="{{ asset('material') }}/js/plugins/chartist.min.js"></script>
-  <script src="{{ asset('material') }}/js/plugins/bootstrap-notify.js"></script>
+    <!-- Other Scripts -->
+    <script src="{{ asset('material') }}/js/plugins/moment.min.js"></script>
+    <script src="{{ asset('material') }}/js/plugins/sweetalert2.js"></script>
+    <script src="{{ asset('material') }}/js/plugins/jquery.validate.min.js"></script>
+    <script src="{{ asset('material') }}/js/plugins/jquery.bootstrap-wizard.js"></script>
+    <script src="{{ asset('material') }}/js/plugins/bootstrap-datetimepicker.min.js"></script>
+    <script src="{{ asset('material') }}/js/plugins/jquery.dataTables.min.js"></script>
+    <script src="{{ asset('material') }}/js/plugins/bootstrap-tagsinput.js"></script>
+    <script src="{{ asset('material') }}/js/plugins/jasny-bootstrap.min.js"></script>
+    <script src="{{ asset('material') }}/js/plugins/fullcalendar.min.js"></script>
+    <script src="{{ asset('material') }}/js/plugins/nouislider.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.js"></script>
+    <script src="{{ asset('material') }}/js/plugins/chartist.min.js"></script>
+    <script src="{{ asset('material') }}/js/plugins/bootstrap-notify.js"></script>
 
     <script>
         $(document).ready(function() {
