@@ -346,7 +346,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table" id="tabla_registros_dia">
+                        <table class="table table56" id="tabla_registros_dia">
                             <thead class="thead-primary">
                                 <tr>
                                     <th>PARO</th>
@@ -398,7 +398,7 @@
                     <div id="collapseTiempoExtra" class="collapse" aria-labelledby="headingTiempoExtra" data-parent="#accordionTiempoExtra">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table" id="tabla_registros_tiempo_extra">
+                                <table class="table table56" id="tabla_registros_tiempo_extra">
                                     <thead class="thead-primary">
                                         <tr>
                                             <th>PARO</th>
