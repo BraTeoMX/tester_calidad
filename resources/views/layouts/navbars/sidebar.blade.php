@@ -144,7 +144,7 @@
                                 </a>
                             </li>
                             <li class="nav-item{{ $pageSlug == 'AQL' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('auditoriaAQL.altaAQL') }}">
+                                <a class="nav-link" href="{{ route('auditoriaAQL.altaAQL_v2') }}">
                                     <i class="material-icons">edit_document</i>
                                     <p>{{ __('FCC-009-B') }}</p>
                                     <p style="text-align: center;">{{ __('AUDITORIA FINAL A.Q.L') }}</p>
