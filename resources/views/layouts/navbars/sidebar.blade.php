@@ -4,7 +4,7 @@
             <a href="#" class="simple-text logo-normal">{{ _('INTIMARK') }}</a>
         </div>
         <ul class="nav">
-            @if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Gerente de Calidad') 
+            @if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Gerente de Calidad')
                     || auth()->user()->hasRole('Gerente')))
                 <li class="nav-item{{ $pageSlug == 'dashboard' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('home') }}">
@@ -23,13 +23,13 @@
                         <i class="tim-icons icon-tap-02"></i>
                         <p>{{ __('Consulta por Semana') }}</p>
                     </a>
-                </li> 
+                </li>
                 <li class="nav-item{{ $pageSlug == 'dashboardComparativoClientes' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('dashboarComparativaModulo.semanaComparativaGeneral') }}">
                         <i class="tim-icons icon-bag-16"></i>
                         <p>{{ __('Comparativo Clientes') }}</p>
                     </a>
-                </li> 
+                </li>
             @endif
 
             @if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Gerente de Calidad')))
@@ -100,7 +100,7 @@
                                 </a>
                             </li>
                             <li class="nav-item{{ $pageSlug == 'AQL' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('auditoriaAQL.altaAQL') }}">
+                                <a class="nav-link" href="{{ route('auditoriaAQL.altaAQL_v2') }}">
                                     <i class="material-icons">edit_document</i>
                                     <p>{{ __('FCC-009-B') }}</p>
                                     <p style="text-align: center;">{{ __('AUDITORIA FINAL A.Q.L') }}</p>
