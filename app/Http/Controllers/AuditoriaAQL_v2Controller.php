@@ -316,39 +316,29 @@ class AuditoriaAQL_v2Controller extends Controller
     public function obtenerNombresProceso(Request $request)
     {
         try {
-            // Obtén el módulo desde la solicitud
             $modulo = $request->input('modulo');
+            $search = $request->input('search');
 
-            // Consulta base para los registros asociados al módulo
-            $registrosAsociados = AuditoriaProceso::query()
-                ->where('moduleid', $modulo)
-                ->select('name')
+            $query = AuditoriaProceso::query()
+                ->select('name', 'personnelnumber')
                 ->distinct()
-                ->get();
+                ->orderByRaw("CASE WHEN moduleid = ? THEN 0 ELSE 1 END", [$modulo]);
 
-            // Consulta para los registros generales, excluyendo los asociados
-            $registrosGenerales = AuditoriaProceso::query()
-                ->select('name')
-                ->distinct()
-                ->when($registrosAsociados->isNotEmpty(), function ($query) use ($registrosAsociados) {
-                    return $query->whereNotIn('name', $registrosAsociados->pluck('name'));
-                })
-                ->get();
+            if ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('personnelnumber', 'like', "%{$search}%");
+                });
+            }
 
+            $nombres = $query->get();
 
-            // Combina los resultados de forma manual
-            $nombres = array_merge(
-                $registrosAsociados->toArray(),
-                $registrosGenerales->toArray()
-            );
-
-
-            // Devuelve los nombres en formato JSON
             return response()->json($nombres);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
 
     public function guardarRegistrosAql(Request $request)
     {
