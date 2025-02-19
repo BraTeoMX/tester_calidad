@@ -165,7 +165,7 @@
                                             <!-- Campo de búsqueda y botón -->
                                             <div class="form-inline">
                                                 <input type="text" id="searchInputAcordeonFinal" class="form-control mr-2"
-                                                    placeholder="Buscar por Operación">
+                                                    placeholder="Buscar por Orden finalizada">
                                                 <button id="btnBuscarFinal" class="btn btn-primary">Buscar</button>
                                             </div>
                                             
