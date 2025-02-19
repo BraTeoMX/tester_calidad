@@ -97,11 +97,15 @@
                                             </button>
                                         </h2>
                                     </div>
-                        
                                     <div id="collapseOne2" class="collapse show" aria-labelledby="headingOne2" data-parent="#accordionExample2">
                                         <div class="card-body">
-                                            <input type="text" id="searchInputAcordeon" class="form-control" placeholder="Buscar por Proceso">
-                                            <!-- Contenedor que se actualizará vía AJAX -->
+                                            <!-- Campo de búsqueda y botón -->
+                                            <div class="form-inline">
+                                                <input type="text" id="searchInputAcordeon" class="form-control mr-2" placeholder="Buscar por Proceso">
+                                                <button id="btnBuscar" class="btn btn-primary">Buscar</button>
+                                            </div>
+                                            
+                                            <!-- Contenedor para mostrar los registros (ya sean del día o de la búsqueda) -->
                                             <div class="accordion" id="accordionExample">
                                                 <div id="contentEnProceso">
                                                     <p>Cargando datos...</p>
@@ -110,21 +114,16 @@
                                         </div>
                                         <script>
                                             document.addEventListener("DOMContentLoaded", function() {
-                                                // Carga inicial: sin búsqueda, se mostrarán los registros del día.
+                                                // Carga inicial: se muestran los registros del día
                                                 buscarEnProceso('');
-                        
-                                                // Cada vez que se escriba en el input, se espera 300 ms antes de llamar al AJAX
-                                                const searchInput = document.getElementById('searchInputAcordeon');
-                                                let timeout = null;
-                                                searchInput.addEventListener('input', function() {
-                                                    const busqueda = this.value.trim();
-                                                    clearTimeout(timeout);
-                                                    timeout = setTimeout(function() {
-                                                        buscarEnProceso(busqueda);
-                                                    }, 300);
+                                                
+                                                // Al hacer clic en el botón de búsqueda se realiza la consulta
+                                                document.getElementById('btnBuscar').addEventListener('click', function() {
+                                                    const busqueda = document.getElementById('searchInputAcordeon').value.trim();
+                                                    buscarEnProceso(busqueda);
                                                 });
                                             });
-                        
+                                            
                                             function buscarEnProceso(busqueda) {
                                                 $.ajax({
                                                     url: '{{ route("auditoriaCorte.searchEnProceso") }}',
@@ -143,7 +142,7 @@
                                 </div>
                             </div>
                             {{-- Fin del acordeón EN PROCESO --}}
-                        </div>
+                        </div>                        
                     </div>
                     <div class="row">
                         <div class="col-md-6">
@@ -163,8 +162,14 @@
                                     <div id="collapseFinalOne" class="collapse show" aria-labelledby="headingFinalOne"
                                         data-parent="#accordionExampleFinal">
                                         <div class="card-body">
-                                            <input type="text" id="searchInputAcordeonFinal" class="form-control"
-                                                placeholder="Buscar por Operación">
+                                            <!-- Campo de búsqueda y botón -->
+                                            <div class="form-inline">
+                                                <input type="text" id="searchInputAcordeonFinal" class="form-control mr-2"
+                                                    placeholder="Buscar por Operación">
+                                                <button id="btnBuscarFinal" class="btn btn-primary">Buscar</button>
+                                            </div>
+                                            
+                        
                                             <!-- Contenedor que se actualizará vía AJAX -->
                                             <div class="accordion" id="accordionExampleFinalSub">
                                                 <div id="contentFinal">
@@ -174,18 +179,13 @@
                                         </div>
                                         <script>
                                             document.addEventListener("DOMContentLoaded", function() {
-                                                // Carga inicial para FINAL: sin búsqueda, se mostrarán los registros del día.
+                                                // Carga inicial para FINAL: sin búsqueda se muestran los registros del día
                                                 buscarFinal('');
-                        
-                                                // Cada vez que se escriba en el input, se espera 300 ms antes de llamar a AJAX.
-                                                const searchInputFinal = document.getElementById('searchInputAcordeonFinal');
-                                                let timeoutFinal = null;
-                                                searchInputFinal.addEventListener('input', function() {
-                                                    const busqueda = this.value.trim();
-                                                    clearTimeout(timeoutFinal);
-                                                    timeoutFinal = setTimeout(function() {
-                                                        buscarFinal(busqueda);
-                                                    }, 300);
+                                                
+                                                // Al hacer clic en el botón se ejecuta la búsqueda
+                                                document.getElementById('btnBuscarFinal').addEventListener('click', function() {
+                                                    const busqueda = document.getElementById('searchInputAcordeonFinal').value.trim();
+                                                    buscarFinal(busqueda);
                                                 });
                                             });
                         
@@ -207,7 +207,7 @@
                                 </div>
                                 <!-- Fin del acordeón -->
                             </div>
-                        </div>
+                        </div>                        
                         <!-- Fin del acordeón -->
                         <div class="col-md-6">
                             {{-- Inicio de Acordeon --}}
