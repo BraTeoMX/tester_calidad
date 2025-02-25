@@ -141,6 +141,88 @@
                             </div>
                         </div>
                     </form>
+                    <!-- Botón para abrir el modal -->
+                    <div class="mt-3">
+                        <button id="openModalBtn" class="btn-custom">Ingresar datos no encontrados</button>
+                    </div>
+
+                    <!-- Modal Personalizado -->
+                    <div id="customModal" class="modal-custom">
+                        <div class="modal-content-custom">
+                            <div class="modal-header-custom">
+                                <h5 class="modal-title-custom">Agregar Auditoría Completa</h5>
+                                <button id="closeModalBtn" class="close-custom">&times;</button>
+                            </div>
+                            <div class="modal-body-custom">
+                                <!-- Formulario dentro del modal -->
+                                <form id="guardarFormularioModal" action="{{ route('guardarAuditoriaEtiqueta') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="tipoEtiqueta" value="{{ old('tipoEtiqueta', $tipoBusqueda) }}">
+                                    <input type="hidden" name="valorEtiqueta" value="{{ old('valorEtiqueta', $orden) }}">
+                                    
+                                    <div class="table-responsive">
+                                        <table class="table align-items-center table-flush">
+                                            <thead class="thead-primary">
+                                                <tr>
+                                                    <th style="min-width: 150px;">Estilo</th>
+                                                    <th style="min-width: 150px;">Talla</th>
+                                                    <th style="min-width: 150px;">Color</th>
+                                                    <th style="min-width: 150px;">Cantidad</th>
+                                                    <th style="min-width: 180px;">Tamaño de Muestra</th>
+                                                    <th style="min-width: 250px;">Defectos</th>
+                                                    <th style="min-width: 200px;">Acciones Correctivas</th>
+                                                    <th style="min-width: 250px;" id="comentariosHeaderModal" class="d-none">Comentarios</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <!-- Select Estilo: mantiene la conexión con la lógica original -->
+                                                    <td>
+                                                        <select name="estilo" id="estilosSelectModal" class="form-control" required>
+                                                            <option value="">-- Seleccionar --</option>
+                                                            @foreach($estilos as $estiloObj)
+                                                            <option value="{{ $estiloObj->Estilos }}">
+                                                                {{ $estiloObj->Estilos }}
+                                                            </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </td>
+                                                    <!-- Para el modal, los siguientes campos se muestran como input de tipo text -->
+                                                    <td><input type="text" name="talla" id="tallaInputModal" class="form-control" placeholder="Escribir talla" required></td>
+                                                    <td><input type="text" name="color" class="form-control" id="colorInputModal" placeholder="Escribir color" required></td>
+                                                    <td><input type="text" name="cantidad" class="form-control" id="cantidadInputModal" placeholder="Escribir cantidad" required></td>
+                                                    <td><input type="text" name="muestreo" class="form-control" id="tamanoMuestraInputModal" placeholder="Escribir tamaño de muestra" required></td>
+                                                    <td>
+                                                        <select id="defectosSelectModal" class="form-control">
+                                                            <option value="">-- Seleccionar Defectos --</option>
+                                                        </select>
+                                                        <div id="listaDefectosContainerModal"></div>
+                                                        </td>
+                                                    <td>
+                                                    <select name="accion_correctiva" id="accionesSelectModal" class="form-control" required>
+                                                        <option value="">-- Seleccionar --</option>
+                                                        <option value="Aprobado">Aprobado</option>
+                                                        <option value="Aprobado con condicion">Aprobado con condicion</option>
+                                                        <option value="Rechazado">Rechazado</option>
+                                                    </select>
+                                                    </td>
+                                                    <td id="comentariosCellModal" class="d-none"><input type="text" name="comentarios" id="comentariosInputModal" class="form-control" placeholder="Escribe un comentario"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <!-- Botón para enviar los datos del modal -->
+                                        <div class="mt-3">
+                                            <button type="submit" class="btn btn-primary">Guardar Auditoría</button>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer-custom">
+                                        <button type="submit" class="btn-custom">Guardar Auditoría</button>
+                                        <button type="button" id="closeModalBtnFooter" class="btn-secondary-custom">Cerrar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 @else
                     <h4 class="mt-4">No se encontraron estilos.</h4>
                 @endif
@@ -224,6 +306,100 @@
             color: #ffffff; /* Texto blanco para contraste */
         }
 
+    </style>
+    <!-- Estilos para el Modal Personalizado -->
+    <style>
+        /* Estilos para el fondo del modal */
+        .modal-custom {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Contenedor del modal */
+        .modal-content-custom {
+            background-color: #222;
+            color: #fff;
+            width: 80%;
+            max-width: 900px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Encabezado del modal */
+        .modal-header-custom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+
+        .close-custom {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Estilos para el formulario dentro del modal */
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .table-custom th, .table-custom td {
+            border: 1px solid #444;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .input-custom {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 5px;
+            width: 100%;
+            border-radius: 5px;
+        }
+
+        .modal-footer-custom {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 10px;
+        }
+
+        .btn-custom {
+            background-color: #28a745;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .btn-secondary-custom {
+            background-color: #6c757d;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .btn-custom:hover, .btn-secondary-custom:hover {
+            opacity: 0.8;
+        }
     </style>
 
     <script>
@@ -318,203 +494,189 @@
         });
     </script>
 
+    <!-- Script general para inicializar la lógica de defectos -->
     <script>
-        $(document).ready(function() {
-            // Inicializar Select2 en el select de defectos
-            $('#defectosSelect').select2({
-                placeholder: '-- Seleccionar Defectos --',
-                allowClear: true,
+        function initDefectos(selectSelector, containerSelector, formSelector) {
+        // Array para almacenar la lista de defectos seleccionados
+        let defectosSeleccionados = [];
+    
+        // Inicializar Select2 en el select de defectos
+        $(selectSelector).select2({
+            placeholder: '-- Seleccionar Defectos --',
+            allowClear: true,
+        });
+    
+        // Función para redibujar la lista de defectos en el contenedor
+        function renderizarListaDefectos() {
+            // Limpiar el contenedor
+            $(containerSelector).empty();
+    
+            // Limpiar inputs ocultos existentes en el formulario
+            $(formSelector + ' input[name^="defectos"]').remove();
+    
+            // Recorrer cada defecto en el arreglo
+            defectosSeleccionados.forEach(function(defecto, index) {
+            // Contenedor principal
+            let $defectoItem = $('<div class="defecto-item" style="margin-bottom: 5px;">');
+    
+            // Nombre del defecto
+            let $nombreDefecto = $('<span style="margin-right: 5px;">')
+                .text(defecto.nombre + ':');
+    
+            // Input numérico visible
+            let $inputCantidad = $('<input type="number" min="0" step="1" style="width: 80px; margin-right: 5px;">')
+                .val(defecto.cantidad || 1)
+                .on('input', function() {
+                defecto.cantidad = $(this).val();
+                $inputOcultoCantidad.val(defecto.cantidad);
+                });
+    
+            // Botón para eliminar
+            let $btnEliminar = $('<button class="btn btn-sm btn-danger">').text('Eliminar');
+    
+            $btnEliminar.on('click', function() {
+                // Remover del arreglo principal
+                defectosSeleccionados = defectosSeleccionados.filter(function(item) {
+                return item.id !== defecto.id;
+                });
+    
+                // Devolver la opción al select
+                $(selectSelector).append(
+                $('<option>', {
+                    value: defecto.id,
+                    text: defecto.nombre
+                })
+                );
+    
+                // Volver a dibujar
+                renderizarListaDefectos();
             });
-
-            // Array para almacenar la lista de defectos seleccionados
-            let defectosSeleccionados = [];
-
-            // Función para redibujar la lista de defectos en el contenedor
-            function renderizarListaDefectos() {
-                // Limpiar el contenedor
-                $('#listaDefectosContainer').empty();
-
-                // Limpiar inputs ocultos existentes en el formulario
-                $('#guardarFormulario input[name^="defectos"]').remove();
-
-                // Recorrer cada defecto en el arreglo
-                defectosSeleccionados.forEach(function(defecto, index) {
-                    // Contenedor principal
-                    let $defectoItem = $('<div class="defecto-item" style="margin-bottom: 5px;">');
-
-                    // Nombre del defecto
-                    let $nombreDefecto = $('<span style="margin-right: 5px;">')
-                        .text(defecto.nombre + ':');
-
-                    // Input numérico visible
-                    let $inputCantidad = $('<input type="number" min="0" step="1" style="width: 80px; margin-right: 5px;">')
-                        .val(defecto.cantidad || 1)
-                        .on('input', function() {
-                            // Actualizamos la cantidad en el array
-                            defecto.cantidad = $(this).val();
-                            // También actualizamos el input oculto
-                            $inputOcultoCantidad.val(defecto.cantidad);
-                        });
-
-                    // Botón para eliminar
-                    let $btnEliminar = $('<button class="btn btn-sm btn-danger">').text('Eliminar');
-
-                    $btnEliminar.on('click', function() {
-                        // Remover del arreglo principal
-                        defectosSeleccionados = defectosSeleccionados.filter(function(item) {
-                            return item.id !== defecto.id;
-                        });
-
-                        // Devolver la opción al select
-                        $('#defectosSelect').append(
-                            $('<option>', {
-                                value: defecto.id,
-                                text: defecto.nombre
-                            })
-                        );
-
-                        // Volver a dibujar
-                        renderizarListaDefectos();
-                    });
-
-                    // --- Inputs ocultos para envío en el formulario --- //
-                    // Nombre
-                    let $inputOcultoNombre = $('<input>').attr({
-                        type: 'hidden',
-                        name: `defectos[${index}][nombre]`,
-                        value: defecto.nombre
-                    });
-
-                    // Cantidad (se creará con el valor inicial
-                    // y se actualiza en el on('input') anterior)
-                    let $inputOcultoCantidad = $('<input>').attr({
-                        type: 'hidden',
-                        name: `defectos[${index}][cantidad]`,
-                        value: defecto.cantidad || 1
-                    });
-
-                    // Agregamos todo al defecto-item
-                    $defectoItem.append($nombreDefecto);
-                    $defectoItem.append($inputCantidad);
-                    $defectoItem.append($btnEliminar);
-
-                    // Agregamos el item al contenedor en la vista
-                    $('#listaDefectosContainer').append($defectoItem);
-
-                    // Agregamos los inputs ocultos directamente al formulario
-                    $('#guardarFormulario').append($inputOcultoNombre);
-                    $('#guardarFormulario').append($inputOcultoCantidad);
+    
+            // --- Inputs ocultos para envío en el formulario --- //
+            let $inputOcultoNombre = $('<input>').attr({
+                type: 'hidden',
+                name: `defectos[${index}][nombre]`,
+                value: defecto.nombre
+            });
+    
+            let $inputOcultoCantidad = $('<input>').attr({
+                type: 'hidden',
+                name: `defectos[${index}][cantidad]`,
+                value: defecto.cantidad || 1
+            });
+    
+            // Agregar elementos al contenedor del item
+            $defectoItem.append($nombreDefecto, $inputCantidad, $btnEliminar);
+    
+            // Agregar el item al contenedor en la vista
+            $(containerSelector).append($defectoItem);
+    
+            // Agregar los inputs ocultos al formulario
+            $(formSelector).append($inputOcultoNombre, $inputOcultoCantidad);
+            });
+        }
+    
+        // Cargar defectos mediante AJAX
+        $.ajax({
+            url: "{{ route('obtenerDefectosEtiquetas') }}",
+            method: 'GET',
+            success: function(response) {
+            if (response) {
+                // Agregar la opción "OTRO"
+                $(selectSelector).append(
+                $('<option>', {
+                    value: 'otro',
+                    text: 'OTRO'
+                })
+                );
+    
+                // Agregar defectos retornados por AJAX
+                response.forEach(function(defecto) {
+                $(selectSelector).append(
+                    $('<option>', {
+                    value: defecto.id,
+                    text: defecto.Defectos
+                    })
+                );
                 });
             }
-
-            // Cargar defectos mediante AJAX
-            $.ajax({
-                url: "{{ route('obtenerDefectosEtiquetas') }}",
-                method: 'GET',
+            },
+            error: function(xhr) {
+            console.log("Error al cargar defectos:", xhr.responseText);
+            }
+        });
+    
+        // Manejar el cambio en el select de defectos
+        $(selectSelector).on('change', function() {
+            let seleccionado = $(this).val();
+            let textoSeleccionado = $(this).find('option:selected').text();
+    
+            if (seleccionado === 'otro') {
+            // Mostrar prompt para capturar nuevo defecto
+            let nuevoDefecto = prompt("Por favor, introduce el nuevo defecto:");
+    
+            if (nuevoDefecto) {
+                $.ajax({
+                url: "{{ route('guardarDefectoEtiqueta') }}",
+                method: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    Defectos: nuevoDefecto
+                },
                 success: function(response) {
-                    if (response) {
-                        // Agregar la opción "OTRO"
-                        $('#defectosSelect').append(
-                            $('<option>', {
-                                value: 'otro',
-                                text: 'OTRO'
-                            })
-                        );
-
-                        // Agregar defectos retornados por AJAX
-                        response.forEach(function(defecto) {
-                            $('#defectosSelect').append(
-                                $('<option>', {
-                                    value: defecto.id,
-                                    text: defecto.Defectos
-                                })
-                            );
-                        });
+                    if (response.success) {
+                    alert("El defecto se ha guardado correctamente.");
+                    // Agregar el nuevo defecto al select y seleccionarlo
+                    $(selectSelector).append(
+                        $('<option>', {
+                        value: response.id,
+                        text: nuevoDefecto
+                        })
+                    );
+                    $(selectSelector).val(response.id).trigger('change');
+                    } else {
+                    alert("Ocurrió un error al guardar el defecto.");
                     }
                 },
                 error: function(xhr) {
-                    console.log("Error al cargar defectos:", xhr.responseText);
+                    console.log("Estado del error:", xhr.status);
+                    console.log("Detalle del error:", xhr.responseText);
+                    alert("Ocurrió un error. Inténtalo de nuevo.");
                 }
+                });
+            } else {
+                $(selectSelector).val(null).trigger('change');
+            }
+            } else if (seleccionado) {
+            // Verificar si ya existe en defectosSeleccionados
+            let existe = defectosSeleccionados.some(function(def) {
+                return def.id == seleccionado;
             });
-
-            // Detectar cuando se selecciona algo en el select de defectos
-            $('#defectosSelect').on('change', function() {
-                let seleccionado = $(this).val();
-                let textoSeleccionado = $(this).find('option:selected').text();
-
-                // Verificar si se selecciona la opción 'OTRO'
-                if (seleccionado === 'otro') {
-                    // Mostrar prompt para capturar nuevo defecto
-                    let nuevoDefecto = prompt("Por favor, introduce el nuevo defecto:");
-
-                    if (nuevoDefecto) {
-                        // Petición AJAX para guardar el nuevo defecto
-                        $.ajax({
-                            url: "{{ route('guardarDefectoEtiqueta') }}",
-                            method: 'POST',
-                            data: {
-                                _token: "{{ csrf_token() }}",
-                                Defectos: nuevoDefecto
-                            },
-                            success: function(response) {
-                                if (response.success) {
-                                    alert("El defecto se ha guardado correctamente.");
-
-                                    // Agregar el nuevo defecto al select y seleccionarlo
-                                    $('#defectosSelect').append(
-                                        $('<option>', {
-                                            value: response.id,
-                                            text: nuevoDefecto
-                                        })
-                                    );
-
-                                    // Seleccionar el nuevo defecto automáticamente
-                                    $('#defectosSelect').val(response.id).trigger('change');
-                                } else {
-                                    alert("Ocurrió un error al guardar el defecto.");
-                                }
-                            },
-                            error: function(xhr) {
-                                console.log("Estado del error:", xhr.status);
-                                console.log("Detalle del error:", xhr.responseText);
-                                alert("Ocurrió un error. Inténtalo de nuevo.");
-                            }
-                        });
-                    } else {
-                        // Si el usuario no introduce nada, reiniciamos el select
-                        $('#defectosSelect').val(null).trigger('change');
-                    }
-                }
-                else if (seleccionado) {
-                    // Si NO es "otro" y es un defecto válido
-                    // Verificar si ya existe en defectosSeleccionados
-                    let existe = defectosSeleccionados.some(function(def) {
-                        return def.id == seleccionado;
-                    });
-
-                    if (!existe) {
-                        // 1. Agregamos el defecto al arreglo
-                        defectosSeleccionados.push({
-                            id: seleccionado,
-                            nombre: textoSeleccionado
-                        });
-
-                        // 2. Removemos la opción del select para no volver a seleccionarla
-                        $(this).find('option[value="' + seleccionado + '"]').remove();
-
-                        // 3. Limpiamos el valor del select para que quede en placeholder
-                        $(this).val(null).trigger('change');
-
-                        // 4. Renderizamos la lista
-                        renderizarListaDefectos();
-                    } else {
-                        // Si ya existe, simplemente podemos resetear el select
-                        $(this).val(null).trigger('change');
-                    }
-                }
-            });
+    
+            if (!existe) {
+                defectosSeleccionados.push({
+                id: seleccionado,
+                nombre: textoSeleccionado
+                });
+                // Remover la opción seleccionada
+                $(this).find('option[value="' + seleccionado + '"]').remove();
+                // Reiniciar el select
+                $(this).val(null).trigger('change');
+                renderizarListaDefectos();
+            } else {
+                $(this).val(null).trigger('change');
+            }
+            }
         });
-    </script>
+        }
+    
+        // Inicializamos la lógica para el formulario principal
+        initDefectos('#defectosSelect', '#listaDefectosContainer', '#guardarFormulario');
+    
+        // Inicializamos la lógica para el formulario del modal
+        // usando los selectores correspondientes del modal
+        initDefectos('#defectosSelectModal', '#listaDefectosContainerModal', '#guardarFormularioModal');
+    </script>  
     <script>
         $(document).ready(function() {
             // No uses .hide() al cargar la página; basta con la clase d-none que ya tienes en el HTML
@@ -533,6 +695,26 @@
                     $('#comentariosHeader, #comentariosCell').addClass('d-none');
                     // Quita la obligatoriedad
                     $('#comentariosInput').removeAttr('required');
+                }
+            });
+        });
+        $(document).ready(function() {
+            // No uses .hide() al cargar la página; basta con la clase d-none que ya tienes en el HTML
+            
+            // Detecta cambios en el select de Acciones Correctivas
+            $('#accionesSelectModal').on('change', function() {
+                let selectedValue = $(this).val();
+                
+                if (selectedValue === 'Aprobado con condicion') {
+                    // Quita la clase d-none para mostrar la columna "Comentarios"
+                    $('#comentariosHeaderModal, #comentariosCellModal').removeClass('d-none');
+                    // Hace obligatorio el campo
+                    $('#comentariosInputModal').attr('required', true);
+                } else {
+                    // Vuelve a poner la clase d-none para ocultar la columna "Comentarios"
+                    $('#comentariosHeaderModal, #comentariosCellModal').addClass('d-none');
+                    // Quita la obligatoriedad
+                    $('#comentariosInputModal').removeAttr('required');
                 }
             });
         });
@@ -586,5 +768,36 @@
             });
         });
     </script>
-        
+    
+    <!-- Script para abrir y cerrar el Modal -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let modal = document.getElementById("customModal");
+            let openModalBtn = document.getElementById("openModalBtn");
+            let closeModalBtn = document.getElementById("closeModalBtn");
+            let closeModalBtnFooter = document.getElementById("closeModalBtnFooter");
+
+            // Abrir el modal
+            openModalBtn.addEventListener("click", function() {
+                modal.style.display = "flex";
+            });
+
+            // Cerrar el modal con el botón (X)
+            closeModalBtn.addEventListener("click", function() {
+                modal.style.display = "none";
+            });
+
+            // Cerrar el modal con el botón de "Cerrar" en el footer
+            closeModalBtnFooter.addEventListener("click", function() {
+                modal.style.display = "none";
+            });
+
+            // Cerrar el modal si el usuario hace clic fuera del contenido
+            window.addEventListener("click", function(event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
+            });
+        });
+    </script>
 @endsection
