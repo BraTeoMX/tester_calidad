@@ -137,13 +137,13 @@
                             </table>
                             <!-- Botón para enviar los datos -->
                             <div class="mt-3">
-                                <button type="submit" class="btn btn-primary">Guardar Auditoría</button>
+                                <button type="submit" class="btn-custom">Guardar Auditoría</button>
                             </div>
                         </div>
                     </form>
                     <!-- Botón para abrir el modal -->
                     <div class="mt-3">
-                        <button id="openModalBtn" class="btn-custom">Ingresar datos no encontrados</button>
+                        <button id="openModalBtn" class="btn btn-secondary">Ingresar datos no encontrados</button>
                     </div>
 
                     <!-- Modal Personalizado -->
@@ -159,6 +159,7 @@
                                     @csrf
                                     <input type="hidden" name="tipoEtiqueta" value="{{ old('tipoEtiqueta', $tipoBusqueda) }}">
                                     <input type="hidden" name="valorEtiqueta" value="{{ old('valorEtiqueta', $orden) }}">
+                                    <input type="hidden" name="registro_manual" value="1">
                                     
                                     <div class="table-responsive">
                                         <table class="table align-items-center table-flush">
@@ -188,10 +189,24 @@
                                                         </select>
                                                     </td>
                                                     <!-- Para el modal, los siguientes campos se muestran como input de tipo text -->
-                                                    <td><input type="text" name="talla" id="tallaInputModal" class="form-control" placeholder="Escribir talla" required></td>
-                                                    <td><input type="text" name="color" class="form-control" id="colorInputModal" placeholder="Escribir color" required></td>
-                                                    <td><input type="text" name="cantidad" class="form-control" id="cantidadInputModal" placeholder="Escribir cantidad" required></td>
-                                                    <td><input type="text" name="muestreo" class="form-control" id="tamanoMuestraInputModal" placeholder="Escribir tamaño de muestra" required></td>
+                                                    <td>
+                                                        <div class="input-group">
+                                                            <input type="text" name="talla" id="tallaInputModal" class="form-control" placeholder="Escribir talla" required>
+                                                            <div class="input-group-append">
+                                                                <input type="checkbox" id="tallaCheckbox" class="checkbox-custom">
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="input-group">
+                                                            <input type="text" name="color" class="form-control" id="colorInputModal" placeholder="Escribir color" required>
+                                                            <div class="input-group-append">
+                                                                <input type="checkbox" id="colorCheckbox" class="checkbox-custom">
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td><input type="number" name="cantidad" class="form-control" id="cantidadInputModal" placeholder="Escribir cantidad" required min="0" step="1"></td>
+                                                    <td><input type="number" name="muestreo" class="form-control" id="tamanoMuestraInputModal" placeholder="Escribir tamaño de muestra" required min="0" step="1"></td>
                                                     <td>
                                                         <select id="defectosSelectModal" class="form-control">
                                                             <option value="">-- Seleccionar Defectos --</option>
@@ -210,10 +225,6 @@
                                                 </tr>
                                             </tbody>
                                         </table>
-                                        <!-- Botón para enviar los datos del modal -->
-                                        <div class="mt-3">
-                                            <button type="submit" class="btn btn-primary">Guardar Auditoría</button>
-                                        </div>
                                     </div>
                                     <div class="modal-footer-custom">
                                         <button type="submit" class="btn-custom">Guardar Auditoría</button>
@@ -327,11 +338,19 @@
         .modal-content-custom {
             background-color: #222;
             color: #fff;
-            width: 80%;
-            max-width: 900px;
+            width: 95%; /* Aumentar el ancho al 95% del viewport */
+            max-width: none; /* Eliminar el límite de ancho */
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Ajuste para que el modal no tenga padding lateral en pantallas pequeñas */
+        @media (max-width: 768px) {
+            .modal-content-custom {
+                width: 100%;
+                border-radius: 0; /* Eliminar bordes redondeados en pantallas pequeñas */
+            }
         }
 
         /* Encabezado del modal */
@@ -382,10 +401,13 @@
         .btn-custom {
             background-color: #28a745;
             color: #fff;
-            padding: 10px 15px;
+            font-size: 18px;  /* Aumentar tamaño de fuente */
+            padding: 12px 20px;  /* Más espacio alrededor del texto */
             border: none;
             cursor: pointer;
-            border-radius: 5px;
+            border-radius: 8px;  /* Bordes más suaves */
+            min-width: 160px; /* Asegurar un tamaño mínimo */
+            text-align: center;  /* Centrar el texto */
         }
 
         .btn-secondary-custom {
@@ -400,6 +422,13 @@
         .btn-custom:hover, .btn-secondary-custom:hover {
             opacity: 0.8;
         }
+
+        .checkbox-custom {
+            margin-left: 10px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
     </style>
 
     <script>
@@ -771,11 +800,17 @@
     
     <!-- Script para abrir y cerrar el Modal -->
     <script>
+        // Script para abrir y cerrar el modal con tecla ESC
         document.addEventListener("DOMContentLoaded", function() {
             let modal = document.getElementById("customModal");
             let openModalBtn = document.getElementById("openModalBtn");
             let closeModalBtn = document.getElementById("closeModalBtn");
             let closeModalBtnFooter = document.getElementById("closeModalBtnFooter");
+
+            // Función para cerrar el modal
+            function cerrarModal() {
+                modal.style.display = "none";
+            }
 
             // Abrir el modal
             openModalBtn.addEventListener("click", function() {
@@ -783,21 +818,52 @@
             });
 
             // Cerrar el modal con el botón (X)
-            closeModalBtn.addEventListener("click", function() {
-                modal.style.display = "none";
-            });
+            closeModalBtn.addEventListener("click", cerrarModal);
 
             // Cerrar el modal con el botón de "Cerrar" en el footer
-            closeModalBtnFooter.addEventListener("click", function() {
-                modal.style.display = "none";
-            });
+            closeModalBtnFooter.addEventListener("click", cerrarModal);
 
             // Cerrar el modal si el usuario hace clic fuera del contenido
             window.addEventListener("click", function(event) {
                 if (event.target === modal) {
-                    modal.style.display = "none";
+                    cerrarModal();
+                }
+            });
+
+            // Cerrar el modal con la tecla "ESC"
+            document.addEventListener("keydown", function(event) {
+                if (event.key === "Escape") {
+                    cerrarModal();
                 }
             });
         });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let tallaInput = document.getElementById("tallaInputModal");
+            let colorInput = document.getElementById("colorInputModal");
+            let tallaCheckbox = document.getElementById("tallaCheckbox");
+            let colorCheckbox = document.getElementById("colorCheckbox");
+
+            function toggleInputState(input, checkbox) {
+                if (checkbox.checked) {
+                    input.disabled = true;   // Bloquear input
+                    input.removeAttribute("required"); // Quitar validación obligatoria
+                    input.value = ""; // Limpiar el campo al bloquearlo
+                } else {
+                    input.disabled = false;  // Habilitar input
+                    input.setAttribute("required", "required"); // Hacerlo obligatorio
+                }
+            }
+
+            tallaCheckbox.addEventListener("change", function() {
+                toggleInputState(tallaInput, tallaCheckbox);
+            });
+
+            colorCheckbox.addEventListener("change", function() {
+                toggleInputState(colorInput, colorCheckbox);
+            });
+        });
+
     </script>
 @endsection

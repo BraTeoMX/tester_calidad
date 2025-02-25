@@ -470,16 +470,20 @@ class EtiquetasV2Controller extends Controller
 
     public function guardarAuditoriaEtiqueta(Request $request)
     {
+        $nombreAuditor = Auth::user()->name;
+
         $reporte = new ReporteAuditoriaEtiqueta();
-        $reporte->tipo       = $request->tipoEtiqueta;
-        $reporte->orden      = $request->valorEtiqueta;
-        $reporte->estilo     = $request->estilo;
-        $reporte->color      = $request->color;
-        $reporte->talla      = $request->talla;
-        $reporte->cantidad   = $request->cantidad;
-        $reporte->muestreo   = $request->muestreo;
-        $reporte->estatus    = $request->accion_correctiva;
-        $reporte->comentario = $request->comentarios;
+        $reporte->nombre_auditor    = $nombreAuditor;
+        $reporte->tipo              = $request->tipoEtiqueta;
+        $reporte->orden             = $request->valorEtiqueta;
+        $reporte->estilo            = $request->estilo;
+        $reporte->color             = $request->color;
+        $reporte->talla             = $request->talla;
+        $reporte->cantidad          = $request->cantidad;
+        $reporte->muestreo          = $request->muestreo;
+        $reporte->estatus           = $request->accion_correctiva;
+        $reporte->comentario        = $request->comentarios;
+        $reporte->registro_manual   = $request->registro_manual;
 
         // Ahora decides el valor de 'rechazo'
         if ($request->accion_correctiva === 'Rechazado') {
