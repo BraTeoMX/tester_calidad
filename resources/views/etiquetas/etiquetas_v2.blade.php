@@ -56,7 +56,7 @@
             
                         <!-- Botón -->
                         <div class="form-group col-md-4">
-                            <button type="submit" class="btn btn-success mt-2">Buscar</button>
+                            <button type="submit" class="btn btn-success">Buscar</button>
                         </div>
                     </div>
                 </form>

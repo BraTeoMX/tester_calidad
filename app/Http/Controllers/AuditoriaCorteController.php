@@ -373,44 +373,11 @@ class AuditoriaCorteController extends Controller
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
-        // Obtener el registro correspondiente en la tabla AuditoriaMarcada si existe
-        $encabezadoAuditoriaCorte = EncabezadoAuditoriaCorte::where('orden_id', $orden)->first();
-        $auditoriaMarcada = AuditoriaMarcada::where('orden_id', $orden)->first();
-        $auditoriaTendido = AuditoriaTendido::where('orden_id', $orden)->first();
-        $Lectra = Lectra::where('orden_id', $orden)->first();
-        $auditoriaBulto = AuditoriaBulto::where('orden_id', $orden)->first();
-        $auditoriaFinal = AuditoriaFinal::where('orden_id', $orden)->first();
-        // apartado para validar los checbox
-
-        $mostrarFinalizarMarcada = $auditoriaMarcada ? session('estatus_checked_AuditoriaMarcada') : false;
         
-        // Verifica si los campos específicos son NULL
-        if ($auditoriaMarcada && is_null($auditoriaMarcada->yarda_orden_estatus) &&
-            is_null($auditoriaMarcada->yarda_marcada_estatus) &&
-            is_null($auditoriaMarcada->yarda_tendido_estatus)) {
-            $mostrarFinalizarMarcada = false;
-        }
-        
-        //dd($auditoriaMarcada, $mostrarFinalizarMarcada);
-        $mostrarFinalizarTendido = $auditoriaTendido ? session('estatus_checked_AuditoriaTendido') : false;
-        $mostrarFinalizarLectra = $Lectra ? session('estatus_checked_Lectra') : false;
-        $mostrarFinalizarBulto = $auditoriaBulto ? session('estatus_checked_AuditoriaBulto') : false;
-        $mostrarFinalizarFinal = $auditoriaFinal ? session('estatus_checked_AuditoriaFinal') : false;
         return view('auditoriaCorte.altaAuditoriaCorte', array_merge($categorias, [
             'mesesEnEspanol' => $mesesEnEspanol, 
             'pageSlug' => $pageSlug, 
             'datoAX' => $datoAX, 
-            'auditoriaMarcada' => $auditoriaMarcada,
-            'auditoriaTendido' => $auditoriaTendido,
-            'Lectra' => $Lectra, 
-            'auditoriaBulto' => $auditoriaBulto, 
-            'auditoriaFinal' => $auditoriaFinal,
-            'mostrarFinalizarMarcada' => $mostrarFinalizarMarcada,
-            'mostrarFinalizarTendido' => $mostrarFinalizarTendido,
-            'mostrarFinalizarLectra' => $mostrarFinalizarLectra,
-            'mostrarFinalizarBulto' => $mostrarFinalizarBulto,
-            'mostrarFinalizarFinal' => $mostrarFinalizarFinal,
-            'encabezadoAuditoriaCorte' => $encabezadoAuditoriaCorte,
             'auditorDato' => $auditorDato]));
     }
 
