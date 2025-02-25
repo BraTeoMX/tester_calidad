@@ -74,8 +74,8 @@
                                     <div class="card">
                                         <img src="{{ asset('material') }}/img/Intimark.png" class="card-img-top" alt="...">
                                         <div class="card-body">
-                                            <h5 class="card-title">SCREEN PRINT</h5>
-                                            <a href="{{ route('ScreenPlanta2.ScreenPrint') }}" class="btn btn-primary"  >INICIAR</a>
+                                            <h5 class="card-title">INSPECCIÓN DESPUES DE HORNO</h5>
+                                            <a href="{{ route('inspeccionEstampadoHorno') }}" class="btn btn-primary"  >INICIAR</a>
                                         </div>
                                     </div>
                                 </div>
@@ -83,8 +83,8 @@
                                     <div class="card">
                                         <img src="{{ asset('material') }}/img/Intimark.png" class="card-img-top" alt="...">
                                         <div class="card-body">
-                                            <h5 class="card-title">INSPECCIÓN DESPUES DE HORNO</h5>
-                                            <a href="{{ route('ScreenPlanta2.InsEstamHorno') }}" class="btn btn-primary"  >INICIAR</a>
+                                            <h5 class="card-title">SCREEN PRINT</h5>
+                                            <a href="{{ route('screenV2') }}" class="btn btn-primary"  >INICIAR</a>
                                         </div>
                                     </div>
                                 </div>
@@ -93,7 +93,7 @@
                                         <img src="{{ asset('material') }}/img/Intimark.png" class="card-img-top" alt="...">
                                         <div class="card-body">
                                             <h5 class="card-title">CALIDAD PROCESO DE PLANCHA</h5>
-                                            <a href="{{ route('ScreenPlanta2.CalidadProcesoPlancha') }}" class="btn btn-primary"  >INICIAR</a>
+                                            <a href="{{ route('planchaV2') }}" class="btn btn-primary"  >INICIAR</a>
                                         </div>
                                     </div>
                                 </div>
