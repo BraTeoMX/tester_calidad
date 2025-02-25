@@ -521,6 +521,13 @@ class AuditoriaProcesoController extends Controller
         $pageSlug ='';
 
         //dd($request->all());
+        if ($request->cantidad_rechazada == 0) {
+            $request->merge([
+                'ac' => null,
+                'tp' => []
+            ]);
+        }
+        
         $fechaHoraActual = now();
         
         // Verificar el día de la semana
@@ -617,6 +624,7 @@ class AuditoriaProcesoController extends Controller
 
         // Asegúrate de que $request->tp sea un arreglo y contenga "NINGUNO" si está vacío o es null
         $tp = $request->input('tp', ['NINGUNO']);
+        //dd($request->tp, $tp);
 
         // Itera sobre el arreglo $tp y guarda cada valor
         foreach ($tp as $valorTp) {

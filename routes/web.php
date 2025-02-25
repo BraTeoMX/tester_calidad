@@ -430,10 +430,4 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('/inspeccion/{id}', [ScreenV2Controller::class, 'eliminarBulto'])->name('eliminarBulto');
 
 
-
-
-
-
-
-
 });

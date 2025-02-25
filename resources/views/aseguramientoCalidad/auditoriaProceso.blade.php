@@ -493,8 +493,8 @@
                                                 </td>
                                                 <td>
                                                     <input type="text" class="form-control texto-blanco" name="tp"
-                                                        value="{{ $registro->tp }}" readonly>
-                                                </td>
+                                                        value="{{ isset($registro->tp) ? $registro->tp : 'NINGUNO' }}" readonly>
+                                                </td>                                                
                                                 <td>
                                                     <input type="text" class="form-control texto-blanco" name="ac"
                                                         value="{{ $registro->ac }}" readonly>
@@ -588,8 +588,8 @@
                                                     <input type="hidden" name="id" value="{{ $registro->id }}">
                                                     <td>
                                                         <input type="text" class="form-control texto-blanco" readonly
-                                                               value="{{ implode(', ', $registro->tpAseguramientoCalidad->pluck('tp')->toArray()) }}">
-                                                    </td>
+                                                               value="{{ $registro->tpAseguramientoCalidad->isNotEmpty() ? implode(', ', $registro->tpAseguramientoCalidad->pluck('tp')->toArray()) : 'NINGUNO' }}">
+                                                    </td>                                                    
                                                     <td>
                                                         <input type="text" class="form-control texto-blanco" name="ac"
                                                         value="{{ $registro->ac }}" readonly>
