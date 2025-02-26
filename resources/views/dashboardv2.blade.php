@@ -155,30 +155,6 @@
         </div>
     </div>
 
-@endsection
-
-@push('js')
-    <script>
-        $(document).ready(function() {
-            $.ajax({
-                url: "{{ route('api.porcentajesPorDiaV2') }}",
-                type: "GET",
-                success: function(data) {
-                    $("#generalAQL").text(data.generalAQL + "%");
-                    $("#generalAQLPlanta1").text(data.generalAQLPlanta1 + "%");
-                    $("#generalAQLPlanta2").text(data.generalAQLPlanta2 + "%");
-                    $("#generalProceso").text(data.generalProceso + "%");
-                    $("#generalProcesoPlanta1").text(data.generalProcesoPlanta1 + "%");
-                    $("#generalProcesoPlanta2").text(data.generalProcesoPlanta2 + "%");
-                    // Actualizar los elementos en la tabla de clientes
-                    $("#tablaGeneralAQL").text(data.generalAQL + "%");
-                    $("#tablaGeneralProceso").text(data.generalProceso + "%");
-                }
-            });
-        });
-    </script>
-@endpush
-@push('js')
     <script src="{{ asset('js/highcharts/12/highcharts.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/exporting.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/offline-exporting.js') }}"></script>
@@ -584,6 +560,28 @@
                     responsive: true
                 });
             }
+        });
+    </script>
+@endsection
+
+@push('js')
+    <script>
+        $(document).ready(function() {
+            $.ajax({
+                url: "{{ route('api.porcentajesPorDiaV2') }}",
+                type: "GET",
+                success: function(data) {
+                    $("#generalAQL").text(data.generalAQL + "%");
+                    $("#generalAQLPlanta1").text(data.generalAQLPlanta1 + "%");
+                    $("#generalAQLPlanta2").text(data.generalAQLPlanta2 + "%");
+                    $("#generalProceso").text(data.generalProceso + "%");
+                    $("#generalProcesoPlanta1").text(data.generalProcesoPlanta1 + "%");
+                    $("#generalProcesoPlanta2").text(data.generalProcesoPlanta2 + "%");
+                    // Actualizar los elementos en la tabla de clientes
+                    $("#tablaGeneralAQL").text(data.generalAQL + "%");
+                    $("#tablaGeneralProceso").text(data.generalProceso + "%");
+                }
+            });
         });
     </script>
 @endpush
