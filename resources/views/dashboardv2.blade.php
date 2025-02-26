@@ -320,6 +320,49 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card card-chart">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="tim-icons icon-bell-55 text-primary"></i> Top 3 (Defectos)
+                    </h3>
+                    <div class="col-sm-15">
+                        <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+                            <label class="btn btn-sm btn-primary btn-simple active" id="top3-AQL">
+                                <input type="radio" name="top3Options" checked>
+                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
+                                <span class="d-block d-sm-none">
+                                    <i class="tim-icons icon-single-02"></i>
+                                </span>
+                            </label>
+                            <label class="btn btn-sm btn-primary btn-simple" id="top3-Proceso">
+                                <input type="radio" name="top3Options">
+                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Proceso</span>
+                                <span class="d-block d-sm-none">
+                                    <i class="tim-icons icon-gift-2"></i>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body" style="height: 400px;">
+                    <div class="chart-area">
+                        <div id="chartAQL"></div>
+                        <div id="chartProceso" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>        
+        <div class="col-lg-8">
+            <div class="card card-chart">
+                <div class="card-body">
+                    <div id="SegundasTercerasChart"></div>
+                    <div id="spinner" class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="{{ asset('js/highcharts/12/highcharts.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/exporting.js') }}"></script>
@@ -1582,6 +1625,134 @@
             observeChart('moduloChartAQL', fetchMensualPorModulo);
         });
     </script>
+
+    <script>
+        $(document).ready(function () {
+            // Función para observar si la gráfica es visible antes de cargarse
+            function observeChart(containerId, fetchFunction) {
+                const contenedor = document.getElementById(containerId);
+                if (!contenedor) return;
+
+                const observer = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            fetchFunction(); // Cargar datos solo cuando sea visible
+                            obs.unobserve(entry.target); // Dejar de observar después de cargar
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                observer.observe(contenedor);
+            }
+
+            // Función para obtener los datos de defectos vía AJAX
+            function fetchDefectoMensual() {
+                let dataRequest = $.ajax({
+                    url: "{{ route('dashboard.defectoMensualV2') }}",
+                    type: "GET",
+                    success: function (data) {
+                        // Cargar la gráfica con los datos obtenidos
+                        mostrarGrafica('AQL', data.topDefectosAQL);
+                        mostrarGrafica('PROCESO', data.topDefectosProceso);
+                    },
+                    error: function (xhr, status) {
+                        if (status !== 'abort') {
+                            alert('Error al cargar los datos de defectos.');
+                        }
+                    }
+                });
+
+                // Cancelar la petición AJAX si se cambia de vista antes de completarse
+                $(window).on('beforeunload', function () {
+                    if (dataRequest) {
+                        dataRequest.abort();
+                    }
+                });
+            }
+
+            // Lista de colores predefinidos
+            const colores = ['#F03C3C', '#F0E23C', '#3C8EF0', '#36A2EB', '#FFCE56'];
+
+            // Preparar datos para la gráfica
+            function prepararDatos(datos) {
+                const tp = datos.map(d => d.tp);
+                const total = datos.map(d => d.total);
+
+                return { tp, total };
+            }
+
+            // Función para crear la gráfica
+            function crearGrafica(datos, titulo, containerId) {
+                const { tp, total } = prepararDatos(datos);
+
+                // Evita errores si hay menos de 3 defectos
+                while (tp.length < 3) {
+                    tp.push("N/A");
+                    total.push(0);
+                }
+
+                Highcharts.chart(containerId, {
+                    chart: {
+                        type: 'column',
+                        height: 400, // Tamaño fijo
+                        backgroundColor: 'transparent'
+                    },
+                    title: {
+                        text: titulo,
+                        style: { color: '#FFFFFF' }
+                    },
+                    xAxis: {
+                        categories: tp,
+                        title: { text: 'Defectos', style: { color: '#FFFFFF' } },
+                        labels: { style: { color: '#FFFFFF' } }
+                    },
+                    yAxis: {
+                        title: { text: 'Número de defectos', style: { color: '#FFFFFF' } },
+                        labels: { style: { color: '#FFFFFF' } },
+                        min: 0
+                    },
+                    legend: {
+                        itemStyle: { color: '#FFFFFF' }
+                    },
+                    tooltip: {
+                        shared: true,
+                        backgroundColor: '#000000',
+                        style: { color: '#ffffff' },
+                        formatter: function () {
+                            let tooltip = `<b>${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y}</b><br/>`;
+                            });
+                            return tooltip;
+                        }
+                    },
+                    series: total.map((value, index) => ({
+                        name: tp[index],
+                        data: [value],
+                        color: colores[index % colores.length] // Asignar color de forma dinámica
+                    })),
+                    plotOptions: {
+                        column: {
+                            colorByPoint: false, // Evita que Highcharts asigne colores automáticos
+                            borderColor: '#27293D'
+                        }
+                    },
+                    credits: { enabled: false }
+                });
+            }
+
+            // Función para mostrar la gráfica en el contenedor correspondiente
+            function mostrarGrafica(tipo, datos) {
+                const containerId = tipo === 'AQL' ? 'chartAQL' : 'chartProceso';
+                const titulo = tipo === 'AQL' ? 'Top 3 Defectos AQL' : 'Top 3 Defectos Proceso';
+                crearGrafica(datos, titulo, containerId);
+            }
+
+            // Se activa la carga diferida de la gráfica cuando sea visible
+            observeChart('chartAQL', fetchDefectoMensual);
+        });
+    </script>
+
 
 @endsection
 

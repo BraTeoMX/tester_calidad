@@ -157,7 +157,7 @@ class HomeController extends Controller
         try {
             // Obtener Segundas y Terceras Generales
             $SegundasTerceras = obtenerSegundasTerceras();
-        Log::info('SegundasTerceras'. $SegundasTerceras);
+        //Log::info('SegundasTerceras'. $SegundasTerceras);
             return response()->json([
                 'data' => $SegundasTerceras,
                 'status' => 'success'
@@ -165,7 +165,7 @@ class HomeController extends Controller
 
         } catch (\Exception $e) {
             // Manejar la excepción, por ejemplo, loguear el error
-            Log::error('Error al obtener SegundasTerceras: ' . $e->getMessage());
+            //Log::error('Error al obtener SegundasTerceras: ' . $e->getMessage());
 
             return response()->json([
                 'message' => 'Error al obtener los datos.',
@@ -537,6 +537,49 @@ class HomeController extends Controller
 
         return response()->json($datos);
     }
+
+
+    public function getDefectoMensualV2()
+    {
+        $fechaFin = Carbon::now()->toDateString();
+        $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
+
+        // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO'
+        $topDefectosAQL = Cache::remember("topDefectosAQL_{$fechaInicio}_{$fechaFin}", 300, function () use ($fechaInicio, $fechaFin) {
+            return TpAuditoriaAQL::select('tp', DB::raw('count(*) as total'))
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('tp', '!=', 'NINGUNO')
+                ->groupBy('tp')
+                ->orderBy('total', 'desc')
+                ->limit(3)
+                ->get();
+        });
+
+        $topDefectosProceso = Cache::remember("topDefectosProceso_{$fechaInicio}_{$fechaFin}", 300, function () use ($fechaInicio, $fechaFin) {
+            return TpAseguramientoCalidad::select('tp', DB::raw('count(*) as total'))
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                ->where('tp', '!=', 'NINGUNO')
+                ->groupBy('tp')
+                ->orderBy('total', 'desc')
+                ->limit(3)
+                ->get();
+        });
+
+        // Registrar en el log de Laravel los datos obtenidos
+        Log::info("Consulta de Defectos Mensuales", [
+            'Fecha Inicio' => $fechaInicio,
+            'Fecha Fin' => $fechaFin,
+            'Top Defectos AQL' => $topDefectosAQL,
+            'Top Defectos Proceso' => $topDefectosProceso
+        ]);
+
+        return response()->json([
+            'topDefectosAQL' => $topDefectosAQL,
+            'topDefectosProceso' => $topDefectosProceso
+        ]);
+    }
+
+
 
 
 }

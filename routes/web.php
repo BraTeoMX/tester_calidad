@@ -91,6 +91,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/dashboard-mensual-general-v2', [HomeController::class, 'getMensualGeneralV2'])->name('dashboard.mensualGeneralV2');
     Route::get('/dashboard/mensual-por-cliente-v2', [HomeController::class, 'getMensualPorClienteV2'])->name('dashboard.mensualPorClienteV2');
     Route::get('/dashboard/mensualPorModulo-v2', [HomeController::class, 'getMensualPorModuloV2'])->name('dashboard.mensualPorModuloV2');
+    Route::get('/dashboard/defecto-mensual-v2', [HomeController::class, 'getDefectoMensualV2'])->name('dashboard.defectoMensualV2');
 
     Route::get('/listaFormularios', [viewlistaFormularios::class, 'listaFormularios'])->name('viewlistaFormularios');
 
