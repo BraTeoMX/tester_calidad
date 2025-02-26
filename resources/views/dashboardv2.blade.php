@@ -57,6 +57,103 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaClientePorDia" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaSupervisorPorDia" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaModuloPorDia" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card ">
+                <div class="card-header">
+                    <h4 class="card-title"> <i class="tim-icons icon-shape-star text-primary"></i> Clientes</h4>
+                    <p class="card-category d-inline"> Dia actual</p>
+
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="tablaClientes" class="table tablesorter">
+                            <thead class=" text-primary">
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>% AQL</th>
+                                    <th>% Proceso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                            <tfoot>
+                                <tr style="background: #1d1c1c;">
+                                <td>GENERAL</td>
+                                <td id="tablaGeneralAQL">Cargando... </td>
+                                <td id="tablaGeneralProceso">Cargando...</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card ">
+                <div class="card-header">
+                    <h4 class="card-title">Responsables AQL <i class="tim-icons icon-app text-success"></i> y PROCESO <i class="tim-icons icon-vector text-primary"></i></h4>
+                    <p class="card-category d-inline"> Dia actual</p>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table tablesorter" id="tablaResponsables">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Supervisor</th>
+                                    <th>% AQL</th>
+                                    <th>% Proceso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card ">
+                <div class="card-header">
+                    <h4 class="card-title">Modulos AQL <i class="tim-icons icon-app text-success"></i> y PROCESO <i class="tim-icons icon-vector text-primary"></i></h4>
+                    <p class="card-category d-inline"> Dia actual</p>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table tablesorter" id="tablaModulos">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Modulo</th>
+                                    <th>% AQL</th>
+                                    <th>% Proceso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('js')
@@ -72,8 +169,19 @@
                     $("#generalProceso").text(data.generalProceso + "%");
                     $("#generalProcesoPlanta1").text(data.generalProcesoPlanta1 + "%");
                     $("#generalProcesoPlanta2").text(data.generalProcesoPlanta2 + "%");
+                    // Actualizar los elementos en la tabla de clientes
+                    $("#tablaGeneralAQL").text(data.generalAQL + "%");
+                    $("#tablaGeneralProceso").text(data.generalProceso + "%");
                 }
             });
         });
     </script>
+@endpush
+@push('js')
+    <script src="{{ asset('js/highcharts/12/highcharts.js') }}"></script>
+    <script src="{{ asset('js/highcharts/12/modules/exporting.js') }}"></script>
+    <script src="{{ asset('js/highcharts/12/modules/offline-exporting.js') }}"></script>
+    <script src="{{ asset('js/highcharts/12/modules/no-data-to-display.js') }}"></script>
+
+
 @endpush

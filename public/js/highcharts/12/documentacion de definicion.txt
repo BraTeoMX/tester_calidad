@@ -1,0 +1,26 @@
+1. Módulo de Accesibilidad (accessibility.js): Este módulo mejora la accesibilidad de tus gráficas, facilitando su uso para personas con discapacidades.
+2. Módulo de Datos (data.js): Permite cargar datos en las gráficas desde fuentes externas como archivos CSV o tablas HTML.
+3. Módulo de Drilldown (drilldown.js): Facilita la creación de gráficas interactivas donde los usuarios pueden profundizar en los datos haciendo clic en elementos específicos.
+5. Módulo de Gantt (gantt.js): Utilizado para generar diagramas de Gantt interactivos.
+6. Módulo de Highcharts Más (highcharts-more.js): Incluye tipos de gráficas adicionales como polar, de burbujas y más.
+7. Módulo 3D (highcharts-3d.js): Permite la creación de gráficas tridimensionales.
+9. Módulo de Boost (boost.js): Mejora el rendimiento al renderizar grandes conjuntos de datos.
+10. Módulo de No Conectado (no-data-to-display.js): Muestra un mensaje personalizado cuando no hay datos disponibles para mostrar en la gráfica.
+11. Módulo de Exportación de Datos (export-data.js): Permite a los usuarios exportar los datos de la gráfica en formatos como CSV o XLS.
+13. Módulo de Puntuación de Credibilidad (solid-gauge.js): Necesario para crear gráficas de tipo "solid gauge".
+
+
+1. Highcharts Core (highcharts.js)
+Este es el núcleo de Highcharts. Contiene todas las funcionalidades básicas necesarias para crear gráficos de líneas, columnas, barras, áreas, dispersión, entre otros.
+2. Módulo de Exportación (exporting.js)
+Este módulo agrega opciones de exportación a los gráficos, permitiendo a los usuarios descargar la gráfica en diferentes formatos como:
+PNG
+JPEG
+SVG
+PDF
+
+3. Módulo de Exportación sin Servidor (offline-exporting.js)
+Este módulo permite exportar los gráficos sin necesidad de conexión a Internet o de usar servidores externos.
+Usa la API de Canvas de los navegadores para generar las imágenes localmente.
+Es útil si quieres evitar que los datos sean enviados a servidores externos por motivos de privacidad o seguridad.
+Mejora la velocidad de exportación, ya que no necesita conectarse con los servidores de Highcharts.
