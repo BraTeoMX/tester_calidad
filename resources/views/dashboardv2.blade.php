@@ -287,6 +287,39 @@
         </div>
     </div>
 
+    <!-- Gráficas mensual por Módulo -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-chart">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-sm-6 text-left">
+                            <h2 class="card-title">Indicador Mensual por Módulo</h2>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+                                <label class="btn btn-sm btn-primary btn-simple active" id="modulo0">
+                                    <input type="radio" name="moduloOptions" checked>
+                                    <span class="d-none d-sm-block">AQL</span>
+                                </label>
+                                <label class="btn btn-sm btn-primary btn-simple" id="modulo1">
+                                    <input type="radio" name="moduloOptions">
+                                    <span class="d-none d-sm-block">Proceso</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="height: 500px;">
+                        <div id="moduloChartAQL">Cargando...</div>
+                        <div id="moduloChartProcesos" style="display: none;">Cargando...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <script src="{{ asset('js/highcharts/12/highcharts.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/exporting.js') }}"></script>
@@ -1375,6 +1408,181 @@
             observeChart('clienteChartAQL', fetchMensualPorCliente);
         });
     </script>
+
+    <script>
+        $(document).ready(function () {
+            // Función para observar si las gráficas son visibles antes de cargarlas
+            function observeChart(containerId, fetchFunction) {
+                const contenedor = document.getElementById(containerId);
+                if (!contenedor) return;
+
+                const observer = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            fetchFunction(); // Cargar datos solo cuando sea visible
+                            obs.unobserve(entry.target); // Dejar de observar después de cargar
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                observer.observe(contenedor);
+            }
+
+            // Función para obtener los datos vía AJAX sin variables globales
+            function fetchMensualPorModulo() {
+                let dataRequest = $.ajax({
+                    url: "{{ route('dashboard.mensualPorModuloV2') }}",
+                    type: "GET",
+                    success: function (data) {
+                        let chartAQLModulo = renderGraficaPorModulo(data, 'AQL', 'moduloChartAQL');
+                        let chartProcesoModulo = renderGraficaPorModulo(data, 'PROCESO', 'moduloChartProcesos');
+
+                        // Inicialización de la vista
+                        $('#moduloChartAQL').show();
+                        $('#moduloChartProcesos').hide();
+
+                        // Botones dinámicos para cambiar de gráfico
+                        $('#modulo0').off('click').on('click', function () {
+                            $('#moduloChartAQL').show();
+                            $('#moduloChartProcesos').hide();
+                            chartAQLModulo.reflow();
+                        });
+
+                        $('#modulo1').off('click').on('click', function () {
+                            $('#moduloChartAQL').hide();
+                            $('#moduloChartProcesos').show();
+                            chartProcesoModulo.reflow();
+                        });
+                    },
+                    error: function (xhr, status) {
+                        if (status !== 'abort') {
+                            alert('Error al cargar los datos mensuales por módulo.');
+                        }
+                    }
+                });
+
+                // Cancelar la petición AJAX si se cambia de vista antes de completarse
+                $(window).on('beforeunload', function () {
+                    if (dataRequest) {
+                        dataRequest.abort();
+                    }
+                });
+            }
+
+            // Función para renderizar las gráficas mensuales por módulo
+            function renderGraficaPorModulo(data, tipo, containerId) {
+                const series = [];
+
+                // Configuración de las series con datos, asignando 0 si el dato no existe
+                Object.keys(data).forEach(modulo => {
+                    const valores = data[modulo].map(item => {
+                        return (item[tipo] !== undefined && item[tipo] !== null) ? item[tipo] : 0;
+                    });
+                    series.push({
+                        name: modulo,
+                        data: valores,
+                        type: 'spline', // Gráfica curva
+                        marker: { enabled: false }
+                    });
+                });
+
+                // Generar la gráfica
+                return Highcharts.chart(containerId, {
+                    chart: {
+                        type: 'spline',
+                        height: 500, // Se mantiene en 500px
+                        backgroundColor: 'transparent',
+                        style: {
+                            fontFamily: 'Arial, sans-serif',
+                            color: '#ffffff'
+                        },
+                        events: {
+                            load: function () {
+                                const chart = this;
+                                // Crear botón usando el sistema de botones de Highcharts (más integrado)
+                                chart.addButton({
+                                    text: 'Mostrar/Ocultar Todo',
+                                    theme: {
+                                        fill: '#007BFF',   // Color de fondo
+                                        stroke: '#0056B3', // Borde
+                                        'stroke-width': 1,
+                                        r: 5,             // Bordes redondeados
+                                        style: {
+                                            color: '#FFFFFF' // Color del texto
+                                        }
+                                    },
+                                    onclick: function () {
+                                        const allVisible = chart.series.every(s => s.visible);
+                                        chart.series.forEach(series => {
+                                            series.setVisible(!allVisible, false);
+                                        });
+                                        chart.redraw();
+                                    },
+                                    x: 10,  // Posición X
+                                    y: 10   // Posición Y
+                                });
+                            }
+                        }
+                    },
+                    title: {
+                        text: `Indicador Mensual por Módulo - ${tipo}`,
+                        align: 'center',
+                        style: { 
+                            color: '#ffffff',
+                            fontWeight: 'bold',
+                            fontSize: '20px'
+                        }
+                    },
+                    xAxis: {
+                        categories: Array.from({ length: data[Object.keys(data)[0]].length }, (_, i) => i + 1),
+                        title: { text: 'Días del Mes', style: { color: '#ffffff' } },
+                        lineColor: '#ffffff',
+                        tickColor: '#ffffff',
+                        labels: { style: { color: '#ffffff' } }
+                    },
+                    yAxis: {
+                        title: { text: 'Porcentaje (%)', style: { color: '#ffffff' } },
+                        min: 0,
+                        labels: { style: { color: '#ffffff' } },
+                        gridLineColor: '#4a4a4a'
+                    },
+                    tooltip: {
+                        shared: true,
+                        backgroundColor: '#000000',
+                        style: { color: '#ffffff' },
+                        formatter: function () {
+                            let tooltip = `<b>Día ${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                // Mostrar solo puntos con valor mayor a 0
+                                if (point.y > 0) {
+                                    tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                                }
+                            });
+                            return tooltip;
+                        }
+                    },
+                    plotOptions: {
+                        spline: {
+                            lineWidth: 2,
+                            states: {
+                                hover: {
+                                    enabled: true,
+                                    brightness: 0.1
+                                }
+                            }
+                        }
+                    },
+                    legend: { itemStyle: { color: '#ffffff' } },
+                    credits: { enabled: false },
+                    series: series
+                });
+            }
+
+            // Se activa la carga diferida de la gráfica cuando sea visible
+            observeChart('moduloChartAQL', fetchMensualPorModulo);
+        });
+    </script>
+
 @endsection
 
 @push('js')
