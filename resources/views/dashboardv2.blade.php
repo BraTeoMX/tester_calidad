@@ -183,5 +183,289 @@
     <script src="{{ asset('js/highcharts/12/modules/offline-exporting.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/no-data-to-display.js') }}"></script>
 
+    <script>
+        $(document).ready(function () {
+            fetchDataDia();
 
+            function fetchDataDia() {
+                $.ajax({
+                    url: "{{ route('dashboard.dataDia') }}",
+                    type: "GET",
+                    success: function (data) {
+                        renderTablaClientes(data.clientes);
+                        renderTablaSupervisores(data.supervisores);
+                        renderTablaModulos(data.modulos);
+
+                        // Llamar funciones para generar las gráficas
+                        renderGraficaClientes(data.clientes);
+                        renderGraficaSupervisores(data.supervisores);
+                        renderGraficaModulos(data.modulos);
+                    },
+                    error: function () {
+                        alert('Error al cargar los datos del día.');
+                    }
+                });
+            }
+
+            // Función para generar gráfica de Clientes
+            function renderGraficaClientes(clientes) {
+                const categorias = Object.keys(clientes);
+                const dataAQL = categorias.map(c => clientes[c]['% AQL'] || 0);
+                const dataProceso = categorias.map(c => clientes[c]['% PROCESO'] || 0);
+
+                Highcharts.chart('graficaClientePorDia', {
+                    chart: {
+                        type: 'column',
+                        backgroundColor: null,
+                        style: {
+                            fontFamily: 'Arial, sans-serif'
+                        }
+                    },
+                    title: {
+                        text: 'Comparativo AQL y PROCESO - Clientes (Día Actual)'
+                    },
+                    tooltip: {
+                        shared: true,
+                        formatter: function () {
+                            let tooltip = `<b>${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        },
+                        backgroundColor: '#000000',
+                        style: { color: '#ffffff' }
+                    },
+                    xAxis: {
+                        categories: categorias,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: { text: 'Porcentaje (%)' }
+                    },
+                    plotOptions: {
+                        column: {
+                            pointPadding: 0.2,
+                            borderWidth: 0
+                        },
+                        series: {
+                            cursor: 'pointer',
+                            states: {
+                                hover: {
+                                    enabled: true,
+                                    brightness: 0.1
+                                }
+                            }
+                        }
+                    },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+
+            // Función para generar gráfica de Supervisores
+            function renderGraficaSupervisores(supervisores) {
+                const categorias = Object.keys(supervisores);
+                const dataAQL = categorias.map(c => supervisores[c]['% AQL'] || 0);
+                const dataProceso = categorias.map(c => supervisores[c]['% PROCESO'] || 0);
+
+                Highcharts.chart('graficaSupervisorPorDia', {
+                    chart: {
+                        type: 'column',
+                        backgroundColor: null,
+                        style: {
+                            fontFamily: 'Arial, sans-serif'
+                        }
+                    },
+                    title: {
+                        text: 'Comparativo AQL y PROCESO - Supervisores (Día Actual)'
+                    },
+                    tooltip: {
+                        shared: true,
+                        formatter: function () {
+                            let tooltip = `<b>${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        },
+                        backgroundColor: '#000000',
+                        style: { color: '#ffffff' }
+                    },
+                    xAxis: {
+                        categories: categorias,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: { text: 'Porcentaje (%)' }
+                    },
+                    plotOptions: {
+                        column: {
+                            pointPadding: 0.2,
+                            borderWidth: 0
+                        },
+                        series: {
+                            cursor: 'pointer',
+                            states: {
+                                hover: {
+                                    enabled: true,
+                                    brightness: 0.1
+                                }
+                            }
+                        }
+                    },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+
+            // Función para generar gráfica de Módulos
+            function renderGraficaModulos(modulos) {
+                const categorias = Object.keys(modulos);
+                const dataAQL = categorias.map(c => modulos[c]['% AQL'] || 0);
+                const dataProceso = categorias.map(c => modulos[c]['% PROCESO'] || 0);
+
+                Highcharts.chart('graficaModuloPorDia', {
+                    chart: {
+                        type: 'column',
+                        backgroundColor: null,
+                        style: {
+                            fontFamily: 'Arial, sans-serif'
+                        }
+                    },
+                    title: {
+                        text: 'Comparativo AQL y PROCESO - Módulos (Día Actual)'
+                    },
+                    tooltip: {
+                        shared: true,
+                        formatter: function () {
+                            let tooltip = `<b>${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        },
+                        backgroundColor: '#000000',
+                        style: { color: '#ffffff' }
+                    },
+                    xAxis: {
+                        categories: categorias,
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: { text: 'Porcentaje (%)' }
+                    },
+                    plotOptions: {
+                        column: {
+                            pointPadding: 0.2,
+                            borderWidth: 0
+                        },
+                        series: {
+                            cursor: 'pointer',
+                            states: {
+                                hover: {
+                                    enabled: true,
+                                    brightness: 0.1
+                                }
+                            }
+                        }
+                    },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+
+            // Funciones para llenar las tablas (Ya las tienes implementadas)
+            function renderTablaClientes(clientes) {
+                const tableId = '#tablaClientes';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy(); // Destruir la instancia previa
+                }
+
+                let html = '';
+                $.each(clientes, function (cliente, valores) {
+                    html += `
+                        <tr>
+                            <td>${cliente}</td>
+                            <td>${valores['% AQL'] ? valores['% AQL'].toFixed(2) + '%' : '0%'}</td>
+                            <td>${valores['% PROCESO'] ? valores['% PROCESO'].toFixed(2) + '%' : '0%'}</td>
+                        </tr>`;
+                });
+                $(tableId + ' tbody').html(html); // Reemplazar el contenido de la tabla
+
+                // Re-inicializar DataTable
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
+
+            function renderTablaSupervisores(supervisores) {
+                const tableId = '#tablaResponsables';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
+                let html = '';
+                $.each(supervisores, function (supervisor, valores) {
+                    html += `
+                        <tr>
+                            <td>${supervisor}</td>
+                            <td>${valores['% AQL'] ? valores['% AQL'].toFixed(2) + '%' : '0%'}</td>
+                            <td>${valores['% PROCESO'] ? valores['% PROCESO'].toFixed(2) + '%' : '0%'}</td>
+                        </tr>`;
+                });
+                $(tableId + ' tbody').html(html);
+
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
+
+            function renderTablaModulos(modulos) {
+                const tableId = '#tablaModulos';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
+                let html = '';
+                $.each(modulos, function (modulo, valores) {
+                    html += `
+                        <tr>
+                            <td>${modulo}</td>
+                            <td>${valores['% AQL'] ? valores['% AQL'].toFixed(2) + '%' : '0%'}</td>
+                            <td>${valores['% PROCESO'] ? valores['% PROCESO'].toFixed(2) + '%' : '0%'}</td>
+                        </tr>`;
+                });
+                $(tableId + ' tbody').html(html);
+
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
+        });
+    </script>
 @endpush
