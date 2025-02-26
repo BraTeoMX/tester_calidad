@@ -183,37 +183,69 @@
     <script src="{{ asset('js/highcharts/12/modules/exporting.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/offline-exporting.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/no-data-to-display.js') }}"></script>
+    <script src="{{ asset('js/highcharts/12/modules/accessibility.js') }}"></script>
 
     <script>
         $(document).ready(function () {
-            // Llamamos a la función para obtener datos vía AJAX
-            fetchDataDia();
+            // Variable para almacenar la solicitud AJAX, de modo que se pueda abortar si es necesario
+            let dataRequest = null;
 
+            // Función para obtener los datos vía AJAX
             function fetchDataDia() {
-                $.ajax({
+                // Si hay una solicitud pendiente, se cancela
+                if (dataRequest) {
+                    dataRequest.abort();
+                }
+                dataRequest = $.ajax({
                     url: "{{ route('dashboard.dataDia') }}", // Ajusta la ruta a tu controlador
                     type: "GET",
                     success: function (data) {
-                        // Renderizar tablas (omitido por brevedad)
+                        // Renderizar tablas (se mantiene sin cambios)
                         renderTablaClientes(data.clientes);
                         renderTablaSupervisores(data.supervisores);
                         renderTablaModulos(data.modulos);
 
-                        // Renderizar gráficas con los datos recibidos
-                        renderGraficaClientes(data.clientes);
-                        renderGraficaSupervisores(data.supervisores);
-                        renderGraficaModulos(data.modulos);
+                        // En lugar de llamar directamente a renderGraficaXXX, usamos el Intersection Observer para carga diferida
+                        observeChart('graficaClientePorDia', renderGraficaClientes, data.clientes);
+                        observeChart('graficaSupervisorPorDia', renderGraficaSupervisores, data.supervisores);
+                        observeChart('graficaModuloPorDia', renderGraficaModulos, data.modulos);
                     },
-                    error: function () {
-                        alert('Error al cargar los datos del día.');
+                    error: function (xhr, status) {
+                        if (status !== 'abort') {
+                            alert('Error al cargar los datos del día.');
+                        }
                     }
                 });
             }
 
+            // Función que usa Intersection Observer para cargar la gráfica cuando su contenedor es visible
+            function observeChart(containerId, renderFunction, datos) {
+                const contenedor = document.getElementById(containerId);
+                if (!contenedor) return;
+
+                const observer = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            // Se llama a la función de renderizado para la gráfica
+                            renderFunction(datos);
+                            // Se deja de observar una vez que se ha renderizado
+                            obs.unobserve(entry.target);
+                        }
+                    });
+                }, {
+                    threshold: 0.1 // Se considera visible cuando al menos 10% del contenedor está en vista
+                });
+
+                observer.observe(contenedor);
+            }
+
+            // Llamamos a la función para obtener datos vía AJAX
+            fetchDataDia();
+
             /**
              * 1) GRÁFICA DE CLIENTES
              */
-            function renderGraficaClientes(clientes) {
+             function renderGraficaClientes(clientes) {
                 const categorias = Object.keys(clientes);
                 const dataAQL = categorias.map(c => clientes[c]['% AQL'] || 0);
                 const dataProceso = categorias.map(c => clientes[c]['% PROCESO'] || 0);
@@ -221,10 +253,10 @@
                 Highcharts.chart('graficaClientePorDia', {
                     chart: {
                         type: 'column',
-                        backgroundColor: 'transparent', // Sin fondo o transparente
+                        backgroundColor: 'transparent', // El fondo es el del contenedor (azul oscuro)
                         style: {
                             fontFamily: 'Arial, sans-serif',
-                            color: '#ffffff' // Asegura que el texto base sea blanco
+                            color: '#ffffff'
                         }
                     },
                     title: {
@@ -233,7 +265,7 @@
                         style: { 
                             color: '#ffffff',
                             fontWeight: 'bold',
-                            fontSize: '26px' 
+                            fontSize: '20px'
                         }
                     },
                     xAxis: {
@@ -254,7 +286,7 @@
                         labels: {
                             style: { color: '#ffffff' }
                         },
-                        gridLineColor: '#4a4a4a' // Opcional, para que la línea del grid sea gris oscura
+                        gridLineColor: '#4a4a4a'
                     },
                     legend: {
                         itemStyle: { color: '#ffffff' }
@@ -269,8 +301,7 @@
                         formatter: function () {
                             let tooltip = `<b>${this.x}</b><br/>`;
                             this.points.forEach(point => {
-                                tooltip += `<span style="color:${point.color}">\u25CF</span> 
-                                    ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
                             });
                             return tooltip;
                         }
@@ -320,7 +351,7 @@
                         style: { 
                             color: '#ffffff',
                             fontWeight: 'bold',
-                            fontSize: '26px' 
+                            fontSize: '20px' 
                         }
                     },
                     xAxis: {
@@ -407,7 +438,7 @@
                         style: { 
                             color: '#ffffff',
                             fontWeight: 'bold',
-                            fontSize: '26px' 
+                            fontSize: '20px' 
                         }
                     },
                     xAxis: {
