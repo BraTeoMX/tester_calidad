@@ -174,12 +174,12 @@ class HomeController extends Controller
         }
     }
 
-    public function getDashboardDataSemana()
+    public function getDashboardDataSemanaV2()
     {
         $fechaActual = Carbon::now()->toDateString();
 
-        // Cacheamos los datos semanales por 5 horas (18000 segundos)
-        $datosSemana = Cache::remember('datosSemana_' . $fechaActual, 18000, function () {
+        // Cacheamos los datos semanales por 6 horas (21600 segundos)
+        $datosSemana = Cache::remember('datosSemana_' . $fechaActual, 21600, function () {
             return $this->calcularPorcentajesSemanaActual();
         });
 
@@ -277,7 +277,7 @@ class HomeController extends Controller
         return $resultados;
     }
 
-    public function getDashboardDataDia()
+    public function getDashboardDataDiaV2()
     {
         $fechaActual = Carbon::now()->toDateString();
 
@@ -365,15 +365,15 @@ class HomeController extends Controller
         return $resultados;
     }
 
-    public function getMensualGeneral()
+    public function getMensualGeneralV2()
     {
         $fechaFin = Carbon::now()->toDateString();
         $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
 
-        // Almacenar en caché por 1 hora (3600 segundos)
+        // Almacenar en caché por 12 hora (43,200 segundos)
         $cacheKey = "mensual_general_{$fechaInicio}_{$fechaFin}";
 
-        $datos = Cache::remember($cacheKey, 3600, function () use ($fechaInicio, $fechaFin) {
+        $datos = Cache::remember($cacheKey, 43200, function () use ($fechaInicio, $fechaFin) {
             $fechas = CarbonPeriod::create($fechaInicio, $fechaFin); // Rango de fechas
             $datos = [];
 

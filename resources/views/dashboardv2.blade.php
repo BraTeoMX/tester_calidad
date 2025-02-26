@@ -57,6 +57,7 @@
             </div>
         </div>
     </div>
+
     <div class="row">
         <div class="col-lg-4">
             <div class="card card-body">
@@ -155,6 +156,96 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaClientesSemanal" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaSupervisoresSemanal" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <div id="graficaModulosSemanal" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card ">
+                <div class="card-header">
+                    <h4 class="card-title"> <i class="tim-icons icon-shape-star text-primary"></i> Clientes</h4>
+                    <p class="card-category d-inline"> Semana actual</p>
+
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="tablaClientesSemanal" class="table tablesorter">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>% AQL</th>
+                                    <th>% Proceso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card ">
+                <div class="card-header">
+                    <h4 class="card-title">Supervisores AQL <i class="tim-icons icon-app text-success"></i> y PROCESO <i class="tim-icons icon-vector text-primary"></i></h4>
+                    <p class="card-category d-inline"> Semana actual</p>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="tablaResponsablesSemanal" class="table tablesorter">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Supervisor</th>
+                                    <th>% AQL</th>
+                                    <th>% Proceso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card ">
+                <div class="card-header">
+                    <h4 class="card-title">Modulos AQL <i class="tim-icons icon-app text-success"></i> y PROCESO <i class="tim-icons icon-vector text-primary"></i></h4>
+                    <p class="card-category d-inline"> Semana actual</p>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="tablaModulosSemanal" class="table tablesorter">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Módulo</th>
+                                    <th>% AQL</th>
+                                    <th>% Proceso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ asset('js/highcharts/12/highcharts.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/exporting.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/offline-exporting.js') }}"></script>
@@ -173,7 +264,7 @@
                     dataRequest.abort();
                 }
                 dataRequest = $.ajax({
-                    url: "{{ route('dashboard.dataDia') }}", // Ajusta la ruta a tu controlador
+                    url: "{{ route('dashboard.dataDiaV2') }}", // Ajusta la ruta a tu controlador
                     type: "GET",
                     success: function (data) {
                         // Renderizar tablas (se mantiene sin cambios)
@@ -562,6 +653,368 @@
             }
         });
     </script>
+
+    <script> 
+        $(document).ready(function () { 
+            // Variable para almacenar la solicitud AJAX, de modo que se pueda abortar si es necesario 
+            let dataRequestSemana = null; 
+ 
+            // Función para obtener los datos vía AJAX 
+            function fetchDataSemana() { 
+                // Si hay una solicitud pendiente, se cancela 
+                if (dataRequestSemana) { 
+                    dataRequestSemana.abort(); 
+                } 
+                dataRequestSemana = $.ajax({ 
+                    url: "{{ route('dashboard.dataSemanaV2') }}", // Ruta del controlador
+                    type: "GET",
+                    success: function (data) {
+                        // Renderizar tablas
+                        renderTablaClientesSemanal(data.clientes);
+                        renderTablaResponsablesSemanal(data.supervisores);
+                        renderTablaModulosSemanal(data.modulos);
+
+                        // Cargar gráficas solo cuando el usuario las visualiza
+                        observeChart('graficaClientesSemanal', renderGraficaClientesSemanal, data.clientes);
+                        observeChart('graficaSupervisoresSemanal', renderGraficaSupervisoresSemanal, data.supervisores);
+                        observeChart('graficaModulosSemanal', renderGraficaModulosSemanal, data.modulos);
+                    },
+                    error: function (xhr, status) {
+                        if (status !== 'abort') {
+                            alert('Error al cargar los datos de la semana.');
+                        }
+                    }
+                });
+            }
+
+            // Función que usa Intersection Observer para cargar la gráfica cuando su contenedor es visible
+            function observeChart(containerId, renderFunction, datos) {
+                const contenedor = document.getElementById(containerId);
+                if (!contenedor) return;
+
+                const observer = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            renderFunction(datos);
+                            obs.unobserve(entry.target); // Deja de observar después de renderizar
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                observer.observe(contenedor);
+            }
+
+            // Llamamos a la función para obtener datos vía AJAX
+            fetchDataSemana();
+
+            /**
+             * 1) GRÁFICA DE CLIENTES (SEMANA)
+             */
+            function renderGraficaClientesSemanal(clientes) {
+                const categorias = clientes.map(c => c.cliente);
+                const dataAQL = clientes.map(c => c['% AQL'] || 0);
+                const dataProceso = clientes.map(c => c['% PROCESO'] || 0);
+
+                Highcharts.chart('graficaClientesSemanal', {
+                    chart: {
+                        type: 'column',
+                        backgroundColor: 'transparent',
+                        style: {
+                            fontFamily: 'Arial, sans-serif',
+                            color: '#ffffff'
+                        }
+                    },
+                    title: {
+                        text: 'COMPARATIVO AQL Y PROCESO - CLIENTES (SEMANA ACTUAL)',
+                        align: 'center',
+                        style: { 
+                            color: '#ffffff',
+                            fontWeight: 'bold',
+                            fontSize: '20px'
+                        }
+                    },
+                    xAxis: {
+                        categories: categorias,
+                        crosshair: true,
+                        lineColor: '#ffffff',
+                        tickColor: '#ffffff',
+                        labels: { style: { color: '#ffffff' } }
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: {
+                            text: 'Porcentaje (%)',
+                            style: { color: '#ffffff' }
+                        },
+                        labels: { style: { color: '#ffffff' } },
+                        gridLineColor: '#4a4a4a'
+                    },
+                    legend: { itemStyle: { color: '#ffffff' } },
+                    credits: { style: { color: '#ffffff' } },
+                    tooltip: {
+                        shared: true,
+                        backgroundColor: '#000000',
+                        style: { color: '#ffffff' },
+                        formatter: function () {
+                            let tooltip = `<b>${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        }
+                    },
+                    plotOptions: {
+                        column: {
+                            pointPadding: 0.2,
+                            borderWidth: 0
+                        },
+                        series: {
+                            cursor: 'pointer',
+                            states: {
+                                hover: { enabled: true, brightness: 0.1 }
+                            }
+                        }
+                    },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+
+            /**
+             * 2) GRÁFICA DE SUPERVISORES (SEMANA)
+             */
+            function renderGraficaSupervisoresSemanal(supervisores) {
+                const categorias = supervisores.map(s => s.team_leader);
+                const dataAQL = supervisores.map(s => s['% AQL'] || 0);
+                const dataProceso = supervisores.map(s => s['% PROCESO'] || 0);
+
+                Highcharts.chart('graficaSupervisoresSemanal', {
+                    chart: {
+                        type: 'column',
+                        backgroundColor: 'transparent',
+                        style: {
+                            fontFamily: 'Arial, sans-serif',
+                            color: '#ffffff'
+                        }
+                    },
+                    title: {
+                        text: 'COMPARATIVO AQL Y PROCESO - SUPERVISORES (SEMANA ACTUAL)',
+                        align: 'center',
+                        style: { 
+                            color: '#ffffff',
+                            fontWeight: 'bold',
+                            fontSize: '20px'
+                        }
+                    },
+                    xAxis: {
+                        categories: categorias,
+                        crosshair: true,
+                        lineColor: '#ffffff',
+                        tickColor: '#ffffff',
+                        labels: { style: { color: '#ffffff' } }
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: {
+                            text: 'Porcentaje (%)',
+                            style: { color: '#ffffff' }
+                        },
+                        labels: { style: { color: '#ffffff' } },
+                        gridLineColor: '#4a4a4a'
+                    },
+                    legend: { itemStyle: { color: '#ffffff' } },
+                    credits: { style: { color: '#ffffff' } },
+                    tooltip: {
+                        shared: true,
+                        backgroundColor: '#000000',
+                        style: { color: '#ffffff' },
+                        formatter: function () {
+                            let tooltip = `<b>${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        }
+                    },
+                    plotOptions: {
+                        column: {
+                            pointPadding: 0.2,
+                            borderWidth: 0
+                        },
+                        series: {
+                            cursor: 'pointer',
+                            states: {
+                                hover: { enabled: true, brightness: 0.1 }
+                            }
+                        }
+                    },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+
+            /**
+             * 3) GRÁFICA DE MÓDULOS (SEMANA)
+             */
+            function renderGraficaModulosSemanal(modulos) {
+                const categorias = modulos.map(m => m.modulo);
+                const dataAQL = modulos.map(m => m['% AQL'] || 0);
+                const dataProceso = modulos.map(m => m['% PROCESO'] || 0);
+
+                Highcharts.chart('graficaModulosSemanal', {
+                    chart: {
+                        type: 'column',
+                        backgroundColor: 'transparent',
+                        style: {
+                            fontFamily: 'Arial, sans-serif',
+                            color: '#ffffff'
+                        }
+                    },
+                    title: {
+                        text: 'COMPARATIVO AQL Y PROCESO - MÓDULOS (SEMANA ACTUAL)',
+                        align: 'center',
+                        style: { 
+                            color: '#ffffff',
+                            fontWeight: 'bold',
+                            fontSize: '20px'
+                        }
+                    },
+                    xAxis: {
+                        categories: categorias,
+                        crosshair: true,
+                        lineColor: '#ffffff',
+                        tickColor: '#ffffff',
+                        labels: { style: { color: '#ffffff' } }
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: {
+                            text: 'Porcentaje (%)',
+                            style: { color: '#ffffff' }
+                        },
+                        labels: { style: { color: '#ffffff' } },
+                        gridLineColor: '#4a4a4a'
+                    },
+                    legend: { itemStyle: { color: '#ffffff' } },
+                    credits: { style: { color: '#ffffff' } },
+                    tooltip: {
+                        shared: true,
+                        backgroundColor: '#000000',
+                        style: { color: '#ffffff' },
+                        formatter: function () {
+                            let tooltip = `<b>${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        }
+                    },
+                    plotOptions: {
+                        column: {
+                            pointPadding: 0.2,
+                            borderWidth: 0
+                        },
+                        series: {
+                            cursor: 'pointer',
+                            states: {
+                                hover: { enabled: true, brightness: 0.1 }
+                            }
+                        }
+                    },
+                    series: [
+                        { name: '% AQL', data: dataAQL, color: '#00f0c1' },
+                        { name: '% PROCESO', data: dataProceso, color: '#dd4dc7' }
+                    ]
+                });
+            }
+
+            // Funciones para llenar las tablas
+            function renderTablaClientesSemanal(clientes) {
+                const tableId = '#tablaClientesSemanal';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
+                let html = '';
+                clientes.forEach(cliente => {
+                    html += `
+                        <tr>
+                            <td>${cliente.cliente}</td>
+                            <td>${cliente['% AQL'].toFixed(2)}%</td>
+                            <td>${cliente['% PROCESO'].toFixed(2)}%</td>
+                        </tr>`;
+                });
+                $(tableId + ' tbody').html(html);
+
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
+
+            function renderTablaResponsablesSemanal(supervisores) {
+                const tableId = '#tablaResponsablesSemanal';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
+                let html = '';
+                supervisores.forEach(supervisor => {
+                    html += `
+                        <tr>
+                            <td>${supervisor.team_leader}</td>
+                            <td>${supervisor['% AQL'].toFixed(2)}%</td>
+                            <td>${supervisor['% PROCESO'].toFixed(2)}%</td>
+                        </tr>`;
+                });
+                $(tableId + ' tbody').html(html);
+
+                $(tableId).DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 5,
+                    autoWidth: false,
+                    responsive: true
+                });
+            }
+
+            function renderTablaModulosSemanal(modulos) {
+                const tableId = '#tablaModulosSemanal';
+                if ($.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable().destroy();
+                }
+
+                let html = '';
+                modulos.forEach(modulo => {
+                    html += `
+                        <tr>
+                            <td>${modulo.modulo}</td>
+                            <td>${modulo['% AQL'].toFixed(2)}%</td>
+                            <td>${modulo['% PROCESO'].toFixed(2)}%</td>
+                        </tr>`;
+                });
+                $(tableId + ' tbody').html(html);
+
+                $(tableId).DataTable({ 
+                    lengthChange: false, 
+                    searching: true, 
+                    paging: true, 
+                    pageLength: 5, 
+                    autoWidth: false, 
+                    responsive: true 
+                }); 
+            } 
+        }); 
+    </script> 
 @endsection
 
 @push('js')
