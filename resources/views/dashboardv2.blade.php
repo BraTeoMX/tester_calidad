@@ -154,6 +154,7 @@
             </div>
         </div>
     </div>
+
 @endsection
 
 @push('js')
@@ -185,18 +186,20 @@
 
     <script>
         $(document).ready(function () {
+            // Llamamos a la función para obtener datos vía AJAX
             fetchDataDia();
 
             function fetchDataDia() {
                 $.ajax({
-                    url: "{{ route('dashboard.dataDia') }}",
+                    url: "{{ route('dashboard.dataDia') }}", // Ajusta la ruta a tu controlador
                     type: "GET",
                     success: function (data) {
+                        // Renderizar tablas (omitido por brevedad)
                         renderTablaClientes(data.clientes);
                         renderTablaSupervisores(data.supervisores);
                         renderTablaModulos(data.modulos);
 
-                        // Llamar funciones para generar las gráficas
+                        // Renderizar gráficas con los datos recibidos
                         renderGraficaClientes(data.clientes);
                         renderGraficaSupervisores(data.supervisores);
                         renderGraficaModulos(data.modulos);
@@ -207,7 +210,9 @@
                 });
             }
 
-            // Función para generar gráfica de Clientes
+            /**
+             * 1) GRÁFICA DE CLIENTES
+             */
             function renderGraficaClientes(clientes) {
                 const categorias = Object.keys(clientes);
                 const dataAQL = categorias.map(c => clientes[c]['% AQL'] || 0);
@@ -216,33 +221,59 @@
                 Highcharts.chart('graficaClientePorDia', {
                     chart: {
                         type: 'column',
-                        backgroundColor: null,
+                        backgroundColor: 'transparent', // Sin fondo o transparente
                         style: {
-                            fontFamily: 'Arial, sans-serif'
+                            fontFamily: 'Arial, sans-serif',
+                            color: '#ffffff' // Asegura que el texto base sea blanco
                         }
                     },
                     title: {
-                        text: 'Comparativo AQL y PROCESO - Clientes (Día Actual)'
-                    },
-                    tooltip: {
-                        shared: true,
-                        formatter: function () {
-                            let tooltip = `<b>${this.x}</b><br/>`;
-                            this.points.forEach(point => {
-                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
-                            });
-                            return tooltip;
-                        },
-                        backgroundColor: '#000000',
-                        style: { color: '#ffffff' }
+                        text: 'COMPARATIVO AQL Y PROCESO - CLIENTES (DÍA ACTUAL)',
+                        align: 'center',
+                        style: { 
+                            color: '#ffffff',
+                            fontWeight: 'bold',
+                            fontSize: '26px' 
+                        }
                     },
                     xAxis: {
                         categories: categorias,
-                        crosshair: true
+                        crosshair: true,
+                        lineColor: '#ffffff',
+                        tickColor: '#ffffff',
+                        labels: {
+                            style: { color: '#ffffff' }
+                        }
                     },
                     yAxis: {
                         min: 0,
-                        title: { text: 'Porcentaje (%)' }
+                        title: {
+                            text: 'Porcentaje (%)',
+                            style: { color: '#ffffff' }
+                        },
+                        labels: {
+                            style: { color: '#ffffff' }
+                        },
+                        gridLineColor: '#4a4a4a' // Opcional, para que la línea del grid sea gris oscura
+                    },
+                    legend: {
+                        itemStyle: { color: '#ffffff' }
+                    },
+                    credits: {
+                        style: { color: '#ffffff' }
+                    },
+                    tooltip: {
+                        shared: true,
+                        backgroundColor: '#000000',
+                        style: { color: '#ffffff' },
+                        formatter: function () {
+                            let tooltip = `<b>${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> 
+                                    ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        }
                     },
                     plotOptions: {
                         column: {
@@ -266,7 +297,9 @@
                 });
             }
 
-            // Función para generar gráfica de Supervisores
+            /**
+             * 2) GRÁFICA DE SUPERVISORES
+             */
             function renderGraficaSupervisores(supervisores) {
                 const categorias = Object.keys(supervisores);
                 const dataAQL = categorias.map(c => supervisores[c]['% AQL'] || 0);
@@ -275,33 +308,59 @@
                 Highcharts.chart('graficaSupervisorPorDia', {
                     chart: {
                         type: 'column',
-                        backgroundColor: null,
+                        backgroundColor: 'transparent',
                         style: {
-                            fontFamily: 'Arial, sans-serif'
+                            fontFamily: 'Arial, sans-serif',
+                            color: '#ffffff'
                         }
                     },
                     title: {
-                        text: 'Comparativo AQL y PROCESO - Supervisores (Día Actual)'
-                    },
-                    tooltip: {
-                        shared: true,
-                        formatter: function () {
-                            let tooltip = `<b>${this.x}</b><br/>`;
-                            this.points.forEach(point => {
-                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
-                            });
-                            return tooltip;
-                        },
-                        backgroundColor: '#000000',
-                        style: { color: '#ffffff' }
+                        text: 'COMPARATIVO AQL Y PROCESO - SUPERVISORES (DÍA ACTUAL)',
+                        align: 'center',
+                        style: { 
+                            color: '#ffffff',
+                            fontWeight: 'bold',
+                            fontSize: '26px' 
+                        }
                     },
                     xAxis: {
                         categories: categorias,
-                        crosshair: true
+                        crosshair: true,
+                        lineColor: '#ffffff',
+                        tickColor: '#ffffff',
+                        labels: {
+                            style: { color: '#ffffff' }
+                        }
                     },
                     yAxis: {
                         min: 0,
-                        title: { text: 'Porcentaje (%)' }
+                        title: {
+                            text: 'Porcentaje (%)',
+                            style: { color: '#ffffff' }
+                        },
+                        labels: {
+                            style: { color: '#ffffff' }
+                        },
+                        gridLineColor: '#4a4a4a'
+                    },
+                    legend: {
+                        itemStyle: { color: '#ffffff' }
+                    },
+                    credits: {
+                        style: { color: '#ffffff' }
+                    },
+                    tooltip: {
+                        shared: true,
+                        backgroundColor: '#000000',
+                        style: { color: '#ffffff' },
+                        formatter: function () {
+                            let tooltip = `<b>${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> 
+                                    ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        }
                     },
                     plotOptions: {
                         column: {
@@ -325,7 +384,9 @@
                 });
             }
 
-            // Función para generar gráfica de Módulos
+            /**
+             * 3) GRÁFICA DE MÓDULOS
+             */
             function renderGraficaModulos(modulos) {
                 const categorias = Object.keys(modulos);
                 const dataAQL = categorias.map(c => modulos[c]['% AQL'] || 0);
@@ -334,33 +395,59 @@
                 Highcharts.chart('graficaModuloPorDia', {
                     chart: {
                         type: 'column',
-                        backgroundColor: null,
+                        backgroundColor: 'transparent',
                         style: {
-                            fontFamily: 'Arial, sans-serif'
+                            fontFamily: 'Arial, sans-serif',
+                            color: '#ffffff'
                         }
                     },
                     title: {
-                        text: 'Comparativo AQL y PROCESO - Módulos (Día Actual)'
-                    },
-                    tooltip: {
-                        shared: true,
-                        formatter: function () {
-                            let tooltip = `<b>${this.x}</b><br/>`;
-                            this.points.forEach(point => {
-                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
-                            });
-                            return tooltip;
-                        },
-                        backgroundColor: '#000000',
-                        style: { color: '#ffffff' }
+                        text: 'COMPARATIVO AQL Y PROCESO - MÓDULOS (DÍA ACTUAL)',
+                        align: 'center',
+                        style: { 
+                            color: '#ffffff',
+                            fontWeight: 'bold',
+                            fontSize: '26px' 
+                        }
                     },
                     xAxis: {
                         categories: categorias,
-                        crosshair: true
+                        crosshair: true,
+                        lineColor: '#ffffff',
+                        tickColor: '#ffffff',
+                        labels: {
+                            style: { color: '#ffffff' }
+                        }
                     },
                     yAxis: {
                         min: 0,
-                        title: { text: 'Porcentaje (%)' }
+                        title: {
+                            text: 'Porcentaje (%)',
+                            style: { color: '#ffffff' }
+                        },
+                        labels: {
+                            style: { color: '#ffffff' }
+                        },
+                        gridLineColor: '#4a4a4a'
+                    },
+                    legend: {
+                        itemStyle: { color: '#ffffff' }
+                    },
+                    credits: {
+                        style: { color: '#ffffff' }
+                    },
+                    tooltip: {
+                        shared: true,
+                        backgroundColor: '#000000',
+                        style: { color: '#ffffff' },
+                        formatter: function () {
+                            let tooltip = `<b>${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> 
+                                    ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        }
                     },
                     plotOptions: {
                         column: {
