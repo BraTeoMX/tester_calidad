@@ -84,6 +84,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/blockUser/{noEmpleado}', [UserManagementController::class, 'blockUser'])->name('blockUser');
     Route::put('/blockUser/{noEmpleado}', [UserManagementController::class, 'blockUser'])->name('blockUser');
 
+    Route::get('/api/porcentajesPorDiaV2-data', [HomeController::class, 'porcentajesPorDiaV2'])->name('api.porcentajesPorDiaV2');
+
     Route::get('/listaFormularios', [viewlistaFormularios::class, 'listaFormularios'])->name('viewlistaFormularios');
 
     Route::get('/inicioAuditoriaCorte', [AuditoriaCorteController::class, 'inicioAuditoriaCorte'])->name('auditoriaCorte.inicioAuditoriaCorte')->middleware('checkroleandplant1');

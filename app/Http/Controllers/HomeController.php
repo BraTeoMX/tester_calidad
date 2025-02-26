@@ -48,126 +48,110 @@ class HomeController extends Controller
         $user = Auth::user();
         if ($user->hasRole('Administrador') || $user->hasRole('Gerente de Calidad') || $user->hasRole('Gerente')) {
 
-            // Consulta consolidada (una sola ejecución para las dos tablas)
-            $resultados = Cache::remember('resultados_consolidados_'.$fechaActual, 60, function() use ($fechaActual) {
-                $generalAseguramiento = DB::table('aseguramientos_calidad')
-                    ->selectRaw("
-                        'Proceso' as tipo,
-                        'General' as planta,
-                        SUM(cantidad_auditada) as cantidad_auditada,
-                        SUM(cantidad_rechazada) as cantidad_rechazada
-                    ")
-                    ->whereDate('created_at', $fechaActual);
-
-                $generalAQL = DB::table('auditoria_aql')
-                    ->selectRaw("
-                        'AQL' as tipo,
-                        'General' as planta,
-                        SUM(cantidad_auditada) as cantidad_auditada,
-                        SUM(cantidad_rechazada) as cantidad_rechazada
-                    ")
-                    ->whereDate('created_at', $fechaActual);
-
-                $aseguramientoPorPlanta = DB::table('aseguramientos_calidad')
-                    ->selectRaw("
-                        'Proceso' as tipo,
-                        COALESCE(planta, 'General') as planta,
-                        SUM(cantidad_auditada) as cantidad_auditada,
-                        SUM(cantidad_rechazada) as cantidad_rechazada
-                    ")
-                    ->whereDate('created_at', $fechaActual)
-                    ->groupBy('planta');
-
-                $aqlPorPlanta = DB::table('auditoria_aql')
-                    ->selectRaw("
-                        'AQL' as tipo,
-                        COALESCE(planta, 'General') as planta,
-                        SUM(cantidad_auditada) as cantidad_auditada,
-                        SUM(cantidad_rechazada) as cantidad_rechazada
-                    ")
-                    ->whereDate('created_at', $fechaActual)
-                    ->groupBy('planta');
-
-                return $generalAseguramiento
-                    ->unionAll($generalAQL)
-                    ->unionAll($aseguramientoPorPlanta)
-                    ->unionAll($aqlPorPlanta)
-                    ->get();
-            });
-
-
-            // Inicializamos variables
-            $generalProceso = $generalAQL = 0;
-            $generalProcesoPlanta1 = $generalProcesoPlanta2 = 0;
-            $generalAQLPlanta1 = $generalAQLPlanta2 = 0;
-
-            // Recorrer resultados y asignar valores
-            foreach ($resultados as $item) {
-                if ($item->tipo == 'Proceso') { // AseguramientoCalidad
-                    if ($item->planta == 'General') {
-                        $generalProceso = $item->cantidad_auditada != 0
-                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2)
-                            : 0;
-                    } elseif ($item->planta == 'Intimark1') {
-                        $generalProcesoPlanta1 = $item->cantidad_auditada != 0
-                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2)
-                            : 0;
-                    } elseif ($item->planta == 'Intimark2') {
-                        $generalProcesoPlanta2 = $item->cantidad_auditada != 0
-                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2)
-                            : 0;
-                    }
-                } elseif ($item->tipo == 'AQL') { // AuditoriaAQL
-                    if ($item->planta == 'General') {
-                        $generalAQL = $item->cantidad_auditada != 0
-                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2)
-                            : 0;
-                    } elseif ($item->planta == 'Intimark1') {
-                        $generalAQLPlanta1 = $item->cantidad_auditada != 0
-                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2)
-                            : 0;
-                    } elseif ($item->planta == 'Intimark2') {
-                        $generalAQLPlanta2 = $item->cantidad_auditada != 0
-                            ? number_format(($item->cantidad_rechazada / $item->cantidad_auditada) * 100, 2)
-                            : 0;
-                    }
-                }
-            }
-
-            $porcentajesAQL = $generalAQL;
-            $porcentajesProceso = $generalProceso;
-
-            // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO' (Rango de fechas - 5 horas)
-            $topDefectosAQL = Cache::remember('topDefectosAQL_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechaInicio, $fechaFin) {
-                return TpAuditoriaAQL::select('tp', DB::raw('count(*) as total'))
-                    ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                    ->where('tp', '!=', 'NINGUNO')
-                    ->groupBy('tp')
-                    ->orderBy('total', 'desc')
-                    ->limit(3)
-                    ->get();
-            });
-
-            $topDefectosProceso = Cache::remember('topDefectosProceso_'.$fechaInicio.'_'.$fechaFin, 300, function() use ($fechaInicio, $fechaFin) {
-                return TpAseguramientoCalidad::select('tp', DB::raw('count(*) as total'))
-                    ->whereBetween('created_at', [$fechaInicio, $fechaFin])
-                    ->where('tp', '!=', 'NINGUNO')
-                    ->groupBy('tp')
-                    ->orderBy('total', 'desc')
-                    ->limit(3)
-                    ->get();
-            });
-
-            return view('dashboard', compact(
-                'title', 'topDefectosAQL', 'topDefectosProceso',
-                'generalProceso', 'generalAQL', 'generalAQLPlanta1', 'generalAQLPlanta2','generalProcesoPlanta1', 'generalProcesoPlanta2',
-                'porcentajesAQL', 'porcentajesProceso',
-            ));
+            return view('dashboardv2', compact('title'));
         } else {
             // Si el usuario no tiene esos roles, redirige a listaFormularios
             return redirect()->route('viewlistaFormularios');
         }
     }
+
+    public function porcentajesPorDiaV2()
+    {
+        $fechaActual = Carbon::now()->toDateString();
+
+        $resultados = Cache::remember('resultados_consolidados_' . $fechaActual, 3600, function () use ($fechaActual) {
+            $generalAseguramiento = DB::table('aseguramientos_calidad')
+                ->selectRaw("
+                    'Proceso' as tipo,
+                    'General' as planta,
+                    SUM(cantidad_auditada) as cantidad_auditada,
+                    SUM(cantidad_rechazada) as cantidad_rechazada
+                ")
+                ->whereDate('created_at', $fechaActual);
+
+            $generalAQL = DB::table('auditoria_aql')
+                ->selectRaw("
+                    'AQL' as tipo,
+                    'General' as planta,
+                    SUM(cantidad_auditada) as cantidad_auditada,
+                    SUM(cantidad_rechazada) as cantidad_rechazada
+                ")
+                ->whereDate('created_at', $fechaActual);
+
+            $aseguramientoPorPlanta = DB::table('aseguramientos_calidad')
+                ->selectRaw("
+                    'Proceso' as tipo,
+                    COALESCE(planta, 'General') as planta,
+                    SUM(cantidad_auditada) as cantidad_auditada,
+                    SUM(cantidad_rechazada) as cantidad_rechazada
+                ")
+                ->whereDate('created_at', $fechaActual)
+                ->groupBy('planta');
+
+            $aqlPorPlanta = DB::table('auditoria_aql')
+                ->selectRaw("
+                    'AQL' as tipo,
+                    COALESCE(planta, 'General') as planta,
+                    SUM(cantidad_auditada) as cantidad_auditada,
+                    SUM(cantidad_rechazada) as cantidad_rechazada
+                ")
+                ->whereDate('created_at', $fechaActual)
+                ->groupBy('planta');
+
+            return $generalAseguramiento
+                ->unionAll($generalAQL)
+                ->unionAll($aseguramientoPorPlanta)
+                ->unionAll($aqlPorPlanta)
+                ->get();
+        });
+
+        // Inicializamos variables
+        $dashboardData = [
+            'generalProceso' => "0.00",
+            'generalAQL' => "0.00",
+            'generalAQLPlanta1' => "0.00",
+            'generalAQLPlanta2' => "0.00",
+            'generalProcesoPlanta1' => "0.00",
+            'generalProcesoPlanta2' => "0.00",
+        ];
+
+        // Recorrer resultados y asignar valores
+        foreach ($resultados as $item) {
+            if ($item->tipo == 'Proceso') { // AseguramientoCalidad
+                if ($item->planta == 'General') {
+                    $dashboardData['generalProceso'] = number_format($item->cantidad_auditada != 0 
+                        ? ($item->cantidad_rechazada / $item->cantidad_auditada) * 100 
+                        : 0, 2);
+                } elseif ($item->planta == 'Intimark1') {
+                    $dashboardData['generalProcesoPlanta1'] = number_format($item->cantidad_auditada != 0 
+                        ? ($item->cantidad_rechazada / $item->cantidad_auditada) * 100 
+                        : 0, 2);
+                } elseif ($item->planta == 'Intimark2') {
+                    $dashboardData['generalProcesoPlanta2'] = number_format($item->cantidad_auditada != 0 
+                        ? ($item->cantidad_rechazada / $item->cantidad_auditada) * 100 
+                        : 0, 2);
+                }
+            } elseif ($item->tipo == 'AQL') { // AuditoriaAQL
+                if ($item->planta == 'General') {
+                    $dashboardData['generalAQL'] = number_format($item->cantidad_auditada != 0 
+                        ? ($item->cantidad_rechazada / $item->cantidad_auditada) * 100 
+                        : 0, 2);
+                } elseif ($item->planta == 'Intimark1') {
+                    $dashboardData['generalAQLPlanta1'] = number_format($item->cantidad_auditada != 0 
+                        ? ($item->cantidad_rechazada / $item->cantidad_auditada) * 100 
+                        : 0, 2);
+                } elseif ($item->planta == 'Intimark2') {
+                    $dashboardData['generalAQLPlanta2'] = number_format($item->cantidad_auditada != 0 
+                        ? ($item->cantidad_rechazada / $item->cantidad_auditada) * 100 
+                        : 0, 2);
+                }
+            }
+        }
+
+        return response()->json($dashboardData);
+    }
+
+
     public function SegundasTerceras()
     {
         try {
