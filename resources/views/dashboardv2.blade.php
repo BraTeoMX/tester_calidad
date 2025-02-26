@@ -254,6 +254,39 @@
         </div>
     </div>
 
+    <!-- Grafica mensual por cliente -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-chart">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-sm-6 text-left">
+                            <h2 class="card-title">Indicador Mensual por Cliente</h2>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+                                <label class="btn btn-sm btn-primary btn-simple active" id="cliente0">
+                                    <input type="radio" name="clienteOptions" checked>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
+                                </label>
+                                <label class="btn btn-sm btn-primary btn-simple" id="cliente1">
+                                    <input type="radio" name="clienteOptions">
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Proceso</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div style="width:100%; height: 500px;">
+                        <div id="clienteChartAQL"></div>
+                        <div id="clienteChartProcesos" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <script src="{{ asset('js/highcharts/12/highcharts.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/exporting.js') }}"></script>
@@ -1167,6 +1200,179 @@
         });
     </script>
 
+    <script>
+        $(document).ready(function () {
+            // Función para observar si las gráficas son visibles antes de cargarlas
+            function observeChart(containerId, fetchFunction) {
+                const contenedor = document.getElementById(containerId);
+                if (!contenedor) return;
+
+                const observer = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            fetchFunction(); // Cargar datos solo cuando sea visible
+                            obs.unobserve(entry.target); // Dejar de observar después de cargar
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                observer.observe(contenedor);
+            }
+
+            // Función para obtener los datos vía AJAX sin variables globales
+            function fetchMensualPorCliente() {
+                let dataRequest = $.ajax({
+                    url: "{{ route('dashboard.mensualPorClienteV2') }}",
+                    type: "GET",
+                    success: function (data) {
+                        let chartAQL = renderGraficaPorCliente(data, 'AQL', 'clienteChartAQL');
+                        let chartProceso = renderGraficaPorCliente(data, 'PROCESO', 'clienteChartProcesos');
+
+                        // Inicialización de la vista
+                        $('#clienteChartAQL').show();
+                        $('#clienteChartProcesos').hide();
+
+                        // Botones dinámicos para cambiar de gráfico
+                        $('#cliente0').off('click').on('click', function () {
+                            $('#clienteChartAQL').show();
+                            $('#clienteChartProcesos').hide();
+                            chartAQL.reflow();
+                        });
+
+                        $('#cliente1').off('click').on('click', function () {
+                            $('#clienteChartAQL').hide();
+                            $('#clienteChartProcesos').show();
+                            chartProceso.reflow();
+                        });
+                    },
+                    error: function (xhr, status) {
+                        if (status !== 'abort') {
+                            alert('Error al cargar los datos mensuales por cliente.');
+                        }
+                    }
+                });
+
+                // Cancelar la petición AJAX si se cambia de vista antes de completarse
+                $(window).on('beforeunload', function () {
+                    if (dataRequest) {
+                        dataRequest.abort();
+                    }
+                });
+            }
+
+            // Función para renderizar las gráficas mensuales por cliente
+            function renderGraficaPorCliente(data, tipo, containerId) {
+                const series = [];
+
+                // Configuración de las series con datos, asignando 0 si el dato no existe
+                Object.keys(data).forEach(cliente => {
+                    const valores = data[cliente].map(item => {
+                        return (item[tipo] !== undefined && item[tipo] !== null) ? item[tipo] : 0;
+                    });
+                    series.push({
+                        name: cliente,
+                        data: valores,
+                        type: 'spline', // Gráfica curva
+                        marker: { enabled: false }
+                    });
+                });
+
+                // Generar la gráfica
+                return Highcharts.chart(containerId, {
+                    chart: {
+                        type: 'spline',
+                        backgroundColor: 'transparent',
+                        style: {
+                            fontFamily: 'Arial, sans-serif',
+                            color: '#ffffff'
+                        },
+                        events: {
+                            load: function () {
+                                const chart = this;
+                                // Crear botón interno en la gráfica
+                                chart.renderer.button('Mostrar/Ocultar Todo', 10, 10)
+                                    .attr({
+                                        zIndex: 3,
+                                        fill: '#007bff', // Color del botón
+                                        stroke: '#0056b3',
+                                        'stroke-width': 1,
+                                        padding: 5,
+                                        r: 5, // Bordes redondeados
+                                        style: {
+                                            color: '#ffffff',
+                                            cursor: 'pointer'
+                                        }
+                                    })
+                                    .on('click', function () {
+                                        // Alternar visibilidad de todas las series
+                                        const allVisible = chart.series.every(s => s.visible);
+                                        chart.series.forEach(series => {
+                                            series.setVisible(!allVisible, false);
+                                        });
+                                        chart.redraw();
+                                    })
+                                    .add();
+                            }
+                        }
+                    },
+                    title: {
+                        text: `Indicador Mensual por Cliente - ${tipo}`,
+                        align: 'center',
+                        style: { 
+                            color: '#ffffff',
+                            fontWeight: 'bold',
+                            fontSize: '20px'
+                        }
+                    },
+                    xAxis: {
+                        categories: Array.from({ length: data[Object.keys(data)[0]].length }, (_, i) => i + 1),
+                        title: { text: 'Días del Mes', style: { color: '#ffffff' } },
+                        lineColor: '#ffffff',
+                        tickColor: '#ffffff',
+                        labels: { style: { color: '#ffffff' } }
+                    },
+                    yAxis: {
+                        title: { text: 'Porcentaje (%)', style: { color: '#ffffff' } },
+                        min: 0,
+                        labels: { style: { color: '#ffffff' } },
+                        gridLineColor: '#4a4a4a'
+                    },
+                    tooltip: {
+                        shared: true,
+                        backgroundColor: '#000000',
+                        style: { color: '#ffffff' },
+                        formatter: function () {
+                            let tooltip = `<b>Día ${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                // Mostrar solo puntos con valor mayor a 0
+                                if (point.y > 0) {
+                                    tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                                }
+                            });
+                            return tooltip;
+                        }
+                    },
+                    plotOptions: {
+                        spline: {
+                            lineWidth: 2,
+                            states: {
+                                hover: {
+                                    enabled: true,
+                                    brightness: 0.1
+                                }
+                            }
+                        }
+                    },
+                    legend: { itemStyle: { color: '#ffffff' } },
+                    credits: { enabled: false },
+                    series: series
+                });
+            }
+
+            // Se activa la carga diferida de la gráfica cuando sea visible
+            observeChart('clienteChartAQL', fetchMensualPorCliente);
+        });
+    </script>
 @endsection
 
 @push('js')

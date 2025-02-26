@@ -89,6 +89,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/dashboard-data-dia-v2', [HomeController::class, 'getDashboardDataDiaV2'])->name('dashboard.dataDiaV2');
     Route::get('/dashboard-data-semana-v2', [HomeController::class, 'getDashboardDataSemanaV2'])->name('dashboard.dataSemanaV2');
     Route::get('/dashboard-mensual-general-v2', [HomeController::class, 'getMensualGeneralV2'])->name('dashboard.mensualGeneralV2');
+    Route::get('/dashboard/mensual-por-cliente-v2', [HomeController::class, 'getMensualPorClienteV2'])->name('dashboard.mensualPorClienteV2');
+    Route::get('/dashboard/mensualPorModulo-v2', [HomeController::class, 'getMensualPorModuloV2'])->name('dashboard.mensualPorModuloV2');
 
     Route::get('/listaFormularios', [viewlistaFormularios::class, 'listaFormularios'])->name('viewlistaFormularios');
 
@@ -319,8 +321,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/altaYbaja/gestion-tecnico', [AltaYBajaController::class, 'crearTecnico'])->name('crearTecnico');
     Route::post('/actualizarClientesPorcentajes', [AltaYBajaController::class, 'actualizarClientesPorcentajes'])->name('actualizarClientesPorcentajes');
     //ajax para mostrar dato en dashboard principal
-    Route::get('/dashboard/mensual-por-cliente', [HomeController::class, 'getMensualPorCliente'])->name('dashboard.mensualPorCliente');
-    Route::get('/dashboard/mensualPorModulo', [HomeController::class, 'getMensualPorModulo'])->name('dashboard.mensualPorModulo');
 
 
     //Segundas

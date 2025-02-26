@@ -416,7 +416,7 @@ class HomeController extends Controller
 
 
 
-    public function getMensualPorCliente()
+    public function getMensualPorClienteV2()
     {
         $fechaFin = Carbon::now()->endOfDay()->toDateTimeString();
         $fechaInicio = Carbon::now()->startOfMonth()->startOfDay()->toDateTimeString();
@@ -477,7 +477,7 @@ class HomeController extends Controller
         return response()->json($datos);
     }
 
-    public function getMensualPorModulo()
+    public function getMensualPorModuloV2()
     {
         $fechaFin = Carbon::now()->endOfDay()->toDateTimeString();
         $fechaInicio = Carbon::now()->startOfMonth()->startOfDay()->toDateTimeString();
