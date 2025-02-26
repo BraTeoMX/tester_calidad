@@ -61,17 +61,17 @@
     <div class="row">
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaClientePorDia" style="width:100%; height:400px;"></div>
+                <div id="graficaClientePorDia" style="width:100%; height:400px;">Cargando...</div>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaSupervisorPorDia" style="width:100%; height:400px;"></div>
+                <div id="graficaSupervisorPorDia" style="width:100%; height:400px;">Cargando...</div>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaModuloPorDia" style="width:100%; height:400px;"></div>
+                <div id="graficaModuloPorDia" style="width:100%; height:400px;">Cargando...</div>
             </div>
         </div>
     </div>
@@ -159,17 +159,17 @@
     <div class="row">
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaClientesSemanal" style="width:100%; height:400px;"></div>
+                <div id="graficaClientesSemanal" style="width:100%; height:400px;">Cargando...</div>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaSupervisoresSemanal" style="width:100%; height:400px;"></div>
+                <div id="graficaSupervisoresSemanal" style="width:100%; height:400px;">Cargando...</div>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaModulosSemanal" style="width:100%; height:400px;"></div>
+                <div id="graficaModulosSemanal" style="width:100%; height:400px;">Cargando...</div>
             </div>
         </div>
     </div>
@@ -245,6 +245,15 @@
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card card-body">
+                <div id="graficaMensualGeneral" style="width:100%; height:500px;">Cargando...</div>
+            </div>
+        </div>
+    </div>
+
 
     <script src="{{ asset('js/highcharts/12/highcharts.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/exporting.js') }}"></script>
@@ -1015,6 +1024,149 @@
             } 
         }); 
     </script> 
+
+    <script>
+        $(document).ready(function () {
+            // Variable para almacenar la solicitud AJAX
+            let dataRequestMensual = null;
+
+            // Función para observar si la gráfica es visible antes de cargar los datos
+            function observeChart(containerId, fetchFunction) {
+                const contenedor = document.getElementById(containerId);
+                if (!contenedor) return;
+
+                const observer = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            fetchFunction(); // Cargar datos solo cuando sea visible
+                            obs.unobserve(entry.target); // Dejar de observar después de cargar
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                observer.observe(contenedor);
+            }
+
+            // Función para obtener los datos vía AJAX
+            function fetchMensualGeneral() {
+                // Si hay una solicitud pendiente, se cancela
+                if (dataRequestMensual) {
+                    dataRequestMensual.abort();
+                }
+
+                dataRequestMensual = $.ajax({
+                    url: "{{ route('dashboard.mensualGeneralV2') }}",
+                    type: "GET",
+                    success: function (data) {
+                        renderGraficaMensualGeneral(data);
+                    },
+                    error: function (xhr, status) {
+                        if (status !== 'abort') {
+                            alert('Error al cargar los datos mensuales generales.');
+                        }
+                    }
+                });
+            }
+
+            // Función para renderizar la gráfica mensual
+            function renderGraficaMensualGeneral(data) {
+                const dias = data.map(item => item.dia);
+                const dataAQL = data.map(item => item.AQL || 0);
+                const dataProceso = data.map(item => item.PROCESO || 0);
+
+                // Obtener el nombre del mes actual
+                const fechaHoy = new Date();
+                const nombreMes = fechaHoy.toLocaleString('es-ES', { month: 'long' });
+
+                Highcharts.chart('graficaMensualGeneral', {
+                    chart: {
+                        type: 'areaspline',
+                        backgroundColor: 'transparent',
+                        style: {
+                            fontFamily: 'Arial, sans-serif',
+                            color: '#ffffff'
+                        }
+                    },
+                    title: {
+                        text: 'Indicador Mensual General - AQL y PROCESO',
+                        align: 'center',
+                        style: { 
+                            color: '#ffffff',
+                            fontWeight: 'bold',
+                            fontSize: '20px'
+                        }
+                    },
+                    xAxis: {
+                        categories: dias,
+                        crosshair: true,
+                        title: { 
+                            text: `Días del Mes - ${nombreMes}`,
+                            style: { color: '#ffffff' }
+                        },
+                        lineColor: '#ffffff',
+                        tickColor: '#ffffff',
+                        labels: { style: { color: '#ffffff' } }
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Porcentaje (%)',
+                            style: { color: '#ffffff' }
+                        },
+                        min: 0,
+                        labels: { style: { color: '#ffffff' } },
+                        gridLineColor: '#4a4a4a'
+                    },
+                    legend: { itemStyle: { color: '#ffffff' } },
+                    credits: { style: { color: '#ffffff' } },
+                    tooltip: {
+                        shared: true,
+                        backgroundColor: '#000000',
+                        style: { color: '#ffffff' },
+                        formatter: function () {
+                            let tooltip = `<b>Día ${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        }
+                    },
+                    plotOptions: {
+                        areaspline: {
+                            fillOpacity: 0.7,
+                            lineWidth: 2,
+                            marker: {
+                                enabled: false
+                            },
+                            states: {
+                                hover: {
+                                    enabled: true,
+                                    brightness: 0.1
+                                }
+                            }
+                        }
+                    },
+                    series: [
+                        { 
+                            name: '% AQL',
+                            data: dataAQL,
+                            color: '#00f0c1',
+                            zIndex: 1 
+                        },
+                        { 
+                            name: '% PROCESO',
+                            data: dataProceso,
+                            color: '#dd4dc7',
+                            zIndex: 0 
+                        }
+                    ]
+                });
+            }
+
+            // Se activa la carga diferida de la gráfica cuando sea visible
+            observeChart('graficaMensualGeneral', fetchMensualGeneral);
+        });
+    </script>
+
 @endsection
 
 @push('js')
