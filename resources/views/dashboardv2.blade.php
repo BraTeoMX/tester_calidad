@@ -279,8 +279,8 @@
                 </div>
                 <div class="card-body">
                     <div style="width:100%; height: 500px;">
-                        <div id="clienteChartAQL"></div>
-                        <div id="clienteChartProcesos" style="display: none;"></div>
+                        <div id="clienteChartAQL">Cargando...</div>
+                        <div id="clienteChartProcesos" style="display: none;">Cargando...</div>
                     </div>
                 </div>
             </div>
@@ -1114,6 +1114,7 @@
                 Highcharts.chart('graficaMensualGeneral', {
                     chart: {
                         type: 'areaspline',
+                        height: 500,
                         backgroundColor: 'transparent',
                         style: {
                             fontFamily: 'Arial, sans-serif',
@@ -1281,37 +1282,38 @@
                 return Highcharts.chart(containerId, {
                     chart: {
                         type: 'spline',
+                        height: 500,
                         backgroundColor: 'transparent',
                         style: {
                             fontFamily: 'Arial, sans-serif',
                             color: '#ffffff'
                         },
+                        // Dentro de la configuración del chart en renderGraficaPorCliente:
                         events: {
                             load: function () {
                                 const chart = this;
-                                // Crear botón interno en la gráfica
-                                chart.renderer.button('Mostrar/Ocultar Todo', 10, 10)
-                                    .attr({
-                                        zIndex: 3,
-                                        fill: '#007bff', // Color del botón
-                                        stroke: '#0056b3',
+                                // Crear botón usando el sistema de botones de Highcharts (más integrado)
+                                chart.addButton({
+                                    text: 'Mostrar/Ocultar Todo',
+                                    theme: {
+                                        fill: '#007BFF',   // Color de fondo
+                                        stroke: '#0056B3', // Borde
                                         'stroke-width': 1,
-                                        padding: 5,
-                                        r: 5, // Bordes redondeados
+                                        r: 5,             // Bordes redondeados
                                         style: {
-                                            color: '#ffffff',
-                                            cursor: 'pointer'
+                                            color: '#FFFFFF' // Color del texto
                                         }
-                                    })
-                                    .on('click', function () {
-                                        // Alternar visibilidad de todas las series
+                                    },
+                                    onclick: function () {
                                         const allVisible = chart.series.every(s => s.visible);
                                         chart.series.forEach(series => {
                                             series.setVisible(!allVisible, false);
                                         });
                                         chart.redraw();
-                                    })
-                                    .add();
+                                    },
+                                    x: 10,  // Posición X
+                                    y: 10   // Posición Y
+                                });
                             }
                         }
                     },
