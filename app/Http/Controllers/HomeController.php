@@ -421,10 +421,11 @@ class HomeController extends Controller
         $fechaFin = Carbon::now()->endOfDay()->toDateTimeString();
         $fechaInicio = Carbon::now()->startOfMonth()->startOfDay()->toDateTimeString();
 
-        // Almacenar en caché por 1 hora (3600 segundos)
         $cacheKey = "mensual_por_cliente_{$fechaInicio}_{$fechaFin}";
+        // Establecemos 15 horas (54000 segundos) como duración del caché
+        $cacheTiempo = 15 * 60 * 60; // 15 horas en segundos
 
-        $datos = Cache::remember($cacheKey, 3600, function () use ($fechaInicio, $fechaFin) {
+        $datos = Cache::remember($cacheKey, $cacheTiempo, function () use ($fechaInicio, $fechaFin) {
             $fechas = CarbonPeriod::create($fechaInicio, $fechaFin);
             $clientes = DB::table('aseguramientos_calidad')
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
@@ -482,10 +483,11 @@ class HomeController extends Controller
         $fechaFin = Carbon::now()->endOfDay()->toDateTimeString();
         $fechaInicio = Carbon::now()->startOfMonth()->startOfDay()->toDateTimeString();
 
-        // Almacenar en caché por 1 hora (3600 segundos)
         $cacheKey = "mensual_por_modulo_{$fechaInicio}_{$fechaFin}";
+        // Establecemos 15 horas (54000 segundos) como duración del caché
+        $cacheTiempo = 15 * 60 * 60; // 15 horas en segundos
 
-        $datos = Cache::remember($cacheKey, 3600, function () use ($fechaInicio, $fechaFin) {
+        $datos = Cache::remember($cacheKey, $cacheTiempo, function () use ($fechaInicio, $fechaFin) {
             $fechas = CarbonPeriod::create($fechaInicio, $fechaFin);
             $modulos = DB::table('aseguramientos_calidad')
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])

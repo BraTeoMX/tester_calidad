@@ -340,23 +340,78 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body" style="height: 400px;">
+                <div class="card-body" style="height: 500px;">
                     <div class="chart-area">
                         <div id="chartAQL"></div>
                         <div id="chartProceso" style="display: none;"></div>
+                        <div id="spinner" class="spinner">
+                            <div></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>             
         <div class="col-lg-8">
             <div class="card card-chart">
-                <div class="card-body">
+                <div class="card-body" style="height: 500px;">
                     <div id="SegundasTercerasChart"></div>
-                    <div id="spinner" class="spinner"></div>
+                    <div id="spinner" class="spinner">
+                        <div></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <div>
+        
+    </div>
+
+    <style>
+        .spinner {
+            width: 40px;
+            height: 40px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            perspective: 100px;
+        }
+
+        .spinner div {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            animation: spin 2s linear infinite;
+        }
+
+        .spinner div::before, .spinner div::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #3498db; /* Ajusta el color */
+            transform: rotateY(90deg);
+        }
+
+        .spinner div::before {
+            transform: rotateY(90deg) translateZ(20px);
+        }
+
+        .spinner div::after {
+            transform: rotateY(-90deg) translateZ(20px);
+        }
+
+        @keyframes spin {
+            0% { transform: rotateX(0deg) rotateY(0deg); }
+            100% { transform: rotateX(360deg) rotateY(360deg); }
+        }
+
+        #spinner {
+            display: none; /* Oculto inicialmente */
+        }
+    </style>
 
     <script src="{{ asset('js/highcharts/12/highcharts.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/exporting.js') }}"></script>
@@ -1772,116 +1827,152 @@
     </script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", async function () {
-            const spinner = document.getElementById("spinner");
-            const chartContainer = document.getElementById("SegundasTercerasChart");
-
-            if (!chartContainer) return; // Evita errores si el contenedor no existe
-
+        document.addEventListener("DOMContentLoaded", function () {
+        const spinner = document.getElementById("spinner");
+        const chartContainer = document.getElementById("SegundasTercerasChart");
+        let fetchController; // Para controlar y abortar la petición
+        let chartCargada = false; // Bandera para evitar cargas múltiples
+    
+        if (!chartContainer) return; // Evitar errores si el contenedor no existe
+    
+        // Función que carga la gráfica mediante AJAX
+        async function loadChart() {
             try {
-                spinner.style.display = "block"; // Mostrar spinner mientras carga
-
-                const response = await fetch("/SegundasTerceras", {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json" }
-                });
-
-                if (!response.ok) {
-                    throw new Error("Error en la respuesta de la red");
-                }
-
-                const data = await response.json();
-                generarGraficaSegundasTerceras(data.data);
+            spinner.style.display = "block";
+            // Creamos un nuevo AbortController
+            fetchController = new AbortController();
+    
+            const response = await fetch("/SegundasTerceras", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                signal: fetchController.signal
+            });
+    
+            if (!response.ok) {
+                throw new Error("Error en la respuesta de la red");
+            }
+    
+            const data = await response.json();
+            generarGraficaSegundasTerceras(data.data);
+            chartCargada = true;
             } catch (error) {
+            if (error.name === "AbortError") {
+                console.log("La carga de datos fue abortada.");
+            } else {
                 console.error("Error al cargar los datos:", error);
+            }
             } finally {
-                spinner.style.display = "none"; // Ocultar el spinner
+            spinner.style.display = "none";
+            }
+        }
+    
+        // Utilizamos IntersectionObserver para cargar la gráfica solo cuando el contenedor es visible
+        const observer = new IntersectionObserver((entries, observerInstance) => {
+            entries.forEach(entry => {
+            if (entry.isIntersecting && !chartCargada) {
+                loadChart();
+                // Una vez cargada, dejamos de observar
+                observerInstance.unobserve(entry.target);
+            }
+            });
+        }, { threshold: 0.1 });
+    
+        observer.observe(chartContainer);
+    
+        // Si el usuario cambia de vista (por ejemplo, la pestaña se oculta), abortamos la petición
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden && fetchController) {
+            fetchController.abort();
             }
         });
-
+    
         function generarGraficaSegundasTerceras(datos) {
             let segundas = 0, terceras = 0, totalQty = 0;
-
+    
             datos.forEach(item => {
-                let qty = parseFloat(item.Total_QTY) || 0; // Asegurar que sea numérico
-                totalQty += qty;
-                if (item.QUALITY === "1") segundas += qty;
-                if (item.QUALITY === "2") terceras += qty;
+            let qty = parseFloat(item.Total_QTY) || 0; // Aseguramos que sea numérico
+            totalQty += qty;
+            if (item.QUALITY === "1") segundas += qty;
+            if (item.QUALITY === "2") terceras += qty;
             });
-
+    
             let porcentajeSegundas = totalQty ? ((segundas * 100) / totalQty).toFixed(2) : 0;
             let porcentajeTerceras = totalQty ? ((terceras * 100) / totalQty).toFixed(2) : 0;
-
+    
             Highcharts.chart("SegundasTercerasChart", {
-                chart: {
-                    type: "column",
-                    backgroundColor: "transparent"
-                },
+            chart: {
+                type: "column",
+                backgroundColor: "transparent"
+            },
+            title: {
+                text: "Segundas y Terceras",
+                style: { color: "#FFFFFF" }
+            },
+            xAxis: {
+                categories: ["Segundas", "Terceras"],
+                labels: { style: { color: "#FFFFFF" } }
+            },
+            yAxis: {
+                min: 0,
                 title: {
-                    text: "Segundas y Terceras",
-                    style: { color: "#FFFFFF" } // 🔹 Texto blanco
+                text: "Cantidad",
+                style: { color: "#FFFFFF" }
                 },
-                xAxis: {
-                    categories: ["Segundas", "Terceras"],
-                    labels: { style: { color: "#FFFFFF" } } // 🔹 Texto blanco
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: "Cantidad",
-                        style: { color: "#FFFFFF" } // 🔹 Texto blanco
-                    },
-                    labels: { style: { color: "#FFFFFF" } } // 🔹 Texto blanco
-                },
-                tooltip: {
-                    shared: true,
-                    backgroundColor: "#000000",
-                    style: { color: "#FFFFFF" }, // 🔹 Texto blanco
-                    formatter: function () {
-                        return `
-                            <b>Segundas</b><br>
-                            <b>Cantidad:</b> ${segundas}<br>
-                            <b>Porcentaje:</b> ${porcentajeSegundas}%<br><br>
-                            <b>Terceras</b><br>
-                            <b>Cantidad:</b> ${terceras}<br>
-                            <b>Porcentaje:</b> ${porcentajeTerceras}%
-                        `;
-                    }
-                },
-                series: [
-                    {
-                        name: "Segundas",
-                        id: "segundas",
-                        data: [segundas],
-                        color: "#7cb5ec",
-                        dataLabels: {
-                            enabled: true,
-                            style: { color: "#FFFFFF" } // 🔹 Texto blanco
-                        },
-                        events: {
-                            click: function () {
-                                window.location.href = "/Segundas";
-                            }
-                        }
-                    },
-                    {
-                        name: "Terceras",
-                        id: "terceras",
-                        data: [terceras],
-                        color: "#434348",
-                        dataLabels: {
-                            enabled: true,
-                            style: { color: "#FFFFFF" } // 🔹 Texto blanco
-                        }
-                    }
-                ],
-                legend: {
-                    enabled: true,
-                    itemStyle: { color: "#FFFFFF" } // 🔹 Texto blanco
+                labels: { style: { color: "#FFFFFF" } }
+            },
+            tooltip: {
+                shared: false, // Tooltip no compartido
+                backgroundColor: "#000000",
+                style: { color: "#FFFFFF" },
+                formatter: function () {
+                if (this.series.name === "Segundas") {
+                    return `<b>Segundas</b><br>
+                            <b>Cantidad:</b> ${this.y}<br>
+                            <b>Porcentaje:</b> ${porcentajeSegundas}%`;
+                } else if (this.series.name === "Terceras") {
+                    return `<b>Terceras</b><br>
+                            <b>Cantidad:</b> ${this.y}<br>
+                            <b>Porcentaje:</b> ${porcentajeTerceras}%`;
                 }
+                }
+            },
+            series: [
+                {
+                name: "Segundas",
+                id: "segundas",
+                data: [segundas],
+                color: "#7cb5ec",
+                dataLabels: {
+                    enabled: true,
+                    style: { color: "#FFFFFF" }
+                },
+                events: {
+                    click: function () {
+                    window.location.href = "/Segundas";
+                    }
+                }
+                },
+                {
+                name: "Terceras",
+                id: "terceras",
+                data: [terceras],
+                color: "#434348",
+                dataLabels: {
+                    enabled: true,
+                    style: { color: "#FFFFFF" }
+                }
+                }
+            ],
+            legend: {
+                enabled: true,
+                itemStyle: { color: "#FFFFFF" }
+            }
             });
         }
+        });
     </script>
+  
+
 
 @endsection
 
