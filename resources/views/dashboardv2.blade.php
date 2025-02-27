@@ -61,17 +61,29 @@
     <div class="row">
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaClientePorDia" style="width:100%; height:400px;">Cargando...</div>
+                <div id="graficaClientePorDia" style="width:100%; height:400px;">
+                    <div class="loading-container">
+                        <div class="loading-text">Cargando...</div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaSupervisorPorDia" style="width:100%; height:400px;">Cargando...</div>
+                <div id="graficaSupervisorPorDia" style="width:100%; height:400px;">
+                    <div class="loading-container">
+                        <div class="loading-text">Cargando...</div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaModuloPorDia" style="width:100%; height:400px;">Cargando...</div>
+                <div id="graficaModuloPorDia" style="width:100%; height:400px;">
+                    <div class="loading-container">
+                        <div class="loading-text">Cargando...</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -159,17 +171,29 @@
     <div class="row">
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaClientesSemanal" style="width:100%; height:400px;">Cargando...</div>
+                <div id="graficaClientesSemanal" style="width:100%; height:400px;">
+                    <div class="loading-container">
+                        <div class="loading-text">Cargando...</div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaSupervisoresSemanal" style="width:100%; height:400px;">Cargando...</div>
+                <div id="graficaSupervisoresSemanal" style="width:100%; height:400px;">
+                    <div class="loading-container">
+                        <div class="loading-text">Cargando...</div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaModulosSemanal" style="width:100%; height:400px;">Cargando...</div>
+                <div id="graficaModulosSemanal" style="width:100%; height:400px;">
+                    <div class="loading-container">
+                        <div class="loading-text">Cargando...</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -249,7 +273,11 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="card card-body">
-                <div id="graficaMensualGeneral" style="width:100%; height:500px;">Cargando...</div>
+                <div id="graficaMensualGeneral" style="width:100%; height:500px;">
+                    <div class="loading-container">
+                        <div class="loading-text">Cargando...</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -279,8 +307,11 @@
                 </div>
                 <div class="card-body">
                     <div style="width:100%; height: 500px;">
-                        <div id="clienteChartAQL">Cargando...</div>
-                        <div id="clienteChartProcesos" style="display: none;">Cargando...</div>
+                        <div id="clienteChartAQL"></div>
+                        <div id="clienteChartProcesos" style="display: none;"></div>
+                        <div class="loading-container">
+                            <div class="loading-text">Cargando...</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -312,8 +343,11 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-area" style="height: 500px;">
-                        <div id="moduloChartAQL">Cargando...</div>
-                        <div id="moduloChartProcesos" style="display: none;">Cargando...</div>
+                        <div id="moduloChartAQL"></div>
+                        <div id="moduloChartProcesos" style="display: none;"></div>
+                        <div class="loading-container">
+                            <div class="loading-text">Cargando...</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -342,48 +376,56 @@
                 </div>
                 <div class="card-body" style="height: 400px;">
                     <div class="chart-area">
-                        <div id="chartAQL">Cargando...</div>
-                        <div id="chartProceso" style="display: none;">Cargando...</div>
+                        <div id="chartAQL"></div>
+                        <div id="chartProceso" style="display: none;"></div>
+                        <div class="loading-container">
+                            <div class="loading-text">Cargando...</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>             
         <div class="col-lg-8">
             <div class="card card-chart">
-                <div class="card-body">
+                <div class="card-body" style="height: 400px;">
                     <div id="SegundasTercerasChart"></div>
-                    <div id="spinner" class="spinner"></div>
+                    <div class="loading-container">
+                        <div class="loading-text">Cargando...</div>
+                        <div id="spinner" class="spinner"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <style>
-        /* Estilo para el spinner */
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 4px solid #3498db;
-            width: 40px;
-            height: 40px;
-            animation: spin 2s linear infinite;
-        
-            /* Centrar el spinner horizontal y verticalmente */
+        /* Contenedor para centrar el texto */
+        .loading-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Texto animado */
+        .loading-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d1d1d1; /* Color para tema oscuro */
+            
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%); /* Centrar exactamente */
+            
+            animation: fadeInOut 1.5s infinite;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        /* Animación de parpadeo */
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
         }
-        
-        /* Ocultar el spinner inicialmente */
-        #spinner {
-            display: none;
-        }
+
     </style>
 
     <script src="{{ asset('js/highcharts/12/highcharts.js') }}"></script>
