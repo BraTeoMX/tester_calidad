@@ -1622,7 +1622,8 @@
 
     <script>
         $(document).ready(function () {
-            let chartAQL, chartProceso; // Variables locales para almacenar las gráficas
+            let chartAQL, chartProceso; // Variables para almacenar las gráficas
+            let dataRequest = null; // Variable para almacenar la petición AJAX
 
             // Función para observar si la gráfica es visible antes de cargarse
             function observeChart(containerId, fetchFunction) {
@@ -1643,7 +1644,11 @@
 
             // Función para obtener los datos de defectos vía AJAX
             function fetchDefectoMensual() {
-                let dataRequest = $.ajax({
+                if (dataRequest) {
+                    dataRequest.abort(); // Cancelar cualquier petición en curso antes de hacer una nueva
+                }
+
+                dataRequest = $.ajax({
                     url: "{{ route('dashboard.defectoMensualV2') }}",
                     type: "GET",
                     success: function (data) {
@@ -1657,14 +1662,26 @@
                         }
                     }
                 });
+            }
 
-                // Cancelar la petición AJAX si se cambia de vista antes de completarse
-                $(window).on('beforeunload', function () {
-                    if (dataRequest) {
+            // Cancelar la petición AJAX si el usuario cambia de vista antes de completarse
+            $(window).on('beforeunload', function () {
+                if (dataRequest) {
+                    dataRequest.abort();
+                }
+            });
+
+            // Cancelar AJAX si el usuario oculta la sección
+            const observerMutacion = new MutationObserver((mutations) => {
+                mutations.forEach(mutation => {
+                    if (mutation.target.style.display === "none" && dataRequest) {
                         dataRequest.abort();
                     }
                 });
-            }
+            });
+
+            observerMutacion.observe(document.getElementById('chartAQL'), { attributes: true, attributeFilter: ['style'] });
+            observerMutacion.observe(document.getElementById('chartProceso'), { attributes: true, attributeFilter: ['style'] });
 
             // Lista de colores predefinidos
             const colores = ['#F03C3C', '#F0E23C', '#3C8EF0', '#36A2EB', '#FFCE56'];
@@ -1681,7 +1698,6 @@
             function crearGrafica(datos, titulo, containerId) {
                 const { tp, total } = prepararDatos(datos);
 
-                // Evita errores si hay menos de 3 defectos
                 while (tp.length < 3) {
                     tp.push("N/A");
                     total.push(0);
@@ -1690,7 +1706,7 @@
                 return Highcharts.chart(containerId, {
                     chart: {
                         type: 'column',
-                        height: 400, // Tamaño fijo
+                        height: 400,
                         backgroundColor: 'transparent'
                     },
                     title: {
@@ -1725,11 +1741,11 @@
                     series: total.map((value, index) => ({
                         name: tp[index],
                         data: [value],
-                        color: colores[index % colores.length] // Asignar color de forma dinámica
+                        color: colores[index % colores.length]
                     })),
                     plotOptions: {
                         column: {
-                            colorByPoint: false, // Evita que Highcharts asigne colores automáticos
+                            colorByPoint: false,
                             borderColor: '#27293D'
                         }
                     },
@@ -1741,19 +1757,20 @@
             $('#top3-AQL').off('click').on('click', function () {
                 $('#chartAQL').show();
                 $('#chartProceso').hide();
-                chartAQL.reflow(); // Ajusta la gráfica para evitar recortes visuales
+                chartAQL.reflow();
             });
 
             $('#top3-Proceso').off('click').on('click', function () {
                 $('#chartAQL').hide();
                 $('#chartProceso').show();
-                chartProceso.reflow(); // Ajusta la gráfica para evitar recortes visuales
+                chartProceso.reflow();
             });
 
             // Se activa la carga diferida de la gráfica cuando sea visible
             observeChart('chartAQL', fetchDefectoMensual);
         });
     </script>
+
 
 
 @endsection
