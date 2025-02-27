@@ -16,11 +16,11 @@
                                     <td id="generalAQL">Cargando...</td>
                                 </tr>
                                 <tr>
-                                    <td><a href="{{ route('dashboar.dashboardPlanta1') }}">Planta I :</a></td>
+                                    <td>Planta I :</a></td>
                                     <td id="generalAQLPlanta1">Cargando...</td>
                                 </tr>
                                 <tr>
-                                    <td><a href="{{ route('dashboar.dashboardPlanta2') }}">Planta II :</a></td>
+                                    <td>Planta II :</a></td>
                                     <td id="generalAQLPlanta2">Cargando...</td>
                                 </tr>
                             </tbody>
@@ -43,11 +43,11 @@
                                     <td id="generalProceso">Cargando...</td>
                                 </tr>
                                 <tr>
-                                    <td><a href="{{ route('dashboar.dashboardPlanta1') }}">Planta I :</a></td>
+                                    <td>Planta I :</a></td>
                                     <td id="generalProcesoPlanta1">Cargando...</td>
                                 </tr>
                                 <tr>
-                                    <td><a href="{{ route('dashboar.dashboardPlanta2') }}">Planta II :</a></td>
+                                    <td>Planta II :</a></td>
                                     <td id="generalProcesoPlanta2">Cargando...</td>
                                 </tr>
                             </tbody>
@@ -355,11 +355,11 @@
     </div>
 
     <div class="row">
-        <div class="col-lg-4">
+        <div class="col-12 col-md-6">
             <div class="card card-chart">
                 <div class="card-header">
                     <h3 class="card-title">
-                        <i class="tim-icons icon-bell-55 text-primary"></i> Top 3 (Defectos)
+                        <i class="tim-icons icon-bell-55 text-primary"></i> Top 3 Defectos mensuales
                     </h3>
                     <div class="col-sm-15">
                         <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
@@ -385,9 +385,9 @@
                 </div>
             </div>
         </div>             
-        <div class="col-lg-8">
+        <div class="col-12 col-md-6">
             <div class="card card-chart">
-                <div class="card-body" style="height: 400px;">
+                <div class="card-body" style="height: 500px;">
                     <div id="SegundasTercerasChart"></div>
                     <div class="loading-container">
                         <div class="loading-text">Cargando...</div>
@@ -1786,7 +1786,9 @@
                     xAxis: {
                         categories: tp,
                         title: { text: 'Defectos', style: { color: '#FFFFFF' } },
-                        labels: { style: { color: '#FFFFFF' } }
+                        labels: { 
+                            enabled: false // Oculta los nombres de los defectos en el eje X
+                        }
                     },
                     yAxis: {
                         title: { text: 'Número de defectos', style: { color: '#FFFFFF' } },
@@ -1797,15 +1799,12 @@
                         itemStyle: { color: '#FFFFFF' }
                     },
                     tooltip: {
-                        shared: true,
                         backgroundColor: '#000000',
                         style: { color: '#ffffff' },
+                        useHTML: true,
                         formatter: function () {
-                            let tooltip = `<b>${this.x}</b><br/>`;
-                            this.points.forEach(point => {
-                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y}</b><br/>`;
-                            });
-                            return tooltip;
+                            return `<span style="color:${this.point.color}">\u25CF</span> 
+                                    <b>${this.series.name}</b>: ${this.y}`;
                         }
                     },
                     series: total.map((value, index) => ({
@@ -1839,7 +1838,7 @@
             // Se activa la carga diferida de la gráfica cuando sea visible
             observeChart('chartAQL', fetchDefectoMensual);
         });
-    </script>
+    </script> 
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
