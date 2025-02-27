@@ -543,9 +543,12 @@ class HomeController extends Controller
     {
         $fechaFin = Carbon::now()->toDateString();
         $fechaInicio = Carbon::parse($fechaFin)->startOfMonth()->toDateString();
+        
+        // Establecemos 15 horas (54000 segundos) como duración del caché
+        $cacheTiempo = 15 * 60 * 60; // 15 horas en segundos
 
-        // Consulta para obtener los 3 valores más repetidos de 'tp' excluyendo 'NINGUNO'
-        $topDefectosAQL = Cache::remember("topDefectosAQL_{$fechaInicio}_{$fechaFin}", 300, function () use ($fechaInicio, $fechaFin) {
+        // Consulta para obtener los 3 defectos más repetidos de 'tp' excluyendo 'NINGUNO'
+        $topDefectosAQL = Cache::remember("topDefectosAQL_{$fechaInicio}_{$fechaFin}", $cacheTiempo, function () use ($fechaInicio, $fechaFin) {
             return TpAuditoriaAQL::select('tp', DB::raw('count(*) as total'))
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                 ->where('tp', '!=', 'NINGUNO')
@@ -555,7 +558,7 @@ class HomeController extends Controller
                 ->get();
         });
 
-        $topDefectosProceso = Cache::remember("topDefectosProceso_{$fechaInicio}_{$fechaFin}", 300, function () use ($fechaInicio, $fechaFin) {
+        $topDefectosProceso = Cache::remember("topDefectosProceso_{$fechaInicio}_{$fechaFin}", $cacheTiempo, function () use ($fechaInicio, $fechaFin) {
             return TpAseguramientoCalidad::select('tp', DB::raw('count(*) as total'))
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                 ->where('tp', '!=', 'NINGUNO')
@@ -578,6 +581,7 @@ class HomeController extends Controller
             'topDefectosProceso' => $topDefectosProceso
         ]);
     }
+
 
 
 
