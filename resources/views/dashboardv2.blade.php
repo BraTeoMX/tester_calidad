@@ -340,76 +340,49 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body" style="height: 500px;">
+                <div class="card-body" style="height: 400px;">
                     <div class="chart-area">
-                        <div id="chartAQL"></div>
-                        <div id="chartProceso" style="display: none;"></div>
-                        <div id="spinner" class="spinner">
-                            <div></div>
-                        </div>
+                        <div id="chartAQL">Cargando...</div>
+                        <div id="chartProceso" style="display: none;">Cargando...</div>
                     </div>
                 </div>
             </div>
         </div>             
         <div class="col-lg-8">
             <div class="card card-chart">
-                <div class="card-body" style="height: 500px;">
+                <div class="card-body">
                     <div id="SegundasTercerasChart"></div>
-                    <div id="spinner" class="spinner">
-                        <div></div>
-                    </div>
+                    <div id="spinner" class="spinner"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div>
-        
-    </div>
-
     <style>
+        /* Estilo para el spinner */
         .spinner {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
             width: 40px;
             height: 40px;
+            animation: spin 2s linear infinite;
+        
+            /* Centrar el spinner horizontal y verticalmente */
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            perspective: 100px;
         }
-
-        .spinner div {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            transform-style: preserve-3d;
-            animation: spin 2s linear infinite;
-        }
-
-        .spinner div::before, .spinner div::after {
-            content: "";
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-color: #3498db; /* Ajusta el color */
-            transform: rotateY(90deg);
-        }
-
-        .spinner div::before {
-            transform: rotateY(90deg) translateZ(20px);
-        }
-
-        .spinner div::after {
-            transform: rotateY(-90deg) translateZ(20px);
-        }
-
+        
         @keyframes spin {
-            0% { transform: rotateX(0deg) rotateY(0deg); }
-            100% { transform: rotateX(360deg) rotateY(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-
+        
+        /* Ocultar el spinner inicialmente */
         #spinner {
-            display: none; /* Oculto inicialmente */
+            display: none;
         }
     </style>
 
