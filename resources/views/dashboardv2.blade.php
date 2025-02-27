@@ -332,16 +332,10 @@
                             <label class="btn btn-sm btn-primary btn-simple active" id="top3-AQL">
                                 <input type="radio" name="top3Options" checked>
                                 <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
-                                <span class="d-block d-sm-none">
-                                    <i class="tim-icons icon-single-02"></i>
-                                </span>
                             </label>
                             <label class="btn btn-sm btn-primary btn-simple" id="top3-Proceso">
                                 <input type="radio" name="top3Options">
                                 <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Proceso</span>
-                                <span class="d-block d-sm-none">
-                                    <i class="tim-icons icon-gift-2"></i>
-                                </span>
                             </label>
                         </div>
                     </div>
@@ -353,7 +347,7 @@
                     </div>
                 </div>
             </div>
-        </div>        
+        </div>             
         <div class="col-lg-8">
             <div class="card card-chart">
                 <div class="card-body">
@@ -1628,6 +1622,8 @@
 
     <script>
         $(document).ready(function () {
+            let chartAQL, chartProceso; // Variables locales para almacenar las gráficas
+
             // Función para observar si la gráfica es visible antes de cargarse
             function observeChart(containerId, fetchFunction) {
                 const contenedor = document.getElementById(containerId);
@@ -1651,9 +1647,9 @@
                     url: "{{ route('dashboard.defectoMensualV2') }}",
                     type: "GET",
                     success: function (data) {
-                        // Cargar la gráfica con los datos obtenidos
-                        mostrarGrafica('AQL', data.topDefectosAQL);
-                        mostrarGrafica('PROCESO', data.topDefectosProceso);
+                        // Cargar las gráficas con los datos obtenidos
+                        chartAQL = crearGrafica(data.topDefectosAQL, 'Top 3 Defectos AQL', 'chartAQL');
+                        chartProceso = crearGrafica(data.topDefectosProceso, 'Top 3 Defectos Proceso', 'chartProceso');
                     },
                     error: function (xhr, status) {
                         if (status !== 'abort') {
@@ -1691,7 +1687,7 @@
                     total.push(0);
                 }
 
-                Highcharts.chart(containerId, {
+                return Highcharts.chart(containerId, {
                     chart: {
                         type: 'column',
                         height: 400, // Tamaño fijo
@@ -1741,12 +1737,18 @@
                 });
             }
 
-            // Función para mostrar la gráfica en el contenedor correspondiente
-            function mostrarGrafica(tipo, datos) {
-                const containerId = tipo === 'AQL' ? 'chartAQL' : 'chartProceso';
-                const titulo = tipo === 'AQL' ? 'Top 3 Defectos AQL' : 'Top 3 Defectos Proceso';
-                crearGrafica(datos, titulo, containerId);
-            }
+            // Evento para cambiar entre AQL y Proceso
+            $('#top3-AQL').off('click').on('click', function () {
+                $('#chartAQL').show();
+                $('#chartProceso').hide();
+                chartAQL.reflow(); // Ajusta la gráfica para evitar recortes visuales
+            });
+
+            $('#top3-Proceso').off('click').on('click', function () {
+                $('#chartAQL').hide();
+                $('#chartProceso').show();
+                chartProceso.reflow(); // Ajusta la gráfica para evitar recortes visuales
+            });
 
             // Se activa la carga diferida de la gráfica cuando sea visible
             observeChart('chartAQL', fetchDefectoMensual);
