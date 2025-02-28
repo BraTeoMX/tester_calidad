@@ -1986,8 +1986,6 @@
         });
     </script>
   
-
-
 @endsection
 
 @push('js')

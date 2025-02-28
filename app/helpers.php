@@ -23,13 +23,13 @@ if (!function_exists('obtenerSegundasTerceras')) {
                     ->get();
 
                 // Loguea la cantidad de registros obtenidos
-                Log::info('Cantidad de registros obtenidos en CountsApprov_views: ' . $result);
+                //Log::info('Cantidad de registros obtenidos en CountsApprov_views: ' . $result);
 
                 return $result;
             });
         } catch (\Exception $e) {
             // Manejar la excepción, por ejemplo, loguear el error
-            Log::error('Error al obtener SegundasTerceras de CountsApprov_views: ' . $e->getMessage());
+            //Log::error('Error al obtener SegundasTerceras de CountsApprov_views: ' . $e->getMessage());
 
             // Retornar una colección vacía o lanzar una excepción personalizada
             return collect();
@@ -64,13 +64,13 @@ if (!function_exists('ObtenerSegundas')) {
                 });
 
                 // Loguea la cantidad de registros obtenidos
-                Log::info('Cantidad de registros obtenidos en SegundasTerceras_View: ' . $segundasTransformadas->count());
+                //Log::info('Cantidad de registros obtenidos en SegundasTerceras_View: ' . $segundasTransformadas->count());
 
                 return $segundasTransformadas;
             });
         } catch (\Exception $e) {
             // Manejar la excepción, por ejemplo, loguear el error
-            Log::error('Error al obtener SegundasTerceras: ' . $e->getMessage());
+            //Log::error('Error al obtener SegundasTerceras: ' . $e->getMessage());
 
             // Retornar una colección vacía o lanzar una excepción personalizada
             return collect();
@@ -97,15 +97,15 @@ if (!function_exists('ObtenerModulos')) {
                     ->orderBy('OPRMODULEID_AT')
                     ->pluck('OPRMODULEID_AT');
 
-                Log::info('Resultados únicos de la consulta módulos: ' . json_encode($resultados));
+                //Log::info('Resultados únicos de la consulta módulos: ' . json_encode($resultados));
 
                 return $resultados->toArray();
             });
         } catch (QueryException $e) {
-            Log::error('Error en la consulta SQL al obtener Módulos: ' . $e->getMessage());
+            //Log::error('Error en la consulta SQL al obtener Módulos: ' . $e->getMessage());
             throw new \Exception('Error al obtener los datos de Módulos.');
         } catch (\Exception $e) {
-            Log::error('Error al obtener Módulos: ' . $e->getMessage());
+            //Log::error('Error al obtener Módulos: ' . $e->getMessage());
             throw new \Exception('Error al obtener los datos de Módulos.');
         }
     }
@@ -127,21 +127,21 @@ if (!function_exists('ObtenerClientes')) {
                     ->where('Calidad', 'Segunda')
                     ->get();
 
-                Log::info('Resultados de la consulta Clientes: ' . json_encode($Clientes));
+                //Log::info('Resultados de la consulta Clientes: ' . json_encode($Clientes));
 
                 $ClientesDivisiones = $Clientes->groupBy('CUSTOMERNAME')->map(function ($items) {
                     return $items->pluck('DIVISIONNAME')->unique()->values()->toArray();
                 })->toArray();
 
-                Log::info('Clientes y sus divisiones: ' . json_encode($ClientesDivisiones));
+                //Log::info('Clientes y sus divisiones: ' . json_encode($ClientesDivisiones));
 
                 return $ClientesDivisiones;
             });
         } catch (QueryException $e) {
-            Log::error('Error en la consulta SQL al obtener Clientes: ' . $e->getMessage());
+            //Log::error('Error en la consulta SQL al obtener Clientes: ' . $e->getMessage());
             throw new \Exception('Error al obtener los datos de Clientes.');
         } catch (\Exception $e) {
-            Log::error('Error al obtener Clientes: ' . $e->getMessage());
+            //Log::error('Error al obtener Clientes: ' . $e->getMessage());
             throw new \Exception('Error al obtener los datos de Clientes.');
         }
     }
@@ -162,19 +162,19 @@ if (!function_exists('ObtenerTipoSegundas')) {
                     ->where('Calidad', 'Segunda')
                     ->pluck('TipoSegunda');
 
-                Log::info('Resultados de Tipos Segundas: ' . json_encode($TipoSegundas));
+                //Log::info('Resultados de Tipos Segundas: ' . json_encode($TipoSegundas));
 
                 $ObtenerTipoSegundas = $TipoSegundas->unique()->values()->toArray();
 
-                Log::info('Clientes únicos filtrados de Tipos Segundas:: ' . json_encode($ObtenerTipoSegundas));
+                //Log::info('Clientes únicos filtrados de Tipos Segundas:: ' . json_encode($ObtenerTipoSegundas));
 
                 return $ObtenerTipoSegundas;
             });
         } catch (QueryException $e) {
-            Log::error('Error en la consulta SQL al obtener Tipos Segundas: ' . $e->getMessage());
+            //Log::error('Error en la consulta SQL al obtener Tipos Segundas: ' . $e->getMessage());
             throw new \Exception('Error al obtener de Tipos Segundas.');
         } catch (\Exception $e) {
-            Log::error('Error al obtenerde Tipos Segundas: ' . $e->getMessage());
+            //Log::error('Error al obtenerde Tipos Segundas: ' . $e->getMessage());
             throw new \Exception('Error al obtener los datos de Tipos Segundas.');
         }
     }

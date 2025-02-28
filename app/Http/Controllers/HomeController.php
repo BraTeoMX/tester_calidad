@@ -570,14 +570,6 @@ class HomeController extends Controller
                 ->get();
         });
 
-        // Registrar en el log de Laravel los datos obtenidos
-        Log::info("Consulta de Defectos Mensuales", [
-            'Fecha Inicio' => $fechaInicio,
-            'Fecha Fin' => $fechaFin,
-            'Top Defectos AQL' => $topDefectosAQL,
-            'Top Defectos Proceso' => $topDefectosProceso
-        ]);
-
         return response()->json([
             'topDefectosAQL' => $topDefectosAQL,
             'topDefectosProceso' => $topDefectosProceso
