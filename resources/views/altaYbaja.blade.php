@@ -383,7 +383,7 @@
     </div>
     <hr>
     <div class="row">
-        <div class="col-lg-4">
+        <div class="col-lg-6">
             <div class="card card-chart">
                 <div class="card-header">
                     <h3>Clientes: Porcentajes AQL y Proceso</h3>
@@ -440,7 +440,7 @@
                     </div>
                 </div>
             </div>
-        </div>        
+        </div>
     </div>
 
     
@@ -566,12 +566,19 @@
     </script>
     <script>
         function validarDecimales(input) {
-            // Limitar a 2 decimales
-            if (input.value) {
-                let value = parseFloat(input.value).toFixed(2);
-                input.value = value;
+            let min = parseFloat(input.min);
+            let max = parseFloat(input.max);
+            let value = parseFloat(input.value);
+    
+            if (isNaN(value)) return;
+    
+            // Permitir temporalmente cualquier número mientras se edita
+            if (value < min || value > max) {
+                input.style.borderColor = "red";
+            } else {
+                input.style.borderColor = "";
             }
         }
-    </script>
+    </script>    
     
 @endpush
