@@ -11,6 +11,7 @@ use App\Http\Controllers\DatosAuditoriaEtiquetas;
 use App\Http\Controllers\InspeccionEstampadoHorno;
 use  App\Http\Controllers\AuditoriaProcesoCorteController;
 use App\Http\Controllers\AuditoriaProcesoController;
+use App\Http\Controllers\AuditoriaProcesoV2Controller;
 use App\Http\Controllers\AuditoriaAQLController;
 use App\Http\Controllers\Maquila;
 use App\Http\Controllers\viewlistaFormularios;
@@ -160,6 +161,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/obtenerTodosLosEstilosUnicos', [AuditoriaProcesoController::class, 'obtenerTodosLosEstilosUnicos'])->name('obtenerTodosLosEstilosUnicos');
     Route::get('/obtener-supervisor', [AuditoriaProcesoController::class, 'obtenerSupervisor']);
 
+    //secion de la segunda version de Auditoria Proceso
+    Route::get('/altaProceso-v2', [AuditoriaProcesoV2Controller::class, 'altaProcesoV2'])->name('altaProcesoV2');
+    Route::get('/obtener-modulos-v2', [AuditoriaProcesoV2Controller::class, 'obtenerModulosV2'])->name('obtenerModulosV2');
 
 
 
