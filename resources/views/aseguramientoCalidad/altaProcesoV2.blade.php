@@ -429,14 +429,15 @@
                     $.ajax({
                         url: "{{ route('obtenerEstilosV2') }}",
                         type: "GET",
-                        data: { moduleid: moduloSeleccionado }, // Enviar el módulo seleccionado
+                        data: { moduleid: moduloSeleccionado },
                         dataType: "json",
                         success: function(response) {
                             $("#estilo_proceso").empty().append('<option value="">Selecciona una opción</option>');
-        
-                            if (response.itemids.length > 0) {
-                                $.each(response.itemids, function(index, itemid) {
-                                    $("#estilo_proceso").append('<option value="' + itemid + '">' + itemid + '</option>');
+                            $("#cliente").val(""); // Limpiar cliente al cambiar de módulo
+
+                            if (response.estilos.length > 0) {
+                                $.each(response.estilos, function(index, item) {
+                                    $("#estilo_proceso").append('<option value="' + item.itemid + '" data-cliente="' + item.custname + '">' + item.itemid + '</option>');
                                 });
                             } else {
                                 console.warn("No se encontraron estilos para este módulo.");
@@ -448,7 +449,13 @@
                     });
                 } else {
                     $("#estilo_proceso").empty().append('<option value="">Selecciona una opción</option>');
+                    $("#cliente").val(""); // Limpiar cliente si no hay módulo seleccionado
                 }
+            });
+            // Obtener cliente cuando se seleccione un estilo
+            $('#estilo_proceso').on('change', function() {
+                var clienteSeleccionado = $(this).find(':selected').data('cliente');
+                $("#cliente").val(clienteSeleccionado || ""); // Si no hay cliente, dejar vacío
             });
         });
     </script>

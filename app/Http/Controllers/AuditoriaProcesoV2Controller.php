@@ -104,25 +104,26 @@ class AuditoriaProcesoV2Controller extends Controller
     {
         $moduleid = $request->input('moduleid');
 
-        // Obtener los estilos con prioridad para los relacionados al módulo desde ModuloEstilo
-        $itemidsModuloEstilo = ModuloEstilo::select('itemid')
+        // Obtener los estilos con su respectivo cliente desde ModuloEstilo
+        $itemidsModuloEstilo = ModuloEstilo::select('itemid', 'custname')
             ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$moduleid])
-            ->distinct('itemid')
+            ->distinct('itemid', 'custname')
             ->orderBy('prioridad') // Priorizar los relacionados al módulo
             ->orderBy('itemid') // Ordenar por itemid después
-            ->pluck('itemid');
+            ->get();
 
         // Obtener los estilos desde ModuloEstiloTemporal
-        $itemidsModuloEstiloTemporal = ModuloEstiloTemporal::select('itemid')
-            ->distinct('itemid')
+        $itemidsModuloEstiloTemporal = ModuloEstiloTemporal::select('itemid', 'custname')
+            ->distinct('itemid', 'custname')
             ->orderBy('itemid') // Ordenar por itemid
-            ->pluck('itemid');
+            ->get();
 
         // Combinar ambos resultados y eliminar duplicados
-        $itemidsCombinados = $itemidsModuloEstilo->merge($itemidsModuloEstiloTemporal)->unique();
+        $estilosCombinados = $itemidsModuloEstilo->concat($itemidsModuloEstiloTemporal)
+            ->unique('itemid');
 
         return response()->json([
-            'itemids' => $itemidsCombinados->values(),
+            'estilos' => $estilosCombinados->values(),
         ]);
     }
 
