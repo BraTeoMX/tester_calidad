@@ -164,6 +164,8 @@ Route::group(['middleware' => 'auth'], function () {
     //secion de la segunda version de Auditoria Proceso
     Route::get('/altaProceso-v2', [AuditoriaProcesoV2Controller::class, 'altaProcesoV2'])->name('altaProcesoV2');
     Route::get('/obtener-modulos-v2', [AuditoriaProcesoV2Controller::class, 'obtenerModulosV2'])->name('obtenerModulosV2');
+    Route::get('/obtener-estilos-v2', [AuditoriaProcesoV2Controller::class, 'obtenerEstilosV2'])->name('obtenerEstilosV2');
+
 
 
 

@@ -103,12 +103,11 @@
                                             value="AUDITORIA EN PROCESO" readonly  />
                                         </td>
                                         <td>
-                                            <select name="modulo" id="modulo_proceso" class="form-control" required title="Por favor, selecciona una opción">
+                                            <select name="modulo" id="modulo_proceso" class="form-control" required>
                                             </select>
                                         </td>
                                         <td>
-                                            <select class="form-control texto-blanco" name="estilo" id="estilo" required>
-                                                <option value="">Selecciona una opción</option>
+                                            <select class="form-control texto-blanco" name="estilo" id="estilo_proceso" required>
                                             </select>
                                         </td>
                                         <td>
@@ -330,20 +329,20 @@
             /* Ajusta el ancho mínimo según tu necesidad */
         }
         .table10 th:nth-child(2) {
-            min-width: 130px;
+            min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
 
         .table10 th:nth-child(3) {
-            min-width: 150px;
+            min-width: 200px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
         .table10 th:nth-child(4) {
-            min-width: 180px;
+            min-width: 220px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
         .table10 th:nth-child(5) {
-            min-width: 150px;
+            min-width: 200px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
 
@@ -397,37 +396,61 @@
         });
     </script>
 
-<script>
-    $(document).ready(function() {
-        // Inicializar Select2 si es necesario
-        $('#modulo_proceso').select2();
-    
-        // Hacer la petición AJAX para obtener los módulos
-        $.ajax({
-            url: "{{ route('obtenerModulosV2') }}",
-            type: "GET",
-            dataType: "json",
-            success: function(response) {
-                // Verifica si hay datos antes de modificar el select
-                if (response.length > 0) {
-                    // Limpiar opciones previas y agregar la opción por defecto
-                    $("#modulo_proceso").empty().append('<option value="" selected>Selecciona una opción</option>');
-    
-                    // Llenar el select con los datos obtenidos
-                    $.each(response, function(index, item) {
-                        $("#modulo_proceso").append('<option value="' + item.moduleid + '">' + item.moduleid + '</option>');
+    <script>
+        $(document).ready(function() {
+            // Inicializar Select2 para ambos selects
+            $('#modulo_proceso, #estilo_proceso').select2();
+        
+            // Hacer la petición AJAX para obtener los módulos (esto ya lo tienes)
+            $.ajax({
+                url: "{{ route('obtenerModulosV2') }}",
+                type: "GET",
+                dataType: "json",
+                success: function(response) {
+                    if (response.length > 0) {
+                        $("#modulo_proceso").empty().append('<option value="" selected>Selecciona una opción</option>');
+                        $.each(response, function(index, item) {
+                            $("#modulo_proceso").append('<option value="' + item.moduleid + '">' + item.moduleid + '</option>');
+                        });
+                    } else {
+                        console.warn("No se encontraron módulos.");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error al obtener los módulos:", error);
+                }
+            });
+        
+            // Evento cuando cambia el módulo para obtener los estilos relacionados
+            $('#modulo_proceso').on('change', function() {
+                var moduloSeleccionado = $(this).val(); // Obtener el módulo seleccionado
+        
+                if (moduloSeleccionado) {
+                    $.ajax({
+                        url: "{{ route('obtenerEstilosV2') }}",
+                        type: "GET",
+                        data: { moduleid: moduloSeleccionado }, // Enviar el módulo seleccionado
+                        dataType: "json",
+                        success: function(response) {
+                            $("#estilo_proceso").empty().append('<option value="">Selecciona una opción</option>');
+        
+                            if (response.itemids.length > 0) {
+                                $.each(response.itemids, function(index, itemid) {
+                                    $("#estilo_proceso").append('<option value="' + itemid + '">' + itemid + '</option>');
+                                });
+                            } else {
+                                console.warn("No se encontraron estilos para este módulo.");
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Error al obtener los estilos:", error);
+                        }
                     });
                 } else {
-                    console.warn("No se encontraron módulos.");
+                    $("#estilo_proceso").empty().append('<option value="">Selecciona una opción</option>');
                 }
-            },
-            error: function(xhr, status, error) {
-                console.error("Error al obtener los módulos:", error);
-            }
+            });
         });
-    });
     </script>
     
-    
-
 @endsection

@@ -80,7 +80,6 @@ class AuditoriaProcesoV2Controller extends Controller
         }else{
             $datoPlanta = "Intimark2";
         }
-        $datoPlanta = $request->input('planta'); // Puedes modificar esto según la lógica de tu sistema
 
         // Obtener datos de las dos tablas
         $datosCategoriaSupervisor = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
@@ -100,5 +99,32 @@ class AuditoriaProcesoV2Controller extends Controller
 
         return response()->json($listaModulos);
     }
+
+    public function obtenerEstilosV2(Request $request)
+    {
+        $moduleid = $request->input('moduleid');
+
+        // Obtener los estilos con prioridad para los relacionados al módulo desde ModuloEstilo
+        $itemidsModuloEstilo = ModuloEstilo::select('itemid')
+            ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$moduleid])
+            ->distinct('itemid')
+            ->orderBy('prioridad') // Priorizar los relacionados al módulo
+            ->orderBy('itemid') // Ordenar por itemid después
+            ->pluck('itemid');
+
+        // Obtener los estilos desde ModuloEstiloTemporal
+        $itemidsModuloEstiloTemporal = ModuloEstiloTemporal::select('itemid')
+            ->distinct('itemid')
+            ->orderBy('itemid') // Ordenar por itemid
+            ->pluck('itemid');
+
+        // Combinar ambos resultados y eliminar duplicados
+        $itemidsCombinados = $itemidsModuloEstilo->merge($itemidsModuloEstiloTemporal)->unique();
+
+        return response()->json([
+            'itemids' => $itemidsCombinados->values(),
+        ]);
+    }
+
 
 }
