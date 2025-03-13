@@ -387,7 +387,7 @@
             });
 
             function cargarEstilos() {
-                var moduleid = $('#moduleid').val();
+                var moduleid = $('#modulo').val(); // Asegurar que se está obteniendo el moduleid correctamente
 
                 $.ajax({
                     url: "{{ route('obtenerEstilosV2') }}",
@@ -403,7 +403,7 @@
                             selectEstilo.append('<option value="' + estilo.itemid + '" data-cliente="' + estilo.custname + '" ' + selected + '>' + estilo.itemid + '</option>');
                         });
 
-                        // Disparar el evento de cambio manualmente para actualizar el cliente
+                        // Disparar el evento de cambio manualmente para actualizar el cliente y la URL
                         selectEstilo.trigger('change');
                     }
                 });
@@ -412,12 +412,20 @@
             // Cargar estilos al iniciar la página
             cargarEstilos();
 
-            // Cuando se seleccione un estilo, actualizar el cliente automáticamente
+            // Cuando se seleccione un estilo, actualizar el cliente automáticamente y cambiar la URL
             $('#estilo_proceso').on('change', function () {
                 var cliente = $(this).find(':selected').data('cliente');
                 $('#cliente').val(cliente || '');
+
+                var nuevoEstilo = $(this).val(); // Obtener el nuevo estilo seleccionado
+                actualizarURL('estilo', nuevoEstilo);
             });
-            
+
+            function actualizarURL(parametro, valor) {
+                var url = new URL(window.location.href);
+                url.searchParams.set(parametro, valor); // Cambia el valor del parámetro en la URL
+                window.history.pushState({}, '', url); // Actualiza la URL sin recargar la página
+            }
         });
     </script>
 
