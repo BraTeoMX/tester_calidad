@@ -310,11 +310,11 @@
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada"  required></td>
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada"  required></td>
                                     <td>
-                                        <select id="tpSelect" class="form-control w-100 select2" title="Por favor, selecciona una opción"> 
-                                            <option value="OTRO">OTRO</option> 
+                                        <select id="tpSelect" class="form-control w-100 select2" title="Por favor, selecciona una opción">
+                                            <option value="OTRO">CREAR DEFECTO</option>
                                         </select>
-                                        <div id="selectedOptionsContainer" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div> 
-                                    </td>                                    
+                                        <div id="selectedOptionsContainer" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
+                                    </td>
                                     <td>
                                         <select name="ac" id="ac" class="form-control" title="Por favor, selecciona una opción">
                                             <option value="">Selecciona una opción</option>
@@ -326,6 +326,26 @@
                         </table>
                     </div>
                     <button type="submit" class="btn-verde-xd">GUARDAR</button> 
+                </div>
+                <!-- Modal para crear un nuevo defecto -->
+                <div class="modal fade" id="nuevoConceptoModal" tabindex="-1" role="dialog" aria-labelledby="nuevoConceptoModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content bg-dark text-white">
+                            <div class="modal-header">
+                                <h5 id="nuevoConceptoModalLabel">Introduce el nuevo defecto</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true" class="text-white">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="text" class="form-control bg-dark text-white" id="nuevoConceptoInput" placeholder="Nuevo defecto">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-primary" id="guardarNuevoConcepto">Guardar</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -721,36 +741,112 @@
 
     <script>
         $(document).ready(function () {
-            var datosCargados = false; // Evita múltiples consultas innecesarias
+            const tpSelect = $('#tpSelect');
+            const selectedOptionsContainer = $('#selectedOptionsContainer');
 
-            $('#tpSelect').select2({
+            // Inicializar Select2 con AJAX
+            tpSelect.select2({
                 placeholder: 'Selecciona una opción',
-                allowClear: true,
-                multiple: true,
                 width: '100%',
                 ajax: {
-                    url: "{{ route('defectosProcesoV2') }}", // Ruta en Laravel
+                    url: "{{ route('defectosProcesoV2') }}",
                     type: 'GET',
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
-                        return {
-                            search: params.term || '' // Filtra los resultados si el usuario escribe algo
-                        };
+                        return { search: params.term || '' };
                     },
                     processResults: function (data) {
-                        return {
-                            results: $.map(data.defectos, function (item) {
-                                return {
-                                    id: item.nombre, // Se envía el nombre como valor
-                                    text: item.nombre // Se muestra el nombre en la lista
-                                };
-                            })
-                        };
+                        const options = data.defectos.map(item => ({
+                            id: item.nombre,
+                            text: item.nombre,
+                        }));
+                        options.unshift({ id: 'OTRO', text: 'CREAR DEFECTO', action: true });
+                        return { results: options };
                     },
-                    cache: true
+                    cache: true,
+                },
+                templateResult: function (data) {
+                    if (data.action) {
+                        return $('<span style="color: #007bff; font-weight: bold;">' + data.text + '</span>');
+                    }
+                    return data.text;
+                },
+                language: {
+                    noResults: function () {
+                        return "No se encontraron resultados";
+                    },
+                },
+            });
+
+            // Evento al seleccionar una opción
+            tpSelect.on('select2:select', function (e) {
+                const selected = e.params.data;
+
+                if (selected.id === 'OTRO') {
+                    $('#nuevoConceptoModal').modal('show');
+                    tpSelect.val(null).trigger('change'); // Resetea la selección en el select2
+                    return;
                 }
+
+                // Agregar la selección al contenedor
+                addOptionToContainer(selected.id, selected.text);
+            });
+
+            // Función para agregar la opción seleccionada al contenedor
+            function addOptionToContainer(id, text) {
+                const optionElement = $(`
+                    <div class="selected-option d-flex align-items-center justify-content-between border p-2 mb-1">
+                        <button class="btn btn-primary btn-sm duplicate-option">+</button>
+                        <span class="option-text flex-grow-1 mx-2">${text}</span>
+                        <button class="btn btn-danger btn-sm remove-option">Eliminar</button>
+                    </div>
+                `);
+
+                // Evento para duplicar la opción
+                optionElement.find('.duplicate-option').on('click', function () {
+                    addOptionToContainer(id, text);
+                });
+
+                // Evento para eliminar la opción
+                optionElement.find('.remove-option').on('click', function () {
+                    optionElement.remove();
+                });
+
+                // Agregar la opción al contenedor
+                selectedOptionsContainer.append(optionElement);
+            }
+
+            // Evento para guardar un nuevo defecto desde el modal
+            $('#guardarNuevoConcepto').on('click', function () {
+                const nuevoDefecto = $('#nuevoConceptoInput').val().trim();
+
+                if (!nuevoDefecto) {
+                    alert('Por favor, ingresa un defecto válido.');
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('crearDefectoProceso') }}",
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        nombre: nuevoDefecto,
+                        _token: '{{ csrf_token() }}',
+                    },
+                    success: function (data) {
+                        const newOption = new Option(data.nombre, data.nombre, true, true);
+                        tpSelect.append(newOption).trigger('change');
+                        addOptionToContainer(data.nombre, data.nombre);
+                        $('#nuevoConceptoModal').modal('hide');
+                        $('#nuevoConceptoInput').val('');
+                    },
+                    error: function (xhr) {
+                        alert('Ocurrió un error al guardar el defecto: ' + xhr.responseJSON.error);
+                    },
+                });
             });
         });
+
     </script>
 @endsection

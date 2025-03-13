@@ -322,5 +322,36 @@ class AuditoriaProcesoV2Controller extends Controller
         ]);
     }
 
+    public function crearDefectoProceso(Request $request)
+    {
+        try {
+            $nombre = strtoupper(trim($request->input('nombre')));
+
+            if (!$nombre) {
+                return response()->json(['error' => 'El nombre es obligatorio'], 400);
+            }
+
+            // Verificar si ya existe
+            $defectoExistente = CategoriaTipoProblema::where('nombre', $nombre)
+                ->where('area', 'proceso')
+                ->first();
+
+            if ($defectoExistente) {
+                return response()->json($defectoExistente);
+            }
+
+            // Crear el nuevo defecto
+            $nuevoDefecto = CategoriaTipoProblema::create([
+                'nombre' => $nombre,
+                'area' => 'proceso',
+            ]);
+
+            return response()->json($nuevoDefecto);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+
 
 }
