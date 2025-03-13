@@ -298,8 +298,16 @@
                                         <select name="nombre_final" id="lista_nombre" class="form-control select2" required>
                                             <option value="">Selecciona una opción</option>
                                         </select>
-                                    </td>                                    
-                                    
+                                    </td>
+                                    <td>
+                                        <select name="operacion" id="operacion" class="form-control select2" required>
+                                            <option value="">Selecciona una opción</option>
+                                            <option value="otra"> [OTRA OPERACIÓN]</option>
+                                        </select>
+                                        <!-- Input oculto que reemplazará el select si eligen "OTRA OPERACIÓN" -->
+                                        <input type="text" name="operacion" id="otra_operacion" class="form-control mt-2" placeholder="Ingresa la operación" style="display: none;" required>
+                                    </td>                                                                     
+
                                     <td><input type="text" class="form-control" name="pxp" id="pxp"></td>
                                 </tr>
                             </tbody>
@@ -604,6 +612,70 @@
             });
         });
 
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            function cargarOperaciones() {
+                $('#operacion').select2({
+                    placeholder: 'Selecciona una opción',
+                    allowClear: true,
+                    minimumInputLength: 0, // Muestra la lista completa sin escribir
+                    ajax: {
+                        url: "{{ route('obtenerOperaciones') }}", // Ruta en Laravel
+                        type: 'GET',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                search: params.term || '', // Si no hay búsqueda, devuelve toda la lista
+                                modulo: $('#modulo').val() // Enviar el módulo actual para ordenar los resultados
+                            };
+                        },
+                        processResults: function (data) {
+                            var opciones = [
+                                { id: '', text: 'Selecciona una opción' },
+                                { id: 'otra', text: '[OTRA OPERACIÓN]' }
+                            ];
+
+                            $.each(data.operaciones, function (index, item) {
+                                opciones.push({
+                                    id: item.oprname, // Se envía 'oprname' como valor
+                                    text: item.oprname // Se muestra 'oprname'
+                                });
+                            });
+
+                            return { results: opciones };
+                        },
+                        cache: true
+                    }
+                });
+            }
+
+            // Cargar operaciones al iniciar
+            cargarOperaciones();
+
+            // Manejar selección de "OTRA OPERACIÓN"
+            $('#operacion').on('change', function () {
+                if ($(this).val() === 'otra') {
+                    let select = $(this);
+
+                    // Destruir Select2 antes de eliminar el select
+                    select.select2('destroy');
+
+                    // Eliminar el select completamente
+                    select.remove();
+
+                    // Mostrar el input de texto
+                    $('#otra_operacion').show().val('').focus();
+                }
+            });
+
+            // Transformar a mayúsculas en el input de "OTRA OPERACIÓN"
+            $('#otra_operacion').on('input', function () {
+                $(this).val($(this).val().toUpperCase());
+            });
+        });
     </script>
 
 @endsection

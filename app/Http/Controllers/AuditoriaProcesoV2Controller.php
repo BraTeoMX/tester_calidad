@@ -259,4 +259,39 @@ class AuditoriaProcesoV2Controller extends Controller
     }
 
 
+    public function obtenerOperaciones(Request $request)
+    {
+        $modulo = $request->input('modulo');
+        $search = $request->input('search');
+
+        $excluidos = [
+            "APP SCREEN:    /    /", 
+            "APPROVED     /    /", 
+            "APPROVED / /",
+            "APPROVED //",
+            "OFF LINE", 
+            "ON CUT", 
+            "ON LINE", 
+            "OUT CUT"
+        ];
+
+        $query = JobOperacion::whereNotIn('oprname', $excluidos);
+
+        // Filtrar por módulo si existe
+        if (!empty($modulo)) {
+            $query->where('moduleid', $modulo);
+        }
+
+        // Aplicar búsqueda si el usuario está escribiendo
+        if (!empty($search)) {
+            $query->where('oprname', 'like', "%$search%");
+        }
+
+        $operaciones = $query->select('oprname')->distinct()->orderBy('oprname', 'asc')->get();
+
+        return response()->json([
+            'operaciones' => $operaciones
+        ]);
+    }
+
 }
