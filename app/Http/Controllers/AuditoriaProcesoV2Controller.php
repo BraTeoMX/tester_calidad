@@ -161,7 +161,6 @@ class AuditoriaProcesoV2Controller extends Controller
             'team_leader' => $request->team_leader,
             'auditor' => $request->auditor,
             'turno' => $request->turno,
-            'cliente' => $request->cliente,
             'gerente_produccion' => $request->gerente_produccion,
         ];
         //dd($data);

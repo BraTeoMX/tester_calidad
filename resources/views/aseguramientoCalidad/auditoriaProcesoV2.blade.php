@@ -223,20 +223,29 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><input type="text" class="form-control texto-blanco" name="modulo"
-                                            id="modulo" value="{{ $data['modulo'] }}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="estilo"
-                                        id="estilo_proceso" value="{{ $data['estilo'] }}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="team_leader"
-                                            id="team_leader" value="{{ $data['team_leader'] }}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="gerente_produccion"
-                                            value="{{ $data['gerente_produccion'] }}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="auditor"
-                                            id="auditor" value="{{ $data['auditor'] }}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="turno"
-                                            id="turno" value="{{ $data['turno'] }}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="cliente"
-                                            id="cliente" value="{{ $data['cliente'] }}" readonly></td>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" name="moduleid" id="modulo" value="{{ $data['modulo'] }}" readonly>
+                                    </td>
+                                    <td>
+                                        <select class="form-control select2 texto-blanco" name="estilo" id="estilo_proceso">
+                                            <option value="">Seleccione un estilo</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader" value="{{ $data['team_leader'] }}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" name="gerente_produccion" value="{{ $data['gerente_produccion'] }}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" name="auditor" id="auditor" value="{{ $data['auditor'] }}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" name="turno" id="turno" value="{{ $data['turno'] }}" readonly>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control texto-blanco" name="cliente" id="cliente" readonly>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -368,4 +377,48 @@
             width: 100% !important;
         }
     </style>
+
+    <script>
+        $(document).ready(function () {
+            // Inicializar select2
+            $('#estilo_proceso').select2({
+                placeholder: 'Seleccione un estilo',
+                allowClear: true
+            });
+
+            function cargarEstilos() {
+                var moduleid = $('#moduleid').val();
+
+                $.ajax({
+                    url: "{{ route('obtenerEstilosV2') }}",
+                    type: 'GET',
+                    data: { moduleid: moduleid },
+                    success: function (response) {
+                        var selectEstilo = $('#estilo_proceso');
+                        selectEstilo.empty();
+                        selectEstilo.append('<option value="">Seleccione un estilo</option>');
+
+                        $.each(response.estilos, function (index, estilo) {
+                            var selected = (estilo.itemid == "{{ $data['estilo'] }}") ? "selected" : "";
+                            selectEstilo.append('<option value="' + estilo.itemid + '" data-cliente="' + estilo.custname + '" ' + selected + '>' + estilo.itemid + '</option>');
+                        });
+
+                        // Disparar el evento de cambio manualmente para actualizar el cliente
+                        selectEstilo.trigger('change');
+                    }
+                });
+            }
+
+            // Cargar estilos al iniciar la página
+            cargarEstilos();
+
+            // Cuando se seleccione un estilo, actualizar el cliente automáticamente
+            $('#estilo_proceso').on('change', function () {
+                var cliente = $(this).find(':selected').data('cliente');
+                $('#cliente').val(cliente || '');
+            });
+            
+        });
+    </script>
+
 @endsection
