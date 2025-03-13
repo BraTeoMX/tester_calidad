@@ -260,11 +260,9 @@
                                                                         @foreach($procesoFinal as $proceso)
                                                                             <tr>
                                                                                 <td>
-                                                                                    <form method="POST" action="{{ route('aseguramientoCalidad.formAltaProceso') }}">
+                                                                                    <form method="POST" action="{{ route('formAltaProcesoV2') }}">
                                                                                         @csrf
-                                                                                        <input type="hidden" name="area" value="{{ $proceso->area }}">
                                                                                         <input type="hidden" name="modulo" value="{{ $proceso->modulo }}">
-                                                                                        <input type="hidden" name="cliente" value="{{ $proceso->cliente }}">
                                                                                         <input type="hidden" name="estilo" value="{{ $proceso->estilo }}">
                                                                                         <input type="hidden" name="team_leader" value="{{ $proceso->team_leader }}">
                                                                                         <input type="hidden" name="gerente_produccion" value="{{ $proceso->gerente_produccion }}">
