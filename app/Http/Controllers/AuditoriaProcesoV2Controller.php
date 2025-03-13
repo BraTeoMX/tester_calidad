@@ -151,4 +151,40 @@ class AuditoriaProcesoV2Controller extends Controller
     }
 
 
+    public function formAltaProcesoV2(Request $request) 
+    {
+        $pageSlug ='';
+
+        $data = [
+            'modulo' => $request->modulo,
+            'estilo' => $request->estilo,
+            'team_leader' => $request->team_leader,
+            'auditor' => $request->auditor,
+            'turno' => $request->turno,
+            'cliente' => $request->cliente,
+            'gerente_produccion' => $request->gerente_produccion,
+        ];
+        //dd($data);
+
+        return redirect()->route('aseguramientoCalidad.auditoriaProcesoV2', 
+            array_merge($data))->with('cambio-estatus', 'Iniciando en modulo: '. $data['modulo'])->with('pageSlug', $pageSlug);
+    }
+
+    public function auditoriaProcesoV2(Request $request)
+    {
+        $pageSlug ='';
+        $fechaActual = Carbon::now()->toDateString();
+        //$fechaActual = Carbon::now()->subDay()->toDateString();
+        $mesesEnEspanol = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+        // Obtener los datos de la solicitud
+        $data = $request->all();
+        // Asegurarse de que la variable $data esté definida
+        $data = $data ?? [];
+        
+        $auditorPlanta = Auth::user()->Planta;
+        $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
+        return view('aseguramientoCalidad.auditoriaProcesoV2', compact('mesesEnEspanol', 'pageSlug', 'data' ));
+    }
 }
