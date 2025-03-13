@@ -55,8 +55,8 @@ class AuditoriaProcesoV2Controller extends Controller
             ->whereDate('created_at', $fechaActual)
             ->select('modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
             ->distinct()
-            ->orderBy('modulo', 'asc');
-        $procesoActual = $procesoActual->get();
+            ->orderBy('modulo', 'asc')
+            ->get();
         $procesoFinal =  AseguramientoCalidad::where('estatus', 1) 
             ->where('area', 'AUDITORIA EN PROCESO')
             ->where('planta', $datoPlanta)
@@ -186,4 +186,25 @@ class AuditoriaProcesoV2Controller extends Controller
         $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
         return view('aseguramientoCalidad.auditoriaProcesoV2', compact('mesesEnEspanol', 'pageSlug', 'data' ));
     }
+
+    public function obtenerListaProcesosV2()
+    {
+        $fechaActual = now()->toDateString();
+        $auditorPlanta = Auth::user()->Planta;
+        $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
+
+        $procesoActual = AseguramientoCalidad::whereNull('estatus')
+            ->where('area', 'AUDITORIA EN PROCESO')
+            ->where('planta', $datoPlanta)
+            ->whereDate('created_at', $fechaActual)
+            ->select('modulo', 'estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
+            ->distinct()
+            ->orderBy('modulo', 'asc')
+            ->get();
+
+        return response()->json([
+            'procesos' => $procesoActual,
+        ]);
+    }
+
 }

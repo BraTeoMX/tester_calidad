@@ -145,7 +145,7 @@
 
         .custom-modal-content {
             background-color: #1e1e1e;
-            margin: 0 auto;
+            margin: 50px auto;
             padding: 20px;
             width: 90%;
             max-width: 1200px;
@@ -194,7 +194,7 @@
                 <div class="card-header card-header-primary">
                     <div class="row align-items-center justify-content-between">
                         <div class="col">
-                            <h3 class="card-title">Auditoria Proceso</h3>
+                            <h3 class="card-title">AUDITORIA EN PROCESO</h3>
                         </div>
                         <div class="col-auto">
                             <!-- Botón para abrir el modal -->
@@ -203,6 +203,35 @@
                                     {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
                                 </h4>
                             </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Modal personalizado -->
+                <div id="customModal" class="custom-modal">
+                    <div class="custom-modal-content">
+                        <div class="custom-modal-header">
+                            <h5 class="modal-title texto-blanco">Detalles del Proceso</h5>
+                            <!-- Botón "CERRAR" en la esquina superior derecha -->
+                            <button id="closeModal" class="btn btn-danger">CERRAR</button>
+                        </div>
+                        <div class="custom-modal-body">
+                            <!-- Aquí va el contenido de la tabla -->
+                            <div class="table-responsive">
+                                <input type="text" id="searchInput1" class="form-control mb-3" placeholder="Buscar Módulo o Estilo">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Acción</th>
+                                            <th>Módulo</th>
+                                            <th>Estilo</th>
+                                            <th>Supervisor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaProcesos1">
+                                        <!-- Aquí se insertarán los datos dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -377,6 +406,93 @@
             width: 100% !important;
         }
     </style>
+
+    <script>
+        $(document).ready(function () {
+            // Función para abrir el modal
+            function abrirModal() {
+                $('#customModal').fadeIn(); // Mostrar con efecto de desvanecimiento
+            }
+
+            // Función para cerrar el modal
+            function cerrarModal() {
+                $('#customModal').fadeOut(); // Ocultar con efecto de desvanecimiento
+            }
+
+            // Evento para abrir el modal al hacer clic en el botón
+            $('#openModal').on('click', function () {
+                abrirModal();
+
+                // Petición AJAX para cargar los datos en la tabla del modal
+                $.ajax({
+                    url: "{{ route('obtenerListaProcesosV2') }}",
+                    type: 'GET',
+                    success: function (response) {
+                        var tabla = $('#tablaProcesos1');
+                        tabla.empty(); // Limpiar tabla antes de insertar nuevos datos
+
+                        if (response.procesos.length === 0) {
+                            tabla.append('<tr><td colspan="4" class="text-center">No hay datos disponibles</td></tr>');
+                        } else {
+                            $.each(response.procesos, function (index, proceso) {
+                                var row = `
+                                    <tr>
+                                        <td>
+                                            <form method="POST" action="{{ route('formAltaProcesoV2') }}">
+                                                @csrf
+                                                <input type="hidden" name="modulo" value="${proceso.modulo}">
+                                                <input type="hidden" name="estilo" value="${proceso.estilo}">
+                                                <input type="hidden" name="team_leader" value="${proceso.team_leader}">
+                                                <input type="hidden" name="gerente_produccion" value="${proceso.gerente_produccion}">
+                                                <input type="hidden" name="auditor" value="${proceso.auditor}">
+                                                <input type="hidden" name="turno" value="${proceso.turno}">
+                                                <button type="submit" class="btn btn-primary">Acceder</button>
+                                            </form>
+                                        </td>
+                                        <td>${proceso.modulo}</td>
+                                        <td>${proceso.estilo}</td>
+                                        <td>${proceso.team_leader}</td>
+                                    </tr>`;
+                                tabla.append(row);
+                            });
+                        }
+                    },
+                    error: function () {
+                        alert('Error al obtener los datos');
+                    }
+                });
+            });
+
+            // Evento para cerrar el modal al hacer clic en el botón de cerrar
+            $('#closeModal').on('click', function () {
+                cerrarModal();
+            });
+
+            // Evento para cerrar el modal al hacer clic fuera del contenido del modal
+            $(window).on('click', function (event) {
+                if (event.target === document.getElementById('customModal')) {
+                    cerrarModal();
+                }
+            });
+
+            // Evento para cerrar el modal al presionar la tecla "ESC"
+            $(document).on('keydown', function (event) {
+                if (event.key === "Escape") {
+                    cerrarModal();
+                }
+            });
+
+            // Filtro de búsqueda en la tabla
+            $('#searchInput1').on('keyup', function () {
+                var value = $(this).val().toLowerCase();
+                $('#tablaProcesos1 tr').filter(function () {
+                    var modulo = $(this).find('td:eq(1)').text().toLowerCase();
+                    var estilo = $(this).find('td:eq(2)').text().toLowerCase();
+                    $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
+                });
+            });
+        });
+    </script>
 
     <script>
         $(document).ready(function () {
