@@ -311,7 +311,7 @@
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada"  required></td>
                                     <td>
                                         <select id="tpSelect" class="form-control w-100 select2" title="Por favor, selecciona una opción">
-                                            <option value="OTRO">CREAR DEFECTO</option>
+                                            <option value="" selected disabled>Selecciona una opción</option> <!-- Opción inicial vacía -->
                                         </select>
                                         <div id="selectedOptionsContainer" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
                                     </td>
@@ -761,6 +761,7 @@
                             id: item.nombre,
                             text: item.nombre,
                         }));
+                        // Aseguramos que "CREAR DEFECTO" siempre esté como opción
                         options.unshift({ id: 'OTRO', text: 'CREAR DEFECTO', action: true });
                         return { results: options };
                     },
@@ -779,17 +780,20 @@
                 },
             });
 
+            // Forzar que no haya preselección inicial
+            tpSelect.val(null).trigger('change');
+
             // Evento al seleccionar una opción
             tpSelect.on('select2:select', function (e) {
                 const selected = e.params.data;
 
                 if (selected.id === 'OTRO') {
                     $('#nuevoConceptoModal').modal('show');
-                    tpSelect.val(null).trigger('change'); // Resetea la selección en el select2
+                    tpSelect.val(null).trigger('change'); // Resetear el select para evitar que quede seleccionado
                     return;
                 }
 
-                // Agregar la selección al contenedor
+                // Agregar la selección al contenedor solo si no es "CREAR DEFECTO"
                 addOptionToContainer(selected.id, selected.text);
             });
 
@@ -803,17 +807,14 @@
                     </div>
                 `);
 
-                // Evento para duplicar la opción
                 optionElement.find('.duplicate-option').on('click', function () {
                     addOptionToContainer(id, text);
                 });
 
-                // Evento para eliminar la opción
                 optionElement.find('.remove-option').on('click', function () {
                     optionElement.remove();
                 });
 
-                // Agregar la opción al contenedor
                 selectedOptionsContainer.append(optionElement);
             }
 
@@ -847,6 +848,5 @@
                 });
             });
         });
-
     </script>
 @endsection
