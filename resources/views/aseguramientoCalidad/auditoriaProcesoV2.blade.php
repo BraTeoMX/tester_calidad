@@ -309,7 +309,12 @@
                                     </td>                                                                     
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada"  required></td>
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada"  required></td>
-                                    
+                                    <td>
+                                        <select id="tpSelect" class="form-control w-100 select2" title="Por favor, selecciona una opción"> 
+                                            <option value="OTRO">OTRO</option> 
+                                        </select>
+                                        <div id="selectedOptionsContainer" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div> 
+                                    </td>                                    
                                     <td>
                                         <select name="ac" id="ac" class="form-control" title="Por favor, selecciona una opción">
                                             <option value="">Selecciona una opción</option>
@@ -714,4 +719,38 @@
         });
     </script>
 
+    <script>
+        $(document).ready(function () {
+            var datosCargados = false; // Evita múltiples consultas innecesarias
+
+            $('#tpSelect').select2({
+                placeholder: 'Selecciona una opción',
+                allowClear: true,
+                multiple: true,
+                width: '100%',
+                ajax: {
+                    url: "{{ route('defectosProcesoV2') }}", // Ruta en Laravel
+                    type: 'GET',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term || '' // Filtra los resultados si el usuario escribe algo
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: $.map(data.defectos, function (item) {
+                                return {
+                                    id: item.nombre, // Se envía el nombre como valor
+                                    text: item.nombre // Se muestra el nombre en la lista
+                                };
+                            })
+                        };
+                    },
+                    cache: true
+                }
+            });
+        });
+    </script>
 @endsection

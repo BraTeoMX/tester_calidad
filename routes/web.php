@@ -172,6 +172,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/obtener-nombres-generales', [AuditoriaProcesoV2Controller::class, 'obtenerNombresGenerales'])->name('obtenerNombresGenerales');
     Route::get('/obtener-operaciones-generales', [AuditoriaProcesoV2Controller::class, 'obtenerOperaciones'])->name('obtenerOperaciones');
     Route::get('/accion-correctiva-proceso', [AuditoriaProcesoV2Controller::class, 'accionCorrectivaProceso'])->name('accionCorrectivaProceso');
+    Route::get('/defectos-proceso-v2', [AuditoriaProcesoV2Controller::class, 'defectosProcesoV2'])->name('defectosProcesoV2');
 
 
 

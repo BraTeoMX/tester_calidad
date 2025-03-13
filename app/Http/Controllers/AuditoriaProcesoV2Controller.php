@@ -304,4 +304,23 @@ class AuditoriaProcesoV2Controller extends Controller
         ]);
     }
 
+    public function defectosProcesoV2(Request $request)
+    {
+        $search = $request->input('search');
+
+        $query = CategoriaTipoProblema::whereIn('area', ['proceso', 'playera']);
+
+        // Aplicar filtro si el usuario escribe algo
+        if (!empty($search)) {
+            $query->where('nombre', 'like', "%$search%");
+        }
+
+        $defectos = $query->select('nombre')->distinct()->orderBy('nombre', 'asc')->get();
+
+        return response()->json([
+            'defectos' => $defectos
+        ]);
+    }
+
+
 }
