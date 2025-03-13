@@ -49,21 +49,28 @@ class AuditoriaProcesoV2Controller extends Controller
             ->get();
 
         $procesoActual = AseguramientoCalidad::where('estatus', NULL)  
-            //->where('auditor', $categorias['auditorDato'])
-            ->where('area', 'AUDITORIA EN PROCESO')
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
             ->select('modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
             ->distinct()
-            ->orderBy('modulo', 'asc')
-            ->get();
+            ->orderBy('modulo', 'asc');
+        // Aplicar el filtro del auditor solo si el tipo de usuario no es "Administrador" o "Gerente de Calidad"
+        if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
+            $procesoActual->where('auditor', $auditorDato);
+        }
+        $procesoActual = $procesoActual->get();
+
         $procesoFinal =  AseguramientoCalidad::where('estatus', 1) 
-            ->where('area', 'AUDITORIA EN PROCESO')
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
             ->select('modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
             ->distinct()
-            ->get();
+            ->orderBy('modulo', 'asc');
+        // Aplicar el filtro del auditor solo si el tipo de usuario no es "Administrador" o "Gerente de Calidad"
+        if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
+            $procesoFinal->where('auditor', $auditorDato);
+        }
+        $procesoFinal = $procesoFinal->get();
         return view('aseguramientoCalidad.altaProcesoV2', compact('pageSlug', 'auditorDato', 'tipoUsuario', 'mesesEnEspanol', 'gerenteProduccion', 
                     'procesoActual', 'procesoFinal'));
     }
@@ -191,6 +198,8 @@ class AuditoriaProcesoV2Controller extends Controller
     {
         $fechaActual = now()->toDateString();
         $auditorPlanta = Auth::user()->Planta;
+        $auditorDato = Auth::user()->name;
+        $tipoUsuario = Auth::user()->puesto;
         $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
 
         $procesoActual = AseguramientoCalidad::whereNull('estatus')
@@ -199,8 +208,12 @@ class AuditoriaProcesoV2Controller extends Controller
             ->whereDate('created_at', $fechaActual)
             ->select('modulo', 'estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
             ->distinct()
-            ->orderBy('modulo', 'asc')
-            ->get();
+            ->orderBy('modulo', 'asc');
+        // Aplicar el filtro del auditor solo si el tipo de usuario no es "Administrador" o "Gerente de Calidad"
+        if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
+            $procesoActual->where('auditor', $auditorDato);
+        }
+        $procesoActual = $procesoActual->get();
 
         return response()->json([
             'procesos' => $procesoActual,
