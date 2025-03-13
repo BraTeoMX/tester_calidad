@@ -313,11 +313,8 @@
                                     <td>
                                         <select name="ac" id="ac" class="form-control" title="Por favor, selecciona una opción">
                                             <option value="">Selecciona una opción</option>
-                                            @foreach ($categoriaACProceso as $proceso)
-                                                <option value="{{ $proceso->accion_correctiva }}">{{ $proceso->accion_correctiva }}</option>
-                                            @endforeach
                                         </select>
-                                    </td>
+                                    </td>                                    
                                     <td><input type="text" class="form-control" name="pxp" id="pxp"></td>
                                 </tr>
                             </tbody>
@@ -684,6 +681,35 @@
             // Transformar a mayúsculas en el input de "OTRA OPERACIÓN"
             $('#otra_operacion').on('input', function () {
                 $(this).val($(this).val().toUpperCase());
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            var datosCargados = false; // Variable para evitar múltiples consultas innecesarias
+
+            $('#ac').on('focus', function () {
+                if (!datosCargados) { // Solo ejecuta AJAX si los datos no han sido cargados
+                    $.ajax({
+                        url: "{{ route('accionCorrectivaProceso') }}", // Ruta en Laravel
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (response) {
+                            var select = $('#ac');
+                            select.empty().append('<option value="">Selecciona una opción</option>'); // Limpiar y agregar opción por defecto
+
+                            $.each(response.acciones, function (index, proceso) {
+                                select.append('<option value="' + proceso.accion_correctiva + '">' + proceso.accion_correctiva + '</option>');
+                            });
+
+                            datosCargados = true; // Evita que se vuelva a cargar innecesariamente
+                        },
+                        error: function () {
+                            alert('Error al obtener las acciones correctivas');
+                        }
+                    });
+                }
             });
         });
     </script>
