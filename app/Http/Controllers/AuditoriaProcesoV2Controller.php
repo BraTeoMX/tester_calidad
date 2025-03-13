@@ -220,4 +220,43 @@ class AuditoriaProcesoV2Controller extends Controller
         ]);
     }
 
+    public function obtenerNombresGenerales(Request $request)
+    {
+        $modulo = $request->input('modulo'); // Obtener el módulo desde AJAX
+        $search = $request->input('search'); // Obtener el término de búsqueda
+        $auditorPlanta = auth()->user()->planta ?? 'Planta1'; // Ajustar según sea necesario
+        $detectarPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
+
+        // Base de la consulta
+        $query = AuditoriaProceso::where('prodpoolid', $detectarPlanta)
+            ->whereNotIn('name', [
+                '831A-EMPAQUE P2 T1', 
+                '830A-EMPAQUE P1 T1', 
+                'VIRTUAL P2T1 02', 
+                'VIRTUAL P2T1 01'
+            ])
+            ->where('name', 'not like', '1%')
+            ->where('name', 'not like', '2%');
+
+        // Si el usuario está buscando, filtrar los resultados
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('personnelnumber', 'like', "%$search%")
+                ->orWhere('name', 'like', "%$search%");
+            });
+        }
+
+        // Obtener todos los datos y ordenarlos
+        $nombresGenerales = $query
+            ->select('personnelnumber', 'name', 'moduleid')
+            ->distinct()
+            ->orderByRaw("CASE WHEN moduleid = ? THEN 0 ELSE 1 END, name ASC", [$modulo])
+            ->get();
+
+        return response()->json([
+            'nombres' => $nombresGenerales
+        ]);
+    }
+
+
 }

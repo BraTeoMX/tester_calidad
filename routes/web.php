@@ -169,6 +169,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/formAltaProceso-v2', [AuditoriaProcesoV2Controller::class, 'formAltaProcesoV2'])->name('formAltaProcesoV2');
     Route::get('/auditoriaProceso-v2', [AuditoriaProcesoV2Controller::class, 'auditoriaProcesoV2'])->name('aseguramientoCalidad.auditoriaProcesoV2');
     Route::get('/obtenerProcesos-v2', [AuditoriaProcesoV2Controller::class, 'obtenerListaProcesosV2'])->name('obtenerListaProcesosV2');
+    Route::get('/obtener-nombres-generales', [AuditoriaProcesoV2Controller::class, 'obtenerNombresGenerales'])->name('obtenerNombresGenerales');
+
 
 
 

@@ -279,6 +279,33 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="table-responsive">
+                        <table class="table flex-container table932">
+                            <thead class="thead-primary">
+                                <tr>
+                                    <th>NOMBRE</th>
+                                    <th>OPERACION</th>
+                                    <th>PIEZAS AUDITADAS</th>
+                                    <th>PIEZAS RECHAZADAS</th>
+                                    <th id="tp-column-header" class="d-none">TIPO DE PROBLEMA</th>
+                                    <th id="ac-column-header" class="d-none">ACCION CORRECTIVA</th>
+                                    <th>P x P</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <select name="nombre_final" id="lista_nombre" class="form-control select2" required>
+                                            <option value="">Selecciona una opción</option>
+                                        </select>
+                                    </td>                                    
+                                    
+                                    <td><input type="text" class="form-control" name="pxp" id="pxp"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="submit" class="btn-verde-xd">GUARDAR</button> 
                 </div>
             </div>
         </div>
@@ -543,6 +570,40 @@
                 window.history.pushState({}, '', url); // Actualiza la URL sin recargar la página
             }
         });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $('#lista_nombre').select2({
+                placeholder: 'Selecciona una opción',
+                allowClear: true,
+                minimumInputLength: 0, // Permite mostrar toda la lista sin escribir
+                ajax: {
+                    url: "{{ route('obtenerNombresGenerales') }}",
+                    type: 'GET',
+                    dataType: 'json',
+                    delay: 250, // Evita hacer demasiadas peticiones rápidas
+                    data: function (params) {
+                        return {
+                            search: params.term || '', // Si no hay búsqueda, devuelve toda la lista
+                            modulo: $('#modulo').val() // Se usa para ordenar los resultados
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: $.map(data.nombres, function (item) {
+                                return {
+                                    id: item.name, // Se envía el 'name' como valor
+                                    text: item.personnelnumber + " - " + item.name // Se muestra 'Número - Nombre'
+                                };
+                            })
+                        };
+                    },
+                    cache: true
+                }
+            });
+        });
+
     </script>
 
 @endsection
