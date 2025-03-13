@@ -115,7 +115,7 @@
                                         </td>
                                         
                                         <td>
-                                            <select name="team_leader" id="team_leader" class="form-control" required>
+                                            <select name="team_leader" id="supervisor_proceso" class="form-control" required>
                                                 <!-- Las opciones se llenarán dinámicamente con la llamada AJAX -->
                                             </select>                                            
                                         </td>
@@ -447,9 +447,33 @@
                             console.error("Error al obtener los estilos:", error);
                         }
                     });
+
+                    // Obtener supervisores
+                    $.ajax({
+                        url: "{{ route('obtenerSupervisoresV2') }}",
+                        type: "GET",
+                        data: { moduleid: moduloSeleccionado },
+                        dataType: "json",
+                        success: function(response) {
+                            $("#supervisor_proceso").empty().append('<option value="">Selecciona una opción</option>');
+
+                            if (response.supervisores.length > 0) {
+                                $.each(response.supervisores, function(index, item) {
+                                    let selected = (item.name === response.supervisorRelacionado) ? 'selected' : '';
+                                    $("#supervisor_proceso").append('<option value="' + item.name + '" ' + selected + '>' + item.name + '</option>');
+                                });
+                            } else {
+                                console.warn("No se encontraron supervisores.");
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Error al obtener los supervisores:", error);
+                        }
+                    });
                 } else {
                     $("#estilo_proceso").empty().append('<option value="">Selecciona una opción</option>');
                     $("#cliente").val(""); // Limpiar cliente si no hay módulo seleccionado
+                    $("#supervisor_proceso").empty().append('<option value="">Selecciona una opción</option>');
                 }
             });
             // Obtener cliente cuando se seleccione un estilo

@@ -165,8 +165,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/altaProceso-v2', [AuditoriaProcesoV2Controller::class, 'altaProcesoV2'])->name('altaProcesoV2');
     Route::get('/obtener-modulos-v2', [AuditoriaProcesoV2Controller::class, 'obtenerModulosV2'])->name('obtenerModulosV2');
     Route::get('/obtener-estilos-v2', [AuditoriaProcesoV2Controller::class, 'obtenerEstilosV2'])->name('obtenerEstilosV2');
-
-
+    Route::get('/obtener-supervisores-v2', [AuditoriaProcesoV2Controller::class, 'obtenerSupervisorV2'])->name('obtenerSupervisoresV2');
 
 
     //Inicio apartado para seccion Auditoria AQL

@@ -39,11 +39,7 @@ class AuditoriaProcesoV2Controller extends Controller
         ];
         $fechaActual = Carbon::now()->toDateString();
         $auditorPlanta = Auth::user()->Planta;
-        if($auditorPlanta == "Planta1"){
-            $datoPlanta = "Intimark1";
-        }else{
-            $datoPlanta = "Intimark2";
-        }
+        $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
 
         $gerenteProduccion = CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
             ->orderBy('jefe_produccion')
@@ -75,12 +71,7 @@ class AuditoriaProcesoV2Controller extends Controller
     public function obtenerModulosV2(Request $request)
     {
         $auditorPlanta = Auth::user()->Planta;
-        if($auditorPlanta == "Planta1"){
-            $datoPlanta = "Intimark1";
-        }else{
-            $datoPlanta = "Intimark2";
-        }
-
+        $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
         // Obtener datos de las dos tablas
         $datosCategoriaSupervisor = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
             ->whereBetween('moduleid', ['100A', '299A'])
@@ -124,6 +115,38 @@ class AuditoriaProcesoV2Controller extends Controller
 
         return response()->json([
             'estilos' => $estilosCombinados->values(),
+        ]);
+    }
+
+
+    public function obtenerSupervisorV2(Request $request)
+    {
+        $auditorPlanta = Auth::user()->Planta;
+        $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
+
+        $moduleid = $request->input('moduleid');
+
+        // Supervisor relacionado con el módulo seleccionado
+        $supervisorRelacionado = CategoriaSupervisor::where('moduleid', $moduleid)
+            ->where('prodpoolid', $datoPlanta)
+            ->first();
+
+        // Lista de supervisores de la planta con ciertas condiciones
+        $supervisores = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
+            ->whereNotNull('name')
+            ->where(function($query) {
+                $query->where('moduleid', 'like', '1%')
+                    ->orWhere('moduleid', 'like', '2%')
+                    ->orWhereIn('moduleid', ['830A', '831A']);
+            })
+            ->where('moduleid', '!=', '198A')
+            ->select('name')
+            ->distinct()
+            ->get();
+
+        return response()->json([
+            'supervisorRelacionado' => $supervisorRelacionado ? $supervisorRelacionado->name : null,
+            'supervisores' => $supervisores
         ]);
     }
 
