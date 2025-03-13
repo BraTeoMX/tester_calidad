@@ -287,8 +287,8 @@
                                     <th>OPERACION</th>
                                     <th>PIEZAS AUDITADAS</th>
                                     <th>PIEZAS RECHAZADAS</th>
-                                    <th id="tp-column-header" class="d-none">TIPO DE PROBLEMA</th>
-                                    <th id="ac-column-header" class="d-none">ACCION CORRECTIVA</th>
+                                    <th >TIPO DE PROBLEMA</th>
+                                    <th >ACCION CORRECTIVA</th>
                                     <th>P x P</th>
                                 </tr>
                             </thead>
@@ -307,7 +307,17 @@
                                         <!-- Input oculto que reemplazará el select si eligen "OTRA OPERACIÓN" -->
                                         <input type="text" name="operacion" id="otra_operacion" class="form-control mt-2" placeholder="Ingresa la operación" style="display: none;" required>
                                     </td>                                                                     
-
+                                    <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada"  required></td>
+                                    <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada"  required></td>
+                                    
+                                    <td>
+                                        <select name="ac" id="ac" class="form-control" title="Por favor, selecciona una opción">
+                                            <option value="">Selecciona una opción</option>
+                                            @foreach ($categoriaACProceso as $proceso)
+                                                <option value="{{ $proceso->accion_correctiva }}">{{ $proceso->accion_correctiva }}</option>
+                                            @endforeach
+                                        </select>
+                                    </td>
                                     <td><input type="text" class="form-control" name="pxp" id="pxp"></td>
                                 </tr>
                             </tbody>

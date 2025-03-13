@@ -191,7 +191,9 @@ class AuditoriaProcesoV2Controller extends Controller
         
         $auditorPlanta = Auth::user()->Planta;
         $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
-        return view('aseguramientoCalidad.auditoriaProcesoV2', compact('mesesEnEspanol', 'pageSlug', 'data' ));
+
+        $categoriaACProceso = CategoriaAccionCorrectiva::where('area', 'proceso')->get();
+        return view('aseguramientoCalidad.auditoriaProcesoV2', compact('mesesEnEspanol', 'pageSlug', 'data', 'categoriaACProceso' ));
     }
 
     public function obtenerListaProcesosV2()
