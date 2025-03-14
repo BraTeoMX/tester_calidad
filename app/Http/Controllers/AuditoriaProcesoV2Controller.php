@@ -322,7 +322,7 @@ class AuditoriaProcesoV2Controller extends Controller
         ]);
     }
 
-    public function crearDefectoProceso(Request $request)
+    public function crearDefectoProcesoV2(Request $request)
     {
         try {
             $nombre = strtoupper(trim($request->input('nombre')));

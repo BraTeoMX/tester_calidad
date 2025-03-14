@@ -280,7 +280,7 @@
                         </table>
                     </div>
                     <div class="table-responsive">
-                        <table class="table flex-container table932">
+                        <table id="auditoriaTabla" class="table flex-container table932">
                             <thead class="thead-primary">
                                 <tr>
                                     <th>NOMBRE</th>
@@ -473,6 +473,75 @@
             width: 100% !important;
         }
     </style>
+
+    <script>
+        $(document).ready(function () {
+            let tabla = $('#auditoriaTabla'); // Referencia específica a la tabla
+
+            let piezasRechazadasInput = tabla.find('input[name="cantidad_rechazada"]');
+            let selectedOptionsContainer = tabla.find('#selectedOptionsContainer');
+            let acSelect = tabla.find('#ac');
+
+            // Ocultar columnas al inicio
+            tabla.find('th:nth-child(5), th:nth-child(6), td:nth-child(5), td:nth-child(6)').hide();
+            selectedOptionsContainer.hide();
+            acSelect.closest('td').hide();
+
+            // Detectar cambios en "Piezas Rechazadas" (solo para mostrar/ocultar columnas)
+            piezasRechazadasInput.on('input', function () {
+                let cantidadRechazada = parseInt($(this).val()) || 0; // Convertir a número, si es vacío será 0
+
+                if (cantidadRechazada > 0) {
+                    // Mostrar columnas y activar campos obligatorios
+                    tabla.find('th:nth-child(5), th:nth-child(6), td:nth-child(5), td:nth-child(6)').fadeIn();
+                    selectedOptionsContainer.fadeIn().attr('data-required', 'true');
+                    acSelect.closest('td').fadeIn();
+                    acSelect.attr('required', true);
+                } else {
+                    // Ocultar columnas y eliminar obligatoriedad
+                    tabla.find('th:nth-child(5), th:nth-child(6), td:nth-child(5), td:nth-child(6)').fadeOut();
+                    selectedOptionsContainer.fadeOut().removeAttr('data-required');
+                    acSelect.closest('td').fadeOut();
+                    acSelect.removeAttr('required');
+
+                    // **Limpiar valores cuando se oculta**
+                    selectedOptionsContainer.empty(); // Elimina todas las selecciones
+                    acSelect.val('').trigger('change'); // Reinicia el select
+                }
+            });
+
+            // Validación antes de enviar el formulario (solo al presionar "Enviar")
+            $('#miFormulario').on('submit', function (event) {
+                let cantidadRechazada = parseInt(piezasRechazadasInput.val()) || 0;
+                let cantidadDefectos = selectedOptionsContainer.children().length; // Número de elementos en la lista
+                let acSelected = acSelect.val();
+
+                // Solo validar si cantidad_rechazada > 0
+                if (cantidadRechazada > 0) {
+                    // Validar que la cantidad de defectos coincida
+                    if (cantidadDefectos !== cantidadRechazada) {
+                        alert(`La cantidad de defectos seleccionados (${cantidadDefectos}) debe ser igual a la cantidad de piezas rechazadas (${cantidadRechazada}).`);
+                        event.preventDefault(); // Evita que el formulario se envíe
+                        return;
+                    }
+
+                    // Validar que al menos un tipo de problema haya sido seleccionado
+                    if (cantidadDefectos === 0) {
+                        alert("Debes seleccionar al menos un Tipo de Problema.");
+                        event.preventDefault();
+                        return;
+                    }
+
+                    // Validar que se haya seleccionado una Acción Correctiva
+                    if (!acSelected) {
+                        alert("Debes seleccionar una Acción Correctiva.");
+                        event.preventDefault();
+                        return;
+                    }
+                }
+            });
+        });
+    </script>
 
     <script>
         $(document).ready(function () {
@@ -828,7 +897,7 @@
                 }
 
                 $.ajax({
-                    url: "{{ route('crearDefectoProceso') }}",
+                    url: "{{ route('crearDefectoProcesoV2') }}",
                     type: 'POST',
                     dataType: 'json',
                     data: {
