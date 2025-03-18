@@ -489,5 +489,30 @@ class AuditoriaProcesoV2Controller extends Controller
         }
     }
     
+    public function cambiarEstadoInicioParoTurnoNormal(Request $request)
+    {
+        try {
+            $id = $request->id;
+            $registro = AseguramientoCalidad::find($id);
+
+            if (!$registro) {
+                return response()->json(['error' => 'Registro no encontrado'], 404);
+            }
+
+            $registro->fin_paro = Carbon::now();
+
+            // Calcular la duración del paro en minutos
+            $inicioParo = Carbon::parse($registro->inicio_paro);
+            $finParo = Carbon::parse($registro->fin_paro);
+            $minutosParo = $inicioParo->diffInMinutes($finParo);
+
+            $registro->minutos_paro = $minutosParo;
+            $registro->save();
+
+            return response()->json(['message' => 'Paro finalizado', 'minutos_paro' => $minutosParo], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al finalizar el paro: ' . $e->getMessage()], 500);
+        }
+    }
 
 }

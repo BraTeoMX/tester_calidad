@@ -176,6 +176,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/crear-defectos-proceso-v2', [AuditoriaProcesoV2Controller::class, 'crearDefectoProcesoV2'])->name('crearDefectoProcesoV2');
     Route::post('/formRegistroAuditoriaProceso-v2', [AuditoriaProcesoV2Controller::class, 'formRegistroAuditoriaProcesoV2'])->name('formRegistroAuditoriaProcesoV2');
     Route::get('/obtener-registros-turno-normal-v2', [AuditoriaProcesoV2Controller::class, 'obtenerRegistrosTurnoNormalV2'])->name('obtenerRegistrosTurnoNormalV2');
+    Route::post('/cambiar-estado-inicio-paro-ajax', [AuditoriaProcesoV2Controller::class, 'cambiarEstadoInicioParoTurnoNormal'])->name('cambiarEstadoInicioParoTurnoNormal');
 
 
 

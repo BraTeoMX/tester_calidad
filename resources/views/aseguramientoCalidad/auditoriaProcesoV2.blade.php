@@ -1023,14 +1023,29 @@
                             tbody.append(`<tr><td colspan="10" class="text-center">No hay registros disponibles</td></tr>`);
                         } else {
                             $.each(response.registros, function (index, registro) {
+                                // Lógica para la columna "Paro"
+                                let paroHtml = "";
+                                if(registro.inicio_paro === null) {
+                                    // 2. Si inicio_paro es null, mostramos "-"
+                                    paroHtml = "-";
+                                } else if(registro.fin_paro !== null) {
+                                    // 3. Si fin_paro tiene valor, mostramos el número de minutos del paro
+                                    paroHtml = registro.minutos_paro;
+                                } else {
+                                    // 4. Si inicio_paro no es null y fin_paro es null, mostramos el botón para finalizar el paro
+                                    paroHtml = `<button class="btn btn-primary btn-sm fin-paro-btn" data-id="${registro.id}">
+                                                    Fin Paro Proceso
+                                                </button>`;
+                                }
+
                                 let fila = `
                                     <tr>
-                                        <td>${registro.inicio_paro ? "✅" : "❌"}</td>
+                                        <td>${paroHtml}</td>
                                         <td>${registro.nombre}</td>
                                         <td>${registro.operacion}</td>
                                         <td>${registro.cantidad_auditada}</td>
                                         <td>${registro.cantidad_rechazada}</td>
-                                        <td>${registro.tipo_problema ? registro.tipo_problema.join(", ") : "N/A"}</td>
+                                        <td>${Array.isArray(registro.tipo_problema) ? registro.tipo_problema.join(", ") : registro.tipo_problema}</td>
                                         <td>${registro.ac || "N/A"}</td>
                                         <td>${registro.pxp || "N/A"}</td>
                                         <td>
@@ -1050,6 +1065,34 @@
                         alert("Error al cargar los registros.");
                     }
                 });
+                // Manejador para finalizar el paro mediante AJAX
+                $(document).on("click", ".fin-paro-btn", function(e) {
+                    e.preventDefault();
+                    let boton = $(this); // Referencia al botón
+                    let registroId = boton.data("id");
+
+                    $.ajax({
+                        url: "{{ route('cambiarEstadoInicioParoTurnoNormal') }}", // Ruta para finalizar el paro
+                        type: "POST",
+                        data: JSON.stringify({ id: registroId }),
+                        contentType: "application/json",
+                        headers: {
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            alert("✅ Paro finalizado. Duración: " + response.minutos_paro + " minutos.");
+
+                            // 🔄 Actualizar solo la fila afectada en la tabla
+                            let fila = boton.closest("tr"); // Obtener la fila actual del botón
+                            fila.find("td:first").text(response.minutos_paro); // Reemplazar botón por los minutos de paro
+                        },
+                        error: function(xhr) {
+                            console.log(xhr.responseText);
+                            alert("❌ Error al finalizar el paro. actualice e intente nuevamente");
+                        }
+                    });
+                });
+
             }
 
             // Llamar a la función al cargar la página
