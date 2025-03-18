@@ -921,15 +921,24 @@
             $(".btn-verde-xd").on("click", function (e) {
                 e.preventDefault(); // Evita recargar la página
 
+                // Mapa de nombres amigables
+                let friendlyNames = {
+                    "nombre_final": "nombre de operario",
+                    "operacion": "operación",
+                    "cantidad_auditada": "cantidad auditada",
+                    "cantidad_rechazada": "cantidad rechazada",
+                    "ac": "acción correctiva"
+                };
                 // 1. Validar que todos los campos visibles obligatorios estén llenos.
                 // Se recorren todos los inputs y selects visibles que tengan "required",
                 // excepto el select de defectos con id "tpSelect"
                 let camposVacios = [];
                 $(".card-body :input:visible[required]").not("#tpSelect").each(function () {
-                    // Se verifica que el valor no sea vacío
                     if (!$(this).val() || $(this).val().trim() === "") {
-                        // Puedes usar el atributo "name" o "placeholder" para identificar el campo
-                        camposVacios.push($(this).attr('name') || $(this).attr('id'));
+                        // Se intenta obtener el friendlyName a partir del atributo "name"
+                        let fieldName = $(this).attr('name') || $(this).attr('id');
+                        let friendlyName = friendlyNames[fieldName] || fieldName;
+                        camposVacios.push(friendlyName);
                     }
                 });
                 if (camposVacios.length > 0) {
