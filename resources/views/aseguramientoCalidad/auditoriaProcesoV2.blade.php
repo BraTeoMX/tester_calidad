@@ -998,6 +998,30 @@
                     success: function (response) {
                         alert("✅ Datos guardados exitosamente!");
                         cargarRegistros();
+
+                        let cantidadRechazadaMayorACero = false;
+
+                        // Verificar si alguna cantidad_rechazada es mayor a 0 antes de limpiar los campos
+                        $("#auditoriaTabla tbody tr").each(function () {
+                            let cantidadRechazada = parseInt($(this).find("input[name='cantidad_rechazada']").val()) || 0;
+                            
+                            if (cantidadRechazada > 0) {
+                                cantidadRechazadaMayorACero = true;
+                            }
+                        });
+
+                        // Si hubo alguna cantidad rechazada mayor a 0, recargar la página y salir de la función
+                        if (cantidadRechazadaMayorACero) {
+                            location.reload();
+                            return; // Evita que continúe ejecutando la limpieza manual
+                        }
+
+                        // Si no hay cantidad rechazada > 0, limpiar los campos manualmente
+                        $("#auditoriaTabla tbody tr").each(function () {
+                            $(this).find("input").val(""); // Limpiar inputs
+                            $(this).find("select").val("").trigger("change"); // Reiniciar selects
+                            $(this).find("#selectedOptionsContainer").empty(); // Vaciar defectos seleccionados
+                        });
                     },
                     error: function (xhr) {
                         console.log(xhr.responseText);
