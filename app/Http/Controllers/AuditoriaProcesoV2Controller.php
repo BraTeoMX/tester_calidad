@@ -19,6 +19,7 @@ use App\Mail\NotificacionParo;
 use App\Models\JobAQL;
 use App\Models\ModuloEstilo;
 use App\Models\ModuloEstiloTemporal;
+use Illuminate\Support\Facades\Log;
 
 
 use App\Models\EvaluacionCorte;
@@ -349,6 +350,123 @@ class AuditoriaProcesoV2Controller extends Controller
             return response()->json($nuevoDefecto);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function formRegistroAuditoriaProcesoV2(Request $request)
+    {
+        try {
+            // Convertir JSON recibido a un array asociativo
+            $datosFormulario = $request->json()->all();
+            Log::info("Datos recibidos en el controlador:", $datosFormulario);
+
+            // Si no hay piezas rechazadas, limpiar 'ac' y 'tp'
+            if ($datosFormulario['auditoria'][0]['cantidad_rechazada'] == 0) {
+                $datosFormulario['auditoria'][0]['accion_correctiva'] = null;
+                $datosFormulario['auditoria'][0]['tipo_problema'] = ['NINGUNO'];
+            }
+
+            $fechaHoraActual = now();
+            $diaSemana = $fechaHoraActual->dayOfWeek;
+
+            // Buscar la planta asociada al módulo
+            $primerCaracter = substr($datosFormulario['modulo'], 0, 1); // Obtiene el primer carácter
+
+            // Definir el valor de $plantaBusqueda según el primer carácter
+            if ($primerCaracter === '1') {
+                $plantaBusqueda = "Intimark1";
+            } elseif ($primerCaracter === '2') {
+                $plantaBusqueda = "Intimark2";
+            } else {
+                $plantaBusqueda = null; // O algún valor por defecto si no coincide con 1 o 2
+            }
+
+
+            // Obtener el cliente desde la base de datos
+            $obtenerEstilo = $datosFormulario['estilo']; 
+            $obtenerCliente = $datosFormulario['cliente']; 
+            $obtenerCliente = $obtenerCliente ?: ModuloEstiloTemporal::where('itemid', $datosFormulario['estilo'])->value('custname');
+
+
+            // Procesar el nombre final
+            $nombreFinalValidado = $datosFormulario['auditoria'][0]['nombre_final'] ? trim($datosFormulario['auditoria'][0]['nombre_final']) : null;
+
+            // Obtener número de empleado desde AuditoriaProceso
+            $numeroEmpleado = AuditoriaProceso::where('name', $nombreFinalValidado)
+                ->pluck('personnelnumber')
+                ->first() ?? '0000000';
+
+            // Obtener módulo adicional
+            $moduloAdicional = AuditoriaProceso::where('name', $nombreFinalValidado)
+                ->pluck('moduleid')
+                ->first();
+
+            // Identificar si es Utility
+            $utilityIdentificado = in_array($moduloAdicional, ['860A', '863A']) ? 1 : null;
+            if ($utilityIdentificado) {
+                $moduloAdicional = null;
+            }
+
+            // ✅ Crear y guardar el nuevo registro en AseguramientoCalidad
+            $nuevoRegistro = new AseguramientoCalidad();
+            $nuevoRegistro->modulo = $datosFormulario['modulo'];
+            $nuevoRegistro->modulo_adicional = $moduloAdicional;
+            $nuevoRegistro->planta = $plantaBusqueda;
+            $nuevoRegistro->estilo = $obtenerEstilo;
+            $nuevoRegistro->cliente = $obtenerCliente;
+            $nuevoRegistro->team_leader = $datosFormulario['team_leader'];
+            $nuevoRegistro->gerente_produccion = $datosFormulario['gerente_produccion'];
+            $nuevoRegistro->auditor = $datosFormulario['auditor'];
+            $nuevoRegistro->turno = $datosFormulario['turno'];
+            $nuevoRegistro->numero_empleado = $numeroEmpleado;
+            $nuevoRegistro->nombre = $nombreFinalValidado;
+            $nuevoRegistro->utility = $utilityIdentificado;
+            $nuevoRegistro->operacion = $datosFormulario['auditoria'][0]['operacion'];
+            $nuevoRegistro->cantidad_auditada = $datosFormulario['auditoria'][0]['cantidad_auditada'];
+            $nuevoRegistro->cantidad_rechazada = $datosFormulario['auditoria'][0]['cantidad_rechazada'];
+
+            // Si hay piezas rechazadas, registrar inicio de paro
+            if ($datosFormulario['auditoria'][0]['cantidad_rechazada'] > 0) {
+                $nuevoRegistro->inicio_paro = now();
+            }
+
+            $nuevoRegistro->ac = $datosFormulario['auditoria'][0]['accion_correctiva'];
+            $nuevoRegistro->pxp = $datosFormulario['auditoria'][0]['pxp'];
+
+            // Determinar si aplica tiempo extra según la hora y el día
+            if ($diaSemana >= 1 && $diaSemana <= 4) { // Lunes a Jueves
+                $nuevoRegistro->tiempo_extra = ($fechaHoraActual->hour >= 19) ? 1 : null;
+            } elseif ($diaSemana == 5) { // Viernes
+                $nuevoRegistro->tiempo_extra = ($fechaHoraActual->hour >= 14) ? 1 : null;
+            } else { // Sábado y domingo
+                $nuevoRegistro->tiempo_extra = 1;
+            }
+
+
+            $nuevoRegistro->save();
+
+            // ✅ Obtener el ID del nuevo registro
+            $nuevoRegistroId = $nuevoRegistro->id;
+
+            // ✅ Guardar los tipos de problema en TpAseguramientoCalidad
+            $tpSeleccionados = $datosFormulario['auditoria'][0]['tipo_problema'] ?? ['NINGUNO'];
+
+            // Si `tipo_problema` no es un array, convertirlo en uno
+            if (!is_array($tpSeleccionados)) {
+                $tpSeleccionados = [$tpSeleccionados];
+            }
+
+            foreach ($tpSeleccionados as $valorTp) {
+                $nuevoTp = new TpAseguramientoCalidad();
+                $nuevoTp->aseguramiento_calidad_id = $nuevoRegistroId; // Relación con aseguramiento_calidad
+                $nuevoTp->tp = $valorTp;
+                $nuevoTp->save();
+            }
+
+            return response()->json(['message' => 'Datos guardados correctamente'], 200);
+        } catch (\Exception $e) {
+            Log::error("Error al guardar los datos: " . $e->getMessage());
+            return response()->json(['error' => 'Error al guardar los datos: ' . $e->getMessage()], 500);
         }
     }
 

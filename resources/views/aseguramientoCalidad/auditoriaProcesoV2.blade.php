@@ -238,7 +238,7 @@
                 <hr>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-200">
+                        <table id="table-200" class="table table-200">
                             <thead class="thead-primary">
                                 <tr>
                                     <th>MODULO</th>
@@ -918,4 +918,54 @@
             });
         });
     </script>
+
+    <script>
+        $(document).ready(function () {
+            $(".btn-verde-xd").on("click", function (e) {
+                e.preventDefault(); // Evita recargar la página
+                
+                let formData = {
+                    modulo: $("#table-200 #modulo").val(),
+                    estilo: $("#table-200 #estilo_proceso").val(),
+                    team_leader: $("#table-200 #team_leader").val(),
+                    gerente_produccion: $("#table-200 input[name='gerente_produccion']").val(),
+                    auditor: $("#table-200 #auditor").val(),
+                    turno: $("#table-200 #turno").val(),
+                    cliente: $("#table-200 #cliente").val(),
+                    auditoria: []
+                };
+
+                $("#auditoriaTabla tbody tr").each(function () {
+                    let row = {
+                        nombre_final: $(this).find("select[name='nombre_final']").val(),
+                        operacion: $(this).find("select[name='operacion']").val(),
+                        cantidad_auditada: $(this).find("input[name='cantidad_auditada']").val(),
+                        cantidad_rechazada: $(this).find("input[name='cantidad_rechazada']").val(),
+                        tipo_problema: $(this).find("#tpSelect").val(),
+                        accion_correctiva: $(this).find("select[name='ac']").val(),
+                        pxp: $(this).find("input[name='pxp']").val()
+                    };
+                    formData.auditoria.push(row);
+                });
+
+                $.ajax({
+                    url: "{{ route('formRegistroAuditoriaProcesoV2') }}",
+                    type: "POST",
+                    data: JSON.stringify(formData),
+                    contentType: "application/json",
+                    headers: {
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    },
+                    success: function (response) {
+                        alert("Datos guardados exitosamente!");
+                    },
+                    error: function (xhr) {
+                        console.log(xhr.responseText);
+                        alert("Error al guardar los datos ajax.");
+                    }
+                });
+            });
+        });
+    </script>
+
 @endsection
