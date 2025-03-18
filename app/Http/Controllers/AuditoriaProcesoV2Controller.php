@@ -391,10 +391,8 @@ class AuditoriaProcesoV2Controller extends Controller
             // Procesar el nombre final
             $nombreFinalValidado = $datosFormulario['auditoria'][0]['nombre_final'] ? trim($datosFormulario['auditoria'][0]['nombre_final']) : null;
 
-            // Obtener número de empleado desde AuditoriaProceso
-            $numeroEmpleado = AuditoriaProceso::where('name', $nombreFinalValidado)
-                ->pluck('personnelnumber')
-                ->first() ?? '0000000';
+            // Obtener número de empleado desde AuditoriaProceso 
+            $numeroEmpleado = $datosFormulario['auditoria'][0]['numero_empleado'];
 
             // Obtener módulo adicional
             $moduloAdicional = AuditoriaProceso::where('name', $nombreFinalValidado)

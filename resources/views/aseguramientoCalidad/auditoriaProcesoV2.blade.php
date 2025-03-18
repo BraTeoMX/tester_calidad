@@ -618,24 +618,27 @@
             $('#lista_nombre').select2({
                 placeholder: 'Selecciona una opción',
                 allowClear: true,
-                minimumInputLength: 0, // Permite mostrar toda la lista sin escribir
+                minimumInputLength: 0,
                 ajax: {
                     url: "{{ route('obtenerNombresGenerales') }}",
                     type: 'GET',
                     dataType: 'json',
-                    delay: 250, // Evita hacer demasiadas peticiones rápidas
+                    delay: 250,
                     data: function (params) {
                         return {
-                            search: params.term || '', // Si no hay búsqueda, devuelve toda la lista
-                            modulo: $('#modulo').val() // Se usa para ordenar los resultados
+                            search: params.term || '', 
+                            modulo: $('#modulo').val()
                         };
                     },
                     processResults: function (data) {
                         return {
                             results: $.map(data.nombres, function (item) {
                                 return {
-                                    id: item.name, // Se envía el 'name' como valor
-                                    text: item.personnelnumber + " - " + item.name // Se muestra 'Número - Nombre'
+                                    id: item.name, // El valor del select será el 'name'
+                                    text: item.personnelnumber + " - " + item.name, // Lo que se muestra en el select
+                                    data: {
+                                        personnelnumber: item.personnelnumber // Guardamos el número de empleado en "data"
+                                    }
                                 };
                             })
                         };
@@ -643,8 +646,13 @@
                     cache: true
                 }
             });
-        });
 
+            // Capturar el número de empleado al seleccionar una opción
+            $('#lista_nombre').on('select2:select', function (e) {
+                let selectedData = e.params.data; // Captura los datos de la opción seleccionada
+                $(this).attr("data-personnelnumber", selectedData.data.personnelnumber); // Guardamos el número de empleado en un atributo
+            });
+        });
     </script>
 
     <script>
@@ -932,8 +940,10 @@
 
                 // Recorremos las filas de la tabla de auditoría para extraer los datos.
                 $("#auditoriaTabla tbody tr").each(function () {
+                    let nombreFinalSelect = $(this).find("select[name='nombre_final']");
                     let row = {
-                        nombre_final: $(this).find("select[name='nombre_final']").val(),
+                        nombre_final: nombreFinalSelect.val(), // Captura el 'name'
+                        numero_empleado: nombreFinalSelect.attr("data-personnelnumber"), // Captura el 'personnelnumber'
                         operacion: $(this).find("select[name='operacion']").val(),
                         cantidad_auditada: $(this).find("input[name='cantidad_auditada']").val(),
                         cantidad_rechazada: $(this).find("input[name='cantidad_rechazada']").val(),
