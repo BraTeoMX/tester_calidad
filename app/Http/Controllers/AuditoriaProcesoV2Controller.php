@@ -468,6 +468,26 @@ class AuditoriaProcesoV2Controller extends Controller
         }
     }
 
-
+    public function obtenerRegistrosTurnoNormalV2(Request $request)
+    {
+        try {
+            // Obtener fecha actual
+            $fechaActual = now()->toDateString();
+            
+            // Filtrar por módulo recibido en el request
+            $modulo = $request->input('modulo');
+    
+            // Consulta optimizada para obtener registros del día actual
+            $mostrarRegistro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
+                ->where('modulo', $modulo)
+                ->get();
+    
+            // Retornar datos en formato JSON
+            return response()->json(['registros' => $mostrarRegistro], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al obtener registros: ' . $e->getMessage()], 500);
+        }
+    }
+    
 
 }

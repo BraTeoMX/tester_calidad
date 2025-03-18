@@ -348,6 +348,31 @@
                     </div>
                 </div>
             </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <h2>Registro</h2>
+                        <table id="registros-turno-normal" class="table table1">
+                            <thead class="thead-primary">
+                                <tr>
+                                    <th>Paro</th>
+                                    <th>Nombre</th>
+                                    <th>Operacion </th>
+                                    <th>Piezas Auditadas</th>
+                                    <th>Piezas Rechazadas</th>
+                                    <th>Tipo de Problema </th>
+                                    <th>Accion Correctiva </th>
+                                    <th>PxP </th>
+                                    <th>Eliminar </th>
+                                    <th>Hora</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -979,4 +1004,60 @@
         });
 
     </script>
+
+    <script>
+        $(document).ready(function () {
+            function cargarRegistros() {
+                let modulo = $("#modulo").val(); // Obtener el módulo actual
+
+                $.ajax({
+                    url: "{{ route('obtenerRegistrosTurnoNormalV2') }}",
+                    type: "GET",
+                    data: { modulo: modulo }, // Enviar el módulo como parámetro
+                    dataType: "json",
+                    success: function (response) {
+                        let tbody = $("#registros-turno-normal tbody");
+                        tbody.empty(); // Limpiar la tabla antes de agregar nuevos datos
+
+                        if (response.registros.length === 0) {
+                            tbody.append(`<tr><td colspan="10" class="text-center">No hay registros disponibles</td></tr>`);
+                        } else {
+                            $.each(response.registros, function (index, registro) {
+                                let fila = `
+                                    <tr>
+                                        <td>${registro.inicio_paro ? "✅" : "❌"}</td>
+                                        <td>${registro.nombre}</td>
+                                        <td>${registro.operacion}</td>
+                                        <td>${registro.cantidad_auditada}</td>
+                                        <td>${registro.cantidad_rechazada}</td>
+                                        <td>${registro.tipo_problema ? registro.tipo_problema.join(", ") : "N/A"}</td>
+                                        <td>${registro.ac || "N/A"}</td>
+                                        <td>${registro.pxp || "N/A"}</td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm eliminar-registro" data-id="${registro.id}">
+                                                Eliminar
+                                            </button>
+                                        </td>
+                                        <td>${new Date(registro.created_at).toLocaleTimeString()}</td>
+                                    </tr>
+                                `;
+                                tbody.append(fila);
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        console.log(xhr.responseText);
+                        alert("Error al cargar los registros.");
+                    }
+                });
+            }
+
+            // Llamar a la función al cargar la página
+            cargarRegistros();
+
+            // Opcional: Actualizar los registros cada 60 segundos automáticamente
+            setInterval(cargarRegistros, 60000);
+        });
+    </script>
+
 @endsection
