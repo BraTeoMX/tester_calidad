@@ -474,74 +474,6 @@
         }
     </style>
 
-    <script>
-        $(document).ready(function () {
-            let tabla = $('#auditoriaTabla'); // Referencia específica a la tabla
-
-            let piezasRechazadasInput = tabla.find('input[name="cantidad_rechazada"]');
-            let selectedOptionsContainer = tabla.find('#selectedOptionsContainer');
-            let acSelect = tabla.find('#ac');
-
-            // Ocultar columnas al inicio
-            tabla.find('th:nth-child(5), th:nth-child(6), td:nth-child(5), td:nth-child(6)').hide();
-            selectedOptionsContainer.hide();
-            acSelect.closest('td').hide();
-
-            // Detectar cambios en "Piezas Rechazadas" (solo para mostrar/ocultar columnas)
-            piezasRechazadasInput.on('input', function () {
-                let cantidadRechazada = parseInt($(this).val()) || 0; // Convertir a número, si es vacío será 0
-
-                if (cantidadRechazada > 0) {
-                    // Mostrar columnas y activar campos obligatorios
-                    tabla.find('th:nth-child(5), th:nth-child(6), td:nth-child(5), td:nth-child(6)').fadeIn();
-                    selectedOptionsContainer.fadeIn().attr('data-required', 'true');
-                    acSelect.closest('td').fadeIn();
-                    acSelect.attr('required', true);
-                } else {
-                    // Ocultar columnas y eliminar obligatoriedad
-                    tabla.find('th:nth-child(5), th:nth-child(6), td:nth-child(5), td:nth-child(6)').fadeOut();
-                    selectedOptionsContainer.fadeOut().removeAttr('data-required');
-                    acSelect.closest('td').fadeOut();
-                    acSelect.removeAttr('required');
-
-                    // **Limpiar valores cuando se oculta**
-                    selectedOptionsContainer.empty(); // Elimina todas las selecciones
-                    acSelect.val('').trigger('change'); // Reinicia el select
-                }
-            });
-
-            // Validación antes de enviar el formulario (solo al presionar "Enviar")
-            $('#miFormulario').on('submit', function (event) {
-                let cantidadRechazada = parseInt(piezasRechazadasInput.val()) || 0;
-                let cantidadDefectos = selectedOptionsContainer.children().length; // Número de elementos en la lista
-                let acSelected = acSelect.val();
-
-                // Solo validar si cantidad_rechazada > 0
-                if (cantidadRechazada > 0) {
-                    // Validar que la cantidad de defectos coincida
-                    if (cantidadDefectos !== cantidadRechazada) {
-                        alert(`La cantidad de defectos seleccionados (${cantidadDefectos}) debe ser igual a la cantidad de piezas rechazadas (${cantidadRechazada}).`);
-                        event.preventDefault(); // Evita que el formulario se envíe
-                        return;
-                    }
-
-                    // Validar que al menos un tipo de problema haya sido seleccionado
-                    if (cantidadDefectos === 0) {
-                        alert("Debes seleccionar al menos un Tipo de Problema.");
-                        event.preventDefault();
-                        return;
-                    }
-
-                    // Validar que se haya seleccionado una Acción Correctiva
-                    if (!acSelected) {
-                        alert("Debes seleccionar una Acción Correctiva.");
-                        event.preventDefault();
-                        return;
-                    }
-                }
-            });
-        });
-    </script>
 
     <script>
         $(document).ready(function () {
@@ -921,9 +853,72 @@
 
     <script>
         $(document).ready(function () {
+            // Lógica de mostrar/ocultar columnas (ya existente)
+            let tabla = $('#auditoriaTabla'); // Referencia específica a la tabla
+            let piezasRechazadasInput = tabla.find('input[name="cantidad_rechazada"]');
+            let selectedOptionsContainer = tabla.find('#selectedOptionsContainer');
+            let acSelect = tabla.find('#ac');
+
+            // Ocultar columnas al inicio
+            tabla.find('th:nth-child(5), th:nth-child(6), td:nth-child(5), td:nth-child(6)').hide();
+            selectedOptionsContainer.hide();
+            acSelect.closest('td').hide();
+
+            // Detectar cambios en "Piezas Rechazadas" (para mostrar/ocultar columnas)
+            piezasRechazadasInput.on('input', function () {
+                let cantidadRechazada = parseInt($(this).val()) || 0; // Si está vacío, se toma 0
+
+                if (cantidadRechazada > 0) {
+                    // Mostrar columnas y activar campos obligatorios
+                    tabla.find('th:nth-child(5), th:nth-child(6), td:nth-child(5), td:nth-child(6)').fadeIn();
+                    selectedOptionsContainer.fadeIn().attr('data-required', 'true');
+                    acSelect.closest('td').fadeIn();
+                    acSelect.attr('required', true);
+                } else {
+                    // Ocultar columnas y eliminar obligatoriedad
+                    tabla.find('th:nth-child(5), th:nth-child(6), td:nth-child(5), td:nth-child(6)').fadeOut();
+                    selectedOptionsContainer.fadeOut().removeAttr('data-required');
+                    acSelect.closest('td').fadeOut();
+                    acSelect.removeAttr('required');
+
+                    // Limpiar valores cuando se ocultan
+                    selectedOptionsContainer.empty(); // Elimina todas las selecciones
+                    acSelect.val('').trigger('change'); // Reinicia el select
+                }
+            });
+
+            // Validación y envío AJAX al pulsar "GUARDAR"
             $(".btn-verde-xd").on("click", function (e) {
                 e.preventDefault(); // Evita recargar la página
-                
+
+                // 1. Validar que todos los campos visibles obligatorios estén llenos.
+                // Se recorren todos los inputs y selects visibles que tengan "required",
+                // excepto el select de defectos con id "tpSelect"
+                let camposVacios = [];
+                $(".card-body :input:visible[required]").not("#tpSelect").each(function () {
+                    // Se verifica que el valor no sea vacío
+                    if (!$(this).val() || $(this).val().trim() === "") {
+                        // Puedes usar el atributo "name" o "placeholder" para identificar el campo
+                        camposVacios.push($(this).attr('name') || $(this).attr('id'));
+                    }
+                });
+                if (camposVacios.length > 0) {
+                    alert("Los siguientes campos obligatorios están vacíos: " + camposVacios.join(", "));
+                    return; // Detener el envío si hay campos vacíos
+                }
+
+                // 2. Validar la relación entre cantidad_rechazada y defectos seleccionados.
+                let cantidadRechazada = parseInt(piezasRechazadasInput.val()) || 0;
+                let defectCount = selectedOptionsContainer.is(":visible") 
+                                    ? selectedOptionsContainer.children().length 
+                                    : 0;
+                if (cantidadRechazada > 0 && defectCount !== cantidadRechazada) {
+                    alert("La cantidad de defectos seleccionados (" + defectCount + 
+                        ") debe ser igual a la cantidad de piezas rechazadas (" + cantidadRechazada + ").");
+                    return;
+                }
+
+                // Si la validación pasa, se arma el objeto formData
                 let formData = {
                     modulo: $("#table-200 #modulo").val(),
                     estilo: $("#table-200 #estilo_proceso").val(),
@@ -935,6 +930,7 @@
                     auditoria: []
                 };
 
+                // Recorremos las filas de la tabla de auditoría para extraer los datos.
                 $("#auditoriaTabla tbody tr").each(function () {
                     let row = {
                         nombre_final: $(this).find("select[name='nombre_final']").val(),
@@ -948,6 +944,7 @@
                     formData.auditoria.push(row);
                 });
 
+                // Enviar datos vía AJAX
                 $.ajax({
                     url: "{{ route('formRegistroAuditoriaProcesoV2') }}",
                     type: "POST",
@@ -966,6 +963,6 @@
                 });
             });
         });
-    </script>
 
+    </script>
 @endsection
