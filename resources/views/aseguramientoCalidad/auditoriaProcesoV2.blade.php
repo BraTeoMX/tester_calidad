@@ -940,14 +940,18 @@
 
                 // Recorremos las filas de la tabla de auditoría para extraer los datos.
                 $("#auditoriaTabla tbody tr").each(function () {
-                    let nombreFinalSelect = $(this).find("select[name='nombre_final']");
+                    let selectedOptions = [];
+                    $(this).find("#selectedOptionsContainer .option-text").each(function () {
+                        selectedOptions.push($(this).text().trim()); // Guardamos cada defecto seleccionado
+                    });
+
                     let row = {
-                        nombre_final: nombreFinalSelect.val(), // Captura el 'name'
-                        numero_empleado: nombreFinalSelect.attr("data-personnelnumber"), // Captura el 'personnelnumber'
+                        nombre_final: $(this).find("select[name='nombre_final']").val(),
+                        numero_empleado: $(this).find("select[name='nombre_final']").attr("data-personnelnumber"),
                         operacion: $(this).find("select[name='operacion']").val(),
                         cantidad_auditada: $(this).find("input[name='cantidad_auditada']").val(),
                         cantidad_rechazada: $(this).find("input[name='cantidad_rechazada']").val(),
-                        tipo_problema: $(this).find("#tpSelect").val(),
+                        tipo_problema: selectedOptions, // Ahora se obtiene de selectedOptionsContainer
                         accion_correctiva: $(this).find("select[name='ac']").val(),
                         pxp: $(this).find("input[name='pxp']").val()
                     };
@@ -964,11 +968,11 @@
                         "X-CSRF-TOKEN": "{{ csrf_token() }}"
                     },
                     success: function (response) {
-                        alert("Datos guardados exitosamente!");
+                        alert("✅ Datos guardados exitosamente!");
                     },
                     error: function (xhr) {
                         console.log(xhr.responseText);
-                        alert("Error al guardar los datos ajax.");
+                        alert("❌ Hubo un error al guardar los datos. Por favor, intenta nuevamente.");
                     }
                 });
             });
