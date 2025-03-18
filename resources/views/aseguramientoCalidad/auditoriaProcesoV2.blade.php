@@ -308,7 +308,7 @@
                                         </div>
                                         <input type="text" name="operacion" class="form-control otra-operacion-input mt-2" 
                                                placeholder="Ingresa la operación" style="display: none;" required>
-                                    </td>                                                                                                        
+                                    </td>
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada"  required></td>
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada"  required></td>
                                     <td>
@@ -1000,27 +1000,57 @@
                         cargarRegistros();
 
                         let cantidadRechazadaMayorACero = false;
+                        let operacionEscritaEncontrada = false;
 
-                        // Verificar si alguna cantidad_rechazada es mayor a 0 antes de limpiar los campos
+                        // Primero, recorremos cada fila para verificar:
                         $("#auditoriaTabla tbody tr").each(function () {
                             let cantidadRechazada = parseInt($(this).find("input[name='cantidad_rechazada']").val()) || 0;
-                            
                             if (cantidadRechazada > 0) {
                                 cantidadRechazadaMayorACero = true;
                             }
+                            // Verificar si el input para "otra operación" está visible y tiene valor
+                            let opInput = $(this).find("input[name='operacion']");
+                            if (opInput.is(":visible") && opInput.val().trim() !== "") {
+                                operacionEscritaEncontrada = true;
+                            }
                         });
 
-                        // Si hubo alguna cantidad rechazada mayor a 0, recargar la página y salir de la función
+                        // Si se detecta cantidad rechazada > 0, se recarga la página
                         if (cantidadRechazadaMayorACero) {
                             location.reload();
-                            return; // Evita que continúe ejecutando la limpieza manual
+                            return;
+                        }
+                        
+                        // Si se detecta que se usó "otra" (valor escrito en input) se recarga la página
+                        if (operacionEscritaEncontrada) {
+                            location.reload();
+                            return;
                         }
 
-                        // Si no hay cantidad rechazada > 0, limpiar los campos manualmente
+                        // Si no se detectaron estos casos, se limpian manualmente los campos:
                         $("#auditoriaTabla tbody tr").each(function () {
                             $(this).find("input").val(""); // Limpiar inputs
                             $(this).find("select").val("").trigger("change"); // Reiniciar selects
                             $(this).find("#selectedOptionsContainer").empty(); // Vaciar defectos seleccionados
+
+                            // Restaurar select de operación si se usó la opción "otra"
+                            let selectContainer = $(this).find(".operacion-select-container");
+                            let inputOtraOperacion = $(this).find(".otra-operacion-input");
+
+                            if (inputOtraOperacion.is(":visible")) {
+                                // Ocultar y vaciar input
+                                inputOtraOperacion.hide().val("");
+
+                                // Volver a agregar el select si fue ocultado
+                                selectContainer.html(`
+                                    <select name="operacion" class="form-control operacion-select" required>
+                                        <option value="">Selecciona una opción</option>
+                                        <option value="otra">[OTRA OPERACIÓN]</option>
+                                    </select>
+                                `);
+                                // Reinicializar Select2, si se utiliza
+                                selectContainer.find(".operacion-select").select2();
+                            }
                         });
                     },
                     error: function (xhr) {
