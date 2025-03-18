@@ -300,13 +300,15 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <select name="operacion" id="operacion" class="form-control select2" required>
-                                            <option value="">Selecciona una opción</option>
-                                            <option value="otra"> [OTRA OPERACIÓN]</option>
-                                        </select>
-                                        <!-- Input oculto que reemplazará el select si eligen "OTRA OPERACIÓN" -->
-                                        <input type="text" name="operacion" id="otra_operacion" class="form-control mt-2" placeholder="Ingresa la operación" style="display: none;" required>
-                                    </td>                                                                     
+                                        <div class="operacion-select-container">
+                                            <select name="operacion" class="form-control operacion-select" required>
+                                                <option value="">Selecciona una opción</option>
+                                                <option value="otra">[OTRA OPERACIÓN]</option>
+                                            </select>
+                                        </div>
+                                        <input type="text" name="operacion" class="form-control otra-operacion-input mt-2" 
+                                               placeholder="Ingresa la operación" style="display: none;" required>
+                                    </td>                                                                                                        
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada"  required></td>
                                     <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada"  required></td>
                                     <td>
@@ -683,7 +685,7 @@
     <script>
         $(document).ready(function () {
             function cargarOperaciones() {
-                $('#operacion').select2({
+                $(".operacion-select").select2({
                     placeholder: 'Selecciona una opción',
                     allowClear: true,
                     minimumInputLength: 0, // Muestra la lista completa sin escribir
@@ -699,7 +701,7 @@
                             };
                         },
                         processResults: function (data) {
-                            var opciones = [
+                            let opciones = [
                                 { id: '', text: 'Selecciona una opción' },
                                 { id: 'otra', text: '[OTRA OPERACIÓN]' }
                             ];
@@ -722,23 +724,18 @@
             cargarOperaciones();
 
             // Manejar selección de "OTRA OPERACIÓN"
-            $('#operacion').on('change', function () {
-                if ($(this).val() === 'otra') {
-                    let select = $(this);
+            $(document).on('change', '.operacion-select', function () {
+                let select = $(this);
+                let inputOtraOperacion = select.closest("td").find(".otra-operacion-input");
 
-                    // Destruir Select2 antes de eliminar el select
-                    select.select2('destroy');
-
-                    // Eliminar el select completamente
-                    select.remove();
-
-                    // Mostrar el input de texto
-                    $('#otra_operacion').show().val('').focus();
+                if (select.val() === 'otra') {
+                    select.closest("td").find(".operacion-select-container").hide(); // Oculta el contenedor del select
+                    inputOtraOperacion.show().val('').focus(); // Muestra el input de texto
                 }
             });
 
             // Transformar a mayúsculas en el input de "OTRA OPERACIÓN"
-            $('#otra_operacion').on('input', function () {
+            $(document).on('input', '.otra-operacion-input', function () {
                 $(this).val($(this).val().toUpperCase());
             });
         });
@@ -970,10 +967,16 @@
                         selectedOptions.push($(this).text().trim()); // Guardamos cada defecto seleccionado
                     });
 
+                    let operacionSeleccionada = $(this).find("select[name='operacion']").val();
+                    let operacionEscrita = $(this).find("input[name='operacion']").val();
+
+                    // Si se seleccionó "otra", entonces usa el valor del input
+                    let operacionFinal = (operacionSeleccionada === "otra" || operacionSeleccionada === null) ? operacionEscrita : operacionSeleccionada;
+
                     let row = {
                         nombre_final: $(this).find("select[name='nombre_final']").val(),
                         numero_empleado: $(this).find("select[name='nombre_final']").attr("data-personnelnumber"),
-                        operacion: $(this).find("select[name='operacion']").val(),
+                        operacion: operacionFinal, // Asigna el valor correcto
                         cantidad_auditada: $(this).find("input[name='cantidad_auditada']").val(),
                         cantidad_rechazada: $(this).find("input[name='cantidad_rechazada']").val(),
                         tipo_problema: selectedOptions, // Ahora se obtiene de selectedOptionsContainer
@@ -994,6 +997,7 @@
                     },
                     success: function (response) {
                         alert("✅ Datos guardados exitosamente!");
+                        cargarRegistros();
                     },
                     error: function (xhr) {
                         console.log(xhr.responseText);
@@ -1007,7 +1011,7 @@
 
     <script>
         $(document).ready(function () {
-            function cargarRegistros() {
+            window.cargarRegistros = function() {
                 let modulo = $("#modulo").val(); // Obtener el módulo actual
 
                 $.ajax({
@@ -1093,13 +1097,38 @@
                     });
                 });
 
-            }
+                $(document).on("click", ".eliminar-registro", function (e) {
+                    e.preventDefault();
+                    let boton = $(this); // Guardar referencia al botón
+                    let registroId = boton.data("id");
 
+                    // Confirmación antes de eliminar
+                    if (!confirm("¿Estás seguro que quieres eliminar este registro?")) {
+                        return;
+                    }
+
+                    $.ajax({
+                        url: "{{ route('eliminarRegistroTurnoNormal') }}", // Ruta en Laravel
+                        type: "POST",
+                        data: JSON.stringify({ id: registroId }),
+                        contentType: "application/json",
+                        headers: {
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            alert("Registro eliminado correctamente.");
+                            boton.closest("tr").remove(); // Eliminar solo la fila de la tabla sin recargar toda la tabla
+                        },
+                        error: function(xhr) {
+                            console.log(xhr.responseText);
+                            alert("Error al eliminar el registro.");
+                        }
+                    });
+                });
+
+            }
             // Llamar a la función al cargar la página
             cargarRegistros();
-
-            // Opcional: Actualizar los registros cada 60 segundos automáticamente
-            setInterval(cargarRegistros, 60000);
         });
     </script>
 

@@ -515,4 +515,22 @@ class AuditoriaProcesoV2Controller extends Controller
         }
     }
 
+    public function eliminarRegistroTurnoNormal(Request $request)
+    {
+        try {
+            $id = $request->id;
+            $registro = AseguramientoCalidad::find($id);
+
+            if (!$registro) {
+                return response()->json(['error' => 'Registro no encontrado'], 404);
+            }
+
+            $registro->delete(); // Eliminar el registro
+
+            return response()->json(['message' => 'Registro eliminado correctamente'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al eliminar el registro: ' . $e->getMessage()], 500);
+        }
+    }
+
 }
