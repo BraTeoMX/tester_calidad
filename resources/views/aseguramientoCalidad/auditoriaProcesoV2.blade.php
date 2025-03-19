@@ -375,6 +375,32 @@
                     </div>
                 </div>
             </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <h2>Registro - Turno Extra</h2>
+                        <table id="registros-turno-extra" class="table table2">
+                            <thead class="thead-primary">
+                                <tr>
+                                    <th>Paro</th>
+                                    <th>Nombre</th>
+                                    <th>Operacion </th>
+                                    <th>Piezas Auditadas</th>
+                                    <th>Piezas Rechazadas</th>
+                                    <th>Tipo de Problema </th>
+                                    <th>Accion Correctiva </th>
+                                    <th>PxP </th>
+                                    <th>Eliminar </th>
+                                    <th>Hora</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
             <div class="card card-body">
                 <div class="table-responsive">
                     <h2>Total Individual - Turno normal</h2>
@@ -398,6 +424,28 @@
             </div>
             <div class="card card-body">
                 <div class="table-responsive">
+                    <h2>Total Individual - Tiempo Extra</h2>
+                    <table class="table table-total-individual-tiempo-extra">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Nombre</th>
+                                <th>No. Recorridos</th>
+                                <th>Total Piezas Auditadas</th>
+                                <th>Total Piezas Rechazadas</th>
+                                <th>Porcentaje Rechazado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="text-center">No hay datos disponibles</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card card-body">
+                <div class="table-responsive">
                     <h2>Total General - Turno Normal</h2>
                     <table class="table table-total-general">
                         <thead class="thead-primary">
@@ -412,6 +460,27 @@
                                 <td><input type="text" class="form-control texto-blanco" id="total_auditada_general" value="0" readonly></td>
                                 <td><input type="text" class="form-control texto-blanco" id="total_rechazada_general" value="0" readonly></td>
                                 <td><input type="text" class="form-control texto-blanco" id="total_porcentaje_general" value="0.00" readonly></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card card-body">
+                <div class="table-responsive">
+                    <h2>Total General - Tiempo Extra</h2>
+                    <table class="table table-total-general-tiempo-extra">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Total de Piezas Auditadas</th>
+                                <th>Total de Piezas Rechazadas</th>
+                                <th>Porcentaje Rechazo Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="text" class="form-control texto-blanco" id="total_auditada_general-tiempo-extra" value="0" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" id="total_rechazada_general-tiempo-extra" value="0" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" id="total_porcentaje_general-tiempo-extra" value="0.00" readonly></td>
                             </tr>
                         </tbody>
                     </table>
