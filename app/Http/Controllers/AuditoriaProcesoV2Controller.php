@@ -570,12 +570,34 @@ class AuditoriaProcesoV2Controller extends Controller
             
             // Filtrar por módulo recibido en el request
             $modulo = $request->input('modulo');
-    
-            // Consulta optimizada para obtener registros del día actual
-            $mostrarRegistro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
+
+            // Consulta optimizada con relación a TpAseguramientoCalidad
+            $mostrarRegistro = AseguramientoCalidad::with('tpAseguramientoCalidad')
+                ->whereDate('created_at', $fechaActual)
                 ->where('modulo', $modulo)
                 ->where('tiempo_extra', 1)
                 ->get();
+
+            // Transformar los datos para incluir la lista de defectos y conservar los nombres de las propiedades esperadas
+            $mostrarRegistro = $mostrarRegistro->map(function ($registro) {
+                return [
+                    'id' => $registro->id,
+                    'inicio_paro' => $registro->inicio_paro,
+                    'fin_paro' => $registro->fin_paro,
+                    'minutos_paro' => $registro->minutos_paro,
+                    'nombre' => $registro->nombre,
+                    'operacion' => $registro->operacion,
+                    'cantidad_auditada' => $registro->cantidad_auditada, // se renombra para que coincida con JS
+                    'cantidad_rechazada' => $registro->cantidad_rechazada, // se renombra para que coincida con JS
+                    // Agregar defectos extraídos de la relación
+                    'defectos' => $registro->tpAseguramientoCalidad->isNotEmpty() 
+                        ? $registro->tpAseguramientoCalidad->pluck('tp')->implode(', ') 
+                        : 'N/A',
+                    'ac' => $registro->ac, // para que JS lo lea como "ac"
+                    'pxp' => $registro->pxp,
+                    'created_at' => $registro->created_at, // se enviará la fecha completa para que JS la formatee
+                ];
+            });
     
             // Retornar datos en formato JSON
             return response()->json(['registros' => $mostrarRegistro], 200);
