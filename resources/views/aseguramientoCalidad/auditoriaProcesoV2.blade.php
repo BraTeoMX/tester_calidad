@@ -1224,13 +1224,13 @@
                                 let fila = `
                                     <tr>
                                         <td>${paroHtml}</td>
-                                        <td>${registro.nombre}</td>
-                                        <td>${registro.operacion}</td>
-                                        <td>${registro.cantidad_auditada}</td>
-                                        <td>${registro.cantidad_rechazada}</td>
-                                        <td>${registro.defectos || "N/A"}</td> <!-- Nueva columna para defectos -->
-                                        <td>${registro.ac || "N/A"}</td>
-                                        <td>${registro.pxp || "N/A"}</td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.nombre || ''}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.operacion || ''}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_auditada || ''}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_rechazada || ''}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.defectos || 'N/A'}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.ac || 'N/A'}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.pxp || 'N/A'}" readonly></td>
                                         <td>
                                             <button class="btn btn-danger btn-sm eliminar-registro" data-id="${registro.id}">
                                                 Eliminar
@@ -1264,7 +1264,7 @@
                     },
                     error: function (xhr) {
                         console.log(xhr.responseText);
-                        alert("Error al cargar los registros.");
+                        //alert("Error al cargar los registros.");
                     }
                 });
                 // Manejador para finalizar el paro mediante AJAX
