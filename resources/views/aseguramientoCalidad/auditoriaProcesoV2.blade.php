@@ -396,6 +396,27 @@
                     </table>
                 </div>
             </div>
+            <div class="card card-body">
+                <div class="table-responsive">
+                    <h2>Total General - Turno Normal</h2>
+                    <table class="table table-total-general">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Total de Piezas Auditadas</th>
+                                <th>Total de Piezas Rechazadas</th>
+                                <th>Porcentaje Rechazo Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="text" class="form-control texto-blanco" id="total_auditada_general" value="0" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" id="total_rechazada_general" value="0" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" id="total_porcentaje_general" value="0.00" readonly></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>            
         </div>
     </div>
 
@@ -1109,6 +1130,8 @@
 
                         // Declarar registrosAgrupados para agrupar datos por nombre
                         let registrosAgrupados = {};
+                        let totalAuditadaGeneral = 0;
+                        let totalRechazadaGeneral = 0;
 
                         if (response.registros.length === 0) {
                             tbody.append(`<tr><td colspan="10" class="text-center">No hay registros disponibles</td></tr>`);
@@ -1149,6 +1172,10 @@
                                 `;
                                 tbody.append(fila);
 
+                                // **SUMAR DATOS PARA EL TOTAL GENERAL**
+                                totalAuditadaGeneral += parseInt(registro.cantidad_auditada) || 0;
+                                totalRechazadaGeneral += parseInt(registro.cantidad_rechazada) || 0;
+
                                 // Agrupar datos para la tabla "Total Individual"
                                 if (!registrosAgrupados[registro.nombre]) {
                                     registrosAgrupados[registro.nombre] = {
@@ -1163,6 +1190,7 @@
                             });
                             // Actualizar la tabla "Total Individual" usando los datos agrupados
                             actualizarTablaIndividual(registrosAgrupados);
+                            actualizarTotalGeneral(totalAuditadaGeneral, totalRechazadaGeneral);
                         }
                     },
                     error: function (xhr) {
@@ -1227,6 +1255,15 @@
                     });
                 });
 
+            }
+
+            // **Función para actualizar la tabla "Total General"**
+            function actualizarTotalGeneral(totalAuditada, totalRechazada) {
+                let porcentajeRechazo = totalAuditada > 0 ? ((totalRechazada / totalAuditada) * 100).toFixed(2) : "0.00";
+
+                $("#total_auditada_general").val(totalAuditada);
+                $("#total_rechazada_general").val(totalRechazada);
+                $("#total_porcentaje_general").val(porcentajeRechazo);
             }
 
             function actualizarTablaIndividual(registrosAgrupados) {
