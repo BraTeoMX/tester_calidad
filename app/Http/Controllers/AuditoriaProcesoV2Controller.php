@@ -363,7 +363,8 @@ class AuditoriaProcesoV2Controller extends Controller
             // Si no hay piezas rechazadas, limpiar 'ac' y 'tp'
             if ($datosFormulario['auditoria'][0]['cantidad_rechazada'] == 0) {
                 $datosFormulario['auditoria'][0]['accion_correctiva'] = null;
-                $datosFormulario['auditoria'][0]['tipo_problema'] = ['NINGUNO'];
+                // Eliminar 'tipo_problema' del array para evitar que se registre
+                unset($datosFormulario['auditoria'][0]['tipo_problema']);
             }
 
             $fechaHoraActual = now();
@@ -440,7 +441,6 @@ class AuditoriaProcesoV2Controller extends Controller
                 $nuevoRegistro->tiempo_extra = 1;
             }
 
-
             $nuevoRegistro->save();
 
             // ✅ Obtener el ID del nuevo registro
@@ -449,16 +449,22 @@ class AuditoriaProcesoV2Controller extends Controller
             // ✅ Guardar los tipos de problema en TpAseguramientoCalidad
             $tpSeleccionados = $datosFormulario['auditoria'][0]['tipo_problema'] ?? ['NINGUNO'];
 
-            // Si `tipo_problema` no es un array, convertirlo en uno
-            if (!is_array($tpSeleccionados)) {
-                $tpSeleccionados = [$tpSeleccionados];
-            }
+            // ✅ Solo guardar en TpAseguramientoCalidad si existe 'tipo_problema' y tiene datos
+            if (isset($datosFormulario['auditoria'][0]['tipo_problema']) && !empty($datosFormulario['auditoria'][0]['tipo_problema'])) {
+                
+                $tpSeleccionados = $datosFormulario['auditoria'][0]['tipo_problema'];
 
-            foreach ($tpSeleccionados as $valorTp) {
-                $nuevoTp = new TpAseguramientoCalidad();
-                $nuevoTp->aseguramiento_calidad_id = $nuevoRegistroId; // Relación con aseguramiento_calidad
-                $nuevoTp->tp = $valorTp;
-                $nuevoTp->save();
+                // Si tipo_problema no es un array, convertirlo en uno
+                if (!is_array($tpSeleccionados)) {
+                    $tpSeleccionados = [$tpSeleccionados];
+                }
+
+                foreach ($tpSeleccionados as $valorTp) {
+                    $nuevoTp = new TpAseguramientoCalidad();
+                    $nuevoTp->aseguramiento_calidad_id = $nuevoRegistroId; // Relación con aseguramiento_calidad
+                    $nuevoTp->tp = $valorTp;
+                    $nuevoTp->save();
+                }
             }
 
             return response()->json(['message' => 'Datos guardados correctamente'], 200);
