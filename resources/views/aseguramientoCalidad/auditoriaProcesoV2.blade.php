@@ -1203,19 +1203,19 @@
                         let totalRechazadaGeneral = 0;
 
                         if (response.registros.length === 0) {
-                            tbody.append(`<tr><td colspan="10" class="text-center">No hay registros disponibles</td></tr>`);
+                            tbody.append(`<tr><td colspan="11" class="text-center">No hay registros disponibles</td></tr>`);
                         } else {
                             $.each(response.registros, function (index, registro) {
                                 // Lógica para la columna "Paro"
                                 let paroHtml = "";
-                                if(registro.inicio_paro === null) {
-                                    // 2. Si inicio_paro es null, mostramos "-"
+                                if (registro.inicio_paro === null) {
+                                    // Si inicio_paro es null, mostramos "-"
                                     paroHtml = "-";
-                                } else if(registro.fin_paro !== null) {
-                                    // 3. Si fin_paro tiene valor, mostramos el número de minutos del paro
+                                } else if (registro.fin_paro !== null) {
+                                    // Si fin_paro tiene valor, mostramos el número de minutos del paro
                                     paroHtml = registro.minutos_paro;
                                 } else {
-                                    // 4. Si inicio_paro no es null y fin_paro es null, mostramos el botón para finalizar el paro
+                                    // Si inicio_paro no es null y fin_paro es null, mostramos el botón para finalizar el paro
                                     paroHtml = `<button class="btn btn-primary btn-sm fin-paro-btn" data-id="${registro.id}">
                                                     Fin Paro Proceso
                                                 </button>`;
@@ -1228,7 +1228,7 @@
                                         <td>${registro.operacion}</td>
                                         <td>${registro.cantidad_auditada}</td>
                                         <td>${registro.cantidad_rechazada}</td>
-                                        <td>${Array.isArray(registro.tipo_problema) ? registro.tipo_problema.join(", ") : registro.tipo_problema}</td>
+                                        <td>${registro.defectos || "N/A"}</td> <!-- Nueva columna para defectos -->
                                         <td>${registro.ac || "N/A"}</td>
                                         <td>${registro.pxp || "N/A"}</td>
                                         <td>
