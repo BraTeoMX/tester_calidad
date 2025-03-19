@@ -1126,6 +1126,7 @@
                     success: function (response) {
                         alert("✅ Datos guardados exitosamente!");
                         cargarRegistros();
+                        cargarRegistrosTE();
 
                         let cantidadRechazadaMayorACero = false;
                         let operacionEscritaEncontrada = false;
@@ -1235,7 +1236,7 @@
                                         <td><input type="text" class="form-control texto-blanco" value="${registro.nombre || ''}" readonly></td>
                                         <td><input type="text" class="form-control texto-blanco" value="${registro.operacion || ''}" readonly></td>
                                         <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_auditada || ''}" readonly></td>
-                                        <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_rechazada || ''}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_rechazada || '0'}" readonly></td>
                                         <td><input type="text" class="form-control texto-blanco" value="${registro.defectos || 'N/A'}" readonly></td>
                                         <td><input type="text" class="form-control texto-blanco" value="${registro.ac || 'N/A'}" readonly></td>
                                         <td><input type="text" class="form-control texto-blanco" value="${registro.pxp || 'N/A'}" readonly></td>
@@ -1373,4 +1374,185 @@
         });
     </script>
 
+    <script>
+        $(document).ready(function () {
+            window.cargarRegistrosTE = function() {
+                let modulo = $("#modulo").val(); // Obtener el módulo actual
+
+                $.ajax({
+                    url: "{{ route('obtenerRegistrosTurnoTiempoExtraV2') }}",
+                    type: "GET",
+                    data: { modulo: modulo }, // Enviar el módulo como parámetro
+                    dataType: "json",
+                    success: function (response) {
+                        let tbody = $("#registros-turno-extra tbody");
+                        tbody.empty(); // Limpiar la tabla antes de agregar nuevos datos
+
+                        // Declarar registrosAgrupados para agrupar datos por nombre
+                        let registrosAgrupados = {};
+                        let totalAuditadaGeneral = 0;
+                        let totalRechazadaGeneral = 0;
+
+                        if (response.registros.length === 0) {
+                            tbody.append(`<tr><td colspan="11" class="text-center">No hay registros disponibles</td></tr>`);
+                        } else {
+                            $.each(response.registros, function (index, registro) {
+                                // Lógica para la columna "Paro"
+                                let paroHtml = "";
+                                if (registro.inicio_paro === null) {
+                                    // Si inicio_paro es null, mostramos "-"
+                                    paroHtml = "-";
+                                } else if (registro.fin_paro !== null) {
+                                    // Si fin_paro tiene valor, mostramos el número de minutos del paro
+                                    paroHtml = registro.minutos_paro;
+                                } else {
+                                    // Si inicio_paro no es null y fin_paro es null, mostramos el botón para finalizar el paro
+                                    paroHtml = `<button class="btn btn-primary btn-sm fin-paro-btn-te" data-id="${registro.id}">
+                                                    Fin Paro Proceso
+                                                </button>`;
+                                }
+
+                                let fila = `
+                                    <tr>
+                                        <td>${paroHtml}</td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.nombre || ''}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.operacion || ''}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_auditada || ''}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_rechazada || '0'}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.defectos || 'N/A'}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.ac || 'N/A'}" readonly></td>
+                                        <td><input type="text" class="form-control texto-blanco" value="${registro.pxp || 'N/A'}" readonly></td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm eliminar-registro-te" data-id="${registro.id}">
+                                                Eliminar
+                                            </button>
+                                        </td>
+                                        <td>${new Date(registro.created_at).toLocaleTimeString()}</td>
+                                    </tr>
+                                `;
+                                tbody.append(fila);
+
+                                // **SUMAR DATOS PARA EL TOTAL GENERAL**
+                                totalAuditadaGeneral += parseInt(registro.cantidad_auditada) || 0;
+                                totalRechazadaGeneral += parseInt(registro.cantidad_rechazada) || 0;
+
+                                // Agrupar datos para la tabla "Total Individual"
+                                if (!registrosAgrupados[registro.nombre]) {
+                                    registrosAgrupados[registro.nombre] = {
+                                        cantidad_registros: 0,
+                                        total_auditada: 0,
+                                        total_rechazada: 0
+                                    };
+                                }
+                                registrosAgrupados[registro.nombre].cantidad_registros++;
+                                registrosAgrupados[registro.nombre].total_auditada += parseInt(registro.cantidad_auditada) || 0;
+                                registrosAgrupados[registro.nombre].total_rechazada += parseInt(registro.cantidad_rechazada) || 0;
+                            });
+                            // Actualizar la tabla "Total Individual" usando los datos agrupados
+                            actualizarTablaIndividual(registrosAgrupados);
+                            actualizarTotalGeneral(totalAuditadaGeneral, totalRechazadaGeneral);
+                        }
+                    },
+                    error: function (xhr) {
+                        console.log(xhr.responseText);
+                        //alert("Error al cargar los registros.");
+                    }
+                });
+                // Manejador para finalizar el paro mediante AJAX
+                $(document).on("click", ".fin-paro-btn-te", function(e) {
+                    e.preventDefault();
+                    let boton = $(this); // Referencia al botón
+                    let registroId = boton.data("id");
+
+                    $.ajax({
+                        url: "{{ route('cambiarEstadoInicioParoTurnoNormal') }}", // Ruta para finalizar el paro
+                        type: "POST",
+                        data: JSON.stringify({ id: registroId }),
+                        contentType: "application/json",
+                        headers: {
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            alert("✅ Paro finalizado. Duración: " + response.minutos_paro + " minutos.");
+
+                            // 🔄 Actualizar solo la fila afectada en la tabla
+                            let fila = boton.closest("tr"); // Obtener la fila actual del botón
+                            fila.find("td:first").text(response.minutos_paro); // Reemplazar botón por los minutos de paro
+                        },
+                        error: function(xhr) {
+                            console.log(xhr.responseText);
+                            alert("❌ Error al finalizar el paro. actualice e intente nuevamente");
+                        }
+                    });
+                });
+
+                $(document).on("click", ".eliminar-registro-te", function (e) {
+                    e.preventDefault();
+                    let boton = $(this); // Guardar referencia al botón
+                    let registroId = boton.data("id");
+
+                    // Confirmación antes de eliminar
+                    if (!confirm("¿Estás seguro que quieres eliminar este registro?")) {
+                        return;
+                    }
+
+                    $.ajax({
+                        url: "{{ route('eliminarRegistroTurnoNormal') }}", // Ruta en Laravel
+                        type: "POST",
+                        data: JSON.stringify({ id: registroId }),
+                        contentType: "application/json",
+                        headers: {
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            alert("✅ Registro eliminado correctamente.");
+                            boton.closest("tr").remove(); // Eliminar solo la fila de la tabla sin recargar toda la tabla
+                        },
+                        error: function(xhr) {
+                            console.log(xhr.responseText);
+                            alert("❌ Error al eliminar el registro.");
+                        }
+                    });
+                });
+
+            }
+
+            // **Función para actualizar la tabla "Total General"**
+            function actualizarTotalGeneral(totalAuditada, totalRechazada) {
+                let porcentajeRechazo = totalAuditada > 0 ? ((totalRechazada / totalAuditada) * 100).toFixed(2) : "0.00";
+
+                $("#total_auditada_general-tiempo-extra").val(totalAuditada);
+                $("#total_rechazada_general-tiempo-extra").val(totalRechazada);
+                $("#total_porcentaje_general-tiempo-extra").val(porcentajeRechazo);
+            }
+
+            function actualizarTablaIndividual(registrosAgrupados) {
+                let tbody = $(".table-total-individual-tiempo-extra tbody"); // Se usa la clase definida en la vista
+                tbody.empty(); // Limpiar la tabla antes de agregar nuevos datos
+
+                if (Object.keys(registrosAgrupados).length === 0) {
+                    tbody.append(`<tr><td colspan="5" class="text-center">No hay datos disponibles</td></tr>`);
+                } else {
+                    $.each(registrosAgrupados, function (nombre, data) {
+                        let porcentajeRechazado = data.total_auditada > 0 
+                            ? ((data.total_rechazada / data.total_auditada) * 100).toFixed(2) 
+                            : 0;
+
+                        let fila = `
+                            <tr>
+                                <td><input type="text" class="form-control texto-blanco" value="${nombre}" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" value="${data.cantidad_registros}" readonly></td> 
+                                <td><input type="text" class="form-control texto-blanco" value="${data.total_auditada}" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" value="${data.total_rechazada}" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" value="${porcentajeRechazado}" readonly></td>
+                            </tr>
+                        `;
+                        tbody.append(fila);
+                    });
+                }
+            }
+            // Llamar a la función al cargar la página
+            cargarRegistrosTE();
+        });
+    </script>
 @endsection
