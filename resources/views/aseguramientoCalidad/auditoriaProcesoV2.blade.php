@@ -406,6 +406,14 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Panel de comentario -->
+                    <div class="row" id="comentarioPanel" >
+                        <div class="col-lg-6">
+                            <p>Observaciones</p>
+                            <textarea id="comentarioInput" class="form-control texto-blanco" rows="3" placeholder="Escribe tu comentario"></textarea>
+                            <button id="guardarComentario" class="btn btn-danger mt-2">Guardar Comentario</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="card">
@@ -1402,6 +1410,47 @@
                     });
                 }
             }
+
+            $(document).ready(function () {
+                $('#guardarComentario').on('click', function () {
+                    let comentario = $('#comentarioInput').val().trim();
+                    let modulo = $("#modulo").val(); // Suponiendo que tienes un input o variable con el módulo
+
+                    if (comentario === "") {
+                        alert("Por favor, ingresa un comentario.");
+                        return;
+                    }
+
+                    $.ajax({
+                        url: "{{ route('guardarObservacionProceso') }}",
+                        type: "POST",
+                        data: {
+                            modulo: modulo,
+                            comentario: comentario
+                        },
+                        headers: {
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                alert("Comentario guardado correctamente.");
+                                // Bloquear el input y botón para evitar cambios
+                                $('#comentarioInput').prop('disabled', true).val(response.comentario);
+                                $('#guardarComentario').prop('disabled', true);
+                                // Opcional: Deshabilitar botones de eliminar en la tabla si así lo requieres
+                                $(".eliminar-registro").prop('disabled', true);
+                            } else {
+                                alert("Error: " + response.message);
+                            }
+                        },
+                        error: function (xhr) {
+                            console.error(xhr.responseText);
+                            alert("Ocurrió un error al guardar el comentario.");
+                        }
+                    });
+                });
+            });
+
             // Llamar a la función al cargar la página
             cargarRegistros();
         });

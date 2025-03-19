@@ -183,6 +183,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/auditoria-proceso-v2', [AuditoriaProcesoV2Controller::class, 'auditoriaProcesoV2'])->name('auditoriaProcesoV2');
     Route::get('/api/paros-no-finalizados', [AuditoriaProcesoV2Controller::class, 'parosNoFinalizados'])->name('parosNoFinalizados');
     Route::post('/api/finalizar-paro-proceso-despues', [AuditoriaProcesoV2Controller::class, 'finalizarParoProcesodespues'])->name('finalizarParoProcesodespues');
+    Route::post('/observacion-proceso-v2', [AuditoriaProcesoV2Controller::class, 'guardarObservacionProceso'])->name('guardarObservacionProceso');
 
 
 

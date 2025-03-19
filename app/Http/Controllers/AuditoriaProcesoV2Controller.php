@@ -775,5 +775,34 @@ class AuditoriaProcesoV2Controller extends Controller
         return $totalMinutos;
     }
 
+    public function guardarObservacionProceso(Request $request)
+    {
+        try {
+            $modulo = $request->input('modulo');
+            $comentario = $request->input('comentario');
+            $fechaActual = Carbon::now()->toDateString();
+
+            // Actualizar la columna 'observacion' para todos los registros del módulo y día
+            AseguramientoCalidad::whereDate('created_at', $fechaActual)
+                ->where('modulo', $modulo)
+                ->update([
+                    'observacion' => $comentario,
+                    'estatus' => 1  // Establece estatus en 1
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'comentario' => $comentario,
+                'message' => 'Comentario actualizado correctamente.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al guardar el comentario: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 
 }
