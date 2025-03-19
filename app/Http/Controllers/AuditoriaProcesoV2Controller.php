@@ -193,6 +193,50 @@ class AuditoriaProcesoV2Controller extends Controller
         $auditorPlanta = Auth::user()->Planta;
         $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
 
+        // 1. Consulta general para AseguramientoCalidad
+        $registros = AseguramientoCalidad::whereDate('created_at', $fechaActual)
+        ->where('cantidad_rechazada', '>', 0)
+        ->where('modulo', $data['modulo'])
+        ->orderBy('created_at', 'asc')
+        ->get();
+
+        // 2. Dividir en dos subconjuntos: sin tiempo extra y con tiempo extra
+        $registrosSinTE = $registros->filter(function ($r) {
+        return is_null($r->tiempo_extra);
+        })->values();
+
+        $registrosConTE = $registros->filter(function ($r) {
+        return $r->tiempo_extra == 1;
+        })->values();
+
+        // 3. Función para evaluar cada subconjunto de 3 en 3
+        function evaluarSubconjunto3($registros)
+        {
+        // Si hay menos de 3 registros, no se puede formar un grupo completo
+        if ($registros->count() < 3) {
+            return false;
+        }
+
+        $total = $registros->count();
+        // Hallar el número del último grupo completo de 3
+        $ultimoGrupo = floor($total / 3) * 3; // Ej: si hay 5 registros => floor(5/3)=1, 1*3=3; si hay 7 => floor(7/3)=2, 2*3=6
+        $indice = $ultimoGrupo - 1; // El índice del último registro del grupo (recordar que se indexa desde 0)
+
+        // Registro a evaluar (último del grupo completo)
+        $registroEvaluar = $registros[$indice];
+
+        // Retorna true si fin_paro_modular es null, false en caso contrario
+        return is_null($registroEvaluar->fin_paro_modular);
+        }
+
+        // 4. Evaluar cada subconjunto
+        $resultadoFinalSinTE = evaluarSubconjunto3($registrosSinTE);
+        $resultadoFinalConTE = evaluarSubconjunto3($registrosConTE);
+
+        // 5. El resultado final es true si al menos uno de los subconjuntos arroja true
+        $resultadoFinal = $resultadoFinalSinTE || $resultadoFinalConTE;
+
+
         return view('aseguramientoCalidad.auditoriaProcesoV2', compact('mesesEnEspanol', 'pageSlug', 'data'));
     }
 
