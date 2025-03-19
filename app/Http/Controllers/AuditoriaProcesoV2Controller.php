@@ -480,6 +480,7 @@ class AuditoriaProcesoV2Controller extends Controller
             // Consulta optimizada para obtener registros del día actual
             $mostrarRegistro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
                 ->where('modulo', $modulo)
+                ->whereNull('tiempo_extra')
                 ->get();
     
             // Retornar datos en formato JSON
@@ -533,4 +534,25 @@ class AuditoriaProcesoV2Controller extends Controller
         }
     }
 
+    public function obtenerRegistrosTurnoTiempoExtraV2(Request $request)
+    {
+        try {
+            // Obtener fecha actual
+            $fechaActual = now()->toDateString();
+            
+            // Filtrar por módulo recibido en el request
+            $modulo = $request->input('modulo');
+    
+            // Consulta optimizada para obtener registros del día actual
+            $mostrarRegistro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
+                ->where('modulo', $modulo)
+                ->where('tiempo_extra', 1)
+                ->get();
+    
+            // Retornar datos en formato JSON
+            return response()->json(['registros' => $mostrarRegistro], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al obtener registros: ' . $e->getMessage()], 500);
+        }
+    }
 }

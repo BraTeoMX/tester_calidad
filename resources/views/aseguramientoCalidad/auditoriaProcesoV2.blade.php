@@ -353,7 +353,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
-                        <h2>Registro</h2>
+                        <h2>Registro - Turno normal</h2>
                         <table id="registros-turno-normal" class="table table1">
                             <thead class="thead-primary">
                                 <tr>
@@ -377,7 +377,7 @@
             </div>
             <div class="card card-body">
                 <div class="table-responsive">
-                    <h2>Total Individual</h2>
+                    <h2>Total Individual - Turno normal</h2>
                     <table class="table table-total-individual">
                         <thead class="thead-primary">
                             <tr>
@@ -416,7 +416,7 @@
                         </tbody>
                     </table>
                 </div>
-            </div>            
+            </div>
         </div>
     </div>
 
