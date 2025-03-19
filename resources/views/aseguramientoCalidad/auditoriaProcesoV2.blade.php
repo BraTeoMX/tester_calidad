@@ -237,6 +237,18 @@
                 </div>
                 <hr>
                 <div class="card-body">
+                    @if($resultadoFinal == true)
+                    <div class="card-body">
+                        <!-- Aquí ya NO necesitamos la tabla, pero sí necesitamos mantener los valores -->
+                        <input type="hidden" name="modulo" id="modulo" value="{{ $data['modulo'] }}">
+                        <!-- Formulario que envía la solicitud al controlador -->
+                        <form action="{{ route('buscarUltimoRegistroProceso') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="modulo" value="{{ $data['modulo'] }}">
+                            <button type="submit" class="btn btn-primary">Fin Paro Modular</button>
+                        </form>
+                    </div>
+                    @else
                     <div class="table-responsive">
                         <table id="table-200" class="table table-200">
                             <thead class="thead-primary">
@@ -328,6 +340,7 @@
                         </table>
                     </div>
                     <button type="submit" class="btn-verde-xd">GUARDAR</button> 
+                    @endif
                 </div>
                 <!-- Modal para crear un nuevo defecto -->
                 <div class="modal fade" id="nuevoConceptoModal" tabindex="-1" role="dialog" aria-labelledby="nuevoConceptoModalLabel" aria-hidden="true">

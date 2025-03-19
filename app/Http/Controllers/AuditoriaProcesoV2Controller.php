@@ -237,7 +237,7 @@ class AuditoriaProcesoV2Controller extends Controller
         $resultadoFinal = $resultadoFinalSinTE || $resultadoFinalConTE;
 
 
-        return view('aseguramientoCalidad.auditoriaProcesoV2', compact('mesesEnEspanol', 'pageSlug', 'data'));
+        return view('aseguramientoCalidad.auditoriaProcesoV2', compact('mesesEnEspanol', 'pageSlug', 'data', 'resultadoFinal'));
     }
 
     public function obtenerListaProcesosV2()
@@ -648,5 +648,44 @@ class AuditoriaProcesoV2Controller extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error al obtener registros: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function buscarUltimoRegistroProceso(Request $request)
+    {
+        // Obtener el módulo enviado desde el formulario
+        $modulo = $request->input('modulo');
+        $fechaActual = now()->toDateString();
+
+        // Buscar el último registro que coincida con las condiciones
+        $registro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
+            ->where('cantidad_rechazada', '>', 0)
+            ->where('modulo', $modulo)
+            ->latest('created_at') // Trae el último registro por fecha
+            ->first();
+
+        // Si se encuentra un registro, actualizar las columnas
+        if ($registro) {
+            // Obtener la hora actual para fin_paro_modular
+            $horaActual = now();
+
+            // Actualizar la columna "fin_paro_modular" con la hora actual
+            $registro->fin_paro_modular = $horaActual;
+
+            // Calcular la diferencia en minutos entre "inicio_paro" y "fin_paro_modular"
+            $inicioParo = Carbon::parse($registro->inicio_paro);
+            $diferenciaEnMinutos = $inicioParo->diffInMinutes($horaActual);
+
+            // Actualizar la columna "minutos_paro_modular" con la diferencia
+            $registro->minutos_paro_modular = $diferenciaEnMinutos;
+
+            // Guardar los cambios en la base de datos
+            $registro->save();
+
+            // Redirigir con mensaje de éxito
+            return redirect()->back()->with('success', 'Paro modular finalizado correctamente. Tiempo acumulado: ' . $diferenciaEnMinutos . ' minutos.');
+        }
+
+        // Si no se encuentra ningún registro
+        return redirect()->back()->with('error', 'No se encontró ningún registro para finalizar el paro modular.');
     }
 }

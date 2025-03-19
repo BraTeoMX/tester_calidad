@@ -179,6 +179,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/obtener-registros-turno-extra-v2', [AuditoriaProcesoV2Controller::class, 'obtenerRegistrosTurnoTiempoExtraV2'])->name('obtenerRegistrosTurnoTiempoExtraV2');
     Route::post('/cambiar-estado-inicio-paro-ajax', [AuditoriaProcesoV2Controller::class, 'cambiarEstadoInicioParoTurnoNormal'])->name('cambiarEstadoInicioParoTurnoNormal');
     Route::post('/eliminar-registro-turno-normal', [AuditoriaProcesoV2Controller::class, 'eliminarRegistroTurnoNormal'])->name('eliminarRegistroTurnoNormal');
+    Route::post('/buscar-ultimo-registro-proceso', [AuditoriaProcesoV2Controller::class, 'buscarUltimoRegistroProceso'])->name('buscarUltimoRegistroProceso');
 
 
 
@@ -188,7 +189,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     //Inicio apartado para seccion Auditoria AQL
     Route::get('/auditoriaAQL', [AuditoriaAQLController::class, 'auditoriaAQL'])->name('auditoriaAQL.auditoriaAQL')->middleware('auth');
-    Route::get('/altaAQL', [AuditoriaAQLController::class, 'altaAQL'])->name('auditoriaAQL.altaAQL')->middleware('auth');
+    //Route::get('/altaAQL', [AuditoriaAQLController::class, 'altaAQL'])->name('auditoriaAQL.altaAQL')->middleware('auth');
     Route::post('/obtenerItemIdAQL', [AuditoriaAQLController::class, 'obtenerItemIdAQL'])->name('obtenerItemIdAQL');
     Route::post('/formAltaProcesoAQL', [AuditoriaAQLController::class, 'formAltaProcesoAQL'])->name('auditoriaAQL.formAltaProcesoAQL');
     Route::post('/formRegistroAuditoriaProcesoAQL', [AuditoriaAQLController::class, 'formRegistroAuditoriaProcesoAQL'])->name('auditoriaAQL.formRegistroAuditoriaProcesoAQL');
