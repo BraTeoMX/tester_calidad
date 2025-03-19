@@ -375,6 +375,27 @@
                     </div>
                 </div>
             </div>
+            <div class="card card-body">
+                <div class="table-responsive">
+                    <h2>Total Individual</h2>
+                    <table class="table table-total-individual">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Nombre</th>
+                                <th>No. Recorridos</th>
+                                <th>Total Piezas Auditadas</th>
+                                <th>Total Piezas Rechazadas</th>
+                                <th>Porcentaje Rechazado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="text-center">No hay datos disponibles</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1086,6 +1107,9 @@
                         let tbody = $("#registros-turno-normal tbody");
                         tbody.empty(); // Limpiar la tabla antes de agregar nuevos datos
 
+                        // Declarar registrosAgrupados para agrupar datos por nombre
+                        let registrosAgrupados = {};
+
                         if (response.registros.length === 0) {
                             tbody.append(`<tr><td colspan="10" class="text-center">No hay registros disponibles</td></tr>`);
                         } else {
@@ -1124,7 +1148,21 @@
                                     </tr>
                                 `;
                                 tbody.append(fila);
+
+                                // Agrupar datos para la tabla "Total Individual"
+                                if (!registrosAgrupados[registro.nombre]) {
+                                    registrosAgrupados[registro.nombre] = {
+                                        cantidad_registros: 0,
+                                        total_auditada: 0,
+                                        total_rechazada: 0
+                                    };
+                                }
+                                registrosAgrupados[registro.nombre].cantidad_registros++;
+                                registrosAgrupados[registro.nombre].total_auditada += parseInt(registro.cantidad_auditada) || 0;
+                                registrosAgrupados[registro.nombre].total_rechazada += parseInt(registro.cantidad_rechazada) || 0;
                             });
+                            // Actualizar la tabla "Total Individual" usando los datos agrupados
+                            actualizarTablaIndividual(registrosAgrupados);
                         }
                     },
                     error: function (xhr) {
@@ -1189,6 +1227,32 @@
                     });
                 });
 
+            }
+
+            function actualizarTablaIndividual(registrosAgrupados) {
+                let tbody = $(".table-total-individual tbody"); // Se usa la clase definida en la vista
+                tbody.empty(); // Limpiar la tabla antes de agregar nuevos datos
+
+                if (Object.keys(registrosAgrupados).length === 0) {
+                    tbody.append(`<tr><td colspan="5" class="text-center">No hay datos disponibles</td></tr>`);
+                } else {
+                    $.each(registrosAgrupados, function (nombre, data) {
+                        let porcentajeRechazado = data.total_auditada > 0 
+                            ? ((data.total_rechazada / data.total_auditada) * 100).toFixed(2) 
+                            : 0;
+
+                        let fila = `
+                            <tr>
+                                <td><input type="text" class="form-control texto-blanco" value="${nombre}" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" value="${data.cantidad_registros}" readonly></td> 
+                                <td><input type="text" class="form-control texto-blanco" value="${data.total_auditada}" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" value="${data.total_rechazada}" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" value="${porcentajeRechazado}" readonly></td>
+                            </tr>
+                        `;
+                        tbody.append(fila);
+                    });
+                }
             }
             // Llamar a la función al cargar la página
             cargarRegistros();
