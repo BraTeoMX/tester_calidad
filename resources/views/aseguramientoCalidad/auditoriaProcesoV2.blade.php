@@ -363,6 +363,26 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card card-body">
+                <div class="accordion" id="accordionParos">
+                    <div class="card">
+                        <div class="card-header p-0" id="headingParos">
+                            <h2 class="mb-0">
+                                <button class="btn btn-link text-light text-decoration-none w-100 text-left" type="button" data-toggle="collapse" data-target="#collapseParos" aria-expanded="false" aria-controls="collapseParos">
+                                    Mostrar Paros No Finalizados
+                                </button>
+                            </h2>
+                        </div>
+                        <div id="collapseParos" class="collapse" aria-labelledby="headingParos" data-parent="#accordionParos">
+                            <div class="card-body" id="paros-container" data-modulo="{{ $data['modulo'] }}">
+                                <p class="text-muted">Abre el acordeón para cargar los datos.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
@@ -1568,4 +1588,116 @@
             cargarRegistrosTE();
         });
     </script>
+
+    <script>
+        $(document).ready(function () {
+            let datosCargados = false;
+        
+            // Cuando se abra el acordeón para cargar paros no finalizados
+            $('#collapseParos').on('show.bs.collapse', function () {
+                if (!datosCargados) {
+                    const modulo = $('#paros-container').data('modulo');
+        
+                    $.ajax({
+                        url: '/api/paros-no-finalizados',  // Nuevo endpoint para paros no finalizados
+                        method: 'GET',
+                        data: { modulo: modulo }, 
+                        beforeSend: function () {
+                            $('#paros-container').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Cargando datos...</p></div>');
+                        },
+                        success: function (response) {
+                            if (response.length > 0) {
+                                let contenido = `
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead class="thead-primary">
+                                                <tr>
+                                                    <th>Paro</th>
+                                                    <th>Nombre</th>
+                                                    <th>Inicio Paro</th>
+                                                    <th>Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                `;
+                                response.forEach(item => {
+                                    // Para cada registro, si fin_paro es nulo, se muestra botón para finalizar
+                                    let paroHtml = "";
+                                    if (item.inicio_paro === null) {
+                                        paroHtml = "-";
+                                    } else if (item.fin_paro !== null) {
+                                        paroHtml = item.minutos_paro;
+                                    } else {
+                                        paroHtml = `<button class="btn btn-primary btn-sm finalizar-paro" data-id="${item.id}">
+                                                        Finalizar Paro Pendiente
+                                                    </button>`;
+                                    }
+        
+                                    contenido += `
+                                        <tr>
+                                            <td>${paroHtml}</td>
+                                            <td>${item.nombre}</td>
+                                            <td>${item.inicio_paro}</td>
+                                            <td>
+                                                <button class="btn btn-danger btn-sm finalizar-paro" data-id="${item.id}">
+                                                    Finalizar Paro Pendiente
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `;
+                                });
+                                contenido += '</tbody></table></div>';
+                                $('#paros-container').html(contenido);
+                            } else {
+                                $('#paros-container').html('<p class="text-warning text-center">No se encontraron paros no finalizados.</p>');
+                            }
+                            datosCargados = true;
+                        },
+                        error: function () {
+                            $('#paros-container').html('<p class="text-danger text-center">Error al cargar los datos.</p>');
+                        }
+                    });
+                }
+            });
+        
+            // Delegar evento para finalizar un paro
+            $(document).on('click', '.finalizar-paro', function () {
+                let id = $(this).data('id');
+        
+                // Opcional: Confirmar la acción
+                if (!confirm("¿Estás seguro de que deseas finalizar este paro?")) return;
+        
+                // Agregar un spinner temporal para indicar procesamiento
+                const spinnerHtml = `
+                    <div id="processing-spinner" class="position-fixed top-0 start-50 translate-middle-x mt-3 p-2 bg-dark text-white rounded shadow" style="z-index: 1050;">
+                        <div class="spinner-border spinner-border-sm text-light" role="status"></div>
+                        Procesando solicitud...
+                    </div>`;
+                $('body').append(spinnerHtml);
+        
+                $.ajax({
+                    url: '/api/finalizar-paro-proceso-despues', // Nuevo endpoint (ver sección de Controller)
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    data: { id: id }, // Ya no se envían piezas reparadas
+                    success: function (response) {
+                        $('#processing-spinner').remove();
+                        if (response.success) {
+                            alert(`✅ Paro finalizado correctamente.\nMinutos Paro: ${response.minutos_paro}`);
+                            // Cierra el acordeón para forzar nueva carga al reabrirlo
+                            $('#collapseParos').collapse('hide');
+                            datosCargados = false;
+                        } else {
+                            alert(`❌ Error: ${response.message}`);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        $('#processing-spinner').remove();
+                        alert("⚠️ Ocurrió un error al intentar finalizar el paro.");
+                    }
+                });
+            });
+        });
+    </script>
+    
 @endsection

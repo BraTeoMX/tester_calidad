@@ -249,7 +249,6 @@ class AuditoriaProcesoV2Controller extends Controller
         $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
 
         $procesoActual = AseguramientoCalidad::whereNull('estatus')
-            ->where('area', 'AUDITORIA EN PROCESO')
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
             ->select('modulo', 'estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
@@ -688,4 +687,93 @@ class AuditoriaProcesoV2Controller extends Controller
         // Si no se encuentra ningún registro
         return redirect()->back()->with('error', 'No se encontró ningún registro para finalizar el paro modular.');
     }
+
+    public function parosNoFinalizados(Request $request)
+    {
+        $modulo = $request->input('modulo');
+
+        // Calcular fechas para los últimos 7 días (sin incluir hoy)
+        $fechaInicio = Carbon::now()->subDays(7)->startOfDay();
+        $fechaFin = Carbon::yesterday()->endOfDay();
+
+        // Consulta de registros en AseguramientoCalidad
+        $paros = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin])
+            ->where('modulo', $modulo)
+            ->whereNotNull('inicio_paro')  // Se debe haber iniciado el paro
+            ->whereNull('fin_paro')         // Aún no se finalizó
+            ->get();
+
+        return response()->json($paros);
+    }
+
+    public function finalizarParoProcesodespues(Request $request)
+    {
+        try {
+            // Buscar registro en AseguramientoCalidad
+            $registro = AseguramientoCalidad::findOrFail($request->id);
+            $registro->fin_paro = Carbon::now(); // Asigna el fin del paro
+
+            // Usamos created_at como punto de inicio para el cálculo
+            $inicio = Carbon::parse($registro->created_at);
+            $fin = Carbon::now();
+
+            // Calcular minutos de paro (según horarios laborales)
+            $minutosParo = $this->calcularMinutosParoDesdeCreatedAt($inicio, $fin);
+
+            $registro->minutos_paro = $minutosParo;
+            // Ya no se actualiza reparacion_rechazo
+            $registro->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Paro finalizado correctamente.',
+                'minutos_paro' => $registro->minutos_paro
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al finalizar el paro: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Calcula los minutos de paro basándose en created_at hasta el momento actual.
+     * Respeta los horarios laborales establecidos.
+     */
+    private function calcularMinutosParoDesdeCreatedAt(Carbon $inicio, Carbon $fin)
+    {
+        $totalMinutos = 0;
+        $actual = $inicio->copy();
+
+        while ($actual->lessThan($fin)) {
+            // Saltar fines de semana
+            if ($actual->isWeekend()) {
+                $actual->addDay()->startOfDay();
+                continue;
+            }
+
+            // Definir horario laboral según día
+            $inicioJornada = $actual->copy()->setTime(8, 0, 0);
+            $finJornada = ($actual->dayOfWeek == Carbon::FRIDAY)
+                ? $actual->copy()->setTime(14, 0, 0)
+                : $actual->copy()->setTime(19, 0, 0);
+
+            if ($actual->lessThanOrEqualTo($finJornada) && $fin->greaterThanOrEqualTo($inicioJornada)) {
+                $inicioEfectivo = $actual->greaterThan($inicioJornada) ? $actual : $inicioJornada;
+                $finEfectivo = $fin->lessThan($finJornada) ? $fin : $finJornada;
+
+                if ($inicioEfectivo->lessThan($finEfectivo)) {
+                    $minutosHoy = $inicioEfectivo->diffInMinutes($finEfectivo);
+                    $totalMinutos += max($minutosHoy, 0);
+                }
+            }
+
+            $actual->addDay()->startOfDay();
+        }
+
+        return $totalMinutos;
+    }
+
+
 }

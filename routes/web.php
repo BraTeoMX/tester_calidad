@@ -180,6 +180,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/cambiar-estado-inicio-paro-ajax', [AuditoriaProcesoV2Controller::class, 'cambiarEstadoInicioParoTurnoNormal'])->name('cambiarEstadoInicioParoTurnoNormal');
     Route::post('/eliminar-registro-turno-normal', [AuditoriaProcesoV2Controller::class, 'eliminarRegistroTurnoNormal'])->name('eliminarRegistroTurnoNormal');
     Route::post('/buscar-ultimo-registro-proceso', [AuditoriaProcesoV2Controller::class, 'buscarUltimoRegistroProceso'])->name('buscarUltimoRegistroProceso');
+    Route::get('/auditoria-proceso-v2', [AuditoriaProcesoV2Controller::class, 'auditoriaProcesoV2'])->name('auditoriaProcesoV2');
+    Route::get('/api/paros-no-finalizados', [AuditoriaProcesoV2Controller::class, 'parosNoFinalizados'])->name('parosNoFinalizados');
+    Route::post('/api/finalizar-paro-proceso-despues', [AuditoriaProcesoV2Controller::class, 'finalizarParoProcesodespues'])->name('finalizarParoProcesodespues');
 
 
 
