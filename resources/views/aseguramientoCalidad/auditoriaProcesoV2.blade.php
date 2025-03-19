@@ -856,8 +856,16 @@
         $(document).ready(function () {
             var datosCargados = false; // Variable para evitar múltiples consultas innecesarias
 
-            $('#ac').on('focus', function () {
-                if (!datosCargados) { // Solo ejecuta AJAX si los datos no han sido cargados
+            // Inicializar Select2 con opción única
+            $('#ac').select2({
+                placeholder: "Selecciona una opción",
+                allowClear: true, // Permite limpiar la selección
+                minimumResultsForSearch: 10 // Muestra la barra de búsqueda solo si hay más de 5 opciones
+            });
+
+            // Cargar datos solo cuando el usuario haga clic en el select
+            $('#ac').on('select2:open', function () {
+                if (!datosCargados) { // Solo ejecuta AJAX si los datos no han sido cargados previamente
                     $.ajax({
                         url: "{{ route('accionCorrectivaProceso') }}", // Ruta en Laravel
                         type: 'GET',
@@ -867,7 +875,7 @@
                             select.empty().append('<option value="">Selecciona una opción</option>'); // Limpiar y agregar opción por defecto
 
                             $.each(response.acciones, function (index, proceso) {
-                                select.append('<option value="' + proceso.accion_correctiva + '">' + proceso.accion_correctiva + '</option>');
+                                select.append(new Option(proceso.accion_correctiva, proceso.accion_correctiva, false, false));
                             });
 
                             datosCargados = true; // Evita que se vuelva a cargar innecesariamente
@@ -1314,12 +1322,12 @@
                             "X-CSRF-TOKEN": "{{ csrf_token() }}"
                         },
                         success: function(response) {
-                            alert("Registro eliminado correctamente.");
+                            alert("✅ Registro eliminado correctamente.");
                             boton.closest("tr").remove(); // Eliminar solo la fila de la tabla sin recargar toda la tabla
                         },
                         error: function(xhr) {
                             console.log(xhr.responseText);
-                            alert("Error al eliminar el registro.");
+                            alert("❌ Error al eliminar el registro.");
                         }
                     });
                 });
