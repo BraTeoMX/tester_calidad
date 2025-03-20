@@ -465,4 +465,10 @@ Route::group(['middleware' => 'auth'], function () {
 
     //apartado para dashboard con la segunda version
     Route::get('/dashboardPlanta1V2', [DashboardPorDiaV2Controller::class, 'dashboardPlanta1V2'])->name('dashboardPlanta1V2');
+    Route::get('/dashboardPlanta1V2/buscarAQL', [DashboardPorDiaV2Controller::class, 'buscarAQL'])->name('dashboardPlanta1V2.buscarAQL');
+    Route::get('/dashboardPlanta1V2/buscarAQLTE', [DashboardPorDiaV2Controller::class, 'buscarAQLTE'])->name('dashboardPlanta1V2.buscarAQLTE');
+    Route::get('/dashboardPlanta1V2/buscarProceso', [DashboardPorDiaV2Controller::class, 'buscarProceso'])->name('dashboardPlanta1V2.buscarProceso');
+    Route::get('/dashboardPlanta1V2/buscarProcesoTE', [DashboardPorDiaV2Controller::class, 'buscarProcesoTE'])->name('dashboardPlanta1V2.buscarProcesoTE');
+
+
 });

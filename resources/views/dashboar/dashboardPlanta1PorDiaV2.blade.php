@@ -28,10 +28,85 @@
     </div>   
 
     <div class="card">
-        <div class="card-body" id="resultado">
+        <div class="card-header card-header-success card-header-icon">
+            <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Turno Normal</h3> 
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table tablesorter">
+                    <thead class="text-primary">
+                        <tr>
+                            <th>Auditor</th>
+                            <th>Modulo (AQL)</th>
+                            <th>Supervisor</th>
+                            <th>Estilo</th>
+                            <th>Numero de Operarios</th>
+                            <th>Cantidad Paro</th>
+                            <th>Minutos Paro</th>
+                            <th>Promedio Minutos Paro</th>
+                            <th>Cantidad Paro Modular</th>
+                            <th>Minutos Paro Modular</th> 
+                            <th>Total piezas por Bulto</th> 
+                            <th>Total Bulto</th> 
+                            <th>Total Bulto Rechazados</th> 
+                            <th>Cantidad Auditados</th>
+                            <th>Cantidad Defectos</th>
+                            <th>% Error AQL</th>
+                            <th>Defectos</th>
+                            <th>Accion Correctiva</th>
+                            <th>Operario Responsable</th>
+                            <th>Reparacion Piezas</th>
+                            <th>Piezas de Bulto Rechazado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaAQLGeneralNuevoBody">
+                        <!-- Aquí se insertarán los datos dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-        </div> 
-    </div> 
+    <div class="card">
+        <div class="card-header card-header-success card-header-icon">
+            <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Tiempo Extra</h3> 
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table tablesorter">
+                    <thead class="text-primary">
+                        <tr>
+                            <th>Auditor</th>
+                            <th>Modulo (AQL)</th>
+                            <th>Supervisor</th>
+                            <th>Estilo</th>
+                            <th>Numero de Operarios</th>
+                            <th>Cantidad Paro</th>
+                            <th>Minutos Paro</th>
+                            <th>Promedio Minutos Paro</th>
+                            <th>Cantidad Paro Modular</th>
+                            <th>Minutos Paro Modular</th> 
+                            <th>Total piezas por Bulto</th> 
+                            <th>Total Bulto</th> 
+                            <th>Total Bulto Rechazados</th> 
+                            <th>Cantidad Auditados</th>
+                            <th>Cantidad Defectos</th>
+                            <th>% Error AQL</th>
+                            <th>Defectos</th>
+                            <th>Accion Correctiva</th>
+                            <th>Operario Responsable</th>
+                            <th>Reparacion Piezas</th>
+                            <th>Piezas de Bulto Rechazado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaAQLGeneralTENuevoBody">
+                        <!-- Aquí se insertarán los datos dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
 
     <style>
         .custom-body {
@@ -124,4 +199,91 @@
         }
     </style>
 
+    <script>
+        // Función genérica para cargar datos en la tabla
+        function cargarDatos(url, tablaBodyId) {
+            let fechaInicio = document.getElementById("fecha_inicio").value;
+
+            if (!fechaInicio) {
+                alert("Por favor selecciona una fecha.");
+                return;
+            }
+
+            fetch(url + "?fecha_inicio=" + fechaInicio, {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                let tablaBody = document.getElementById(tablaBodyId);
+                tablaBody.innerHTML = ""; // Limpiar contenido anterior
+
+                let registros = data.datosModuloEstiloAQL || data.datosModuloEstiloAQLTE; // Identificar cuál conjunto de datos llegó
+
+                if (registros && registros.length > 0) {
+                    registros.forEach(item => {
+                        let row = `
+                            <tr>
+                                <td>${item.auditoresUnicos}</td>
+                                <td>
+                                    <button type="button" class="custom-btn" 
+                                        onclick="openCustomModal('customModalAQL${item.modulo}_${item.estilo}')">
+                                        ${item.modulo}
+                                    </button>
+                                </td>
+                                <td>${item.supervisoresUnicos}</td>
+                                <td>${item.estilosUnicos}</td>
+                                <td>${item.conteoOperario}</td>
+                                <td>${item.conteoMinutos}</td>
+                                <td>${item.sumaMinutos}</td>
+                                <td>${item.promedioMinutosEntero}</td>
+                                <td>${item.conteParoModular}</td>
+                                <td>${item.sumaParoModular}</td>
+                                <td>${item.sumaPiezasBulto}</td> 
+                                <td>${item.cantidadBultosEncontrados}</td> 
+                                <td>${item.cantidadBultosRechazados}</td> 
+                                <td>${item.sumaAuditadaAQL}</td> 
+                                <td>${item.sumaRechazadaAQL}</td> 
+                                <td>${Number(item.porcentajeErrorAQL).toFixed(2)}%</td>
+                                <td>${item.defectosUnicos}</td>
+                                <td>${item.accionesCorrectivasUnicos}</td>
+                                <td>${item.operariosUnicos}</td>
+                                <td>${item.sumaReparacionRechazo}</td>
+                                <td>${item.piezasRechazadasUnicas}</td>
+                            </tr>
+                        `;
+                        tablaBody.innerHTML += row;
+                    });
+                } else {
+                    tablaBody.innerHTML = "<tr><td colspan='21'>No hay datos disponibles.</td></tr>";
+                }
+            })
+            .catch(error => console.error("Error en AJAX:", error));
+        }
+
+        // Eventos para llamar a la función con diferentes rutas y tablas
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("btnMostrar").addEventListener("click", function() {
+                let fechaInicio = document.getElementById("fecha_inicio").value;
+
+                if (!fechaInicio) {
+                    alert("Por favor selecciona una fecha.");
+                    return;
+                }
+
+                // Cargar ambas tablas en paralelo
+                cargarDatos("{{ route('dashboardPlanta1V2.buscarAQL') }}", "tablaAQLGeneralNuevoBody");
+                cargarDatos("{{ route('dashboardPlanta1V2.buscarAQLTE') }}", "tablaAQLGeneralTENuevoBody");
+            });
+        });
+
+    </script>
+    
 @endsection
