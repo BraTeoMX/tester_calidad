@@ -235,7 +235,7 @@ class AuditoriaProcesoV2Controller extends Controller
 
         // 5. El resultado final es true si al menos uno de los subconjuntos arroja true
         $resultadoFinal = $resultadoFinalSinTE || $resultadoFinalConTE;
-
+        //dd($resultadoFinal, $resultadoFinalSinTE, $resultadoFinalConTE);
 
         // Recuperar el comentario (observacion) para el módulo y día actual
         $observacion = AseguramientoCalidad::whereDate('created_at', $fechaActual)
@@ -672,6 +672,7 @@ class AuditoriaProcesoV2Controller extends Controller
         // Obtener el módulo enviado desde el formulario
         $modulo = $request->input('modulo');
         $fechaActual = now()->toDateString();
+        //dd($request->all());
 
         // Buscar el último registro que coincida con las condiciones
         $registro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
@@ -697,6 +698,8 @@ class AuditoriaProcesoV2Controller extends Controller
 
             // Guardar los cambios en la base de datos
             $registro->save();
+
+            //dd($registro);
 
             // Redirigir con mensaje de éxito
             return redirect()->back()->with('success', 'Paro modular finalizado correctamente. Tiempo acumulado: ' . $diferenciaEnMinutos . ' minutos.');
