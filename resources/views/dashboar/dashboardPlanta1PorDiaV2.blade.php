@@ -123,46 +123,61 @@
     </div>
 
     <div class="card">
-        <div class="card-header card-header-success card-header-icon">
-            <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Tiempo Extra</h3>
+        <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+            <label class="btn btn-sm btn-primary btn-simple active" id="showAQLTE">
+                <input type="radio" name="optionsTE" checked>
+                <h5><i class="tim-icons icon-app text-success"></i>&nbsp; AQL TE</h5>
+            </label>
+            <label class="btn btn-sm btn-primary btn-simple" id="showProcesoTE">
+                <input type="radio" name="optionsTE">
+                <h5><i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos TE</h5>
+            </label>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table tablesorter">
-                    <thead class="text-primary">
-                        <tr>
-                            <th>Auditor</th>
-                            <th>Modulo (AQL)</th>
-                            <th>Supervisor</th>
-                            <th>Estilo</th>
-                            <th>Numero de Operarios</th>
-                            <th>Cantidad Paro</th>
-                            <th>Minutos Paro</th>
-                            <th>Promedio Minutos Paro</th>
-                            <th>Cantidad Paro Modular</th>
-                            <th>Minutos Paro Modular</th>
-                            <th>Total piezas por Bulto</th>
-                            <th>Total Bulto</th>
-                            <th>Total Bulto Rechazados</th>
-                            <th>Cantidad Auditados</th>
-                            <th>Cantidad Defectos</th>
-                            <th>% Error AQL</th>
-                            <th>Defectos</th>
-                            <th>Accion Correctiva</th>
-                            <th>Operario Responsable</th>
-                            <th>Reparacion Piezas</th>
-                            <th>Piezas de Bulto Rechazado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaAQLGeneralTENuevoBody">
-                        <!-- Aquí se insertarán los datos dinámicamente -->
-                    </tbody>
-                </table>
+    </div>
+    <!-- Tabla de AQL TE (visible por defecto) -->
+    <div id="tablaAQLTE" class="table-container" style="display: block;">
+        <div class="card">
+            <div class="card-header card-header-success card-header-icon">
+                <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Tiempo Extra</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table tablesorter">
+                        <thead class="text-primary">
+                            <tr>
+                                <th>Auditor</th>
+                                <th>Modulo (AQL)</th>
+                                <th>Supervisor</th>
+                                <th>Estilo</th>
+                                <th>Numero de Operarios</th>
+                                <th>Cantidad Paro</th>
+                                <th>Minutos Paro</th>
+                                <th>Promedio Minutos Paro</th>
+                                <th>Cantidad Paro Modular</th>
+                                <th>Minutos Paro Modular</th>
+                                <th>Total piezas por Bulto</th>
+                                <th>Total Bulto</th>
+                                <th>Total Bulto Rechazados</th>
+                                <th>Cantidad Auditados</th>
+                                <th>Cantidad Defectos</th>
+                                <th>% Error AQL</th>
+                                <th>Defectos</th>
+                                <th>Accion Correctiva</th>
+                                <th>Operario Responsable</th>
+                                <th>Reparacion Piezas</th>
+                                <th>Piezas de Bulto Rechazado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaAQLGeneralTENuevoBody">
+                            <!-- Aquí se insertarán los datos dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
     <!-- Tabla de Proceso Tiempo Extra -->
-    <div id="tablaProcesoTE" class="table-container">
+    <div id="tablaProcesoTE" class="table-container" style="display: none;">
         <div class="card">
             <div class="card-header card-header-success card-header-icon">
                 <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Tiempo
@@ -398,13 +413,42 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            let procesoCargado = false; // Bandera para evitar recargar Proceso si ya se cargó
+            let procesoCargado = false; // Evita recargar Proceso si ya se cargó
+            let procesoTECargado = false; // Evita recargar Proceso TE si ya se cargó
+
+            // 1️⃣ Cargar SOLO AQL cuando se da clic en "Mostrar Datos"
+            document.getElementById("btnMostrar").addEventListener("click", function() {
+                let fechaInicio = document.getElementById("fecha_inicio").value;
+                if (!fechaInicio) {
+                    alert("Por favor selecciona una fecha.");
+                    return;
+                }
+
+                // Cargar los datos de AQL y AQL TE
+                cargarDatos("{{ route('dashboardPlanta1V2.buscarAQL') }}", "tablaAQLGeneralNuevoBody", "datosModuloEstiloAQL");
+                cargarDatos("{{ route('dashboardPlanta1V2.buscarAQLTE') }}", "tablaAQLGeneralTENuevoBody", "datosModuloEstiloAQLTE");
+
+                // Mostrar la tabla de AQL normal por defecto
+                document.getElementById("tablaAQL").style.display = "block";
+                document.getElementById("tablaProceso").style.display = "none";
+                document.getElementById("tablaAQLTE").style.display = "none";
+                document.getElementById("tablaProcesoTE").style.display = "none";
+            });
+
+            // 2️⃣ Mostrar u Ocultar AQL y Proceso (Turno Normal)
+            document.getElementById("showAQL").addEventListener("click", function() {
+                document.getElementById("tablaAQL").style.display = "block";
+                document.getElementById("tablaProceso").style.display = "none";
+                document.getElementById("tablaAQLTE").style.display = "none";
+                document.getElementById("tablaProcesoTE").style.display = "none";
+            });
 
             document.getElementById("showProceso").addEventListener("click", function() {
                 document.getElementById("tablaAQL").style.display = "none";
                 document.getElementById("tablaProceso").style.display = "block";
+                document.getElementById("tablaAQLTE").style.display = "none";
+                document.getElementById("tablaProcesoTE").style.display = "none";
 
-                // Cargar datos de Proceso solo si no se han cargado antes
                 if (!procesoCargado) {
                     let fechaInicio = document.getElementById("fecha_inicio").value;
                     if (!fechaInicio) {
@@ -412,12 +456,36 @@
                         return;
                     }
 
-                    cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProceso') }}",
-                        "tablaProcesoGeneralNuevoBody", "datosModuloEstiloProceso");
-                    cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProcesoTE') }}",
-                        "tablaProcesoGeneralTENuevoBody", "datosModuloEstiloProcesoTE");
+                    // Cargar datos de Proceso por primera vez
+                    cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProceso') }}", "tablaProcesoGeneralNuevoBody", "datosModuloEstiloProceso");
+                    procesoCargado = true;
+                }
+            });
 
-                    procesoCargado = true; // Marcar como cargado para evitar nuevas peticiones innecesarias
+            // 3️⃣ Mostrar u Ocultar AQL TE y Proceso TE (Tiempo Extra)
+            document.getElementById("showAQLTE").addEventListener("click", function() {
+                document.getElementById("tablaAQL").style.display = "none";
+                document.getElementById("tablaProceso").style.display = "none";
+                document.getElementById("tablaAQLTE").style.display = "block";
+                document.getElementById("tablaProcesoTE").style.display = "none";
+            });
+
+            document.getElementById("showProcesoTE").addEventListener("click", function() {
+                document.getElementById("tablaAQL").style.display = "none";
+                document.getElementById("tablaProceso").style.display = "none";
+                document.getElementById("tablaAQLTE").style.display = "none";
+                document.getElementById("tablaProcesoTE").style.display = "block";
+
+                if (!procesoTECargado) {
+                    let fechaInicio = document.getElementById("fecha_inicio").value;
+                    if (!fechaInicio) {
+                        alert("Por favor selecciona una fecha.");
+                        return;
+                    }
+
+                    // Cargar datos de Proceso TE por primera vez
+                    cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProcesoTE') }}", "tablaProcesoGeneralTENuevoBody", "datosModuloEstiloProcesoTE");
+                    procesoTECargado = true;
                 }
             });
         });
