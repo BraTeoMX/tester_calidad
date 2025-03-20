@@ -1,12 +1,12 @@
 @extends('layouts.app', ['pageSlug' => 'dashboardPorDia', 'titlePage' => __('Dashboard')])
 
 @section('content')
-
     <div class="row">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
-                    <h2 class="card-title" style="text-align: center; font-weight: bold;">Dashboard Consulta por dia Planta 1 - Ixtlahuaca </h2>
+                    <h2 class="card-title" style="text-align: center; font-weight: bold;">Dashboard Consulta por dia Planta 1
+                        - Ixtlahuaca </h2>
                 </div>
             </div>
         </div>
@@ -25,52 +25,68 @@
                 <button type="button" class="btn btn-secondary" id="btnMostrar">Mostrar datos</button>
             </div>
         </div>
-    </div>   
+    </div>
 
     <div class="card">
-        <div class="card-header card-header-success card-header-icon">
-            <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Turno Normal</h3> 
+        <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+            <label class="btn btn-sm btn-primary btn-simple active" id="showAQL">
+                <input type="radio" name="options" checked>
+                <h5><i class="tim-icons icon-app text-success"></i>&nbsp; AQL</h5>
+            </label>
+            <label class="btn btn-sm btn-primary btn-simple" id="showProceso">
+                <input type="radio" name="options">
+                <h5><i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos</h5>
+            </label>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table tablesorter">
-                    <thead class="text-primary">
-                        <tr>
-                            <th>Auditor</th>
-                            <th>Modulo (AQL)</th>
-                            <th>Supervisor</th>
-                            <th>Estilo</th>
-                            <th>Numero de Operarios</th>
-                            <th>Cantidad Paro</th>
-                            <th>Minutos Paro</th>
-                            <th>Promedio Minutos Paro</th>
-                            <th>Cantidad Paro Modular</th>
-                            <th>Minutos Paro Modular</th> 
-                            <th>Total piezas por Bulto</th> 
-                            <th>Total Bulto</th> 
-                            <th>Total Bulto Rechazados</th> 
-                            <th>Cantidad Auditados</th>
-                            <th>Cantidad Defectos</th>
-                            <th>% Error AQL</th>
-                            <th>Defectos</th>
-                            <th>Accion Correctiva</th>
-                            <th>Operario Responsable</th>
-                            <th>Reparacion Piezas</th>
-                            <th>Piezas de Bulto Rechazado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaAQLGeneralNuevoBody">
-                        <!-- Aquí se insertarán los datos dinámicamente -->
-                    </tbody>
-                </table>
+    </div>
+    <div id="tablaAQL" class="table-container" style="display: block;">
+        <div class="card">
+            <div class="card-header card-header-success card-header-icon">
+                <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Turno Normal
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table tablesorter">
+                        <thead class="text-primary">
+                            <tr>
+                                <th>Auditor</th>
+                                <th>Modulo (AQL)</th>
+                                <th>Supervisor</th>
+                                <th>Estilo</th>
+                                <th>Numero de Operarios</th>
+                                <th>Cantidad Paro</th>
+                                <th>Minutos Paro</th>
+                                <th>Promedio Minutos Paro</th>
+                                <th>Cantidad Paro Modular</th>
+                                <th>Minutos Paro Modular</th>
+                                <th>Total piezas por Bulto</th>
+                                <th>Total Bulto</th>
+                                <th>Total Bulto Rechazados</th>
+                                <th>Cantidad Auditados</th>
+                                <th>Cantidad Defectos</th>
+                                <th>% Error AQL</th>
+                                <th>Defectos</th>
+                                <th>Accion Correctiva</th>
+                                <th>Operario Responsable</th>
+                                <th>Reparacion Piezas</th>
+                                <th>Piezas de Bulto Rechazado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaAQLGeneralNuevoBody">
+                            <!-- Aquí se insertarán los datos dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
     <!-- Tabla de Proceso General -->
-    <div id="tablaProceso" class="table-container" >
+    <div id="tablaProceso" class="table-container" style="display: none;">
         <div class="card">
             <div class="card-header card-header-success card-header-icon">
-                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Turno Normal</h3>
+                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Turno
+                    Normal</h3>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -108,7 +124,7 @@
 
     <div class="card">
         <div class="card-header card-header-success card-header-icon">
-            <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Tiempo Extra</h3> 
+            <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Tiempo Extra</h3>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -124,10 +140,10 @@
                             <th>Minutos Paro</th>
                             <th>Promedio Minutos Paro</th>
                             <th>Cantidad Paro Modular</th>
-                            <th>Minutos Paro Modular</th> 
-                            <th>Total piezas por Bulto</th> 
-                            <th>Total Bulto</th> 
-                            <th>Total Bulto Rechazados</th> 
+                            <th>Minutos Paro Modular</th>
+                            <th>Total piezas por Bulto</th>
+                            <th>Total Bulto</th>
+                            <th>Total Bulto Rechazados</th>
                             <th>Cantidad Auditados</th>
                             <th>Cantidad Defectos</th>
                             <th>% Error AQL</th>
@@ -146,10 +162,11 @@
         </div>
     </div>
     <!-- Tabla de Proceso Tiempo Extra -->
-    <div id="tablaProcesoTE" class="table-container" >
+    <div id="tablaProcesoTE" class="table-container">
         <div class="card">
             <div class="card-header card-header-success card-header-icon">
-                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Tiempo Extra</h3>
+                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Tiempo
+                    Extra</h3>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -193,12 +210,14 @@
             margin: 0;
             padding: 20px;
         }
+
         .custom-card {
             background-color: #1e1e1e;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
+
         .custom-card-header {
             background-color: #2e7d32;
             color: white;
@@ -206,21 +225,27 @@
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
         }
+
         .custom-card-body {
             padding: 15px;
         }
+
         .custom-table {
             width: 100%;
             border-collapse: collapse;
         }
-        .custom-table th, .custom-table td {
+
+        .custom-table th,
+        .custom-table td {
             text-align: left;
             padding: 12px;
             border-bottom: 1px solid #333;
         }
+
         .custom-table th {
             background-color: #2e2e2e;
         }
+
         .custom-btn {
             background-color: transparent;
             border: none;
@@ -228,6 +253,7 @@
             cursor: pointer;
             text-decoration: underline;
         }
+
         .custom-modal {
             display: none;
             position: fixed;
@@ -236,9 +262,10 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.9);
+            background-color: rgba(0, 0, 0, 0.9);
             overflow-y: auto;
         }
+
         .custom-modal-content {
             background-color: #1e1e1e;
             margin: 0 auto;
@@ -247,6 +274,7 @@
             min-height: 100%;
             box-sizing: border-box;
         }
+
         .custom-close {
             color: #aaa;
             float: right;
@@ -257,10 +285,12 @@
             right: 25px;
             top: 15px;
         }
+
         .custom-close:hover,
         .custom-close:focus {
             color: #fff;
         }
+
         .custom-modal-header {
             position: fixed;
             top: 0;
@@ -270,44 +300,65 @@
             padding: 15px;
             z-index: 1001;
         }
+
         .custom-modal-body {
-            margin-top: 70px; /* Ajusta este valor según la altura de tu encabezado */
+            margin-top: 70px;
+            /* Ajusta este valor según la altura de tu encabezado */
             padding: 15px;
         }
     </style>
 
     <script>
-        // Función genérica para cargar datos en la tabla
-        function cargarDatos(url, tablaBodyId) {
-            let fechaInicio = document.getElementById("fecha_inicio").value;
-
-            if (!fechaInicio) {
-                alert("Por favor selecciona una fecha.");
-                return;
-            }
-
-            fetch(url + "?fecha_inicio=" + fechaInicio, {
-                method: "GET",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest"
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("btnMostrar").addEventListener("click", function() {
+                let fechaInicio = document.getElementById("fecha_inicio").value;
+                if (!fechaInicio) {
+                    alert("Por favor selecciona una fecha.");
                     return;
                 }
 
-                let tablaBody = document.getElementById(tablaBodyId);
-                tablaBody.innerHTML = ""; // Limpiar contenido anterior
+                // Cargar datos SOLO para AQL al inicio
+                cargarDatos("{{ route('dashboardPlanta1V2.buscarAQL') }}", "tablaAQLGeneralNuevoBody",
+                    "datosModuloEstiloAQL");
+                cargarDatos("{{ route('dashboardPlanta1V2.buscarAQLTE') }}", "tablaAQLGeneralTENuevoBody",
+                    "datosModuloEstiloAQLTE");
 
-                let registros = data.datosModuloEstiloAQL || data.datosModuloEstiloAQLTE; // Identificar cuál conjunto de datos llegó
+                // Mostrar la tabla de AQL por defecto
+                document.getElementById("tablaAQL").style.display = "block";
+                document.getElementById("tablaProceso").style.display = "none";
+            });
 
-                if (registros && registros.length > 0) {
-                    registros.forEach(item => {
-                        let row = `
-                            <tr>
+            document.getElementById("showAQL").addEventListener("click", function() {
+                document.getElementById("tablaAQL").style.display = "block";
+                document.getElementById("tablaProceso").style.display = "none";
+            });
+        });
+
+        // Función para cargar datos en las tablas AQL
+        function cargarDatos(url, tablaBodyId, dataKey) {
+            let fechaInicio = document.getElementById("fecha_inicio").value;
+
+            fetch(url + "?fecha_inicio=" + fechaInicio, {
+                    method: "GET",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+
+                    let tablaBody = document.getElementById(tablaBodyId);
+                    tablaBody.innerHTML = ""; // Limpiar contenido anterior
+
+                    let registros = data[dataKey];
+
+                    if (registros && registros.length > 0) {
+                        registros.forEach(item => {
+                            let row = `<tr>
                                 <td>${item.auditoresUnicos}</td>
                                 <td>
                                     <button type="button" class="custom-btn" 
@@ -334,77 +385,68 @@
                                 <td>${item.operariosUnicos}</td>
                                 <td>${item.sumaReparacionRechazo}</td>
                                 <td>${item.piezasRechazadasUnicas}</td>
-                            </tr>
-                        `;
-                        tablaBody.innerHTML += row;
-                    });
-                } else {
-                    tablaBody.innerHTML = "<tr><td colspan='21'>No hay datos disponibles.</td></tr>";
-                }
-            })
-            .catch(error => console.error("Error en AJAX:", error));
+                        </tr>`;
+                            tablaBody.innerHTML += row;
+                        });
+                    } else {
+                        tablaBody.innerHTML = `<tr><td colspan='9'>No hay datos disponibles para ${dataKey}.</td></tr>`;
+                    }
+                })
+                .catch(error => console.error("Error en AJAX:", error));
         }
-
-        // Eventos para llamar a la función con diferentes rutas y tablas
-        document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("btnMostrar").addEventListener("click", function() {
-                let fechaInicio = document.getElementById("fecha_inicio").value;
-
-                if (!fechaInicio) {
-                    alert("Por favor selecciona una fecha.");
-                    return;
-                }
-
-                // Cargar ambas tablas en paralelo
-                cargarDatos("{{ route('dashboardPlanta1V2.buscarAQL') }}", "tablaAQLGeneralNuevoBody");
-                cargarDatos("{{ route('dashboardPlanta1V2.buscarAQLTE') }}", "tablaAQLGeneralTENuevoBody");
-            });
-        });
-
     </script>
-    
+
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("btnMostrar").addEventListener("click", function() {
-                let fechaInicio = document.getElementById("fecha_inicio").value;
+            let procesoCargado = false; // Bandera para evitar recargar Proceso si ya se cargó
 
-                if (!fechaInicio) {
-                    alert("Por favor selecciona una fecha.");
-                    return;
+            document.getElementById("showProceso").addEventListener("click", function() {
+                document.getElementById("tablaAQL").style.display = "none";
+                document.getElementById("tablaProceso").style.display = "block";
+
+                // Cargar datos de Proceso solo si no se han cargado antes
+                if (!procesoCargado) {
+                    let fechaInicio = document.getElementById("fecha_inicio").value;
+                    if (!fechaInicio) {
+                        alert("Por favor selecciona una fecha.");
+                        return;
+                    }
+
+                    cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProceso') }}",
+                        "tablaProcesoGeneralNuevoBody", "datosModuloEstiloProceso");
+                    cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProcesoTE') }}",
+                        "tablaProcesoGeneralTENuevoBody", "datosModuloEstiloProcesoTE");
+
+                    procesoCargado = true; // Marcar como cargado para evitar nuevas peticiones innecesarias
                 }
-
-                // Cargar solo las tablas de PROCESO
-                cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProceso') }}", "tablaProcesoGeneralNuevoBody");
-                cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProcesoTE') }}", "tablaProcesoGeneralTENuevoBody");
             });
         });
 
-        // Función específica para cargar Proceso
-        function cargarDatosProceso(url, tablaBodyId) {
+        // Función para cargar datos en las tablas de Proceso
+        function cargarDatosProceso(url, tablaBodyId, dataKey) {
             let fechaInicio = document.getElementById("fecha_inicio").value;
 
             fetch(url + "?fecha_inicio=" + fechaInicio, {
-                method: "GET",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest"
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                    return;
-                }
+                    method: "GET",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
 
-                let tablaBody = document.getElementById(tablaBodyId);
-                tablaBody.innerHTML = ""; // Limpiar contenido anterior
+                    let tablaBody = document.getElementById(tablaBodyId);
+                    tablaBody.innerHTML = ""; // Limpiar contenido anterior
 
-                let registros = data.datosModuloEstiloProceso || data.datosModuloEstiloProcesoTE;
+                    let registros = data[dataKey];
 
-                if (registros && registros.length > 0) {
-                    registros.forEach(item => {
-                        let row = `
-                            <tr>
+                    if (registros && registros.length > 0) {
+                        registros.forEach(item => {
+                            let row = `<tr>
                                 <td>${item.auditoresUnicos}</td>
                                 <td>
                                     <button type="button" class="custom-btn" 
@@ -428,15 +470,15 @@
                                 <td>${item.defectosUnicos}</td>
                                 <td>${item.accionesCorrectivasUnicos}</td>
                                 <td>${item.operariosUnicos}</td>
-                            </tr>
-                        `;
-                        tablaBody.innerHTML += row;
-                    });
-                } else {
-                    tablaBody.innerHTML = "<tr><td colspan='18'>No hay datos disponibles.</td></tr>";
-                }
-            })
-            .catch(error => console.error("Error en AJAX:", error));
+                    </tr>`;
+                            tablaBody.innerHTML += row;
+                        });
+                    } else {
+                        tablaBody.innerHTML =
+                        `<tr><td colspan='10'>No hay datos disponibles para ${dataKey}.</td></tr>`;
+                    }
+                })
+                .catch(error => console.error("Error en AJAX:", error));
         }
     </script>
 @endsection
