@@ -38,6 +38,7 @@ use App\Http\Controllers\ConsutlaEstatusController;
 use App\Http\Controllers\EtiquetasV2Controller;
 use App\Http\Controllers\GestionUsuarioController;
 use App\Http\Controllers\ScreenV2Controller;
+use App\Http\Controllers\DashboardPorDiaV2Controller;
 
 
 /*
@@ -462,5 +463,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/formControlHorno', [ScreenV2Controller::class, 'formControlHorno'])->name('formControlHorno');
     Route::delete('/inspeccion/{id}', [ScreenV2Controller::class, 'eliminarBulto'])->name('eliminarBulto');
 
-
+    //apartado para dashboard con la segunda version
+    Route::get('/dashboardPlanta1V2', [DashboardPorDiaV2Controller::class, 'dashboardPlanta1V2'])->name('dashboardPlanta1V2');
 });
