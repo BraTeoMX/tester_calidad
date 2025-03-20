@@ -407,11 +407,11 @@
                         </table>
                     </div>
                     <!-- Panel de comentario -->
-                    <div class="row" id="comentarioPanel" >
+                    <div class="row" id="comentarioPanel">
                         <div class="col-lg-6">
                             <p>Observaciones</p>
-                            <textarea id="comentarioInput" class="form-control texto-blanco" rows="3" placeholder="Escribe tu comentario"></textarea>
-                            <button id="guardarComentario" class="btn btn-danger mt-2">Guardar Comentario</button>
+                            <textarea id="comentarioInput" class="form-control texto-blanco" rows="3" placeholder="Escribe tu comentario">{{ $observacion ?? '' }}</textarea>
+                            <button id="guardarComentario" class="btn btn-danger mt-2">Finalizar</button>
                         </div>
                     </div>
                 </div>
@@ -438,6 +438,14 @@
                             <tbody>
                             </tbody>
                         </table>
+                    </div>
+                    <!-- Panel de comentario -->
+                    <div class="row" id="comentarioPanelTE">
+                        <div class="col-lg-6">
+                            <p>Observaciones</p>
+                            <textarea id="comentarioInputTE" class="form-control texto-blanco" rows="3" placeholder="Escribe tu comentario">{{ $observacionTE ?? '' }}</textarea>
+                            <button id="guardarComentarioTE" class="btn btn-danger mt-2">Finalizar</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -653,6 +661,23 @@
         }
     </style>
 
+    <!-- Si ya existe un comentario, deshabilitamos el textarea y el botón -->
+    @if(isset($observacion) && !empty($observacion))
+    <script>
+        $(document).ready(function(){
+            $('#comentarioInput').prop('disabled', true);
+            $('#guardarComentario').prop('disabled', true);
+        });
+    </script>
+    @endif
+    @if(isset($observacionTE) && !empty($observacionTE))
+    <script>
+        $(document).ready(function(){
+            $('#comentarioInputTE').prop('disabled', true);
+            $('#guardarComentarioTE').prop('disabled', true);
+        });
+    </script>
+    @endif
 
     <script>
         $(document).ready(function () {
@@ -1347,16 +1372,15 @@
 
                 $(document).on("click", ".eliminar-registro", function (e) {
                     e.preventDefault();
-                    let boton = $(this); // Guardar referencia al botón
+                    let boton = $(this);
                     let registroId = boton.data("id");
 
-                    // Confirmación antes de eliminar
                     if (!confirm("¿Estás seguro que quieres eliminar este registro?")) {
                         return;
                     }
 
                     $.ajax({
-                        url: "{{ route('eliminarRegistroTurnoNormal') }}", // Ruta en Laravel
+                        url: "{{ route('eliminarRegistroTurnoNormal') }}",
                         type: "POST",
                         data: JSON.stringify({ id: registroId }),
                         contentType: "application/json",
@@ -1364,11 +1388,15 @@
                             "X-CSRF-TOKEN": "{{ csrf_token() }}"
                         },
                         success: function(response) {
-                            alert("✅ Registro eliminado correctamente.");
-                            boton.closest("tr").remove(); // Eliminar solo la fila de la tabla sin recargar toda la tabla
+                            if (response.warning) {
+                                alert("⚠ " + response.warning);
+                            } else if (response.message) {
+                                alert("✅ Registro eliminado correctamente.");
+                                boton.closest("tr").remove();
+                            }
                         },
                         error: function(xhr) {
-                            console.log(xhr.responseText);
+                            console.error(xhr.responseText);
                             alert("❌ Error al eliminar el registro.");
                         }
                     });
@@ -1570,16 +1598,15 @@
 
                 $(document).on("click", ".eliminar-registro-te", function (e) {
                     e.preventDefault();
-                    let boton = $(this); // Guardar referencia al botón
+                    let boton = $(this);
                     let registroId = boton.data("id");
 
-                    // Confirmación antes de eliminar
                     if (!confirm("¿Estás seguro que quieres eliminar este registro?")) {
                         return;
                     }
 
                     $.ajax({
-                        url: "{{ route('eliminarRegistroTurnoNormal') }}", // Ruta en Laravel
+                        url: "{{ route('eliminarRegistroTurnoNormal') }}",
                         type: "POST",
                         data: JSON.stringify({ id: registroId }),
                         contentType: "application/json",
@@ -1587,11 +1614,15 @@
                             "X-CSRF-TOKEN": "{{ csrf_token() }}"
                         },
                         success: function(response) {
-                            alert("✅ Registro eliminado correctamente.");
-                            boton.closest("tr").remove(); // Eliminar solo la fila de la tabla sin recargar toda la tabla
+                            if (response.warning) {
+                                alert("⚠ " + response.warning);
+                            } else if (response.message) {
+                                alert("✅ Registro eliminado correctamente.");
+                                boton.closest("tr").remove();
+                            }
                         },
                         error: function(xhr) {
-                            console.log(xhr.responseText);
+                            console.error(xhr.responseText);
                             alert("❌ Error al eliminar el registro.");
                         }
                     });
@@ -1633,6 +1664,47 @@
                     });
                 }
             }
+
+            $(document).ready(function () {
+                $('#guardarComentarioTE').on('click', function () {
+                    let comentario = $('#comentarioInputTE').val().trim();
+                    let modulo = $("#modulo").val(); // Suponiendo que tienes un input o variable con el módulo
+
+                    if (comentario === "") {
+                        alert("Por favor, ingresa un comentario.");
+                        return;
+                    }
+
+                    $.ajax({
+                        url: "{{ route('guardarObservacionProcesoTE') }}",
+                        type: "POST",
+                        data: {
+                            modulo: modulo,
+                            comentario: comentario
+                        },
+                        headers: {
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                alert("Comentario guardado correctamente.");
+                                // Bloquear el input y botón para evitar cambios
+                                $('#comentarioInputTE').prop('disabled', true).val(response.comentario);
+                                $('#guardarComentarioTE').prop('disabled', true);
+                                // Opcional: Deshabilitar botones de eliminar en la tabla si así lo requieres
+                                $(".eliminar-registro-te").prop('disabled', true);
+                            } else {
+                                alert("Error: " + response.message);
+                            }
+                        },
+                        error: function (xhr) {
+                            console.error(xhr.responseText);
+                            alert("Ocurrió un error al guardar el comentario.");
+                        }
+                    });
+                });
+            });
+
             // Llamar a la función al cargar la página
             cargarRegistrosTE();
         });

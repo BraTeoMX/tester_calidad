@@ -184,6 +184,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/api/paros-no-finalizados', [AuditoriaProcesoV2Controller::class, 'parosNoFinalizados'])->name('parosNoFinalizados');
     Route::post('/api/finalizar-paro-proceso-despues', [AuditoriaProcesoV2Controller::class, 'finalizarParoProcesodespues'])->name('finalizarParoProcesodespues');
     Route::post('/observacion-proceso-v2', [AuditoriaProcesoV2Controller::class, 'guardarObservacionProceso'])->name('guardarObservacionProceso');
+    Route::post('/observacion-proceso-te-v2', [AuditoriaProcesoV2Controller::class, 'guardarObservacionProcesoTE'])->name('guardarObservacionProcesoTE');
 
 
 

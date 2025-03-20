@@ -237,7 +237,18 @@ class AuditoriaProcesoV2Controller extends Controller
         $resultadoFinal = $resultadoFinalSinTE || $resultadoFinalConTE;
 
 
-        return view('aseguramientoCalidad.auditoriaProcesoV2', compact('mesesEnEspanol', 'pageSlug', 'data', 'resultadoFinal'));
+        // Recuperar el comentario (observacion) para el módulo y día actual
+        $observacion = AseguramientoCalidad::whereDate('created_at', $fechaActual)
+            ->where('modulo', $data['modulo'])
+            ->whereNull('tiempo_extra')
+            ->value('observacion'); // Devuelve null si no hay
+
+        $observacionTE = AseguramientoCalidad::whereDate('created_at', $fechaActual)
+            ->where('modulo', $data['modulo'])
+            ->where('tiempo_extra', 1)
+            ->value('observacion'); // Devuelve null si no hay
+
+        return view('aseguramientoCalidad.auditoriaProcesoV2', compact('mesesEnEspanol', 'pageSlug', 'data', 'resultadoFinal', 'observacion', 'observacionTE'));
     }
 
     public function obtenerListaProcesosV2()
@@ -597,6 +608,13 @@ class AuditoriaProcesoV2Controller extends Controller
                 return response()->json(['error' => 'Registro no encontrado'], 404);
             }
 
+            // Verificar si el registro tiene estatus (por ejemplo, si no es nulo o es igual a 1)
+            if (!is_null($registro->estatus)) {
+                return response()->json([
+                    'warning' => 'No se puede eliminar porque ya se finalizó la auditoría.'
+                ], 200); // ⚠ Se devuelve un código 200 en lugar de 400 para no disparar "error" en AJAX
+            }
+
             $registro->delete(); // Eliminar el registro
 
             return response()->json(['message' => 'Registro eliminado correctamente'], 200);
@@ -785,6 +803,7 @@ class AuditoriaProcesoV2Controller extends Controller
             // Actualizar la columna 'observacion' para todos los registros del módulo y día
             AseguramientoCalidad::whereDate('created_at', $fechaActual)
                 ->where('modulo', $modulo)
+                ->where('tiempo_extra', null)
                 ->update([
                     'observacion' => $comentario,
                     'estatus' => 1  // Establece estatus en 1
@@ -802,7 +821,35 @@ class AuditoriaProcesoV2Controller extends Controller
             ], 500);
         }
     }
+    
+    public function guardarObservacionProcesoTE(Request $request)
+    {
+        try {
+            $modulo = $request->input('modulo');
+            $comentario = $request->input('comentario');
+            $fechaActual = Carbon::now()->toDateString();
 
+            // Actualizar la columna 'observacion' para todos los registros del módulo y día
+            AseguramientoCalidad::whereDate('created_at', $fechaActual)
+                ->where('modulo', $modulo)
+                ->where('tiempo_extra', 1)
+                ->update([
+                    'observacion' => $comentario,
+                    'estatus' => 1  // Establece estatus en 1
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'comentario' => $comentario,
+                'message' => 'Comentario actualizado correctamente.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al guardar el comentario: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
 
 }
