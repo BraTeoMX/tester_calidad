@@ -66,6 +66,45 @@
             </div>
         </div>
     </div>
+    <!-- Tabla de Proceso General -->
+    <div id="tablaProceso" class="table-container" >
+        <div class="card">
+            <div class="card-header card-header-success card-header-icon">
+                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Turno Normal</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table tablesorter">
+                        <thead class="text-primary">
+                            <tr>
+                                <th>Auditor</th>
+                                <th>Modulo</th>
+                                <th>Supervisor</th>
+                                <th>Estilo</th>
+                                <th>Recorridos</th>
+                                <th>Numero de Operarios</th>
+                                <th>Numero de Utility</th>
+                                <th>Cantidad Paro</th>
+                                <th>Minutos Paro</th>
+                                <th>Promedio Minutos Paro</th>
+                                <th>Cantidad Paro Modular</th>
+                                <th>Minutos Paro Modular</th>
+                                <th>Cantidad Auditados</th>
+                                <th>Cantidad Defectos</th>
+                                <th>% Error Proceso</th>
+                                <th>DEFECTOS</th>
+                                <th>ACCION CORRECTIVA</th>
+                                <th>Operarios</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaProcesoGeneralNuevoBody">
+                            <!-- Aquí se insertarán los datos dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="card">
         <div class="card-header card-header-success card-header-icon">
@@ -106,7 +145,45 @@
             </div>
         </div>
     </div>
-    
+    <!-- Tabla de Proceso Tiempo Extra -->
+    <div id="tablaProcesoTE" class="table-container" >
+        <div class="card">
+            <div class="card-header card-header-success card-header-icon">
+                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Tiempo Extra</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table tablesorter">
+                        <thead class="text-primary">
+                            <tr>
+                                <th>Auditor</th>
+                                <th>Modulo</th>
+                                <th>Supervisor</th>
+                                <th>Estilo</th>
+                                <th>Recorridos</th>
+                                <th>Numero de Operarios</th>
+                                <th>Numero de Utility</th>
+                                <th>Cantidad Paro</th>
+                                <th>Minutos Paro</th>
+                                <th>Promedio Minutos Paro</th>
+                                <th>Cantidad Paro Modular</th>
+                                <th>Minutos Paro Modular</th>
+                                <th>Cantidad Auditados</th>
+                                <th>Cantidad Defectos</th>
+                                <th>% Error Proceso</th>
+                                <th>DEFECTOS</th>
+                                <th>ACCION CORRECTIVA</th>
+                                <th>Operarios</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaProcesoGeneralTENuevoBody">
+                            <!-- Aquí se insertarán los datos dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <style>
         .custom-body {
@@ -286,4 +363,80 @@
 
     </script>
     
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("btnMostrar").addEventListener("click", function() {
+                let fechaInicio = document.getElementById("fecha_inicio").value;
+
+                if (!fechaInicio) {
+                    alert("Por favor selecciona una fecha.");
+                    return;
+                }
+
+                // Cargar solo las tablas de PROCESO
+                cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProceso') }}", "tablaProcesoGeneralNuevoBody");
+                cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProcesoTE') }}", "tablaProcesoGeneralTENuevoBody");
+            });
+        });
+
+        // Función específica para cargar Proceso
+        function cargarDatosProceso(url, tablaBodyId) {
+            let fechaInicio = document.getElementById("fecha_inicio").value;
+
+            fetch(url + "?fecha_inicio=" + fechaInicio, {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                let tablaBody = document.getElementById(tablaBodyId);
+                tablaBody.innerHTML = ""; // Limpiar contenido anterior
+
+                let registros = data.datosModuloEstiloProceso || data.datosModuloEstiloProcesoTE;
+
+                if (registros && registros.length > 0) {
+                    registros.forEach(item => {
+                        let row = `
+                            <tr>
+                                <td>${item.auditoresUnicos}</td>
+                                <td>
+                                    <button type="button" class="custom-btn" 
+                                        onclick="openCustomModal('customModalProceso${item.modulo}_${item.estilo}')">
+                                        ${item.modulo}
+                                    </button>
+                                </td>
+                                <td>${item.supervisoresUnicos}</td>
+                                <td>${item.estilo}</td>
+                                <td>${item.cantidadRecorridos}</td>
+                                <td>${item.conteoOperario}</td>
+                                <td>${item.conteoUtility}</td>
+                                <td>${item.conteoMinutos}</td>
+                                <td>${item.sumaMinutos}</td>
+                                <td>${item.promedioMinutosEntero}</td> 
+                                <td>${item.conteParoModular}</td>
+                                <td>${item.sumaParoModular}</td>
+                                <td>${item.sumaAuditadaProceso}</td> 
+                                <td>${item.sumaRechazadaProceso}</td> 
+                                <td>${Number(item.porcentajeErrorProceso).toFixed(2)}%</td>
+                                <td>${item.defectosUnicos}</td>
+                                <td>${item.accionesCorrectivasUnicos}</td>
+                                <td>${item.operariosUnicos}</td>
+                            </tr>
+                        `;
+                        tablaBody.innerHTML += row;
+                    });
+                } else {
+                    tablaBody.innerHTML = "<tr><td colspan='18'>No hay datos disponibles.</td></tr>";
+                }
+            })
+            .catch(error => console.error("Error en AJAX:", error));
+        }
+    </script>
 @endsection
