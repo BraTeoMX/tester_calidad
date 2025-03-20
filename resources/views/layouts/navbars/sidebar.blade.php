@@ -93,7 +93,7 @@
                                 </a>
                             </li>
                             <li class="nav-item{{ $pageSlug == 'proceso' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('aseguramientoCalidad.altaProceso') }}">
+                                <a class="nav-link" href="{{ route('altaProcesoV2') }}">
                                     <i class="material-icons">edit_document</i>
                                     <p>{{ __('FCC-001') }}</p>
                                     <p style="text-align: center;">{{ __('AUDITORIA DE PROCESOS') }}</p>
@@ -137,7 +137,7 @@
                                 </a>
                             </li>
                             <li class="nav-item{{ $pageSlug == 'proceso' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('aseguramientoCalidad.altaProceso') }}">
+                                <a class="nav-link" href="{{ route('altaProcesoV2') }}">
                                     <i class="material-icons">edit_document</i>
                                     <p>{{ __('FCC-001') }}</p>
                                     <p style="text-align: center;">{{ __('AUDITORIA DE PROCESOS') }}</p>
