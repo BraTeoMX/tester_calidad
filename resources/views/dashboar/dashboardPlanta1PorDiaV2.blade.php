@@ -38,85 +38,85 @@
                 <h5><i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos</h5>
             </label>
         </div>
-    </div>
-    <div id="tablaAQL" class="table-container" style="display: block;">
-        <div class="card">
-            <div class="card-header card-header-success card-header-icon">
-                <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Turno Normal
-                </h3>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table tablesorter">
-                        <thead class="text-primary">
-                            <tr>
-                                <th>Auditor</th>
-                                <th>Modulo (AQL)</th>
-                                <th>Supervisor</th>
-                                <th>Estilo</th>
-                                <th>Numero de Operarios</th>
-                                <th>Cantidad Paro</th>
-                                <th>Minutos Paro</th>
-                                <th>Promedio Minutos Paro</th>
-                                <th>Cantidad Paro Modular</th>
-                                <th>Minutos Paro Modular</th>
-                                <th>Total piezas por Bulto</th>
-                                <th>Total Bulto</th>
-                                <th>Total Bulto Rechazados</th>
-                                <th>Cantidad Auditados</th>
-                                <th>Cantidad Defectos</th>
-                                <th>% Error AQL</th>
-                                <th>Defectos</th>
-                                <th>Accion Correctiva</th>
-                                <th>Operario Responsable</th>
-                                <th>Reparacion Piezas</th>
-                                <th>Piezas de Bulto Rechazado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaAQLGeneralNuevoBody">
-                            <!-- Aquí se insertarán los datos dinámicamente -->
-                        </tbody>
-                    </table>
+        <div id="tablaAQL" class="table-container" style="display: block;">
+            <div class="card">
+                <div class="card-header card-header-success card-header-icon">
+                    <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Turno Normal
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table tablesorter">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Auditor</th>
+                                    <th>Modulo (AQL)</th>
+                                    <th>Supervisor</th>
+                                    <th>Estilo</th>
+                                    <th>Numero de Operarios</th>
+                                    <th>Cantidad Paro</th>
+                                    <th>Minutos Paro</th>
+                                    <th>Promedio Minutos Paro</th>
+                                    <th>Cantidad Paro Modular</th>
+                                    <th>Minutos Paro Modular</th>
+                                    <th>Total piezas por Bulto</th>
+                                    <th>Total Bulto</th>
+                                    <th>Total Bulto Rechazados</th>
+                                    <th>Cantidad Auditados</th>
+                                    <th>Cantidad Defectos</th>
+                                    <th>% Error AQL</th>
+                                    <th>Defectos</th>
+                                    <th>Accion Correctiva</th>
+                                    <th>Operario Responsable</th>
+                                    <th>Reparacion Piezas</th>
+                                    <th>Piezas de Bulto Rechazado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaAQLGeneralNuevoBody">
+                                <!-- Aquí se insertarán los datos dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <!-- Tabla de Proceso General -->
-    <div id="tablaProceso" class="table-container" style="display: none;">
-        <div class="card">
-            <div class="card-header card-header-success card-header-icon">
-                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Turno
-                    Normal</h3>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table tablesorter">
-                        <thead class="text-primary">
-                            <tr>
-                                <th>Auditor</th>
-                                <th>Modulo</th>
-                                <th>Supervisor</th>
-                                <th>Estilo</th>
-                                <th>Recorridos</th>
-                                <th>Numero de Operarios</th>
-                                <th>Numero de Utility</th>
-                                <th>Cantidad Paro</th>
-                                <th>Minutos Paro</th>
-                                <th>Promedio Minutos Paro</th>
-                                <th>Cantidad Paro Modular</th>
-                                <th>Minutos Paro Modular</th>
-                                <th>Cantidad Auditados</th>
-                                <th>Cantidad Defectos</th>
-                                <th>% Error Proceso</th>
-                                <th>DEFECTOS</th>
-                                <th>ACCION CORRECTIVA</th>
-                                <th>Operarios</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaProcesoGeneralNuevoBody">
-                            <!-- Aquí se insertarán los datos dinámicamente -->
-                        </tbody>
-                    </table>
+        <!-- Tabla de Proceso General -->
+        <div id="tablaProceso" class="table-container" style="display: none;">
+            <div class="card">
+                <div class="card-header card-header-success card-header-icon">
+                    <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Turno
+                        Normal</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table tablesorter">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Auditor</th>
+                                    <th>Modulo</th>
+                                    <th>Supervisor</th>
+                                    <th>Estilo</th>
+                                    <th>Recorridos</th>
+                                    <th>Numero de Operarios</th>
+                                    <th>Numero de Utility</th>
+                                    <th>Cantidad Paro</th>
+                                    <th>Minutos Paro</th>
+                                    <th>Promedio Minutos Paro</th>
+                                    <th>Cantidad Paro Modular</th>
+                                    <th>Minutos Paro Modular</th>
+                                    <th>Cantidad Auditados</th>
+                                    <th>Cantidad Defectos</th>
+                                    <th>% Error Proceso</th>
+                                    <th>DEFECTOS</th>
+                                    <th>ACCION CORRECTIVA</th>
+                                    <th>Operarios</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaProcesoGeneralNuevoBody">
+                                <!-- Aquí se insertarán los datos dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -133,85 +133,85 @@
                 <h5><i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos TE</h5>
             </label>
         </div>
-    </div>
-    <!-- Tabla de AQL TE (visible por defecto) -->
-    <div id="tablaAQLTE" class="table-container" style="display: block;">
-        <div class="card">
-            <div class="card-header card-header-success card-header-icon">
-                <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Tiempo Extra</h3>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table tablesorter">
-                        <thead class="text-primary">
-                            <tr>
-                                <th>Auditor</th>
-                                <th>Modulo (AQL)</th>
-                                <th>Supervisor</th>
-                                <th>Estilo</th>
-                                <th>Numero de Operarios</th>
-                                <th>Cantidad Paro</th>
-                                <th>Minutos Paro</th>
-                                <th>Promedio Minutos Paro</th>
-                                <th>Cantidad Paro Modular</th>
-                                <th>Minutos Paro Modular</th>
-                                <th>Total piezas por Bulto</th>
-                                <th>Total Bulto</th>
-                                <th>Total Bulto Rechazados</th>
-                                <th>Cantidad Auditados</th>
-                                <th>Cantidad Defectos</th>
-                                <th>% Error AQL</th>
-                                <th>Defectos</th>
-                                <th>Accion Correctiva</th>
-                                <th>Operario Responsable</th>
-                                <th>Reparacion Piezas</th>
-                                <th>Piezas de Bulto Rechazado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaAQLGeneralTENuevoBody">
-                            <!-- Aquí se insertarán los datos dinámicamente -->
-                        </tbody>
-                    </table>
+        <!-- Tabla de AQL TE (visible por defecto) -->
+        <div id="tablaAQLTE" class="table-container" style="display: block;">
+            <div class="card">
+                <div class="card-header card-header-success card-header-icon">
+                    <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Tiempo Extra</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table tablesorter">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Auditor</th>
+                                    <th>Modulo (AQL)</th>
+                                    <th>Supervisor</th>
+                                    <th>Estilo</th>
+                                    <th>Numero de Operarios</th>
+                                    <th>Cantidad Paro</th>
+                                    <th>Minutos Paro</th>
+                                    <th>Promedio Minutos Paro</th>
+                                    <th>Cantidad Paro Modular</th>
+                                    <th>Minutos Paro Modular</th>
+                                    <th>Total piezas por Bulto</th>
+                                    <th>Total Bulto</th>
+                                    <th>Total Bulto Rechazados</th>
+                                    <th>Cantidad Auditados</th>
+                                    <th>Cantidad Defectos</th>
+                                    <th>% Error AQL</th>
+                                    <th>Defectos</th>
+                                    <th>Accion Correctiva</th>
+                                    <th>Operario Responsable</th>
+                                    <th>Reparacion Piezas</th>
+                                    <th>Piezas de Bulto Rechazado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaAQLGeneralTENuevoBody">
+                                <!-- Aquí se insertarán los datos dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <!-- Tabla de Proceso Tiempo Extra -->
-    <div id="tablaProcesoTE" class="table-container" style="display: none;">
-        <div class="card">
-            <div class="card-header card-header-success card-header-icon">
-                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Tiempo
-                    Extra</h3>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table tablesorter">
-                        <thead class="text-primary">
-                            <tr>
-                                <th>Auditor</th>
-                                <th>Modulo</th>
-                                <th>Supervisor</th>
-                                <th>Estilo</th>
-                                <th>Recorridos</th>
-                                <th>Numero de Operarios</th>
-                                <th>Numero de Utility</th>
-                                <th>Cantidad Paro</th>
-                                <th>Minutos Paro</th>
-                                <th>Promedio Minutos Paro</th>
-                                <th>Cantidad Paro Modular</th>
-                                <th>Minutos Paro Modular</th>
-                                <th>Cantidad Auditados</th>
-                                <th>Cantidad Defectos</th>
-                                <th>% Error Proceso</th>
-                                <th>DEFECTOS</th>
-                                <th>ACCION CORRECTIVA</th>
-                                <th>Operarios</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaProcesoGeneralTENuevoBody">
-                            <!-- Aquí se insertarán los datos dinámicamente -->
-                        </tbody>
-                    </table>
+        <!-- Tabla de Proceso Tiempo Extra -->
+        <div id="tablaProcesoTE" class="table-container" style="display: none;">
+            <div class="card">
+                <div class="card-header card-header-success card-header-icon">
+                    <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Tiempo
+                        Extra</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table tablesorter">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Auditor</th>
+                                    <th>Modulo</th>
+                                    <th>Supervisor</th>
+                                    <th>Estilo</th>
+                                    <th>Recorridos</th>
+                                    <th>Numero de Operarios</th>
+                                    <th>Numero de Utility</th>
+                                    <th>Cantidad Paro</th>
+                                    <th>Minutos Paro</th>
+                                    <th>Promedio Minutos Paro</th>
+                                    <th>Cantidad Paro Modular</th>
+                                    <th>Minutos Paro Modular</th>
+                                    <th>Cantidad Auditados</th>
+                                    <th>Cantidad Defectos</th>
+                                    <th>% Error Proceso</th>
+                                    <th>DEFECTOS</th>
+                                    <th>ACCION CORRECTIVA</th>
+                                    <th>Operarios</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaProcesoGeneralTENuevoBody">
+                                <!-- Aquí se insertarán los datos dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
