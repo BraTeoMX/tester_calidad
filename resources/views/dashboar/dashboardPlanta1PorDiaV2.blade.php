@@ -16,16 +16,22 @@
         <div class="col-md-6 d-flex align-items-center">
             <div class="form-group w-100">
                 <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
-                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ $fechaActual->format('Y-m-d') }}" required>
+                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
             </div>
         </div>
         <div class="col-md-6 d-flex align-items-end">
             <div class="form-group">
                 <label class="d-block">&nbsp;</label> <!-- Espacio para alinear con el input -->
-                <button type="submit" class="btn btn-secondary">Mostrar datos</button>
+                <button type="button" class="btn btn-secondary" id="btnMostrar">Mostrar datos</button>
             </div>
         </div>
-    </div>    
+    </div>   
+
+    <div class="card">
+        <div class="card-body" id="resultado">
+
+        </div> 
+    </div> 
 
     <style>
         .custom-body {
@@ -117,4 +123,5 @@
             padding: 15px;
         }
     </style>
+
 @endsection
