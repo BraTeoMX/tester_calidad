@@ -51,7 +51,11 @@ class DashboardPorDiaV2Controller extends Controller
         $fechaActual = Carbon::parse($request->input('fecha_inicio'));
         $plantaConsulta = "Intimark1";
 
+        Log::info("🔎 Iniciando consulta AQL para fecha: {$fechaActual}");
+
+        $inicio = microtime(true);
         $datosModuloEstiloAQL = $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, null);
+        Log::info("⏳ Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloAQL' => count($datosModuloEstiloAQL) > 0 ? $datosModuloEstiloAQL : []
@@ -67,7 +71,11 @@ class DashboardPorDiaV2Controller extends Controller
         $fechaActual = Carbon::parse($request->input('fecha_inicio'));
         $plantaConsulta = "Intimark1";
 
+        Log::info("🔎 Iniciando consulta AQL TE para fecha: {$fechaActual}");
+
+        $inicio = microtime(true);
         $datosModuloEstiloAQLTE = $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, 1);
+        Log::info("⏳ Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloAQLTE' => count($datosModuloEstiloAQLTE) > 0 ? $datosModuloEstiloAQLTE : []
@@ -83,7 +91,11 @@ class DashboardPorDiaV2Controller extends Controller
         $fechaActual = Carbon::parse($request->input('fecha_inicio'));
         $plantaConsulta = "Intimark1";
 
+        Log::info("🔎 Iniciando consulta Proceso para fecha: {$fechaActual}");
+
+        $inicio = microtime(true);
         $datosModuloEstiloProceso = $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, null);
+        Log::info("⏳ Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloProceso' => count($datosModuloEstiloProceso) > 0 ? $datosModuloEstiloProceso : []
@@ -99,7 +111,11 @@ class DashboardPorDiaV2Controller extends Controller
         $fechaActual = Carbon::parse($request->input('fecha_inicio'));
         $plantaConsulta = "Intimark1";
 
+        Log::info("🔎 Iniciando consulta Proceso TE para fecha: {$fechaActual}");
+
+        $inicio = microtime(true);
         $datosModuloEstiloProcesoTE = $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, 1);
+        Log::info("⏳ Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloProcesoTE' => count($datosModuloEstiloProcesoTE) > 0 ? $datosModuloEstiloProcesoTE : []

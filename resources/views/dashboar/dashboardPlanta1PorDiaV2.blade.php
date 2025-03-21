@@ -35,7 +35,7 @@
             </label>
             <label class="btn btn-sm btn-primary btn-simple" id="showProceso">
                 <input type="radio" name="options">
-                <h5><i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos</h5>
+                <h5><i class="tim-icons icon-vector text-primary"></i>&nbsp; Proceso</h5>
             </label>
         </div>
         <div id="tablaAQL" class="table-container" style="display: block;">
@@ -323,41 +323,128 @@
         }
     </style>
 
+    <!-- JavaScript -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("btnMostrar").addEventListener("click", function() {
+            // Variables para controlar si ya se cargaron las consultas para la fecha actual
+            let lastFecha = null;
+            let aqlLoaded = false;
+            let aqlteLoaded = false;
+            let procesoLoaded = false;
+            let procesoteLoaded = false;
+            
+            // Función para resetear las banderas (se llama cuando se cambia la fecha)
+            function resetFlags() {
+                aqlLoaded = false;
+                aqlteLoaded = false;
+                procesoLoaded = false;
+                procesoteLoaded = false;
+            }
+            
+            // Función para mostrar el contenedor de tabla correspondiente y ocultar los demás
+            function showTable(tableToShow) {
+                const tables = ["tablaAQL", "tablaAQLTE", "tablaProceso", "tablaProcesoTE"];
+                tables.forEach(function(tableId) {
+                    let elemento = document.getElementById(tableId);
+                    if (elemento) {
+                        elemento.style.display = (tableId === tableToShow) ? "block" : "none";
+                    }
+                });
+            }
+            
+            // Evento en el botón "Mostrar datos"
+            document.getElementById("btnMostrar").addEventListener("click", function () {
                 let fechaInicio = document.getElementById("fecha_inicio").value;
                 if (!fechaInicio) {
                     alert("Por favor selecciona una fecha.");
                     return;
                 }
-
-                // Cargar datos SOLO para AQL al inicio
-                cargarDatos("{{ route('dashboardPlanta1V2.buscarAQL') }}", "tablaAQLGeneralNuevoBody",
-                    "datosModuloEstiloAQL");
-                cargarDatos("{{ route('dashboardPlanta1V2.buscarAQLTE') }}", "tablaAQLGeneralTENuevoBody",
-                    "datosModuloEstiloAQLTE");
-
-                // Mostrar la tabla de AQL por defecto
-                document.getElementById("tablaAQL").style.display = "block";
-                document.getElementById("tablaProceso").style.display = "none";
+                // Si la fecha cambió, resetea las banderas
+                if (lastFecha !== fechaInicio) {
+                    resetFlags();
+                    lastFecha = fechaInicio;
+                }
+                // Al hacer clic en btnMostrar se carga SOLO la consulta AQL (si aún no se ha cargado)
+                if (!aqlLoaded) {
+                    cargarDatos("{{ route('dashboardPlanta1V2.buscarAQL') }}", "tablaAQLGeneralNuevoBody", "datosModuloEstiloAQL");
+                    aqlLoaded = true;
+                }
+                // Mostrar la tabla AQL por defecto
+                showTable("tablaAQL");
             });
-
-            document.getElementById("showAQL").addEventListener("click", function() {
-                document.getElementById("tablaAQL").style.display = "block";
-                document.getElementById("tablaProceso").style.display = "none";
+            
+            // Evento para el botón "AQL"
+            document.getElementById("showAQL").addEventListener("click", function () {
+                let fechaInicio = document.getElementById("fecha_inicio").value;
+                if (!fechaInicio) {
+                    alert("Por favor selecciona una fecha.");
+                    return;
+                }
+                // Si no se ha cargado aún, se ejecuta la consulta AQL
+                if (!aqlLoaded) {
+                    cargarDatos("{{ route('dashboardPlanta1V2.buscarAQL') }}", "tablaAQLGeneralNuevoBody", "datosModuloEstiloAQL");
+                    aqlLoaded = true;
+                }
+                showTable("tablaAQL");
             });
-        });
-
-        // Función para cargar datos en las tablas AQL
-        function cargarDatos(url, tablaBodyId, dataKey) {
-            let fechaInicio = document.getElementById("fecha_inicio").value;
-
-            fetch(url + "?fecha_inicio=" + fechaInicio, {
+            
+            // Evento para el botón "AQL TE"
+            document.getElementById("showAQLTE").addEventListener("click", function () {
+                let fechaInicio = document.getElementById("fecha_inicio").value;
+                if (!fechaInicio) {
+                    alert("Por favor selecciona una fecha.");
+                    return;
+                }
+                if (!aqlteLoaded) {
+                    cargarDatos("{{ route('dashboardPlanta1V2.buscarAQLTE') }}", "tablaAQLGeneralTENuevoBody", "datosModuloEstiloAQLTE");
+                    aqlteLoaded = true;
+                }
+                showTable("tablaAQLTE");
+            });
+            
+            // Evento para el botón "Proceso"
+            document.getElementById("showProceso").addEventListener("click", function () {
+                let fechaInicio = document.getElementById("fecha_inicio").value;
+                if (!fechaInicio) {
+                    alert("Por favor selecciona una fecha.");
+                    return;
+                }
+                if (!procesoLoaded) {
+                    cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProceso') }}", "tablaProcesoGeneralNuevoBody", "datosModuloEstiloProceso");
+                    procesoLoaded = true;
+                }
+                showTable("tablaProceso");
+            });
+            
+            // Evento para el botón "Proceso TE"
+            document.getElementById("showProcesoTE").addEventListener("click", function () {
+                let fechaInicio = document.getElementById("fecha_inicio").value;
+                if (!fechaInicio) {
+                    alert("Por favor selecciona una fecha.");
+                    return;
+                }
+                if (!procesoteLoaded) {
+                    cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProcesoTE') }}", "tablaProcesoGeneralTENuevoBody", "datosModuloEstiloProcesoTE");
+                    procesoteLoaded = true;
+                }
+                showTable("tablaProcesoTE");
+            });
+            
+            // Cuando se cambia la fecha, se resetean las banderas para que las consultas se vuelvan a cargar si se hace clic
+            document.getElementById("fecha_inicio").addEventListener("change", function () {
+                let nuevaFecha = this.value;
+                if (nuevaFecha !== lastFecha) {
+                    resetFlags();
+                    lastFecha = nuevaFecha;
+                }
+            });
+            
+            // Función para cargar datos en tablas AQL y AQL TE (la estructura de la fila puede variar según el endpoint)
+            function cargarDatos(url, tablaBodyId, dataKey) {
+                let fechaInicio = document.getElementById("fecha_inicio").value;
+                fetch(url + "?fecha_inicio=" + fechaInicio, {
                     method: "GET",
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest"
-                    }
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -365,14 +452,13 @@
                         alert(data.error);
                         return;
                     }
-
                     let tablaBody = document.getElementById(tablaBodyId);
-                    tablaBody.innerHTML = ""; // Limpiar contenido anterior
-
+                    tablaBody.innerHTML = ""; // Limpiar contenido previo
                     let registros = data[dataKey];
-
                     if (registros && registros.length > 0) {
                         registros.forEach(item => {
+                            // Para AQL y AQL TE se asume una estructura similar;
+                            // si fuera necesario, se puede condicionar según dataKey o URL
                             let row = `<tr>
                                 <td>${item.auditoresUnicos}</td>
                                 <td>
@@ -389,18 +475,18 @@
                                 <td>${item.promedioMinutosEntero}</td>
                                 <td>${item.conteParoModular}</td>
                                 <td>${item.sumaParoModular}</td>
-                                <td>${item.sumaPiezasBulto}</td> 
-                                <td>${item.cantidadBultosEncontrados}</td> 
-                                <td>${item.cantidadBultosRechazados}</td> 
-                                <td>${item.sumaAuditadaAQL}</td> 
-                                <td>${item.sumaRechazadaAQL}</td> 
+                                <td>${item.sumaPiezasBulto}</td>
+                                <td>${item.cantidadBultosEncontrados}</td>
+                                <td>${item.cantidadBultosRechazados}</td>
+                                <td>${item.sumaAuditadaAQL}</td>
+                                <td>${item.sumaRechazadaAQL}</td>
                                 <td>${Number(item.porcentajeErrorAQL).toFixed(2)}%</td>
                                 <td>${item.defectosUnicos}</td>
                                 <td>${item.accionesCorrectivasUnicos}</td>
                                 <td>${item.operariosUnicos}</td>
                                 <td>${item.sumaReparacionRechazo}</td>
                                 <td>${item.piezasRechazadasUnicas}</td>
-                        </tr>`;
+                            </tr>`;
                             tablaBody.innerHTML += row;
                         });
                     } else {
@@ -408,117 +494,14 @@
                     }
                 })
                 .catch(error => console.error("Error en AJAX:", error));
-        }
-    </script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            let procesoCargado = false;  // Evita recargar Proceso si ya se cargó
-            let procesoTECargado = false; // Evita recargar Proceso TE si ya se cargó
-            let ultimaFechaSeleccionada = null; // Guardar la última fecha seleccionada
-
-            // 1️⃣ Cargar datos al hacer clic en "Mostrar Datos"
-            document.getElementById("btnMostrar").addEventListener("click", function () {
+            }
+            
+            // Función para cargar datos en tablas de Proceso y Proceso TE
+            function cargarDatosProceso(url, tablaBodyId, dataKey) {
                 let fechaInicio = document.getElementById("fecha_inicio").value;
-
-                if (!fechaInicio) {
-                    alert("Por favor selecciona una fecha.");
-                    return;
-                }
-
-                // 🔍 Detectar si la fecha ha cambiado
-                if (ultimaFechaSeleccionada !== fechaInicio) {
-                    procesoCargado = false;  // Reiniciar carga de Proceso
-                    procesoTECargado = false; // Reiniciar carga de Proceso TE
-                    ultimaFechaSeleccionada = fechaInicio; // Actualizar la fecha almacenada
-                }
-
-                // Cargar datos de AQL y AQL TE
-                cargarDatos("{{ route('dashboardPlanta1V2.buscarAQL') }}", "tablaAQLGeneralNuevoBody", "datosModuloEstiloAQL");
-                cargarDatos("{{ route('dashboardPlanta1V2.buscarAQLTE') }}", "tablaAQLGeneralTENuevoBody", "datosModuloEstiloAQLTE");
-
-                // Mostrar la tabla de AQL por defecto
-                document.getElementById("tablaAQL").style.display = "block";
-                document.getElementById("tablaProceso").style.display = "none";
-                document.getElementById("tablaAQLTE").style.display = "none";
-                document.getElementById("tablaProcesoTE").style.display = "none";
-            });
-
-            // 2️⃣ Mostrar u Ocultar AQL y Proceso (Turno Normal)
-            document.getElementById("showAQL").addEventListener("click", function () {
-                document.getElementById("tablaAQL").style.display = "block";
-                document.getElementById("tablaProceso").style.display = "none";
-                document.getElementById("tablaAQLTE").style.display = "none";
-                document.getElementById("tablaProcesoTE").style.display = "none";
-            });
-
-            document.getElementById("showProceso").addEventListener("click", function () {
-                document.getElementById("tablaAQL").style.display = "none";
-                document.getElementById("tablaProceso").style.display = "block";
-                document.getElementById("tablaAQLTE").style.display = "none";
-                document.getElementById("tablaProcesoTE").style.display = "none";
-
-                if (!procesoCargado) {
-                    let fechaInicio = document.getElementById("fecha_inicio").value;
-                    if (!fechaInicio) {
-                        alert("Por favor selecciona una fecha.");
-                        return;
-                    }
-
-                    // Cargar datos de Proceso por primera vez o si la fecha cambió
-                    cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProceso') }}", "tablaProcesoGeneralNuevoBody", "datosModuloEstiloProceso");
-                    procesoCargado = true;
-                }
-            });
-
-            // 3️⃣ Mostrar u Ocultar AQL TE y Proceso TE (Tiempo Extra)
-            document.getElementById("showAQLTE").addEventListener("click", function () {
-                document.getElementById("tablaAQL").style.display = "none";
-                document.getElementById("tablaProceso").style.display = "none";
-                document.getElementById("tablaAQLTE").style.display = "block";
-                document.getElementById("tablaProcesoTE").style.display = "none";
-            });
-
-            document.getElementById("showProcesoTE").addEventListener("click", function () {
-                document.getElementById("tablaAQL").style.display = "none";
-                document.getElementById("tablaProceso").style.display = "none";
-                document.getElementById("tablaAQLTE").style.display = "none";
-                document.getElementById("tablaProcesoTE").style.display = "block";
-
-                if (!procesoTECargado) {
-                    let fechaInicio = document.getElementById("fecha_inicio").value;
-                    if (!fechaInicio) {
-                        alert("Por favor selecciona una fecha.");
-                        return;
-                    }
-
-                    // Cargar datos de Proceso TE por primera vez o si la fecha cambió
-                    cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProcesoTE') }}", "tablaProcesoGeneralTENuevoBody", "datosModuloEstiloProcesoTE");
-                    procesoTECargado = true;
-                }
-            });
-
-            // 4️⃣ Detectar cambios en la fecha y resetear estado de carga si es diferente
-            document.getElementById("fecha_inicio").addEventListener("change", function () {
-                let nuevaFecha = this.value;
-                if (nuevaFecha !== ultimaFechaSeleccionada) {
-                    procesoCargado = false; // Permitir recargar "Proceso"
-                    procesoTECargado = false; // Permitir recargar "Proceso TE"
-                    ultimaFechaSeleccionada = nuevaFecha; // Guardar nueva fecha
-                }
-            });
-
-        });
-
-        // Función para cargar datos en las tablas de Proceso
-        function cargarDatosProceso(url, tablaBodyId, dataKey) {
-            let fechaInicio = document.getElementById("fecha_inicio").value;
-
-            fetch(url + "?fecha_inicio=" + fechaInicio, {
+                fetch(url + "?fecha_inicio=" + fechaInicio, {
                     method: "GET",
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest"
-                    }
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -526,12 +509,9 @@
                         alert(data.error);
                         return;
                     }
-
                     let tablaBody = document.getElementById(tablaBodyId);
-                    tablaBody.innerHTML = ""; // Limpiar contenido anterior
-
+                    tablaBody.innerHTML = ""; // Limpiar contenido previo
                     let registros = data[dataKey];
-
                     if (registros && registros.length > 0) {
                         registros.forEach(item => {
                             let row = `<tr>
@@ -549,24 +529,25 @@
                                 <td>${item.conteoUtility}</td>
                                 <td>${item.conteoMinutos}</td>
                                 <td>${item.sumaMinutos}</td>
-                                <td>${item.promedioMinutosEntero}</td> 
+                                <td>${item.promedioMinutosEntero}</td>
                                 <td>${item.conteParoModular}</td>
                                 <td>${item.sumaParoModular}</td>
-                                <td>${item.sumaAuditadaProceso}</td> 
-                                <td>${item.sumaRechazadaProceso}</td> 
+                                <td>${item.sumaAuditadaProceso}</td>
+                                <td>${item.sumaRechazadaProceso}</td>
                                 <td>${Number(item.porcentajeErrorProceso).toFixed(2)}%</td>
                                 <td>${item.defectosUnicos}</td>
                                 <td>${item.accionesCorrectivasUnicos}</td>
                                 <td>${item.operariosUnicos}</td>
-                    </tr>`;
+                            </tr>`;
                             tablaBody.innerHTML += row;
                         });
                     } else {
-                        tablaBody.innerHTML =
-                        `<tr><td colspan='10'>No hay datos disponibles para ${dataKey}.</td></tr>`;
+                        tablaBody.innerHTML = `<tr><td colspan='10'>No hay datos disponibles para ${dataKey}.</td></tr>`;
                     }
                 })
                 .catch(error => console.error("Error en AJAX:", error));
-        }
+            }
+        });
     </script>
+    
 @endsection
