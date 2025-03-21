@@ -412,23 +412,32 @@
     </script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            let procesoCargado = false; // Evita recargar Proceso si ya se cargó
+        document.addEventListener("DOMContentLoaded", function () {
+            let procesoCargado = false;  // Evita recargar Proceso si ya se cargó
             let procesoTECargado = false; // Evita recargar Proceso TE si ya se cargó
+            let ultimaFechaSeleccionada = null; // Guardar la última fecha seleccionada
 
-            // 1️⃣ Cargar SOLO AQL cuando se da clic en "Mostrar Datos"
-            document.getElementById("btnMostrar").addEventListener("click", function() {
+            // 1️⃣ Cargar datos al hacer clic en "Mostrar Datos"
+            document.getElementById("btnMostrar").addEventListener("click", function () {
                 let fechaInicio = document.getElementById("fecha_inicio").value;
+
                 if (!fechaInicio) {
                     alert("Por favor selecciona una fecha.");
                     return;
                 }
 
-                // Cargar los datos de AQL y AQL TE
+                // 🔍 Detectar si la fecha ha cambiado
+                if (ultimaFechaSeleccionada !== fechaInicio) {
+                    procesoCargado = false;  // Reiniciar carga de Proceso
+                    procesoTECargado = false; // Reiniciar carga de Proceso TE
+                    ultimaFechaSeleccionada = fechaInicio; // Actualizar la fecha almacenada
+                }
+
+                // Cargar datos de AQL y AQL TE
                 cargarDatos("{{ route('dashboardPlanta1V2.buscarAQL') }}", "tablaAQLGeneralNuevoBody", "datosModuloEstiloAQL");
                 cargarDatos("{{ route('dashboardPlanta1V2.buscarAQLTE') }}", "tablaAQLGeneralTENuevoBody", "datosModuloEstiloAQLTE");
 
-                // Mostrar la tabla de AQL normal por defecto
+                // Mostrar la tabla de AQL por defecto
                 document.getElementById("tablaAQL").style.display = "block";
                 document.getElementById("tablaProceso").style.display = "none";
                 document.getElementById("tablaAQLTE").style.display = "none";
@@ -436,14 +445,14 @@
             });
 
             // 2️⃣ Mostrar u Ocultar AQL y Proceso (Turno Normal)
-            document.getElementById("showAQL").addEventListener("click", function() {
+            document.getElementById("showAQL").addEventListener("click", function () {
                 document.getElementById("tablaAQL").style.display = "block";
                 document.getElementById("tablaProceso").style.display = "none";
                 document.getElementById("tablaAQLTE").style.display = "none";
                 document.getElementById("tablaProcesoTE").style.display = "none";
             });
 
-            document.getElementById("showProceso").addEventListener("click", function() {
+            document.getElementById("showProceso").addEventListener("click", function () {
                 document.getElementById("tablaAQL").style.display = "none";
                 document.getElementById("tablaProceso").style.display = "block";
                 document.getElementById("tablaAQLTE").style.display = "none";
@@ -456,21 +465,21 @@
                         return;
                     }
 
-                    // Cargar datos de Proceso por primera vez
+                    // Cargar datos de Proceso por primera vez o si la fecha cambió
                     cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProceso') }}", "tablaProcesoGeneralNuevoBody", "datosModuloEstiloProceso");
                     procesoCargado = true;
                 }
             });
 
             // 3️⃣ Mostrar u Ocultar AQL TE y Proceso TE (Tiempo Extra)
-            document.getElementById("showAQLTE").addEventListener("click", function() {
+            document.getElementById("showAQLTE").addEventListener("click", function () {
                 document.getElementById("tablaAQL").style.display = "none";
                 document.getElementById("tablaProceso").style.display = "none";
                 document.getElementById("tablaAQLTE").style.display = "block";
                 document.getElementById("tablaProcesoTE").style.display = "none";
             });
 
-            document.getElementById("showProcesoTE").addEventListener("click", function() {
+            document.getElementById("showProcesoTE").addEventListener("click", function () {
                 document.getElementById("tablaAQL").style.display = "none";
                 document.getElementById("tablaProceso").style.display = "none";
                 document.getElementById("tablaAQLTE").style.display = "none";
@@ -483,11 +492,22 @@
                         return;
                     }
 
-                    // Cargar datos de Proceso TE por primera vez
+                    // Cargar datos de Proceso TE por primera vez o si la fecha cambió
                     cargarDatosProceso("{{ route('dashboardPlanta1V2.buscarProcesoTE') }}", "tablaProcesoGeneralTENuevoBody", "datosModuloEstiloProcesoTE");
                     procesoTECargado = true;
                 }
             });
+
+            // 4️⃣ Detectar cambios en la fecha y resetear estado de carga si es diferente
+            document.getElementById("fecha_inicio").addEventListener("change", function () {
+                let nuevaFecha = this.value;
+                if (nuevaFecha !== ultimaFechaSeleccionada) {
+                    procesoCargado = false; // Permitir recargar "Proceso"
+                    procesoTECargado = false; // Permitir recargar "Proceso TE"
+                    ultimaFechaSeleccionada = nuevaFecha; // Guardar nueva fecha
+                }
+            });
+
         });
 
         // Función para cargar datos en las tablas de Proceso
