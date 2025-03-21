@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\DB; // Importa la clase DB
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 
 class DashboardPorDiaV2Controller extends Controller
@@ -48,13 +49,16 @@ class DashboardPorDiaV2Controller extends Controller
             return response()->json(['error' => 'No se recibió una fecha'], 400);
         }
 
-        $fechaActual = Carbon::parse($request->input('fecha_inicio'));
+        $fechaActual = Carbon::parse($request->input('fecha_inicio'))->format('Y-m-d');
         $plantaConsulta = "Intimark1";
+        $cacheKey = "aql_{$plantaConsulta}_{$fechaActual}";
 
         Log::info("🔎 Iniciando consulta AQL para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloAQL = $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, null);
+        $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
+            return $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, null);
+        });
         Log::info("⏳ Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
@@ -68,13 +72,16 @@ class DashboardPorDiaV2Controller extends Controller
             return response()->json(['error' => 'No se recibió una fecha'], 400);
         }
 
-        $fechaActual = Carbon::parse($request->input('fecha_inicio'));
+        $fechaActual = Carbon::parse($request->input('fecha_inicio'))->format('Y-m-d');
         $plantaConsulta = "Intimark1";
+        $cacheKey = "aqlte_{$plantaConsulta}_{$fechaActual}";
 
         Log::info("🔎 Iniciando consulta AQL TE para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloAQLTE = $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, 1);
+        $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
+            return $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, 1);
+        });
         Log::info("⏳ Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
@@ -88,13 +95,16 @@ class DashboardPorDiaV2Controller extends Controller
             return response()->json(['error' => 'No se recibió una fecha'], 400);
         }
 
-        $fechaActual = Carbon::parse($request->input('fecha_inicio'));
+        $fechaActual = Carbon::parse($request->input('fecha_inicio'))->format('Y-m-d');
         $plantaConsulta = "Intimark1";
+        $cacheKey = "proceso_{$plantaConsulta}_{$fechaActual}";
 
         Log::info("🔎 Iniciando consulta Proceso para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloProceso = $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, null);
+        $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
+            return $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, null);
+        });
         Log::info("⏳ Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
@@ -108,13 +118,16 @@ class DashboardPorDiaV2Controller extends Controller
             return response()->json(['error' => 'No se recibió una fecha'], 400);
         }
 
-        $fechaActual = Carbon::parse($request->input('fecha_inicio'));
+        $fechaActual = Carbon::parse($request->input('fecha_inicio'))->format('Y-m-d');
         $plantaConsulta = "Intimark1";
+        $cacheKey = "proceso_te_{$plantaConsulta}_{$fechaActual}";
 
         Log::info("🔎 Iniciando consulta Proceso TE para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloProcesoTE = $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, 1);
+        $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
+            return $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, 1);
+        });
         Log::info("⏳ Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([

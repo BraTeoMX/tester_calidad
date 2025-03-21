@@ -77,6 +77,11 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="spinnerAQL" class="text-center my-3" style="display: none;">
+                        <div class="loading-container">
+                            <span class="loading-text">Cargando...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -116,6 +121,11 @@
                                 <!-- Aquí se insertarán los datos dinámicamente -->
                             </tbody>
                         </table>
+                    </div>
+                    <div id="spinnerPROCESO" class="text-center my-3" style="display: none;">
+                        <div class="loading-container">
+                            <span class="loading-text">Cargando...</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -172,6 +182,11 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="spinnerAQLTE" class="text-center my-3" style="display: none;">
+                        <div class="loading-container">
+                            <span class="loading-text">Cargando...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -212,11 +227,45 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="spinnerPROCESOTE" class="text-center my-3" style="display: none;">
+                        <div class="loading-container">
+                            <span class="loading-text">Cargando...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <style>
+        /* Contenedor para centrar el texto */
+        .loading-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Texto animado */
+        .loading-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d1d1d1; /* Color para tema oscuro */
+            
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Centrar exactamente */
+            
+            animation: fadeInOut 1.5s infinite;
+        }
+
+        /* Animación de parpadeo */
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+    </style>
     <style>
         .custom-body {
             font-family: Arial, sans-serif;
@@ -442,6 +491,16 @@
             // Función para cargar datos en tablas AQL y AQL TE (la estructura de la fila puede variar según el endpoint)
             function cargarDatos(url, tablaBodyId, dataKey) {
                 let fechaInicio = document.getElementById("fecha_inicio").value;
+
+                // Mostrar el spinner solo para AQL
+                if (tablaBodyId === "tablaAQLGeneralNuevoBody") {
+                    document.getElementById("spinnerAQL").style.display = "block";
+                }
+                // Mostrar el spinner solo para AQL TE
+                if (tablaBodyId === "tablaAQLGeneralTENuevoBody") {
+                    document.getElementById("spinnerAQLTE").style.display = "block";
+                }
+
                 fetch(url + "?fecha_inicio=" + fechaInicio, {
                     method: "GET",
                     headers: { "X-Requested-With": "XMLHttpRequest" }
@@ -493,12 +552,32 @@
                         tablaBody.innerHTML = `<tr><td colspan='9'>No hay datos disponibles para ${dataKey}.</td></tr>`;
                     }
                 })
-                .catch(error => console.error("Error en AJAX:", error));
+                .catch(error => {
+                    console.error("Error en AJAX:", error);
+                })
+                .finally(() => {
+                    // Ocultar el spinner si era AQL
+                    if (tablaBodyId === "tablaAQLGeneralNuevoBody") {
+                        document.getElementById("spinnerAQL").style.display = "none";
+                    }
+                    // Ocultar el spinner si era AQL TE
+                    if (tablaBodyId === "tablaAQLGeneralTENuevoBody") {
+                        document.getElementById("spinnerAQLTE").style.display = "none";
+                    }
+                });
             }
             
             // Función para cargar datos en tablas de Proceso y Proceso TE
             function cargarDatosProceso(url, tablaBodyId, dataKey) {
                 let fechaInicio = document.getElementById("fecha_inicio").value;
+                // Mostrar el spinner solo para PROCESO
+                if (tablaBodyId === "tablaProcesoGeneralNuevoBody") {
+                    document.getElementById("spinnerPROCESO").style.display = "block";
+                }
+                // Mostrar el spinner solo para PROCESO TE
+                if (tablaBodyId === "tablaProcesoGeneralTENuevoBody") {
+                    document.getElementById("spinnerPROCESOTE").style.display = "block";
+                }
                 fetch(url + "?fecha_inicio=" + fechaInicio, {
                     method: "GET",
                     headers: { "X-Requested-With": "XMLHttpRequest" }
@@ -545,7 +624,19 @@
                         tablaBody.innerHTML = `<tr><td colspan='10'>No hay datos disponibles para ${dataKey}.</td></tr>`;
                     }
                 })
-                .catch(error => console.error("Error en AJAX:", error));
+                .catch(error => {
+                    console.error("Error en AJAX:", error);
+                })
+                .finally(() => {
+                    // Ocultar el spinner si era PROCESO
+                    if (tablaBodyId === "tablaProcesoGeneralNuevoBody") {
+                            document.getElementById("spinnerPROCESO").style.display = "none";
+                        }
+                    // Ocultar el spinner si era PROCESO TE
+                    if (tablaBodyId === "tablaProcesoGeneralTENuevoBody") {
+                        document.getElementById("spinnerPROCESOTE").style.display = "none";
+                    }
+                });
             }
         });
     </script>
