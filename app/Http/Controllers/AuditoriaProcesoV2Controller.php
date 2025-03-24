@@ -280,8 +280,9 @@ class AuditoriaProcesoV2Controller extends Controller
     {
         $modulo = $request->input('modulo'); // Obtener el módulo desde AJAX
         $search = $request->input('search'); // Obtener el término de búsqueda
-        $auditorPlanta = auth()->user()->planta ?? 'Planta1'; // Ajustar según sea necesario
+        $auditorPlanta = auth()->user()->Planta ?? 'Planta1'; // Ajustar según sea necesario
         $detectarPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
+        //Log::info('Planta detectada:', ['planta' => $detectarPlanta]);
 
         // Base de la consulta
         $query = AuditoriaProceso::where('prodpoolid', $detectarPlanta)
