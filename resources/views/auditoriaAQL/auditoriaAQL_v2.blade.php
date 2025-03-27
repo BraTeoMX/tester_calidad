@@ -385,62 +385,52 @@
                     </div>
                 </div>
             </div>
-            <!-- Acordeón para Tiempo Extra -->
-            <div class="accordion" id="accordionTiempoExtra">
-                <div class="card">
-                    <div class="card-header card-header-primary" id="headingTiempoExtra">
-                        <h3 class="mb-0">
-                            <button class="btn btn-link btn-block text-white collapsed" type="button" data-toggle="collapse" data-target="#collapseTiempoExtra" aria-expanded="false" aria-controls="collapseTiempoExtra">
-                                Registros - Tiempo Extra
-                            </button>
-                        </h3>
-                    </div>
-                    <div id="collapseTiempoExtra" class="collapse" aria-labelledby="headingTiempoExtra" data-parent="#accordionTiempoExtra">
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table56" id="tabla_registros_tiempo_extra">
-                                    <thead class="thead-primary">
-                                        <tr>
-                                            <th>PARO</th>
-                                            <th># BULTO</th>
-                                            <th>PIEZAS</th>
-                                            <th>TALLA</th>
-                                            <th>COLOR</th>
-                                            <th>ESTILO</th>
-                                            <th>PIEZAS INSPECCIONADAS</th>
-                                            <th>PIEZAS RECHAZADAS</th>
-                                            <th>DEFECTO(S)</th>
-                                            <th>Eliminar </th>
-                                            <th>Hora</th>
-                                            <th>Reparación Piezas</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Registros dinámicos para Tiempo Extra -->
-                                    </tbody>
-                                </table>
-                                <div id="observacion-container-TE" data-modulo="{{ $data['modulo'] }}">
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="observacion-TE" class="col-sm-6 col-form-label">Observaciones Tiempo Extra:</label>
-                                            <div class="col-sm-12">
-                                                <textarea class="form-control texto-blanco" id="observacion-TE" rows="3" placeholder="comentarios" required></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <button id="btn-finalizar-TE" class="btn btn-danger">Finalizar Tiempo Extra</button>
-                                        </div>
-                                    </div>
-                                </div>                                
+        </div>
+        <div class="card">
+            <div class="card-header card-header-primary">
+                <h3>Registros - Tiempo extra</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table56" id="tabla_registros_tiempo_extra">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>PARO</th>
+                                <th># BULTO</th>
+                                <th>PIEZAS</th>
+                                <th>TALLA</th>
+                                <th>COLOR</th>
+                                <th>ESTILO</th>
+                                <th>PIEZAS INSPECCIONADAS</th>
+                                <th>PIEZAS RECHAZADAS</th>
+                                <th>DEFECTO(S)</th>
+                                <th>Eliminar </th>
+                                <th>Hora</th>
+                                <th>Reparación Piezas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Registros dinámicos para Tiempo Extra -->
+                        </tbody>
+                    </table>
+                    <div id="observacion-container-TE" data-modulo="{{ $data['modulo'] }}">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="observacion-TE" class="col-sm-6 col-form-label">Observaciones Tiempo Extra:</label>
+                                <div class="col-sm-12">
+                                    <textarea class="form-control texto-blanco" id="observacion-TE" rows="3" placeholder="comentarios" required></textarea>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <button id="btn-finalizar-TE" class="btn btn-danger">Finalizar Tiempo Extra</button>
+                            </div>
+                        </div>
+                    </div>                                
                 </div>
             </div>
         </div>
-
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
