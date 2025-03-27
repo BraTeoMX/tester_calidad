@@ -221,12 +221,13 @@ class ScreenV2Controller extends Controller
     {
         // Para ver el contenido del request, puedes usar dd($request->all());
         //dd($request->all());
-        
+        $auditorDato = Auth::user()->name;
         DB::beginTransaction(); // Iniciar la transacción
 
         try {
             // 1. Crear el registro principal en InspeccionHorno
             $inspeccion = new InspeccionHorno();
+            $inspeccion->auditor            = $auditorDato;
             $inspeccion->panel              = $request->input('tipo_panel_nombre');
             $inspeccion->maquina            = $request->input('tipo_maquina_nombre');
             $inspeccion->grafica            = $request->input('valor_grafica');
@@ -235,6 +236,7 @@ class ScreenV2Controller extends Controller
             $inspeccion->cliente            = $request->input('cliente_seleccionado');
             $inspeccion->estilo             = $request->input('estilo_seleccionado');
             $inspeccion->color              = $request->input('color_seleccionado');
+            //$inspeccion->talla              = $request->input('talla_seleccionado');
             $inspeccion->cantidad           = $request->input('cantidad_seleccionado');
             $inspeccion->save();
 
@@ -316,6 +318,7 @@ class ScreenV2Controller extends Controller
         // Obtener el inicio y fin del día actual
         $inicioDia = \Carbon\Carbon::now()->startOfDay();
         $finDia    = \Carbon\Carbon::now()->endOfDay();
+        $auditorDato = Auth::user()->name;
 
         // Traer las inspecciones del día con las relaciones necesarias
         $inspecciones = InspeccionHorno::with([
@@ -325,6 +328,7 @@ class ScreenV2Controller extends Controller
             'plancha.defectos'      // Relación: InspeccionHornoPlancha y sus defectos
         ])
         ->whereBetween('created_at', [$inicioDia, $finDia])
+        ->where('auditor', $auditorDato)
         ->get();
 
         // Procesar cada registro para formatear los datos a mostrar
@@ -439,10 +443,12 @@ class ScreenV2Controller extends Controller
 
     public function getScreenData()
     {
+        $auditorDato = Auth::user()->name;
         // Obtener todos los registros con sus relaciones
         $inspecciones = InspeccionHorno::with(['screen.defectos', 'tecnicas', 'fibras'])
                             ->whereHas('screen')
                             ->orderBy('created_at', 'desc')
+                            ->where('auditor', $auditorDato)
                             ->get();
 
         // Agrupar los registros por la columna "op"
@@ -609,10 +615,12 @@ class ScreenV2Controller extends Controller
 
     public function getPlanchaData()
     {
+        $auditorDato = Auth::user()->name;
         // Obtener todos los registros con sus relaciones
         $inspecciones = InspeccionHorno::with(['plancha.defectos', 'tecnicas', 'fibras'])
                             ->whereHas('plancha')
                             ->orderBy('created_at', 'desc')
+                            ->where('auditor', $auditorDato)
                             ->get();
 
         // Agrupar los registros por la columna "op"

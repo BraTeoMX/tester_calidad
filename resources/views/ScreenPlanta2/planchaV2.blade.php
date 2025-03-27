@@ -87,7 +87,7 @@
             <div class="card-header card-header-primary">
                 <div class="row">
                     <div class="col-md-9">
-                        <h3 class="card-title">Screen </h3>
+                        <h3 class="card-title">Plancha </h3>
                     </div>
                     <div class="col-md-3 text-right">
                         Fecha: {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
