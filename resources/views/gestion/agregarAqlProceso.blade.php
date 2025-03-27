@@ -88,9 +88,7 @@
             color: white; /* Texto en blanco para contraste */
         }
     </style>
-@endsection
 
-@push('js')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const searchForm = document.getElementById('search-form');
@@ -325,4 +323,4 @@
 
     </script>
     
-@endpush
+@endsection
