@@ -27,6 +27,16 @@ use App\Models\Horno_Banda;
 
 class ScreenV2Controller extends Controller
 {
+    public function inspeccionEstampadoHornoInicio(Request $request)
+    {
+
+        $mesesEnEspanol = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+
+        return view('ScreenPlanta2.inspeccionEstampadoHornoInicio', compact('mesesEnEspanol'));
+    }
+
     public function inspeccionEstampadoHorno(Request $request)
     {
 

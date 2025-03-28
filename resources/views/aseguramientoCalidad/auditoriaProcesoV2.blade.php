@@ -920,36 +920,29 @@
 
     <script>
         $(document).ready(function () {
-            var datosCargados = false; // Variable para evitar múltiples consultas innecesarias
+            // Realizar la consulta AJAX al cargar la página
+            $.ajax({
+                url: "{{ route('accionCorrectivaProceso') }}", // Ruta en Laravel
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    var select = $('#ac');
+                    select.empty();
+                    select.append('<option value="">Selecciona una opción</option>'); // Opción por defecto
 
-            // Inicializar Select2 con opción única
-            $('#ac').select2({
-                placeholder: "Selecciona una opción",
-                allowClear: true, // Permite limpiar la selección
-                minimumResultsForSearch: 10 // Muestra la barra de búsqueda solo si hay más de 5 opciones
-            });
-
-            // Cargar datos solo cuando el usuario haga clic en el select
-            $('#ac').on('select2:open', function () {
-                if (!datosCargados) { // Solo ejecuta AJAX si los datos no han sido cargados previamente
-                    $.ajax({
-                        url: "{{ route('accionCorrectivaProceso') }}", // Ruta en Laravel
-                        type: 'GET',
-                        dataType: 'json',
-                        success: function (response) {
-                            var select = $('#ac');
-                            select.empty().append('<option value="">Selecciona una opción</option>'); // Limpiar y agregar opción por defecto
-
-                            $.each(response.acciones, function (index, proceso) {
-                                select.append(new Option(proceso.accion_correctiva, proceso.accion_correctiva, false, false));
-                            });
-
-                            datosCargados = true; // Evita que se vuelva a cargar innecesariamente
-                        },
-                        error: function () {
-                            alert('Error al obtener las acciones correctivas');
-                        }
+                    $.each(response.acciones, function (index, proceso) {
+                        select.append(new Option(proceso.accion_correctiva, proceso.accion_correctiva, false, false));
                     });
+
+                    // Inicializar Select2 después de cargar las opciones
+                    select.select2({
+                        placeholder: "Selecciona una opción",
+                        allowClear: true,
+                        minimumResultsForSearch: 10
+                    });
+                },
+                error: function () {
+                    alert('Error al obtener las acciones correctivas');
                 }
             });
         });

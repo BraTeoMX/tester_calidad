@@ -231,25 +231,30 @@ class AuditoriaAQL_v2Controller extends Controller
             return response()->json([]);
         }
 
-        // Construye la consulta base
-        $query = JobAQL::where('prodid', $opSeleccionada)
-            ->select('prodid', 'prodpackticketid', 'qty', 'itemid', 'colorname', 'customername', 'inventcolorid', 'inventsizeid')
-            ->union(
-                JobAQLTemporal::where('prodid', $opSeleccionada)
-                    ->select('prodid', 'prodpackticketid', 'qty', 'itemid', 'colorname', 'customername', 'inventcolorid', 'inventsizeid')
-            )
-            ->distinct();
-
-        // Aplica filtro de búsqueda si existe un término
+        // Construye las consultas individuales con el filtro si existe búsqueda
         if ($search !== '') {
-            // Ajusta el campo de búsqueda si es necesario. 
-            // Aquí asumo que se filtra por 'prodpackticketid'.
-            $query = $query->where('prodpackticketid', 'like', "%{$search}%");
+            $queryJobAQL = JobAQL::where('prodid', $opSeleccionada)
+                ->where('prodpackticketid', 'like', "%{$search}%")
+                ->select('prodid', 'prodpackticketid', 'qty', 'itemid', 'colorname', 'customername', 'inventcolorid', 'inventsizeid');
+
+            $queryJobAQLTemporal = JobAQLTemporal::where('prodid', $opSeleccionada)
+                ->where('prodpackticketid', 'like', "%{$search}%")
+                ->select('prodid', 'prodpackticketid', 'qty', 'itemid', 'colorname', 'customername', 'inventcolorid', 'inventsizeid');
+
+            $query = $queryJobAQL->union($queryJobAQLTemporal)->distinct();
+        } else {
+            $query = JobAQL::where('prodid', $opSeleccionada)
+                ->select('prodid', 'prodpackticketid', 'qty', 'itemid', 'colorname', 'customername', 'inventcolorid', 'inventsizeid')
+                ->union(
+                    JobAQLTemporal::where('prodid', $opSeleccionada)
+                        ->select('prodid', 'prodpackticketid', 'qty', 'itemid', 'colorname', 'customername', 'inventcolorid', 'inventsizeid')
+                )
+                ->distinct();
         }
 
         $datosBulto = $query->orderBy('prodpackticketid')->get();
 
-        // Si no se encuentran resultados, devolver arreglo vacío
+        // Si no se encuentran resultados, devuelve arreglo vacío
         if ($datosBulto->isEmpty()) {
             return response()->json([]);
         }
