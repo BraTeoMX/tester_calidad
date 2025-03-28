@@ -69,6 +69,28 @@ class EtiquetasV2Controller extends Controller
             'orden' => $orden,
         ]);
     }
+    public function procesarFormularioEtiquetaAjax(Request $request)
+    {
+        $tipoBusqueda = $request->input('tipoEtiqueta');
+        $orden = $request->input('valorEtiqueta');
+
+        $estilos = $this->obtenerEstilos($tipoBusqueda, $orden);
+
+        if ($estilos->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se encontraron estilos para la búsqueda.',
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'estilos' => $estilos,
+            'tipoBusqueda' => $tipoBusqueda,
+            'orden' => $orden,
+        ]);
+    }
+
 
     private function obtenerEstilos($tipoBusqueda, $orden)
     {

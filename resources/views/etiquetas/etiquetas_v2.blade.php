@@ -29,37 +29,32 @@
                 <h2>Auditoria Etiquetas</h2>
             </div>
             <div class="card-body">
-                <!-- Formulario -->
-                <form action="{{ route('procesarFormularioEtiqueta') }}" method="POST">
-                    @csrf
+                <div id="formBuscarEstilos">
                     <div class="form-row d-flex align-items-end">
-                        <!-- Select: Tipo de búsqueda -->
                         <div class="form-group col-md-4">
                             <label for="tipoEtiqueta">Tipo de búsqueda:</label>
-                            <select name="tipoEtiqueta" id="tipoEtiqueta" class="form-control" required>
+                            <select id="tipoEtiqueta" class="form-control" required>
                                 <option value="">Selecciona una opción</option>
-                                <option value="OC" {{ old('tipoEtiqueta', $tipoBusqueda) === 'OC' ? 'selected' : '' }}>OC</option>
-                                <option value="OV" {{ old('tipoEtiqueta', $tipoBusqueda) === 'OV' ? 'selected' : '' }}>OV</option>
-                                <option value="OP" {{ old('tipoEtiqueta', $tipoBusqueda) === 'OP' ? 'selected' : '' }}>OP</option>
-                                <option value="PO" {{ old('tipoEtiqueta', $tipoBusqueda) === 'PO' ? 'selected' : '' }}>PO</option>
+                                <option value="OC">OC</option>
+                                <option value="OV">OV</option>
+                                <option value="OP">OP</option>
+                                <option value="PO">PO</option>
                             </select>
                         </div>
-            
-                        <!-- Input: La orden -->
+                
                         <div class="form-group col-md-4">
                             <label for="valorEtiqueta">Escribe la orden:</label>
-                            <input type="text" name="valorEtiqueta" id="valorEtiqueta" 
-                                   class="form-control" 
-                                   value="{{ old('valorEtiqueta', $orden) }}"
-                                   placeholder="Escribe un valor" required>
+                            <input type="text" id="valorEtiqueta" class="form-control" placeholder="Escribe un valor" required>
                         </div>
-            
-                        <!-- Botón -->
+                
                         <div class="form-group col-md-4">
-                            <button type="submit" class="btn btn-success">Buscar</button>
+                            <button id="btnBuscar" class="btn btn-success">Buscar</button>
                         </div>
                     </div>
-                </form>
+                </div>
+                
+                <!-- Resultado -->
+                <div id="resultadoBusqueda" class="mt-4"></div>                
 
                 <!-- Resultados de la búsqueda: si se encontraron Estilos -->
                 @if(isset($estilos) && $estilos->count() > 0)
@@ -141,11 +136,7 @@
                             </div>
                         </div>
                     </form>
-                    <!-- Botón para abrir el modal -->
-                    <div class="mt-3">
-                        <button id="openModalBtn" class="btn btn-secondary">Ingresar datos no encontrados</button>
-                    </div>
-
+                    
                     <!-- Modal Personalizado -->
                     <div id="customModal" class="modal-custom">
                         <div class="modal-content-custom">
@@ -431,98 +422,6 @@
 
     </style>
 
-    <script>
-        $(document).ready(function(){
-            // Inicia select2 (opcional si usas select2)
-            $('#estilosSelect').select2();
-            $('#tallaSelect').select2();
-
-            // Cuando cambia el Estilo
-            $('#estilosSelect').on('change', function() {
-                var estiloSeleccionado = $(this).val();
-                var tipoBusqueda       = $('#tipoEtiqueta').val(); // asumiendo que tienes este input
-                var orden             = $('#valorEtiqueta').val(); // asumiendo que tienes este input
-
-                // Limpiar el segundo select y los inputs
-                $('#tallaSelect').html('<option value="">-- Seleccionar --</option>');
-                $('#tallaSelect').prop('disabled', true).trigger('change'); 
-                $('#colorInput').val('');       // limpiamos color
-                $('#cantidadInput').val('');
-                $('#tamanoMuestraInput').val('');
-
-                if(!estiloSeleccionado) return;
-
-                // Petición AJAX para obtener Tallas
-                $.ajax({
-                    url: "{{ route('ajaxGetTallas') }}", // Ajusta tu ruta
-                    method: 'GET',
-                    data: {
-                        tipoBusqueda: tipoBusqueda,
-                        orden:       orden,
-                        estilo:      estiloSeleccionado
-                    },
-                    success: function(response) {
-                        if(response.success) {
-                            // Llenamos el select de Tallas
-                            var tallas = response.tallas;
-                            tallas.forEach(function(t) {
-                                $('#tallaSelect').append(
-                                    $('<option>', { value: t, text: t })
-                                );
-                            });
-                            $('#tallaSelect').prop('disabled', false).trigger('change');
-                        }
-                    },
-                    error: function(xhr) {
-                        console.log(xhr.responseText);
-                    }
-                });
-            });
-
-            // Cuando cambia la Talla
-            $('#tallaSelect').on('change', function() {
-                var tallaSeleccionada  = $(this).val();
-                var estiloSeleccionado = $('#estilosSelect').val();
-                var tipoBusqueda       = $('#tipoEtiqueta').val();
-                var orden             = $('#valorEtiqueta').val();
-
-                // Limpiar inputs
-                $('#colorInput').val('');
-                $('#cantidadInput').val('');
-                $('#tamanoMuestraInput').val('');
-
-                if(!tallaSeleccionada || !estiloSeleccionado) return;
-
-                // Petición AJAX para obtener Cantidad, Tamaño de muestra y Color
-                $.ajax({
-                    url: "{{ route('ajaxGetData') }}", // Ajusta tu ruta
-                    method: 'GET',
-                    data: {
-                        tipoBusqueda: tipoBusqueda,
-                        orden:       orden,
-                        estilo:      estiloSeleccionado,
-                        talla:       tallaSeleccionada
-                    },
-                    success: function(response) {
-                        if(response.success && response.data) {
-                            $('#colorInput').val(response.data.color); // Asignar color
-                            $('#cantidadInput').val(response.data.cantidad);
-                            $('#tamanoMuestraInput').val(response.data.tamaño_muestra);
-                        } else {
-                            // No encontró data
-                            $('#colorInput').val('N/A');
-                            $('#cantidadInput').val('0');
-                            $('#tamanoMuestraInput').val('');
-                        }
-                    },
-                    error: function(xhr) {
-                        console.log(xhr.responseText);
-                    }
-                });
-            });
-        });
-    </script>
-
     <!-- Script general para inicializar la lógica de defectos -->
     <script>
         function initDefectos(selectSelector, containerSelector, formSelector) {
@@ -800,44 +699,43 @@
     
     <!-- Script para abrir y cerrar el Modal -->
     <script>
-        // Script para abrir y cerrar el modal con tecla ESC
-        document.addEventListener("DOMContentLoaded", function() {
+        function initModalManual() {
             let modal = document.getElementById("customModal");
             let openModalBtn = document.getElementById("openModalBtn");
             let closeModalBtn = document.getElementById("closeModalBtn");
             let closeModalBtnFooter = document.getElementById("closeModalBtnFooter");
-
-            // Función para cerrar el modal
+        
             function cerrarModal() {
                 modal.style.display = "none";
             }
-
-            // Abrir el modal
-            openModalBtn.addEventListener("click", function() {
-                modal.style.display = "flex";
-            });
-
-            // Cerrar el modal con el botón (X)
-            closeModalBtn.addEventListener("click", cerrarModal);
-
-            // Cerrar el modal con el botón de "Cerrar" en el footer
-            closeModalBtnFooter.addEventListener("click", cerrarModal);
-
-            // Cerrar el modal si el usuario hace clic fuera del contenido
-            window.addEventListener("click", function(event) {
+        
+            if (openModalBtn) {
+                openModalBtn.addEventListener("click", function () {
+                    modal.style.display = "flex";
+                });
+            }
+        
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener("click", cerrarModal);
+            }
+        
+            if (closeModalBtnFooter) {
+                closeModalBtnFooter.addEventListener("click", cerrarModal);
+            }
+        
+            window.addEventListener("click", function (event) {
                 if (event.target === modal) {
                     cerrarModal();
                 }
             });
-
-            // Cerrar el modal con la tecla "ESC"
-            document.addEventListener("keydown", function(event) {
+        
+            document.addEventListener("keydown", function (event) {
                 if (event.key === "Escape") {
                     cerrarModal();
                 }
             });
-        });
-    </script>
+        }
+    </script>        
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             let tallaInput = document.getElementById("tallaInputModal");
@@ -866,4 +764,209 @@
         });
 
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const btnBuscar = document.getElementById('btnBuscar');
+            const resultadoDiv = document.getElementById('resultadoBusqueda');
+        
+            btnBuscar.addEventListener('click', function () {
+                const tipo = document.getElementById('tipoEtiqueta').value;
+                const orden = document.getElementById('valorEtiqueta').value;
+        
+                if (!tipo || !orden) {
+                    resultadoDiv.innerHTML = '<p class="text-danger">Completa todos los campos.</p>';
+                    return;
+                }
+        
+                resultadoDiv.innerHTML = '<p>Cargando resultados...</p>';
+        
+                fetch("{{ route('etiquetas_v2.procesarAjax') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        tipoEtiqueta: tipo,
+                        valorEtiqueta: orden
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        resultadoDiv.innerHTML = `<p class="text-warning">${data.message}</p>`;
+                        return;
+                    }
+        
+                    const selectEstilos = data.estilos.map(estilo => `
+                        <option value="${estilo.Estilos}">${estilo.Estilos}</option>
+                    `).join('');
+        
+                    // Renderiza el formulario completo
+                    resultadoDiv.innerHTML = `
+                        <h4 class="mt-4">Estilos encontrados:</h4>
+                        <form id="guardarFormulario" action="{{ route('guardarAuditoriaEtiqueta') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="tipoEtiqueta" value="${data.tipoBusqueda}">
+                            <input type="hidden" name="valorEtiqueta" value="${data.orden}">
+        
+                            <div class="table-responsive">
+                                <table class="table align-items-center table-flush">
+                                    <thead class="thead-primary">
+                                        <tr>
+                                            <th>Estilo</th>
+                                            <th>Talla</th>
+                                            <th>Color</th>
+                                            <th>Cantidad</th>
+                                            <th>Muestreo</th>
+                                            <th>Defectos</th>
+                                            <th>Acciones Correctivas</th>
+                                            <th id="comentariosHeader" class="d-none">Comentarios</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <select name="estilo" id="estilosSelect" class="form-control" required>
+                                                    <option value="">-- Seleccionar --</option>
+                                                    ${selectEstilos}
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select name="talla" id="tallaSelect" class="form-control" disabled required>
+                                                    <option value="">-- Seleccionar --</option>
+                                                </select>
+                                            </td>
+                                            <td><input type="text" name="color" class="form-control texto-blanco" id="colorInput" readonly></td>
+                                            <td><input type="text" name="cantidad" class="form-control texto-blanco" id="cantidadInput" readonly></td>
+                                            <td><input type="text" name="muestreo" class="form-control texto-blanco" id="tamanoMuestraInput" readonly></td>
+                                            <td>
+                                                <select id="defectosSelect" class="form-control">
+                                                    <option value="">-- Seleccionar Defectos --</option>
+                                                </select>
+                                                <div id="listaDefectosContainer"></div>
+                                            </td>
+                                            <td>
+                                                <select name="accion_correctiva" id="accionesSelect" class="form-control" required>
+                                                    <option value="">-- Seleccionar --</option>
+                                                    <option value="Aprobado">Aprobado</option>
+                                                    <option value="Aprobado con condicion">Aprobado con condicion</option>
+                                                    <option value="Rechazado">Rechazado</option>
+                                                </select>
+                                            </td>
+                                            <td id="comentariosCell" class="d-none">
+                                                <input type="text" name="comentarios" id="comentariosInput" class="form-control" placeholder="Escribe un comentario">
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="mt-3">
+                                    <button type="submit" class="btn-custom">Guardar Auditoría</button>
+                                </div>
+                            </div>
+                        </form>
+                        <!-- Botón para abrir el modal -->
+                        <div class="mt-3">
+                            <button id="openModalBtn" class="btn btn-secondary">Ingresar datos no encontrados</button>
+                        </div>
+
+                    `;
+        
+                    // Activar Select2 si lo usas
+                    $('#estilosSelect').select2();
+                    $('#tallaSelect').select2();
+                    // ✅ Inicializar lógica de defectos dinámicamente
+                    initDefectos('#defectosSelect', '#listaDefectosContainer', '#guardarFormulario');
+                    // Inicializar apertura/cierre del modal
+                    initModalManual();
+        
+                }).then(() => {
+                    // Aquí viene tu AJAX preexistente pero usando delegación
+                    const tipoBusqueda = $('#tipoEtiqueta').val();
+                    const orden = $('#valorEtiqueta').val();
+        
+                    // Delegación para cambio de Estilo
+                    $(document).off('change', '#estilosSelect').on('change', '#estilosSelect', function () {
+                        const estiloSeleccionado = $(this).val();
+        
+                        $('#tallaSelect').html('<option value="">-- Seleccionar --</option>').prop('disabled', true).trigger('change');
+                        $('#colorInput').val('');
+                        $('#cantidadInput').val('');
+                        $('#tamanoMuestraInput').val('');
+        
+                        if (!estiloSeleccionado) return;
+        
+                        $.ajax({
+                            url: "{{ route('ajaxGetTallas') }}",
+                            method: 'GET',
+                            data: {
+                                tipoBusqueda: tipoBusqueda,
+                                orden: orden,
+                                estilo: estiloSeleccionado
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    response.tallas.forEach(function (t) {
+                                        $('#tallaSelect').append(
+                                            $('<option>', { value: t, text: t })
+                                        );
+                                    });
+                                    $('#tallaSelect').prop('disabled', false).trigger('change');
+                                }
+                            },
+                            error: function (xhr) {
+                                console.log(xhr.responseText);
+                            }
+                        });
+                    });
+        
+                    // Delegación para cambio de Talla
+                    $(document).off('change', '#tallaSelect').on('change', '#tallaSelect', function () {
+                        const tallaSeleccionada = $(this).val();
+                        const estiloSeleccionado = $('#estilosSelect').val();
+        
+                        $('#colorInput').val('');
+                        $('#cantidadInput').val('');
+                        $('#tamanoMuestraInput').val('');
+        
+                        if (!tallaSeleccionada || !estiloSeleccionado) return;
+        
+                        $.ajax({
+                            url: "{{ route('ajaxGetData') }}",
+                            method: 'GET',
+                            data: {
+                                tipoBusqueda: tipoBusqueda,
+                                orden: orden,
+                                estilo: estiloSeleccionado,
+                                talla: tallaSeleccionada
+                            },
+                            success: function (response) {
+                                if (response.success && response.data) {
+                                    $('#colorInput').val(response.data.color);
+                                    $('#cantidadInput').val(response.data.cantidad);
+                                    $('#tamanoMuestraInput').val(response.data.tamaño_muestra);
+                                } else {
+                                    $('#colorInput').val('N/A');
+                                    $('#cantidadInput').val('0');
+                                    $('#tamanoMuestraInput').val('');
+                                }
+                            },
+                            error: function (xhr) {
+                                console.log(xhr.responseText);
+                            }
+                        });
+                    });
+                })
+
+                .catch(err => {
+                    resultadoDiv.innerHTML = `<p class="text-danger">Error al procesar la solicitud.</p>`;
+                    console.error(err);
+                });
+            });
+        });
+    </script>    
+    
+    
 @endsection
