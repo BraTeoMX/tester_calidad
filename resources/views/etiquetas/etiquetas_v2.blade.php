@@ -876,7 +876,17 @@
                             .then(data => {
                                 if (data.success) {
                                     alert('Estatus actualizado correctamente.');
-                                    location.reload(); // Puedes quitar esto si prefieres recargar solo los registros con fetch
+
+                                    // Reemplaza el select por texto plano
+                                    const celdaEstatus = event.target.parentElement;
+                                    celdaEstatus.textContent = 'Aprobado';
+
+                                    // Quita la clase de fila rechazada
+                                    const fila = event.target.closest('tr');
+                                    if (fila && fila.classList.contains('table-danger1')) {
+                                        fila.classList.remove('table-danger1');
+                                    }
+
                                 } else {
                                     alert('Ocurrió un error al actualizar el estatus.');
                                     event.target.value = 'Rechazado';
