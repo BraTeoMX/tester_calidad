@@ -56,178 +56,86 @@
                 <!-- Resultado -->
                 <div id="resultadoBusqueda" class="mt-4"></div>                
 
-                <!-- Resultados de la búsqueda: si se encontraron Estilos -->
-                @if(isset($estilos) && $estilos->count() > 0)
-                    <h4 class="mt-4">Estilos encontrados:</h4>
-                    <!-- Formulario para enviar los datos al controlador -->
-                    <form id="guardarFormulario"  action="{{ route('guardarAuditoriaEtiqueta') }}" method="POST">
-                        @csrf
-                        <!-- Inputs ocultos para enviar el tipo de búsqueda y el valor de la orden -->
-                        <input type="hidden" name="tipoEtiqueta" value="{{ old('tipoEtiqueta', $tipoBusqueda) }}">
-                        <input type="hidden" name="valorEtiqueta" value="{{ old('valorEtiqueta', $orden) }}">
-
-                        <!-- Tabla responsiva con un solo row de selects/inputs -->
-                        <div class="table-responsive">
-                            <table class="table align-items-center table-flush">
-                                <thead class="thead-primary">
-                                    <tr>
-                                        <th style="min-width: 150px;">Estilo</th>
-                                        <th style="min-width: 150px;">Talla</th>
-                                        <th style="min-width: 150px;">Color</th>
-                                        <th style="min-width: 150px;">Cantidad</th>
-                                        <th style="min-width: 180px;">Tamaño de Muestra</th>
-                                        <th style="min-width: 250px;">Defectos</th>
-                                        <th style="min-width: 200px;">Acciones Correctivas</th>
-                                        <!-- Nueva columna Comentarios -->
-                                        <th style="min-width: 250px;" id="comentariosHeader" class="d-none">Comentarios</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <!-- Select Estilo -->
-                                        <td>
-                                            <select name="estilo" id="estilosSelect" class="form-control" required>
-                                                <option value="">-- Seleccionar --</option>
-                                                @foreach($estilos as $estiloObj)
-                                                    <option value="{{ $estiloObj->Estilos }}">
-                                                        {{ $estiloObj->Estilos }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <select name="talla" id="tallaSelect" class="form-control" disabled required>
-                                                <option value="">-- Seleccionar --</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <input type="text" name="color" class="form-control texto-blanco" id="colorInput" readonly>
-                                        </td>
-                                        <td>
-                                            <input type="text" name="cantidad" class="form-control texto-blanco" id="cantidadInput" readonly>
-                                        </td>
-                                        <td>
-                                            <input type="text" name="muestreo" class="form-control texto-blanco" id="tamanoMuestraInput" readonly>
-                                        </td>
-                                        <td>
-                                            <select id="defectosSelect" class="form-control">
-                                                <option value="">-- Seleccionar Defectos --</option>
-                                            </select>
-                                            <!-- Un contenedor donde se irán agregando los defectos -->
-                                            <div id="listaDefectosContainer"></div>
-                                        </td>
-                                        <td>
-                                            <select name="accion_correctiva" id="accionesSelect" class="form-control" required>
-                                                <option value="">-- Seleccionar --</option>
-                                                <option value="Aprobado">Aprobado</option>
-                                                <option value="Aprobado con condicion">Aprobado con condicion</option>
-                                                <option value="Rechazado">Rechazado</option>
-                                            </select>
-                                        </td>
-                                        <td id="comentariosCell" class="d-none">
-                                            <input type="text" name="comentarios" id="comentariosInput" class="form-control" placeholder="Escribe un comentario">
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <!-- Botón para enviar los datos -->
-                            <div class="mt-3">
-                                <button type="submit" class="btn-custom">Guardar Auditoría</button>
-                            </div>
+                <!-- Modal Personalizado -->
+                <div id="customModal" class="modal-custom">
+                    <div class="modal-content-custom">
+                        <div class="modal-header-custom">
+                            <h5 class="modal-title-custom">Agregar Auditoría Completa</h5>
+                            <button id="closeModalBtn" class="close-custom">&times;</button>
                         </div>
-                    </form>
-                    
-                    <!-- Modal Personalizado -->
-                    <div id="customModal" class="modal-custom">
-                        <div class="modal-content-custom">
-                            <div class="modal-header-custom">
-                                <h5 class="modal-title-custom">Agregar Auditoría Completa</h5>
-                                <button id="closeModalBtn" class="close-custom">&times;</button>
-                            </div>
-                            <div class="modal-body-custom">
-                                <!-- Formulario dentro del modal -->
-                                <form id="guardarFormularioModal" action="{{ route('guardarAuditoriaEtiqueta') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="tipoEtiqueta" value="{{ old('tipoEtiqueta', $tipoBusqueda) }}">
-                                    <input type="hidden" name="valorEtiqueta" value="{{ old('valorEtiqueta', $orden) }}">
-                                    <input type="hidden" name="registro_manual" value="1">
-                                    
-                                    <div class="table-responsive">
-                                        <table class="table align-items-center table-flush">
-                                            <thead class="thead-primary">
-                                                <tr>
-                                                    <th style="min-width: 150px;">Estilo</th>
-                                                    <th style="min-width: 150px;">Talla</th>
-                                                    <th style="min-width: 150px;">Color</th>
-                                                    <th style="min-width: 150px;">Cantidad</th>
-                                                    <th style="min-width: 180px;">Tamaño de Muestra</th>
-                                                    <th style="min-width: 250px;">Defectos</th>
-                                                    <th style="min-width: 200px;">Acciones Correctivas</th>
-                                                    <th style="min-width: 250px;" id="comentariosHeaderModal" class="d-none">Comentarios</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <!-- Select Estilo: mantiene la conexión con la lógica original -->
-                                                    <td>
-                                                        <select name="estilo" id="estilosSelectModal" class="form-control" required>
-                                                            <option value="">-- Seleccionar --</option>
-                                                            @foreach($estilos as $estiloObj)
-                                                            <option value="{{ $estiloObj->Estilos }}">
-                                                                {{ $estiloObj->Estilos }}
-                                                            </option>
-                                                            @endforeach
-                                                        </select>
-                                                    </td>
-                                                    <!-- Para el modal, los siguientes campos se muestran como input de tipo text -->
-                                                    <td>
-                                                        <div class="input-group">
-                                                            <input type="text" name="talla" id="tallaInputModal" class="form-control" placeholder="Escribir talla" required>
-                                                            <div class="input-group-append">
-                                                                <input type="checkbox" id="tallaCheckbox" class="checkbox-custom">
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="input-group">
-                                                            <input type="text" name="color" class="form-control" id="colorInputModal" placeholder="Escribir color" required>
-                                                            <div class="input-group-append">
-                                                                <input type="checkbox" id="colorCheckbox" class="checkbox-custom">
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td><input type="number" name="cantidad" class="form-control" id="cantidadInputModal" placeholder="Escribir cantidad" required min="0" step="1"></td>
-                                                    <td><input type="number" name="muestreo" class="form-control" id="tamanoMuestraInputModal" placeholder="Escribir tamaño de muestra" required min="0" step="1"></td>
-                                                    <td>
-                                                        <select id="defectosSelectModal" class="form-control">
-                                                            <option value="">-- Seleccionar Defectos --</option>
-                                                        </select>
-                                                        <div id="listaDefectosContainerModal"></div>
-                                                        </td>
-                                                    <td>
-                                                    <select name="accion_correctiva" id="accionesSelectModal" class="form-control" required>
+                        <div class="modal-body-custom">
+                            <!-- Formulario dentro del modal -->
+                            <form id="guardarFormularioModal">
+                                <input type="hidden" name="registro_manual" value="1">
+                                
+                                <div class="table-responsive">
+                                    <table class="table align-items-center table-flush">
+                                        <thead class="thead-primary">
+                                            <tr>
+                                                <th style="min-width: 150px;">Estilo</th>
+                                                <th style="min-width: 150px;">Talla</th>
+                                                <th style="min-width: 150px;">Color</th>
+                                                <th style="min-width: 150px;">Cantidad</th>
+                                                <th style="min-width: 180px;">Tamaño de Muestra</th>
+                                                <th style="min-width: 250px;">Defectos</th>
+                                                <th style="min-width: 200px;">Acciones Correctivas</th>
+                                                <th style="min-width: 250px;" id="comentariosHeaderModal" class="d-none">Comentarios</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <!-- Select Estilo: mantiene la conexión con la lógica original -->
+                                                <td>
+                                                    <select name="estilo" id="estilosSelectModal" class="form-control" required>
                                                         <option value="">-- Seleccionar --</option>
-                                                        <option value="Aprobado">Aprobado</option>
-                                                        <option value="Aprobado con condicion">Aprobado con condicion</option>
-                                                        <option value="Rechazado">Rechazado</option>
                                                     </select>
+                                                </td>
+                                                <!-- Para el modal, los siguientes campos se muestran como input de tipo text -->
+                                                <td>
+                                                    <div class="input-group">
+                                                        <input type="text" name="talla" id="tallaInputModal" class="form-control" placeholder="Escribir talla" required>
+                                                        <div class="input-group-append">
+                                                            <input type="checkbox" id="tallaCheckbox" class="checkbox-custom">
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="input-group">
+                                                        <input type="text" name="color" class="form-control" id="colorInputModal" placeholder="Escribir color" required>
+                                                        <div class="input-group-append">
+                                                            <input type="checkbox" id="colorCheckbox" class="checkbox-custom">
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td><input type="number" name="cantidad" class="form-control" id="cantidadInputModal" placeholder="Escribir cantidad" required min="0" step="1"></td>
+                                                <td><input type="number" name="muestreo" class="form-control" id="tamanoMuestraInputModal" placeholder="Escribir tamaño de muestra" required min="0" step="1"></td>
+                                                <td>
+                                                    <select id="defectosSelectModal" class="form-control">
+                                                        <option value="">-- Seleccionar Defectos --</option>
+                                                    </select>
+                                                    <div id="listaDefectosContainerModal"></div>
                                                     </td>
-                                                    <td id="comentariosCellModal" class="d-none"><input type="text" name="comentarios" id="comentariosInputModal" class="form-control" placeholder="Escribe un comentario"></td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div class="modal-footer-custom">
-                                        <button type="submit" class="btn-custom">Guardar Auditoría</button>
-                                        <button type="button" id="closeModalBtnFooter" class="btn-secondary-custom">Cerrar</button>
-                                    </div>
-                                </form>
-                            </div>
+                                                <td>
+                                                <select name="accion_correctiva" id="accionesSelectModal" class="form-control" required>
+                                                    <option value="">-- Seleccionar --</option>
+                                                    <option value="Aprobado">Aprobado</option>
+                                                    <option value="Aprobado con condicion">Aprobado con condicion</option>
+                                                    <option value="Rechazado">Rechazado</option>
+                                                </select>
+                                                </td>
+                                                <td id="comentariosCellModal" class="d-none"><input type="text" name="comentarios" id="comentariosInputModal" class="form-control" placeholder="Escribe un comentario"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="modal-footer-custom">
+                                    <button type="submit" class="btn-custom">Guardar Auditoría</button>
+                                    <button type="button" id="closeModalBtnFooter" class="btn-secondary-custom">Cerrar</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                @else
-                    <h4 class="mt-4">No se encontraron estilos.</h4>
-                @endif
+                </div>
             </div>
         </div>
     </div>
@@ -235,63 +143,14 @@
     <div class="row">
         <div class="card">
             <div class="card-header">
-                <h2>Registros del dia</h2>
+                <h2>Registros del día</h2>
             </div>
             <div class="card-body">
-                @if($registrosDelDia->isNotEmpty())
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Tipo</th>
-                                    <th>Orden</th>
-                                    <th>Estilo</th>
-                                    <th>Color</th>
-                                    <th>Cantidad</th>
-                                    <th>Muestreo</th>
-                                    <th>Estatus</th>
-                                    <th>Defectos</th>
-                                    <th>Comentarios</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($registrosDelDia as $registro)
-                                    <tr class="{{ $registro->isRechazado ? 'table-danger1' : '' }}">
-                                        <td>{{ $registro->tipo }}</td>
-                                        <td>{{ $registro->orden }}</td>
-                                        <td>{{ $registro->estilo }}</td>
-                                        <td>{{ $registro->color }}</td>
-                                        <td>{{ $registro->cantidad }}</td>
-                                        <td>{{ $registro->muestreo }}</td>
-                                        <td>
-                                            @if($registro->estatus === 'Rechazado')
-                                                <select class="form-control select-estatus" data-id="{{ $registro->id }}">
-                                                    <option value="Rechazado" selected>Rechazado</option>
-                                                    <option value="Aprobado">Aprobado</option>
-                                                </select>
-                                            @else
-                                                {{ $registro->estatus }}
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <ul>
-                                                @foreach($registro->defectos_formateados as $defecto)
-                                                    <li>{{ $defecto }}</li>
-                                                @endforeach
-                                            </ul>
-                                        </td>
-                                        <td>{{ $registro->comentario }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <p>No se encontraron registros para el día de hoy.</p>
-                @endif
+                <div id="tablaRegistrosDelDia">Cargando registros...</div>
             </div>
         </div>
     </div>
+    
 
     <!-- Estilos opcionales para el thead -->
     <style>
@@ -648,55 +507,6 @@
         });
     </script>    
     
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Selecciona todos los <select> con clase "select-estatus"
-            const selects = document.querySelectorAll('.select-estatus');
-        
-            selects.forEach(select => {
-                select.addEventListener('change', function (event) {
-                    // Mostramos alert para confirmar
-                    const confirmar = confirm('¿Deseas cambiar el estatus?');
-                    if (!confirmar) {
-                        // Si el usuario cancela, revertimos el valor a "Rechazado"
-                        event.target.value = 'Rechazado';
-                        return;
-                    }
-        
-                    // Si el usuario confirma, procedemos con la petición AJAX
-                    const registroId = event.target.getAttribute('data-id');
-                    const nuevoEstatus = event.target.value;
-        
-                    fetch(`/reporte-etiquetas/${registroId}/update-status`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}' // Requerido en Laravel
-                        },
-                        body: JSON.stringify({ estatus: nuevoEstatus })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('Estatus actualizado correctamente.');
-                            location.reload(); // Recarga la página actual
-                        } else {
-                            alert('Ocurrió un error al actualizar el estatus.');
-                            // Revertimos el valor a Rechazado si falla
-                            event.target.value = 'Rechazado';
-                        }
-                    })
-                    .catch(error => {
-                        console.error(error);
-                        alert('Error en la petición.');
-                        // Revertimos el valor a Rechazado
-                        event.target.value = 'Rechazado';
-                    });
-                });
-            });
-        });
-    </script>
-    
     <!-- Script para abrir y cerrar el Modal -->
     <script>
         function initModalManual() {
@@ -873,10 +683,20 @@
                         </div>
 
                     `;
-        
                     // Activar Select2 si lo usas
                     $('#estilosSelect').select2();
                     $('#tallaSelect').select2();
+
+                    // Cargar los estilos también en el modal
+                    const estilosModal = document.getElementById('estilosSelectModal');
+                    if (estilosModal) {
+                        estilosModal.innerHTML = `
+                            <option value="">-- Seleccionar --</option>
+                            ${selectEstilos}
+                        `;
+                        $('#estilosSelectModal').select2();
+                    }
+
                     // ✅ Inicializar lógica de defectos dinámicamente
                     initDefectos('#defectosSelect', '#listaDefectosContainer', '#guardarFormulario');
                     // Inicializar apertura/cierre del modal
@@ -966,7 +786,112 @@
                 });
             });
         });
-    </script>    
+    </script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const contenedor = document.getElementById("tablaRegistrosDelDia");
+    
+            fetch("{{ route('registros.del.dia.ajax.etiqueta') }}")
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success || data.registros.length === 0) {
+                        contenedor.innerHTML = `<p>No se encontraron registros para el día de hoy.</p>`;
+                        return;
+                    }
+    
+                    const rows = data.registros.map(registro => `
+                        <tr class="${registro.isRechazado ? 'table-danger1' : ''}">
+                            <td>${registro.tipo}</td>
+                            <td>${registro.orden}</td>
+                            <td>${registro.estilo}</td>
+                            <td>${registro.color}</td>
+                            <td>${registro.cantidad}</td>
+                            <td>${registro.muestreo}</td>
+                            <td>
+                                ${registro.estatus === 'Rechazado'
+                                    ? `<select class="form-control select-estatus" data-id="${registro.id}">
+                                        <option value="Rechazado" selected>Rechazado</option>
+                                        <option value="Aprobado">Aprobado</option>
+                                       </select>`
+                                    : registro.estatus}
+                            </td>
+                            <td><ul>${registro.defectos.map(d => `<li>${d}</li>`).join('')}</ul></td>
+                            <td>${registro.comentario}</td>
+                        </tr>
+                    `).join('');
+    
+                    contenedor.innerHTML = `
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Orden</th>
+                                        <th>Estilo</th>
+                                        <th>Color</th>
+                                        <th>Cantidad</th>
+                                        <th>Muestreo</th>
+                                        <th>Estatus</th>
+                                        <th>Defectos</th>
+                                        <th>Comentarios</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rows}</tbody>
+                            </table>
+                        </div>
+                    `;
+                    // ✅ Reactivar el comportamiento del <select>
+                    activarCambioDeEstatus();
+                })
+
+                .catch(err => {
+                    console.error(err);
+                    contenedor.innerHTML = `<p class="text-danger">Ocurrió un error al cargar los registros.</p>`;
+                });
+
+                function activarCambioDeEstatus() {
+                    const selects = document.querySelectorAll('.select-estatus');
+
+                    selects.forEach(select => {
+                        select.addEventListener('change', function (event) {
+                            const confirmar = confirm('¿Deseas cambiar el estatus?');
+                            if (!confirmar) {
+                                event.target.value = 'Rechazado';
+                                return;
+                            }
+
+                            const registroId = event.target.getAttribute('data-id');
+                            const nuevoEstatus = event.target.value;
+
+                            fetch(`/reporte-etiquetas/${registroId}/update-status`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                body: JSON.stringify({ estatus: nuevoEstatus })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    alert('Estatus actualizado correctamente.');
+                                    location.reload(); // Puedes quitar esto si prefieres recargar solo los registros con fetch
+                                } else {
+                                    alert('Ocurrió un error al actualizar el estatus.');
+                                    event.target.value = 'Rechazado';
+                                }
+                            })
+                            .catch(error => {
+                                console.error(error);
+                                alert('Error en la petición.');
+                                event.target.value = 'Rechazado';
+                            });
+                        });
+                    });
+                }
+        });
+    </script>
     
     
 @endsection

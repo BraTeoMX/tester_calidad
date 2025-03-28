@@ -22,53 +22,39 @@ class EtiquetasV2Controller extends Controller
     // Función para mostrar la vista principal
     public function etiquetas_v2()
     {
-        // Obtén los registros del día actual y sus defectos asociados
-        $registrosDelDia = ReporteAuditoriaEtiqueta::whereDate('created_at', Carbon::today())
-            ->with('defectos') // Relación con TpReporteAuditoriaEtiqueta
-            ->get()
-            ->map(function ($registro) {
-                // Si no hay defectos, asigna "Sin defectos"
-                $registro->defectos_formateados = $registro->defectos->isNotEmpty()
-                    ? $registro->defectos->map(fn($defecto) => "{$defecto->nombre} ({$defecto->cantidad})")->toArray()
-                    : ['Sin defectos'];
-
-                // Si el comentario es NULL, asigna "N/A"
-                $registro->comentario = $registro->comentario ?? 'N/A';
-
-                // Agrega el indicador "isRechazado" para registros con estatus = "Rechazado"
-                $registro->isRechazado = $registro->estatus === 'Rechazado';
-
-                return $registro;
-            });
 
         // Retorna la vista con los datos
         return view('etiquetas.etiquetas_v2', [
-            'title' => '',
-            'estilos' => session('estilos', collect([])),
-            'tipoBusqueda' => session('tipoBusqueda', null),
-            'orden' => session('orden', null),
-            'registrosDelDia' => $registrosDelDia, // Pasa los registros a la vista
+            'title' => ''
         ]);
     }
 
-    /**
-     * Procesa el formulario: busca los estilos y retorna la vista con el primer select lleno.
-     */
-    public function procesarFormularioEtiqueta(Request $request)
+    public function getRegistrosDelDiaEtiqueta()
     {
-        $tipoBusqueda = $request->input('tipoEtiqueta');
-        $orden = $request->input('valorEtiqueta');
+        $registros = ReporteAuditoriaEtiqueta::whereDate('created_at', Carbon::today())
+            ->with('defectos')
+            ->get()
+            ->map(function ($registro) {
+                return [
+                    'id' => $registro->id,
+                    'tipo' => $registro->tipo,
+                    'orden' => $registro->orden,
+                    'estilo' => $registro->estilo,
+                    'color' => $registro->color,
+                    'cantidad' => $registro->cantidad,
+                    'muestreo' => $registro->muestreo,
+                    'estatus' => $registro->estatus,
+                    'isRechazado' => $registro->estatus === 'Rechazado',
+                    'comentario' => $registro->comentario ?? 'N/A',
+                    'defectos' => $registro->defectos->isNotEmpty()
+                        ? $registro->defectos->map(fn($d) => "{$d->nombre} ({$d->cantidad})")->toArray()
+                        : ['Sin defectos']
+                ];
+            });
 
-        // Usamos la función que extrae toda la lógica de conexión
-        $estilos = $this->obtenerEstilos($tipoBusqueda, $orden);
-
-        // Redirigir a la vista principal con datos de sesión
-        return redirect()->route('etiquetas_v2')->with([
-            'estilos' => $estilos,
-            'tipoBusqueda' => $tipoBusqueda,
-            'orden' => $orden,
-        ]);
+        return response()->json(['success' => true, 'registros' => $registros]);
     }
+
     public function procesarFormularioEtiquetaAjax(Request $request)
     {
         $tipoBusqueda = $request->input('tipoEtiqueta');
@@ -198,12 +184,12 @@ class EtiquetasV2Controller extends Controller
             $selectCampos = [$campoBusqueda2, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
         
             // Log de entrada
-            Log::info('Inicio búsqueda para tipoBusqueda', [
+            /* Log::info('Inicio búsqueda para tipoBusqueda', [
                 'TipoBusqueda' => $tipoBusqueda,
                 'Estilo' => $estilo,
                 'Orden' => $orden,
                 'CampoBusqueda' => $campoBusqueda2,
-            ]);
+            ]); */
         
             // Buscar en la tabla principal
             $datosTabla1 = $modelo1
@@ -213,14 +199,14 @@ class EtiquetasV2Controller extends Controller
                 ->get();
         
             // Log resultados de la primera búsqueda
-            Log::info('Resultados de la búsqueda en MaterializedBacklogTable_View', [
+            /* Log::info('Resultados de la búsqueda en MaterializedBacklogTable_View', [
                 'Resultados' => $datosTabla1->toArray(),
-            ]);
+            ]); */
         
             // Si el tipo es 'PO' y no hay resultados, buscar en la segunda tabla
             $datosTabla2 = collect();
             if ($tipoBusqueda === 'PO' && $datosTabla1->isEmpty()) {
-                Log::info('No se encontraron resultados en MaterializedBacklogTable_View. Buscando en MaterializedBacklogTable2_View');
+                //Log::info('No se encontraron resultados en MaterializedBacklogTable_View. Buscando en MaterializedBacklogTable2_View');
         
                 $datosTabla2 = $modelo2
                     ->where('Estilos', $estilo)
@@ -229,9 +215,9 @@ class EtiquetasV2Controller extends Controller
                     ->get();
         
                 // Log resultados de la segunda búsqueda
-                Log::info('Resultados de la búsqueda en MaterializedBacklogTable2_View', [
+                /* Log::info('Resultados de la búsqueda en MaterializedBacklogTable2_View', [
                     'Resultados' => $datosTabla2->toArray(),
-                ]);
+                ]); */
             }
         
             // Combina los datos de ambas tablas (si es necesario)
@@ -245,9 +231,9 @@ class EtiquetasV2Controller extends Controller
                 ->keys(); // Obtiene las claves únicas exactas como tallas
         
             // Log de las tallas obtenidas
-            Log::info('Lista de tallas obtenidas', [
+            /*Log::info('Lista de tallas obtenidas', [
                 'Tallas' => $tallas->toArray(),
-            ]);
+            ]); */
         
             // Retornar las tallas como JSON
             return response()->json([
@@ -334,9 +320,9 @@ class EtiquetasV2Controller extends Controller
                 ->get();
         
             // Log resultados de la primera búsqueda
-            Log::info('Resultados de la búsqueda en MaterializedBacklogTable_View', [
+            /* Log::info('Resultados de la búsqueda en MaterializedBacklogTable_View', [
                 'Resultados' => $datosTabla1->toArray(),
-            ]);
+            ]); */
         
             // Buscar en la segunda tabla para los casos 'PO' y 'OV'
             $datosTabla2 = collect();
@@ -349,18 +335,18 @@ class EtiquetasV2Controller extends Controller
                     ->get();
         
                 // Log resultados de la segunda búsqueda
-                Log::info('Resultados de la búsqueda en MaterializedBacklogTable2_View', [
+                /* Log::info('Resultados de la búsqueda en MaterializedBacklogTable2_View', [
                     'Resultados' => $datosTabla2->toArray(),
-                ]);
+                ]); */
             }
         
             // Combina los resultados de ambas tablas
             $datos = $datosTabla1->merge($datosTabla2);
         
             // Log resultados combinados
-            Log::info('Resultados combinados de ambas tablas', [
+            /* Log::info('Resultados combinados de ambas tablas', [
                 'Resultados' => $datos->toArray(),
-            ]);
+            ]); */
         
             // Filtrar duplicados comparando con registros existentes
             $registrosExistentes = ReporteAuditoriaEtiqueta::all();

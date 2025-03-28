@@ -433,6 +433,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/guardar-defecto-etiqueta', [EtiquetasV2Controller::class, 'guardarDefectoEtiqueta'])->name('guardarDefectoEtiqueta');
     Route::post('/guardar-auditoria-etiqueta', [EtiquetasV2Controller::class, 'guardarAuditoriaEtiqueta'])->name('guardarAuditoriaEtiqueta');
     Route::put('/reporte-etiquetas/{id}/update-status', [EtiquetasV2Controller::class, 'updateStatus'])->name('reporte-etiquetas.updateStatus');
+    Route::get('/registros-del-dia-etiqueta', [EtiquetasV2Controller::class, 'getRegistrosDelDiaEtiqueta'])->name('registros.del.dia.ajax.etiqueta');
 
     //nuevo apartado para el desarrollo de inspeccion depues de horno
     Route::get('/inspeccionEstampadoHorno', [ScreenV2Controller::class, 'inspeccionEstampadoHorno'])->name('inspeccionEstampadoHorno');
