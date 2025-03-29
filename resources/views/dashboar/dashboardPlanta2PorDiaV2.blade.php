@@ -237,6 +237,38 @@
         </div>
     </div>
 
+    <!-- Modal reutilizable para AQL y AQL TE -->
+    <div id="modalAQL" class="custom-modal" style="display: none;">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <span class="custom-close" onclick="cerrarModalAQL()">&times;</span>
+                <h3 id="modalAQLTitulo">Detalles de AQL</h3>
+            </div>
+            <div class="custom-modal-body table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>PARO</th>
+                            <th>CLIENTE</th>
+                            <th># BULTO</th>
+                            <th>PIEZAS</th>
+                            <th>TALLA</th>
+                            <th>COLOR</th>
+                            <th>ESTILO</th>
+                            <th>PIEZAS INSPECCIONADAS</th>
+                            <th>PIEZAS RECHAZADAS</th>
+                            <th>TIPO DE DEFECTO</th>
+                            <th>Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalAQLBody">
+                        <!-- Aquí se cargarán los registros vía JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <style>
         /* Contenedor para centrar el texto */
         .loading-container {
@@ -522,7 +554,7 @@
                                 <td>${item.auditoresUnicos}</td>
                                 <td>
                                     <button type="button" class="custom-btn" 
-                                        onclick="openCustomModal('customModalAQL${item.modulo}_${item.estilo}')">
+                                        onclick="abrirModalAQL('${item.modulo}', '${item.estilo}', '${tablaBodyId}')">
                                         ${item.modulo}
                                     </button>
                                 </td>
@@ -637,6 +669,87 @@
                         document.getElementById("spinnerPROCESOTE").style.display = "none";
                     }
                 });
+            }
+        });
+    </script>
+
+    <script>
+        let activeModalId = null;
+
+        function abrirModalAQL(modulo, estilo, tablaOrigenId) {
+            // Mostrar modal vacío
+            const modal = document.getElementById("modalAQL");
+            const tbody = document.getElementById("modalAQLBody");
+            const titulo = document.getElementById("modalAQLTitulo");
+            tbody.innerHTML = `<tr><td colspan="11">Cargando...</td></tr>`; // Spinner simple
+
+            // Abrir modal
+            modal.style.display = "block";
+            document.body.style.overflow = "hidden";
+            activeModalId = "modalAQL";
+
+            // Asignar título dinámico
+            titulo.textContent = `Detalles de AQL para Módulo ${modulo}, Estilo: ${estilo}`;
+
+            // Determinar si es tiempo extra o no
+            const tiempo_extra = (tablaOrigenId === "tablaAQLGeneralTENuevoBody") ? 1 : null;
+            const fecha = document.getElementById("fecha_inicio").value;
+
+            // Hacer fetch a un endpoint que te pasaré después
+            fetch(`dashboardPlanta1V2P2/buscarAQL/detalles?modulo=${modulo}&estilo=${estilo}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        tbody.innerHTML = `<tr><td colspan="11">${data.error}</td></tr>`;
+                        return;
+                    }
+
+                    if (data.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="11">No hay registros.</td></tr>`;
+                        return;
+                    }
+
+                    let rows = "";
+                    data.forEach(registro => {
+                        rows += `<tr>
+                            <td>${registro.minutos_paro ?? 'N/A'}</td>
+                            <td>${registro.cliente ?? 'N/A'}</td>
+                            <td>${registro.bulto ?? 'N/A'}</td>
+                            <td>${registro.pieza ?? 'N/A'}</td>
+                            <td>${registro.talla ?? 'N/A'}</td>
+                            <td>${registro.color ?? 'N/A'}</td>
+                            <td>${registro.estilo ?? 'N/A'}</td>
+                            <td>${registro.cantidad_auditada ?? 'N/A'}</td>
+                            <td>${registro.cantidad_rechazada ?? 'N/A'}</td>
+                            <td>${registro.defectos ?? 'N/A'}</td>
+                            <td>${registro.hora ?? 'N/A'}</td>
+                        </tr>`;
+                    });
+                    tbody.innerHTML = rows;
+                })
+                .catch(err => {
+                    tbody.innerHTML = `<tr><td colspan="11">Error al cargar detalles.</td></tr>`;
+                    console.error(err);
+                });
+        }
+
+        function cerrarModalAQL() {
+            document.getElementById("modalAQL").style.display = "none";
+            document.body.style.overflow = "auto";
+            activeModalId = null;
+        }
+
+        // Cerrar al hacer clic fuera del modal
+        window.onclick = function(event) {
+            if (event.target.id === "modalAQL") {
+                cerrarModalAQL();
+            }
+        };
+
+        // Cerrar con ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape" && activeModalId === "modalAQL") {
+                cerrarModalAQL();
             }
         });
     </script>

@@ -830,4 +830,32 @@ class DashboardPorDiaV2Controller extends Controller
         return $dataModuloEstiloProceso;
     }
 
+    public function obtenerDetallesAQLP2(Request $request)
+    {
+        $modulo = $request->input('modulo');
+        $estilo = $request->input('estilo');
+        $fecha = $request->input('fecha');
+        $tiempoExtra = $request->input('tiempo_extra');
+        $planta = "Intimark2"; // o Intimark2 si aplica
+
+        if (!$modulo || !$estilo || !$fecha) {
+            return response()->json(['error' => 'Faltan parámetros necesarios'], 400);
+        }
+
+        // Usa tu función ya optimizada
+        $datosCompletos = $this->getDatosModuloEstiloAQL($fecha, $planta, $tiempoExtra);
+
+        // Buscar el módulo/estilo exacto
+        $registro = collect($datosCompletos)->first(function ($item) use ($modulo, $estilo) {
+            return $item['modulo'] === $modulo && $item['estilo'] === $estilo;
+        });
+
+        if (!$registro) {
+            return response()->json([]);
+        }
+
+        return response()->json($registro['detalles']); // Solo devolvemos los detalles
+    }
+
+
 }
