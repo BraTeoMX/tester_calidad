@@ -915,13 +915,28 @@
                         .then(res => res.json())
                         .then(response => {
                             if (response.success) {
-                                Swal.fire('Éxito', response.message, 'success');
-                                // Aquí puedes limpiar el formulario o volver a cargar los estilos si lo deseas
+                                Swal.fire('Éxito -1', response.message, 'success');
+
+                                // ✅ Guarda la acción seleccionada antes de resetear el formulario
+                                const accionSeleccionada = $('#accionesSelect').val();
+
+                                // ✅ Limpiar el formulario
                                 form.reset();
+
+                                // ✅ Deshabilitar el select de tallas
                                 $('#tallaSelect').prop('disabled', true).trigger('change');
-                                // 🔁 Actualiza la tabla de registros del día
+
+                                // ✅ Quitar la selección actual del select de estilos, manteniendo sus opciones
+                                $('#estilosSelect').val('').trigger('change');
+
+                                // ✅ Actualiza la tabla de registros del día si existe
                                 if (typeof cargarRegistrosDelDia === 'function') {
                                     cargarRegistrosDelDia();
+                                }
+
+                                // ✅ Recargar la página si la acción seleccionada fue "Rechazado"
+                                if (accionSeleccionada === 'Rechazado') {
+                                    location.reload();
                                 }
                             } else {
                                 Swal.fire('Error', response.message, 'error');
