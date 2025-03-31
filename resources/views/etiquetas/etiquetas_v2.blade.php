@@ -469,7 +469,7 @@
             // No uses .hide() al cargar la página; basta con la clase d-none que ya tienes en el HTML
             
             // Detecta cambios en el select de Acciones Correctivas
-            $('#accionesSelect').on('change', function() {
+            $('#accionesSelect').on('change', function() { 
                 let selectedValue = $(this).val();
                 
                 if (selectedValue === 'Aprobado con condicion') {
@@ -489,7 +489,7 @@
             // No uses .hide() al cargar la página; basta con la clase d-none que ya tienes en el HTML
             
             // Detecta cambios en el select de Acciones Correctivas
-            $('#accionesSelectModal').on('change', function() {
+            $('#accionesSelectModal').on('change', function() { 
                 let selectedValue = $(this).val();
                 
                 if (selectedValue === 'Aprobado con condicion') {
@@ -814,6 +814,10 @@
                                 // Aquí puedes limpiar el formulario o volver a cargar los estilos si lo deseas
                                 form.reset();
                                 $('#tallaSelect').prop('disabled', true).trigger('change');
+                                // 🔁 Actualiza la tabla de registros del día
+                                if (typeof cargarRegistrosDelDia === 'function') {
+                                    cargarRegistrosDelDia();
+                                }
                             } else {
                                 Swal.fire('Error', response.message, 'error');
                             }
@@ -842,6 +846,19 @@
 
                         return defectos;
                     }
+
+                    // Delegación para mostrar el campo de comentarios si se selecciona "Aprobado con condición"
+                    $(document).off('change', '#accionesSelect').on('change', '#accionesSelect', function () {
+                        const selectedValue = $(this).val();
+
+                        if (selectedValue === 'Aprobado con condicion') {
+                            $('#comentariosHeader, #comentariosCell').removeClass('d-none');
+                            $('#comentariosInput').attr('required', true);
+                        } else {
+                            $('#comentariosHeader, #comentariosCell').addClass('d-none');
+                            $('#comentariosInput').removeAttr('required');
+                        }
+                    });
 
                 })
                 .catch(err => {
