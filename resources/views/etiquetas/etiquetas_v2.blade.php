@@ -77,8 +77,8 @@
                                                 <th style="min-width: 150px;">Color</th>
                                                 <th style="min-width: 150px;">Cantidad</th>
                                                 <th style="min-width: 180px;">Tamaño de Muestra</th>
-                                                <th style="min-width: 250px;">Defectos</th>
                                                 <th style="min-width: 200px;">Acciones Correctivas</th>
+                                                <th style="min-width: 250px;" id="defectosHeaderModal" class="d-none">Defectos</th>
                                                 <th style="min-width: 250px;" id="comentariosHeaderModal" class="d-none">Comentarios</th>
                                             </tr>
                                         </thead>
@@ -110,19 +110,20 @@
                                                 <td><input type="number" name="cantidad" class="form-control" id="cantidadInputModal" placeholder="Escribir cantidad" required min="0" step="1"></td>
                                                 <td><input type="number" name="muestreo" class="form-control" id="tamanoMuestraInputModal" placeholder="Escribir tamaño de muestra" required min="0" step="1"></td>
                                                 <td>
+                                                    <select name="accion_correctiva" id="accionesSelectModal" class="form-control" required>
+                                                        <option value="">-- Seleccionar --</option>
+                                                        <option value="Aprobado">Aprobado</option>
+                                                        <option value="Aprobado con condicion">Aprobado con condicion</option>
+                                                        <option value="Rechazado">Rechazado</option>
+                                                    </select>
+                                                </td>
+                                                <td id="defectosCellModal" class="d-none">
                                                     <select id="defectosSelectModal" class="form-control">
                                                         <option value="">-- Seleccionar Defectos --</option>
                                                     </select>
                                                     <div id="listaDefectosContainerModal"></div>
-                                                    </td>
-                                                <td>
-                                                <select name="accion_correctiva" id="accionesSelectModal" class="form-control" required>
-                                                    <option value="">-- Seleccionar --</option>
-                                                    <option value="Aprobado">Aprobado</option>
-                                                    <option value="Aprobado con condicion">Aprobado con condicion</option>
-                                                    <option value="Rechazado">Rechazado</option>
-                                                </select>
                                                 </td>
+                                                
                                                 <td id="comentariosCellModal" class="d-none"><input type="text" name="comentarios" id="comentariosInputModal" class="form-control" placeholder="Escribe un comentario"></td>
                                             </tr>
                                         </tbody>
@@ -586,46 +587,28 @@
 
     </script>
     <script>
-        $(document).ready(function() {
-            // No uses .hide() al cargar la página; basta con la clase d-none que ya tienes en el HTML
-            
-            // Detecta cambios en el select de Acciones Correctivas
-            $('#accionesSelect').on('change', function() { 
-                let selectedValue = $(this).val();
-                
+        $(document).ready(function () {
+            $('#accionesSelectModal').on('change', function () {
+                const selectedValue = $(this).val();
+
+                // Lógica para Comentarios
                 if (selectedValue === 'Aprobado con condicion') {
-                    // Quita la clase d-none para mostrar la columna "Comentarios"
-                    $('#comentariosHeader, #comentariosCell').removeClass('d-none');
-                    // Hace obligatorio el campo
-                    $('#comentariosInput').attr('required', true);
-                } else {
-                    // Vuelve a poner la clase d-none para ocultar la columna "Comentarios"
-                    $('#comentariosHeader, #comentariosCell').addClass('d-none');
-                    // Quita la obligatoriedad
-                    $('#comentariosInput').removeAttr('required');
-                }
-            });
-        });
-        $(document).ready(function() {
-            // No uses .hide() al cargar la página; basta con la clase d-none que ya tienes en el HTML
-            
-            // Detecta cambios en el select de Acciones Correctivas
-            $('#accionesSelectModal').on('change', function() { 
-                let selectedValue = $(this).val();
-                
-                if (selectedValue === 'Aprobado con condicion') {
-                    // Quita la clase d-none para mostrar la columna "Comentarios"
                     $('#comentariosHeaderModal, #comentariosCellModal').removeClass('d-none');
-                    // Hace obligatorio el campo
                     $('#comentariosInputModal').attr('required', true);
                 } else {
-                    // Vuelve a poner la clase d-none para ocultar la columna "Comentarios"
                     $('#comentariosHeaderModal, #comentariosCellModal').addClass('d-none');
-                    // Quita la obligatoriedad
                     $('#comentariosInputModal').removeAttr('required');
+                }
+
+                // Lógica para Defectos
+                if (selectedValue === 'Rechazado') {
+                    $('#defectosHeaderModal, #defectosCellModal').removeClass('d-none');
+                } else {
+                    $('#defectosHeaderModal, #defectosCellModal').addClass('d-none');
                 }
             });
         });
+
     </script>    
     
     <!-- Script para abrir y cerrar el Modal -->
@@ -752,8 +735,8 @@
                                             <th>Color</th>
                                             <th>Cantidad</th>
                                             <th>Muestreo</th>
-                                            <th>Defectos</th>
                                             <th>Acciones Correctivas</th>
+                                            <th id="defectosHeader" class="d-none">Defectos</th>
                                             <th id="comentariosHeader" class="d-none">Comentarios</th>
                                         </tr>
                                     </thead>
@@ -774,18 +757,18 @@
                                             <td><input type="text" name="cantidad" class="form-control texto-blanco" id="cantidadInput" readonly></td>
                                             <td><input type="text" name="muestreo" class="form-control texto-blanco" id="tamanoMuestraInput" readonly></td>
                                             <td>
-                                                <select id="defectosSelect" class="form-control">
-                                                    <option value="">-- Seleccionar Defectos --</option>
-                                                </select>
-                                                <div id="listaDefectosContainer"></div>
-                                            </td>
-                                            <td>
                                                 <select name="accion_correctiva" id="accionesSelect" class="form-control" required>
                                                     <option value="">-- Seleccionar --</option>
                                                     <option value="Aprobado">Aprobado</option>
                                                     <option value="Aprobado con condicion">Aprobado con condicion</option>
                                                     <option value="Rechazado">Rechazado</option>
                                                 </select>
+                                            </td>
+                                            <td id="defectosCell" class="d-none">
+                                                <select id="defectosSelect" class="form-control">
+                                                    <option value="">-- Seleccionar Defectos --</option>
+                                                </select>
+                                                <div id="listaDefectosContainer"></div>
                                             </td>
                                             <td id="comentariosCell" class="d-none">
                                                 <input type="text" name="comentarios" id="comentariosInput" class="form-control" placeholder="Escribe un comentario">
@@ -981,12 +964,20 @@
                     $(document).off('change', '#accionesSelect').on('change', '#accionesSelect', function () {
                         const selectedValue = $(this).val();
 
+                        // Lógica para Comentarios (Aprobado con condición)
                         if (selectedValue === 'Aprobado con condicion') {
                             $('#comentariosHeader, #comentariosCell').removeClass('d-none');
                             $('#comentariosInput').attr('required', true);
                         } else {
                             $('#comentariosHeader, #comentariosCell').addClass('d-none');
                             $('#comentariosInput').removeAttr('required');
+                        }
+
+                        // Lógica para Defectos (Rechazado)
+                        if (selectedValue === 'Rechazado') {
+                            $('#defectosHeader, #defectosCell').removeClass('d-none');
+                        } else {
+                            $('#defectosHeader, #defectosCell').addClass('d-none');
                         }
                     });
 
