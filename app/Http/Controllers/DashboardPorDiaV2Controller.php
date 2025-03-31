@@ -521,18 +521,6 @@ class DashboardPorDiaV2Controller extends Controller
 
             // Si no encuentra datos, retorna 'N/A'
             $piezasRechazadasUnicas = $piezasRechazadasUnicas > 0 ? $piezasRechazadasUnicas : 'N/A';
-            //
-            // Consultar detalles para cada módulo y estilo
-            $detalles = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->with('tpAuditoriaAQL') // Asegúrate de tener la relación tpAuditoriaAQL
-                ->get();
 
             // Almacenar todos los resultados en el arreglo principal
             $dataModuloEstiloAQL[] = [
@@ -559,7 +547,6 @@ class DashboardPorDiaV2Controller extends Controller
                 'cantidadBultosRechazados' => $cantidadBultosRechazados,
                 'sumaReparacionRechazo' => $sumaReparacionRechazo,
                 'piezasRechazadasUnicas' => $piezasRechazadasUnicas,
-                'detalles' => $detalles,
             ];
         }
 
@@ -830,32 +817,54 @@ class DashboardPorDiaV2Controller extends Controller
         return $dataModuloEstiloProceso;
     }
 
+    private function getDatosModuloEstiloAQLDetalles($fecha, $planta, $modulo, $estilo, $tiempoExtra = null)
+    {
+        $query = AuditoriaAQL::where('modulo', $modulo)
+            ->where('estilo', $estilo)
+            ->where('planta', $planta)
+            ->whereDate('created_at', $fecha)
+            ->with('tpAuditoriaAQL');
+
+        if (is_null($tiempoExtra)) {
+            $query->whereNull('tiempo_extra');
+        } else {
+            $query->where('tiempo_extra', $tiempoExtra);
+        }
+
+        return $query->get()->map(function ($registro) {
+            return [
+                'minutos_paro' => $registro->minutos_paro,
+                'cliente' => $registro->cliente,
+                'bulto' => $registro->bulto,
+                'pieza' => $registro->pieza,
+                'talla' => $registro->talla,
+                'color' => $registro->color,
+                'estilo' => $registro->estilo,
+                'cantidad_auditada' => $registro->cantidad_auditada,
+                'cantidad_rechazada' => $registro->cantidad_rechazada,
+                'defectos' => $registro->tpAuditoriaAQL->pluck('tp')->filter()->implode(', ') ?: 'N/A',
+                'accion_correctiva' => $registro->ac ?? 'N/A',
+                'hora' => optional($registro->created_at)->format('H:i:s') ?? 'N/A',
+            ];
+        });
+    }
+
+
     public function obtenerDetallesAQLP2(Request $request)
     {
         $modulo = $request->input('modulo');
         $estilo = $request->input('estilo');
         $fecha = $request->input('fecha');
         $tiempoExtra = $request->input('tiempo_extra');
-        $planta = "Intimark2"; // o Intimark2 si aplica
+        $planta = "Intimark2";
 
         if (!$modulo || !$estilo || !$fecha) {
             return response()->json(['error' => 'Faltan parámetros necesarios'], 400);
         }
 
-        // Usa tu función ya optimizada
-        $datosCompletos = $this->getDatosModuloEstiloAQL($fecha, $planta, $tiempoExtra);
+        $detalles = $this->getDatosModuloEstiloAQLDetalles($fecha, $planta, $modulo, $estilo, $tiempoExtra);
 
-        // Buscar el módulo/estilo exacto
-        $registro = collect($datosCompletos)->first(function ($item) use ($modulo, $estilo) {
-            return $item['modulo'] === $modulo && $item['estilo'] === $estilo;
-        });
-
-        if (!$registro) {
-            return response()->json([]);
-        }
-
-        return response()->json($registro['detalles']); // Solo devolvemos los detalles
+        return response()->json($detalles);
     }
-
 
 }
