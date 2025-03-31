@@ -566,15 +566,37 @@
             .then(response => {
                 if (response.success) {
                     Swal.fire('Éxito', response.message, 'success');
+
+                    // ✅ Guarda la acción seleccionada antes de resetear el formulario
+                    const accionSeleccionada = $('#accionesSelectModal').val();
+
+                    // ✅ Limpiar el formulario del modal
                     form.reset();
 
-                    // Opcional: cerrar el modal
-                    $('#miModal').modal('hide'); // cambia el ID si usas otro
+                    // ✅ Quitar la selección actual del select de estilos del modal
+                    $('#estilosSelectModal').val('').trigger('change');
 
-                    // Actualizar tabla si aplica
+                    // ✅ Ocultar sección de defectos si estaba visible
+                    $('#defectosCellModal').addClass('d-none');
+                    $('#listaDefectosContainerModal').html('');
+                    $('#defectosSelectModal').val('').trigger('change');
+
+                    // ✅ Cerrar el modal
+                    $('#miModal').modal('hide');
+
+                    // ✅ Recargar la página si fue Rechazado
+                    if (accionSeleccionada === 'Rechazado') {
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                        return;
+                    }
+
+                    // ✅ Actualizar registros del día si no hubo recarga
                     if (typeof cargarRegistrosDelDia === 'function') {
                         cargarRegistrosDelDia();
                     }
+
                 } else {
                     Swal.fire('Error', response.message, 'error');
                 }
@@ -915,7 +937,7 @@
                         .then(res => res.json())
                         .then(response => {
                             if (response.success) {
-                                Swal.fire('Éxito -1', response.message, 'success');
+                                Swal.fire('Éxito', response.message, 'success');
 
                                 // ✅ Guarda la acción seleccionada antes de resetear el formulario
                                 const accionSeleccionada = $('#accionesSelect').val();
@@ -929,15 +951,18 @@
                                 // ✅ Quitar la selección actual del select de estilos, manteniendo sus opciones
                                 $('#estilosSelect').val('').trigger('change');
 
+                                // ✅ Recargar la página si la acción seleccionada fue "Rechazado"
+                                if (accionSeleccionada === 'Rechazado') {
+                                    setTimeout(() => {
+                                        location.reload();
+                                    }, 2000);
+                                }
+
                                 // ✅ Actualiza la tabla de registros del día si existe
                                 if (typeof cargarRegistrosDelDia === 'function') {
                                     cargarRegistrosDelDia();
                                 }
 
-                                // ✅ Recargar la página si la acción seleccionada fue "Rechazado"
-                                if (accionSeleccionada === 'Rechazado') {
-                                    location.reload();
-                                }
                             } else {
                                 Swal.fire('Error', response.message, 'error');
                             }
