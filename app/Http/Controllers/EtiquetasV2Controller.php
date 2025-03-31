@@ -520,14 +520,11 @@ class EtiquetasV2Controller extends Controller
         $estilos = $this->obtenerEstilos($tipoBusqueda, $orden);
 
         // 3. Redirigimos a la misma vista y llenamos la sesión con los datos.
-        return redirect()
-            ->route('etiquetas_v2')
-            ->with([
-                'estilos' => $estilos,
-                'tipoBusqueda' => $tipoBusqueda,
-                'orden' => $orden,
-            ])
-            ->with('success', 'Auditoría guardada correctamente.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Auditoría guardada correctamente.',
+        ]);
+        
     }
 
 

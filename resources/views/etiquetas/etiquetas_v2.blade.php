@@ -617,8 +617,7 @@
                     // Renderiza el formulario completo
                     resultadoDiv.innerHTML = `
                         <h4 class="mt-4">Estilos encontrados:</h4>
-                        <form id="guardarFormulario" action="{{ route('guardarAuditoriaEtiqueta') }}" method="POST">
-                            @csrf
+                        <form id="guardarFormulario">
                             <input type="hidden" name="tipoEtiqueta" value="${data.tipoBusqueda}">
                             <input type="hidden" name="valorEtiqueta" value="${data.orden}">
         
@@ -778,8 +777,73 @@
                             }
                         });
                     });
-                })
+                    
+                    // Delegación para envío del formulario guardarFormulario por AJAX
+                    $(document).off('submit', '#guardarFormulario').on('submit', '#guardarFormulario', function (e) {
+                        e.preventDefault();
 
+                        const form = this;
+
+                        const formData = {
+                            tipoEtiqueta: form.tipoEtiqueta.value,
+                            valorEtiqueta: form.valorEtiqueta.value,
+                            estilo: form.estilo.value,
+                            talla: form.talla.value,
+                            color: form.color.value,
+                            cantidad: form.cantidad.value,
+                            muestreo: form.muestreo.value,
+                            accion_correctiva: form.accion_correctiva.value,
+                            comentarios: form.comentarios ? form.comentarios.value : null,
+                            registro_manual: false, // puedes cambiarlo si tu lógica lo requiere
+                            defectos: obtenerDefectos(form)
+                        };
+
+                        fetch("{{ route('guardarAuditoriaEtiqueta') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(formData)
+                        })
+                        .then(res => res.json())
+                        .then(response => {
+                            if (response.success) {
+                                Swal.fire('Éxito', response.message, 'success');
+                                // Aquí puedes limpiar el formulario o volver a cargar los estilos si lo deseas
+                                form.reset();
+                                $('#tallaSelect').prop('disabled', true).trigger('change');
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            Swal.fire('Error', 'Ocurrió un error inesperado.', 'error');
+                        });
+                    });
+
+                    // Función para recolectar los defectos dinámicos
+                    function obtenerDefectos(form) {
+                        const defectos = [];
+
+                        const nombreInputs = form.querySelectorAll('[name="defectos[nombre][]"]');
+                        const cantidadInputs = form.querySelectorAll('[name="defectos[cantidad][]"]');
+
+                        for (let i = 0; i < nombreInputs.length; i++) {
+                            const nombre = nombreInputs[i].value;
+                            const cantidad = cantidadInputs[i].value;
+
+                            if (nombre && cantidad) {
+                                defectos.push({ nombre, cantidad });
+                            }
+                        }
+
+                        return defectos;
+                    }
+
+                })
                 .catch(err => {
                     resultadoDiv.innerHTML = `<p class="text-danger">Error al procesar la solicitud.</p>`;
                     console.error(err);
@@ -792,63 +856,70 @@
         document.addEventListener("DOMContentLoaded", function () {
             const contenedor = document.getElementById("tablaRegistrosDelDia");
     
-            fetch("{{ route('registros.del.dia.ajax.etiqueta') }}")
-                .then(res => res.json())
-                .then(data => {
-                    if (!data.success || data.registros.length === 0) {
-                        contenedor.innerHTML = `<p>No se encontraron registros para el día de hoy.</p>`;
-                        return;
-                    }
-    
-                    const rows = data.registros.map(registro => `
-                        <tr class="${registro.isRechazado ? 'table-danger1' : ''}">
-                            <td>${registro.tipo}</td>
-                            <td>${registro.orden}</td>
-                            <td>${registro.estilo}</td>
-                            <td>${registro.color}</td>
-                            <td>${registro.cantidad}</td>
-                            <td>${registro.muestreo}</td>
-                            <td>
-                                ${registro.estatus === 'Rechazado'
-                                    ? `<select class="form-control select-estatus" data-id="${registro.id}">
-                                        <option value="Rechazado" selected>Rechazado</option>
-                                        <option value="Aprobado">Aprobado</option>
-                                       </select>`
-                                    : registro.estatus}
-                            </td>
-                            <td><ul>${registro.defectos.map(d => `<li>${d}</li>`).join('')}</ul></td>
-                            <td>${registro.comentario}</td>
-                        </tr>
-                    `).join('');
-    
-                    contenedor.innerHTML = `
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Tipo</th>
-                                        <th>Orden</th>
-                                        <th>Estilo</th>
-                                        <th>Color</th>
-                                        <th>Cantidad</th>
-                                        <th>Muestreo</th>
-                                        <th>Estatus</th>
-                                        <th>Defectos</th>
-                                        <th>Comentarios</th>
-                                    </tr>
-                                </thead>
-                                <tbody>${rows}</tbody>
-                            </table>
-                        </div>
-                    `;
-                    // ✅ Reactivar el comportamiento del <select>
-                    activarCambioDeEstatus();
-                })
+            function cargarRegistrosDelDia() {
+                fetch("{{ route('registros.del.dia.ajax.etiqueta') }}")
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success || data.registros.length === 0) {
+                            contenedor.innerHTML = `<p>No se encontraron registros para el día de hoy.</p>`;
+                            return;
+                        }
+        
+                        const rows = data.registros.map(registro => `
+                            <tr class="${registro.isRechazado ? 'table-danger1' : ''}">
+                                <td>${registro.tipo}</td>
+                                <td>${registro.orden}</td>
+                                <td>${registro.estilo}</td>
+                                <td>${registro.color}</td>
+                                <td>${registro.cantidad}</td>
+                                <td>${registro.muestreo}</td>
+                                <td>
+                                    ${registro.estatus === 'Rechazado'
+                                        ? `<select class="form-control select-estatus" data-id="${registro.id}">
+                                            <option value="Rechazado" selected>Rechazado</option>
+                                            <option value="Aprobado">Aprobado</option>
+                                        </select>`
+                                        : registro.estatus}
+                                </td>
+                                <td><ul>${registro.defectos.map(d => `<li>${d}</li>`).join('')}</ul></td>
+                                <td>${registro.comentario}</td>
+                            </tr>
+                        `).join('');
+        
+                        contenedor.innerHTML = `
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Tipo</th>
+                                            <th>Orden</th>
+                                            <th>Estilo</th>
+                                            <th>Color</th>
+                                            <th>Cantidad</th>
+                                            <th>Muestreo</th>
+                                            <th>Estatus</th>
+                                            <th>Defectos</th>
+                                            <th>Comentarios</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${rows}</tbody>
+                                </table>
+                            </div>
+                        `;
+                        // ✅ Reactivar el comportamiento del <select>
+                        activarCambioDeEstatus();
+                    })
 
-                .catch(err => {
-                    console.error(err);
-                    contenedor.innerHTML = `<p class="text-danger">Ocurrió un error al cargar los registros.</p>`;
-                });
+                    .catch(err => {
+                        console.error(err);
+                        contenedor.innerHTML = `<p class="text-danger">Ocurrió un error al cargar los registros.</p>`;
+                    });
+            }
+                // Llamada inicial al cargar la página
+                cargarRegistrosDelDia();
+
+                // Función global para que puedas llamarla desde otros scripts
+                window.cargarRegistrosDelDia = cargarRegistrosDelDia;
 
                 function activarCambioDeEstatus() {
                     const selects = document.querySelectorAll('.select-estatus');
