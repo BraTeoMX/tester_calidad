@@ -478,7 +478,7 @@ class EtiquetasV2Controller extends Controller
 
     public function guardarAuditoriaEtiqueta(Request $request)
     {
-        //Log::debug('Datos recibidos en guardarAuditoriaEtiqueta:', $request->all());
+        Log::debug('Datos recibidos en guardarAuditoriaEtiqueta:', $request->all());
 
         $nombreAuditor = Auth::user()->name;
 

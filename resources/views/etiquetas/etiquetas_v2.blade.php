@@ -481,7 +481,45 @@
 
             return defectos;
         }
-        
+
+        function cargarEstilosEnModal() {
+            const tipo = document.getElementById('tipoEtiqueta').value;
+            const orden = document.getElementById('valorEtiqueta').value;
+            
+            if (!tipo || !orden) {
+                console.log('Completa todos los campos primero');
+                return;
+            }
+
+            fetch("{{ route('etiquetas_v2.procesarAjax') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    tipoEtiqueta: tipo,
+                    valorEtiqueta: orden
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    console.log(data.message);
+                    return;
+                }
+
+                const selectEstilos = data.estilos.map(estilo => 
+                    `<option value="${estilo.Estilos}">${estilo.Estilos}</option>`
+                ).join('');
+
+                $('#estilosSelectModal').html('<option value="">-- Seleccionar --</option>' + selectEstilos).select2();
+            })
+            .catch(err => {
+                console.error('Error al cargar estilos:', err);
+            });
+        }
         // Inicializamos la lógica para el formulario principal
         initDefectos('#defectosSelect', '#listaDefectosContainer', '#guardarFormulario');
     
@@ -493,11 +531,17 @@
             e.preventDefault(); // ❗ evita que se recargue la página
 
             const form = this;
+            const estiloSeleccionado = $('#estilosSelectModal').val();
+
+            if (!estiloSeleccionado) {
+                Swal.fire('Error', 'Por favor selecciona un estilo', 'error');
+                return;
+            }
 
             const formData = {
-                tipoEtiqueta: null, // No se usa en este caso
-                valorEtiqueta: null,
-                estilo: $(form).find('#estilosSelectModal').val(),
+                tipoEtiqueta: document.getElementById('tipoEtiqueta').value,
+                valorEtiqueta: document.getElementById('valorEtiqueta').value,
+                estilo: estiloSeleccionado,
                 talla: form.talla.value,
                 color: form.color.value,
                 cantidad: form.cantidad.value,
@@ -540,7 +584,7 @@
             });
         });
 
-    </script>  
+    </script>
     <script>
         $(document).ready(function() {
             // No uses .hide() al cargar la página; basta con la clase d-none que ya tienes en el HTML
@@ -599,6 +643,7 @@
             if (openModalBtn) {
                 openModalBtn.addEventListener("click", function () {
                     modal.style.display = "flex";
+                    cargarEstilosEnModal(); 
                 });
             }
         
