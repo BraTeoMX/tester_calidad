@@ -342,13 +342,13 @@
             // --- Inputs ocultos para envío en el formulario --- //
             let $inputOcultoNombre = $('<input>').attr({
                 type: 'hidden',
-                name: `defectos[${index}][nombre]`,
+                name: `defectos[nombre][]`,
                 value: defecto.nombre
             });
     
             let $inputOcultoCantidad = $('<input>').attr({
                 type: 'hidden',
-                name: `defectos[${index}][cantidad]`,
+                name: `defectos[cantidad][]`,
                 value: defecto.cantidad || 1
             });
     
@@ -359,7 +359,7 @@
             $(containerSelector).append($defectoItem);
     
             // Agregar los inputs ocultos al formulario
-            $(formSelector).append($inputOcultoNombre, $inputOcultoCantidad);
+            $(containerSelector).append($inputOcultoNombre, $inputOcultoCantidad);
             });
         }
     
@@ -456,13 +456,90 @@
             }
         });
         }
-    
+
+        // ✅ Aquí puedes agregar la función global para obtener los defectos
+        function obtenerDefectos(form) {
+            const defectos = [];
+
+            const contenedor = form.querySelector('[id^="listaDefectosContainer"]');
+            if (!contenedor) return defectos;
+
+            const nombreInputs = contenedor.querySelectorAll('input[name="defectos[nombre][]"]');
+            const cantidadInputs = contenedor.querySelectorAll('input[name="defectos[cantidad][]"]');
+
+            for (let i = 0; i < nombreInputs.length; i++) {
+                const nombre = nombreInputs[i].value.trim();
+                const cantidad = cantidadInputs[i].value.trim();
+
+                if (nombre && cantidad && !isNaN(cantidad)) {
+                    defectos.push({
+                        nombre,
+                        cantidad: parseInt(cantidad)
+                    });
+                }
+            }
+
+            return defectos;
+        }
+        
         // Inicializamos la lógica para el formulario principal
         initDefectos('#defectosSelect', '#listaDefectosContainer', '#guardarFormulario');
     
         // Inicializamos la lógica para el formulario del modal
         // usando los selectores correspondientes del modal
         initDefectos('#defectosSelectModal', '#listaDefectosContainerModal', '#guardarFormularioModal');
+
+        $(document).off('submit', '#guardarFormularioModal').on('submit', '#guardarFormularioModal', function (e) {
+            e.preventDefault(); // ❗ evita que se recargue la página
+
+            const form = this;
+
+            const formData = {
+                tipoEtiqueta: null, // No se usa en este caso
+                valorEtiqueta: null,
+                estilo: $(form).find('#estilosSelectModal').val(),
+                talla: form.talla.value,
+                color: form.color.value,
+                cantidad: form.cantidad.value,
+                muestreo: form.muestreo.value,
+                accion_correctiva: form.accion_correctiva.value,
+                comentarios: form.comentarios ? form.comentarios.value : null,
+                registro_manual: true, // Aquí sí es manual
+                defectos: obtenerDefectos(form) // ✅ reutiliza tu función
+            };
+
+            fetch("{{ route('guardarAuditoriaEtiqueta') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.success) {
+                    Swal.fire('Éxito', response.message, 'success');
+                    form.reset();
+
+                    // Opcional: cerrar el modal
+                    $('#miModal').modal('hide'); // cambia el ID si usas otro
+
+                    // Actualizar tabla si aplica
+                    if (typeof cargarRegistrosDelDia === 'function') {
+                        cargarRegistrosDelDia();
+                    }
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire('Error', 'Ocurrió un error inesperado.', 'error');
+            });
+        });
+
     </script>  
     <script>
         $(document).ready(function() {
@@ -832,15 +909,23 @@
                     function obtenerDefectos(form) {
                         const defectos = [];
 
-                        const nombreInputs = form.querySelectorAll('[name="defectos[nombre][]"]');
-                        const cantidadInputs = form.querySelectorAll('[name="defectos[cantidad][]"]');
+                        // Solo buscamos dentro de #listaDefectosContainer
+                        const contenedor = form.querySelector('#listaDefectosContainer');
+
+                        if (!contenedor) return defectos;
+
+                        const nombreInputs = contenedor.querySelectorAll('input[name="defectos[nombre][]"]');
+                        const cantidadInputs = contenedor.querySelectorAll('input[name="defectos[cantidad][]"]');
 
                         for (let i = 0; i < nombreInputs.length; i++) {
-                            const nombre = nombreInputs[i].value;
-                            const cantidad = cantidadInputs[i].value;
+                            const nombre = nombreInputs[i].value.trim();
+                            const cantidad = cantidadInputs[i].value.trim();
 
-                            if (nombre && cantidad) {
-                                defectos.push({ nombre, cantidad });
+                            if (nombre && cantidad && !isNaN(cantidad)) {
+                                defectos.push({
+                                    nombre,
+                                    cantidad: parseInt(cantidad)
+                                });
                             }
                         }
 
