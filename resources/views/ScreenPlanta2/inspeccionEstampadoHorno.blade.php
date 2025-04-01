@@ -591,7 +591,7 @@
         $(document).ready(function() {
             // Array para rastrear los IDs de opciones seleccionadas (siempre como string)
             let opcionesSeleccionadas = [];
-
+    
             function cargarTipoTecnicaScreen() {
                 $("#tipoTecnicaScreen").select2({
                     placeholder: "Seleccione una opción",
@@ -602,14 +602,12 @@
                         cache: true,
                         processResults: function(data) {
                             let results = $.map(data, function(item) {
-                                // Forzamos el ID a string
                                 return {
                                     id: String(item.id),
                                     text: item.nombre
                                 };
                             });
-
-                            // Agregamos la opción "OTRO" al inicio (también como string)
+                            // Agregamos la opción "OTRO" al inicio
                             results.unshift({
                                 id: "otro",
                                 text: "OTRO"
@@ -620,12 +618,12 @@
                         }
                     }
                 });
-
-                // Evento de selección
+    
+                // Evento de selección en el select
                 $("#tipoTecnicaScreen").on("select2:select", function(e) {
-                    let selectedValue = String(e.params.data.id); // forzamos a string
+                    let selectedValue = String(e.params.data.id);
                     let selectedText = e.params.data.text;
-
+    
                     if (selectedValue === "otro") {
                         let nuevoValor = prompt("Ingrese el nuevo valor para Tipo_Tecnica:");
                         if (nuevoValor) {
@@ -641,15 +639,10 @@
                                 },
                                 success: function(response) {
                                     if (response.success) {
-                                        // Si el backend retorna response.id como número, lo convertimos a string
                                         let newId = String(response.id);
                                         let newText = nuevoValor;
-                                        // Creamos la nueva opción y la seleccionamos
                                         let newOption = new Option(newText, newId, true, true);
-                                        $("#tipoTecnicaScreen").append(newOption).trigger(
-                                            "change");
-
-                                        // Agregamos la nueva opción al div
+                                        $("#tipoTecnicaScreen").append(newOption).trigger("change");
                                         agregarOpcionLista(newId, newText);
                                     } else {
                                         alert("Error al guardar el nuevo valor.");
@@ -662,9 +655,9 @@
                         }
                         // Limpiar el select después de "OTRO"
                         $("#tipoTecnicaScreen").val(null).trigger("change");
-
+    
                     } else {
-                        // Antes de agregar, verificamos si ya existe en el array
+                        // Verificar si la opción ya fue seleccionada
                         if (opcionesSeleccionadas.includes(selectedValue)) {
                             alert("La opción ya fue seleccionada.");
                         } else {
@@ -675,46 +668,46 @@
                     }
                 });
             }
-
+    
             function agregarOpcionLista(id, nombre) {
                 if (!opcionesSeleccionadas.includes(id)) {
                     opcionesSeleccionadas.push(id);
-
-                    // Generamos un bloque con el texto y un input hidden
                     $("#listaTipoTecnicaScreen").append(`
-                    <div id="opcion-${id}" class="mb-2 p-2 border rounded">
-                        <span>${nombre}</span>
-                        <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcion('${id}')">Eliminar</button>
-
-                        <!-- El input hidden que se enviará en el form -->
-                        <input 
-                        type="hidden" 
-                        name="tipo_tecnica_screen[]" 
-                        value="${nombre}" 
-                        />
-                    </div>
+                        <div id="opcion-${id}" class="mb-2 p-2 border rounded">
+                            <span>${nombre}</span>
+                            <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcion('${id}')">Eliminar</button>
+                            <!-- Input hidden para enviar en el form -->
+                            <input type="hidden" name="tipo_tecnica_screen[]" value="${nombre}" />
+                        </div>
                     `);
                 }
             }
-
+    
             window.eliminarOpcion = function(id) {
-                // Forzamos el id a string, por seguridad
                 id = String(id);
-                // Quitamos el id del array
                 opcionesSeleccionadas = opcionesSeleccionadas.filter(item => item !== id);
-                // Eliminamos el div de la lista
                 $("#opcion-" + id).remove();
             };
-
+    
+            // Recuperar valores antiguos para tipoTecnicaScreen
+            @if(old('tipo_tecnica_screen'))
+                let oldTecnica = @json(old('tipo_tecnica_screen'));
+                $.each(oldTecnica, function(index, nombre) {
+                    // Se utiliza el nombre como id y texto (puedes adaptar si guardas también el id)
+                    if (!opcionesSeleccionadas.includes(nombre)) {
+                        agregarOpcionLista(nombre, nombre);
+                    }
+                });
+            @endif
+    
             cargarTipoTecnicaScreen();
         });
     </script>
     <!-- Script exclusivo para tipoFibraScreen -->
     <script>
         $(document).ready(function() {
-            // Array para rastrear los IDs de opciones seleccionadas (siempre como string)
             let opcionesSeleccionadasFibra = [];
-
+    
             function cargarTipoFibraScreen() {
                 $("#tipoFibraScreen").select2({
                     placeholder: "Seleccione una opción",
@@ -725,14 +718,12 @@
                         cache: true,
                         processResults: function(data) {
                             let results = $.map(data, function(item) {
-                                // Forzamos el ID a string
                                 return {
                                     id: String(item.id),
                                     text: item.nombre
                                 };
                             });
-
-                            // Agregamos la opción "OTRO" al inicio (también como string)
+                            // Agregamos la opción "OTRO" al inicio
                             results.unshift({
                                 id: "otro",
                                 text: "OTRO"
@@ -743,12 +734,12 @@
                         }
                     }
                 });
-
+    
                 // Evento de selección
                 $("#tipoFibraScreen").on("select2:select", function(e) {
-                    let selectedValue = String(e.params.data.id); // Forzamos a string
+                    let selectedValue = String(e.params.data.id);
                     let selectedText = e.params.data.text;
-
+    
                     if (selectedValue === "otro") {
                         let nuevoValor = prompt("Ingrese el nuevo valor para Tipo_Fibra:");
                         if (nuevoValor) {
@@ -764,15 +755,10 @@
                                 },
                                 success: function(response) {
                                     if (response.success) {
-                                        // Convertimos el ID a string por seguridad
                                         let newId = String(response.id);
                                         let newText = nuevoValor;
-                                        // Creamos la nueva opción y la seleccionamos
                                         let newOption = new Option(newText, newId, true, true);
-                                        $("#tipoFibraScreen").append(newOption).trigger(
-                                            "change");
-
-                                        // Agregamos la nueva opción al div
+                                        $("#tipoFibraScreen").append(newOption).trigger("change");
                                         agregarOpcionListaFibra(newId, newText);
                                     } else {
                                         alert("Error al guardar el nuevo valor.");
@@ -783,35 +769,27 @@
                                 }
                             });
                         }
-                        // Limpiar el select después de "OTRO"
                         $("#tipoFibraScreen").val(null).trigger("change");
-
+    
                     } else {
-                        // Antes de agregar, verificamos si ya existe en el array
                         if (opcionesSeleccionadasFibra.includes(selectedValue)) {
                             alert("La opción ya fue seleccionada.");
                         } else {
                             agregarOpcionListaFibra(selectedValue, selectedText);
                         }
-                        // Limpiar la selección en el select
                         $("#tipoFibraScreen").val(null).trigger("change");
                     }
                 });
             }
-
+    
             function agregarOpcionListaFibra(id, nombre) {
                 if (!opcionesSeleccionadasFibra.includes(id)) {
                     opcionesSeleccionadasFibra.push(id);
-
-                    // Insertamos el bloque con el texto, input hidden con el ID, y un input para la cantidad.
-                    // Se asigna la clase "cantidad-fibra" para gestionar los eventos en los inputs.
                     $("#listaTipoFibraScreen").append(`
                         <div id="opcionFibra-${id}" class="mb-2 p-2 border rounded">
                             <span>${nombre}</span>
-                            
                             <!-- Campo hidden con el nombre de la fibra -->
                             <input type="hidden" name="tipo_fibra_screen[${id}][nombre]" value="${nombre}"/>
-                            
                             <!-- Campo para la cantidad -->
                             <input 
                                 type="number" 
@@ -822,14 +800,12 @@
                                 min="1" 
                                 style="width: 60px;" 
                             />
-                            
                             <button class="btn btn-danger btn-sm ms-2" onclick="eliminarOpcionFibra('${id}')">Eliminar</button>
                         </div>
                     `);
                 }
             }
-
-            // Función para eliminar un bloque de fibra
+    
             window.eliminarOpcionFibra = function(id) {
                 id = String(id);
                 opcionesSeleccionadasFibra = opcionesSeleccionadasFibra.filter(item => item !== id);
@@ -837,8 +813,7 @@
                 // Cada vez que se elimina, se revalida la suma total
                 validarSumaTotal();
             };
-
-            // Función que recorre todos los inputs de cantidad y devuelve la suma total
+    
             function recalcTotalFibra() {
                 let total = 0;
                 $("#listaTipoFibraScreen .cantidad-fibra").each(function() {
@@ -846,32 +821,25 @@
                 });
                 return total;
             }
-
-            // Función para validar la suma total y ajustar el input actual si se excede
+    
             function validarInputCantidad($input) {
-                // Calculamos la suma de las cantidades de los otros inputs
                 let sumOtros = 0;
                 $(".cantidad-fibra").not($input).each(function() {
                     sumOtros += parseFloat($(this).val()) || 0;
                 });
                 let currentVal = parseFloat($input.val()) || 0;
-                let maxPermitido = 100 - sumOtros; // Lo máximo que puede tener este input sin exceder el total 100
-
+                let maxPermitido = 100 - sumOtros;
                 if (currentVal > maxPermitido) {
-                    // Si el valor actual excede lo permitido, lo ajustamos
                     $input.val(maxPermitido);
                     alert("El valor máximo permitido para este campo es " + maxPermitido +
                         " para no sobrepasar el total de 100.");
                 }
             }
-
-            // Función para validar la suma total; si la suma es menor a 100 y hay más de un registro,
-            // se ajusta el último input para que la suma total sea 100.
+    
             function validarSumaTotal() {
                 let total = recalcTotalFibra();
                 let $todos = $("#listaTipoFibraScreen .cantidad-fibra");
                 if ($todos.length > 0) {
-                    // Si hay más de un registro y la suma es menor a 100, se fuerza en el último el valor restante.
                     if ($todos.length > 1) {
                         let $ultimo = $todos.last();
                         let sumOtros = 0;
@@ -879,12 +847,10 @@
                             sumOtros += parseFloat($(this).val()) || 0;
                         });
                         let nuevoValor = 100 - sumOtros;
-                        // Solo se ajusta si el valor actual del último es distinto al requerido
                         if (parseFloat($ultimo.val()) !== nuevoValor) {
                             $ultimo.val(nuevoValor);
                         }
                     } else {
-                        // Si es un solo registro, se permite hasta 100.
                         let $solo = $todos.first();
                         if (parseFloat($solo.val()) > 100) {
                             $solo.val(100);
@@ -892,24 +858,28 @@
                     }
                 }
             }
-
-            // Delegamos el evento "input" en los inputs de cantidad (ya que se crean dinámicamente)
+    
             $(document).on("input", ".cantidad-fibra", function() {
                 let $input = $(this);
                 validarInputCantidad($input);
-                // Se puede actualizar la suma total si se requiere (o mostrarla en algún lado)
-                // Por ejemplo: console.log("Suma total: " + recalcTotalFibra());
             });
-
-            // Cuando se pierda el foco (blur) en un input, si es el último, se ajusta automáticamente para completar 100.
+    
             $(document).on("blur", ".cantidad-fibra", function() {
                 let $todos = $("#listaTipoFibraScreen .cantidad-fibra");
                 if ($todos.length > 1 && $(this).is($todos.last())) {
                     validarSumaTotal();
                 }
             });
-
-            // Inicializamos el select
+    
+            // Recuperar valores antiguos para tipoFibraScreen
+            @if(old('tipo_fibra_screen'))
+                let oldFibra = @json(old('tipo_fibra_screen'));
+                $.each(oldFibra, function(id, data) {
+                    agregarOpcionListaFibra(id, data.nombre);
+                    $("#cantidad-" + id).val(data.cantidad);
+                });
+            @endif
+    
             cargarTipoFibraScreen();
         });
     </script>
