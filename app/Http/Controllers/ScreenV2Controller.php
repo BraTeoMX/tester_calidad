@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CatalogoDefectosScreen;
@@ -124,7 +125,13 @@ class ScreenV2Controller extends Controller
 
     public function getCategoriaTecnicoScreen()
     {
-        $data = Tecnicos::where('estatus', 1)->select('id', 'nombre')->get();
+        $data = Cache::remember('operarios_tecnico_view', now()->addHours(15), function () {
+            return DB::connection('sqlsrv')
+                ->table('OperariosTecnico_View')
+                ->orderBy('nombre', 'asc')
+                ->get();
+        });
+
         return response()->json($data);
     }
 
