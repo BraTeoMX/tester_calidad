@@ -147,6 +147,7 @@
                                 <tr>
                                     <th>OP</th>
                                     <th>Bulto</th>
+                                    <th class="d-none">Bulto dato</th>
                                     <th>Cliente</th>
                                     <th>Estilo</th>
                                     <th>Color</th>
@@ -168,6 +169,7 @@
                                     </td>
 
                                     {{-- Columnas para mostrar los datos del bulto seleccionado --}}
+                                    <td id="bulto-cell" class="d-none"></td>
                                     <td id="cliente-cell"></td>
                                     <td id="estilo-cell"></td>
                                     <td id="color-cell"></td>
@@ -1309,6 +1311,7 @@
                 $('#bulto-select').html('').prop('disabled', true).val(null).trigger('change');
 
                 // Limpiar celdas de la tabla
+                $('#bulto-cell').text('');
                 $('#cliente-cell').text('');
                 $('#estilo-cell').text('');
                 $('#color-cell').text('');
@@ -1360,6 +1363,9 @@
                     type: 'GET',
                     success: function(response) {
                         // Llenar celdas con los datos del bulto
+                        $('#bulto-cell').html(response.bulto +
+                            `<input type="hidden" name="bulto_seleccionado" value="${response.bulto}"/>`
+                            );
                         $('#cliente-cell').html(response.cliente +
                             `<input type="hidden" name="cliente_seleccionado" value="${response.cliente}"/>`
                             );

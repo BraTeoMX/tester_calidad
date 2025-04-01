@@ -242,7 +242,7 @@ class ScreenV2Controller extends Controller
             $inspeccion->maquina            = $request->input('tipo_maquina_nombre');
             $inspeccion->grafica            = $request->input('valor_grafica');
             $inspeccion->op                 = $request->input('op_select');
-            $inspeccion->bulto              = $request->input('bulto_select');
+            $inspeccion->bulto              = $request->input('bulto_seleccionado');
             $inspeccion->cliente            = $request->input('cliente_seleccionado');
             $inspeccion->estilo             = $request->input('estilo_seleccionado');
             $inspeccion->color              = $request->input('color_seleccionado');
