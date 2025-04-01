@@ -120,15 +120,15 @@
                                     </td>
                                     <td>
                                         <select class="form-control select2" name="tecnica_screen"
-                                            id="tipoTecnicaScreen"></select>
+                                            id="tipoTecnicaScreen">
+                                        </select>
                                         <div id="listaTipoTecnicaScreen" class="mt-2"></div>
-                                        <input type="hidden" name="lista_tipo_tecnica_screen[]" id="hiddenTipoTecnica">
                                     </td>
                                     <td>
                                         <select class="form-control select2" name="tipoFibraScreen"
-                                            id="tipoFibraScreen"></select>
+                                            id="tipoFibraScreen">
+                                        </select>
                                         <div id="listaTipoFibraScreen" class="mt-2"></div>
-                                        <input type="hidden" name="lista_tipo_fibra_screen[]" id="hiddenTipoFibra">
                                     </td>
                                     <td>
                                         <input type="text" class="form-control texto-blanco" name="valor_grafica"
@@ -444,32 +444,6 @@
         }
     </style>
 
-    @if(old('lista_tipo_tecnica_screen'))
-    <script>
-        const tecnicasPrevias = {!! json_encode(old('lista_tipo_tecnica_screen')) !!};
-        tecnicasPrevias.forEach(function(valor) {
-            if(valor.trim()) {
-                $('#listaTipoTecnicaScreen').append(`
-                    <input type="text" class="form-control mt-1" value="${valor}">
-                `);
-            }
-        });
-    </script>
-    @endif
-
-    @if(old('lista_tipo_fibra_screen'))
-    <script>
-        const fibrasPrevias = {!! json_encode(old('lista_tipo_fibra_screen')) !!};
-        fibrasPrevias.forEach(function(valor) {
-            if(valor.trim()) {
-                $('#listaTipoFibraScreen').append(`
-                    <input type="text" class="form-control mt-1" value="${valor}">
-                `);
-            }
-        });
-    </script>
-    @endif
-
 
     <script>
         $(document).ready(function() {
@@ -598,25 +572,6 @@
                 });
             }
 
-            function actualizarHiddenTecnicas() {
-                const items = [];
-                $('#listaTipoTecnicaScreen input').each(function () {
-                    if ($(this).val().trim() !== '') {
-                        items.push($(this).val().trim());
-                    }
-                });
-                $('#hiddenTipoTecnica').val(items.join('|')); // Puedes usar otro separador si quieres
-            }
-
-            function actualizarHiddenFibras() {
-                const items = [];
-                $('#listaTipoFibraScreen input').each(function () {
-                    if ($(this).val().trim() !== '') {
-                        items.push($(this).val().trim());
-                    }
-                });
-                $('#hiddenTipoFibra').val(items.join('|'));
-            }
 
             // Agregamos los campos ocultos para almacenar el nombre seleccionado
             $("#categoriaTipoPanel").after('<input type="hidden" name="tipo_panel_nombre" id="tipo_panel_nombre">');
