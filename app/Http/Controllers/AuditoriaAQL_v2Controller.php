@@ -357,7 +357,7 @@ class AuditoriaAQL_v2Controller extends Controller
             $diaSemana = $fechaHoraActual ->dayOfWeek;
             $fechaActual = Carbon::now()->toDateString();
             $conteoParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
-                ->where('area', $request->area)
+                //->where('area', $request->area)
                 ->where('modulo', $request->modulo)
                 ->where('op', $request->op)
                 ->where('team_leader', $request->team_leader)
