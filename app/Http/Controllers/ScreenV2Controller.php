@@ -236,104 +236,111 @@ class ScreenV2Controller extends Controller
 
     public function store(Request $request)
     {
-        // Para ver el contenido del request, puedes usar dd($request->all());
-        //dd($request->all());
-        $auditorDato = Auth::user()->name;
-        DB::beginTransaction(); // Iniciar la transacción
+        DB::beginTransaction();
 
         try {
-            // 1. Crear el registro principal en InspeccionHorno
-            $inspeccion = new InspeccionHorno();
-            $inspeccion->auditor            = $auditorDato;
-            $inspeccion->panel              = $request->input('tipo_panel_nombre');
-            $inspeccion->maquina            = $request->input('tipo_maquina_nombre');
-            $inspeccion->grafica            = $request->input('valor_grafica');
-            $inspeccion->op                 = $request->input('op_select');
-            $inspeccion->bulto              = $request->input('bulto_seleccionado');
-            $inspeccion->cliente            = $request->input('cliente_seleccionado');
-            $inspeccion->estilo             = $request->input('estilo_seleccionado');
-            $inspeccion->color              = $request->input('color_seleccionado');
-            //$inspeccion->talla              = $request->input('talla_seleccionado');
-            $inspeccion->cantidad           = $request->input('cantidad_seleccionado');
-            $inspeccion->save();
+            $auditorDato = Auth::user()->name;
+            $bulto = $request->input('bulto_seleccionado');
+            $fechaHoy = now()->toDateString();
 
-            // 2. Guardar Técnicas (uno a muchos) en InspeccionHornoTecnica
+            // Buscar inspección existente del día actual para el mismo bulto
+            $inspeccion = InspeccionHorno::where('bulto', $bulto)
+                ->whereDate('created_at', $fechaHoy)
+                ->first();
+
+            if (!$inspeccion) {
+                // Crear nueva inspección si no existe
+                $inspeccion = new InspeccionHorno();
+                $inspeccion->auditor    = $auditorDato;
+                $inspeccion->panel      = $request->input('tipo_panel_nombre');
+                $inspeccion->maquina    = $request->input('tipo_maquina_nombre');
+                $inspeccion->grafica    = $request->input('valor_grafica');
+                $inspeccion->op         = $request->input('op_select');
+                $inspeccion->bulto      = $bulto;
+                $inspeccion->cliente    = $request->input('cliente_seleccionado');
+                $inspeccion->estilo     = $request->input('estilo_seleccionado');
+                $inspeccion->color      = $request->input('color_seleccionado');
+                $inspeccion->cantidad   = $request->input('cantidad_seleccionado');
+                $inspeccion->save();
+            }
+
+            // Guardar técnicas
             if ($request->has('tipo_tecnica_screen')) {
                 foreach ($request->input('tipo_tecnica_screen') as $tecnica) {
                     $nuevaTecnica = new InspeccionHornoTecnica();
                     $nuevaTecnica->inspeccion_horno_id = $inspeccion->id;
-                    $nuevaTecnica->nombre              = $tecnica;
+                    $nuevaTecnica->nombre = $tecnica;
                     $nuevaTecnica->save();
                 }
             }
 
-            // 3. Guardar Fibras (uno a muchos) en InspeccionHornoFibra
+            // Guardar fibras
             if ($request->has('tipo_fibra_screen')) {
-                foreach ($request->input('tipo_fibra_screen') as $key => $fibraData) {
-                    // Cada $fibraData es un arreglo con 'nombre' y 'cantidad'
+                foreach ($request->input('tipo_fibra_screen') as $fibraData) {
                     $nuevaFibra = new InspeccionHornoFibra();
                     $nuevaFibra->inspeccion_horno_id = $inspeccion->id;
-                    $nuevaFibra->nombre              = $fibraData['nombre'] ?? null;
-                    $nuevaFibra->cantidad            = $fibraData['cantidad'] ?? 0;
+                    $nuevaFibra->nombre = $fibraData['nombre'] ?? null;
+                    $nuevaFibra->cantidad = $fibraData['cantidad'] ?? 0;
                     $nuevaFibra->save();
                 }
             }
 
-            // 4. Guardar datos de Screen (uno a uno + uno a muchos para defectos)
-            if ($request->has('nombre_tecnico_screen')) {
+            // Registrar auditoría Screen si se envió
+            if ($request->filled('nombre_tecnico_screen')) {
                 $screen = new InspeccionHornoScreen();
                 $screen->inspeccion_horno_id = $inspeccion->id;
-                $screen->nombre_tecnico      = $request->input('nombre_tecnico_screen');
-                $screen->accion_correctiva   = $request->input('accion_correctiva_screen');
-                // Solo guardar cantidad si es numérico y mayor a 0
-                if ($request->filled('cantidad_screen_segundas') && intval($request->input('cantidad_screen_segundas')) > 0) {
+                $screen->nombre_tecnico = $request->input('nombre_tecnico_screen');
+                $screen->accion_correctiva = $request->input('accion_correctiva_screen');
+
+                if (is_numeric($request->input('cantidad_screen_segundas')) && intval($request->input('cantidad_screen_segundas')) > 0) {
                     $screen->cantidad_segunda = intval($request->input('cantidad_screen_segundas'));
                 }
+
                 $screen->save();
 
-                // Guardar defectos de Screen (uno a muchos) en InspeccionHornoScreenDefecto
+                // Guardar defectos de Screen
                 if ($request->has('defecto_screen')) {
-                    foreach ($request->input('defecto_screen') as $key => $defectoData) {
+                    foreach ($request->input('defecto_screen') as $defectoData) {
                         $nuevoDefectoScreen = new InspeccionHornoScreenDefecto();
                         $nuevoDefectoScreen->inspeccion_horno_screen_id = $screen->id;
-                        $nuevoDefectoScreen->nombre  = $defectoData['nombre'] ?? null;
+                        $nuevoDefectoScreen->nombre = $defectoData['nombre'] ?? null;
                         $nuevoDefectoScreen->cantidad = $defectoData['cantidad'] ?? 0;
                         $nuevoDefectoScreen->save();
                     }
                 }
             }
 
-            // 5. Guardar datos de Plancha (uno a uno + uno a muchos para defectos)
-            if ($request->has('nombre_tecnico_plancha')) {
+            // Registrar auditoría Plancha si se envió
+            if ($request->filled('nombre_tecnico_plancha')) {
                 $plancha = new InspeccionHornoPlancha();
                 $plancha->inspeccion_horno_id = $inspeccion->id;
-                $plancha->nombre_tecnico      = $request->input('nombre_tecnico_plancha');
-                $plancha->piezas_auditadas    = $request->input('piezas_auditadas');
-                $plancha->accion_correctiva   = $request->input('accion_correctiva_plancha');
-                // Solo guardar cantidad si es numérico y mayor a 0
-                if ($request->filled('cantidad_plancha_segundas') && intval($request->input('cantidad_plancha_segundas')) > 0) {
+                $plancha->nombre_tecnico = $request->input('nombre_tecnico_plancha');
+                $plancha->piezas_auditadas = $request->input('piezas_auditadas');
+                $plancha->accion_correctiva = $request->input('accion_correctiva_plancha');
+
+                if (is_numeric($request->input('cantidad_plancha_segundas')) && intval($request->input('cantidad_plancha_segundas')) > 0) {
                     $plancha->cantidad_segunda = intval($request->input('cantidad_plancha_segundas'));
                 }
+
                 $plancha->save();
 
-                // Guardar defectos de Plancha (uno a muchos) en InspeccionHornoPlanchaDefecto
+                // Guardar defectos de Plancha
                 if ($request->has('defecto_plancha')) {
-                    foreach ($request->input('defecto_plancha') as $key => $defectoData) {
+                    foreach ($request->input('defecto_plancha') as $defectoData) {
                         $nuevoDefectoPlancha = new InspeccionHornoPlanchaDefecto();
                         $nuevoDefectoPlancha->inspeccion_horno_plancha_id = $plancha->id;
-                        $nuevoDefectoPlancha->nombre  = $defectoData['nombre'] ?? null;
+                        $nuevoDefectoPlancha->nombre = $defectoData['nombre'] ?? null;
                         $nuevoDefectoPlancha->cantidad = $defectoData['cantidad'] ?? 0;
                         $nuevoDefectoPlancha->save();
                     }
                 }
             }
 
-            DB::commit(); // Confirmar la transacción
-
-            // Redirigir a la misma vista con mensaje de éxito
+            DB::commit();
             return redirect()->back()->with('success', 'Inspección registrada con éxito')->withInput();
+
         } catch (\Exception $e) {
-            DB::rollBack(); // Revertir la transacción en caso de error
+            DB::rollBack();
             return redirect()->back()->with('error', 'Error al guardar la inspección. Inténtalo de nuevo.');
         }
     }
