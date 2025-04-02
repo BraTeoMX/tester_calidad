@@ -251,7 +251,7 @@
                                 <tr>
                                     <td>
                                         <select class="form-control select2" name="nombre_tecnico_plancha"
-                                            id="nombreTecnicoPlancha"></select>
+                                            id="nombreTecnicoPlancha" required></select>
                                     </td>
                                     <td>
                                         <input type="text" class="form-control" name="piezas_auditadas" required>
@@ -1587,11 +1587,18 @@
             const thCantidadScreen = document.getElementById('th-cantidad-screen');
             const thCantidadPlancha = document.getElementById('th-cantidad-plancha');
 
+            // Inputs de cantidad
+            const inputScreen = document.getElementById('cantidad-screen-segundas');
+            const inputPlancha = document.getElementById('cantidad-plancha-segundas');
+
             // Mostrar/ocultar input de cantidad + encabezado si se activa checkbox (SCREEN)
             checkScreen.addEventListener('change', function () {
                 const mostrar = this.checked;
                 colScreen.classList.toggle('d-none', !mostrar);
                 thCantidadScreen.classList.toggle('d-none', !mostrar);
+                if (!mostrar) {
+                    inputScreen.value = ''; // limpiar valor al ocultar
+                }
             });
 
             // Mostrar/ocultar input de cantidad + encabezado si se activa checkbox (PLANCHA)
@@ -1599,25 +1606,38 @@
                 const mostrar = this.checked;
                 colPlancha.classList.toggle('d-none', !mostrar);
                 thCantidadPlancha.classList.toggle('d-none', !mostrar);
+                if (!mostrar) {
+                    inputPlancha.value = ''; // limpiar valor al ocultar
+                }
             });
 
             // Validación al enviar el formulario
             document.getElementById('formInspeccion').addEventListener('submit', function (e) {
                 let errores = [];
 
-                // Obtener cantidad total al momento del submit (en caso de que sea dinámico)
+                // Obtener cantidad total actual
                 const cantidadTexto = document.getElementById('cantidad-cell').textContent.trim();
                 const cantidadTotal = parseInt(cantidadTexto) || 0;
 
-                const valScreen = parseInt(document.getElementById('cantidad-screen-segundas').value) || 0;
-                const valPlancha = parseInt(document.getElementById('cantidad-plancha-segundas').value) || 0;
+                const valScreen = parseInt(inputScreen.value);
+                const valPlancha = parseInt(inputPlancha.value);
 
-                if (checkScreen.checked && valScreen > cantidadTotal) {
-                    errores.push('- Las segundas de Screen superan la cantidad disponible.');
+                // Validaciones para Screen
+                if (checkScreen.checked) {
+                    if (isNaN(valScreen) || valScreen <= 0) {
+                        errores.push('- La cantidad de segundas en Screen debe ser mayor a 0.');
+                    } else if (valScreen > cantidadTotal) {
+                        errores.push('- Las segundas de Screen no pueden superar la cantidad total.');
+                    }
                 }
 
-                if (checkPlancha.checked && valPlancha > cantidadTotal) {
-                    errores.push('- Las segundas de Plancha superan la cantidad disponible.');
+                // Validaciones para Plancha
+                if (checkPlancha.checked) {
+                    if (isNaN(valPlancha) || valPlancha <= 0) {
+                        errores.push('- La cantidad de segundas en Plancha debe ser mayor a 0.');
+                    } else if (valPlancha > cantidadTotal) {
+                        errores.push('- Las segundas de Plancha no pueden superar la cantidad total.');
+                    }
                 }
 
                 if (errores.length > 0) {

@@ -237,7 +237,7 @@ class ScreenV2Controller extends Controller
     public function store(Request $request)
     {
         // Para ver el contenido del request, puedes usar dd($request->all());
-        dd($request->all());
+        //dd($request->all());
         $auditorDato = Auth::user()->name;
         DB::beginTransaction(); // Iniciar la transacción
 
@@ -285,6 +285,10 @@ class ScreenV2Controller extends Controller
                 $screen->inspeccion_horno_id = $inspeccion->id;
                 $screen->nombre_tecnico      = $request->input('nombre_tecnico_screen');
                 $screen->accion_correctiva   = $request->input('accion_correctiva_screen');
+                // Solo guardar cantidad si es numérico y mayor a 0
+                if ($request->filled('cantidad_screen_segundas') && intval($request->input('cantidad_screen_segundas')) > 0) {
+                    $screen->cantidad_segunda = intval($request->input('cantidad_screen_segundas'));
+                }
                 $screen->save();
 
                 // Guardar defectos de Screen (uno a muchos) en InspeccionHornoScreenDefecto
@@ -306,6 +310,10 @@ class ScreenV2Controller extends Controller
                 $plancha->nombre_tecnico      = $request->input('nombre_tecnico_plancha');
                 $plancha->piezas_auditadas    = $request->input('piezas_auditadas');
                 $plancha->accion_correctiva   = $request->input('accion_correctiva_plancha');
+                // Solo guardar cantidad si es numérico y mayor a 0
+                if ($request->filled('cantidad_plancha_segundas') && intval($request->input('cantidad_plancha_segundas')) > 0) {
+                    $plancha->cantidad_segunda = intval($request->input('cantidad_plancha_segundas'));
+                }
                 $plancha->save();
 
                 // Guardar defectos de Plancha (uno a muchos) en InspeccionHornoPlanchaDefecto
