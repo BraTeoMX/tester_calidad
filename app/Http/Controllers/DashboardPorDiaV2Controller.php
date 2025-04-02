@@ -856,9 +856,38 @@ class DashboardPorDiaV2Controller extends Controller
         $estilo = $request->input('estilo');
         $fecha = $request->input('fecha');
         $tiempoExtra = $request->input('tiempo_extra');
+
+        // Convertir "null" en texto a null real
+        $tiempoExtra = ($tiempoExtra === 'null' || $tiempoExtra === '') ? null : $tiempoExtra;
+
         $planta = "Intimark2";
 
+
         if (!$modulo || !$estilo || !$fecha) {
+            Log::warning('Faltan parámetros necesarios en obtenerDetallesAQLP2');
+            return response()->json(['error' => 'Faltan parámetros necesarios'], 400);
+        }
+
+        $detalles = $this->getDatosModuloEstiloAQLDetalles($fecha, $planta, $modulo, $estilo, $tiempoExtra);
+
+        return response()->json($detalles);
+    }
+
+    public function obtenerDetallesAQL(Request $request)
+    {
+        $modulo = $request->input('modulo');
+        $estilo = $request->input('estilo');
+        $fecha = $request->input('fecha');
+        $tiempoExtra = $request->input('tiempo_extra');
+
+        // Convertir "null" en texto a null real
+        $tiempoExtra = ($tiempoExtra === 'null' || $tiempoExtra === '') ? null : $tiempoExtra;
+
+        $planta = "Intimark1";
+
+
+        if (!$modulo || !$estilo || !$fecha) {
+            //Log::warning('Faltan parámetros necesarios en obtenerDetallesAQLP2');
             return response()->json(['error' => 'Faltan parámetros necesarios'], 400);
         }
 
