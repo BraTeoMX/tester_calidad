@@ -448,33 +448,47 @@
 
 
     <script>
-        $(document).ready(function() {
-            function cargarSelect2Simple(selector, url) {
-                $(selector).select2({
-                    placeholder: "Seleccione una opción",
-                    ajax: {
-                        url: url,
-                        dataType: 'json',
-                        delay: 250,
-                        processResults: function(data) {
-                            let results = $.map(data, function(item) {
-                                return {
-                                    id: item.nombre,
-                                    text: item.nombre
-                                }; // Aquí cambiamos item.id por item.nombre
-                            });
+        function cargarSelect2Simple(selector, url, valorSeleccionado = null, inputHidden = null) {
+            $(selector).select2({
+                placeholder: "Seleccione una opción",
+                ajax: {
+                    url: url,
+                    dataType: 'json',
+                    delay: 250,
+                    processResults: function(data) {
+                        let results = $.map(data, function(item) {
                             return {
-                                results: results
+                                id: item.nombre,
+                                text: item.nombre
                             };
-                        },
-                        cache: true
-                    }
-                });
-            }
+                        });
+                        return { results: results };
+                    },
+                    cache: true
+                }
+            });
 
-            // Llamamos a la función sin la opción "OTRO" ni la funcionalidad para agregar nuevos registros.
-            cargarSelect2Simple("#nombreTecnicoScreen", "/categoriaTecnicoScreen");
-            cargarSelect2Simple("#nombreTecnicoPlancha", "/categoriaTecnicoScreen");
+            // Si hay un valor seleccionado anteriormente (old)
+            if (valorSeleccionado) {
+                // Agregamos la opción manualmente
+                let option = new Option(valorSeleccionado, valorSeleccionado, true, true);
+                $(selector).append(option).trigger('change');
+
+                // También llenamos el campo hidden si se especifica
+                if (inputHidden) {
+                    $(inputHidden).val(valorSeleccionado);
+                }
+            }
+        }
+
+        $(document).ready(function() {
+            // Agregamos los inputs ocultos
+            $("#nombreTecnicoScreen").after('<input type="hidden" name="nombre_tecnico_screen_nombre" id="nombre_tecnico_screen_nombre">');
+            $("#nombreTecnicoPlancha").after('<input type="hidden" name="nombre_tecnico_plancha_nombre" id="nombre_tecnico_plancha_nombre">');
+
+            // Cargar select2 con datos anteriores (old), si los hay
+            cargarSelect2Simple("#nombreTecnicoScreen", "/categoriaTecnicoScreen", "{{ old('nombre_tecnico_screen') }}", "#nombre_tecnico_screen_nombre");
+            cargarSelect2Simple("#nombreTecnicoPlancha", "/categoriaTecnicoScreen", "{{ old('nombre_tecnico_plancha') }}", "#nombre_tecnico_plancha_nombre");
         });
     </script>
     <!-- Script general para los select comunes -->
