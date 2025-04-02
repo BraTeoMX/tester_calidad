@@ -483,6 +483,7 @@
                             <tr>
                                 <th>PARO</th>
                                 <th>CLIENTE</th>
+                                <th>Estilo</th>
                                 <th>Nombre</th>
                                 <th>Operacion</th>
                                 <th>Piezas Auditadas</th>
@@ -498,6 +499,7 @@
                                 <tr>
                                     <td>{{ $registro->minutos_paro ?? 'N/A' }}</td>
                                     <td>{{ $registro->cliente ?? 'N/A' }}</td>
+                                    <td>{{ $registro->estilo ?? 'N/A' }}</td>
                                     <td>{{ $registro->nombre ?? 'N/A' }}</td>
                                     <td>{{ $registro->operacion ?? 'N/A' }}</td>
                                     <td>{{ $registro->cantidad_auditada ?? 'N/A' }}</td>
