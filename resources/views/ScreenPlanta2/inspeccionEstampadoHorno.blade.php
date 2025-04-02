@@ -200,6 +200,8 @@
                                     <th>Tecnico</th>
                                     <th>Defecto</th>
                                     <th>Acción Correctiva</th>
+                                    <th>Seleccion</th>
+                                    <th class="d-none" id="th-cantidad-screen">Cantidad</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -215,6 +217,15 @@
                                     <td>
                                         <select class="form-control select2" name="accion_correctiva_screen"
                                             id="accionCorrectivaScreen" required></select>
+                                    </td>
+                                    <td>
+                                        <div class="form-check">
+                                            <input type="checkbox" id="check-screen-segundas" class="form-check-input">
+                                            <label for="check-screen-segundas" class="form-check-label">Segundas</label>
+                                        </div>
+                                    </td>
+                                    <td class="d-none" id="columna-cantidad-screen">
+                                        <input type="number" min="0" class="form-control" id="cantidad-screen-segundas" name="cantidad_screen_segundas">
                                     </td>
                                 </tr>
                             </tbody>
@@ -232,6 +243,8 @@
                                     <th>Piezas auditadas</th>
                                     <th>Defecto</th>
                                     <th>Acción Correctiva</th>
+                                    <th>Seleccion</th>
+                                    <th class="d-none" id="th-cantidad-plancha">Cantidad</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -250,6 +263,15 @@
                                     <td>
                                         <select class="form-control select2" name="accion_correctiva_plancha"
                                             id="accionCorrectivaPlancha" required></select>
+                                    </td>
+                                    <td>
+                                        <div class="form-check">
+                                            <input type="checkbox" id="check-plancha-segundas" class="form-check-input">
+                                            <label for="check-plancha-segundas" class="form-check-label">Segundas</label>
+                                        </div>
+                                    </td>
+                                    <td class="d-none" id="columna-cantidad-plancha">
+                                        <input type="number" min="0" class="form-control" id="cantidad-plancha-segundas" name="cantidad_plancha_segundas">
                                     </td>
                                 </tr>
                             </tbody>
@@ -1548,6 +1570,61 @@
 
             // Opcional: refrescar cada cierto tiempo
             // setInterval(cargarBultosPorDia, 60000); // cada 60 segundos
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Checkboxes
+            const checkScreen = document.getElementById('check-screen-segundas');
+            const checkPlancha = document.getElementById('check-plancha-segundas');
+
+            // Columnas de inputs
+            const colScreen = document.getElementById('columna-cantidad-screen');
+            const colPlancha = document.getElementById('columna-cantidad-plancha');
+
+            // Columnas de encabezado (th)
+            const thCantidadScreen = document.getElementById('th-cantidad-screen');
+            const thCantidadPlancha = document.getElementById('th-cantidad-plancha');
+
+            // Mostrar/ocultar input de cantidad + encabezado si se activa checkbox (SCREEN)
+            checkScreen.addEventListener('change', function () {
+                const mostrar = this.checked;
+                colScreen.classList.toggle('d-none', !mostrar);
+                thCantidadScreen.classList.toggle('d-none', !mostrar);
+            });
+
+            // Mostrar/ocultar input de cantidad + encabezado si se activa checkbox (PLANCHA)
+            checkPlancha.addEventListener('change', function () {
+                const mostrar = this.checked;
+                colPlancha.classList.toggle('d-none', !mostrar);
+                thCantidadPlancha.classList.toggle('d-none', !mostrar);
+            });
+
+            // Validación al enviar el formulario
+            document.getElementById('formInspeccion').addEventListener('submit', function (e) {
+                let errores = [];
+
+                // Obtener cantidad total al momento del submit (en caso de que sea dinámico)
+                const cantidadTexto = document.getElementById('cantidad-cell').textContent.trim();
+                const cantidadTotal = parseInt(cantidadTexto) || 0;
+
+                const valScreen = parseInt(document.getElementById('cantidad-screen-segundas').value) || 0;
+                const valPlancha = parseInt(document.getElementById('cantidad-plancha-segundas').value) || 0;
+
+                if (checkScreen.checked && valScreen > cantidadTotal) {
+                    errores.push('- Las segundas de Screen superan la cantidad disponible.');
+                }
+
+                if (checkPlancha.checked && valPlancha > cantidadTotal) {
+                    errores.push('- Las segundas de Plancha superan la cantidad disponible.');
+                }
+
+                if (errores.length > 0) {
+                    e.preventDefault();
+                    alert('Errores detectados:\n' + errores.join('\n'));
+                }
+            });
         });
     </script>
 

@@ -237,7 +237,7 @@ class ScreenV2Controller extends Controller
     public function store(Request $request)
     {
         // Para ver el contenido del request, puedes usar dd($request->all());
-        //dd($request->all());
+        dd($request->all());
         $auditorDato = Auth::user()->name;
         DB::beginTransaction(); // Iniciar la transacción
 
