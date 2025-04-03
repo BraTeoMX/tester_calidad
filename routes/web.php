@@ -480,6 +480,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     //Seccion auditoria KanBan
     Route::get('/kanban', [AuditoriaKanBanController::class, 'index'])->name('kanban.index');
+    Route::get('/kanban/comentarios', [AuditoriaKanBanController::class, 'obtenerComentariosKanban'])->name('kanban.comentarios');
 
 
 });

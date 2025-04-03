@@ -11,7 +11,8 @@ use App\Models\AuditoriaProceso;
 use App\Models\CategoriaTeamLeader;
 use App\Models\CategoriaTipoProblema;
 use App\Models\AuditoriaAQL;
-use App\Models\TpAuditoriaAQL;
+use App\Models\CatalogoComentarioKanban;
+use App\Models\ReporteKanban;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\Log;
 
@@ -37,4 +38,14 @@ class AuditoriaKanBanController extends Controller
 
         return view('kanban.index', compact('mesesEnEspanol', 'pageSlug'));
     }
+
+    public function obtenerComentarios()
+    {
+        $comentarios = CatalogoComentarioKanban::where('estatus', 1)
+            ->orderBy('nombre')
+            ->get(['nombre']);
+
+        return response()->json($comentarios);
+    }
+
 }
