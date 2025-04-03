@@ -13,6 +13,7 @@ use App\Models\CategoriaTipoProblema;
 use App\Models\AuditoriaAQL;
 use App\Models\CatalogoComentarioKanban;
 use App\Models\ReporteKanban;
+use App\Models\ReporteKanbanComentario;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\Log;
 
@@ -63,6 +64,13 @@ class AuditoriaKanBanController extends Controller
         }
 
         return response()->json(['mensaje' => 'Datos guardados correctamente']);
+    }
+
+    public function obtenerParciales(Request $request)
+    {
+        $parciales = ReporteKanban::where('estatus', 2)->get(['id', 'op', 'cliente', 'estilo', 'piezas']);
+
+        return response()->json($parciales);
     }
 
 }

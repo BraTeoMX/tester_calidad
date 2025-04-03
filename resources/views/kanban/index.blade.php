@@ -115,6 +115,26 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card card-body">
+                <div class="accordion" id="accordionParcial">
+                    <div class="card">
+                        <div class="card-header p-0" id="headingParcial">
+                            <h2 class="mb-0">
+                                <button class="btn btn-link text-light text-decoration-none w-100 text-left" type="button" data-toggle="collapse" data-target="#collapseParcial" aria-expanded="false" aria-controls="collapseParcial">
+                                    Mostrar Parcial No Liberado
+                                </button>
+                            </h2>
+                        </div>
+                        <div id="collapseParcial" class="collapse" aria-labelledby="headingParcial" data-parent="#accordionParcial">
+                            <div class="card-body" id="parcial-container">
+                                <p class="text-muted">Abre el acordeón para cargar los datos.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header card-header-primary">
                     <h3>Registros por dia - ordenes liberadas en AMP </h3>
@@ -341,6 +361,67 @@
                     error: function (xhr) {
                         console.error(xhr.responseText);
                         alert('Error al guardar');
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            let cargado = false;
+
+            $('#collapseParcial').on('show.bs.collapse', function () {
+                if (cargado) return;
+
+                $.ajax({
+                    url: '{{ route('kanban.parciales') }}',
+                    method: 'GET',
+                    success: function (data) {
+                        if (data.length === 0) {
+                            $('#parcial-container').html('<p class="text-muted">No hay registros parciales no liberados.</p>');
+                            return;
+                        }
+
+                        let tabla = `
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>OP</th>
+                                            <th>Cliente</th>
+                                            <th>Estilo</th>
+                                            <th>Piezas</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                        `;
+
+                        data.forEach(function (item) {
+                            tabla += `
+                                <tr>
+                                    <td>${item.op}</td>
+                                    <td>${item.cliente}</td>
+                                    <td>${item.estilo}</td>
+                                    <td>${item.piezas}</td>
+                                    <td><button class="btn btn-secondary btn-sm" disabled>Ver detalle</button></td>
+                                </tr>
+                            `;
+                        });
+
+                        tabla += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+
+                        $('#parcial-container').html(tabla);
+                        cargado = true;
+                    },
+                    error: function (xhr) {
+                        console.error(xhr.responseText);
+                        $('#parcial-container').html('<p class="text-danger">Error al cargar los datos.</p>');
                     }
                 });
             });
