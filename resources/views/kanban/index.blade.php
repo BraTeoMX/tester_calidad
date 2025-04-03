@@ -90,16 +90,24 @@
                                     <th>COMENTARIO</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="formKanban">
                                 <tr>
-                                    <td>123456</td> <!-- ejemplo OP -->
-                                    <td>Ejecutar acción</td> <!-- ejemplo ACCION -->
                                     <td>
-                                        <select class="form-control select-comentario" name="comentario[]"></select>
+                                        <select id="selectOP" class="form-control select-op"></select>
+                                    </td> 
+                                    <td>
+                                        <select class="form-control select-accion">
+                                            <option value="aceptado">Aceptado</option>
+                                            <option value="parcial">Parcial</option>
+                                            <option value="rechazado">Rechazado</option>
+                                        </select>
                                     </td>
+                                    <td>
+                                        <select id="selectComentario" class="form-control select-comentario"></select>
+                                        <div id="selectedOptionsContainerComentario" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
+                                    </td>                                    
                                 </tr>
                             </tbody>
-                            
                         </table>
                     </div>
                 </div>
@@ -151,7 +159,11 @@
 
     <script>
         $(document).ready(function () {
-            $('.select-comentario').select2({
+            const selectedIdsComentario = new Set();
+            const selectedOptionsContainerComentario = $('#selectedOptionsContainerComentario');
+
+            // Inicializar select2
+            $('#selectComentario').select2({
                 placeholder: 'Selecciona un comentario',
                 ajax: {
                     url: '{{ route('kanban.comentarios') }}',
@@ -171,6 +183,37 @@
                 },
                 minimumInputLength: 0
             });
+
+            // Detectar selección
+            $('#selectComentario').on('select2:select', function (e) {
+                const data = e.params.data;
+
+                // Evita duplicados
+                if (!selectedIdsComentario.has(data.id)) {
+                    addOptionToContainer(data.id, data.text);
+                    selectedIdsComentario.add(data.id);
+                }
+
+                // Limpia selección actual para permitir volver a seleccionar
+                $('#selectComentario').val(null).trigger('change');
+            });
+
+            // Función para agregar la opción al contenedor
+            function addOptionToContainer(id, text) {
+                const optionElement = $(`
+                    <div class="selected-option d-flex align-items-center justify-content-between border rounded p-2 mb-1" data-id="${id}">
+                        <span class="option-text flex-grow-1 mx-2">${text}</span>
+                        <button type="button" class="btn btn-danger btn-sm remove-option">Eliminar</button>
+                    </div>
+                `);
+
+                optionElement.find('.remove-option').on('click', function () {
+                    optionElement.remove();
+                    selectedIdsComentario.delete(id);
+                });
+
+                selectedOptionsContainerComentario.append(optionElement);
+            }
         });
     </script>
     
