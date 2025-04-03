@@ -150,6 +150,7 @@
                                     <th>ESTILO</th>
                                     <th>ESTATUS</th>
                                     <th>COMENTARIOS</th>
+                                    <th>FECHA DE PARCIAL</th>
                                     <th>FECHA DE LIBERACION</th>
                                     <th>Eliminar</th>
                                 </tr>
@@ -481,6 +482,7 @@
                                     <td>${item.estilo}</td>
                                     <td>${item.estatus}</td>
                                     <td>${comentarios}</td>
+                                    <td>${item.fecha_parcial}</td>
                                     <td>${item.fecha_liberacion}</td>
                                     <td>
                                         <button class="btn btn-danger btn-sm btn-eliminar" data-id="${item.id}">

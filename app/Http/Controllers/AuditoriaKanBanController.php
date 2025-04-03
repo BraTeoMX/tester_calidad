@@ -99,7 +99,7 @@ class AuditoriaKanBanController extends Controller
         $registros = ReporteKanban::with('comentarios')
             ->whereDate('created_at', $hoy)
             ->get();
-            Log::info('Datos en consulta: '. $registros);
+
         $data = $registros->map(function ($registro) {
             return [
                 'fecha_almacen' => $registro->created_at ? Carbon::parse($registro->created_at)->format('Y-m-d H:i') : 'N/A',
@@ -110,14 +110,15 @@ class AuditoriaKanBanController extends Controller
                 'comentarios' => $registro->comentarios->isNotEmpty()
                     ? $registro->comentarios->pluck('nombre')->toArray()
                     : ['N/A'],
+                'fecha_parcial' => $registro->fecha_parcial 
+                    ? Carbon::parse($registro->fecha_parcial)->format('Y-m-d H:i') 
+                    : 'N/A',
                 'fecha_liberacion' => $registro->fecha_liberacion 
                     ? Carbon::parse($registro->fecha_liberacion)->format('Y-m-d H:i') 
                     : 'N/A',
                 'id' => $registro->id
             ];
         });
-
-        Log::info($data);
 
         return response()->json($data);
     }
