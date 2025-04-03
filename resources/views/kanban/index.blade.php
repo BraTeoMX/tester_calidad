@@ -141,16 +141,14 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table56">
+                        <table class="table">
                             <thead class="thead-primary">
                                 <tr>
                                     <th>FECHA DE ALMACEN</th>
                                     <th>OP</th>
                                     <th>CLIENTE</th>
                                     <th>ESTILO</th>
-                                    <th>ACEPTADO</th>
-                                    <th>PARCIAL</th>
-                                    <th>RECHAZADO</th>
+                                    <th>ESTATUS</th>
                                     <th>COMENTARIOS</th>
                                     <th>FECHA DE LIBERACION</th>
                                     <th>Eliminar </th>
@@ -371,7 +369,6 @@
         $(document).ready(function () {
             let cargado = false;
 
-            // Función que carga los datos vía AJAX
             function cargarParciales() {
                 $.ajax({
                     url: '{{ route('kanban.parciales') }}',
@@ -405,8 +402,8 @@
                                     <td>${item.estilo}</td>
                                     <td>${item.piezas}</td>
                                     <td>
-                                        <button class="btn btn-secondary btn-sm btn-actualizar" data-id="${item.id}">
-                                            Actualizar
+                                        <button class="btn btn-success btn-sm btn-actualizar" data-id="${item.id}">
+                                            Liberar
                                         </button>
                                     </td>
                                 </tr>
@@ -420,7 +417,7 @@
                         `;
 
                         $('#parcial-container').html(tabla);
-                        cargado = true; // ⚠️ Solo marcamos como cargado después de éxito
+                        cargado = true;
                     },
                     error: function (xhr) {
                         console.error(xhr.responseText);
@@ -429,23 +426,37 @@
                 });
             }
 
-            // Cargar solo cuando se abra el acordeón por primera vez
             $('#collapseParcial').on('show.bs.collapse', function () {
                 if (!cargado) {
                     cargarParciales();
                 }
             });
 
-            // ✅ Evento delegado para actualizar (simulado)
+            // ⬇️ AQUI DEBES AGREGAR EL POST PARA "LIBERAR"
             $('#parcial-container').on('click', '.btn-actualizar', function () {
                 const id = $(this).data('id');
-                
-                // Simular que se actualiza (en la vida real, harías una petición aquí)
-                console.log('Actualizar registro ID:', id);
 
-                // Simular que fue exitoso y recargar la tabla
-                cargado = false; // permite recargar otra vez
-                cargarParciales();
+                if (!confirm('¿Estás seguro que deseas liberar este registro?')) return;
+
+                $.ajax({
+                    url: '{{ route("kanban.parcial.liberar") }}',
+                    method: 'POST',
+                    data: {
+                        id: id
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    success: function (response) {
+                        alert(response.mensaje);
+                        cargado = false; // volver a permitir recarga
+                        cargarParciales(); // recargar la tabla
+                    },
+                    error: function (xhr) {
+                        console.error(xhr.responseText);
+                        alert('Hubo un error al intentar liberar el registro.');
+                    }
+                });
             });
         });
     </script>
