@@ -47,5 +47,22 @@ class AuditoriaKanBanController extends Controller
 
         return response()->json($comentarios);
     }
+    
+    public function guardar(Request $request)
+    {
+        Log::info($request->all());
+        $comentarios = $request->input('comentarios'); // esto será un array de strings
+
+        if (is_array($comentarios) && count($comentarios)) {
+            foreach ($comentarios as $comentario) {
+                ReporteKanban::create([
+                    'comentario' => $comentario,
+                    // Aquí puedes agregar más columnas si lo necesitas
+                ]);
+            }
+        }
+
+        return response()->json(['mensaje' => 'Datos guardados correctamente']);
+    }
 
 }

@@ -82,33 +82,36 @@
                 <hr>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table">
-                            <thead class="thead-primary">
-                                <tr>
-                                    <th>OP</th>
-                                    <th>ACCION</th>
-                                    <th>COMENTARIO</th>
-                                </tr>
-                            </thead>
-                            <tbody id="formKanban">
-                                <tr>
-                                    <td>
-                                        <select id="selectOP" class="form-control select-op"></select>
-                                    </td> 
-                                    <td>
-                                        <select class="form-control select-accion">
-                                            <option value="aceptado">Aceptado</option>
-                                            <option value="parcial">Parcial</option>
-                                            <option value="rechazado">Rechazado</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select id="selectComentario" class="form-control select-comentario"></select>
-                                        <div id="selectedOptionsContainerComentario" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
-                                    </td>                                    
-                                </tr>
-                            </tbody>
-                        </table>
+                        <form id="formKanban">
+                            <table class="table">
+                                <thead class="thead-primary">
+                                    <tr>
+                                        <th>OP</th>
+                                        <th>ACCION</th>
+                                        <th>COMENTARIO</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <select id="selectOP" class="form-control select-op"></select>
+                                        </td> 
+                                        <td>
+                                            <select class="form-control" id="selectAccion">
+                                                <option value="1">Aceptado</option>
+                                                <option value="2">Parcial</option>
+                                                <option value="3">Rechazado</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select id="selectComentario" class="form-control select-comentario"></select>
+                                            <div id="selectedOptionsContainerComentario" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -162,7 +165,6 @@
             const selectedIdsComentario = new Set();
             const selectedOptionsContainerComentario = $('#selectedOptionsContainerComentario');
 
-            // Inicializar select2
             $('#selectComentario').select2({
                 placeholder: 'Selecciona un comentario',
                 ajax: {
@@ -184,21 +186,17 @@
                 minimumInputLength: 0
             });
 
-            // Detectar selección
             $('#selectComentario').on('select2:select', function (e) {
                 const data = e.params.data;
 
-                // Evita duplicados
                 if (!selectedIdsComentario.has(data.id)) {
                     addOptionToContainer(data.id, data.text);
                     selectedIdsComentario.add(data.id);
                 }
 
-                // Limpia selección actual para permitir volver a seleccionar
                 $('#selectComentario').val(null).trigger('change');
             });
 
-            // Función para agregar la opción al contenedor
             function addOptionToContainer(id, text) {
                 const optionElement = $(`
                     <div class="selected-option d-flex align-items-center justify-content-between border rounded p-2 mb-1" data-id="${id}">
@@ -214,7 +212,62 @@
 
                 selectedOptionsContainerComentario.append(optionElement);
             }
+
+            // Enviar formulario con AJAX
+            $('#formKanban').on('submit', function (e) {
+                e.preventDefault();
+
+                // Obtener comentarios desde el contenedor visual
+                let comentariosSeleccionados = [];
+                $('#selectedOptionsContainerComentario .selected-option').each(function () {
+                    let texto = $(this).find('.option-text').text();
+                    comentariosSeleccionados.push(texto);
+                });
+
+                // Obtener los valores de OP y ACCION
+                let op = $('#selectOP').val();
+                let accion = $('#selectAccion').val();
+
+                if (!op) {
+                    alert('Por favor selecciona una OP válida antes de continuar.');
+                    $('#selectOP').focus();
+                    return;
+                }
+
+                // ✅ VALIDACIÓN de acción seleccionada
+                if (!accion) {
+                    alert('Por favor selecciona una acción válida antes de continuar.');
+                    $('#selectAccion').focus();
+                    return; // Detiene el envío
+                }
+
+                // Si todo bien, continúa
+                let dataFormulario = {
+                    comentarios: comentariosSeleccionados,
+                    op: op,
+                    accion: accion,
+                };
+
+                $.ajax({
+                    url: '{{ route("kanban.guardar") }}',
+                    method: 'POST',
+                    data: dataFormulario,
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    success: function (response) {
+                        alert('Guardado correctamente');
+                        $('#selectedOptionsContainerComentario').empty();
+                        selectedIdsComentario.clear();
+                    },
+                    error: function (xhr) {
+                        console.error(xhr.responseText);
+                        alert('Error al guardar');
+                    }
+                });
+            });
         });
     </script>
+
     
 @endsection
