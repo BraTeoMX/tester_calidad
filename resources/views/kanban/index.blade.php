@@ -141,7 +141,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table">
+                        <table id="tabla-registros-hoy" class="table">
                             <thead class="thead-primary">
                                 <tr>
                                     <th>FECHA DE ALMACEN</th>
@@ -151,15 +151,15 @@
                                     <th>ESTATUS</th>
                                     <th>COMENTARIOS</th>
                                     <th>FECHA DE LIBERACION</th>
-                                    <th>Eliminar </th>
+                                    <th>Eliminar</th>
                                 </tr>
                             </thead>
                             <tbody>
-
+                                <!-- Se cargará vía AJAX -->
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </div>                
             </div>
         </div>
     </div>
@@ -461,5 +461,72 @@
         });
     </script>
 
+    <script>
+        $(document).ready(function () {
+            function cargarRegistrosHoy() {
+                $.ajax({
+                    url: '{{ route("kanban.registrosHoy") }}',
+                    method: 'GET',
+                    success: function (data) {
+                        let tbody = '';
+
+                        data.forEach(function (item) {
+                            const comentarios = item.comentarios.join('<br>');
+
+                            tbody += `
+                                <tr>
+                                    <td>${item.fecha_almacen}</td>
+                                    <td>${item.op}</td>
+                                    <td>${item.cliente}</td>
+                                    <td>${item.estilo}</td>
+                                    <td>${item.estatus}</td>
+                                    <td>${comentarios}</td>
+                                    <td>${item.fecha_liberacion}</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm btn-eliminar" data-id="${item.id}">
+                                            Eliminar
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+
+                        $('#tabla-registros-hoy tbody').html(tbody);
+                    },
+                    error: function (xhr) {
+                        console.error(xhr.responseText);
+                        $('#tabla-registros-hoy tbody').html('<tr><td colspan="8" class="text-center text-danger">Error al cargar los registros.</td></tr>');
+                    }
+                });
+            }
+
+            // Llama la función al cargar la página
+            cargarRegistrosHoy();
+
+            // Evento para eliminar
+            $('#tabla-registros-hoy').on('click', '.btn-eliminar', function () {
+                const id = $(this).data('id');
+
+                if (!confirm('¿Estás seguro de eliminar este registro?')) return;
+
+                $.ajax({
+                    url: '{{ route("kanban.eliminar") }}',
+                    method: 'POST',
+                    data: { id: id },
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    success: function (response) {
+                        alert(response.mensaje);
+                        cargarRegistrosHoy(); // vuelve a cargar la tabla
+                    },
+                    error: function (xhr) {
+                        console.error(xhr.responseText);
+                        alert('Error al eliminar el registro.');
+                    }
+                });
+            });
+        });
+    </script>
     
 @endsection

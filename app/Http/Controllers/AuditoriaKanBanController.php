@@ -92,4 +92,58 @@ class AuditoriaKanBanController extends Controller
         return response()->json(['mensaje' => 'Registro liberado correctamente.']);
     }
 
+    public function obtenerRegistrosHoy(Request $request)
+    {
+        $hoy = Carbon::today();
+
+        $registros = ReporteKanban::with('comentarios')
+            ->whereDate('created_at', $hoy)
+            ->get();
+            Log::info('Datos en consulta: '. $registros);
+        $data = $registros->map(function ($registro) {
+            return [
+                'fecha_almacen' => $registro->created_at ? Carbon::parse($registro->created_at)->format('Y-m-d H:i') : 'N/A',
+                'op' => $registro->op ?? 'N/A',
+                'cliente' => $registro->cliente ?? 'N/A',
+                'estilo' => $registro->estilo ?? 'N/A',
+                'estatus' => $this->obtenerNombreEstatus($registro->estatus),
+                'comentarios' => $registro->comentarios->isNotEmpty()
+                    ? $registro->comentarios->pluck('nombre')->toArray()
+                    : ['N/A'],
+                'fecha_liberacion' => $registro->fecha_liberacion 
+                    ? Carbon::parse($registro->fecha_liberacion)->format('Y-m-d H:i') 
+                    : 'N/A',
+                'id' => $registro->id
+            ];
+        });
+
+        Log::info($data);
+
+        return response()->json($data);
+    }
+
+    private function obtenerNombreEstatus($codigo)
+    {
+        return match($codigo) {
+            1 => 'Aceptado',
+            2 => 'Parcial',
+            3 => 'Rechazado',
+            default => 'N/A',
+        };
+    }
+
+    public function eliminar(Request $request)
+    {
+        $id = $request->input('id');
+
+        $registro = ReporteKanban::find($id);
+
+        if (!$registro) {
+            return response()->json(['mensaje' => 'Registro no encontrado.'], 404);
+        }
+
+        $registro->delete();
+
+        return response()->json(['mensaje' => 'Registro eliminado correctamente.']);
+    }
 }

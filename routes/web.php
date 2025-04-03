@@ -484,6 +484,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/kanban/guardar', [AuditoriaKanBanController::class, 'guardar'])->name('kanban.guardar');
     Route::get('/kanban/parciales', [AuditoriaKanBanController::class, 'obtenerParciales'])->name('kanban.parciales');
     Route::post('/kanban/parcial/liberar', [AuditoriaKanBanController::class, 'liberarParcial'])->name('kanban.parcial.liberar');
+    Route::get('/kanban/registros-hoy', [AuditoriaKanBanController::class, 'obtenerRegistrosHoy'])->name('kanban.registrosHoy');
+    Route::post('/kanban/eliminar', [AuditoriaKanBanController::class, 'eliminar'])->name('kanban.eliminar');
+
 
 
 
