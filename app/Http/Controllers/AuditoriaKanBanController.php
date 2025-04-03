@@ -54,10 +54,29 @@ class AuditoriaKanBanController extends Controller
 
         return response()->json($comentarios);
     }
+
+    public function crearComentario(Request $request)
+    {
+        file_put_contents(storage_path('logs/test-kanban.log'), now() . ' → Llegó a la función crearComentario' . PHP_EOL, FILE_APPEND);
+        Log::info($request->all());
+        $request->validate([
+            'nombre' => 'required|string|max:255'
+        ]);
+
+        $comentario = CatalogoComentarioKanban::create([
+            'nombre' => strtoupper($request->input('nombre')), // se guarda en mayúsculas, si se requiere
+            'estatus' => 1
+        ]);
+
+        return response()->json([
+            'mensaje' => 'Comentario creado correctamente',
+            'comentario' => $comentario
+        ]);
+    }
     
     public function guardar(Request $request)
     {
-        Log::info($request->all());
+        //Log::info($request->all());
         $comentarios = $request->input('comentarios'); // esto será un array de strings
 
         if (is_array($comentarios) && count($comentarios)) {

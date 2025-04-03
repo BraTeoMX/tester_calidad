@@ -98,6 +98,7 @@
                                         </td> 
                                         <td>
                                             <select class="form-control" id="selectAccion">
+                                                <option value="">selecciona una opcion</option>
                                                 <option value="1">Aceptado</option>
                                                 <option value="2">Parcial</option>
                                                 <option value="3">Rechazado</option>
@@ -264,32 +265,71 @@
 
             $('#selectComentario').select2({
                 placeholder: 'Selecciona un comentario',
+                templateResult: function (data) {
+                    if (data.id === 'crear_comentario') {
+                        return $('<span style="color: white; font-weight: bold;">' + data.text + '</span>');
+                    }
+                    return data.text;
+                },
                 ajax: {
                     url: '{{ route('kanban.comentarios') }}',
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
                         return {
-                            q: params.term || '' // vacío si no escribe nada
+                            q: params.term || ''
                         };
                     },
                     processResults: function (data) {
-                        return {
-                            results: data.map(function (comentario) {
-                                return {
-                                    id: comentario.nombre,
-                                    text: comentario.nombre
-                                };
-                            })
-                        };
+                        const results = data.map(comentario => ({
+                            id: comentario.nombre,
+                            text: comentario.nombre
+                        }));
+                        results.unshift({ id: 'crear_comentario', text: 'Crear comentario' });
+                        return { results };
                     },
                     cache: true
                 },
-                minimumInputLength: 0 // 👈 Esto permite que cargue al abrir sin escribir
+                minimumInputLength: 0
             });
 
             $('#selectComentario').on('select2:select', function (e) {
                 const data = e.params.data;
+
+                if (data.id === 'crear_comentario') {
+                    $('#selectComentario').val(null).trigger('change');
+
+                    const nuevoComentario = prompt('Escribe el nuevo comentario:');
+                    if (!nuevoComentario || nuevoComentario.trim() === '') {
+                        alert('Comentario no válido.');
+                        return;
+                    }
+
+                    $.ajax({
+                        url: '{{ route("kanban.comentario.crear") }}',
+                        method: 'POST',
+                        data: { nombre: nuevoComentario },
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        success: function (response) {
+                            const comentarioCreado = response.comentario;
+
+                            if (!selectedIdsComentario.has(comentarioCreado.nombre)) {
+                                addOptionToContainer(comentarioCreado.nombre, comentarioCreado.nombre);
+                                selectedIdsComentario.add(comentarioCreado.nombre);
+                            }
+
+                            alert('Comentario creado correctamente');
+                        },
+                        error: function (xhr) {
+                            console.error(xhr.responseText);
+                            alert('Error al crear el comentario');
+                        }
+                    });
+
+                    return;
+                }
 
                 if (!selectedIdsComentario.has(data.id)) {
                     addOptionToContainer(data.id, data.text);
@@ -315,35 +355,24 @@
                 selectedOptionsContainerComentario.append(optionElement);
             }
 
-            // Enviar formulario con AJAX
             $('#formKanban').on('submit', function (e) {
                 e.preventDefault();
 
-                // Obtener comentarios desde el contenedor visual
                 let comentariosSeleccionados = [];
                 $('#selectedOptionsContainerComentario .selected-option').each(function () {
                     let texto = $(this).find('.option-text').text();
                     comentariosSeleccionados.push(texto);
                 });
 
-                // Obtener los valores de OP y ACCION
                 let op = $('#selectOP').val();
                 let accion = $('#selectAccion').val();
 
-                //if (!op) {
-                //    alert('Por favor selecciona una OP válida antes de continuar.');
-                //    $('#selectOP').focus();
-                //    return;
-                //}
-
-                // ✅ VALIDACIÓN de acción seleccionada
                 if (!accion) {
                     alert('Por favor selecciona una acción válida antes de continuar.');
                     $('#selectAccion').focus();
-                    return; // Detiene el envío
+                    return;
                 }
 
-                // Si todo bien, continúa
                 let dataFormulario = {
                     comentarios: comentariosSeleccionados,
                     op: op,

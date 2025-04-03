@@ -10,6 +10,6 @@ class CatalogoComentarioKanban extends Model
     use HasFactory;
     protected $table = 'catalogo_comentarios_kanban';
 
-    protected $fillable = [];
+    protected $fillable = ['nombre', 'estatus'];
 
 }
