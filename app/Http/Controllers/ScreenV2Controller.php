@@ -481,6 +481,7 @@ class ScreenV2Controller extends Controller
                             ->whereHas('screen')
                             ->orderBy('created_at', 'desc')
                             ->where('auditor', $auditorDato)
+                            ->whereDate('created_at', Carbon::today())
                             ->get();
 
         // Agrupar los registros por la columna "op"
@@ -600,6 +601,7 @@ class ScreenV2Controller extends Controller
         // Obtener las inspecciones que tengan la relación "screen" (y sus defectos)
         $inspecciones = InspeccionHorno::with(['screen.defectos'])
                             ->whereHas('screen')
+                            ->whereDate('created_at', Carbon::today())
                             ->get();
 
         // Calcular la Cantidad total revisada (suma de la columna "cantidad" de InspeccionHorno)
@@ -651,6 +653,7 @@ class ScreenV2Controller extends Controller
         // Obtener todos los registros con sus relaciones
         $inspecciones = InspeccionHorno::with(['plancha.defectos', 'tecnicas', 'fibras'])
                             ->whereHas('plancha')
+                            ->whereDate('created_at', Carbon::today())
                             ->orderBy('created_at', 'desc')
                             ->where('auditor', $auditorDato)
                             ->get();
@@ -772,6 +775,7 @@ class ScreenV2Controller extends Controller
         // Obtener las inspecciones que tengan la relación "plancha" (y sus defectos)
         $inspecciones = InspeccionHorno::with(['plancha.defectos'])
                             ->whereHas('plancha')
+                            ->whereDate('created_at', Carbon::today())
                             ->get();
 
         // Calcular la Cantidad total revisada (suma de la columna "cantidad" de InspeccionHorno)
