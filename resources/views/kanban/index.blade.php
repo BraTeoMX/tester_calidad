@@ -268,6 +268,11 @@
                     url: '{{ route('kanban.comentarios') }}',
                     dataType: 'json',
                     delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term || '' // vacío si no escribe nada
+                        };
+                    },
                     processResults: function (data) {
                         return {
                             results: data.map(function (comentario) {
@@ -280,7 +285,7 @@
                     },
                     cache: true
                 },
-                minimumInputLength: 0
+                minimumInputLength: 0 // 👈 Esto permite que cargue al abrir sin escribir
             });
 
             $('#selectComentario').on('select2:select', function (e) {

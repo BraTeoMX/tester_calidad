@@ -40,10 +40,16 @@ class AuditoriaKanBanController extends Controller
         return view('kanban.index', compact('mesesEnEspanol', 'pageSlug'));
     }
 
-    public function obtenerComentarios()
+    public function obtenerComentarios(Request $request)
     {
+        $query = $request->input('q');
+
         $comentarios = CatalogoComentarioKanban::where('estatus', 1)
+            ->when($query, function ($qBuilder) use ($query) {
+                $qBuilder->where('nombre', 'like', '%' . $query . '%');
+            })
             ->orderBy('nombre')
+            ->limit(50) // Puedes ajustar este límite si lo ves necesario
             ->get(['nombre']);
 
         return response()->json($comentarios);
