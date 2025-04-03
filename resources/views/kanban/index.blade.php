@@ -371,9 +371,8 @@
         $(document).ready(function () {
             let cargado = false;
 
-            $('#collapseParcial').on('show.bs.collapse', function () {
-                if (cargado) return;
-
+            // Función que carga los datos vía AJAX
+            function cargarParciales() {
                 $.ajax({
                     url: '{{ route('kanban.parciales') }}',
                     method: 'GET',
@@ -405,7 +404,11 @@
                                     <td>${item.cliente}</td>
                                     <td>${item.estilo}</td>
                                     <td>${item.piezas}</td>
-                                    <td><button class="btn btn-secondary btn-sm" disabled>Ver detalle</button></td>
+                                    <td>
+                                        <button class="btn btn-secondary btn-sm btn-actualizar" data-id="${item.id}">
+                                            Actualizar
+                                        </button>
+                                    </td>
                                 </tr>
                             `;
                         });
@@ -417,13 +420,32 @@
                         `;
 
                         $('#parcial-container').html(tabla);
-                        cargado = true;
+                        cargado = true; // ⚠️ Solo marcamos como cargado después de éxito
                     },
                     error: function (xhr) {
                         console.error(xhr.responseText);
                         $('#parcial-container').html('<p class="text-danger">Error al cargar los datos.</p>');
                     }
                 });
+            }
+
+            // Cargar solo cuando se abra el acordeón por primera vez
+            $('#collapseParcial').on('show.bs.collapse', function () {
+                if (!cargado) {
+                    cargarParciales();
+                }
+            });
+
+            // ✅ Evento delegado para actualizar (simulado)
+            $('#parcial-container').on('click', '.btn-actualizar', function () {
+                const id = $(this).data('id');
+                
+                // Simular que se actualiza (en la vida real, harías una petición aquí)
+                console.log('Actualizar registro ID:', id);
+
+                // Simular que fue exitoso y recargar la tabla
+                cargado = false; // permite recargar otra vez
+                cargarParciales();
             });
         });
     </script>

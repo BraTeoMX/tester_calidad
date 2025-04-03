@@ -68,9 +68,28 @@ class AuditoriaKanBanController extends Controller
 
     public function obtenerParciales(Request $request)
     {
-        $parciales = ReporteKanban::where('estatus', 2)->get(['id', 'op', 'cliente', 'estilo', 'piezas']);
+        $parciales = ReporteKanban::where('estatus', 2)
+            ->whereNull('fecha_liberacion')
+            ->get(['id', 'op', 'cliente', 'estilo', 'piezas']);
 
         return response()->json($parciales);
+    }
+
+    public function liberarParcial(Request $request)
+    {
+        $id = $request->input('id');
+
+        $registro = ReporteKanban::find($id);
+
+        if (!$registro) {
+            return response()->json(['error' => 'Registro no encontrado.'], 404);
+        }
+
+        // Actualiza la fecha de liberación
+        $registro->fecha_liberacion = Carbon::now();
+        $registro->save();
+
+        return response()->json(['mensaje' => 'Registro liberado correctamente.']);
     }
 
 }
