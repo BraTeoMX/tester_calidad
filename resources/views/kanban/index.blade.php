@@ -472,7 +472,6 @@
                         let tbody = '';
 
                         data.forEach(function (item) {
-                            const comentarios = item.comentarios.join('<br>');
 
                             tbody += `
                                 <tr>
@@ -481,7 +480,7 @@
                                     <td>${item.cliente}</td>
                                     <td>${item.estilo}</td>
                                     <td>${item.estatus}</td>
-                                    <td>${comentarios}</td>
+                                    <td>${item.comentarios}</td>
                                     <td>${item.fecha_parcial}</td>
                                     <td>${item.fecha_liberacion}</td>
                                     <td>

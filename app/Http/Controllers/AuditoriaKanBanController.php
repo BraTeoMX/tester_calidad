@@ -108,8 +108,8 @@ class AuditoriaKanBanController extends Controller
                 'estilo' => $registro->estilo ?? 'N/A',
                 'estatus' => $this->obtenerNombreEstatus($registro->estatus),
                 'comentarios' => $registro->comentarios->isNotEmpty()
-                    ? $registro->comentarios->pluck('nombre')->toArray()
-                    : ['N/A'],
+                    ? '<ul class="mb-0 pl-3">' . $registro->comentarios->pluck('nombre')->map(fn($c) => "<li>$c</li>")->implode('') . '</ul>'
+                    : 'N/A',
                 'fecha_parcial' => $registro->fecha_parcial 
                     ? Carbon::parse($registro->fecha_parcial)->format('Y-m-d H:i') 
                     : 'N/A',
