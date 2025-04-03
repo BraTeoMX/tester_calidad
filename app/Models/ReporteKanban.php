@@ -12,4 +12,9 @@ class ReporteKanban extends Model
 
     protected $fillable = [];
 
+    public function comentarios()
+    {
+        return $this->hasMany(ReporteKanbanComentario::class);
+    }
+
 }
