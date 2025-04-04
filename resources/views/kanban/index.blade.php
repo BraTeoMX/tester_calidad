@@ -321,10 +321,6 @@
                             }
 
                             alert('Comentario creado correctamente');
-
-                            $('#selectAccion').val(null).trigger('change'); // resetear el selectAccion
-                            $('#selectedOptionsContainerComentario').empty(); // limpiar visualmente el div
-                            selectedIdsComentario.clear(); // limpiar el Set de IDs seleccionados
                         },
                         error: function (xhr) {
                             console.error(xhr.responseText);
@@ -392,6 +388,7 @@
                     },
                     success: function (response) {
                         alert('Guardado correctamente');
+                        $('#selectAccion').val('');
                         $('#selectedOptionsContainerComentario').empty();
                         selectedIdsComentario.clear();
                     },
