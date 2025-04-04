@@ -122,16 +122,29 @@ class AuditoriaKanBanController extends Controller
 
         // Crear instancia de ReporteKanban
         $kanban = new ReporteKanban();
+        $kanban->op = $request->input('op');
+        $kanban->cliente = $request->input('cliente');
+        $kanban->estilo = $request->input('estilo');
+        $kanban->fecha_corte = $request->input('fecha');
+        $kanban->piezas = $request->input('piezas_total');
         $kanban->estatus = $request->input('accion');
+
+        // Lógica condicional para fechas
+        if ($kanban->estatus == '1') {
+            $kanban->fecha_liberacion = now(); // Laravel helper para timestamp actual
+        } elseif ($kanban->estatus == '2') {
+            $kanban->fecha_parcial = now();
+        }
+
         $kanban->save(); // Guarda el registro principal
 
-        // Obtener los comentarios, si hay
+        // Comentarios relacionados
         $comentarios = $request->input('comentarios');
 
         if (is_array($comentarios) && count($comentarios)) {
             foreach ($comentarios as $comentario) {
                 $comentarioKanban = new ReporteKanbanComentario();
-                $comentarioKanban->reporte_kanban_id = $kanban->id; // Relaciona con el principal
+                $comentarioKanban->reporte_kanban_id = $kanban->id;
                 $comentarioKanban->nombre = $comentario;
                 $comentarioKanban->save();
             }

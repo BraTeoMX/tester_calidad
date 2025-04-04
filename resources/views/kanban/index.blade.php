@@ -216,7 +216,7 @@
         .tabla-kanban tbody td:nth-child(7) {
             min-width: 160px; /* Comentario */
         }
-    </style>    
+    </style>
     <style>
         thead.thead-primary {
             background-color: #59666e54;
