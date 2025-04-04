@@ -55,6 +55,23 @@ class EtiquetasV2Controller extends Controller
         return response()->json(['success' => true, 'registros' => $registros]);
     }
 
+    public function eliminarRegistro($id)
+    {
+        $registro = ReporteAuditoriaEtiqueta::find($id);
+
+        if (!$registro) {
+            return response()->json(['success' => false, 'message' => 'Registro no encontrado.'], 404);
+        }
+
+        try {
+            $registro->delete();
+            return response()->json(['success' => true, 'message' => 'Registro eliminado correctamente.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al eliminar el registro.']);
+        }
+    }
+
+
     public function procesarFormularioEtiquetaAjax(Request $request)
     {
         $tipoBusqueda = $request->input('tipoEtiqueta');

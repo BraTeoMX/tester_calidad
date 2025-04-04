@@ -5,15 +5,12 @@ use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\JobAQL;
 use App\Models\JobAQLTemporal;
-use App\Models\AuditoriaProceso;
-use App\Models\CategoriaTeamLeader;
-use App\Models\CategoriaTipoProblema;
 use App\Models\AuditoriaAQL;
 use App\Models\CatalogoComentarioKanban;
 use App\Models\ReporteKanban;
 use App\Models\ReporteKanbanComentario;
+use App\Models\TicketCorte;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\Log;
 
@@ -39,7 +36,16 @@ class AuditoriaKanBanController extends Controller
 
         return view('kanban.index', compact('mesesEnEspanol', 'pageSlug'));
     }
+    
 
+    public function obtenerOp(Request $request)
+    {
+        $query = $request->input('q');
+
+        $ticket = TicketCorte::where('op', 'OP0048480')->get();
+
+        return response()->json($ticket);
+    }
     public function obtenerComentarios(Request $request)
     {
         $query = $request->input('q');
@@ -49,7 +55,7 @@ class AuditoriaKanBanController extends Controller
                 $qBuilder->where('nombre', 'like', '%' . $query . '%');
             })
             ->orderBy('nombre')
-            ->limit(50) // Puedes ajustar este límite si lo ves necesario
+            ->limit(100) // Puedes ajustar este límite si lo ves necesario
             ->get(['nombre']);
 
         return response()->json($comentarios);

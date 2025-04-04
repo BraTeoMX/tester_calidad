@@ -1061,6 +1061,11 @@
                                 </td>
                                 <td><ul>${registro.defectos.map(d => `<li>${d}</li>`).join('')}</ul></td>
                                 <td>${registro.comentario}</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm btn-eliminar" data-id="${registro.id}">
+                                        Eliminar
+                                    </button>
+                                </td>
                             </tr>
                         `).join('');
         
@@ -1078,6 +1083,7 @@
                                             <th>Estatus</th>
                                             <th>Defectos</th>
                                             <th>Comentarios</th>
+                                            <th>Accion</th>
                                         </tr>
                                     </thead>
                                     <tbody>${rows}</tbody>
@@ -1086,6 +1092,7 @@
                         `;
                         // ✅ Reactivar el comportamiento del <select>
                         activarCambioDeEstatus();
+                        activarBotonesEliminar();
                     })
 
                     .catch(err => {
@@ -1149,6 +1156,41 @@
                         });
                     });
                 }
+
+                function activarBotonesEliminar() {
+                    const botonesEliminar = document.querySelectorAll('.btn-eliminar');
+
+                    botonesEliminar.forEach(boton => {
+                        boton.addEventListener('click', function () {
+                            const confirmar = confirm('¿Estás seguro de que deseas eliminar este registro?');
+                            if (!confirmar) return;
+
+                            const registroId = boton.getAttribute('data-id');
+
+                            fetch(`/reporte-etiquetas/${registroId}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    alert('Registro eliminado correctamente.');
+                                    cargarRegistrosDelDia(); // recarga la tabla
+                                } else {
+                                    alert('Error al eliminar el registro.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error(error);
+                                alert('Error en la petición al eliminar.');
+                            });
+                        });
+                    });
+                }
+
         });
     </script>
     
