@@ -595,15 +595,21 @@
 
             $('#selectOP').select2({
                 placeholder: 'Selecciona una OP',
+                minimumInputLength: 4, // ⬅️ Aquí le decimos que inicie búsqueda a partir de 4 caracteres
                 ajax: {
                     url: '{{ route("kanban.opciones") }}',
                     dataType: 'json',
                     delay: 250,
+                    data: function (params) {
+                        return {
+                            term: params.term // Esto lo recibe el backend como $request->term
+                        };
+                    },
                     processResults: function (data) {
-                        datosOP = {}; // Limpiamos datos anteriores
+                        datosOP = {};
 
                         const results = data.map(function (item) {
-                            datosOP[item.op] = item; // Guardamos por op
+                            datosOP[item.op] = item;
                             return {
                                 id: item.op,
                                 text: `${item.op}`

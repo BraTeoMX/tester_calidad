@@ -39,17 +39,24 @@ class AuditoriaKanBanController extends Controller
     }
     
 
-    public function getOpciones()
+    public function getOpciones(Request $request)
     {
+        $search = $request->input('term'); // Este parámetro lo envía Select2
+
+        if (strlen($search) < 4) {
+            return response()->json([]); // No responder si no hay al menos 4 caracteres
+        }
+
         $datos = TicketCorte::select([
-            'op',
-            DB::raw('SUM(piezas) as piezas_total'),
-            DB::raw('MIN(fecha) as fecha'),
-            DB::raw('MIN(cliente) as cliente'),
-            DB::raw('MIN(estilo) as estilo'),
-        ])
-        ->groupBy('op')
-        ->get();
+                'op',
+                DB::raw('SUM(piezas) as piezas_total'),
+                DB::raw('MIN(fecha) as fecha'),
+                DB::raw('MIN(cliente) as cliente'),
+                DB::raw('MIN(estilo) as estilo'),
+            ])
+            ->where('op', 'like', '%' . $search . '%')
+            ->groupBy('op')
+            ->get();
 
         return response()->json($datos);
     }
