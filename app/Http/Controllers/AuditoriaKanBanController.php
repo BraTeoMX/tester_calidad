@@ -13,6 +13,7 @@ use App\Models\ReporteKanbanComentario;
 use App\Models\TicketCorte;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class AuditoriaKanBanController extends Controller
 {
@@ -38,14 +39,21 @@ class AuditoriaKanBanController extends Controller
     }
     
 
-    public function obtenerOp(Request $request)
+    public function getOpciones()
     {
-        $query = $request->input('q');
+        $datos = TicketCorte::select([
+            'op',
+            DB::raw('SUM(piezas) as piezas_total'),
+            DB::raw('MIN(fecha) as fecha'),
+            DB::raw('MIN(cliente) as cliente'),
+            DB::raw('MIN(estilo) as estilo'),
+        ])
+        ->groupBy('op')
+        ->get();
 
-        $ticket = TicketCorte::where('op', 'OP0048480')->get();
-
-        return response()->json($ticket);
+        return response()->json($datos);
     }
+
     public function obtenerComentarios(Request $request)
     {
         $query = $request->input('q');
@@ -63,7 +71,6 @@ class AuditoriaKanBanController extends Controller
 
     public function crearComentario(Request $request)
     {
-        file_put_contents(storage_path('logs/test-kanban.log'), now() . ' → Llegó a la función crearComentario' . PHP_EOL, FILE_APPEND);
         //Log::info($request->all());
         $request->validate([
             'nombre' => 'required|string|max:255'

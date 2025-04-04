@@ -483,7 +483,7 @@ Route::group(['middleware' => 'auth'], function () {
     //Seccion auditoria KanBan
     Route::get('/kanban', [AuditoriaKanBanController::class, 'index'])->name('kanban.index');
     Route::get('/kanban/comentarios', [AuditoriaKanBanController::class, 'obtenerComentarios'])->name('kanban.comentarios');
-    Route::get('/kanban/Op', [AuditoriaKanBanController::class, 'obtenerOp'])->name('kanban.op');
+    Route::get('/kanban/opciones', [AuditoriaKanBanController::class, 'getOpciones'])->name('kanban.opciones');
     Route::post('/kanban/comentario/crear', [AuditoriaKanBanController::class, 'crearComentario'])->name('kanban.comentario.crear');
     Route::post('/kanban/guardar', [AuditoriaKanBanController::class, 'guardar'])->name('kanban.guardar');
     Route::get('/kanban/parciales', [AuditoriaKanBanController::class, 'obtenerParciales'])->name('kanban.parciales');

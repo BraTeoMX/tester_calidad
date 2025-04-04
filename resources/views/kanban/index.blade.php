@@ -87,6 +87,10 @@
                                 <thead class="thead-primary">
                                     <tr>
                                         <th>OP</th>
+                                        <th>Cliente</th>
+                                        <th>estilo</th>
+                                        <th>Fecha Corte</th>
+                                        <th>Piezas</th>
                                         <th>ACCION</th>
                                         <th>COMENTARIO</th>
                                     </tr>
@@ -96,6 +100,22 @@
                                         <td>
                                             <select id="selectOP" class="form-control select-op"></select>
                                         </td> 
+                                        <td>
+                                            <span id="clienteText"></span>
+                                            <input type="hidden" id="clienteInput" name="cliente">
+                                        </td>
+                                        <td>
+                                            <span id="estiloText"></span>
+                                            <input type="hidden" id="estiloInput" name="estilo">
+                                        </td>
+                                        <td>
+                                            <span id="fechaText"></span>
+                                            <input type="hidden" id="fechaInput" name="fecha">
+                                        </td>
+                                        <td>
+                                            <span id="piezasText"></span>
+                                            <input type="hidden" id="piezasInput" name="piezas_total">
+                                        </td>
                                         <td>
                                             <select class="form-control" id="selectAccion">
                                                 <option value="">selecciona una opcion</option>
@@ -377,6 +397,10 @@
                     comentarios: comentariosSeleccionados,
                     op: op,
                     accion: accion,
+                    cliente: $('#clienteInput').val(),
+                    estilo: $('#estiloInput').val(),
+                    fecha: $('#fechaInput').val(),
+                    piezas_total: $('#piezasInput').val()
                 };
 
                 $.ajax({
@@ -565,4 +589,52 @@
         });
     </script>
     
+    <script>
+        $(document).ready(function () {
+            let datosOP = {}; // Guardar los datos extra por OP
+
+            $('#selectOP').select2({
+                placeholder: 'Selecciona una OP',
+                ajax: {
+                    url: '{{ route("kanban.opciones") }}',
+                    dataType: 'json',
+                    delay: 250,
+                    processResults: function (data) {
+                        datosOP = {}; // Limpiamos datos anteriores
+
+                        const results = data.map(function (item) {
+                            datosOP[item.op] = item; // Guardamos por op
+                            return {
+                                id: item.op,
+                                text: `${item.op}`
+                            };
+                        });
+
+                        return { results: results };
+                    },
+                    cache: true
+                }
+            });
+
+            $('#selectOP').on('change', function () {
+                const selectedOp = $(this).val();
+                const data = datosOP[selectedOp];
+
+                if (data) {
+                    $('#clienteText').text(data.cliente);
+                    $('#clienteInput').val(data.cliente);
+
+                    $('#estiloText').text(data.estilo);
+                    $('#estiloInput').val(data.estilo);
+
+                    $('#fechaText').text(data.fecha);
+                    $('#fechaInput').val(data.fecha);
+
+                    $('#piezasText').text(data.piezas_total);
+                    $('#piezasInput').val(data.piezas_total);
+                }
+            });
+        });
+    </script>
+        
 @endsection
