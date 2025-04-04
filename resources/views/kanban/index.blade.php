@@ -83,13 +83,13 @@
                 <div class="card-body">
                     <div class="table-responsive">
                         <form id="formKanban">
-                            <table class="table">
+                            <table class="table tabla-kanban">
                                 <thead class="thead-primary">
                                     <tr>
                                         <th>OP</th>
+                                        <th>Fecha Corte</th>
                                         <th>Cliente</th>
                                         <th>estilo</th>
-                                        <th>Fecha Corte</th>
                                         <th>Piezas</th>
                                         <th>ACCION</th>
                                         <th>COMENTARIO</th>
@@ -101,6 +101,10 @@
                                             <select id="selectOP" class="form-control select-op"></select>
                                         </td> 
                                         <td>
+                                            <span id="fechaText"></span>
+                                            <input type="hidden" id="fechaInput" name="fecha">
+                                        </td>
+                                        <td>
                                             <span id="clienteText"></span>
                                             <input type="hidden" id="clienteInput" name="cliente">
                                         </td>
@@ -108,10 +112,7 @@
                                             <span id="estiloText"></span>
                                             <input type="hidden" id="estiloInput" name="estilo">
                                         </td>
-                                        <td>
-                                            <span id="fechaText"></span>
-                                            <input type="hidden" id="fechaInput" name="fecha">
-                                        </td>
+                                        
                                         <td>
                                             <span id="piezasText"></span>
                                             <input type="hidden" id="piezasInput" name="piezas_total">
@@ -186,6 +187,36 @@
         </div>
     </div>
 
+    <style>
+        .tabla-kanban tbody td:nth-child(1) {
+            min-width: 150px; /* OP */
+        }
+
+        .tabla-kanban tbody td:nth-child(2) {
+            min-width: 100px; /* Fecha Corte */
+        }
+    
+        .tabla-kanban tbody td:nth-child(3) {
+            min-width: 150px; /* Cliente */
+        }
+    
+        .tabla-kanban tbody td:nth-child(4) {
+            min-width: 100px; /* Estilo */
+        }
+    
+        .tabla-kanban tbody td:nth-child(5) {
+            min-width: 70px; /* Piezas */
+            text-align: center;
+        }
+    
+        .tabla-kanban tbody td:nth-child(6) {
+            min-width: 120px; /* Acción */
+        }
+    
+        .tabla-kanban tbody td:nth-child(7) {
+            min-width: 160px; /* Comentario */
+        }
+    </style>    
     <style>
         thead.thead-primary {
             background-color: #59666e54;
