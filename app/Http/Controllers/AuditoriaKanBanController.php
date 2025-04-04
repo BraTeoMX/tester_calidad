@@ -58,7 +58,7 @@ class AuditoriaKanBanController extends Controller
     public function crearComentario(Request $request)
     {
         file_put_contents(storage_path('logs/test-kanban.log'), now() . ' → Llegó a la función crearComentario' . PHP_EOL, FILE_APPEND);
-        Log::info($request->all());
+        //Log::info($request->all());
         $request->validate([
             'nombre' => 'required|string|max:255'
         ]);
@@ -76,15 +76,22 @@ class AuditoriaKanBanController extends Controller
     
     public function guardar(Request $request)
     {
-        //Log::info($request->all());
-        $comentarios = $request->input('comentarios'); // esto será un array de strings
+        Log::info('Datos recibidos: ' . json_encode($request->all()));
+
+        // Crear instancia de ReporteKanban
+        $kanban = new ReporteKanban();
+        $kanban->estatus = $request->input('accion');
+        $kanban->save(); // Guarda el registro principal
+
+        // Obtener los comentarios, si hay
+        $comentarios = $request->input('comentarios');
 
         if (is_array($comentarios) && count($comentarios)) {
             foreach ($comentarios as $comentario) {
-                ReporteKanban::create([
-                    'comentario' => $comentario,
-                    // Aquí puedes agregar más columnas si lo necesitas
-                ]);
+                $comentarioKanban = new ReporteKanbanComentario();
+                $comentarioKanban->reporte_kanban_id = $kanban->id; // Relaciona con el principal
+                $comentarioKanban->nombre = $comentario;
+                $comentarioKanban->save();
             }
         }
 
