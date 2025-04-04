@@ -14,6 +14,7 @@ use App\Models\TicketCorte;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class AuditoriaKanBanController extends Controller
 {
@@ -41,22 +42,43 @@ class AuditoriaKanBanController extends Controller
 
     public function getOpciones(Request $request)
     {
-        $search = $request->input('term'); // Este parámetro lo envía Select2
+        $search = $request->input('term');
 
         if (strlen($search) < 4) {
-            return response()->json([]); // No responder si no hay al menos 4 caracteres
+            return response()->json([]);
         }
 
-        $datos = TicketCorte::select([
-                'op',
-                DB::raw('SUM(piezas) as piezas_total'),
-                DB::raw('MIN(fecha) as fecha'),
-                DB::raw('MIN(cliente) as cliente'),
-                DB::raw('MIN(estilo) as estilo'),
-            ])
-            ->where('op', 'like', '%' . $search . '%')
-            ->groupBy('op')
-            ->get();
+        $cacheKey = 'opciones_kanban_' . md5($search); // Clave específica por término
+        $backupKey = $cacheKey . '_backup';
+
+        // Cache con duración de 1 minuto
+        $datos = Cache::remember($cacheKey, 60, function () use ($search) {
+            $resultados = TicketCorte::select([
+                    'op',
+                    DB::raw('SUM(piezas) as piezas_total'),
+                    DB::raw('MIN(fecha) as fecha'),
+                    DB::raw('MIN(cliente) as cliente'),
+                    DB::raw('MIN(estilo) as estilo'),
+                ])
+                ->where('op', 'like', '%' . $search . '%')
+                ->groupBy('op')
+                ->get();
+
+            // No guardar en cache si no hay resultados
+            if ($resultados->isEmpty()) {
+                // Devolver null para evitar cache de vacío
+                return null;
+            }
+
+            // Si hay resultados, guardar también una copia como backup
+            Cache::put('opciones_kanban_' . md5($search) . '_backup', $resultados, now()->addMinutes(10));
+            return $resultados;
+        });
+
+        // Si remember devolvió null (por ser vacío y no cachear), buscamos backup
+        if (is_null($datos)) {
+            $datos = Cache::get($backupKey, collect()); // Si no hay backup, devolver colección vacía
+        }
 
         return response()->json($datos);
     }
