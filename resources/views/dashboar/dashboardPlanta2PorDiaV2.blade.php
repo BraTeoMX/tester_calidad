@@ -45,6 +45,11 @@
                     </h3>
                 </div>
                 <div class="card-body">
+                    <div id="spinnerAQL" class="text-center my-3" style="display: none;">
+                        <div class="loading-container">
+                            <span class="loading-text">Cargando...</span>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table class="table tablesorter">
                             <thead class="text-primary">
@@ -77,11 +82,6 @@
                             </tbody>
                         </table>
                     </div>
-                    <div id="spinnerAQL" class="text-center my-3" style="display: none;">
-                        <div class="loading-container">
-                            <span class="loading-text">Cargando...</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -94,6 +94,11 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
+                        <div id="spinnerPROCESO" class="text-center my-3" style="display: none;">
+                            <div class="loading-container">
+                                <span class="loading-text">Cargando...</span>
+                            </div>
+                        </div>
                         <table class="table tablesorter">
                             <thead class="text-primary">
                                 <tr>
@@ -122,11 +127,6 @@
                             </tbody>
                         </table>
                     </div>
-                    <div id="spinnerPROCESO" class="text-center my-3" style="display: none;">
-                        <div class="loading-container">
-                            <span class="loading-text">Cargando...</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -150,6 +150,11 @@
                     <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Tiempo Extra</h3>
                 </div>
                 <div class="card-body">
+                    <div id="spinnerAQLTE" class="text-center my-3" style="display: none;">
+                        <div class="loading-container">
+                            <span class="loading-text">Cargando...</span>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table class="table tablesorter">
                             <thead class="text-primary">
@@ -182,11 +187,6 @@
                             </tbody>
                         </table>
                     </div>
-                    <div id="spinnerAQLTE" class="text-center my-3" style="display: none;">
-                        <div class="loading-container">
-                            <span class="loading-text">Cargando...</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -198,6 +198,11 @@
                         Extra</h3>
                 </div>
                 <div class="card-body">
+                    <div id="spinnerPROCESOTE" class="text-center my-3" style="display: none;">
+                        <div class="loading-container">
+                            <span class="loading-text">Cargando...</span>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table class="table tablesorter">
                             <thead class="text-primary">
@@ -226,11 +231,6 @@
                                 <!-- Aquí se insertarán los datos dinámicamente -->
                             </tbody>
                         </table>
-                    </div>
-                    <div id="spinnerPROCESOTE" class="text-center my-3" style="display: none;">
-                        <div class="loading-container">
-                            <span class="loading-text">Cargando...</span>
-                        </div>
                     </div>
                 </div>
             </div>
