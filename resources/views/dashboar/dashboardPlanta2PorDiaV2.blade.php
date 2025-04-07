@@ -245,7 +245,7 @@
                 <h3 id="modalAQLTitulo">Detalles de AQL</h3>
             </div>
             <div class="custom-modal-body table-responsive">
-                <table class="table">
+                <table class="table" id="tablaModalAQL">
                     <thead>
                         <tr>
                             <th>PARO</th>
@@ -277,7 +277,7 @@
                 <h3 id="modalProcesoTitulo">Detalles de Proceso</h3>
             </div>
             <div class="custom-modal-body table-responsive">
-                <table class="table">
+                <table class="table" id="tablaModalProceso">
                     <thead>
                         <tr>
                             <th>PARO</th>
@@ -384,13 +384,15 @@
         .custom-modal {
             display: none;
             position: fixed;
-            z-index: 1000;
+            z-index: 9999; /* Asegura que está por encima de todo */
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
+            padding-top: 60px; /* Espacio superior */
             background-color: rgba(0, 0, 0, 0.9);
             overflow-y: auto;
+            pointer-events: auto; /* Muy importante */
         }
 
         .custom-modal-content {
@@ -892,7 +894,15 @@
             const modal = document.getElementById("modalAQL");
             const tbody = document.getElementById("modalAQLBody");
             const titulo = document.getElementById("modalAQLTitulo");
-            tbody.innerHTML = `<tr><td colspan="11">Cargando...</td></tr>`; // Spinner simple
+            const tabla = $('#tablaModalAQL');
+
+            // Destruir DataTable si ya existe ANTES de insertar nuevos datos
+            if ($.fn.DataTable.isDataTable(tabla)) {
+                tabla.DataTable().clear().destroy();
+            }
+
+            // Mostrar mensaje de carga mientras se trae la info
+            tbody.innerHTML = `<tr><td colspan="11">Cargando...</td></tr>`;
 
             // Abrir modal
             modal.style.display = "block";
@@ -902,7 +912,7 @@
             // Asignar título dinámico
             titulo.textContent = `Detalles de AQL para Módulo ${modulo}, Estilo: ${estilo}`;
 
-            // Determinar si es tiempo extra o no
+            // Determinar si es tiempo extra según la tabla origen
             const tiempo_extra = (tablaOrigenId === "tablaAQLGeneralTENuevoBody") ? 1 : null;
             const fecha = document.getElementById("fecha_inicio").value;
 
@@ -936,7 +946,42 @@
                             <td>${registro.hora ?? 'N/A'}</td>
                         </tr>`;
                     });
+
+                    // Insertar filas en el DOM
                     tbody.innerHTML = rows;
+
+                    // Inicializar DataTable ya con los datos cargados
+                    tabla.DataTable({
+                        lengthChange: false,
+                        searching: true,
+                        paging: true,
+                        pageLength: 15,
+                        responsive: true,
+                        dom: 'Bfrtip',
+                        buttons: [
+                            {
+                                extend: 'excelHtml5',
+                                text: 'Exportar a Excel',
+                                className: 'btn btn-success'
+                            }
+                        ],
+                        language: {
+                            sProcessing: "Procesando...",
+                            sSearch: "Buscar:",
+                            sLengthMenu: "Mostrar _MENU_ registros",
+                            sZeroRecords: "No se encontraron resultados",
+                            sEmptyTable: "Ningún dato disponible en esta tabla",
+                            sInfo: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                            sInfoEmpty: "Mostrando 0 a 0 de 0 registros",
+                            sInfoFiltered: "(filtrado de _MAX_ registros)",
+                            oPaginate: {
+                                sFirst: "Primero",
+                                sLast: "Último",
+                                sNext: "Siguiente",
+                                sPrevious: "Anterior"
+                            }
+                        }
+                    });
                 })
                 .catch(err => {
                     tbody.innerHTML = `<tr><td colspan="11">Error al cargar detalles.</td></tr>`;
@@ -973,6 +1018,13 @@
             const modal = document.getElementById("modalProceso");
             const tbody = document.getElementById("modalProcesoBody");
             const titulo = document.getElementById("modalProcesoTitulo");
+            const tabla = $('#tablaModalProceso');
+
+            // Destruir DataTable si ya existe ANTES de insertar nuevos datos
+            if ($.fn.DataTable.isDataTable(tabla)) {
+                tabla.DataTable().clear().destroy();
+            }
+
             tbody.innerHTML = `<tr><td colspan="10">Cargando...</td></tr>`; // Spinner simple
 
             // Abrir modal
@@ -1018,6 +1070,43 @@
                     });
 
                     tbody.innerHTML = rows;
+                    setTimeout(() => {
+                        const tabla = $('#tablaModalProceso');
+                        if ($.fn.DataTable.isDataTable(tabla)) {
+                            tabla.DataTable().clear().destroy();
+                        }
+                        tabla.DataTable({
+                            lengthChange: false,
+                            searching: true,
+                            paging: true,
+                            pageLength: 15,
+                            responsive: true,
+                            dom: 'Bfrtip',
+                            buttons: [
+                                {
+                                    extend: 'excelHtml5',
+                                    text: 'Exportar a Excel',
+                                    className: 'btn btn-success'
+                                }
+                            ],
+                            language: {
+                                sProcessing: "Procesando...",
+                                sSearch: "Buscar:",
+                                sLengthMenu: "Mostrar _MENU_ registros",
+                                sZeroRecords: "No se encontraron resultados",
+                                sEmptyTable: "Ningún dato disponible en esta tabla",
+                                sInfo: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                                sInfoEmpty: "Mostrando 0 a 0 de 0 registros",
+                                sInfoFiltered: "(filtrado de _MAX_ registros)",
+                                oPaginate: {
+                                    sFirst: "Primero",
+                                    sLast: "Último",
+                                    sNext: "Siguiente",
+                                    sPrevious: "Anterior"
+                                }
+                            }
+                        });
+                    }, 50);
                 })
                 .catch(err => {
                     tbody.innerHTML = `<tr><td colspan="10">Error al cargar detalles.</td></tr>`;
