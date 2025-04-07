@@ -12,12 +12,12 @@
     <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('black') }}/img/apple-icon.png">
     <link rel="icon" type="image/png" href="{{ asset('black') }}/img/favicon.ico">
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,600,700,800" rel="stylesheet" />
-    <link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
-    <!-- Fonts and icons -->
-    <link rel="stylesheet" type="text/css"
-        href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{{ asset('fonts/poppins/poppins.css') }}">
+    <!-- Fonts local -->
+    <link rel="stylesheet" href="{{ asset('fonts/roboto/roboto.css') }}">
+    <link rel="stylesheet" href="{{ asset('fonts/roboto-slab/roboto-slab.css') }}">
+    <link rel="stylesheet" href="{{ asset('fonts/material-icons/material-icons.css') }}">
+
     <!-- Icons -->
     <link href="{{ asset('black') }}/css/nucleo-icons.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
