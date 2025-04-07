@@ -804,33 +804,37 @@ class DashboardPorDiaV2Controller extends Controller
 
     private function getDatosModuloEstiloAQLDetalles($fecha, $planta, $modulo, $estilo, $tiempoExtra = null)
     {
-        $query = AuditoriaAQL::where('modulo', $modulo)
-            ->where('estilo', $estilo)
-            ->where('planta', $planta)
-            ->whereDate('created_at', $fecha)
-            ->with('tpAuditoriaAQL');
+        $cacheKey = "aql_detalles_{$planta}_{$modulo}_{$estilo}_{$fecha}_" . ($tiempoExtra ? 'te' : 'tn');
 
-        if (is_null($tiempoExtra)) {
-            $query->whereNull('tiempo_extra');
-        } else {
-            $query->where('tiempo_extra', $tiempoExtra);
-        }
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fecha, $planta, $modulo, $estilo, $tiempoExtra) {
+            $query = AuditoriaAQL::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->where('planta', $planta)
+                ->whereDate('created_at', $fecha)
+                ->with('tpAuditoriaAQL');
 
-        return $query->get()->map(function ($registro) {
-            return [
-                'minutos_paro' => $registro->minutos_paro,
-                'cliente' => $registro->cliente,
-                'bulto' => $registro->bulto,
-                'pieza' => $registro->pieza,
-                'talla' => $registro->talla,
-                'color' => $registro->color,
-                'estilo' => $registro->estilo,
-                'cantidad_auditada' => $registro->cantidad_auditada,
-                'cantidad_rechazada' => $registro->cantidad_rechazada,
-                'defectos' => $registro->tpAuditoriaAQL->pluck('tp')->filter()->implode(', ') ?: 'N/A',
-                'accion_correctiva' => $registro->ac ?? 'N/A',
-                'hora' => optional($registro->created_at)->format('H:i:s') ?? 'N/A',
-            ];
+            if (is_null($tiempoExtra)) {
+                $query->whereNull('tiempo_extra');
+            } else {
+                $query->where('tiempo_extra', $tiempoExtra);
+            }
+
+            return $query->get()->map(function ($registro) {
+                return [
+                    'minutos_paro' => $registro->minutos_paro,
+                    'cliente' => $registro->cliente,
+                    'bulto' => $registro->bulto,
+                    'pieza' => $registro->pieza,
+                    'talla' => $registro->talla,
+                    'color' => $registro->color,
+                    'estilo' => $registro->estilo,
+                    'cantidad_auditada' => $registro->cantidad_auditada,
+                    'cantidad_rechazada' => $registro->cantidad_rechazada,
+                    'defectos' => $registro->tpAuditoriaAQL->pluck('tp')->filter()->implode(', ') ?: 'N/A',
+                    'accion_correctiva' => $registro->ac ?? 'N/A',
+                    'hora' => optional($registro->created_at)->format('H:i:s') ?? 'N/A',
+                ];
+            });
         });
     }
 
@@ -883,33 +887,39 @@ class DashboardPorDiaV2Controller extends Controller
 
     private function getDatosModuloEstiloProcesoDetalles($fecha, $planta, $modulo, $estilo, $tiempoExtra = null)
     {
-        $query = AseguramientoCalidad::where('modulo', $modulo)
-            ->where('estilo', $estilo)
-            ->where('planta', $planta)
-            ->whereDate('created_at', $fecha)
-            ->with('tpAseguramientoCalidad');
+        // Clave de caché única por cada combinación de planta, módulo, estilo, fecha y tipo de turno
+        $cacheKey = "proceso_detalles_{$planta}_{$modulo}_{$estilo}_{$fecha}_" . ($tiempoExtra ? 'te' : 'tn');
 
-        if (is_null($tiempoExtra)) {
-            $query->whereNull('tiempo_extra');
-        } else {
-            $query->where('tiempo_extra', $tiempoExtra);
-        }
+        // Tiempo de vida del caché: 10 minutos (ajustable)
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($modulo, $estilo, $planta, $fecha, $tiempoExtra) {
+            $query = AseguramientoCalidad::where('modulo', $modulo)
+                ->where('estilo', $estilo)
+                ->where('planta', $planta)
+                ->whereDate('created_at', $fecha)
+                ->with('tpAseguramientoCalidad');
 
-        return $query->get()->map(function ($registro) {
-            return [
-                'minutos_paro' => $registro->minutos_paro,
-                'cliente' => $registro->cliente,
-                'nombre' => $registro->nombre,
-                'operacion' => $registro->operacion,
-                'cantidad_auditada' => $registro->cantidad_auditada,
-                'cantidad_rechazada' => $registro->cantidad_rechazada,
-                'tipo_problema' => $registro->tpAseguramientoCalidad->pluck('tp')->filter()->implode(', ') ?: 'N/A',
-                'ac' => $registro->ac ?? 'N/A',
-                'pxp' => $registro->pxp ?? 'N/A',
-                'hora' => optional($registro->created_at)->format('H:i:s') ?? 'N/A',
-            ];
+            if (is_null($tiempoExtra)) {
+                $query->whereNull('tiempo_extra');
+            } else {
+                $query->where('tiempo_extra', $tiempoExtra);
+            }
+
+            return $query->get()->map(function ($registro) {
+                return [
+                    'minutos_paro' => $registro->minutos_paro,
+                    'cliente' => $registro->cliente,
+                    'nombre' => $registro->nombre,
+                    'operacion' => $registro->operacion,
+                    'cantidad_auditada' => $registro->cantidad_auditada,
+                    'cantidad_rechazada' => $registro->cantidad_rechazada,
+                    'tipo_problema' => $registro->tpAseguramientoCalidad->pluck('tp')->filter()->implode(', ') ?: 'N/A',
+                    'ac' => $registro->ac ?? 'N/A',
+                    'pxp' => $registro->pxp ?? 'N/A',
+                    'hora' => optional($registro->created_at)->format('H:i:s') ?? 'N/A',
+                ];
+            });
         });
-    }
+}
 
     public function obtenerDetallesProcesoP2(Request $request)
     {
