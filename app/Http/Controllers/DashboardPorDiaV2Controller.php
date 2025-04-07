@@ -732,20 +732,6 @@ class DashboardPorDiaV2Controller extends Controller
                 })
                 ->count('minutos_paro_modular');
 
-            //
-            // Consultar detalles para cada módulo y estilo
-            $detalles = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->with('tpAseguramientoCalidad') // Asegúrate de tener la relación 
-                ->get();
-
-            //
             // Obtener el valor de defectosUnicos
             $defectosUnicos = AseguramientoCalidad::where('modulo', $modulo)
                 ->where('estilo', $estilo)
@@ -807,7 +793,6 @@ class DashboardPorDiaV2Controller extends Controller
                 'operariosUnicos' => $operariosUnicos,
                 'sumaParoModular' => $sumaParoModular,
                 'conteParoModular' => $conteParoModular,
-                'detalles' => $detalles,
                 'defectosUnicos' => $defectosUnicos,
                 'accionesCorrectivasUnicos' => $accionesCorrectivasUnicos,
             ];
@@ -895,5 +880,56 @@ class DashboardPorDiaV2Controller extends Controller
 
         return response()->json($detalles);
     }
+
+    private function getDatosModuloEstiloProcesoDetalles($fecha, $planta, $modulo, $estilo, $tiempoExtra = null)
+    {
+        $query = AseguramientoCalidad::where('modulo', $modulo)
+            ->where('estilo', $estilo)
+            ->where('planta', $planta)
+            ->whereDate('created_at', $fecha)
+            ->with('tpAseguramientoCalidad');
+
+        if (is_null($tiempoExtra)) {
+            $query->whereNull('tiempo_extra');
+        } else {
+            $query->where('tiempo_extra', $tiempoExtra);
+        }
+
+        return $query->get()->map(function ($registro) {
+            return [
+                'minutos_paro' => $registro->minutos_paro,
+                'cliente' => $registro->cliente,
+                'nombre' => $registro->nombre,
+                'operacion' => $registro->operacion,
+                'cantidad_auditada' => $registro->cantidad_auditada,
+                'cantidad_rechazada' => $registro->cantidad_rechazada,
+                'tipo_problema' => $registro->tpAseguramientoCalidad->pluck('tp')->filter()->implode(', ') ?: 'N/A',
+                'ac' => $registro->ac ?? 'N/A',
+                'pxp' => $registro->pxp ?? 'N/A',
+                'hora' => optional($registro->created_at)->format('H:i:s') ?? 'N/A',
+            ];
+        });
+    }
+
+    public function obtenerDetallesProcesoP2(Request $request)
+    {
+        $modulo = $request->input('modulo');
+        $estilo = $request->input('estilo');
+        $fecha = $request->input('fecha');
+        $tiempoExtra = $request->input('tiempo_extra');
+
+        $tiempoExtra = ($tiempoExtra === 'null' || $tiempoExtra === '') ? null : $tiempoExtra;
+        $planta = "Intimark2";
+
+        if (!$modulo || !$estilo || !$fecha) {
+            Log::warning('Faltan parámetros en obtenerDetallesProcesoP2');
+            return response()->json(['error' => 'Faltan parámetros necesarios'], 400);
+        }
+
+        $detalles = $this->getDatosModuloEstiloProcesoDetalles($fecha, $planta, $modulo, $estilo, $tiempoExtra);
+
+        return response()->json($detalles);
+    }
+
 
 }

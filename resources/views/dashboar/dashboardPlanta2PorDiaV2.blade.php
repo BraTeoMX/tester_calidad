@@ -269,6 +269,37 @@
         </div>
     </div>
 
+    <!-- Modal reutilizable para Proceso Normal y Tiempo Extra -->
+    <div id="modalProceso" class="custom-modal" style="display: none;">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <span class="custom-close" onclick="cerrarModalProceso()">&times;</span>
+                <h3 id="modalProcesoTitulo">Detalles de Proceso</h3>
+            </div>
+            <div class="custom-modal-body table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>PARO</th>
+                            <th>CLIENTE</th>
+                            <th>Nombre</th>
+                            <th>Operacion</th>
+                            <th>Piezas Auditadas</th>
+                            <th>Piezas Rechazadas</th>
+                            <th>Tipo de Problema</th>
+                            <th>Acción Correctiva</th>
+                            <th>pxp</th>
+                            <th>Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalProcesoBody">
+                        <!-- Aquí se insertarán dinámicamente los registros vía JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <style>
         /* Contenedor para centrar el texto */
         .loading-container {
@@ -629,7 +660,7 @@
                                 <td>${item.auditoresUnicos}</td>
                                 <td>
                                     <button type="button" class="custom-btn" 
-                                        onclick="openCustomModal('customModalProceso${item.modulo}_${item.estilo}')">
+                                        onclick="abrirModalProceso('${item.modulo}', '${item.estilo}', '${tablaBodyId}')">
                                         ${item.modulo}
                                     </button>
                                 </td>
@@ -753,5 +784,87 @@
             }
         });
     </script>
+
+    <script>
+        let activeModalIdProceso = null;
+
+        function abrirModalProceso(modulo, estilo, tablaOrigenId) {
+            // Mostrar modal vacío con mensaje "Cargando..."
+            const modal = document.getElementById("modalProceso");
+            const tbody = document.getElementById("modalProcesoBody");
+            const titulo = document.getElementById("modalProcesoTitulo");
+            tbody.innerHTML = `<tr><td colspan="10">Cargando...</td></tr>`; // Spinner simple
+
+            // Abrir modal
+            modal.style.display = "block";
+            document.body.style.overflow = "hidden";
+            activeModalIdProceso = "modalProceso";
+
+            // Asignar título dinámico
+            titulo.textContent = `Detalles de Proceso para Módulo ${modulo}, Estilo: ${estilo}`;
+
+            // Determinar si es tiempo extra
+            const tiempo_extra = (tablaOrigenId.includes("TE")) ? 1 : null;
+            const fecha = document.getElementById("fecha_inicio").value;
+
+            // Fetch a endpoint (lo verás en el siguiente paso del backend)
+            fetch(`dashboardPlanta1V2P2/buscarProceso/detalles?modulo=${modulo}&estilo=${estilo}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        tbody.innerHTML = `<tr><td colspan="10">${data.error}</td></tr>`;
+                        return;
+                    }
+
+                    if (data.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="10">No hay registros.</td></tr>`;
+                        return;
+                    }
+
+                    let rows = "";
+                    data.forEach(registro => {
+                        rows += `<tr>
+                            <td>${registro.minutos_paro ?? 'N/A'}</td>
+                            <td>${registro.cliente ?? 'N/A'}</td>
+                            <td>${registro.nombre ?? 'N/A'}</td>
+                            <td>${registro.operacion ?? 'N/A'}</td>
+                            <td>${registro.cantidad_auditada ?? 'N/A'}</td>
+                            <td>${registro.cantidad_rechazada ?? 'N/A'}</td>
+                            <td>${registro.tipo_problema ?? 'N/A'}</td>
+                            <td>${registro.ac ?? 'N/A'}</td>
+                            <td>${registro.pxp ?? 'N/A'}</td>
+                            <td>${registro.hora ?? 'N/A'}</td>
+                        </tr>`;
+                    });
+
+                    tbody.innerHTML = rows;
+                })
+                .catch(err => {
+                    tbody.innerHTML = `<tr><td colspan="10">Error al cargar detalles.</td></tr>`;
+                    console.error(err);
+                });
+        }
+
+        function cerrarModalProceso() {
+            document.getElementById("modalProceso").style.display = "none";
+            document.body.style.overflow = "auto";
+            activeModalIdProceso = null;
+        }
+
+        // Cierre al dar clic fuera del modal
+        window.onclick = function(event) {
+            if (event.target.id === "modalProceso") {
+                cerrarModalProceso();
+            }
+        };
+
+        // Cierre con tecla ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape" && activeModalIdProceso === "modalProceso") {
+                cerrarModalProceso();
+            }
+        });
+    </script>
+
     
 @endsection
