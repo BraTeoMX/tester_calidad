@@ -51,7 +51,7 @@
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table class="table tablesorter">
+                        <table class="table tablesorter" id="tablaAQLGeneralNuevo">
                             <thead class="text-primary">
                                 <tr>
                                     <th>Auditor</th>
@@ -99,7 +99,7 @@
                                 <span class="loading-text">Cargando...</span>
                             </div>
                         </div>
-                        <table class="table tablesorter">
+                        <table class="table tablesorter" id="tablaProcesoGeneralNuevo">
                             <thead class="text-primary">
                                 <tr>
                                     <th>Auditor</th>
@@ -156,7 +156,7 @@
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table class="table tablesorter">
+                        <table class="table tablesorter" id="tablaAQLGeneralTENuevo">
                             <thead class="text-primary">
                                 <tr>
                                     <th>Auditor</th>
@@ -204,7 +204,7 @@
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table class="table tablesorter">
+                        <table class="table tablesorter" id="tablaProcesoGeneralTENuevo">
                             <thead class="text-primary">
                                 <tr>
                                     <th>Auditor</th>
@@ -436,8 +436,32 @@
     </style>
 
     <!-- JavaScript -->
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap5.min.css">
+
+    <!-- DataTables JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- DataTables Buttons JavaScript -->
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // ✅ Registrar tipo personalizado SOLO UNA VEZ al cargar la página
+            $.fn.dataTable.ext.type.order['custom-num'] = function(a, b) {
+                if (a === "N/A" || a === "") return -Infinity;
+                if (b === "N/A" || b === "") return -Infinity;
+                return parseFloat(a) - parseFloat(b);
+            };
             // Variables para controlar si ya se cargaron las consultas para la fecha actual
             let lastFecha = null;
             let aqlLoaded = false;
@@ -611,6 +635,85 @@
                             </tr>`;
                             tablaBody.innerHTML += row;
                         });
+                        // ✅ REINICIAR Y REAPLICAR DATATABLE
+                        const tableElement = document.getElementById(tablaBodyId).closest("table");
+                        const tableId = "#" + tableElement.id;
+
+                        // Destruir DataTable anterior si ya existe
+                        if ($.fn.DataTable.isDataTable(tableId)) {
+                            $(tableId).DataTable().destroy();
+                        }
+
+                        // Esperar un pequeño delay para asegurarse de que DOM ya tiene las filas
+                        setTimeout(() => {
+                            const tituloTabla = $(tableId).closest('.card').find('.card-title').text().trim();
+                            const fechaInicioInput = document.getElementById('fecha_inicio').value;
+                            const fechaInicio = fechaInicioInput.split('-').reverse().join('-');
+
+                            $(tableId).DataTable({
+                                lengthChange: false,
+                                searching: true,
+                                paging: false,
+                                autoWidth: false,
+                                responsive: true,
+                                dom: 'Bfrtip',
+                                order: [[1, 'asc']],
+                                buttons: [
+                                    {
+                                        extend: 'excelHtml5',
+                                        text: 'Exportar a Excel',
+                                        className: 'btn btn-success',
+                                        title: tituloTabla,
+                                        messageTop: `Fecha: ${fechaInicio}`,
+                                        exportOptions: {
+                                            format: {
+                                                header: function(data, columnIndex) {
+                                                    return data;
+                                                }
+                                            }
+                                        }
+                                    }
+                                ],
+                                language: {
+                                    "sProcessing": "Procesando...",
+                                    "sLengthMenu": "Mostrar _MENU_ registros",
+                                    "sZeroRecords": "No se encontraron resultados",
+                                    "sEmptyTable": "Ningún dato disponible en esta tabla",
+                                    "sInfo": "Registros _START_ - _END_ de _TOTAL_ mostrados",
+                                    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                                    "sSearch": "Buscar:",
+                                    "oPaginate": {
+                                        "sFirst": "Primero",
+                                        "sLast": "Último",
+                                        "sNext": "Siguiente",
+                                        "sPrevious": "Anterior"
+                                    }
+                                },
+                                initComplete: function(settings, json) {
+                                    if ($('body').hasClass('dark-mode')) {
+                                        $(tableId + '_wrapper').addClass('dark-mode');
+                                    }
+                                },
+                                columnDefs: [
+                                    {
+                                        targets: [0, 1, 2, 15, 16, 17],
+                                        type: "string",
+                                        render: function (data) {
+                                            return typeof data === "string" ? data.trim() : data;
+                                        }
+                                    },
+                                    {
+                                        targets: "_all",
+                                        type: "custom-num",
+                                        render: function(data, type, row) {
+                                            return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+                                        }
+                                    }
+                                ]
+                            });
+                        }, 50); // pequeño delay por si el DOM tarda en pintar
+
                     } else {
                         tablaBody.innerHTML = `<tr><td colspan='9'>No hay datos disponibles para ${dataKey}.</td></tr>`;
                     }
@@ -683,6 +786,83 @@
                             </tr>`;
                             tablaBody.innerHTML += row;
                         });
+
+                        // ✅ REINICIAR Y REAPLICAR DATATABLE
+                        const tableId = "#" + tablaBodyId.replace("Body", "");
+
+                        if ($.fn.DataTable.isDataTable(tableId)) {
+                            $(tableId).DataTable().destroy();
+                        }
+
+                        setTimeout(() => {
+                            const tituloTabla = $(tableId).closest('.card').find('.card-title').text().trim();
+                            const fechaInicioInput = document.getElementById('fecha_inicio').value;
+                            const fechaInicio = fechaInicioInput.split('-').reverse().join('-');
+
+                            $(tableId).DataTable({
+                                lengthChange: false,
+                                searching: true,
+                                paging: false,
+                                autoWidth: false,
+                                responsive: true,
+                                dom: 'Bfrtip',
+                                order: [[1, 'asc']],
+                                buttons: [
+                                    {
+                                        extend: 'excelHtml5',
+                                        text: 'Exportar a Excel',
+                                        className: 'btn btn-success',
+                                        title: tituloTabla,
+                                        messageTop: `Fecha: ${fechaInicio}`,
+                                        exportOptions: {
+                                            format: {
+                                                header: function(data, columnIndex) {
+                                                    return data;
+                                                }
+                                            }
+                                        }
+                                    }
+                                ],
+                                language: {
+                                    "sProcessing": "Procesando...",
+                                    "sLengthMenu": "Mostrar _MENU_ registros",
+                                    "sZeroRecords": "No se encontraron resultados",
+                                    "sEmptyTable": "Ningún dato disponible en esta tabla",
+                                    "sInfo": "Registros _START_ - _END_ de _TOTAL_ mostrados",
+                                    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                                    "sSearch": "Buscar:",
+                                    "oPaginate": {
+                                        "sFirst": "Primero",
+                                        "sLast": "Último",
+                                        "sNext": "Siguiente",
+                                        "sPrevious": "Anterior"
+                                    }
+                                },
+                                initComplete: function(settings, json) {
+                                    if ($('body').hasClass('dark-mode')) {
+                                        $(tableId + '_wrapper').addClass('dark-mode');
+                                    }
+                                },
+                                columnDefs: [
+                                    {
+                                        targets: [0, 1, 2, 14, 15, 16], // ajusta según columnas de tu tabla Proceso
+                                        type: "string",
+                                        render: function (data) {
+                                            return typeof data === "string" ? data.trim() : data;
+                                        }
+                                    },
+                                    {
+                                        targets: "_all",
+                                        type: "custom-num",
+                                        render: function(data, type, row) {
+                                            return type === 'sort' ? (data === 'N/A' ? -Infinity : parseFloat(data)) : data;
+                                        }
+                                    }
+                                ]
+                            });
+                        }, 50);
+
                     } else {
                         tablaBody.innerHTML = `<tr><td colspan='10'>No hay datos disponibles para ${dataKey}.</td></tr>`;
                     }

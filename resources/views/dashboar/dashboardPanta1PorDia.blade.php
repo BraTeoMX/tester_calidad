@@ -1173,7 +1173,7 @@
 
             // IDs de las tablas
             const tableIds = [
-                '#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaAQLGeneralTE', '#tablaProcesoGeneralTE',
+                //'#tablaAQLGeneral', '#tablaProcesoGeneral', '#tablaAQLGeneralTE', '#tablaProcesoGeneralTE',
                 '#tablaAQLGeneralNuevo', '#tablaAQLGeneralTENuevo'
             ];
 
