@@ -473,13 +473,15 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/dashboardPlanta1V2/buscarAQLTE', [DashboardPorDiaV2Controller::class, 'buscarAQLTE'])->name('dashboardPlanta1V2.buscarAQLTE');
     Route::get('/dashboardPlanta1V2/buscarProceso', [DashboardPorDiaV2Controller::class, 'buscarProceso'])->name('dashboardPlanta1V2.buscarProceso');
     Route::get('/dashboardPlanta1V2/buscarProcesoTE', [DashboardPorDiaV2Controller::class, 'buscarProcesoTE'])->name('dashboardPlanta1V2.buscarProcesoTE');
-    Route::get('dashboardPlanta1V2P2/buscarProceso/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesProcesoP2']);
+    Route::get('dashboardPlanta1V2P2/buscarAQL/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesAQLP1']);
+    Route::get('dashboardPlanta1V2P2/buscarProceso/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesProcesoP1']);
     Route::get('/dashboardPlanta2V2', [DashboardPorDiaV2Controller::class, 'dashboardPlanta2V2'])->name('dashboardPlanta2V2');
     Route::get('/dashboardPlanta1V2P2/buscarAQL', [DashboardPorDiaV2Controller::class, 'buscarAQLP2'])->name('dashboardPlanta2V2.buscarAQLP2');
     Route::get('/dashboardPlanta1V2P2/buscarAQLTE', [DashboardPorDiaV2Controller::class, 'buscarAQLTEP2'])->name('dashboardPlanta2V2.buscarAQLTEP2');
     Route::get('/dashboardPlanta1V2P2/buscarProceso', [DashboardPorDiaV2Controller::class, 'buscarProcesoP2'])->name('dashboardPlanta2V2.buscarProcesoP2');
     Route::get('/dashboardPlanta1V2P2/buscarProcesoTE', [DashboardPorDiaV2Controller::class, 'buscarProcesoTEP2'])->name('dashboardPlanta2V2.buscarProcesoTEP2');
-    Route::get('dashboardPlanta1V2P2/buscarAQL/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesAQLP2']);
+    Route::get('dashboardPlanta2V2P2/buscarAQL/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesAQLP2']);
+    Route::get('dashboardPlanta2V2P2/buscarProceso/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesProcesoP2']);
 
     //Seccion auditoria KanBan
     Route::get('/kanban', [AuditoriaKanBanController::class, 'index'])->name('kanban.index');

@@ -438,23 +438,20 @@
     </style>
 
     <!-- JavaScript -->
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap5.min.css">
+    <!-- DataTables CSS desde carpeta local -->
+    <link rel="stylesheet" href="{{ asset('dataTable/css/dataTables.bootstrap5.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dataTable/css/buttons.bootstrap5.min.css') }}">
 
-    <!-- DataTables JavaScript -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <!-- jQuery y DataTables desde local -->
+    <script src="{{ asset('dataTable/js/jquery-3.6.0.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/dataTables.bootstrap5.min.js') }}"></script>
 
-    <!-- DataTables Buttons JavaScript -->
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+    <!-- Botones para exportar -->
+    <script src="{{ asset('dataTable/js/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/buttons.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/jszip.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/buttons.html5.min.js') }}"></script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -917,7 +914,7 @@
             const fecha = document.getElementById("fecha_inicio").value;
 
             // Hacer fetch a un endpoint que te pasaré después
-            fetch(`dashboardPlanta1V2P2/buscarAQL/detalles?modulo=${modulo}&estilo=${estilo}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
+            fetch(`dashboardPlanta2V2P2/buscarAQL/detalles?modulo=${modulo}&estilo=${estilo}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.error) {
@@ -1040,7 +1037,7 @@
             const fecha = document.getElementById("fecha_inicio").value;
 
             // Fetch a endpoint (lo verás en el siguiente paso del backend)
-            fetch(`dashboardPlanta1V2P2/buscarProceso/detalles?modulo=${modulo}&estilo=${estilo}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
+            fetch(`dashboardPlanta2V2P2/buscarProceso/detalles?modulo=${modulo}&estilo=${estilo}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.error) {

@@ -862,7 +862,7 @@ class DashboardPorDiaV2Controller extends Controller
         return response()->json($detalles);
     }
 
-    public function obtenerDetallesAQL(Request $request)
+    public function obtenerDetallesAQLP1(Request $request)
     {
         $modulo = $request->input('modulo');
         $estilo = $request->input('estilo');
@@ -941,7 +941,7 @@ class DashboardPorDiaV2Controller extends Controller
         return response()->json($detalles);
     }
 
-    public function obtenerDetallesProceso(Request $request)
+    public function obtenerDetallesProcesoP1(Request $request)
     {
         $modulo = $request->input('modulo');
         $estilo = $request->input('estilo');
