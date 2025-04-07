@@ -931,5 +931,25 @@ class DashboardPorDiaV2Controller extends Controller
         return response()->json($detalles);
     }
 
+    public function obtenerDetallesProceso(Request $request)
+    {
+        $modulo = $request->input('modulo');
+        $estilo = $request->input('estilo');
+        $fecha = $request->input('fecha');
+        $tiempoExtra = $request->input('tiempo_extra');
+
+        $tiempoExtra = ($tiempoExtra === 'null' || $tiempoExtra === '') ? null : $tiempoExtra;
+        $planta = "Intimark1";
+
+        if (!$modulo || !$estilo || !$fecha) {
+            Log::warning('Faltan parámetros en obtenerDetallesProcesoP2');
+            return response()->json(['error' => 'Faltan parámetros necesarios'], 400);
+        }
+
+        $detalles = $this->getDatosModuloEstiloProcesoDetalles($fecha, $planta, $modulo, $estilo, $tiempoExtra);
+
+        return response()->json($detalles);
+    }
+
 
 }
