@@ -654,7 +654,6 @@
                                 searching: true,
                                 paging: false,
                                 autoWidth: false,
-                                responsive: true,
                                 dom: 'Bfrtip',
                                 order: [[1, 'asc']],
                                 buttons: [
@@ -803,7 +802,6 @@
                                 searching: true,
                                 paging: false,
                                 autoWidth: false,
-                                responsive: true,
                                 dom: 'Bfrtip',
                                 order: [[1, 'asc']],
                                 buttons: [
@@ -953,7 +951,6 @@
                         searching: true,
                         paging: true,
                         pageLength: 15,
-                        responsive: true,
                         dom: 'Bfrtip',
                         buttons: [
                             {
@@ -1077,7 +1074,6 @@
                             searching: true,
                             paging: true,
                             pageLength: 15,
-                            responsive: true,
                             dom: 'Bfrtip',
                             buttons: [
                                 {
