@@ -21,13 +21,13 @@
                     </a>
                     <div class="collapse" id="consultaPorDiaMenu">
                         <ul class="nav">
-                            <li class="nav-item{{ $pageSlug == 'dashboardPorDia' ? ' active' : '' }}">
+                            <li class="nav-item{{ $pageSlug == 'dashboardPorDiaPlanta1' ? ' active' : '' }}">
                                 <a class="nav-link" href="{{ route('dashboardPlanta1V2') }}">
                                     <i class="tim-icons icon-pin"></i>
                                     <p>Planta 1 - Ixtlahuaca</p>
                                 </a>
                             </li>
-                            <li class="nav-item{{ $pageSlug == 'dashboardPorDia' ? ' active' : '' }}">
+                            <li class="nav-item{{ $pageSlug == 'dashboardPorDiaPlanta2' ? ' active' : '' }}">
                                 <a class="nav-link" href="{{ route('dashboardPlanta2V2') }}">
                                     <i class="tim-icons icon-pin"></i>
                                     <p>Planta 2 - San Bartolo</p>
