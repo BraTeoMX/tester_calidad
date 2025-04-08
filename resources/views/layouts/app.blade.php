@@ -24,8 +24,9 @@
     <!-- CSS -->
     <link href="{{ asset('black') }}/css/black-dashboard.css?v=1.0.0" rel="stylesheet" />
     <link href="{{ asset('black') }}/css/theme.css" rel="stylesheet" />
-    <!-- Select2 -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <!-- Select2 CSS desde local -->
+    <link rel="stylesheet" href="{{ asset('select2/css/select2.min.css') }}">
+
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -62,12 +63,13 @@
     <script src="{{ asset('material') }}/js/core/bootstrap-material-design.min.js"></script>
 
     <!-- Select2 and Datepicker Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="{{ asset('select2/js/select2.min.js') }}"></script>
+    <script src="{{ asset('select2/js/bootstrap-datepicker.min.js') }}"></script>
 
-    <!-- flatpickr CDN -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- Flatpickr local -->
+    <link rel="stylesheet" href="{{ asset('flatpickr/flatpickr.min.css') }}">
+    <script src="{{ asset('flatpickr/flatpickr.js') }}"></script>
+
 
     <!-- Other Plugins -->
     <script src="{{ asset('material') }}/js/plugins/bootstrap-selectpicker.js"></script>
