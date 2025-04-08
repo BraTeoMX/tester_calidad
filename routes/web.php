@@ -39,6 +39,7 @@ use App\Http\Controllers\EtiquetasV2Controller;
 use App\Http\Controllers\GestionUsuarioController;
 use App\Http\Controllers\ScreenV2Controller;
 use App\Http\Controllers\DashboardPorDiaV2Controller;
+use App\Http\Controllers\DashboardBusquedaOPController;
 use App\Http\Controllers\AuditoriaKanBanController;
 
 
@@ -484,6 +485,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/dashboardPlanta1V2P2/buscarProcesoTE', [DashboardPorDiaV2Controller::class, 'buscarProcesoTEP2'])->name('dashboardPlanta2V2.buscarProcesoTEP2');
     Route::get('dashboardPlanta2V2P2/buscarAQL/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesAQLP2']);
     Route::get('dashboardPlanta2V2P2/buscarProceso/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesProcesoP2']);
+
+    //Seccion para buscar por OP 
+    Route::get('busqueda_OP', [DashboardBusquedaOPController::class, 'index'])->name('busqueda_OP.index');
 
     //Seccion auditoria KanBan
     Route::get('/kanban', [AuditoriaKanBanController::class, 'index'])->name('kanban.index');
