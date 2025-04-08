@@ -28,8 +28,8 @@
     <link rel="stylesheet" href="{{ asset('select2/css/select2.min.css') }}">
 
 
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- jQuery local -->
+    <script src="{{ asset('jquery/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('material') }}/js/plugins/jquery-jvectormap.js"></script>
     <script>
         jQuery.event.special.touchstart = {
@@ -133,8 +133,8 @@
     <script src="{{ asset('material') }}/js/plugins/jasny-bootstrap.min.js"></script>
     <script src="{{ asset('material') }}/js/plugins/fullcalendar.min.js"></script>
     <script src="{{ asset('material') }}/js/plugins/nouislider.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.js"></script>
-    <script src="{{ asset('material') }}/js/plugins/chartist.min.js"></script>
+    <<script src="{{ asset('js/core-js/core.js') }}"></script>
+    <script src="{{ asset('material') }}/js/plugins/chartist.min.js"></>
     <script src="{{ asset('material') }}/js/plugins/bootstrap-notify.js"></script>
 
     <script>
