@@ -943,6 +943,7 @@ class DashboardPorDiaV2Controller extends Controller
 
     public function obtenerDetallesProcesoP1(Request $request)
     {
+        Log::info('datos de request'. "{$request}");
         $modulo = $request->input('modulo');
         $estilo = $request->input('estilo');
         $fecha = $request->input('fecha');

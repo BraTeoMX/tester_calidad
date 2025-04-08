@@ -476,8 +476,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/dashboardPlanta1V2/buscarProcesoTE', [DashboardPorDiaV2Controller::class, 'buscarProcesoTE'])->name('dashboardPlanta1V2.buscarProcesoTE');
     Route::get('dashboardPlanta1V2P2/buscarAQL/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesAQLP1']);
     Route::get('dashboardPlanta1V2P2/buscarProceso/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesProcesoP1']);
-    Route::get('dashboardPlanta1V2/buscarAQL/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesAQLP2']);
-    Route::get('dashboardPlanta1V2/buscarProceso/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesProcesoP2']);
+    Route::get('dashboardPlanta1V2/buscarAQL/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesAQLP1']); 
+    Route::get('dashboardPlanta1V2/buscarProceso/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesProcesoP1']);
     Route::get('/dashboardPlanta2V2', [DashboardPorDiaV2Controller::class, 'dashboardPlanta2V2'])->name('dashboardPlanta2V2');
     Route::get('/dashboardPlanta1V2P2/buscarAQL', [DashboardPorDiaV2Controller::class, 'buscarAQLP2'])->name('dashboardPlanta2V2.buscarAQLP2');
     Route::get('/dashboardPlanta1V2P2/buscarAQLTE', [DashboardPorDiaV2Controller::class, 'buscarAQLTEP2'])->name('dashboardPlanta2V2.buscarAQLTEP2');
@@ -488,7 +488,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     //Seccion para buscar por OP 
     Route::get('busqueda_OP', [DashboardBusquedaOPController::class, 'index'])->name('busqueda_OP.index');
-    Route::post('busqueda_OP/consultar', [DashboardBusquedaOPController::class, 'buscarOP'])->name('busqueda_OP.buscar');
+    Route::post('busqueda_OP/general', [DashboardBusquedaOPController::class, 'buscar'])->name('busqueda_OP.buscarGeneral');
 
     //Seccion auditoria KanBan
     Route::get('/kanban', [AuditoriaKanBanController::class, 'index'])->name('kanban.index');

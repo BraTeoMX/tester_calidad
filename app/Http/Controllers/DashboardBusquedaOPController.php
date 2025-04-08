@@ -41,20 +41,55 @@ class DashboardBusquedaOPController extends Controller
         return view('dashboard.busquedaOP', compact('title' ));
     }
 
-    public function buscarOP(Request $request)
+    public function buscar(Request $request)
     {
-        $op = $request->input('op');
-    
-        if (!$op) {
-            return response()->json(['error' => 'No se proporcionó una OP'], 400);
+        $tipo = $request->input('tipo');
+        $termino = $request->input('termino');
+
+        if (!$termino) {
+            return response()->json(['error' => 'Ingrese un término de búsqueda'], 400);
         }
-    
-        $bultos = AuditoriaAQL::where('op', $op)
-                    ->pluck('bulto')
-                    ->unique()
-                    ->values();
-    
-        return response()->json(['bultos' => $bultos]);
+
+        $query = AuditoriaAQL::query();
+
+        switch ($tipo) {
+            case 'op':
+                $query->where('op', 'LIKE', "%{$termino}%");
+                break;
+
+            case 'estilo':
+                $ops = AuditoriaAQL::where('estilo', 'LIKE', "%{$termino}%")
+                        ->distinct()
+                        ->pluck('op');
+
+                return response()->json(['ops' => $ops]);
+                break;
+
+            case 'color':
+                $ops = AuditoriaAQL::where('color', 'LIKE', "%{$termino}%")
+                        ->distinct()
+                        ->pluck('op');
+
+                return response()->json(['ops' => $ops]);
+                break;
+
+            default:
+                return response()->json(['error' => 'Tipo de búsqueda no válido'], 400);
+        }
+
+        $resultados = $query->get([
+            'op', 'bulto', 'auditor', 'modulo', 'cliente',
+            'estilo', 'color', 'planta', 'cantidad_auditada', 'cantidad_rechazada', 'created_at'
+        ]);
+
+        // Dar formato a la fecha:
+        $resultados->transform(function($item){
+            $item->fecha_creacion = Carbon::parse($item->created_at)->format('d-m-Y H:i:s');
+            return $item;
+        });
+
+        return response()->json(['resultados' => $resultados]);
     }
+
     
 }

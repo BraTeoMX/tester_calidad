@@ -12,27 +12,45 @@
     </div>
 
     <div class="card card-body">
-        <div class="row mb-4">
+        <div class="row mb-4 align-items-end">
             <div class="col-md-4">
-                <input type="text" id="inputOP" class="form-control" placeholder="Ingrese OP...">
+                <input type="text" id="inputBusqueda" class="form-control" placeholder="Ingrese búsqueda...">
             </div>
+    
+            <div class="col-md-4">
+                <select id="tipoBusqueda" class="form-control">
+                    <option value="op" selected>Por OP</option>
+                    <option value="estilo">Por Estilo</option>
+                    <option value="color">Por Color</option>
+                </select>
+            </div>
+    
             <div class="col-md-2">
-                <button class="btn btn-success" id="btnBuscarOP">Buscar</button>
+                <button class="btn btn-success" id="btnBuscar">Buscar</button>
             </div>
         </div>
-        
+    
         <div class="table-responsive" id="tablaResultados" style="display: none;">
-            <table class="table custom-table" id="tablaBultos">
+            <table class="table custom-table" id="tablaDatos">
                 <thead>
                     <tr>
+                        <th>OP</th>
                         <th>Bulto</th>
+                        <th>Auditor</th>
+                        <th>Módulo</th>
+                        <th>Cliente</th>
+                        <th>Estilo</th>
+                        <th>Color</th>
+                        <th>Planta</th>
+                        <th>Cant. Auditada</th>
+                        <th>Cant. Rechazada</th>
+                        <th>Fecha creación</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
             </table>
         </div>
-        
-    </div>
+    </div>    
 
     <style>
         /* Contenedor para centrar el texto */
@@ -189,39 +207,89 @@
 
     <script>
         $(document).ready(function () {
-            $('#btnBuscarOP').on('click', function () {
-                let op = $('#inputOP').val();
-    
-                if (!op.trim()) {
-                    alert('Por favor ingrese una OP.');
+            $('#btnBuscar').on('click', function () {
+                let termino = $('#inputBusqueda').val();
+                let tipo = $('#tipoBusqueda').val();
+
+                if (!termino.trim()) {
+                    alert('Ingrese un término de búsqueda.');
                     return;
                 }
-    
+
                 $.ajax({
-                    url: "{{ route('busqueda_OP.buscar') }}",
+                    url: "{{ route('busqueda_OP.buscarGeneral') }}",
                     method: 'POST',
                     data: {
-                        op: op,
+                        tipo: tipo,
+                        termino: termino,
                         _token: '{{ csrf_token() }}'
                     },
                     beforeSend: function () {
                         $('#tablaResultados').hide();
-                        $('#tablaBultos tbody').html('<tr><td colspan="1" class="text-center loading-text">Buscando...</td></tr>');
+                        $('#tablaDatos tbody').html('<tr><td colspan="11" class="text-center loading-text">Buscando...</td></tr>');
                     },
                     success: function (response) {
-                        if (response.bultos.length === 0) {
-                            $('#tablaBultos tbody').html('<tr><td colspan="1">No se encontraron bultos para esta OP.</td></tr>');
+                        if ($.fn.DataTable.isDataTable('#tablaDatos')) {
+                            $('#tablaDatos').DataTable().clear().destroy();
+                        }
+
+                        if (response.ops) {
+                            // Caso estilo o color: mostrar lista de OPs
+                            let filas = '';
+                            response.ops.forEach(function (op) {
+                                filas += `<tr><td colspan="11"><a href="#" class="op-link">${op}</a></td></tr>`;
+                            });
+
+                            $('#tablaDatos tbody').html(filas);
+                            $('#tablaResultados').show();
+
+                            // Al dar clic sobre una OP encontrada, buscarla como OP
+                            $('.op-link').on('click', function(e){
+                                e.preventDefault();
+                                $('#inputBusqueda').val($(this).text());
+                                $('#tipoBusqueda').val('op');
+                                $('#btnBuscar').click();
+                            });
+
+                        } else if (response.resultados.length === 0) {
+                            $('#tablaDatos tbody').html('<tr><td colspan="11">No se encontraron resultados.</td></tr>');
                         } else {
                             let filas = '';
-                            response.bultos.forEach(function (bulto) {
-                                filas += `<tr><td>${bulto}</td></tr>`;
+                            response.resultados.forEach(function (dato) {
+                                filas += `<tr>
+                                    <td>${dato.op}</td>
+                                    <td>${dato.bulto}</td>
+                                    <td>${dato.auditor}</td>
+                                    <td>${dato.modulo}</td>
+                                    <td>${dato.cliente}</td>
+                                    <td>${dato.estilo}</td>
+                                    <td>${dato.color}</td>
+                                    <td>${dato.planta}</td>
+                                    <td>${dato.cantidad_auditada}</td>
+                                    <td>${dato.cantidad_rechazada}</td>
+                                    <td>${dato.fecha_creacion}</td>
+                                </tr>`;
                             });
-                            $('#tablaBultos tbody').html(filas);
+                            $('#tablaDatos tbody').html(filas);
+
+                            // Inicializa DataTable
+                            $('#tablaDatos').DataTable({
+                                dom: 'Bfrtip',
+                                buttons: [{extend: 'excelHtml5', text: 'Exportar a Excel', className: 'btn btn-success'}],
+                                paging: true,
+                                searching: true,
+                                info: true,
+                                language: {
+                                    emptyTable: "No hay datos disponibles",
+                                    paginate: {previous: "Anterior", next: "Siguiente"}
+                                }
+                            });
+
+                            $('#tablaResultados').show();
                         }
-                        $('#tablaResultados').show();
                     },
                     error: function (xhr) {
-                        alert('Error al buscar la OP.');
+                        alert('Error al buscar.');
                         console.error(xhr.responseText);
                     }
                 });
