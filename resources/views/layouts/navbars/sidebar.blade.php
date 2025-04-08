@@ -12,12 +12,30 @@
                         <p>{{ __('Dashboard') }}</p>
                     </a>
                 </li>
-                <li class="nav-item{{ $pageSlug == 'dashboardPorDia' ? ' active' : '' }}">
-                    <a class="nav-link" href="{{ route('dashboar.dashboardPanta1PorDia') }}">
+                <li class="nav-item">
+                    <a class="nav-link" data-toggle="collapse" href="#consultaPorDiaMenu" aria-expanded="false">
                         <i class="tim-icons icon-tap-02"></i>
-                        <p>{{ __('Consulta por Dia') }}</p>
+                        <p>{{ __('Consulta por Día') }}
+                            <b class="caret"></b>
+                        </p>
                     </a>
-                </li>
+                    <div class="collapse" id="consultaPorDiaMenu">
+                        <ul class="nav">
+                            <li class="nav-item{{ $pageSlug == 'dashboardPorDia' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('dashboardPlanta1V2') }}">
+                                    <i class="tim-icons icon-pin"></i>
+                                    <p>Planta 1 - Ixtlahuaca</p>
+                                </a>
+                            </li>
+                            <li class="nav-item{{ $pageSlug == 'dashboardPorDia' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('dashboardPlanta2V2') }}">
+                                    <i class="tim-icons icon-pin"></i>
+                                    <p>Planta 2 - San Bartolo</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>                
                 <li class="nav-item{{ $pageSlug == 'dashboardPorSemanal' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('dashboar.dashboardPlanta1PorSemana') }}">
                         <i class="tim-icons icon-tap-02"></i>
