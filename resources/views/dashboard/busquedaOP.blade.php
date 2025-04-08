@@ -42,15 +42,17 @@
                         <th>Estilo</th>
                         <th>Color</th>
                         <th>Planta</th>
-                        <th>Cant. Auditada</th>
-                        <th>Cant. Rechazada</th>
-                        <th>Fecha creación</th>
+                        <th>piezas</th>
+                        <th>Cantidad Auditada</th>
+                        <th>Cantidad Rechazada</th>
+                        <th>% AQL</th>
+                        <th>Fecha</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
             </table>
         </div>
-    </div>    
+    </div>
 
     <style>
         /* Contenedor para centrar el texto */
@@ -265,8 +267,10 @@
                                     <td>${dato.estilo}</td>
                                     <td>${dato.color}</td>
                                     <td>${dato.planta}</td>
+                                    <td>${dato.pieza}</td>
                                     <td>${dato.cantidad_auditada}</td>
                                     <td>${dato.cantidad_rechazada}</td>
+                                    <td>${dato.porcentaje_aql}%</td>
                                     <td>${dato.fecha_creacion}</td>
                                 </tr>`;
                             });

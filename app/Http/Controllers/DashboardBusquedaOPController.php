@@ -14,6 +14,7 @@ use Carbon\CarbonPeriod; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\DB; // Importa la clase DB
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\App;
 
 
 class DashboardBusquedaOPController extends Controller
@@ -43,6 +44,8 @@ class DashboardBusquedaOPController extends Controller
 
     public function buscar(Request $request)
     {
+        App::setLocale('es'); // Establecer el idioma en español para esta solicitud
+        Carbon::setLocale('es'); // Para Carbon en específico
         $tipo = $request->input('tipo');
         $termino = $request->input('termino');
 
@@ -79,14 +82,26 @@ class DashboardBusquedaOPController extends Controller
 
         $resultados = $query->get([
             'op', 'bulto', 'auditor', 'modulo', 'cliente',
-            'estilo', 'color', 'planta', 'cantidad_auditada', 'cantidad_rechazada', 'created_at'
+            'estilo', 'color', 'planta', 'pieza','cantidad_auditada', 'cantidad_rechazada', 'created_at'
         ]);
 
         // Dar formato a la fecha:
         $resultados->transform(function($item){
-            $item->fecha_creacion = Carbon::parse($item->created_at)->format('d-m-Y H:i:s');
+            $item->fecha_creacion = Carbon::parse($item->created_at)->translatedFormat('d \d\e F \d\e Y - H:i:s');
+
+            // Calcular % AQL
+            $pieza = $item->pieza ?? 0;
+            $rechazada = $item->cantidad_rechazada ?? 0;
+
+            if ($pieza > 0) {
+                $item->porcentaje_aql = round(($rechazada / $pieza) * 100, 2); // redondea a 2 decimales
+            } else {
+                $item->porcentaje_aql = 0;
+            }
+
             return $item;
         });
+
 
         return response()->json(['resultados' => $resultados]);
     }
