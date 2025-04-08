@@ -12,6 +12,25 @@
     </div>
 
     <div class="card card-body">
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <input type="text" id="inputOP" class="form-control" placeholder="Ingrese OP...">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-success" id="btnBuscarOP">Buscar</button>
+            </div>
+        </div>
+        
+        <div class="table-responsive" id="tablaResultados" style="display: none;">
+            <table class="table custom-table" id="tablaBultos">
+                <thead>
+                    <tr>
+                        <th>Bulto</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
         
     </div>
 
@@ -168,5 +187,47 @@
     <script src="{{ asset('dataTable/js/jszip.min.js') }}"></script>
     <script src="{{ asset('dataTable/js/buttons.html5.min.js') }}"></script>
 
+    <script>
+        $(document).ready(function () {
+            $('#btnBuscarOP').on('click', function () {
+                let op = $('#inputOP').val();
+    
+                if (!op.trim()) {
+                    alert('Por favor ingrese una OP.');
+                    return;
+                }
+    
+                $.ajax({
+                    url: "{{ route('busqueda_OP.buscar') }}",
+                    method: 'POST',
+                    data: {
+                        op: op,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    beforeSend: function () {
+                        $('#tablaResultados').hide();
+                        $('#tablaBultos tbody').html('<tr><td colspan="1" class="text-center loading-text">Buscando...</td></tr>');
+                    },
+                    success: function (response) {
+                        if (response.bultos.length === 0) {
+                            $('#tablaBultos tbody').html('<tr><td colspan="1">No se encontraron bultos para esta OP.</td></tr>');
+                        } else {
+                            let filas = '';
+                            response.bultos.forEach(function (bulto) {
+                                filas += `<tr><td>${bulto}</td></tr>`;
+                            });
+                            $('#tablaBultos tbody').html(filas);
+                        }
+                        $('#tablaResultados').show();
+                    },
+                    error: function (xhr) {
+                        alert('Error al buscar la OP.');
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+    
     
 @endsection

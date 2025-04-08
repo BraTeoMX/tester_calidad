@@ -41,5 +41,20 @@ class DashboardBusquedaOPController extends Controller
         return view('dashboard.busquedaOP', compact('title' ));
     }
 
-
+    public function buscarOP(Request $request)
+    {
+        $op = $request->input('op');
+    
+        if (!$op) {
+            return response()->json(['error' => 'No se proporcionó una OP'], 400);
+        }
+    
+        $bultos = AuditoriaAQL::where('op', $op)
+                    ->pluck('bulto')
+                    ->unique()
+                    ->values();
+    
+        return response()->json(['bultos' => $bultos]);
+    }
+    
 }
