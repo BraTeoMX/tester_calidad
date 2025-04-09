@@ -159,5 +159,43 @@ class DashboardBusquedaOPController extends Controller
         return response()->json(['resultados' => $resultados]);
     }
 
+    public function buscarProcesoRelacionado(Request $request)
+    {
+        $estilo = $request->input('estilo');
+        $modulo = $request->input('modulo');
+        $fechaCreacion = Carbon::createFromFormat('d/m/Y - H:i:s', $request->input('created_at'));
+
+        // Rango de ±2 días
+        $inicio = $fechaCreacion->copy()->subDays(2)->startOfDay();
+        $fin = $fechaCreacion->copy()->addDays(2)->endOfDay();
+
+        $resultados = AseguramientoCalidad::where('estilo', $estilo)
+            ->where('modulo', $modulo)
+            ->whereBetween('created_at', [$inicio, $fin])
+            ->get([
+                'modulo', 'cliente', 'estilo', 'planta', 'auditor', 'nombre', 
+                'cantidad_auditada', 'cantidad_rechazada', 'created_at'
+            ])
+            ->transform(function ($item) {
+                $item->fecha_creacion = $item->created_at->format('d/m/Y - H:i:s');
+                $item->operario = $item->nombre ?? 'N/A';
+                unset($item->nombre);
+
+                $campos = [
+                    'modulo', 'cliente', 'estilo', 'planta', 
+                    'auditor', 'cantidad_auditada', 'cantidad_rechazada'
+                ];
+
+                foreach ($campos as $campo) {
+                    if (is_null($item->$campo) || $item->$campo === '') {
+                        $item->$campo = 'N/A';
+                    }
+                }
+
+                return $item;
+            });
+
+        return response()->json(['resultados' => $resultados]);
+    }
     
 }

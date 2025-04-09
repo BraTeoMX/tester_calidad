@@ -489,6 +489,8 @@ Route::group(['middleware' => 'auth'], function () {
     //Seccion para buscar por OP 
     Route::get('busqueda_OP', [DashboardBusquedaOPController::class, 'index'])->name('busqueda_OP.index');
     Route::post('busqueda_OP/general', [DashboardBusquedaOPController::class, 'buscar'])->name('busqueda_OP.buscarGeneral');
+    Route::post('busqueda_OP/buscar-proceso-relacionado', [DashboardBusquedaOPController::class, 'buscarProcesoRelacionado'])->name('busqueda_OP.buscarProcesoRelacionado');
+
 
     //Seccion auditoria KanBan
     Route::get('/kanban', [AuditoriaKanBanController::class, 'index'])->name('kanban.index');

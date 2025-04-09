@@ -54,6 +54,27 @@
                 <tbody></tbody>
             </table>
         </div>
+
+        <div class="table-responsive mt-4" id="tablaResultadosProceso" style="display:none;">
+            <h5>Resultados relacionados del Proceso</h5>
+            <table class="table custom-table" id="tablaDatosProceso">
+                <thead>
+                    <tr>
+                        <th>Módulo</th>
+                        <th>Cliente</th>
+                        <th>Estilo</th>
+                        <th>Planta</th>
+                        <th>Auditor</th>
+                        <th>Operario</th>
+                        <th>Cantidad Auditada</th>
+                        <th>Cantidad Rechazada</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        
     </div>
 
     <style>
@@ -211,6 +232,9 @@
 
     <script>
         $(document).ready(function () {
+
+            let tabla; // declara la tabla afuera para reutilizarla fácilmente
+
             $('#btnBuscar').on('click', function () {
                 let termino = $('#inputBusqueda').val();
                 let tipo = $('#tipoBusqueda').val();
@@ -230,24 +254,24 @@
                     },
                     beforeSend: function () {
                         $('#tablaResultados').hide();
-                        $('#tablaDatos tbody').html('<tr><td colspan="11" class="text-center loading-text">Buscando...</td></tr>');
+                        $('#tablaDatos tbody').html('<tr><td colspan="15" class="text-center loading-text">Buscando...</td></tr>');
+                        $('#tablaResultadosProceso').hide(); // oculta segunda tabla al hacer una nueva búsqueda
                     },
                     success: function (response) {
+                        // Destruir DataTable si ya existe antes de inicializarla de nuevo
                         if ($.fn.DataTable.isDataTable('#tablaDatos')) {
                             $('#tablaDatos').DataTable().clear().destroy();
                         }
 
                         if (response.ops) {
-                            // Caso estilo o color: mostrar lista de OPs
                             let filas = '';
                             response.ops.forEach(function (op) {
-                                filas += `<tr><td colspan="11"><a href="#" class="op-link">${op}</a></td></tr>`;
+                                filas += `<tr><td colspan="15"><a href="#" class="op-link">${op}</a></td></tr>`;
                             });
 
                             $('#tablaDatos tbody').html(filas);
                             $('#tablaResultados').show();
 
-                            // Al dar clic sobre una OP encontrada, buscarla como OP
                             $('.op-link').on('click', function(e){
                                 e.preventDefault();
                                 $('#inputBusqueda').val($(this).text());
@@ -256,7 +280,9 @@
                             });
 
                         } else if (response.resultados.length === 0) {
-                            $('#tablaDatos tbody').html('<tr><td colspan="11">No se encontraron resultados.</td></tr>');
+                            $('#tablaDatos tbody').html('<tr><td colspan="15">No se encontraron resultados.</td></tr>');
+                            $('#tablaResultados').show();
+
                         } else {
                             let filas = '';
                             response.resultados.forEach(function (dato) {
@@ -278,10 +304,11 @@
                                     <td>${dato.fecha_creacion}</td>
                                 </tr>`;
                             });
+
                             $('#tablaDatos tbody').html(filas);
 
-                            // Inicializa DataTable
-                            $('#tablaDatos').DataTable({
+                            // Inicializar DataTable una sola vez correctamente
+                            tabla = $('#tablaDatos').DataTable({
                                 dom: 'Bfrtip',
                                 buttons: [{extend: 'excelHtml5', text: 'Exportar a Excel', className: 'btn btn-success'}],
                                 paging: true,
@@ -294,7 +321,21 @@
                             });
 
                             $('#tablaResultados').show();
+
+                            // Automáticamente ejecuta la búsqueda relacionada al primer registro
+                            if (response.resultados.length > 0) {
+                                let primerDato = response.resultados[0]; // toma el primer registro para hacer la segunda búsqueda automáticamente
+
+                                buscarProcesoRelacionado(
+                                    primerDato.estilo,
+                                    primerDato.modulo,
+                                    primerDato.fecha_creacion
+                                );
+                            } else {
+                                $('#tablaResultadosProceso').hide();
+                            }
                         }
+
                     },
                     error: function (xhr) {
                         alert('Error al buscar.');
@@ -302,7 +343,69 @@
                     }
                 });
             });
-        });
+
+            function buscarProcesoRelacionado(estilo, modulo, created_at) {
+                console.log("Enviando:", { estilo, modulo, created_at }); // para verificar lo enviado
+
+                $.ajax({
+                    url: "{{ route('busqueda_OP.buscarProcesoRelacionado') }}",
+                    method: 'POST',
+                    data: {
+                        estilo: estilo,
+                        modulo: modulo,
+                        created_at: created_at,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    beforeSend: function () {
+                        $('#tablaResultadosProceso').show();
+                        $('#tablaDatosProceso tbody').html('<tr><td colspan="9" class="text-center">Buscando registros relacionados...</td></tr>');
+                    },
+                    success: function (response) {
+                        if ($.fn.DataTable.isDataTable('#tablaDatosProceso')) {
+                            $('#tablaDatosProceso').DataTable().clear().destroy();
+                        }
+
+                        if (response.resultados.length === 0) {
+                            $('#tablaDatosProceso tbody').html('<tr><td colspan="9" class="text-center">No hay registros relacionados.</td></tr>');
+                        } else {
+                            let filas = '';
+                            response.resultados.forEach(function (dato) {
+                                filas += `<tr>
+                                    <td>${dato.modulo}</td>
+                                    <td>${dato.cliente}</td>
+                                    <td>${dato.estilo}</td>
+                                    <td>${dato.planta}</td>
+                                    <td>${dato.auditor}</td>
+                                    <td>${dato.operario}</td>
+                                    <td>${dato.cantidad_auditada}</td>
+                                    <td>${dato.cantidad_rechazada}</td>
+                                    <td>${dato.fecha_creacion}</td>
+                                </tr>`;
+                            });
+                            $('#tablaDatosProceso tbody').html(filas);
+                            
+                            $('#tablaDatosProceso').DataTable({
+                                dom: 'Bfrtip',
+                                buttons: [{extend: 'excelHtml5', text: 'Exportar a Excel', className: 'btn btn-success'}],
+                                paging: true,
+                                searching: true,
+                                info: true,
+                                language: {
+                                    emptyTable: "No hay datos disponibles",
+                                    paginate: {previous: "Anterior", next: "Siguiente"}
+                                }
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        alert('Error al buscar registros relacionados.');
+                        console.error(xhr.responseText);
+                    }
+                });
+            }
+
+            });
+
     </script>
     
     
