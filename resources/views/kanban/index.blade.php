@@ -446,6 +446,7 @@
                         $('#selectAccion').val('');
                         $('#selectedOptionsContainerComentario').empty();
                         selectedIdsComentario.clear();
+                        cargarRegistrosHoy();
                     },
                     error: function (xhr) {
                         console.error(xhr.responseText);
@@ -553,46 +554,45 @@
     </script>
 
     <script>
+        // Definir globalmente la función
+        function cargarRegistrosHoy() {
+            $.ajax({
+                url: '{{ route("kanban.registrosHoy") }}',
+                method: 'GET',
+                success: function (data) {
+                    let tbody = '';
+
+                    data.forEach(function (item) {
+                        tbody += `
+                            <tr>
+                                <td>${item.fecha_almacen}</td>
+                                <td>${item.op}</td>
+                                <td>${item.cliente}</td>
+                                <td>${item.estilo}</td>
+                                <td>${item.estatus}</td>
+                                <td>${item.comentarios}</td>
+                                <td>${item.fecha_parcial}</td>
+                                <td>${item.fecha_liberacion}</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm btn-eliminar" data-id="${item.id}">
+                                        Eliminar
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    $('#tabla-registros-hoy tbody').html(tbody);
+                },
+                error: function (xhr) {
+                    console.error(xhr.responseText);
+                    $('#tabla-registros-hoy tbody').html('<tr><td colspan="9" class="text-center text-danger">Error al cargar los registros.</td></tr>');
+                }
+            });
+        }
+
         $(document).ready(function () {
-            function cargarRegistrosHoy() {
-                $.ajax({
-                    url: '{{ route("kanban.registrosHoy") }}',
-                    method: 'GET',
-                    success: function (data) {
-                        let tbody = '';
-
-                        data.forEach(function (item) {
-
-                            tbody += `
-                                <tr>
-                                    <td>${item.fecha_almacen}</td>
-                                    <td>${item.op}</td>
-                                    <td>${item.cliente}</td>
-                                    <td>${item.estilo}</td>
-                                    <td>${item.estatus}</td>
-                                    <td>${item.comentarios}</td>
-                                    <td>${item.fecha_parcial}</td>
-                                    <td>${item.fecha_liberacion}</td>
-                                    <td>
-                                        <button class="btn btn-danger btn-sm btn-eliminar" data-id="${item.id}">
-                                            Eliminar
-                                        </button>
-                                    </td>
-                                </tr>
-                            `;
-                        });
-
-                        $('#tabla-registros-hoy tbody').html(tbody);
-                    },
-                    error: function (xhr) {
-                        console.error(xhr.responseText);
-                        $('#tabla-registros-hoy tbody').html('<tr><td colspan="8" class="text-center text-danger">Error al cargar los registros.</td></tr>');
-                    }
-                });
-            }
-
-            // Llama la función al cargar la página
-            cargarRegistrosHoy();
+            cargarRegistrosHoy(); // llamada inicial
 
             // Evento para eliminar
             $('#tabla-registros-hoy').on('click', '.btn-eliminar', function () {
@@ -609,7 +609,7 @@
                     },
                     success: function (response) {
                         alert(response.mensaje);
-                        cargarRegistrosHoy(); // vuelve a cargar la tabla
+                        cargarRegistrosHoy(); // recarga
                     },
                     error: function (xhr) {
                         console.error(xhr.responseText);
