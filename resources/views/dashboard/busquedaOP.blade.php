@@ -46,6 +46,7 @@
                         <th>Cantidad Auditada</th>
                         <th>Cantidad Rechazada</th>
                         <th>Defectos</th>
+                        <th>Operario</th>
                         <th>% AQL</th>
                         <th>Fecha</th>
                     </tr>
@@ -272,6 +273,7 @@
                                     <td>${dato.cantidad_auditada}</td>
                                     <td>${dato.cantidad_rechazada}</td>
                                     <td>${dato.defectos_html}</td>
+                                    <td>${dato.operario}</td>
                                     <td>${dato.porcentaje_aql}%</td>
                                     <td>${dato.fecha_creacion}</td>
                                 </tr>`;

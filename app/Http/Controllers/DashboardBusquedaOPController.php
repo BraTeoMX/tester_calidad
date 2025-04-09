@@ -84,11 +84,12 @@ class DashboardBusquedaOPController extends Controller
             'id',
             'op', 'bulto', 'auditor', 'modulo', 'cliente',
             'estilo', 'color', 'planta', 'pieza',
-            'cantidad_auditada', 'cantidad_rechazada', 'created_at'
+            'cantidad_auditada', 'cantidad_rechazada','nombre', 'created_at'
         ]);
         
         $resultados->transform(function ($item) {
-            $item->fecha_creacion = \Carbon\Carbon::parse($item->created_at)->translatedFormat('d \d\e F \d\e Y - H:i:s');
+            $item->fecha_creacion = \Carbon\Carbon::parse($item->created_at)->format('d/m/Y - H:i:s');
+            $item->operario = $item->nombre;
         
             // Calcular porcentaje AQL
             $pieza = $item->pieza ?? 0;
@@ -126,15 +127,32 @@ class DashboardBusquedaOPController extends Controller
             $campos = [
                 'op', 'bulto', 'auditor', 'modulo', 'cliente',
                 'estilo', 'color', 'planta', 'pieza',
-                'cantidad_auditada', 'cantidad_rechazada'
+                'cantidad_auditada', 'cantidad_rechazada','nombre'
             ];
         
             foreach ($campos as $campo) {
                 if (is_null($item->$campo) || $item->$campo === '') {
                     $item->$campo = 'N/A';
+                } elseif ($campo === 'planta') {
+                    // Reasignar si el valor existe
+                    switch (strtolower($item->$campo)) {
+                        case 'intimark1':
+                            $item->$campo = 'Ixtlahuaca';
+                            break;
+                        case 'intimark2':
+                            $item->$campo = 'San Bartolo';
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
-        
+
+            // Ahora sí, operario ya toma "N/A" si nombre estaba vacío
+            $item->operario = $item->nombre;
+            // Opcional: eliminar "nombre" si ya no lo usarás
+            unset($item->nombre);
+
             return $item;
         });        
 
