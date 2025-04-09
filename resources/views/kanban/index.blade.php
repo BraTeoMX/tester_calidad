@@ -87,7 +87,7 @@
                                 <thead class="thead-primary">
                                     <tr>
                                         <th>OP</th>
-                                        <th>Fecha Corte</th>
+                                        <th>Fecha Sellado</th>
                                         <th>Cliente</th>
                                         <th>estilo</th>
                                         <th>Piezas</th>

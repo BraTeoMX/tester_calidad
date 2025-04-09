@@ -38,10 +38,10 @@
                         <th>Bulto</th>
                         <th>Auditor</th>
                         <th>Módulo</th>
+                        <th>Planta</th>
                         <th>Cliente</th>
                         <th>Estilo</th>
                         <th>Color</th>
-                        <th>Planta</th>
                         <th>piezas</th>
                         <th>Cantidad Auditada</th>
                         <th>Cantidad Rechazada</th>
@@ -60,11 +60,11 @@
             <table class="table custom-table" id="tablaDatosProceso">
                 <thead>
                     <tr>
+                        <th>Auditor</th>
                         <th>Módulo</th>
+                        <th>Planta</th>
                         <th>Cliente</th>
                         <th>Estilo</th>
-                        <th>Planta</th>
-                        <th>Auditor</th>
                         <th>Operario</th>
                         <th>Cantidad Auditada</th>
                         <th>Cantidad Rechazada</th>
@@ -293,10 +293,10 @@
                                     <td>${dato.bulto}</td>
                                     <td>${dato.auditor}</td>
                                     <td>${dato.modulo}</td>
+                                    <td>${dato.planta}</td>
                                     <td>${dato.cliente}</td>
                                     <td>${dato.estilo}</td>
                                     <td>${dato.color}</td>
-                                    <td>${dato.planta}</td>
                                     <td>${dato.pieza}</td>
                                     <td>${dato.cantidad_auditada}</td>
                                     <td>${dato.cantidad_rechazada}</td>
@@ -373,11 +373,11 @@
                             let filas = '';
                             response.resultados.forEach(function (dato) {
                                 filas += `<tr>
+                                    <td>${dato.auditor}</td>
                                     <td>${dato.modulo}</td>
+                                    <td>${dato.planta}</td>
                                     <td>${dato.cliente}</td>
                                     <td>${dato.estilo}</td>
-                                    <td>${dato.planta}</td>
-                                    <td>${dato.auditor}</td>
                                     <td>${dato.operario}</td>
                                     <td>${dato.cantidad_auditada}</td>
                                     <td>${dato.cantidad_rechazada}</td>
