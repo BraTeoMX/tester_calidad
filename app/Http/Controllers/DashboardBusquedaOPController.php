@@ -169,26 +169,66 @@ class DashboardBusquedaOPController extends Controller
         $inicio = $fechaCreacion->copy()->subDays(2)->startOfDay();
         $fin = $fechaCreacion->copy()->addDays(2)->endOfDay();
 
-        $resultados = AseguramientoCalidad::where('estilo', $estilo)
+        $resultados = AseguramientoCalidad::with('tpAseguramientoCalidad')
+            ->where('estilo', $estilo)
             ->where('modulo', $modulo)
             ->whereBetween('created_at', [$inicio, $fin])
             ->get([
-                'modulo', 'cliente', 'estilo', 'planta', 'auditor', 'nombre', 
-                'cantidad_auditada', 'cantidad_rechazada', 'created_at'
+                'id',
+                'modulo', 'cliente', 'estilo', 'planta',
+                'auditor', 'nombre', 'cantidad_auditada', 'cantidad_rechazada',
+                'created_at'
             ])
             ->transform(function ($item) {
                 $item->fecha_creacion = $item->created_at->format('d/m/Y - H:i:s');
-                $item->operario = $item->nombre ?? 'N/A';
+                $item->operario = $item->nombre;
                 unset($item->nombre);
 
+                // Calcular porcentaje AQL
+                $pieza = $item->cantidad_auditada ?? 0;
+                $rechazada = $item->cantidad_rechazada ?? 0;
+                $item->porcentaje_proceso = $pieza > 0 ? round(($rechazada / $pieza) * 100, 2) : 0;
+
+                // Obtener defectos
+                $defectos = $item->tpAseguramientoCalidad->pluck('tp')->filter();
+
+                $contieneNinguno = $defectos->contains(function ($valor) {
+                    return strtolower(trim($valor)) === 'ninguno';
+                });
+
+                if ($contieneNinguno || $defectos->isEmpty()) {
+                    $htmlDefectos = '<span>N/A</span>';
+                } else {
+                    $conteoDefectos = $defectos->countBy();
+                    $htmlDefectos = '<ul class="mb-0">';
+                    foreach ($conteoDefectos as $nombre => $cantidad) {
+                        $htmlDefectos .= $cantidad > 1
+                            ? "<li>{$nombre} ({$cantidad})</li>"
+                            : "<li>{$nombre}</li>";
+                    }
+                    $htmlDefectos .= '</ul>';
+                }
+
+                $item->defectos_html = $htmlDefectos;
+
+                // Campos vacíos como "N/A" y planta legible
                 $campos = [
-                    'modulo', 'cliente', 'estilo', 'planta', 
+                    'modulo', 'cliente', 'estilo', 'planta',
                     'auditor', 'cantidad_auditada', 'cantidad_rechazada'
                 ];
 
                 foreach ($campos as $campo) {
                     if (is_null($item->$campo) || $item->$campo === '') {
                         $item->$campo = 'N/A';
+                    } elseif ($campo === 'planta') {
+                        switch (strtolower($item->$campo)) {
+                            case 'intimark1':
+                                $item->$campo = 'Ixtlahuaca';
+                                break;
+                            case 'intimark2':
+                                $item->$campo = 'San Bartolo';
+                                break;
+                        }
                     }
                 }
 

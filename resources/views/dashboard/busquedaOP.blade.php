@@ -68,6 +68,8 @@
                         <th>Operario</th>
                         <th>Cantidad Auditada</th>
                         <th>Cantidad Rechazada</th>
+                        <th>Defectos</th>
+                        <th>% proceso</th>
                         <th>Fecha</th>
                     </tr>
                 </thead>
@@ -379,6 +381,8 @@
                                     <td>${dato.operario}</td>
                                     <td>${dato.cantidad_auditada}</td>
                                     <td>${dato.cantidad_rechazada}</td>
+                                    <td>${dato.defectos_html}</td>
+                                    <td>${dato.porcentaje_proceso}%</td>
                                     <td>${dato.fecha_creacion}</td>
                                 </tr>`;
                             });
