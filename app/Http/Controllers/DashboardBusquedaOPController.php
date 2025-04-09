@@ -80,28 +80,43 @@ class DashboardBusquedaOPController extends Controller
                 return response()->json(['error' => 'Tipo de búsqueda no válido'], 400);
         }
 
-        $resultados = $query->get([
+        $resultados = $query->with('tpAuditoriaAQL')->get([
+            'id',
             'op', 'bulto', 'auditor', 'modulo', 'cliente',
-            'estilo', 'color', 'planta', 'pieza','cantidad_auditada', 'cantidad_rechazada', 'created_at'
+            'estilo', 'color', 'planta', 'pieza',
+            'cantidad_auditada', 'cantidad_rechazada', 'created_at'
         ]);
-
-        // Dar formato a la fecha:
-        $resultados->transform(function($item){
-            $item->fecha_creacion = Carbon::parse($item->created_at)->translatedFormat('d \d\e F \d\e Y - H:i:s');
-
-            // Calcular % AQL
+        
+        $resultados->transform(function ($item) {
+            $item->fecha_creacion = \Carbon\Carbon::parse($item->created_at)->translatedFormat('d \d\e F \d\e Y - H:i:s');
+        
             $pieza = $item->pieza ?? 0;
             $rechazada = $item->cantidad_rechazada ?? 0;
+            $item->porcentaje_aql = $pieza > 0 ? round(($rechazada / $pieza) * 100, 2) : 0;
+        
+            $defectos = $item->tpAuditoriaAQL->pluck('tp')->filter();
 
-            if ($pieza > 0) {
-                $item->porcentaje_aql = round(($rechazada / $pieza) * 100, 2); // redondea a 2 decimales
+            if ($defectos->isNotEmpty()) {
+                $conteoDefectos = $defectos->countBy(); // Agrupa y cuenta repeticiones
+                $htmlDefectos = '<ul class="mb-0">';
+                
+                foreach ($conteoDefectos as $nombre => $cantidad) {
+                    if ($cantidad > 1) {
+                        $htmlDefectos .= "<li>{$nombre} ({$cantidad})</li>";
+                    } else {
+                        $htmlDefectos .= "<li>{$nombre}</li>";
+                    }
+                }
+
+                $htmlDefectos .= '</ul>';
             } else {
-                $item->porcentaje_aql = 0;
+                $htmlDefectos = '<span>N/A</span>';
             }
 
+            $item->defectos_html = $htmlDefectos;
+        
             return $item;
         });
-
 
         return response()->json(['resultados' => $resultados]);
     }
