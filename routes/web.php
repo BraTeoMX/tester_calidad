@@ -15,6 +15,7 @@ use App\Http\Controllers\AuditoriaProcesoV2Controller;
 use App\Http\Controllers\AuditoriaAQLController;
 use App\Http\Controllers\Maquila;
 use App\Http\Controllers\viewlistaFormularios;
+use App\Http\Controllers\CorteFinalController;
 use App\Http\Controllers\DashboardController;
 
 use App\Http\Controllers\DashboardPlanta1Controller;
@@ -128,6 +129,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/auditoria-corte/search-en-proceso', [AuditoriaCorteController::class, 'searchEnProceso'])->name('auditoriaCorte.searchEnProceso');
     // Rutas para búsqueda AJAX en el acordeón “FINAL”
     Route::get('/auditoria-corte/search-final', [AuditoriaCorteController::class, 'searchFinal'])->name('auditoriaCorte.searchFinal');
+    Route::get('/auditoria-corte/vista-final', [CorteFinalController::class, 'index'])->name('auditoriaCorte.index');
 
     //fin aprtado Auditoria Corte
 
