@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\JobAQLTemporal;
 use App\Models\AuditoriaAQL;
+use App\Models\JobAQLHistorial;
 use App\Models\CatalogoComentarioKanban;
 use App\Models\ReporteKanban;
 use App\Models\ReporteKanbanComentario;
@@ -118,7 +119,7 @@ class AuditoriaKanBanController extends Controller
     
     public function guardar(Request $request)
     {
-        Log::info('Datos recibidos: ' . json_encode($request->all()));
+        //Log::info('Datos recibidos: ' . json_encode($request->all()));
 
         // Crear instancia de ReporteKanban
         $kanban = new ReporteKanban();
@@ -127,31 +128,47 @@ class AuditoriaKanBanController extends Controller
         $kanban->estilo = $request->input('estilo');
         $kanban->fecha_corte = $request->input('fecha');
         $kanban->piezas = $request->input('piezas_total');
-        $kanban->estatus = $request->input('accion');
+        $kanban->planta = $request->input('accion');
 
-        // Lógica condicional para fechas
+        $kanban->save(); // Guarda el registro principal
+
+        return response()->json(['mensaje' => 'Datos guardados correctamente']);
+    }
+
+    public function actualizar(Request $request)
+    {
+        $kanban = ReporteKanban::find($request->input('id'));
+
+        if (!$kanban) {
+            return response()->json(['mensaje' => 'Registro no encontrado.'], 404);
+        }
+
+        // Actualizar campos
+        $kanban->estatus = $request->input('accion');
+        $kanban->fecha_liberacion = null;
+        $kanban->fecha_parcial = null;
+
         if ($kanban->estatus == '1') {
-            $kanban->fecha_liberacion = now(); // Laravel helper para timestamp actual
+            $kanban->fecha_liberacion = now();
         } elseif ($kanban->estatus == '2') {
             $kanban->fecha_parcial = now();
         }
 
-        $kanban->save(); // Guarda el registro principal
+        $kanban->save();
 
-        // Comentarios relacionados
-        $comentarios = $request->input('comentarios');
-
-        if (is_array($comentarios) && count($comentarios)) {
-            foreach ($comentarios as $comentario) {
-                $comentarioKanban = new ReporteKanbanComentario();
-                $comentarioKanban->reporte_kanban_id = $kanban->id;
-                $comentarioKanban->nombre = $comentario;
-                $comentarioKanban->save();
-            }
+        // Comentarios: eliminar los anteriores y agregar nuevos
+        ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)->delete();
+        $comentarios = $request->input('comentarios', []);
+        foreach ($comentarios as $comentario) {
+            ReporteKanbanComentario::create([
+                'reporte_kanban_id' => $kanban->id,
+                'nombre' => $comentario,
+            ]);
         }
 
-        return response()->json(['mensaje' => 'Datos guardados correctamente']);
+        return response()->json(['mensaje' => 'Registro actualizado correctamente']);
     }
+
 
     public function obtenerParciales(Request $request)
     {
@@ -189,7 +206,7 @@ class AuditoriaKanBanController extends Controller
 
         $data = $registros->map(function ($registro) {
             return [
-                'fecha_almacen' => $registro->created_at ? Carbon::parse($registro->created_at)->format('Y-m-d H:i') : 'N/A',
+                'fecha_almacen' => $registro->fecha_almacen ? Carbon::parse($registro->fecha_almacen)->format('Y-m-d H:i') : 'N/A',
                 'op' => $registro->op ?? 'N/A',
                 'cliente' => $registro->cliente ?? 'N/A',
                 'estilo' => $registro->estilo ?? 'N/A',
@@ -197,7 +214,7 @@ class AuditoriaKanBanController extends Controller
                 'comentarios' => $registro->comentarios->isNotEmpty()
                     ? '<ul class="mb-0 pl-3">' . $registro->comentarios->pluck('nombre')->map(fn($c) => "<li>$c</li>")->implode('') . '</ul>'
                     : 'N/A',
-                'fecha_parcial' => $registro->fecha_parcial 
+                'fecha_parcial' => $registro->fecha_parcial  
                     ? Carbon::parse($registro->fecha_parcial)->format('Y-m-d H:i') 
                     : 'N/A',
                 'fecha_liberacion' => $registro->fecha_liberacion 

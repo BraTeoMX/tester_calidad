@@ -87,18 +87,24 @@
                                 <thead class="thead-primary">
                                     <tr>
                                         <th>OP</th>
+                                        <th>Planta</th>
                                         <th>Fecha Sellado</th>
                                         <th>Cliente</th>
                                         <th>estilo</th>
                                         <th>Piezas</th>
-                                        <th>ACCION</th>
-                                        <th>COMENTARIO</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
                                         <td>
                                             <select id="selectOP" class="form-control select-op"></select>
+                                        </td>
+                                        <td>
+                                            <select class="form-control" id="selectPlanta">
+                                                <option value="">selecciona una opcion</option>
+                                                <option value="1">Planta 1</option>
+                                                <option value="2">Planta 2</option>
+                                            </select>
                                         </td> 
                                         <td>
                                             <span id="fechaText"></span>
@@ -117,22 +123,10 @@
                                             <span id="piezasText"></span>
                                             <input type="hidden" id="piezasInput" name="piezas_total">
                                         </td>
-                                        <td>
-                                            <select class="form-control" id="selectAccion">
-                                                <option value="">selecciona una opcion</option>
-                                                <option value="1">Aceptado</option>
-                                                <option value="2">Parcial</option>
-                                                <option value="3">Rechazado</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <select id="selectComentario" class="form-control select-comentario"></select>
-                                            <div id="selectedOptionsContainerComentario" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
-                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
-                            <button type="submit" class="btn-verde-xd">Guardar</button>
+                            <button type="submit" class="btn-verde-xd">Generar Registro</button>
                         </form>
                     </div>
                 </div>
@@ -416,16 +410,15 @@
                 });
 
                 let op = $('#selectOP').val();
-                let accion = $('#selectAccion').val();
+                let accion = $('#selectPlanta').val();
 
                 if (!accion) {
                     alert('Por favor selecciona una acción válida antes de continuar.');
-                    $('#selectAccion').focus();
+                    $('#selectPlanta').focus();
                     return;
                 }
 
                 let dataFormulario = {
-                    comentarios: comentariosSeleccionados,
                     op: op,
                     accion: accion,
                     cliente: $('#clienteInput').val(),
