@@ -485,7 +485,7 @@
                                     <div class="selected-options-container mt-2" id="selectedContainer-${id}"></div>
                                 </td>
                                 <td>
-                                    <button class="btn btn-success btn-sm btn-aplicar-cambios" data-id="${id}">Aplicar</button>
+                                    <button class="btn btn-info btn-sm btn-aplicar-cambios" data-id="${id}">Actualizar</button>
                                 </td>
                                 <td>${item.fecha_liberacion || ''}</td>
                                 <td>${item.fecha_parcial || ''}</td>
