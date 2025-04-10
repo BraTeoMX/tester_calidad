@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageSlug' => 'AQL', 'titlePage' => __('AQL')])
+@extends('layouts.app', ['pageSlug' => 'kanban', 'titlePage' => __('kanban')])
 
 @section('content')
     {{-- ... dentro de tu vista ... --}}

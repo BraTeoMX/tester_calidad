@@ -40,6 +40,18 @@ class AuditoriaKanBanController extends Controller
         return view('kanban.index', compact('mesesEnEspanol', 'pageSlug'));
     }
     
+    public function reporte(Request $request) 
+    {
+        $pageSlug ='';
+        $fechaActual = Carbon::now()->toDateString();
+        $mesesEnEspanol = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+
+
+
+        return view('kanban.reporte', compact('mesesEnEspanol', 'pageSlug'));
+    }
 
     public function getOpciones(Request $request)
     {
@@ -120,9 +132,10 @@ class AuditoriaKanBanController extends Controller
     public function guardar(Request $request)
     {
         //Log::info('Datos recibidos: ' . json_encode($request->all()));
-
+        $auditorDato = Auth::user()->name;
         // Crear instancia de ReporteKanban
         $kanban = new ReporteKanban();
+        $kanban->auditor = $auditorDato;
         $kanban->fecha_corte = $request->input('fecha');
         $kanban->fecha_almacen = now();
         $kanban->op = $request->input('op');
