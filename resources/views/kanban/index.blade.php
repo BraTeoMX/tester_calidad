@@ -663,33 +663,6 @@
                 });
             });
         });
-        $(document).ready(function () {
-            cargarRegistrosHoy(); // llamada inicial
-
-            // Evento para eliminar
-            $('#tabla-registros-hoy').on('click', '.btn-eliminar', function () {
-                const id = $(this).data('id');
-
-                if (!confirm('¿Estás seguro de eliminar este registro?')) return;
-
-                $.ajax({
-                    url: '{{ route("kanban.eliminar") }}',
-                    method: 'POST',
-                    data: { id: id },
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    success: function (response) {
-                        alert(response.mensaje);
-                        cargarRegistrosHoy(); // recarga
-                    },
-                    error: function (xhr) {
-                        console.error(xhr.responseText);
-                        alert('Error al eliminar el registro.');
-                    }
-                });
-            });
-        });
     </script>
     
     <script>
