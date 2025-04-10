@@ -168,6 +168,7 @@
                                     <th>COMENTARIOS</th>
                                     <th>FECHA DE PARCIAL</th>
                                     <th>FECHA DE LIBERACION</th>
+                                    <th>Actualizar</th>
                                     <th>Eliminar</th>
                                 </tr>
                             </thead>
@@ -176,7 +177,7 @@
                             </tbody>
                         </table>
                     </div>
-                </div>                
+                </div>
             </div>
         </div>
     </div>
@@ -305,109 +306,8 @@
 
     <script>
         $(document).ready(function () {
-            const selectedIdsComentario = new Set();
-            const selectedOptionsContainerComentario = $('#selectedOptionsContainerComentario');
-
-            $('#selectComentario').select2({
-                placeholder: 'Selecciona un comentario',
-                templateResult: function (data) {
-                    if (data.id === 'crear_comentario') {
-                        return $('<span style="color: white; font-weight: bold;">' + data.text + '</span>');
-                    }
-                    return data.text;
-                },
-                ajax: {
-                    url: '{{ route('kanban.comentarios') }}',
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return {
-                            q: params.term || ''
-                        };
-                    },
-                    processResults: function (data) {
-                        const results = data.map(comentario => ({
-                            id: comentario.nombre,
-                            text: comentario.nombre
-                        }));
-                        results.unshift({ id: 'crear_comentario', text: 'Crear comentario' });
-                        return { results };
-                    },
-                    cache: true
-                },
-                minimumInputLength: 0
-            });
-
-            $('#selectComentario').on('select2:select', function (e) {
-                const data = e.params.data;
-
-                if (data.id === 'crear_comentario') {
-                    $('#selectComentario').val(null).trigger('change');
-
-                    const nuevoComentario = prompt('Escribe el nuevo comentario:');
-                    if (!nuevoComentario || nuevoComentario.trim() === '') {
-                        alert('Comentario no válido.');
-                        return;
-                    }
-
-                    $.ajax({
-                        url: '{{ route("kanban.comentario.crear") }}',
-                        method: 'POST',
-                        data: { nombre: nuevoComentario },
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        success: function (response) {
-                            const comentarioCreado = response.comentario;
-
-                            if (!selectedIdsComentario.has(comentarioCreado.nombre)) {
-                                addOptionToContainer(comentarioCreado.nombre, comentarioCreado.nombre);
-                                selectedIdsComentario.add(comentarioCreado.nombre);
-                            }
-
-                            alert('Comentario creado correctamente');
-                        },
-                        error: function (xhr) {
-                            console.error(xhr.responseText);
-                            alert('Error al crear el comentario');
-                        }
-                    });
-
-                    return;
-                }
-
-                if (!selectedIdsComentario.has(data.id)) {
-                    addOptionToContainer(data.id, data.text);
-                    selectedIdsComentario.add(data.id);
-                }
-
-                $('#selectComentario').val(null).trigger('change');
-            });
-
-            function addOptionToContainer(id, text) {
-                const optionElement = $(`
-                    <div class="selected-option d-flex align-items-center justify-content-between border rounded p-2 mb-1" data-id="${id}">
-                        <span class="option-text flex-grow-1 mx-2">${text}</span>
-                        <button type="button" class="btn btn-danger btn-sm remove-option">Eliminar</button>
-                    </div>
-                `);
-
-                optionElement.find('.remove-option').on('click', function () {
-                    optionElement.remove();
-                    selectedIdsComentario.delete(id);
-                });
-
-                selectedOptionsContainerComentario.append(optionElement);
-            }
-
             $('#formKanban').on('submit', function (e) {
                 e.preventDefault();
-
-                let comentariosSeleccionados = [];
-                $('#selectedOptionsContainerComentario .selected-option').each(function () {
-                    let texto = $(this).find('.option-text').text();
-                    comentariosSeleccionados.push(texto);
-                });
 
                 let op = $('#selectOP').val();
                 let accion = $('#selectPlanta').val();
@@ -436,9 +336,6 @@
                     },
                     success: function (response) {
                         alert('Guardado correctamente');
-                        $('#selectAccion').val('');
-                        $('#selectedOptionsContainerComentario').empty();
-                        selectedIdsComentario.clear();
                         cargarRegistrosHoy();
                     },
                     error: function (xhr) {
@@ -547,7 +444,8 @@
     </script>
 
     <script>
-        // Definir globalmente la función
+        const comentariosSeleccionadosPorFila = {};
+
         function cargarRegistrosHoy() {
             $.ajax({
                 url: '{{ route("kanban.registrosHoy") }}',
@@ -556,26 +454,53 @@
                     let tbody = '';
 
                     data.forEach(function (item) {
+                        const id = item.id;
+                        const comentarios = item.comentarios ? item.comentarios.split(',') : [];
+
                         tbody += `
-                            <tr>
-                                <td>${item.fecha_almacen}</td>
+                            <tr data-id="${id}">
+                                <td>${item.fecha_almacen || ''}</td>
                                 <td>${item.op}</td>
                                 <td>${item.cliente}</td>
                                 <td>${item.estilo}</td>
-                                <td>${item.estatus}</td>
-                                <td>${item.comentarios}</td>
-                                <td>${item.fecha_parcial}</td>
-                                <td>${item.fecha_liberacion}</td>
                                 <td>
-                                    <button class="btn btn-danger btn-sm btn-eliminar" data-id="${item.id}">
-                                        Eliminar
-                                    </button>
+                                    <select class="form-control select-accion">
+                                        <option value="">Selecciona</option>
+                                        <option value="1" ${item.estatus == '1' ? 'selected' : ''}>Aceptado</option>
+                                        <option value="2" ${item.estatus == '2' ? 'selected' : ''}>Parcial</option>
+                                        <option value="3" ${item.estatus == '3' ? 'selected' : ''}>Rechazado</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select class="form-control select-comentario" id="selectComentario-${id}"></select>
+                                    <div class="selected-options-container mt-2" id="selectedContainer-${id}"></div>
+                                </td>
+                                <td>${item.fecha_parcial || ''}</td>
+                                <td>${item.fecha_liberacion || ''}</td>
+                                <td>
+                                    <button class="btn btn-success btn-sm btn-aplicar-cambios" data-id="${id}">Aplicar</button>
+                                </td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm btn-eliminar" data-id="${id}">Eliminar</button>
                                 </td>
                             </tr>
                         `;
                     });
 
                     $('#tabla-registros-hoy tbody').html(tbody);
+
+                    // Inicializar select2 y contenedores para cada fila
+                    data.forEach(item => {
+                        inicializarSelect2Comentarios(item.id);
+
+                        // Cargar comentarios ya existentes
+                        if (item.comentarios) {
+                            const lista = item.comentarios.split(',');
+                            lista.forEach(comentario => {
+                                agregarComentarioFila(item.id, comentario.trim());
+                            });
+                        }
+                    });
                 },
                 error: function (xhr) {
                     console.error(xhr.responseText);
@@ -584,6 +509,160 @@
             });
         }
 
+        function inicializarSelect2Comentarios(idFila) {
+            const select = $(`#selectComentario-${idFila}`);
+            const container = $(`#selectedContainer-${idFila}`);
+            comentariosSeleccionadosPorFila[idFila] = new Set();
+
+            select.select2({
+                placeholder: 'Selecciona un comentario',
+                templateResult: function (data) {
+                    if (data.id === 'crear_comentario') {
+                        return $('<span style="color: white; font-weight: bold;">' + data.text + '</span>');
+                    }
+                    return data.text;
+                },
+                ajax: {
+                    url: '{{ route("kanban.comentarios") }}',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return { q: params.term || '' };
+                    },
+                    processResults: function (data) {
+                        const results = data.map(c => ({ id: c.nombre, text: c.nombre }));
+                        results.unshift({ id: 'crear_comentario', text: 'Crear comentario' });
+                        return { results };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0
+            });
+
+            select.on('select2:select', function (e) {
+                const data = e.params.data;
+
+                if (data.id === 'crear_comentario') {
+                    select.val(null).trigger('change');
+
+                    const nuevoComentario = prompt('Escribe el nuevo comentario:');
+                    if (!nuevoComentario || nuevoComentario.trim() === '') {
+                        alert('Comentario no válido.');
+                        return;
+                    }
+
+                    $.ajax({
+                        url: '{{ route("kanban.comentario.crear") }}',
+                        method: 'POST',
+                        data: { nombre: nuevoComentario },
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        success: function (res) {
+                            const nombre = res.comentario.nombre;
+                            if (!comentariosSeleccionadosPorFila[idFila].has(nombre)) {
+                                agregarComentarioFila(idFila, nombre);
+                            }
+                            alert('Comentario creado correctamente');
+                        },
+                        error: function (xhr) {
+                            console.error(xhr.responseText);
+                            alert('Error al crear el comentario');
+                        }
+                    });
+
+                    return;
+                }
+
+                if (!comentariosSeleccionadosPorFila[idFila].has(data.id)) {
+                    agregarComentarioFila(idFila, data.id);
+                }
+
+                select.val(null).trigger('change');
+            });
+        }
+
+        function agregarComentarioFila(idFila, texto) {
+            const container = $(`#selectedContainer-${idFila}`);
+
+            const div = $(`
+                <div class="selected-option d-flex align-items-center justify-content-between border rounded p-2 mb-1" data-id="${texto}">
+                    <span class="option-text flex-grow-1 mx-2">${texto}</span>
+                    <button type="button" class="btn btn-danger btn-sm remove-option">Eliminar</button>
+                </div>
+            `);
+
+            div.find('.remove-option').on('click', function () {
+                div.remove();
+                comentariosSeleccionadosPorFila[idFila].delete(texto);
+            });
+
+            container.append(div);
+            comentariosSeleccionadosPorFila[idFila].add(texto);
+        }
+
+        $(document).ready(function () {
+            cargarRegistrosHoy();
+
+            // Eliminar registro
+            $('#tabla-registros-hoy').on('click', '.btn-eliminar', function () {
+                const id = $(this).data('id');
+
+                if (!confirm('¿Estás seguro de eliminar este registro?')) return;
+
+                $.ajax({
+                    url: '{{ route("kanban.eliminar") }}',
+                    method: 'POST',
+                    data: { id: id },
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    success: function (response) {
+                        alert(response.mensaje);
+                        cargarRegistrosHoy();
+                    },
+                    error: function (xhr) {
+                        console.error(xhr.responseText);
+                        alert('Error al eliminar el registro.');
+                    }
+                });
+            });
+
+            // Aplicar cambios
+            $('#tabla-registros-hoy').on('click', '.btn-aplicar-cambios', function () {
+                const fila = $(this).closest('tr');
+                const id = fila.data('id');
+                const accion = fila.find('.select-accion').val();
+
+                if (!accion) {
+                    alert('Selecciona una acción válida');
+                    return;
+                }
+
+                const comentarios = Array.from(comentariosSeleccionadosPorFila[id]);
+
+                $.ajax({
+                    url: '{{ route("kanban.actualizar") }}',
+                    method: 'POST',
+                    data: {
+                        id: id,
+                        accion: accion,
+                        comentarios: comentarios
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    success: function (res) {
+                        alert(res.mensaje);
+                        cargarRegistrosHoy();
+                    },
+                    error: function (xhr) {
+                        console.error(xhr.responseText);
+                        alert('Error al actualizar');
+                    }
+                });
+            });
+        });
         $(document).ready(function () {
             cargarRegistrosHoy(); // llamada inicial
 

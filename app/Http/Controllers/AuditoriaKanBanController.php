@@ -137,6 +137,8 @@ class AuditoriaKanBanController extends Controller
 
     public function actualizar(Request $request)
     {
+        Log::info('Datos recibidos: ' . json_encode($request->all()));
+
         $kanban = ReporteKanban::find($request->input('id'));
 
         if (!$kanban) {
@@ -147,23 +149,27 @@ class AuditoriaKanBanController extends Controller
         $kanban->estatus = $request->input('accion');
         $kanban->fecha_liberacion = null;
         $kanban->fecha_parcial = null;
+        $kanban->fecha_rechazo = null;
 
         if ($kanban->estatus == '1') {
             $kanban->fecha_liberacion = now();
         } elseif ($kanban->estatus == '2') {
             $kanban->fecha_parcial = now();
+        } elseif ($kanban->estatus == '3') {
+            $kanban->fecha_rechazo = now();
         }
 
         $kanban->save();
 
-        // Comentarios: eliminar los anteriores y agregar nuevos
-        ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)->delete();
-        $comentarios = $request->input('comentarios', []);
-        foreach ($comentarios as $comentario) {
-            ReporteKanbanComentario::create([
-                'reporte_kanban_id' => $kanban->id,
-                'nombre' => $comentario,
-            ]);
+        $comentarios = $request->input('comentarios');
+
+        if (is_array($comentarios) && count($comentarios)) {
+            foreach ($comentarios as $comentario) {
+                $comentarioKanban = new ReporteKanbanComentario();
+                $comentarioKanban->reporte_kanban_id = $kanban->id;
+                $comentarioKanban->nombre = $comentario;
+                $comentarioKanban->save();
+            }
         }
 
         return response()->json(['mensaje' => 'Registro actualizado correctamente']);
