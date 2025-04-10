@@ -212,35 +212,30 @@ class AuditoriaKanBanController extends Controller
 
         $data = $registros->map(function ($registro) {
             return [
-                'fecha_almacen' => $registro->fecha_almacen ? Carbon::parse($registro->fecha_almacen)->format('Y-m-d H:i') : 'N/A',
-                'op' => $registro->op ?? 'N/A',
-                'cliente' => $registro->cliente ?? 'N/A',
-                'estilo' => $registro->estilo ?? 'N/A',
-                'estatus' => $this->obtenerNombreEstatus($registro->estatus),
-                'comentarios' => $registro->comentarios->isNotEmpty()
-                    ? '<ul class="mb-0 pl-3">' . $registro->comentarios->pluck('nombre')->map(fn($c) => "<li>$c</li>")->implode('') . '</ul>'
-                    : 'N/A',
-                'fecha_parcial' => $registro->fecha_parcial  
-                    ? Carbon::parse($registro->fecha_parcial)->format('Y-m-d H:i') 
-                    : 'N/A',
+                'fecha_almacen'    => $registro->fecha_almacen 
+                                        ? Carbon::parse($registro->fecha_almacen)->format('Y-m-d H:i') 
+                                        : 'N/A',
+                'op'               => $registro->op ?? 'N/A',
+                'cliente'          => $registro->cliente ?? 'N/A',
+                'estilo'           => $registro->estilo ?? 'N/A',
+                // Retornamos el valor real de estatus (1,2,3) o vacío para que el select muestre "Selecciona"
+                'estatus'          => $registro->estatus ?? '',
+                // Retornamos los comentarios como cadena separada por coma  
+                'comentarios'      => $registro->comentarios->pluck('nombre')->implode(','),
+                'fecha_parcial'    => $registro->fecha_parcial 
+                                        ? Carbon::parse($registro->fecha_parcial)->format('Y-m-d H:i') 
+                                        : 'N/A',
                 'fecha_liberacion' => $registro->fecha_liberacion 
-                    ? Carbon::parse($registro->fecha_liberacion)->format('Y-m-d H:i') 
-                    : 'N/A',
-                'id' => $registro->id
+                                        ? Carbon::parse($registro->fecha_liberacion)->format('Y-m-d H:i') 
+                                        : 'N/A',
+                'fecha_rechazo' => $registro->fecha_rechazo 
+                                        ? Carbon::parse($registro->fecha_rechazo)->format('Y-m-d H:i') 
+                                        : 'N/A',
+                'id'               => $registro->id,
             ];
         });
 
         return response()->json($data);
-    }
-
-    private function obtenerNombreEstatus($codigo)
-    {
-        return match($codigo) {
-            1 => 'Aceptado',
-            2 => 'Parcial',
-            3 => 'Rechazado',
-            default => 'N/A',
-        };
     }
 
     public function eliminar(Request $request)

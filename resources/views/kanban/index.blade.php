@@ -166,9 +166,10 @@
                                     <th>ESTILO</th>
                                     <th>ESTATUS</th>
                                     <th>COMENTARIOS</th>
-                                    <th>FECHA DE PARCIAL</th>
+                                    <th>ACTUALIZAR</th>
                                     <th>FECHA DE LIBERACION</th>
-                                    <th>Actualizar</th>
+                                    <th>FECHA DE PARCIAL</th>
+                                    <th>FECHA DE RECHAZADO</th>
                                     <th>Eliminar</th>
                                 </tr>
                             </thead>
@@ -188,28 +189,24 @@
         }
 
         .tabla-kanban tbody td:nth-child(2) {
-            min-width: 100px; /* Fecha Corte */
+            min-width: 100px; /* planta */
         }
-    
+
         .tabla-kanban tbody td:nth-child(3) {
-            min-width: 150px; /* Cliente */
+            min-width: 190px; /* Fecha Corte */
         }
     
         .tabla-kanban tbody td:nth-child(4) {
-            min-width: 100px; /* Estilo */
+            min-width: 150px; /* Cliente */
         }
     
         .tabla-kanban tbody td:nth-child(5) {
-            min-width: 70px; /* Piezas */
-            text-align: center;
+            min-width: 100px; /* Estilo */
         }
     
         .tabla-kanban tbody td:nth-child(6) {
-            min-width: 120px; /* Acción */
-        }
-    
-        .tabla-kanban tbody td:nth-child(7) {
-            min-width: 160px; /* Comentario */
+            min-width: 70px; /* Piezas */
+            text-align: center;
         }
     </style>
     <style>
@@ -455,6 +452,8 @@
 
                     data.forEach(function (item) {
                         const id = item.id;
+                        // Si existen comentarios se crea un array a partir de la cadena,
+                        // de lo contrario se usa un array vacío
                         const comentarios = item.comentarios ? item.comentarios.split(',') : [];
 
                         tbody += `
@@ -475,11 +474,12 @@
                                     <select class="form-control select-comentario" id="selectComentario-${id}"></select>
                                     <div class="selected-options-container mt-2" id="selectedContainer-${id}"></div>
                                 </td>
-                                <td>${item.fecha_parcial || ''}</td>
-                                <td>${item.fecha_liberacion || ''}</td>
                                 <td>
                                     <button class="btn btn-success btn-sm btn-aplicar-cambios" data-id="${id}">Aplicar</button>
                                 </td>
+                                <td>${item.fecha_liberacion || ''}</td>
+                                <td>${item.fecha_parcial || ''}</td>
+                                <td>${item.fecha_rechazo || ''}</td>
                                 <td>
                                     <button class="btn btn-danger btn-sm btn-eliminar" data-id="${id}">Eliminar</button>
                                 </td>
@@ -489,22 +489,24 @@
 
                     $('#tabla-registros-hoy tbody').html(tbody);
 
-                    // Inicializar select2 y contenedores para cada fila
+                    // Inicializar select2 y cargar los comentarios existentes por cada fila
                     data.forEach(item => {
                         inicializarSelect2Comentarios(item.id);
 
-                        // Cargar comentarios ya existentes
+                        // Si existen comentarios, se separan y se agregan al contenedor de la fila
                         if (item.comentarios) {
                             const lista = item.comentarios.split(',');
                             lista.forEach(comentario => {
-                                agregarComentarioFila(item.id, comentario.trim());
+                                if (comentario.trim() !== '') {
+                                    agregarComentarioFila(item.id, comentario.trim());
+                                }
                             });
                         }
                     });
                 },
                 error: function (xhr) {
                     console.error(xhr.responseText);
-                    $('#tabla-registros-hoy tbody').html('<tr><td colspan="9" class="text-center text-danger">Error al cargar los registros.</td></tr>');
+                    $('#tabla-registros-hoy tbody').html('<tr><td colspan="10" class="text-center text-danger">Error al cargar los registros.</td></tr>');
                 }
             });
         }
@@ -584,7 +586,6 @@
 
         function agregarComentarioFila(idFila, texto) {
             const container = $(`#selectedContainer-${idFila}`);
-
             const div = $(`
                 <div class="selected-option d-flex align-items-center justify-content-between border rounded p-2 mb-1" data-id="${texto}">
                     <span class="option-text flex-grow-1 mx-2">${texto}</span>
@@ -604,7 +605,7 @@
         $(document).ready(function () {
             cargarRegistrosHoy();
 
-            // Eliminar registro
+            // Evento para eliminar registro
             $('#tabla-registros-hoy').on('click', '.btn-eliminar', function () {
                 const id = $(this).data('id');
 
@@ -628,7 +629,7 @@
                 });
             });
 
-            // Aplicar cambios
+            // Evento para aplicar cambios: actualiza el select de estatus y los comentarios (tomados del div)
             $('#tabla-registros-hoy').on('click', '.btn-aplicar-cambios', function () {
                 const fila = $(this).closest('tr');
                 const id = fila.data('id');
