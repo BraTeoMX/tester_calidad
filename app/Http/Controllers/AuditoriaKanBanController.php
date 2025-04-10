@@ -137,7 +137,7 @@ class AuditoriaKanBanController extends Controller
 
     public function actualizar(Request $request)
     {
-        Log::info('Datos recibidos: ' . json_encode($request->all()));
+        //Log::info('Datos recibidos: ' . json_encode($request->all()));
 
         $kanban = ReporteKanban::find($request->input('id'));
 
@@ -145,11 +145,11 @@ class AuditoriaKanBanController extends Controller
             return response()->json(['mensaje' => 'Registro no encontrado.'], 404);
         }
 
-        // Actualizar campos
+        // Actualizar campos del registro principal
         $kanban->estatus = $request->input('accion');
         $kanban->fecha_liberacion = null;
-        $kanban->fecha_parcial = null;
-        $kanban->fecha_rechazo = null;
+        $kanban->fecha_parcial   = null;
+        $kanban->fecha_rechazo   = null;
 
         if ($kanban->estatus == '1') {
             $kanban->fecha_liberacion = now();
@@ -161,15 +161,32 @@ class AuditoriaKanBanController extends Controller
 
         $kanban->save();
 
-        $comentarios = $request->input('comentarios');
+        // Manejo de comentarios de forma flexible
+        // Se espera que $comentariosNuevos sea un array enviado desde el AJAX (por ejemplo, ["coment1", "coment2"])
+        $comentariosNuevos = $request->input('comentarios', []);
 
-        if (is_array($comentarios) && count($comentarios)) {
-            foreach ($comentarios as $comentario) {
-                $comentarioKanban = new ReporteKanbanComentario();
-                $comentarioKanban->reporte_kanban_id = $kanban->id;
-                $comentarioKanban->nombre = $comentario;
-                $comentarioKanban->save();
-            }
+        // Obtener los comentarios existentes en la base para este registro (sólo los nombres)
+        $comentariosExistentes = ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)
+                                    ->pluck('nombre')
+                                    ->toArray();
+
+        // Determinar cuáles comentarios se deben eliminar:
+        // Es decir, aquellos que existen en la base y NO están en la lista enviada.
+        $paraEliminar = array_diff($comentariosExistentes, $comentariosNuevos);
+        if (!empty($paraEliminar)) {
+            ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)
+                ->whereIn('nombre', $paraEliminar)
+                ->delete();
+        }
+
+        // Determinar cuáles comentarios se deben agregar:
+        // Aquellos que están en la lista enviada y NO existen en la base.
+        $paraAgregar = array_diff($comentariosNuevos, $comentariosExistentes);
+        foreach ($paraAgregar as $comentario) {
+            $comentarioKanban = new ReporteKanbanComentario();
+            $comentarioKanban->reporte_kanban_id = $kanban->id;
+            $comentarioKanban->nombre = $comentario;
+            $comentarioKanban->save();
         }
 
         return response()->json(['mensaje' => 'Registro actualizado correctamente']);
