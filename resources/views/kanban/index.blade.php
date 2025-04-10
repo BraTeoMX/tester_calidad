@@ -157,7 +157,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table id="tabla-registros-hoy" class="table">
+                        <table id="tabla-registros-hoy" class="table tabla-amp">
                             <thead class="thead-primary">
                                 <tr>
                                     <th>FECHA DE CORTE</th>
@@ -207,7 +207,15 @@
     
         .tabla-kanban tbody td:nth-child(6) {
             min-width: 70px; /* Piezas */
-            text-align: center;
+        }
+
+    
+        .tabla-amp tbody td:nth-child(6) {
+            min-width: 100px; /* Cliente */
+        }
+
+        .tabla-amp tbody td:nth-child(7) {
+            min-width: 200px; /* Piezas */
         }
     </style>
     <style>
@@ -519,6 +527,7 @@
             comentariosSeleccionadosPorFila[idFila] = new Set();
 
             select.select2({
+                width: '100%', 
                 placeholder: 'Selecciona un comentario',
                 templateResult: function (data) {
                     if (data.id === 'crear_comentario') {
