@@ -123,10 +123,11 @@ class AuditoriaKanBanController extends Controller
 
         // Crear instancia de ReporteKanban
         $kanban = new ReporteKanban();
+        $kanban->fecha_corte = $request->input('fecha');
+        $kanban->fecha_almacen = now();
         $kanban->op = $request->input('op');
         $kanban->cliente = $request->input('cliente');
         $kanban->estilo = $request->input('estilo');
-        $kanban->fecha_corte = $request->input('fecha');
         $kanban->piezas = $request->input('piezas_total');
         $kanban->planta = $request->input('accion');
 
@@ -229,6 +230,9 @@ class AuditoriaKanBanController extends Controller
 
         $data = $registros->map(function ($registro) {
             return [
+                'fecha_corte'    => $registro->fecha_corte 
+                                        ? Carbon::parse($registro->fecha_corte)->format('Y-m-d H:i') 
+                                        : 'N/A',
                 'fecha_almacen'    => $registro->fecha_almacen 
                                         ? Carbon::parse($registro->fecha_almacen)->format('Y-m-d H:i') 
                                         : 'N/A',
