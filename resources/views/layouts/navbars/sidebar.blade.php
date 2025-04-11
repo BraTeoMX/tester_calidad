@@ -48,12 +48,12 @@
                         <p>{{ __('Comparativo Clientes') }}</p>
                     </a>
                 </li>
-                <li class="nav-item{{ $pageSlug == 'busquedaOP' ? ' active' : '' }}">
+                {{--<li class="nav-item{{ $pageSlug == 'busquedaOP' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('busqueda_OP.index') }}">
                         <i class="material-symbols-outlined">action_key</i>
                         <p>{{ __('Buscar Por OP') }}</p>
                     </a>
-                </li>
+                </li> --}}
             @endif
 
             @if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Gerente de Calidad')))
@@ -130,6 +130,12 @@
                                     <p style="text-align: center;">{{ __('AUDITORIA FINAL A.Q.L') }}</p>
                                 </a>
                             </li>
+                            <li class="nav-item{{ $pageSlug == 'consulta_corte_final' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('auditoriaCorte.index') }}">
+                                    <i class="material-icons">edit_document</i>
+                                    <p>{{ __('Consulta Corte Final') }}</p>
+                                </a>
+                            </li>
                         @endif
                         @if (auth()->check() &&
                                 (auth()->user()->hasRole('Auditor') ||
@@ -172,6 +178,12 @@
                                     <i class="material-icons">edit_document</i>
                                     <p>{{ __('FCC-009-B') }}</p>
                                     <p style="text-align: center;">{{ __('AUDITORIA FINAL A.Q.L') }}</p>
+                                </a>
+                            </li>
+                            <li class="nav-item{{ $pageSlug == 'consulta_corte_final' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('auditoriaCorte.index') }}">
+                                    <i class="material-icons">edit_document</i>
+                                    <p>{{ __('Consulta Corte Final') }}</p>
                                 </a>
                             </li>
                         @endif

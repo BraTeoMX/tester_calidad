@@ -117,7 +117,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // actualizacion para corte
     Route::post('/formEncabezadoAuditoriaCorteV2', [AuditoriaCorteController::class, 'formEncabezadoAuditoriaCorteV2'])->name('auditoriaCorte.formEncabezadoAuditoriaCorteV2')->middleware('checkroleandplant1');
-    Route::get('/auditoriaCorteV2/{id}/{orden}', [AuditoriaCorteController::class, 'auditoriaCorteV2'])->name('auditoriaCorte.auditoriaCorteV2')->middleware('checkroleandplant1');
+    Route::get('/auditoriaCorteV2/{id}/{orden}', [AuditoriaCorteController::class, 'auditoriaCorteV2'])->name('auditoriaCorte.auditoriaCorteV2');
     Route::post('/agregarEventoCorteV2', [AuditoriaCorteController::class, 'agregarEventoCorteV2'])->name('auditoriaCorte.agregarEventoCorteV2')->middleware('checkroleandplant1');
     Route::post('/formAuditoriaMarcadaV2', [AuditoriaCorteController::class, 'formAuditoriaMarcadaV2'])->name('auditoriaCorte.formAuditoriaMarcadaV2');
     Route::post('/formAuditoriaTendidoV2', [AuditoriaCorteController::class, 'formAuditoriaTendidoV2'])->name('auditoriaCorte.formAuditoriaTendidoV2');
@@ -130,6 +130,7 @@ Route::group(['middleware' => 'auth'], function () {
     // Rutas para búsqueda AJAX en el acordeón “FINAL”
     Route::get('/auditoria-corte/search-final', [AuditoriaCorteController::class, 'searchFinal'])->name('auditoriaCorte.searchFinal');
     Route::get('/auditoria-corte/vista-final', [CorteFinalController::class, 'index'])->name('auditoriaCorte.index');
+    Route::get('/auditoria-corte/reporte', [CorteFinalController::class, 'reporte'])->name('auditoriaCorte.reporte');
 
     //fin aprtado Auditoria Corte
 

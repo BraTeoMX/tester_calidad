@@ -27,8 +27,18 @@ class CorteFinalController extends Controller
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
 
-
-
         return view('auditoriaCorte.index', compact('mesesEnEspanol', 'pageSlug'));
     }
+
+    public function reporte(Request $request) 
+    {
+        $pageSlug ='';
+        $fechaActual = Carbon::now()->toDateString();
+        $mesesEnEspanol = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+
+        return view('auditoriaCorte.reporte', compact('mesesEnEspanol', 'pageSlug'));
+    }
+
 }

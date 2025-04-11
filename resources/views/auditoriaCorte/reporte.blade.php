@@ -70,7 +70,7 @@
                 <div class="card-header card-header-primary">
                     <div class="row align-items-center justify-content-between">
                         <div class="col">
-                            <h3 class="card-title">AUDITORIA CORTE - FINAL</h3>
+                            <h3 class="card-title">REPORTE CORTE</h3>
                         </div>
                         <div class="col-auto">
                             <h4>Fecha:
@@ -81,71 +81,7 @@
                 </div>
                 <hr>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            {{-- Acordeón FINAL --}}
-                            <div class="accordion" id="accordionExampleFinal">
-                                <div class="card">
-                                    <div class="card-header" id="headingFinalOne">
-                                        <h2 class="mb-0">
-                                            <button class="btn btn-info btn-block" type="button"
-                                                data-toggle="collapse" data-target="#collapseFinalOne" aria-expanded="true"
-                                                aria-controls="collapseFinalOne">
-                                                ESTATUS: FINAL
-                                            </button>
-                                        </h2>
-                                    </div>
-                        
-                                    <div id="collapseFinalOne" class="collapse show" aria-labelledby="headingFinalOne"
-                                        data-parent="#accordionExampleFinal">
-                                        <div class="card-body">
-                                            <!-- Campo de búsqueda y botón -->
-                                            <div class="form-inline">
-                                                <input type="text" id="searchInputAcordeonFinal" class="form-control mr-2"
-                                                    placeholder="Buscar por Orden finalizada">
-                                                <button id="btnBuscarFinal" class="btn btn-primary">Buscar</button>
-                                            </div>
-                                            
-                        
-                                            <!-- Contenedor que se actualizará vía AJAX -->
-                                            <div class="accordion" id="accordionExampleFinalSub">
-                                                <div id="contentFinal">
-                                                    <p>Cargando datos...</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <script>
-                                            document.addEventListener("DOMContentLoaded", function() {
-                                                // Carga inicial para FINAL: sin búsqueda se muestran los registros del día
-                                                buscarFinal('');
-                                                
-                                                // Al hacer clic en el botón se ejecuta la búsqueda
-                                                document.getElementById('btnBuscarFinal').addEventListener('click', function() {
-                                                    const busqueda = document.getElementById('searchInputAcordeonFinal').value.trim();
-                                                    buscarFinal(busqueda);
-                                                });
-                                            });
-                        
-                                            function buscarFinal(busqueda) {
-                                                $.ajax({
-                                                    url: '{{ route("auditoriaCorte.searchFinal") }}',
-                                                    method: 'GET',
-                                                    data: { search: busqueda },
-                                                    success: function(response) {
-                                                        $('#contentFinal').html(response.html);
-                                                    },
-                                                    error: function() {
-                                                        console.error('Error en la búsqueda de FINAL');
-                                                    }
-                                                });
-                                            }
-                                        </script>
-                                    </div>
-                                </div>
-                                <!-- Fin del acordeón -->
-                            </div>
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
         </div>
