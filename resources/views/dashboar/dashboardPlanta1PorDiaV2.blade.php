@@ -597,9 +597,19 @@
                         alert(data.error);
                         return;
                     }
-                    let tablaBody = document.getElementById(tablaBodyId);
-                    tablaBody.innerHTML = ""; // Limpiar contenido previo
-                    let registros = data[dataKey];
+                    const tablaBody = document.getElementById(tablaBodyId);
+                    const tableElement = tablaBody.closest("table");
+                    const tableId = "#" + tableElement.id;
+
+                    // 🔁 Destruir DataTable antes de modificar la tabla
+                    if ($.fn.DataTable.isDataTable(tableId)) {
+                        $(tableId).DataTable().destroy();
+                    }
+
+                    // 🔄 Limpiar contenido previo de la tabla
+                    tablaBody.innerHTML = "";
+
+                    const registros = data[dataKey];
                     if (registros && registros.length > 0) {
                         registros.forEach(item => {
                             // Para AQL y AQL TE se asume una estructura similar;
