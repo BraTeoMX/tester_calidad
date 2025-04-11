@@ -597,23 +597,22 @@
                         alert(data.error);
                         return;
                     }
-                    const tablaBody = document.getElementById(tablaBodyId);
+
+                    let tablaBody = document.getElementById(tablaBodyId);
                     const tableElement = tablaBody.closest("table");
                     const tableId = "#" + tableElement.id;
 
-                    // 🔁 Destruir DataTable antes de modificar la tabla
+                    // ✅ Destruir DataTable anterior si ya existe antes de limpiar contenido
                     if ($.fn.DataTable.isDataTable(tableId)) {
                         $(tableId).DataTable().destroy();
                     }
 
-                    // 🔄 Limpiar contenido previo de la tabla
+                    // ✅ Limpiar contenido previo de la tabla
                     tablaBody.innerHTML = "";
 
-                    const registros = data[dataKey];
+                    let registros = data[dataKey];
                     if (registros && registros.length > 0) {
                         registros.forEach(item => {
-                            // Para AQL y AQL TE se asume una estructura similar;
-                            // si fuera necesario, se puede condicionar según dataKey o URL
                             let row = `<tr>
                                 <td>${item.auditoresUnicos}</td>
                                 <td>
@@ -644,14 +643,6 @@
                             </tr>`;
                             tablaBody.innerHTML += row;
                         });
-                        // ✅ REINICIAR Y REAPLICAR DATATABLE
-                        const tableElement = document.getElementById(tablaBodyId).closest("table");
-                        const tableId = "#" + tableElement.id;
-
-                        // Destruir DataTable anterior si ya existe
-                        if ($.fn.DataTable.isDataTable(tableId)) {
-                            $(tableId).DataTable().destroy();
-                        }
 
                         // Esperar un pequeño delay para asegurarse de que DOM ya tiene las filas
                         setTimeout(() => {
@@ -762,8 +753,19 @@
                         alert(data.error);
                         return;
                     }
+
                     let tablaBody = document.getElementById(tablaBodyId);
-                    tablaBody.innerHTML = ""; // Limpiar contenido previo
+                    const tableElement = tablaBody.closest("table");
+                    const tableId = "#" + tableElement.id;
+
+                    // ✅ Destruir DataTable antes de limpiar contenido
+                    if ($.fn.DataTable.isDataTable(tableId)) {
+                        $(tableId).DataTable().destroy();
+                    }
+
+                    // ✅ Limpiar contenido previo
+                    tablaBody.innerHTML = "";
+
                     let registros = data[dataKey];
                     if (registros && registros.length > 0) {
                         registros.forEach(item => {

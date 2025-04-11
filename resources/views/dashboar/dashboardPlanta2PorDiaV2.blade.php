@@ -597,8 +597,19 @@
                         alert(data.error);
                         return;
                     }
+
                     let tablaBody = document.getElementById(tablaBodyId);
-                    tablaBody.innerHTML = ""; // Limpiar contenido previo
+                    const tableElement = tablaBody.closest("table");
+                    const tableId = "#" + tableElement.id;
+
+                    // ✅ Destruir DataTable anterior si ya existe antes de limpiar contenido
+                    if ($.fn.DataTable.isDataTable(tableId)) {
+                        $(tableId).DataTable().destroy();
+                    }
+
+                    // ✅ Limpiar contenido previo de la tabla
+                    tablaBody.innerHTML = "";
+
                     let registros = data[dataKey];
                     if (registros && registros.length > 0) {
                         registros.forEach(item => {
@@ -752,8 +763,19 @@
                         alert(data.error);
                         return;
                     }
+
                     let tablaBody = document.getElementById(tablaBodyId);
-                    tablaBody.innerHTML = ""; // Limpiar contenido previo
+                    const tableElement = tablaBody.closest("table");
+                    const tableId = "#" + tableElement.id;
+
+                    // ✅ Destruir DataTable antes de limpiar contenido
+                    if ($.fn.DataTable.isDataTable(tableId)) {
+                        $(tableId).DataTable().destroy();
+                    }
+
+                    // ✅ Limpiar contenido previo
+                    tablaBody.innerHTML = "";
+
                     let registros = data[dataKey];
                     if (registros && registros.length > 0) {
                         registros.forEach(item => {
