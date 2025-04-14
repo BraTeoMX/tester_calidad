@@ -511,6 +511,8 @@ Route::group(['middleware' => 'auth'], function () {
 
     //Seccion bultos no finalizados
     Route::get('/bnf', [BultosNoFinalizadosController::class, 'index'])->name('bnf.index');
+    Route::get('/bnf/bultos-no-finalizados-general', [BultosNoFinalizadosController::class, 'bultosNoFinalizadosGeneral']);
+    Route::post('/bnf/finalizar-paro-aql-despues', [BultosNoFinalizadosController::class, 'finalizarParoAQLgeneral']);
 
 
 });

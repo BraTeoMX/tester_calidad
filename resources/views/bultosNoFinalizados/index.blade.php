@@ -14,7 +14,10 @@
     <div class="row">
         <div class="col-md-6">
             <div class="card card-body">
-                <h3>AQL</h3>
+                <h3>Bultos No Finalizados (Últimos 7 días)</h3>
+                <div id="bultos-container-general">
+                    <p class="text-muted">Cargando datos de los últimos 7 días...</p>
+                </div>
             </div>
         </div>
         <div class="col-md-6">
@@ -177,5 +180,102 @@
     <script src="{{ asset('dataTable/js/jszip.min.js') }}"></script>
     <script src="{{ asset('dataTable/js/buttons.html5.min.js') }}"></script>
     
+    <script>
+        $(document).ready(function () {
+            // Al cargar la vista, ejecutamos directamente la llamada
+            $.ajax({
+                url: '/bnf/bultos-no-finalizados-general',
+                method: 'GET',
+                beforeSend: function () {
+                    $('#bultos-container-general').html(`
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2">Cargando datos...</p>
+                        </div>
+                    `);
+                },
+                success: function (response) {
+                    if (response.length > 0) {
+                        let contenido = `
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="thead-primary">
+                                        <tr>
+                                            <th>Bulto</th>
+                                            <th>Estilo</th>
+                                            <th>Módulo</th>
+                                            <th>Inicio Paro</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                        `;
+                        response.forEach(item => {
+                            contenido += `
+                                <tr>
+                                    <td>${item.bulto}</td>
+                                    <td>${item.estilo}</td>
+                                    <td>${item.modulo}</td>
+                                    <td>${item.inicio_paro}</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm finalizar-paro" data-id="${item.id}">
+                                            Finalizar Paro Pendiente
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        contenido += '</tbody></table></div>';
+                        $('#bultos-container-general').html(contenido);
+                    } else {
+                        $('#bultos-container-general').html('<p class="text-warning text-center">No se encontraron bultos no finalizados en los últimos 7 días.</p>');
+                    }
+                },
+                error: function () {
+                    $('#bultos-container-general').html('<p class="text-danger text-center">Error al cargar los datos.</p>');
+                }
+            });
+        
+            // Reutilizamos el mismo evento para finalizar paros
+            $(document).on('click', '.finalizar-paro', function () {
+                let id = $(this).data('id');
+                let piezasReparadas = prompt("Ingresa el número de piezas reparadas:", "0");
+                if (piezasReparadas === null) return;
+        
+                if (confirm("¿Estás seguro de que deseas finalizar este paro?")) {
+                    const spinnerHtml = `
+                        <div id="processing-spinner" class="position-fixed top-0 start-50 translate-middle-x mt-3 p-2 bg-dark text-white rounded shadow" style="z-index: 1050;">
+                            <div class="spinner-border spinner-border-sm text-light" role="status"></div>
+                            Procesando solicitud...
+                        </div>`;
+                    $('body').append(spinnerHtml);
+        
+                    $.ajax({
+                        url: '/bnf/finalizar-paro-aql-despues',
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        data: {
+                            id: id,
+                            piezasReparadas: piezasReparadas
+                        },
+                        success: function (response) {
+                            $('#processing-spinner').remove();
+        
+                            if (response.success) {
+                                alert(`✅ Paro finalizado correctamente.\nMinutos Paro: ${response.minutos_paro}\nPiezas Reparadas: ${response.reparacion_rechazo}`);
+                                location.reload(); // Para recargar la lista actualizada
+                            } else {
+                                alert(`❌ Error: ${response.message}`);
+                            }
+                        },
+                        error: function () {
+                            $('#processing-spinner').remove();
+                            alert("⚠️ Ocurrió un error al intentar finalizar el paro.");
+                        }
+                    });
+                }
+            });
+        });
+    </script>
     
 @endsection
