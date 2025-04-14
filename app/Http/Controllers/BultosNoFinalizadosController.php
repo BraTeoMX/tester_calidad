@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\AuditoriaAQL;
 use App\Models\AseguramientoCalidad;
+use App\Models\ResponsableParo;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -187,5 +188,41 @@ class BultosNoFinalizadosController extends Controller
         }
     }
 
+    public function editarParoAQLManual(Request $request)
+    {
+        try {
+            Log::info('Editar Paro AQL Manual', ['request' => $request->all()]);
+            $registro = AuditoriaAQL::findOrFail($request->id);
+
+            // Actualizar datos
+            $registro->fin_paro = Carbon::now(); // Se registra la fecha real de finalización
+            $registro->minutos_paro = $request->minutosParo;
+            $registro->reparacion_rechazo = $request->piezasReparadas;
+            $registro->save();
+
+            // Registrar trazabilidad en tabla "responsables_paro"
+            ResponsableParo::create([
+                'auditoria_aql_id' => $registro->id,
+                'nombre' => Auth::user()->name,
+                'razon_ajuste' => $request->razonAjuste
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Paro editado y registrado correctamente.',
+                'minutos_paro' => $registro->minutos_paro
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar el ajuste: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function editarParoProcesoManual(Request $request)
+    {
+        // Similar a lo anterior pero con AseguramientoCalidad
+    }
 
 }

@@ -168,20 +168,6 @@
     </style>
 
     <!-- JavaScript -->
-    <!-- DataTables CSS desde carpeta local -->
-    <link rel="stylesheet" href="{{ asset('dataTable/css/dataTables.bootstrap5.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('dataTable/css/buttons.bootstrap5.min.css') }}">
-
-    <!-- jQuery y DataTables desde local -->
-    <script src="{{ asset('dataTable/js/jquery-3.6.0.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/dataTables.bootstrap5.min.js') }}"></script>
-
-    <!-- Botones para exportar -->
-    <script src="{{ asset('dataTable/js/dataTables.buttons.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/buttons.bootstrap5.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/jszip.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/buttons.html5.min.js') }}"></script>
     
     <script>
         $(document).ready(function () {
@@ -223,6 +209,9 @@
                                     <td>
                                         <button class="btn btn-danger btn-sm finalizar-paro" data-id="${item.id}">
                                             Finalizar Paro Pendiente
+                                        </button>
+                                        <button class="btn btn-warning btn-sm editar-paro-aql" data-id="${item.id}">
+                                            Editar Finalización Paro Bulto
                                         </button>
                                     </td>
                                 </tr>
@@ -280,6 +269,67 @@
             });
         });
     </script>
+    <script>
+        $(document).on('click', '.editar-paro-aql', function () {
+            const id = $(this).data('id');
+
+            const minutosParo = prompt("Ingresa los minutos del paro:");
+            if (minutosParo === null || minutosParo.trim() === "") {
+                alert("⚠️ Minutos del paro es obligatorio.");
+                return;
+            }
+
+            const piezasReparadas = prompt("Ingresa el número de piezas reparadas:");
+            if (piezasReparadas === null || piezasReparadas.trim() === "") {
+                alert("⚠️ Las piezas reparadas son obligatorias.");
+                return;
+            }
+
+            const razonAjuste = prompt("Escribe la razón del ajuste:");
+            if (razonAjuste === null || razonAjuste.trim() === "") {
+                alert("⚠️ La razón del ajuste es obligatoria.");
+                return;
+            }
+
+            if (!confirm("¿Estás seguro de guardar este ajuste manual?")) {
+                return;
+            }
+
+            // Spinner temporal
+            const spinnerHtml = `
+                <div id="processing-spinner" class="position-fixed top-0 start-50 translate-middle-x mt-3 p-2 bg-dark text-white rounded shadow" style="z-index: 1050;">
+                    <div class="spinner-border spinner-border-sm text-light" role="status"></div>
+                    Procesando solicitud...
+                </div>`;
+            $('body').append(spinnerHtml);
+
+            $.ajax({
+                url: '/bnf/editar-paro-aql',
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                data: {
+                    id: id,
+                    minutosParo: minutosParo,
+                    piezasReparadas: piezasReparadas,
+                    razonAjuste: razonAjuste
+                },
+                success: function (response) {
+                    $('#processing-spinner').remove();
+                    if (response.success) {
+                        alert("✅ Ajuste registrado correctamente: " + response.message);
+                        location.reload();
+                    } else {
+                        alert("❌ Error: " + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    $('#processing-spinner').remove();
+                    console.error("❌ Error AJAX:", status, error);
+                    alert("⚠️ Ocurrió un problema al guardar el ajuste.");
+                }
+            });
+        });
+    </script>
 
     <script>
         $(document).ready(function () {
@@ -320,6 +370,9 @@
                                     <td>
                                         <button class="btn btn-danger btn-sm finalizar-paro-proceso" data-id="${item.id}">
                                             Finalizar Paro Pendiente
+                                        </button>
+                                        <button class="btn btn-warning btn-sm editar-paro-proceso" data-id="${item.id}">
+                                            Editar Finalización Paro
                                         </button>
                                     </td>
                                 </tr>

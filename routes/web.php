@@ -515,6 +515,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/bnf/finalizar-paro-aql-despues', [BultosNoFinalizadosController::class, 'finalizarParoAQLgeneral']);
     Route::get('/bnf/paros-no-finalizados-general', [BultosNoFinalizadosController::class, 'parosNoFinalizadosGeneral']);
     Route::post('/bnf/finalizar-paro-proceso-despues', [BultosNoFinalizadosController::class, 'finalizarParoProcesodespues']);
+    Route::post('/bnf/editar-paro-aql', [BultosNoFinalizadosController::class, 'editarParoAQLManual']);
+    Route::post('/bnf/editar-paro-proceso', [BultosNoFinalizadosController::class, 'editarParoProcesoManual']);
+
 
 
 
