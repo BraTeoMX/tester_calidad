@@ -5,7 +5,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
-                    <h2 class="card-title" style="text-align: center; font-weight: bold;">Bultos no finalizados</h2>
+                    <h2 class="card-title" style="text-align: center; font-weight: bold;">Paros AQL y Proceso no finalizados</h2>
                 </div>
             </div>
         </div>
@@ -48,8 +48,24 @@
             <button id="btnGuardarAjuste">Guardar Ajuste</button>
             <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
         </div>
-    </div>    
-    
+    </div>
+    <!-- Modal personalizado para "Editar Finalización Paro Proceso" -->
+    <div id="modalParoProceso" class="modal-personalizado-overlay">
+        <div class="modal-personalizado-content">
+            <button class="modal-personalizado-close" onclick="cerrarModalProceso()">cerrar</button>
+            <h5>Editar Finalización de Paro</h5>
+            <input type="hidden" id="paroProcesoId">
+
+            <label for="minutosParoProceso">⏱ Minutos del paro:</label>
+            <input type="number" id="minutosParoProceso" placeholder="Ej. 45">
+
+            <label for="razonAjusteProceso">📝 Razón del ajuste:</label>
+            <textarea id="razonAjusteProceso" rows="3" placeholder="Describa el motivo..."></textarea>
+
+            <button id="btnGuardarAjusteProceso">Guardar Ajuste</button>
+            <button class="btn-cancelar" onclick="cerrarModalProceso()">Cancelar</button>
+        </div>
+    </div>
     <style>
         /* Contenedor para centrar el texto */
         .loading-container {
@@ -551,33 +567,49 @@
         });
     </script>
     <script>
+        function abrirModalProceso(id) {
+            document.getElementById('paroProcesoId').value = id;
+            document.getElementById('modalParoProceso').style.display = 'flex';
+        }
+    
+        function cerrarModalProceso() {
+            document.getElementById('modalParoProceso').style.display = 'none';
+        }
+    
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') cerrarModalProceso();
+        });
+    
         $(document).on('click', '.editar-paro-proceso', function () {
             const id = $(this).data('id');
-
-            const minutosParo = prompt("⏱ Ingresa los minutos del paro:");
-            if (minutosParo === null || minutosParo.trim() === "") {
-                alert("⚠️ Los minutos del paro son obligatorios.");
+            abrirModalProceso(id);
+        });
+    
+        document.getElementById('btnGuardarAjusteProceso').addEventListener('click', function () {
+            const id = document.getElementById('paroProcesoId').value;
+            const minutosParo = document.getElementById('minutosParoProceso').value.trim();
+            const razonAjuste = document.getElementById('razonAjusteProceso').value.trim();
+    
+            if (!minutosParo || !/^\d+$/.test(minutosParo)) {
+                alert("⛔ Los minutos deben ser un número entero.");
                 return;
             }
-
-            const razonAjuste = prompt("📝 Escribe la razón del ajuste:");
-            if (razonAjuste === null || razonAjuste.trim() === "") {
-                alert("⚠️ La razón del ajuste es obligatoria.");
+    
+            if (!razonAjuste) {
+                alert("⛔ La razón del ajuste es obligatoria.");
                 return;
             }
-
-            const confirmar = confirm(
-                `¿Confirmas guardar el ajuste?\n\nMinutos: ${minutosParo}\nRazón: ${razonAjuste}`
-            );
+    
+            const confirmar = confirm(`¿Confirmas el ajuste?\nMinutos: ${minutosParo}\nRazón: ${razonAjuste}`);
             if (!confirmar) return;
-
+    
             const spinnerHtml = `
                 <div id="processing-spinner" class="position-fixed top-0 start-50 translate-middle-x mt-3 p-2 bg-dark text-white rounded shadow" style="z-index: 1050;">
                     <div class="spinner-border spinner-border-sm text-light" role="status"></div>
                     Procesando solicitud...
                 </div>`;
             $('body').append(spinnerHtml);
-
+    
             $.ajax({
                 url: '/bnf/editar-paro-proceso',
                 method: 'POST',
@@ -589,6 +621,7 @@
                 },
                 success: function (response) {
                     $('#processing-spinner').remove();
+                    cerrarModalProceso();
                     if (response.success) {
                         alert("✅ Ajuste registrado correctamente: " + response.message);
                         location.reload();
@@ -598,11 +631,11 @@
                 },
                 error: function () {
                     $('#processing-spinner').remove();
+                    cerrarModalProceso();
                     alert("⚠️ Error al guardar el ajuste.");
                 }
             });
         });
-    </script>
-    
+    </script>    
     
 @endsection
