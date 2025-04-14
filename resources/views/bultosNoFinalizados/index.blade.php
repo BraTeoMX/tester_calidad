@@ -30,6 +30,26 @@
         </div>
     </div>
 
+    <div id="modalParoManual" class="modal-personalizado-overlay">
+        <div class="modal-personalizado-content">
+            <button class="modal-personalizado-close" onclick="cerrarModal()">cerrar</button>
+            <h5>Editar Finalización de Paro</h5>
+            <input type="hidden" id="paroManualId">
+    
+            <label for="minutosParo">⏱ Minutos del paro:</label>
+            <input type="number" id="minutosParo" placeholder="Ej. 45">
+    
+            <label for="piezasReparadas">🔧 Piezas reparadas:</label>
+            <input type="number" id="piezasReparadas" placeholder="Ej. 100">
+    
+            <label for="razonAjuste">📝 Razón del ajuste:</label>
+            <textarea id="razonAjuste" rows="3" placeholder="Describa el motivo..."></textarea>
+    
+            <button id="btnGuardarAjuste">Guardar Ajuste</button>
+            <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>    
+    
     <style>
         /* Contenedor para centrar el texto */
         .loading-container {
@@ -166,6 +186,93 @@
             padding: 15px;
         }
     </style>
+    <style>
+        .modal-personalizado-overlay {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-personalizado-content {
+            background: #1e1e1e;
+            color: #f1f1f1;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+            position: relative;
+            font-family: sans-serif;
+        }
+
+        .modal-personalizado-content h5 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .modal-personalizado-content input,
+        .modal-personalizado-content textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #2c2c2c;
+            color: #f1f1f1;
+        }
+
+        .modal-personalizado-content button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            color: #fff;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .modal-personalizado-content button:hover {
+            background-color: #0056b3;
+        }
+
+        .modal-personalizado-content .btn-cancelar {
+            background-color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .modal-personalizado-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            background-color: #dc3545 !important;
+            color: #fff !important;
+            border: none;
+            border-radius: 50%;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+        }
+
+        .modal-personalizado-close:hover {
+            background-color: #c82333;
+        }
+    </style>
 
     <!-- JavaScript -->
     
@@ -270,39 +377,49 @@
         });
     </script>
     <script>
+        function abrirModal(id) {
+            document.getElementById('paroManualId').value = id;
+            document.getElementById('modalParoManual').style.display = 'flex';
+        }
+    
+        function cerrarModal() {
+            document.getElementById('modalParoManual').style.display = 'none';
+        }
+    
+        // Evento ESC para cerrar el modal
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                cerrarModal();
+            }
+        });
+    
         $(document).on('click', '.editar-paro-aql', function () {
             const id = $(this).data('id');
+            abrirModal(id);
+        });
     
-            const minutosParo = prompt("⏱ Ingresa los minutos del paro:");
-            if (
-                minutosParo === null || 
-                minutosParo.trim() === "" || 
-                !/^\d+$/.test(minutosParo)
-            ) {
-                alert("⚠️ Los minutos del paro son obligatorios y deben ser un número entero.");
-                return;
-            }
-
-            const piezasReparadas = prompt("🔧 Ingresa el número de piezas reparadas:");
-            if (
-                piezasReparadas === null || 
-                piezasReparadas.trim() === "" || 
-                !/^\d+$/.test(piezasReparadas)
-            ) {
-                alert("⚠️ Las piezas reparadas son obligatorias y deben ser un número entero.");
+        document.getElementById('btnGuardarAjuste').addEventListener('click', function () {
+            const id = document.getElementById('paroManualId').value;
+            const minutosParo = document.getElementById('minutosParo').value.trim();
+            const piezasReparadas = document.getElementById('piezasReparadas').value.trim();
+            const razonAjuste = document.getElementById('razonAjuste').value.trim();
+    
+            if (!minutosParo || !/^\d+$/.test(minutosParo)) {
+                alert("⛔ Los minutos deben ser un número entero.");
                 return;
             }
     
-            const razonAjuste = prompt("📝 Escribe la razón del ajuste:");
-            if (razonAjuste === null || razonAjuste.trim() === "") {
-                alert("⚠️ La razón del ajuste es obligatoria.");
+            if (!piezasReparadas || !/^\d+$/.test(piezasReparadas)) {
+                alert("⛔ Las piezas reparadas deben ser un número entero.");
                 return;
             }
     
-            // Confirmación con resumen antes de enviar
-            const confirmar = confirm(
-                `¿Confirmas guardar este ajuste manual?\n\n⏱ Minutos Paro: ${minutosParo}\n🔧 Piezas Reparadas: ${piezasReparadas}\n📝 Razón: ${razonAjuste}`
-            );
+            if (!razonAjuste) {
+                alert("⛔ La razón del ajuste es obligatoria.");
+                return;
+            }
+    
+            const confirmar = confirm(`¿Confirmas el ajuste?\nMinutos: ${minutosParo}\nPiezas: ${piezasReparadas}\nRazón: ${razonAjuste}`);
             if (!confirmar) return;
     
             const spinnerHtml = `
@@ -324,6 +441,7 @@
                 },
                 success: function (response) {
                     $('#processing-spinner').remove();
+                    cerrarModal();
                     if (response.success) {
                         alert("✅ Ajuste registrado correctamente: " + response.message);
                         location.reload();
@@ -331,14 +449,14 @@
                         alert("❌ Error: " + response.message);
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function () {
                     $('#processing-spinner').remove();
-                    console.error("❌ Error AJAX:", status, error);
-                    alert("⚠️ Ocurrió un problema al guardar el ajuste.");
+                    cerrarModal();
+                    alert("⚠️ Error al guardar el ajuste.");
                 }
             });
         });
-    </script>    
+    </script>
 
     <script>
         $(document).ready(function () {
