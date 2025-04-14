@@ -15,4 +15,9 @@ class AuditoriaAQL extends Model
         return $this->hasMany(TpAuditoriaAQL::class, 'auditoria_aql_id');
     }
 
+    public function responsableParo()
+{
+    return $this->hasOne(ResponsableParo::class, 'auditoria_aql_id');
+}
+
 }

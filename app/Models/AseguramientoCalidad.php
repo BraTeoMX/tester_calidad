@@ -14,4 +14,10 @@ class AseguramientoCalidad extends Model
     {
         return $this->hasMany(TpAseguramientoCalidad::class, 'aseguramiento_calidad_id');
     }
+
+    public function responsableParo()
+    {
+        return $this->hasOne(ResponsableParo::class, 'aseguramiento_calidad_id');
+    }
+
 }
