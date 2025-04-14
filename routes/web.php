@@ -42,6 +42,7 @@ use App\Http\Controllers\ScreenV2Controller;
 use App\Http\Controllers\DashboardPorDiaV2Controller;
 use App\Http\Controllers\DashboardBusquedaOPController;
 use App\Http\Controllers\AuditoriaKanBanController;
+use App\Http\Controllers\BultosNoFinalizadosController;
 
 
 /*
@@ -508,7 +509,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/kanban/registros-hoy', [AuditoriaKanBanController::class, 'obtenerRegistrosHoy'])->name('kanban.registrosHoy');
     Route::post('/kanban/eliminar', [AuditoriaKanBanController::class, 'eliminar'])->name('kanban.eliminar');
 
-
+    //Seccion bultos no finalizados
+    Route::get('/bnf', [BultosNoFinalizadosController::class, 'index'])->name('bnf.index');
 
 
 });
