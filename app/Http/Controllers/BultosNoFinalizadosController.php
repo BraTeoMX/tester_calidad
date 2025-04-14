@@ -37,15 +37,24 @@ class BultosNoFinalizadosController extends Controller
 
     public function bultosNoFinalizadosGeneral()
     {
-        $fechaInicio = Carbon::now()->subDays(7)->startOfDay();
+        $fechaInicio = Carbon::now()->subDays(20)->startOfDay();
         $fechaFin = Carbon::now()->endOfDay();
 
         $bultos = AuditoriaAQL::whereBetween('created_at', [$fechaInicio, $fechaFin])
             ->whereNotNull('inicio_paro')
             ->whereNull('fin_paro')
+            ->orderBy('created_at', 'desc') // 🔥 ordena del más reciente al más antiguo
             ->get();
 
-        return response()->json($bultos);
+        $bultosTransformados = $bultos->map(function ($bulto) {
+            $creado = Carbon::parse($bulto->created_at);
+            $bulto->formato_creado = $creado->isToday()
+                ? $creado->format('H:i:s')
+                : $creado->format('d/m/Y - H:i:s');
+            return $bulto;
+        });
+
+        return response()->json($bultosTransformados);
     }
 
     public function finalizarParoAQLgeneral(Request $request)
@@ -127,15 +136,24 @@ class BultosNoFinalizadosController extends Controller
     
     public function parosNoFinalizadosGeneral()
     {
-        $fechaInicio = Carbon::now()->subDays(7)->startOfDay();
+        $fechaInicio = Carbon::now()->subDays(20)->startOfDay();
         $fechaFin = Carbon::now()->endOfDay();
 
         $paros = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin])
             ->whereNotNull('inicio_paro')
             ->whereNull('fin_paro')
+            ->orderBy('created_at', 'desc') // 👈 Orden del más reciente al más antiguo
             ->get();
 
-        return response()->json($paros);
+        $parosTransformados = $paros->map(function ($paro) {
+            $creado = Carbon::parse($paro->created_at);
+            $paro->formato_creado = $creado->isToday()
+                ? $creado->format('H:i:s')
+                : $creado->format('d/m/Y - H:i:s');
+            return $paro;
+        });
+
+        return response()->json($parosTransformados);
     }
 
     public function finalizarParoProcesodespues(Request $request)

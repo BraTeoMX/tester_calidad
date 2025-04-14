@@ -14,17 +14,17 @@
     <div class="row">
         <div class="col-md-6">
             <div class="card card-body">
-                <h3>Bultos No Finalizados (Últimos 7 días)</h3>
+                <h3>Bultos No Finalizados (Últimos 20 días)</h3>
                 <div id="bultos-container-general">
-                    <p class="text-muted">Cargando datos de los últimos 7 días...</p>
+                    <p class="text-muted">Cargando datos de los últimos 20 días...</p>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="card card-body">
-                <h3>Paros No Finalizados - Proceso (Últimos 7 días)</h3>
+                <h3>Paros No Finalizados - Proceso (Últimos 20 días)</h3>
                 <div id="paros-container-general">
-                    <p class="text-muted">Cargando datos de los últimos 7 días...</p>
+                    <p class="text-muted">Cargando datos de los últimos 20 días...</p>
                 </div>
             </div>
         </div>
@@ -204,9 +204,9 @@
                                 <table class="table table-striped table-hover">
                                     <thead class="thead-primary">
                                         <tr>
+                                            <th>Módulo</th>
                                             <th>Bulto</th>
                                             <th>Estilo</th>
-                                            <th>Módulo</th>
                                             <th>Inicio Paro</th>
                                             <th>Acción</th>
                                         </tr>
@@ -216,10 +216,10 @@
                         response.forEach(item => {
                             contenido += `
                                 <tr>
+                                    <td>${item.modulo}</td>
                                     <td>${item.bulto}</td>
                                     <td>${item.estilo}</td>
-                                    <td>${item.modulo}</td>
-                                    <td>${item.inicio_paro}</td>
+                                    <td>${item.formato_creado}</td>
                                     <td>
                                         <button class="btn btn-danger btn-sm finalizar-paro" data-id="${item.id}">
                                             Finalizar Paro Pendiente
@@ -231,7 +231,7 @@
                         contenido += '</tbody></table></div>';
                         $('#bultos-container-general').html(contenido);
                     } else {
-                        $('#bultos-container-general').html('<p class="text-warning text-center">No se encontraron bultos no finalizados en los últimos 7 días.</p>');
+                        $('#bultos-container-general').html('<p class="text-warning text-center">No se encontraron bultos no finalizados en los últimos 20 días.</p>');
                     }
                 },
                 error: function () {
@@ -301,8 +301,9 @@
                                 <table class="table table-striped table-hover">
                                     <thead class="thead-primary">
                                         <tr>
-                                            <th>Nombre</th>
                                             <th>Módulo</th>
+                                            <th>Nombre</th>
+                                            <th>Operacion</th>
                                             <th>Inicio Paro</th>
                                             <th>Acción</th>
                                         </tr>
@@ -312,9 +313,10 @@
                         response.forEach(item => {
                             contenido += `
                                 <tr>
-                                    <td>${item.nombre}</td>
                                     <td>${item.modulo}</td>
-                                    <td>${item.inicio_paro}</td>
+                                    <td>${item.nombre}</td>
+                                    <td>${item.operacion}</td>
+                                    <td>${item.formato_creado}</td>
                                     <td>
                                         <button class="btn btn-danger btn-sm finalizar-paro-proceso" data-id="${item.id}">
                                             Finalizar Paro Pendiente
@@ -326,7 +328,7 @@
                         contenido += '</tbody></table></div>';
                         $('#paros-container-general').html(contenido);
                     } else {
-                        $('#paros-container-general').html('<p class="text-warning text-center">No se encontraron paros no finalizados en los últimos 7 días.</p>');
+                        $('#paros-container-general').html('<p class="text-warning text-center">No se encontraron paros no finalizados en los últimos 20 días.</p>');
                     }
                 },
                 error: function () {
