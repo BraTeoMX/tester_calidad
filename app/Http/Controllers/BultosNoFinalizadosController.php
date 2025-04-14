@@ -201,7 +201,7 @@ class BultosNoFinalizadosController extends Controller
     public function editarParoAQLManual(Request $request)
     {
         try {
-            Log::info('Editar Paro AQL Manual', ['request' => $request->all()]);
+            //Log::info('Editar Paro AQL Manual', ['request' => $request->all()]);
             $registro = AuditoriaAQL::findOrFail($request->id);
 
             // Actualizar datos
@@ -233,7 +233,7 @@ class BultosNoFinalizadosController extends Controller
     public function editarParoProcesoManual(Request $request)
     {
         try {
-            Log::info('Editar Paro Proceso Manual', ['request' => $request->all()]);
+            //Log::info('Editar Paro Proceso Manual', ['request' => $request->all()]);
 
             $registro = AseguramientoCalidad::findOrFail($request->id);
 
