@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\AuditoriaAQL;
+use App\Models\AseguramientoCalidad;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -124,4 +125,49 @@ class BultosNoFinalizadosController extends Controller
         return $totalMinutos;
     }
     
+    public function parosNoFinalizadosGeneral()
+    {
+        $fechaInicio = Carbon::now()->subDays(7)->startOfDay();
+        $fechaFin = Carbon::now()->endOfDay();
+
+        $paros = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin])
+            ->whereNotNull('inicio_paro')
+            ->whereNull('fin_paro')
+            ->get();
+
+        return response()->json($paros);
+    }
+
+    public function finalizarParoProcesodespues(Request $request)
+    {
+        try {
+            // Buscar registro en AseguramientoCalidad
+            $registro = AseguramientoCalidad::findOrFail($request->id);
+            $registro->fin_paro = Carbon::now(); // Asigna el fin del paro
+
+            // Usamos created_at como punto de inicio para el cálculo
+            $inicio = Carbon::parse($registro->created_at);
+            $fin = Carbon::now();
+
+            // Calcular minutos de paro (según horarios laborales)
+            $minutosParo = $this->calcularMinutosParoDesdeCreatedAt($inicio, $fin);
+
+            $registro->minutos_paro = $minutosParo;
+            // Ya no se actualiza reparacion_rechazo
+            $registro->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Paro finalizado correctamente.',
+                'minutos_paro' => $registro->minutos_paro
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al finalizar el paro: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 }
