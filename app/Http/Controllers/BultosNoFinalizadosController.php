@@ -41,11 +41,16 @@ class BultosNoFinalizadosController extends Controller
         $fechaInicio = Carbon::now()->subDays(20)->startOfDay();
         $fechaFin = Carbon::now()->endOfDay();
 
+        // Obtener planta del usuario autenticado
+        $auditorPlanta = Auth::user()->Planta;
+        $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
+
         $bultos = AuditoriaAQL::whereBetween('created_at', [$fechaInicio, $fechaFin])
+            ->where('planta', $datoPlanta) // 👈 asegúrate que el nombre de la columna coincida
             ->whereNotNull('inicio_paro')
             ->whereNull('fin_paro')
-            ->orderBy('created_at', 'desc') // 🔥 ordena del más reciente al más antiguo
-            ->get();
+            ->orderBy('created_at', 'desc')
+        ->get();
 
         $bultosTransformados = $bultos->map(function ($bulto) {
             $creado = Carbon::parse($bulto->created_at);
@@ -140,7 +145,12 @@ class BultosNoFinalizadosController extends Controller
         $fechaInicio = Carbon::now()->subDays(20)->startOfDay();
         $fechaFin = Carbon::now()->endOfDay();
 
+        // Obtener planta del usuario autenticado
+        $auditorPlanta = Auth::user()->Planta;
+        $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
+
         $paros = AseguramientoCalidad::whereBetween('created_at', [$fechaInicio, $fechaFin])
+            ->where('planta', $datoPlanta) // 👈 asegúrate que el nombre de la columna coincida
             ->whereNotNull('inicio_paro')
             ->whereNull('fin_paro')
             ->orderBy('created_at', 'desc') // 👈 Orden del más reciente al más antiguo

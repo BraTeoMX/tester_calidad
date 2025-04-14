@@ -14,7 +14,7 @@
     <div class="row">
         <div class="col-md-6">
             <div class="card card-body">
-                <h3>Bultos No Finalizados (Últimos 20 días)</h3>
+                <h3>AQL - Bultos No Finalizados (Últimos 20 días)</h3>
                 <div id="bultos-container-general">
                     <p class="text-muted">Cargando datos de los últimos 20 días...</p>
                 </div>
@@ -22,7 +22,7 @@
         </div>
         <div class="col-md-6">
             <div class="card card-body">
-                <h3>Paros No Finalizados - Proceso (Últimos 20 días)</h3>
+                <h3>PROCESO - Paros No Finalizados - Proceso (Últimos 20 días)</h3>
                 <div id="paros-container-general">
                     <p class="text-muted">Cargando datos de los últimos 20 días...</p>
                 </div>
