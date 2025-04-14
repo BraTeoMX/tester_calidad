@@ -207,10 +207,10 @@
                                     <td>${item.estilo}</td>
                                     <td>${item.formato_creado}</td>
                                     <td>
-                                        <button class="btn btn-danger btn-sm finalizar-paro" data-id="${item.id}">
+                                        <button class="btn btn-info btn-sm finalizar-paro" data-id="${item.id}">
                                             Finalizar Paro Pendiente
                                         </button>
-                                        <button class="btn btn-warning btn-sm editar-paro-aql" data-id="${item.id}">
+                                        <button class="btn btn-danger btn-sm editar-paro-aql" data-id="${item.id}">
                                             Editar Finalización Paro Bulto
                                         </button>
                                     </td>
@@ -272,37 +272,46 @@
     <script>
         $(document).on('click', '.editar-paro-aql', function () {
             const id = $(this).data('id');
-
-            const minutosParo = prompt("Ingresa los minutos del paro:");
-            if (minutosParo === null || minutosParo.trim() === "") {
-                alert("⚠️ Minutos del paro es obligatorio.");
+    
+            const minutosParo = prompt("⏱ Ingresa los minutos del paro:");
+            if (
+                minutosParo === null || 
+                minutosParo.trim() === "" || 
+                !/^\d+$/.test(minutosParo)
+            ) {
+                alert("⚠️ Los minutos del paro son obligatorios y deben ser un número entero.");
                 return;
             }
 
-            const piezasReparadas = prompt("Ingresa el número de piezas reparadas:");
-            if (piezasReparadas === null || piezasReparadas.trim() === "") {
-                alert("⚠️ Las piezas reparadas son obligatorias.");
+            const piezasReparadas = prompt("🔧 Ingresa el número de piezas reparadas:");
+            if (
+                piezasReparadas === null || 
+                piezasReparadas.trim() === "" || 
+                !/^\d+$/.test(piezasReparadas)
+            ) {
+                alert("⚠️ Las piezas reparadas son obligatorias y deben ser un número entero.");
                 return;
             }
-
-            const razonAjuste = prompt("Escribe la razón del ajuste:");
+    
+            const razonAjuste = prompt("📝 Escribe la razón del ajuste:");
             if (razonAjuste === null || razonAjuste.trim() === "") {
                 alert("⚠️ La razón del ajuste es obligatoria.");
                 return;
             }
-
-            if (!confirm("¿Estás seguro de guardar este ajuste manual?")) {
-                return;
-            }
-
-            // Spinner temporal
+    
+            // Confirmación con resumen antes de enviar
+            const confirmar = confirm(
+                `¿Confirmas guardar este ajuste manual?\n\n⏱ Minutos Paro: ${minutosParo}\n🔧 Piezas Reparadas: ${piezasReparadas}\n📝 Razón: ${razonAjuste}`
+            );
+            if (!confirmar) return;
+    
             const spinnerHtml = `
                 <div id="processing-spinner" class="position-fixed top-0 start-50 translate-middle-x mt-3 p-2 bg-dark text-white rounded shadow" style="z-index: 1050;">
                     <div class="spinner-border spinner-border-sm text-light" role="status"></div>
                     Procesando solicitud...
                 </div>`;
             $('body').append(spinnerHtml);
-
+    
             $.ajax({
                 url: '/bnf/editar-paro-aql',
                 method: 'POST',
@@ -329,7 +338,7 @@
                 }
             });
         });
-    </script>
+    </script>    
 
     <script>
         $(document).ready(function () {
@@ -368,10 +377,10 @@
                                     <td>${item.operacion}</td>
                                     <td>${item.formato_creado}</td>
                                     <td>
-                                        <button class="btn btn-danger btn-sm finalizar-paro-proceso" data-id="${item.id}">
+                                        <button class="btn btn-info btn-sm finalizar-paro-proceso" data-id="${item.id}">
                                             Finalizar Paro Pendiente
                                         </button>
-                                        <button class="btn btn-warning btn-sm editar-paro-proceso" data-id="${item.id}">
+                                        <button class="btn btn-danger btn-sm editar-paro-proceso" data-id="${item.id}">
                                             Editar Finalización Paro
                                         </button>
                                     </td>
@@ -420,6 +429,59 @@
                         alert("⚠️ Ocurrió un error al intentar finalizar el paro.");
                     }
                 });
+            });
+        });
+    </script>
+    <script>
+        $(document).on('click', '.editar-paro-proceso', function () {
+            const id = $(this).data('id');
+
+            const minutosParo = prompt("⏱ Ingresa los minutos del paro:");
+            if (minutosParo === null || minutosParo.trim() === "") {
+                alert("⚠️ Los minutos del paro son obligatorios.");
+                return;
+            }
+
+            const razonAjuste = prompt("📝 Escribe la razón del ajuste:");
+            if (razonAjuste === null || razonAjuste.trim() === "") {
+                alert("⚠️ La razón del ajuste es obligatoria.");
+                return;
+            }
+
+            const confirmar = confirm(
+                `¿Confirmas guardar el ajuste?\n\nMinutos: ${minutosParo}\nRazón: ${razonAjuste}`
+            );
+            if (!confirmar) return;
+
+            const spinnerHtml = `
+                <div id="processing-spinner" class="position-fixed top-0 start-50 translate-middle-x mt-3 p-2 bg-dark text-white rounded shadow" style="z-index: 1050;">
+                    <div class="spinner-border spinner-border-sm text-light" role="status"></div>
+                    Procesando solicitud...
+                </div>`;
+            $('body').append(spinnerHtml);
+
+            $.ajax({
+                url: '/bnf/editar-paro-proceso',
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                data: {
+                    id: id,
+                    minutosParo: minutosParo,
+                    razonAjuste: razonAjuste
+                },
+                success: function (response) {
+                    $('#processing-spinner').remove();
+                    if (response.success) {
+                        alert("✅ Ajuste registrado correctamente: " + response.message);
+                        location.reload();
+                    } else {
+                        alert("❌ Error: " + response.message);
+                    }
+                },
+                error: function () {
+                    $('#processing-spinner').remove();
+                    alert("⚠️ Error al guardar el ajuste.");
+                }
             });
         });
     </script>

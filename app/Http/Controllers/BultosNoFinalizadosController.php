@@ -222,7 +222,35 @@ class BultosNoFinalizadosController extends Controller
 
     public function editarParoProcesoManual(Request $request)
     {
-        // Similar a lo anterior pero con AseguramientoCalidad
+        try {
+            Log::info('Editar Paro Proceso Manual', ['request' => $request->all()]);
+
+            $registro = AseguramientoCalidad::findOrFail($request->id);
+
+            // Actualizar datos
+            $registro->fin_paro = Carbon::now();
+            $registro->minutos_paro = $request->minutosParo;
+            $registro->save();
+
+            // Registrar trazabilidad en tabla "responsables_paro"
+            ResponsableParo::create([
+                'aseguramiento_calidad_id' => $registro->id,
+                'nombre' => Auth::user()->name,
+                'razon_ajuste' => $request->razonAjuste
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Paro editado y registrado correctamente.',
+                'minutos_paro' => $registro->minutos_paro
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar el ajuste: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
 }
