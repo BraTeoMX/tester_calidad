@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageSlug' => 'busquedaOP', 'titlePage' => __('Dashboard')])
+@extends('layouts.app', ['pageSlug' => 'bnf', 'titlePage' => __('bnf')])
 
 @section('content')
     <div class="row">
@@ -12,7 +12,7 @@
     </div>
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-12">
             <div class="card card-body">
                 <h3>AQL - Bultos No Finalizados (Últimos 20 días)</h3>
                 <div id="bultos-container-general">
@@ -20,7 +20,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-12">
             <div class="card card-body">
                 <h3>PROCESO - Paros No Finalizados - Proceso (Últimos 20 días)</h3>
                 <div id="paros-container-general">
@@ -314,6 +314,7 @@
                                     <thead class="thead-primary">
                                         <tr>
                                             <th>Módulo</th>
+                                            <th>Auditor</th>
                                             <th>Bulto</th>
                                             <th>Estilo</th>
                                             <th>Inicio Paro</th>
@@ -326,15 +327,16 @@
                             contenido += `
                                 <tr>
                                     <td>${item.modulo}</td>
+                                    <td>${item.auditor}</td>
                                     <td>${item.bulto}</td>
                                     <td>${item.estilo}</td>
                                     <td>${item.formato_creado}</td>
                                     <td>
                                         <button class="btn btn-info btn-sm finalizar-paro" data-id="${item.id}">
-                                            Finalizar Paro Pendiente
+                                            Finalizar Paro
                                         </button>
                                         <button class="btn btn-danger btn-sm editar-paro-aql" data-id="${item.id}">
-                                            Editar Finalización Paro Bulto
+                                            Editar Fin Paro
                                         </button>
                                     </td>
                                 </tr>
@@ -495,6 +497,7 @@
                                     <thead class="thead-primary">
                                         <tr>
                                             <th>Módulo</th>
+                                            <th>Auditor</th>
                                             <th>Nombre</th>
                                             <th>Operacion</th>
                                             <th>Inicio Paro</th>
@@ -507,15 +510,16 @@
                             contenido += `
                                 <tr>
                                     <td>${item.modulo}</td>
+                                    <td>${item.auditor}</td>
                                     <td>${item.nombre}</td>
                                     <td>${item.operacion}</td>
                                     <td>${item.formato_creado}</td>
                                     <td>
                                         <button class="btn btn-info btn-sm finalizar-paro-proceso" data-id="${item.id}">
-                                            Finalizar Paro Pendiente
+                                            Finalizar Paro
                                         </button>
                                         <button class="btn btn-danger btn-sm editar-paro-proceso" data-id="${item.id}">
-                                            Editar Finalización Paro
+                                            Editar Fin Paro
                                         </button>
                                     </td>
                                 </tr>

@@ -78,6 +78,12 @@
                                     <p>{{ __('Busqueda Bulto/Estilo') }}</p>
                                 </a>
                             </li>
+                            <li class="nav-item{{ $pageSlug == 'bnf' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('bnf.index') }}">
+                                    <i class="material-symbols-outlined">delete_history</i>
+                                    <p>{{ __('Paros No Finalizados') }}</p>
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('gestionUsuario') }}">
                                     <i class="tim-icons icon-single-02"></i>
