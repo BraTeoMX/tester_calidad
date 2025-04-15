@@ -288,6 +288,12 @@
         .modal-personalizado-close:hover {
             background-color: #c82333;
         }
+
+        .resaltar-paro {
+            background-color: #6b0505 !important; /* rojo oscuro */
+            color: #fff !important;
+        }
+        
     </style>
 
     <!-- JavaScript -->
@@ -324,18 +330,45 @@
                                     <tbody>
                         `;
                         response.forEach(item => {
+                            let esDeHoy = /^\d{2}:\d{2}:\d{2}$/.test(item.formato_creado);
+                            let claseAdvertencia = '';
+                            let atributoHora = '';
+
+                            if (esDeHoy) {
+                                const ahora = new Date();
+                                const partes = item.formato_creado.split(':');
+
+                                const horaParo = new Date(
+                                    ahora.getFullYear(),
+                                    ahora.getMonth(),
+                                    ahora.getDate(),
+                                    parseInt(partes[0]),
+                                    parseInt(partes[1]),
+                                    parseInt(partes[2])
+                                );
+
+                                const diferenciaMs = ahora - horaParo;
+                                const minutosPasados = Math.floor(diferenciaMs / 60000);
+
+                                if (minutosPasados >= 15) {
+                                    claseAdvertencia = 'resaltar-paro';
+                                }
+
+                                atributoHora = `data-hora-paro="${item.formato_creado}"`;
+                            }
+
                             contenido += `
-                                <tr>
+                                <tr class="${claseAdvertencia}" ${atributoHora}>
                                     <td>${item.modulo}</td>
                                     <td>${item.auditor}</td>
-                                    <td>${item.bulto}</td>
-                                    <td>${item.estilo}</td>
+                                    <td>${item.bulto || item.nombre}</td>
+                                    <td>${item.estilo || item.operacion}</td>
                                     <td>${item.formato_creado}</td>
                                     <td>
-                                        <button class="btn btn-info btn-sm finalizar-paro" data-id="${item.id}">
+                                        <button class="btn btn-info btn-sm ${item.bulto ? 'finalizar-paro' : 'finalizar-paro-proceso'}" data-id="${item.id}">
                                             Finalizar Paro
                                         </button>
-                                        <button class="btn btn-danger btn-sm editar-paro-aql" data-id="${item.id}">
+                                        <button class="btn btn-danger btn-sm ${item.bulto ? 'editar-paro-aql' : 'editar-paro-proceso'}" data-id="${item.id}">
                                             Editar Fin Paro
                                         </button>
                                     </td>
@@ -344,6 +377,7 @@
                         });
                         contenido += '</tbody></table></div>';
                         $('#bultos-container-general').html(contenido);
+                        actualizarColoresParos();
                     } else {
                         $('#bultos-container-general').html('<p class="text-warning text-center">No se encontraron bultos no finalizados en los últimos 20 días.</p>');
                     }
@@ -507,8 +541,35 @@
                                     <tbody>
                         `;
                         response.forEach(item => {
+                            let esDeHoy = /^\d{2}:\d{2}:\d{2}$/.test(item.formato_creado);
+                            let claseAdvertencia = '';
+                            let atributoHora = '';
+
+                            if (esDeHoy) {
+                                const ahora = new Date();
+                                const partes = item.formato_creado.split(':');
+
+                                const horaParo = new Date(
+                                    ahora.getFullYear(),
+                                    ahora.getMonth(),
+                                    ahora.getDate(),
+                                    parseInt(partes[0]),
+                                    parseInt(partes[1]),
+                                    parseInt(partes[2])
+                                );
+
+                                const diferenciaMs = ahora - horaParo;
+                                const minutosPasados = Math.floor(diferenciaMs / 60000);
+
+                                if (minutosPasados >= 15) {
+                                    claseAdvertencia = 'resaltar-paro'; // Personalizada
+                                }
+
+                                atributoHora = `data-hora-paro="${item.formato_creado}"`;
+                            }
+
                             contenido += `
-                                <tr>
+                                <tr class="${claseAdvertencia}" ${atributoHora}>
                                     <td>${item.modulo}</td>
                                     <td>${item.auditor}</td>
                                     <td>${item.nombre}</td>
@@ -527,6 +588,7 @@
                         });
                         contenido += '</tbody></table></div>';
                         $('#paros-container-general').html(contenido);
+                        actualizarColoresParos(); 
                     } else {
                         $('#paros-container-general').html('<p class="text-warning text-center">No se encontraron paros no finalizados en los últimos 20 días.</p>');
                     }
@@ -642,4 +704,35 @@
         });
     </script>    
     
+    <script>
+        function actualizarColoresParos() {
+            const ahora = new Date();
+
+            document.querySelectorAll('tr[data-hora-paro]').forEach(fila => {
+                const horaTexto = fila.getAttribute('data-hora-paro');
+                const partes = horaTexto.split(':');
+
+                const horaParo = new Date(
+                    ahora.getFullYear(),
+                    ahora.getMonth(),
+                    ahora.getDate(),
+                    parseInt(partes[0]),
+                    parseInt(partes[1]),
+                    parseInt(partes[2])
+                );
+
+                const diferenciaMs = ahora - horaParo;
+                const minutosPasados = Math.floor(diferenciaMs / 60000);
+
+                if (minutosPasados >= 15) {
+                    fila.classList.add('resaltar-paro');
+                } else {
+                    fila.classList.remove('resaltar-paro');
+                }
+            });
+        }
+
+        // Ejecutar cada 1 minuto
+        setInterval(actualizarColoresParos, 60000);
+    </script>
 @endsection
