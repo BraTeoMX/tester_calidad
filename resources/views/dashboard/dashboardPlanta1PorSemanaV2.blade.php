@@ -57,7 +57,7 @@
                                     <th>Auditor</th>
                                     <th>Modulo (AQL)</th>
                                     <th>Supervisor</th>
-                                    <th>Estilo</th>
+                                    <th>Cliente</th>
                                     <th>Numero de Operarios</th>
                                     <th>Cantidad Paro</th>
                                     <th>Minutos Paro</th>
@@ -105,7 +105,7 @@
                                     <th>Auditor</th>
                                     <th>Modulo</th>
                                     <th>Supervisor</th>
-                                    <th>Estilo</th>
+                                    <th>Cliente</th>
                                     <th>Recorridos</th>
                                     <th>Numero de Operarios</th>
                                     <th>Numero de Utility</th>
@@ -162,7 +162,7 @@
                                     <th>Auditor</th>
                                     <th>Modulo (AQL)</th>
                                     <th>Supervisor</th>
-                                    <th>Estilo</th>
+                                    <th>Cliente</th>
                                     <th>Numero de Operarios</th>
                                     <th>Cantidad Paro</th>
                                     <th>Minutos Paro</th>
@@ -210,7 +210,7 @@
                                     <th>Auditor</th>
                                     <th>Modulo</th>
                                     <th>Supervisor</th>
-                                    <th>Estilo</th>
+                                    <th>Cliente</th>
                                     <th>Recorridos</th>
                                     <th>Numero de Operarios</th>
                                     <th>Numero de Utility</th>
@@ -617,7 +617,7 @@
                                 <td>${item.auditoresUnicos}</td>
                                 <td>
                                     <button type="button" class="custom-btn" 
-                                        onclick="abrirModalAQL('${item.modulo}', '${item.estilo}', '${tablaBodyId}')">
+                                        onclick="abrirModalAQL('${item.modulo}', '${item.cliente}', '${tablaBodyId}')">
                                         ${item.modulo}
                                     </button>
                                 </td>
@@ -773,12 +773,12 @@
                                 <td>${item.auditoresUnicos}</td>
                                 <td>
                                     <button type="button" class="custom-btn" 
-                                        onclick="abrirModalProceso('${item.modulo}', '${item.estilo}', '${tablaBodyId}')">
+                                        onclick="abrirModalProceso('${item.modulo}', '${item.cliente}', '${tablaBodyId}')">
                                         ${item.modulo}
                                     </button>
                                 </td>
                                 <td>${item.supervisoresUnicos}</td>
-                                <td>${item.estilo}</td>
+                                <td>${item.cliente}</td>
                                 <td>${item.cantidadRecorridos}</td>
                                 <td>${item.conteoOperario}</td>
                                 <td>${item.conteoUtility}</td>
@@ -896,7 +896,7 @@
     <script>
         let activeModalId = null;
 
-        function abrirModalAQL(modulo, estilo, tablaOrigenId) {
+        function abrirModalAQL(modulo, cliente, tablaOrigenId) {
             // Mostrar modal vacío
             const modal = document.getElementById("modalAQL");
             const tbody = document.getElementById("modalAQLBody");
@@ -917,14 +917,14 @@
             activeModalId = "modalAQL";
 
             // Asignar título dinámico
-            titulo.textContent = `Detalles de AQL para Módulo ${modulo}, Estilo: ${estilo}`;
+            titulo.textContent = `Detalles de AQL para Módulo ${modulo}, Cliente: ${cliente}`;
 
             // Determinar si es tiempo extra según la tabla origen
             const tiempo_extra = (tablaOrigenId === "tablaAQLGeneralTENuevoBody") ? 1 : null;
             const fecha = document.getElementById("fecha_inicio").value;
 
             // Hacer fetch a un endpoint que te pasaré después
-            fetch(`dashboardSemanaPlanta1V2/buscarAQL/detalles?modulo=${modulo}&estilo=${estilo}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
+            fetch(`dashboardSemanaPlanta1V2/buscarAQL/detalles?modulo=${modulo}&cliente=${cliente}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.error) {
@@ -1019,7 +1019,7 @@
     <script>
         let activeModalIdProceso = null;
 
-        function abrirModalProceso(modulo, estilo, tablaOrigenId) {
+        function abrirModalProceso(modulo, cliente, tablaOrigenId) {
             // Mostrar modal vacío con mensaje "Cargando..."
             const modal = document.getElementById("modalProceso");
             const tbody = document.getElementById("modalProcesoBody");
@@ -1039,14 +1039,14 @@
             activeModalIdProceso = "modalProceso";
 
             // Asignar título dinámico
-            titulo.textContent = `Detalles de Proceso para Módulo ${modulo}, Estilo: ${estilo}`;
+            titulo.textContent = `Detalles de Proceso para Módulo ${modulo}, Cliente: ${cliente}`;
 
             // Determinar si es tiempo extra
             const tiempo_extra = (tablaOrigenId.includes("TE")) ? 1 : null;
             const fecha = document.getElementById("fecha_inicio").value;
 
             // Fetch a endpoint (lo verás en el siguiente paso del backend)
-            fetch(`dashboardSemanaPlanta1V2/buscarProceso/detalles?modulo=${modulo}&estilo=${estilo}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
+            fetch(`dashboardSemanaPlanta1V2/buscarProceso/detalles?modulo=${modulo}&cliente=${cliente}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.error) {
