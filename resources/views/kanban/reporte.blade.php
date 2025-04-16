@@ -135,22 +135,24 @@
             </div>
 
             <!-- 4. TABLE DATA -->
-            <div class="table-responsive">
-                <table id="tabla-kanban" class="table table-striped" style="width:100%">
-                    <thead class="thead-primary">
-                        <tr>
-                            <th>OP</th>
-                            <th>Planta</th>
-                            <th>Cliente</th>
-                            <th>Estilo</th>
-                            <th>Piezas</th>
-                            <th>Estatus</th>
-                            <th>Fecha Corte</th>
-                            <th>Fecha Liberación</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <div class="card card-body">
+                <div class="table-responsive">
+                    <table id="tabla-kanban" class="table table-striped" style="width:100%">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>OP</th>
+                                <th>Planta</th>
+                                <th>Cliente</th>
+                                <th>Estilo</th>
+                                <th>Piezas</th>
+                                <th>Estatus</th>
+                                <th>Fecha Corte</th>
+                                <th>Fecha Liberación</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -275,10 +277,17 @@
             // Inicializar Highcharts
             const chart = Highcharts.chart('estatusChart', {
                 chart: {
-                    type: 'pie'
+                    type: 'pie',
+                    backgroundColor: 'transparent' // ← hace el fondo del gráfico invisible
                 },
                 title: {
-                    text: 'Distribución de Estatus'
+                    text: 'Distribución de Estatus',
+                    style: { color: '#ffffff' } // ← texto blanco
+                },
+                legend: {
+                    itemStyle: {
+                        color: '#ffffff' // ← leyenda en blanco
+                    }
                 },
                 exporting: {
                     enabled: true
@@ -308,7 +317,8 @@
                         data: 'op'
                     },
                     {
-                        data: 'planta'
+                        data: 'planta',
+                        render: planta => planta == 1 ? 'Ixtlahuaca' : planta == 2 ? 'San Bartolo' : ''
                     },
                     {
                         data: 'cliente'
@@ -329,14 +339,12 @@
                     },
                     {
                         data: 'fecha_liberacion',
-                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : ''
+                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
                     }
                 ],
                 dom: 'Bfrtip',
-                buttons: ['csv', 'excel', 'print'],
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-                }
+                buttons: ['csv', 'excel'],
+                pageLength: 20 
             });
 
             // Función para recargar datos
