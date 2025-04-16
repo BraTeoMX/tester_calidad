@@ -826,15 +826,15 @@ class DashboardPorSemanaV2Controller extends Controller
         return $dataModuloEstiloProceso;
     }
 
-    private function getDatosModuloEstiloAQLDetalles($fecha, $planta, $modulo, $estilo, $tiempoExtra = null)
+    private function getDatosModuloEstiloAQLDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra = null)
     {
-        $cacheKey = "aql_detalles_{$planta}_{$modulo}_{$estilo}_{$fecha}_" . ($tiempoExtra ? 'te' : 'tn');
+        $cacheKey = "aql_detalles_{$planta}_{$modulo}_{$estilo}_{$fechaInicio->format('Ymd')}_{$fechaFin->format('Ymd')}_" . ($tiempoExtra ? 'te' : 'tn');
 
-        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fecha, $planta, $modulo, $estilo, $tiempoExtra) {
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra) {
             $query = AuditoriaAQL::where('modulo', $modulo)
                 ->where('estilo', $estilo)
                 ->where('planta', $planta)
-                ->whereDate('created_at', $fecha)
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                 ->with('tpAuditoriaAQL');
 
             if (is_null($tiempoExtra)) {
@@ -865,123 +865,139 @@ class DashboardPorSemanaV2Controller extends Controller
 
     public function obtenerDetallesAQLP2(Request $request)
     {
+        Log::info('datos de request: ' . json_encode($request->all()));
         $modulo = $request->input('modulo');
         $estilo = $request->input('estilo');
-        $fecha = $request->input('fecha');
+        $fechaSemana = $request->input('fecha');
         $tiempoExtra = $request->input('tiempo_extra');
 
-        // Convertir "null" en texto a null real
         $tiempoExtra = ($tiempoExtra === 'null' || $tiempoExtra === '') ? null : $tiempoExtra;
-
         $planta = "Intimark2";
 
-
-        if (!$modulo || !$estilo || !$fecha) {
+        if (!$modulo || !$estilo || !$fechaSemana) {
             Log::warning('Faltan parámetros necesarios en obtenerDetallesAQLP2');
             return response()->json(['error' => 'Faltan parámetros necesarios'], 400);
         }
 
-        $detalles = $this->getDatosModuloEstiloAQLDetalles($fecha, $planta, $modulo, $estilo, $tiempoExtra);
+        // Convertir semana a rango
+        $fechaInicio = Carbon::parse($fechaSemana)->startOfWeek()->setTime(0, 0, 0);
+        $fechaFin = Carbon::parse($fechaSemana)->endOfWeek()->setTime(23, 59, 59);
+        Log::info('fechaInicio: ' . $fechaInicio);
+        Log::info('fechaFin: ' . $fechaFin);
+
+        $detalles = $this->getDatosModuloEstiloAQLDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra);
 
         return response()->json($detalles);
     }
 
     public function obtenerDetallesAQLP1(Request $request)
     {
+        Log::info('datos de request: ' . json_encode($request->all()));
         $modulo = $request->input('modulo');
         $estilo = $request->input('estilo');
-        $fecha = $request->input('fecha');
+        $fechaSemana = $request->input('fecha');
         $tiempoExtra = $request->input('tiempo_extra');
 
-        // Convertir "null" en texto a null real
         $tiempoExtra = ($tiempoExtra === 'null' || $tiempoExtra === '') ? null : $tiempoExtra;
-
         $planta = "Intimark1";
 
-
-        if (!$modulo || !$estilo || !$fecha) {
-            //Log::warning('Faltan parámetros necesarios en obtenerDetallesAQLP2');
+        if (!$modulo || !$estilo || !$fechaSemana) {
             return response()->json(['error' => 'Faltan parámetros necesarios'], 400);
         }
 
-        $detalles = $this->getDatosModuloEstiloAQLDetalles($fecha, $planta, $modulo, $estilo, $tiempoExtra);
+        // Convertir semana a rango
+        $fechaInicio = Carbon::parse($fechaSemana)->startOfWeek()->setTime(0, 0, 0);
+        $fechaFin = Carbon::parse($fechaSemana)->endOfWeek()->setTime(23, 59, 59);
+        Log::info('fechaInicio: ' . $fechaInicio);
+        Log::info('fechaFin: ' . $fechaFin);
+        
+        $detalles = $this->getDatosModuloEstiloAQLDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra);
 
         return response()->json($detalles);
     }
 
-    private function getDatosModuloEstiloProcesoDetalles($fecha, $planta, $modulo, $estilo, $tiempoExtra = null)
+    private function getDatosModuloEstiloProcesoDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra = null)
     {
-        // Clave de caché única por cada combinación de planta, módulo, estilo, fecha y tipo de turno
-        $cacheKey = "proceso_detalles_{$planta}_{$modulo}_{$estilo}_{$fecha}_" . ($tiempoExtra ? 'te' : 'tn');
+        $cacheKey = "proceso_detalles_{$planta}_{$modulo}_{$estilo}_{$fechaInicio->format('Ymd')}_{$fechaFin->format('Ymd')}_" . ($tiempoExtra ? 'te' : 'tn');
 
-        // Tiempo de vida del caché: 10 minutos (ajustable)
-        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($modulo, $estilo, $planta, $fecha, $tiempoExtra) {
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $modulo, $estilo, $planta, $tiempoExtra) {
             $query = AseguramientoCalidad::where('modulo', $modulo)
                 ->where('estilo', $estilo)
                 ->where('planta', $planta)
-                ->whereDate('created_at', $fecha)
+                ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                 ->with('tpAseguramientoCalidad');
 
-            if (is_null($tiempoExtra)) {
-                $query->whereNull('tiempo_extra');
-            } else {
-                $query->where('tiempo_extra', $tiempoExtra);
-            }
+        if (is_null($tiempoExtra)) {
+            $query->whereNull('tiempo_extra');
+        } else {
+            $query->where('tiempo_extra', $tiempoExtra);
+        }
 
-            return $query->get()->map(function ($registro) {
-                return [
-                    'minutos_paro' => $registro->minutos_paro,
-                    'cliente' => $registro->cliente,
-                    'nombre' => $registro->nombre,
-                    'operacion' => $registro->operacion,
-                    'cantidad_auditada' => $registro->cantidad_auditada,
-                    'cantidad_rechazada' => $registro->cantidad_rechazada,
-                    'tipo_problema' => $registro->tpAseguramientoCalidad->pluck('tp')->filter()->implode(', ') ?: 'N/A',
-                    'ac' => $registro->ac ?? 'N/A',
-                    'pxp' => $registro->pxp ?? 'N/A',
-                    'hora' => optional($registro->created_at)->format('H:i:s') ?? 'N/A',
-                ];
-            });
+        return $query->get()->map(function ($registro) {
+            return [
+                'minutos_paro' => $registro->minutos_paro,
+                'cliente' => $registro->cliente,
+                'nombre' => $registro->nombre,
+                'operacion' => $registro->operacion,
+                'cantidad_auditada' => $registro->cantidad_auditada,
+                'cantidad_rechazada' => $registro->cantidad_rechazada,
+                'tipo_problema' => $registro->tpAseguramientoCalidad->pluck('tp')->filter()->implode(', ') ?: 'N/A',
+                'ac' => $registro->ac ?? 'N/A',
+                'pxp' => $registro->pxp ?? 'N/A',
+                'hora' => optional($registro->created_at)->format('H:i:s') ?? 'N/A',
+            ];
         });
+    });
 }
 
     public function obtenerDetallesProcesoP2(Request $request)
     {
+        Log::info('datos de request: ' . json_encode($request->all()));
         $modulo = $request->input('modulo');
         $estilo = $request->input('estilo');
-        $fecha = $request->input('fecha');
+        $fechaSemana = $request->input('fecha');
         $tiempoExtra = $request->input('tiempo_extra');
 
         $tiempoExtra = ($tiempoExtra === 'null' || $tiempoExtra === '') ? null : $tiempoExtra;
         $planta = "Intimark2";
 
-        if (!$modulo || !$estilo || !$fecha) {
+        if (!$modulo || !$estilo || !$fechaSemana) {
             Log::warning('Faltan parámetros en obtenerDetallesProcesoP2');
             return response()->json(['error' => 'Faltan parámetros necesarios'], 400);
         }
 
-        $detalles = $this->getDatosModuloEstiloProcesoDetalles($fecha, $planta, $modulo, $estilo, $tiempoExtra);
+        $fechaInicio = Carbon::parse($fechaSemana)->startOfWeek()->setTime(0, 0, 0);
+        $fechaFin = Carbon::parse($fechaSemana)->endOfWeek()->setTime(23, 59, 59);
+        Log::info('fechaInicio: ' . $fechaInicio);
+        Log::info('fechaFin: ' . $fechaFin);
+
+        $detalles = $this->getDatosModuloEstiloProcesoDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra);
 
         return response()->json($detalles);
     }
 
     public function obtenerDetallesProcesoP1(Request $request)
     {
-        Log::info('datos de request'. "{$request}");
+        Log::info('datos de request: ' . json_encode($request->all()));
         $modulo = $request->input('modulo');
         $estilo = $request->input('estilo');
-        $fecha = $request->input('fecha');
+        $fechaSemana = $request->input('fecha');
         $tiempoExtra = $request->input('tiempo_extra');
 
         $tiempoExtra = ($tiempoExtra === 'null' || $tiempoExtra === '') ? null : $tiempoExtra;
         $planta = "Intimark1";
 
-        if (!$modulo || !$estilo || !$fecha) {
-            Log::warning('Faltan parámetros en obtenerDetallesProcesoP2');
+        if (!$modulo || !$estilo || !$fechaSemana) {
+            Log::warning('Faltan parámetros en obtenerDetallesProcesoP1');
             return response()->json(['error' => 'Faltan parámetros necesarios'], 400);
         }
 
-        $detalles = $this->getDatosModuloEstiloProcesoDetalles($fecha, $planta, $modulo, $estilo, $tiempoExtra);
+        $fechaInicio = Carbon::parse($fechaSemana)->startOfWeek()->setTime(0, 0, 0);
+        $fechaFin = Carbon::parse($fechaSemana)->endOfWeek()->setTime(23, 59, 59);
+        Log::info('fechaInicio: ' . $fechaInicio);
+        Log::info('fechaFin: ' . $fechaFin);
+
+        $detalles = $this->getDatosModuloEstiloProcesoDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra);
 
         return response()->json($detalles);
     }
