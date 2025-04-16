@@ -58,15 +58,18 @@ class DashboardPorSemanaV2Controller extends Controller
             return response()->json(['error' => 'No se recibió una fecha'], 400);
         }
 
-        $fechaActual = Carbon::parse($request->input('fecha_inicio'))->format('Y-m-d');
-        $plantaConsulta = "Intimark1";
-        $cacheKey = "aql_{$plantaConsulta}_{$fechaActual}";
+        $fechaRaw = $request->input('fecha_inicio');
+        $fechaInicio = Carbon::parse($fechaRaw)->startOfWeek()->setTime(0, 0, 0);
+        $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
-        Log::info("🔎 Iniciando consulta AQL para fecha: {$fechaActual}");
+        $plantaConsulta = "Intimark1";
+        $cacheKey = "aql_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+
+        Log::info("🔎 Iniciando consulta AQL para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
-            return $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, null);
+        $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+            return $this->getDatosModuloEstiloAQL($fechaInicio, $plantaConsulta, null, $fechaFin);
         });
         Log::info("⏳ Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
 
@@ -81,15 +84,18 @@ class DashboardPorSemanaV2Controller extends Controller
             return response()->json(['error' => 'No se recibió una fecha'], 400);
         }
 
-        $fechaActual = Carbon::parse($request->input('fecha_inicio'))->format('Y-m-d');
-        $plantaConsulta = "Intimark1";
-        $cacheKey = "aqlte_{$plantaConsulta}_{$fechaActual}";
+        $fechaRaw = $request->input('fecha_inicio');
+        $fechaInicio = Carbon::parse($fechaRaw)->startOfWeek()->setTime(0, 0, 0);
+        $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
-        Log::info("🔎 Iniciando consulta AQL TE para fecha: {$fechaActual}");
+        $plantaConsulta = "Intimark1";
+        $cacheKey = "aqlte_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+
+        Log::info("🔎 Iniciando consulta AQL TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
-            return $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, 1);
+        $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+            return $this->getDatosModuloEstiloAQL($fechaInicio, $plantaConsulta, 1, $fechaFin);
         });
         Log::info("⏳ Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
 
@@ -104,15 +110,18 @@ class DashboardPorSemanaV2Controller extends Controller
             return response()->json(['error' => 'No se recibió una fecha'], 400);
         }
 
-        $fechaActual = Carbon::parse($request->input('fecha_inicio'))->format('Y-m-d');
-        $plantaConsulta = "Intimark1";
-        $cacheKey = "proceso_{$plantaConsulta}_{$fechaActual}";
+        $fechaRaw = $request->input('fecha_inicio');
+        $fechaInicio = Carbon::parse($fechaRaw)->startOfWeek()->setTime(0, 0, 0);
+        $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
-        Log::info("🔎 Iniciando consulta Proceso para fecha: {$fechaActual}");
+        $plantaConsulta = "Intimark1";
+        $cacheKey = "proceso_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+
+        Log::info("🔎 Iniciando consulta Proceso para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
-            return $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, null);
+        $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+            return $this->getDatosModuloEstiloProceso($fechaInicio, $plantaConsulta, null, $fechaFin);
         });
         Log::info("⏳ Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
 
@@ -127,15 +136,18 @@ class DashboardPorSemanaV2Controller extends Controller
             return response()->json(['error' => 'No se recibió una fecha'], 400);
         }
 
-        $fechaActual = Carbon::parse($request->input('fecha_inicio'))->format('Y-m-d');
-        $plantaConsulta = "Intimark1";
-        $cacheKey = "proceso_te_{$plantaConsulta}_{$fechaActual}";
+        $fechaRaw = $request->input('fecha_inicio');
+        $fechaInicio = Carbon::parse($fechaRaw)->startOfWeek()->setTime(0, 0, 0);
+        $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
-        Log::info("🔎 Iniciando consulta Proceso TE para fecha: {$fechaActual}");
+        $plantaConsulta = "Intimark1";
+        $cacheKey = "proceso_te_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+
+        Log::info("🔎 Iniciando consulta Proceso TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
-            return $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, 1);
+        $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+            return $this->getDatosModuloEstiloProceso($fechaInicio, $plantaConsulta, 1, $fechaFin);
         });
         Log::info("⏳ Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
 
@@ -150,15 +162,18 @@ class DashboardPorSemanaV2Controller extends Controller
             return response()->json(['error' => 'No se recibió una fecha'], 400);
         }
 
-        $fechaActual = Carbon::parse($request->input('fecha_inicio'))->format('Y-m-d');
-        $plantaConsulta = "Intimark2";
-        $cacheKey = "aql_{$plantaConsulta}_{$fechaActual}";
+        $fechaRaw = $request->input('fecha_inicio');
+        $fechaInicio = Carbon::parse($fechaRaw)->startOfWeek()->setTime(0, 0, 0);
+        $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
-        Log::info("🔎 P2 Iniciando consulta AQL para fecha: {$fechaActual}");
+        $plantaConsulta = "Intimark2";
+        $cacheKey = "aql_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+
+        Log::info("🔎 P2 Iniciando consulta AQL para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
-            return $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, null);
+        $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+            return $this->getDatosModuloEstiloAQL($fechaInicio, $plantaConsulta, null, $fechaFin);
         });
         Log::info("⏳ P2 Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
 
@@ -173,15 +188,18 @@ class DashboardPorSemanaV2Controller extends Controller
             return response()->json(['error' => 'No se recibió una fecha'], 400);
         }
 
-        $fechaActual = Carbon::parse($request->input('fecha_inicio'))->format('Y-m-d');
-        $plantaConsulta = "Intimark2";
-        $cacheKey = "aqlte_{$plantaConsulta}_{$fechaActual}";
+        $fechaRaw = $request->input('fecha_inicio');
+        $fechaInicio = Carbon::parse($fechaRaw)->startOfWeek()->setTime(0, 0, 0);
+        $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
-        Log::info("🔎 P2 Iniciando consulta AQL TE para fecha: {$fechaActual}");
+        $plantaConsulta = "Intimark2";
+        $cacheKey = "aqlte_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+
+        Log::info("🔎 P2 Iniciando consulta AQL TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
-            return $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, 1);
+        $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+            return $this->getDatosModuloEstiloAQL($fechaInicio, $plantaConsulta, 1, $fechaFin);
         });
         Log::info("⏳P2 Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
 
@@ -196,15 +214,18 @@ class DashboardPorSemanaV2Controller extends Controller
             return response()->json(['error' => 'No se recibió una fecha'], 400);
         }
 
-        $fechaActual = Carbon::parse($request->input('fecha_inicio'))->format('Y-m-d');
-        $plantaConsulta = "Intimark2";
-        $cacheKey = "proceso_{$plantaConsulta}_{$fechaActual}";
+        $fechaRaw = $request->input('fecha_inicio');
+        $fechaInicio = Carbon::parse($fechaRaw)->startOfWeek()->setTime(0, 0, 0);
+        $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
-        Log::info("🔎 P2 Iniciando consulta Proceso para fecha: {$fechaActual}");
+        $plantaConsulta = "Intimark2";
+        $cacheKey = "proceso_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+
+        Log::info("🔎 P2 Iniciando consulta Proceso para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
-            return $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, null);
+        $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+            return $this->getDatosModuloEstiloProceso($fechaInicio, $plantaConsulta, null, $fechaFin);
         });
         Log::info("⏳ P2 Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
 
@@ -219,15 +240,18 @@ class DashboardPorSemanaV2Controller extends Controller
             return response()->json(['error' => 'No se recibió una fecha'], 400);
         }
 
-        $fechaActual = Carbon::parse($request->input('fecha_inicio'))->format('Y-m-d');
-        $plantaConsulta = "Intimark2";
-        $cacheKey = "proceso_te_{$plantaConsulta}_{$fechaActual}";
+        $fechaRaw = $request->input('fecha_inicio');
+        $fechaInicio = Carbon::parse($fechaRaw)->startOfWeek()->setTime(0, 0, 0);
+        $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
-        Log::info("🔎 P2 Iniciando consulta Proceso TE para fecha: {$fechaActual}");
+        $plantaConsulta = "Intimark2";
+        $cacheKey = "proceso_te_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+
+        Log::info("🔎 P2 Iniciando consulta Proceso TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
-            return $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, 1);
+        $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+            return $this->getDatosModuloEstiloProceso($fechaInicio, $plantaConsulta, 1, $fechaFin);
         });
         Log::info("⏳ P2 Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
 

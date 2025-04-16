@@ -16,7 +16,7 @@
         <div class="col-md-6 d-flex align-items-center">
             <div class="form-group w-100">
                 <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
-                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
+                <input type="week" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
             </div>
         </div>
         <div class="col-md-6 d-flex align-items-end">
