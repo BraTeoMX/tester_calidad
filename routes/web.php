@@ -40,6 +40,7 @@ use App\Http\Controllers\EtiquetasV2Controller;
 use App\Http\Controllers\GestionUsuarioController;
 use App\Http\Controllers\ScreenV2Controller;
 use App\Http\Controllers\DashboardPorDiaV2Controller;
+use App\Http\Controllers\DashboardPorSemanaV2Controller;
 use App\Http\Controllers\DashboardBusquedaOPController;
 use App\Http\Controllers\AuditoriaKanBanController;
 use App\Http\Controllers\BultosNoFinalizadosController;
@@ -472,7 +473,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/formControlHorno', [ScreenV2Controller::class, 'formControlHorno'])->name('formControlHorno');
     Route::delete('/inspeccion/{id}', [ScreenV2Controller::class, 'eliminarBulto'])->name('eliminarBulto');
 
-    //apartado para dashboard con la segunda version
+    //apartado para dashboard con la segunda version por dia
     Route::get('/dashboardPlanta1V2', [DashboardPorDiaV2Controller::class, 'dashboardPlanta1V2'])->name('dashboardPlanta1V2');
     Route::get('/dashboardPlanta1V2/buscarAQL', [DashboardPorDiaV2Controller::class, 'buscarAQL'])->name('dashboardPlanta1V2.buscarAQL');
     Route::get('/dashboardPlanta1V2/buscarAQLTE', [DashboardPorDiaV2Controller::class, 'buscarAQLTE'])->name('dashboardPlanta1V2.buscarAQLTE');
@@ -489,6 +490,22 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/dashboardPlanta1V2P2/buscarProcesoTE', [DashboardPorDiaV2Controller::class, 'buscarProcesoTEP2'])->name('dashboardPlanta2V2.buscarProcesoTEP2');
     Route::get('dashboardPlanta2V2P2/buscarAQL/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesAQLP2']);
     Route::get('dashboardPlanta2V2P2/buscarProceso/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesProcesoP2']);
+
+    //apartado para dashboard con la segunda version por semana
+    Route::get('/dashboardSemanaPlanta1V2', [DashboardPorSemanaV2Controller::class, 'dashboardSemanaPlanta1V2'])->name('dashboardSemanaPlanta1V2');
+    Route::get('/dashboardSemanaPlanta1V2/buscarAQL', [DashboardPorSemanaV2Controller::class, 'buscarAQL'])->name('dashboardSemanaPlanta1V2.buscarAQL');
+    Route::get('/dashboardSemanaPlanta1V2/buscarAQLTE', [DashboardPorSemanaV2Controller::class, 'buscarAQLTE'])->name('dashboardSemanaPlanta1V2.buscarAQLTE');
+    Route::get('/dashboardSemanaPlanta1V2/buscarProceso', [DashboardPorSemanaV2Controller::class, 'buscarProceso'])->name('dashboardSemanaPlanta1V2.buscarProceso');
+    Route::get('/dashboardSemanaPlanta1V2/buscarProcesoTE', [DashboardPorSemanaV2Controller::class, 'buscarProcesoTE'])->name('dashboardSemanaPlanta1V2.buscarProcesoTE');
+    Route::get('dashboardSemanaPlanta1V2/buscarAQL/detalles', [DashboardPorSemanaV2Controller::class, 'obtenerDetallesAQLP1']);
+    Route::get('dashboardSemanaPlanta1V2/buscarProceso/detalles', [DashboardPorSemanaV2Controller::class, 'obtenerDetallesProcesoP1']);
+    Route::get('/dashboardSemanaPlanta2V2', [DashboardPorSemanaV2Controller::class, 'dashboardSemanaPlanta2V2'])->name('dashboardSemanaPlanta2V2');
+    Route::get('/dashboardSemanaPlanta2V2/buscarAQL', [DashboardPorSemanaV2Controller::class, 'buscarAQLP2'])->name('dashboardSemanaPlanta2V2.buscarAQLP2');
+    Route::get('/dashboardSemanaPlanta2V2/buscarAQLTE', [DashboardPorSemanaV2Controller::class, 'buscarAQLTEP2'])->name('dashboardSemanaPlanta2V2.buscarAQLTEP2');
+    Route::get('/dashboardSemanaPlanta2V2/buscarProceso', [DashboardPorSemanaV2Controller::class, 'buscarProcesoP2'])->name('dashboardSemanaPlanta2V2.buscarProcesoP2');
+    Route::get('/dashboardSemanaPlanta2V2/buscarProcesoTE', [DashboardPorSemanaV2Controller::class, 'buscarProcesoTEP2'])->name('dashboardSemanaPlanta2V2.buscarProcesoTEP2');
+    Route::get('/dashboardSemanaPlanta2V2/buscarAQL/detalles', [DashboardPorSemanaV2Controller::class, 'obtenerDetallesAQLP2']);
+    Route::get('/dashboardSemanaPlanta2V2/buscarProceso/detalles', [DashboardPorSemanaV2Controller::class, 'obtenerDetallesProcesoP2']);
 
     //Seccion para buscar por OP 
     Route::get('busqueda_OP', [DashboardBusquedaOPController::class, 'index'])->name('busqueda_OP.index');
