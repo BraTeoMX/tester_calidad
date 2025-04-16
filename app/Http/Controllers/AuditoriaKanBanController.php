@@ -40,17 +40,40 @@ class AuditoriaKanBanController extends Controller
         return view('kanban.index', compact('mesesEnEspanol', 'pageSlug'));
     }
     
-    public function reporte(Request $request) 
+    public function reporte(Request $request)
     {
-        $pageSlug ='';
-        $fechaActual = Carbon::now()->toDateString();
-        $mesesEnEspanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-        ];
+        $mesesEnEspanol = [/* ... */];
 
+        if ($request->ajax()) {
+            $query = ReporteKanban::query();
 
+            if ($request->filled('desde') && $request->filled('hasta')) {
+                $query->whereBetween('fecha_corte', [
+                    $request->desde . ' 00:00:00',
+                    $request->hasta . ' 23:59:59'
+                ]);
+            }
+            if ($request->filled('op'))      $query->where('op', $request->op);
+            if ($request->filled('planta'))  $query->where('planta', $request->planta);
+            if ($request->filled('estatus')) $query->where('estatus', $request->estatus);
 
-        return view('kanban.reporte', compact('mesesEnEspanol', 'pageSlug'));
+            $registros = $query->get();
+
+            $kpis = [
+                'total_op'     => $registros->count(),
+                'total_piezas' => $registros->sum('piezas'),
+                'aceptados'    => $registros->where('estatus',1)->count(),
+                'parciales'    => $registros->where('estatus',2)->count(),
+                'rechazados'   => $registros->where('estatus',3)->count(),
+            ];
+
+            return response()->json([
+                'kpis'      => $kpis,
+                'registros' => $registros,
+            ]);
+        }
+
+        return view('kanban.reporte', compact('mesesEnEspanol'));
     }
 
     public function getOpciones(Request $request)
