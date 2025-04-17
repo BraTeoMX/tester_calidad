@@ -337,19 +337,19 @@
             });
 
             // 2) Timeline
-            const timeline = Highcharts.chart('timelineChart', {
+            const flowChart = Highcharts.chart('timelineChart', {
                 chart: {
-                    type: 'line',
+                    type: 'column',
                     backgroundColor: 'transparent'
                 },
                 title: {
-                    text: 'Progreso de OP por Etapa',
+                    text: 'Flujo de OP por Etapa',
                     style: {
                         color: '#fff'
                     }
                 },
                 xAxis: {
-                    categories: ['Corte', 'Almacén', 'Liberación', 'Parcial', 'Rechazo', 'Online'],
+                    categories: ['Corte', 'Almacén', 'Resultado'],
                     labels: {
                         style: {
                             color: '#fff'
@@ -357,6 +357,7 @@
                     }
                 },
                 yAxis: {
+                    min: 0,
                     title: {
                         text: 'Cantidad de OP',
                         style: {
@@ -374,10 +375,32 @@
                         color: '#fff'
                     }
                 },
+                plotOptions: {
+                    column: {
+                        stacking: 'normal',
+                        dataLabels: {
+                            enabled: true,
+                            color: '#fff'
+                        }
+                    }
+                },
                 series: [{
-                    name: 'OP',
-                    data: [0, 0, 0, 0, 0, 0]
-                }]
+                        name: 'OP',
+                        data: [0, 0, null]
+                    },
+                    {
+                        name: 'Liberación',
+                        data: [null, null, 0]
+                    },
+                    {
+                        name: 'Parcial',
+                        data: [null, null, 0]
+                    },
+                    {
+                        name: 'Rechazo',
+                        data: [null, null, 0]
+                    }
+                ]
             });
 
             // 3) DataTable
@@ -427,13 +450,13 @@
                         'X-Requested-With': 'XMLHttpRequest'
                     },
                     success(json) {
-                        // KPIs
+                        // 1. Actualizar KPIs
                         $('#kpi-total-op').text(json.kpis.total_op);
                         $('#kpi-total-piezas').text(json.kpis.total_piezas);
                         $('#kpi-aceptados').text(json.kpis.aceptados);
                         $('#kpi-rechazados').text(json.kpis.rechazados);
 
-                        // Actualizar pie
+                        // 2. Actualizar pie chart
                         pie.series[0].setData([{
                                 name: 'Aceptados',
                                 y: json.kpis.aceptados
@@ -448,20 +471,23 @@
                             }
                         ]);
 
-                        // Calcular counts para timeline
-                        const etapas = [
-                            'fecha_corte', 'fecha_almacen',
-                            'fecha_liberacion', 'fecha_parcial',
-                            'fecha_rechazo', 'fecha_online'
-                        ];
-                        const counts = etapas.map(et =>
-                            json.registros.filter(r => r[et]).length
-                        );
-                        // Actualizar timeline
-                        timeline.series[0].setData(counts);
+                        // 3. Calcular datos para el stacked column (“flowChart”)
+                        const total = json.kpis.total_op; // Corte
+                        const almacen = json.registros.filter(r => r.fecha_almacen).length;
+                        const liberacion = json.kpis.aceptados; // estatus 1
+                        const parciales = json.kpis.parciales; // estatus 2
+                        const rechazados = json.kpis.rechazados; // estatus 3
 
-                        // Refrescar tabla
-                        table.clear().rows.add(json.registros).draw();
+                        // 4. Actualizar stacked column chart
+                        flowChart.series[0].setData([total, almacen, null]); // OP
+                        flowChart.series[1].setData([null, null, liberacion]); // Liberación
+                        flowChart.series[2].setData([null, null, parciales]); // Parcial
+                        flowChart.series[3].setData([null, null, rechazados]); // Rechazo
+
+                        // 5. Refrescar DataTable
+                        table.clear()
+                            .rows.add(json.registros)
+                            .draw();
                     }
                 });
             }
