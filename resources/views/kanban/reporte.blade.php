@@ -83,8 +83,8 @@
                     <label for="planta" class="form-label">Planta</label>
                     <select id="planta" name="planta" class="form-control">
                         <option value="">Todas</option>
-                        <option value="1">Planta 1</option>
-                        <option value="2">Planta 2</option>
+                        <option value="1">Planta 1</option>
+                        <option value="2">Planta 2</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -130,9 +130,22 @@
             </div>
 
             <!-- 3. GRÁFICO HIGHCHARTS -->
-            <div class="card mb-4 p-3">
-                <div id="estatusChart" style="height: 300px;"></div>
+            <div class="row mb-4">
+                <!-- Pie: 1/3 -->
+                <div class="col-md-4">
+                    <div class="card p-3">
+                        <div id="estatusChart" style="height: 300px;"></div>
+                    </div>
+                </div>
+
+                <!-- Timeline: 2/3 -->
+                <div class="col-md-8">
+                    <div class="card p-3">
+                        <div id="timelineChart" style="height: 300px;"></div>
+                    </div>
+                </div>
             </div>
+
 
             <!-- 4. TABLE DATA -->
             <div class="card card-body">
@@ -274,19 +287,31 @@
 
     <script>
         $(function() {
-            // Inicializar Highcharts
-            const chart = Highcharts.chart('estatusChart', {
+            // 1) Pie
+            const pie = Highcharts.chart('estatusChart', {
                 chart: {
                     type: 'pie',
-                    backgroundColor: 'transparent' // ← hace el fondo del gráfico invisible
+                    backgroundColor: 'transparent'
                 },
                 title: {
                     text: 'Distribución de Estatus',
-                    style: { color: '#ffffff' } // ← texto blanco
+                    style: {
+                        color: '#fff'
+                    }
                 },
                 legend: {
                     itemStyle: {
-                        color: '#ffffff' // ← leyenda en blanco
+                        color: '#fff'
+                    }
+                },
+                plotOptions: {
+                    pie: {
+                        dataLabels: {
+                            color: '#fff',
+                            style: {
+                                textOutline: 'none'
+                            }
+                        }
                     }
                 },
                 exporting: {
@@ -311,14 +336,58 @@
                 }]
             });
 
-            // Inicializar DataTable con Buttons
+            // 2) Timeline
+            const timeline = Highcharts.chart('timelineChart', {
+                chart: {
+                    type: 'line',
+                    backgroundColor: 'transparent'
+                },
+                title: {
+                    text: 'Progreso de OP por Etapa',
+                    style: {
+                        color: '#fff'
+                    }
+                },
+                xAxis: {
+                    categories: ['Corte', 'Almacén', 'Liberación', 'Parcial', 'Rechazo', 'Online'],
+                    labels: {
+                        style: {
+                            color: '#fff'
+                        }
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: 'Cantidad de OP',
+                        style: {
+                            color: '#fff'
+                        }
+                    },
+                    labels: {
+                        style: {
+                            color: '#fff'
+                        }
+                    }
+                },
+                legend: {
+                    itemStyle: {
+                        color: '#fff'
+                    }
+                },
+                series: [{
+                    name: 'OP',
+                    data: [0, 0, 0, 0, 0, 0]
+                }]
+            });
+
+            // 3) DataTable
             const table = $('#tabla-kanban').DataTable({
                 columns: [{
                         data: 'op'
                     },
                     {
                         data: 'planta',
-                        render: planta => planta == 1 ? 'Ixtlahuaca' : planta == 2 ? 'San Bartolo' : ''
+                        render: p => p == 1 ? 'Ixtlahuaca' : p == 2 ? 'San Bartolo' : ''
                     },
                     {
                         data: 'cliente'
@@ -331,7 +400,7 @@
                     },
                     {
                         data: 'estatus',
-                        render: est => est == 1 ? 'Aceptado' : est == 2 ? 'Parcial' : 'Rechazado'
+                        render: e => e == 1 ? 'Aceptado' : e == 2 ? 'Parcial' : 'Rechazado'
                     },
                     {
                         data: 'fecha_corte',
@@ -344,28 +413,28 @@
                 ],
                 dom: 'Bfrtip',
                 buttons: ['csv', 'excel'],
-                pageLength: 20 
+                pageLength: 20
             });
 
-            // Función para recargar datos
+            // 4) Fetch y actualización
             function fetchData() {
                 const params = $('#filtrosForm').serialize();
                 $.ajax({
-                    url: '{{ route('kanban.reporte') }}',
+                    url: "{{ route('kanban.reporte') }}",
                     data: params,
                     dataType: 'json',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
                     },
                     success(json) {
-                        // 2. KPIs
+                        // KPIs
                         $('#kpi-total-op').text(json.kpis.total_op);
                         $('#kpi-total-piezas').text(json.kpis.total_piezas);
                         $('#kpi-aceptados').text(json.kpis.aceptados);
                         $('#kpi-rechazados').text(json.kpis.rechazados);
 
-                        // 3. Actualizar Highcharts
-                        chart.series[0].setData([{
+                        // Actualizar pie
+                        pie.series[0].setData([{
                                 name: 'Aceptados',
                                 y: json.kpis.aceptados
                             },
@@ -379,19 +448,29 @@
                             }
                         ]);
 
-                        // 4. Recargar DataTable
+                        // Calcular counts para timeline
+                        const etapas = [
+                            'fecha_corte', 'fecha_almacen',
+                            'fecha_liberacion', 'fecha_parcial',
+                            'fecha_rechazo', 'fecha_online'
+                        ];
+                        const counts = etapas.map(et =>
+                            json.registros.filter(r => r[et]).length
+                        );
+                        // Actualizar timeline
+                        timeline.series[0].setData(counts);
+
+                        // Refrescar tabla
                         table.clear().rows.add(json.registros).draw();
                     }
                 });
             }
 
-            // Captura submit
+            // Bind y carga inicial
             $('#filtrosForm').on('submit', e => {
                 e.preventDefault();
                 fetchData();
             });
-
-            // Carga inicial
             fetchData();
         });
     </script>
