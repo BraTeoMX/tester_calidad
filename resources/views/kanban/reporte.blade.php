@@ -320,18 +320,22 @@
                 },
                 series: [{
                     name: 'Registros',
-                    colorByPoint: true,
-                    data: [{
+                    colorByPoint: false, // 👈 importante para usar los colores manuales
+                    data: [
+                        {
                             name: 'Aceptados',
-                            y: 0
+                            y: 0,
+                            color: 'green' // ✅ Verde
                         },
                         {
                             name: 'Parciales',
-                            y: 0
+                            y: 0,
+                            color: 'orange' // ✅ Naranja
                         },
                         {
                             name: 'Rechazados',
-                            y: 0
+                            y: 0,
+                            color: 'red' // ✅ Rojo
                         }
                     ]
                 }]
@@ -350,7 +354,7 @@
                     }
                 },
                 xAxis: {
-                    categories: ['Corte', 'Almacén', 'Resultado'],
+                    categories: ['Corte', 'Almacén', 'Resultado', 'Producción'], 
                     labels: {
                         style: {
                             color: '#fff'
@@ -385,21 +389,31 @@
                         }
                     }
                 },
-                series: [{
+                series: [
+                    {
                         name: 'OP',
-                        data: [0, 0, null]
+                        data: [0, 0, null, null],
+                        color: '#3498db' // Azul claro
                     },
                     {
                         name: 'Liberación',
-                        data: [null, null, 0]
+                        data: [null, null, 0, null],
+                        color: 'green' // ✅ Verde
                     },
                     {
                         name: 'Parcial',
-                        data: [null, null, 0]
+                        data: [null, null, 0, null],
+                        color: 'orange' // ✅ Naranja
                     },
                     {
                         name: 'Rechazo',
-                        data: [null, null, 0]
+                        data: [null, null, 0, null],
+                        color: 'red' // ✅ Rojo
+                    },
+                    {
+                        name: 'Producción',
+                        data: [null, null, null, 0],
+                        color: '#8e44ad' // ✅ Púrpura (o el color que prefieras)
                     }
                 ]
             });
@@ -482,12 +496,14 @@
                         const liberacion = json.kpis.aceptados; // estatus 1
                         const parciales = json.kpis.parciales; // estatus 2
                         const rechazados = json.kpis.rechazados; // estatus 3
+                        const produccion = json.produccion || 0;
 
                         // 4. Actualizar stacked column chart
                         flowChart.series[0].setData([total, almacen, null]); // OP
                         flowChart.series[1].setData([null, null, liberacion]); // Liberación
                         flowChart.series[2].setData([null, null, parciales]); // Parcial
                         flowChart.series[3].setData([null, null, rechazados]); // Rechazo
+                        flowChart.series[4].setData([null, null, null, produccion]);
 
                         // 5. Refrescar DataTable
                         table.clear()

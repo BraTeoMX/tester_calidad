@@ -90,6 +90,10 @@ class AuditoriaKanBanController extends Controller
                 }
             }
 
+            // 🔄 Volver a consultar los datos para que incluyan los nuevos updates
+            $registros = $query->get();
+            $produccion = $registros->whereNotNull('fecha_online')->count();
+
             // KPIs después de procesar
             $kpis = [
                 'total_op'     => $registros->count(),
@@ -102,6 +106,7 @@ class AuditoriaKanBanController extends Controller
             return response()->json([
                 'kpis'      => $kpis,
                 'registros' => $registros, // Aquí ya se incluye fecha_online
+                'produccion' => $produccion,
             ]);
         }
 
