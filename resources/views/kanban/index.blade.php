@@ -731,4 +731,11 @@
         });
     </script>
         
+    <script>
+        $(document).ready(function () {
+            // Lógica oculta que lanza la actualización si es necesario
+            $.get("{{ route('kanban.check-actualizacion-online') }}");
+        });
+    </script>
+        
 @endsection

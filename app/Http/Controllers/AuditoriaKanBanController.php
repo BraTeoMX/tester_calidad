@@ -71,27 +71,6 @@ class AuditoriaKanBanController extends Controller
 
             $registros = $query->get();
 
-            // ⚠️ Verificamos primero si JobAQL tiene datos
-            $hayDatosJobAQL = JobAQL::exists();
-
-            if ($hayDatosJobAQL) {
-                foreach ($registros as $registro) { 
-                    if (is_null($registro->fecha_online)) {
-                        $job = JobAQL::where('prodid', $registro->op)
-                            ->where('oprname', 'ON LINE')
-                            ->orderBy('payrolldate', 'asc')
-                            ->first();
-
-                        if ($job && $job->payrolldate) {
-                            $registro->fecha_online = $job->payrolldate;
-                            $registro->save();
-                        }
-                    }
-                }
-            }
-
-            // 🔄 Volver a consultar los datos para que incluyan los nuevos updates
-            $registros = $query->get();
             $produccion = $registros->whereNotNull('fecha_online')->count();
 
             // KPIs después de procesar
@@ -346,4 +325,36 @@ class AuditoriaKanBanController extends Controller
 
         return response()->json(['mensaje' => 'Registro eliminado correctamente.']);
     }
+
+    public function checkActualizacionOnline()
+    {
+        // Clave única para que no se repita dentro de 5 horas
+        $cacheKey = 'actualizacion_online_kanban';
+
+        if (!Cache::has($cacheKey)) {
+            // Tiempo hasta el próximo intento: 5 horas
+            Cache::put($cacheKey, now(), now()->addHours(5));
+
+            // Solo registros sin fecha_online
+            $registros = ReporteKanban::whereNull('fecha_online')->get();
+
+            // Solo si hay registros
+            if ($registros->count() > 0 && JobAQL::exists()) {
+                foreach ($registros as $registro) {
+                    $job = JobAQL::where('prodid', $registro->op)
+                                ->where('oprname', 'ON LINE')
+                                ->orderBy('payrolldate', 'asc')
+                                ->first();
+
+                    if ($job && $job->payrolldate) {
+                        $registro->fecha_online = $job->payrolldate;
+                        $registro->save();
+                    }
+                }
+            }
+        }
+
+        return response()->json(['status' => 'ok']);
+    }
+
 }

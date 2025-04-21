@@ -325,17 +325,17 @@
                         {
                             name: 'Aceptados',
                             y: 0,
-                            color: 'green' // ✅ Verde
+                            color: '#27ae60' // ✅ Verde
                         },
                         {
                             name: 'Parciales',
                             y: 0,
-                            color: 'orange' // ✅ Naranja
+                            color: '#e67e22' // ✅ Naranja
                         },
                         {
                             name: 'Rechazados',
                             y: 0,
-                            color: 'red' // ✅ Rojo
+                            color: '#c0392b' // ✅ Rojo
                         }
                     ]
                 }]
@@ -398,22 +398,22 @@
                     {
                         name: 'Liberación',
                         data: [null, null, 0, null],
-                        color: 'green' // ✅ Verde
+                        color: '#27ae60' // ✅ Verde
                     },
                     {
                         name: 'Parcial',
                         data: [null, null, 0, null],
-                        color: 'orange' // ✅ Naranja
+                        color: '#e67e22' // ✅ Naranja
                     },
                     {
                         name: 'Rechazo',
                         data: [null, null, 0, null],
-                        color: 'red' // ✅ Rojo
+                        color: '#c0392b' // ✅ Rojo
                     },
                     {
                         name: 'Producción',
                         data: [null, null, null, 0],
-                        color: '#8e44ad' // ✅ Púrpura (o el color que prefieras)
+                        color: '#007bff' // Azul oscuro
                     }
                 ]
             });
