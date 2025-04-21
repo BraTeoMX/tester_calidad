@@ -1,11 +1,12 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\JobAQLTemporal;
+use App\Models\JobAQL;
 use App\Models\AuditoriaAQL;
 use App\Models\JobAQLHistorial;
 use App\Models\CatalogoComentarioKanban;
@@ -20,26 +21,37 @@ use Illuminate\Support\Facades\Cache;
 class AuditoriaKanBanController extends Controller
 {
 
-    public function index(Request $request) 
+    public function index(Request $request)
     {
-        $pageSlug ='';
+        $pageSlug = '';
         $fechaActual = Carbon::now()->toDateString();
         $auditorDato = Auth::user()->name;
         $auditorPlanta = Auth::user()->Planta;
         $tipoUsuario = Auth::user()->puesto;
         $mesesEnEspanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
         ];
 
-        if($auditorPlanta == "Planta1"){
+        if ($auditorPlanta == "Planta1") {
             $datoPlanta = "1";
-        }else{
+        } else {
             $datoPlanta = "2";
         }
 
         return view('kanban.index', compact('mesesEnEspanol', 'pageSlug'));
     }
-    
+
     public function reporte(Request $request)
     {
         $mesesEnEspanol = [/* ... */];
@@ -59,17 +71,37 @@ class AuditoriaKanBanController extends Controller
 
             $registros = $query->get();
 
+            // ⚠️ Verificamos primero si JobAQL tiene datos
+            $hayDatosJobAQL = JobAQL::exists();
+
+            if ($hayDatosJobAQL) {
+                foreach ($registros as $registro) { 
+                    if (is_null($registro->fecha_online)) {
+                        $job = JobAQL::where('prodid', $registro->op)
+                            ->where('oprname', 'ON LINE')
+                            ->orderBy('payrolldate', 'asc')
+                            ->first();
+
+                        if ($job && $job->payrolldate) {
+                            $registro->fecha_online = $job->payrolldate;
+                            $registro->save();
+                        }
+                    }
+                }
+            }
+
+            // KPIs después de procesar
             $kpis = [
                 'total_op'     => $registros->count(),
                 'total_piezas' => $registros->sum('piezas'),
-                'aceptados'    => $registros->where('estatus',1)->count(),
-                'parciales'    => $registros->where('estatus',2)->count(),
-                'rechazados'   => $registros->where('estatus',3)->count(),
+                'aceptados'    => $registros->where('estatus', 1)->count(),
+                'parciales'    => $registros->where('estatus', 2)->count(),
+                'rechazados'   => $registros->where('estatus', 3)->count(),
             ];
 
             return response()->json([
                 'kpis'      => $kpis,
-                'registros' => $registros,
+                'registros' => $registros, // Aquí ya se incluye fecha_online
             ]);
         }
 
@@ -90,12 +122,12 @@ class AuditoriaKanBanController extends Controller
         // Cache con duración de 1 minuto
         $datos = Cache::remember($cacheKey, 60, function () use ($search) {
             $resultados = TicketCorte::select([
-                    'op',
-                    DB::raw('SUM(piezas) as piezas_total'),
-                    DB::raw('MIN(fecha) as fecha'),
-                    DB::raw('MIN(cliente) as cliente'),
-                    DB::raw('MIN(estilo) as estilo'),
-                ])
+                'op',
+                DB::raw('SUM(piezas) as piezas_total'),
+                DB::raw('MIN(fecha) as fecha'),
+                DB::raw('MIN(cliente) as cliente'),
+                DB::raw('MIN(estilo) as estilo'),
+            ])
                 ->where('op', 'like', '%' . $search . '%')
                 ->groupBy('op')
                 ->get();
@@ -151,7 +183,7 @@ class AuditoriaKanBanController extends Controller
             'comentario' => $comentario
         ]);
     }
-    
+
     public function guardar(Request $request)
     {
         //Log::info('Datos recibidos: ' . json_encode($request->all()));
@@ -204,8 +236,8 @@ class AuditoriaKanBanController extends Controller
 
         // Obtener los comentarios existentes en la base para este registro (sólo los nombres)
         $comentariosExistentes = ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)
-                                    ->pluck('nombre')
-                                    ->toArray();
+            ->pluck('nombre')
+            ->toArray();
 
         // Determinar cuáles comentarios se deben eliminar:
         // Es decir, aquellos que existen en la base y NO están en la lista enviada.
@@ -266,12 +298,12 @@ class AuditoriaKanBanController extends Controller
 
         $data = $registros->map(function ($registro) {
             return [
-                'fecha_corte'    => $registro->fecha_corte 
-                                        ? Carbon::parse($registro->fecha_corte)->format('Y-m-d H:i') 
-                                        : 'N/A',
-                'fecha_almacen'    => $registro->fecha_almacen 
-                                        ? Carbon::parse($registro->fecha_almacen)->format('Y-m-d H:i') 
-                                        : 'N/A',
+                'fecha_corte'    => $registro->fecha_corte
+                    ? Carbon::parse($registro->fecha_corte)->format('Y-m-d H:i')
+                    : 'N/A',
+                'fecha_almacen'    => $registro->fecha_almacen
+                    ? Carbon::parse($registro->fecha_almacen)->format('Y-m-d H:i')
+                    : 'N/A',
                 'op'               => $registro->op ?? 'N/A',
                 'cliente'          => $registro->cliente ?? 'N/A',
                 'estilo'           => $registro->estilo ?? 'N/A',
@@ -279,15 +311,15 @@ class AuditoriaKanBanController extends Controller
                 'estatus'          => $registro->estatus ?? '',
                 // Retornamos los comentarios como cadena separada por coma  
                 'comentarios'      => $registro->comentarios->pluck('nombre')->implode(','),
-                'fecha_parcial'    => $registro->fecha_parcial 
-                                        ? Carbon::parse($registro->fecha_parcial)->format('Y-m-d H:i') 
-                                        : 'N/A',
-                'fecha_liberacion' => $registro->fecha_liberacion 
-                                        ? Carbon::parse($registro->fecha_liberacion)->format('Y-m-d H:i') 
-                                        : 'N/A',
-                'fecha_rechazo' => $registro->fecha_rechazo 
-                                        ? Carbon::parse($registro->fecha_rechazo)->format('Y-m-d H:i') 
-                                        : 'N/A',
+                'fecha_parcial'    => $registro->fecha_parcial
+                    ? Carbon::parse($registro->fecha_parcial)->format('Y-m-d H:i')
+                    : 'N/A',
+                'fecha_liberacion' => $registro->fecha_liberacion
+                    ? Carbon::parse($registro->fecha_liberacion)->format('Y-m-d H:i')
+                    : 'N/A',
+                'fecha_rechazo' => $registro->fecha_rechazo
+                    ? Carbon::parse($registro->fecha_rechazo)->format('Y-m-d H:i')
+                    : 'N/A',
                 'id'               => $registro->id,
             ];
         });

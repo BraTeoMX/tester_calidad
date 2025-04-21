@@ -161,6 +161,7 @@
                                 <th>Estatus</th>
                                 <th>Fecha Corte</th>
                                 <th>Fecha Liberación</th>
+                                <th>Fecha Online</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -431,6 +432,10 @@
                     },
                     {
                         data: 'fecha_liberacion',
+                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                    },
+                    {
+                        data: 'fecha_online',
                         render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
                     }
                 ],
