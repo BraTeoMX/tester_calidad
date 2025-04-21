@@ -526,6 +526,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/kanban/registros-hoy', [AuditoriaKanBanController::class, 'obtenerRegistrosHoy'])->name('kanban.registrosHoy');
     Route::post('/kanban/eliminar', [AuditoriaKanBanController::class, 'eliminar'])->name('kanban.eliminar');
     Route::get('/kanban/check-actualizacion-online', [AuditoriaKanBanController::class, 'checkActualizacionOnline'])->name('kanban.check-actualizacion-online');
+    Route::get('/kanban/buscar-op', [AuditoriaKanBanController::class, 'buscarPorOP'])->name('kanban.buscar.op');
+
 
     //Seccion bultos no finalizados
     Route::get('/bnf', [BultosNoFinalizadosController::class, 'index'])->name('bnf.index');

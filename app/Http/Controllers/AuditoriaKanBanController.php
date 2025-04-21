@@ -357,4 +357,15 @@ class AuditoriaKanBanController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
+    public function buscarPorOP(Request $request)
+    {
+        $op = $request->op;
+
+        $registro = DB::table('reporte_kanban')
+            ->where('op', $op)
+            ->first();
+
+        return response()->json($registro);
+    }
+
 }

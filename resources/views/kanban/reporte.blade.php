@@ -146,6 +146,31 @@
                 </div>
             </div>
 
+            <div class="card card-body">
+                <div class="accordion mt-4" id="acordeonDetalleOP">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOP">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#detalleOP" aria-expanded="false" aria-controls="detalleOP">
+                                Análisis de Tiempos por OP
+                            </button>
+                        </h2>
+                        <div id="detalleOP" class="accordion-collapse collapse" aria-labelledby="headingOP" data-bs-parent="#acordeonDetalleOP">
+                            <div class="accordion-body">
+                                <!-- CONTENIDO DINÁMICO AQUÍ -->
+                                <form id="formBusquedaOP" class="row g-2 mb-3">
+                                    <div class="col-md-4">
+                                        <input type="text" id="opDetalle" class="form-control" placeholder="Buscar OP...">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-primary">Buscar</button>
+                                    </div>
+                                </form>
+                                <div id="resultadosDetalleOP"></div>                                
+                            </div>
+                        </div>
+                    </div>
+                </div>                
+            </div>
 
             <!-- 4. TABLE DATA -->
             <div class="card card-body">
@@ -520,5 +545,37 @@
             });
             fetchData();
         });
+    </script>
+
+    <script>
+        $('#formBusquedaOP').on('submit', function(e) {
+            e.preventDefault();
+            const op = $('#opDetalle').val();
+
+            $.ajax({
+                url: "{{ route('kanban.buscar.op') }}", // crea esta ruta en backend
+                method: 'GET',
+                data: { op },
+                dataType: 'json',
+                success: function(data) {
+                    if (data && data.op) {
+                        const diferencias = calcularDiferencias(data);
+                        $('#resultadosDetalleOP').html(`
+                            <div class="card p-3 bg-dark text-white">
+                                <h5>Detalle de OP: ${data.op}</h5>
+                                <p><strong>Cliente:</strong> ${data.cliente} <br>
+                                <strong>Estilo:</strong> ${data.estilo} <br>
+                                <strong>Piezas:</strong> ${data.piezas}</p>
+                                <hr>
+                                ${diferencias}
+                            </div>
+                        `);
+                    } else {
+                        $('#resultadosDetalleOP').html(`<div class="alert alert-warning">No se encontró la OP.</div>`);
+                    }
+                }
+            });
+        });
+
     </script>
 @endsection
