@@ -148,28 +148,36 @@
 
             <div class="card card-body">
                 <div class="accordion mt-4" id="acordeonDetalleOP">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingOP">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#detalleOP" aria-expanded="false" aria-controls="detalleOP">
-                                Análisis de Tiempos por OP
-                            </button>
-                        </h2>
-                        <div id="detalleOP" class="accordion-collapse collapse" aria-labelledby="headingOP" data-bs-parent="#acordeonDetalleOP">
-                            <div class="accordion-body">
-                                <!-- CONTENIDO DINÁMICO AQUÍ -->
-                                <form id="formBusquedaOP" class="row g-2 mb-3">
+                    <div class="card">
+                        <div class="card-header" id="headingOP">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link collapsed" type="button" data-toggle="collapse"
+                                    data-target="#detalleOP" aria-expanded="false" aria-controls="detalleOP">
+                                    Análisis de Tiempos por OP
+                                </button>
+                            </h5>
+                        </div>
+
+                        <div id="detalleOP" class="collapse" aria-labelledby="headingOP" data-parent="#acordeonDetalleOP">
+                            <div class="card-body">
+                                <!-- 1) Formulario de búsqueda solo con OP -->
+                                <form id="formBusquedaOP" class="row align-items-end mb-3">
                                     <div class="col-md-4">
-                                        <input type="text" id="opDetalle" class="form-control" placeholder="Buscar OP...">
+                                        <label for="opDetalle" class="form-label">Buscar OP</label>
+                                        <input type="text" id="opDetalle" class="form-control"
+                                            placeholder="Ej. OP12345">
                                     </div>
                                     <div class="col-md-2">
-                                        <button type="submit" class="btn btn-primary">Buscar</button>
+                                        <button type="submit" class="btn btn-primary btn-block">Buscar</button>
                                     </div>
                                 </form>
-                                <div id="resultadosDetalleOP"></div>                                
+
+                                <!-- 2) Aquí inyectaremos controles, tabla y gráfico -->
+                                <div id="resultadosDetalleOP"></div>
                             </div>
                         </div>
                     </div>
-                </div>                
+                </div>
             </div>
 
             <!-- 4. TABLE DATA -->
@@ -310,6 +318,8 @@
     <script src="{{ asset('js/highcharts/12/modules/offline-exporting.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/no-data-to-display.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/accessibility.js') }}"></script>
+    <script src="https://code.highcharts.com/modules/xrange.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
 
     <script>
         $(function() {
@@ -346,8 +356,7 @@
                 series: [{
                     name: 'Registros',
                     colorByPoint: false, // 👈 importante para usar los colores manuales
-                    data: [
-                        {
+                    data: [{
                             name: 'Aceptados',
                             y: 0,
                             color: '#27ae60' // ✅ Verde
@@ -379,7 +388,7 @@
                     }
                 },
                 xAxis: {
-                    categories: ['Corte', 'Almacén', 'Resultado', 'Producción'], 
+                    categories: ['Corte', 'Almacén', 'Resultado', 'Producción'],
                     labels: {
                         style: {
                             color: '#fff'
@@ -414,8 +423,7 @@
                         }
                     }
                 },
-                series: [
-                    {
+                series: [{
                         name: 'OP',
                         data: [0, 0, null, null],
                         color: '#3498db' // Azul claro
@@ -548,34 +556,210 @@
     </script>
 
     <script>
-        $('#formBusquedaOP').on('submit', function(e) {
+        // Mapea campo → etiqueta legible
+        function obtenerEtiqueta(campo) {
+            const etiquetas = {
+                'fecha_corte': 'Corte',
+                'fecha_almacen': 'Almacén',
+                'fecha_liberacion': 'Liberación',
+                'fecha_parcial': 'Parcial',
+                'fecha_rechazo': 'Rechazo',
+                'fecha_online': 'Producción'
+            };
+            return etiquetas[campo] || campo;
+        }
+
+        // Construye la tabla de trazabilidad
+        function construirTablaFechas(data) {
+            const filas = [
+                ['Corte', data.fecha_corte],
+                ['Almacén', data.fecha_almacen],
+                ['Liberación', data.fecha_liberacion],
+                ['Parcial', data.fecha_parcial],
+                ['Rechazo', data.fecha_rechazo],
+                ['Producción', data.fecha_online]
+            ];
+
+            let html = `
+        <div class="table-responsive">
+          <table class="table table-bordered table-sm">
+            <thead>
+              <tr><th>Etapa</th><th>Fecha y Hora</th></tr>
+            </thead>
+            <tbody>
+      `;
+
+            filas.forEach(([etapa, valor]) => {
+                html += `
+          <tr>
+            <td>${etapa}</td>
+            <td>${valor ? moment(valor).format('DD/MM/YYYY HH:mm:ss') : 'N/A'}</td>
+          </tr>
+        `;
+            });
+
+            html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+            return html;
+        }
+
+        // Dibuja la línea de tiempo como gráfico de línea conectada
+        function dibujarGraficoLinea(data) {
+            // 1) ¿Qué fases están seleccionadas?
+            const fasesSeleccionadas = [];
+            document.querySelectorAll('.fase-checkbox').forEach(chk => {
+                if (chk.checked) fasesSeleccionadas.push(chk.value);
+            });
+
+            // 2) Preparamos los puntos con tiempo (x=timestamp, y=0)
+            const puntos = fasesSeleccionadas
+                .map(campo => {
+                    const fecha = data[campo];
+                    if (!fecha) return null;
+                    return {
+                        x: new Date(fecha).getTime(),
+                        y: 0,
+                        name: obtenerEtiqueta(campo),
+                        campo
+                    };
+                })
+                .filter(p => p !== null);
+
+            // 3) Ordenamos según el flujo deseado
+            const orden = ['fecha_corte', 'fecha_almacen', 'fecha_liberacion', 'fecha_parcial', 'fecha_rechazo',
+                'fecha_online'
+            ];
+            puntos.sort((a, b) => orden.indexOf(a.campo) - orden.indexOf(b.campo));
+
+            // 4) Extraemos solo los datos para Highcharts
+            const seriesData = puntos.map(p => ({
+                x: p.x,
+                y: p.y,
+                name: p.name
+            }));
+
+            // 5) Calculamos tiempo total (primer → último)
+            let tiempoTotal = '';
+            if (puntos.length >= 2) {
+                const mins = Math.floor((puntos[puntos.length - 1].x - puntos[0].x) / 60000);
+                tiempoTotal = `<p><strong>Tiempo total:</strong> ${Math.floor(mins/60)}h ${mins%60}m</p>`;
+            }
+
+            // 6) Renderizamos Highcharts
+            Highcharts.chart('graficoLineaTiempo', {
+                chart: {
+                    type: 'line',
+                    backgroundColor: 'transparent'
+                },
+                title: {
+                    text: 'Línea de Tiempo de OP',
+                    style: {
+                        color: '#333'
+                    }
+                },
+                xAxis: {
+                    type: 'datetime',
+                    title: {
+                        text: 'Fecha y Hora'
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: ''
+                    },
+                    labels: {
+                        enabled: false
+                    },
+                    gridLineWidth: 0
+                },
+                tooltip: {
+                    pointFormat: '{point.name}: <b>{point.x:%d/%m/%Y %H:%M}</b>'
+                },
+                legend: {
+                    enabled: false
+                },
+                series: [{
+                    data: seriesData,
+                    marker: {
+                        enabled: true,
+                        radius: 4
+                    },
+                    lineWidth: 2
+                }]
+            });
+
+            // 7) Actualizamos indicador de tiempo total
+            document.getElementById('tiempoTotal').innerHTML = tiempoTotal;
+        }
+
+        // Cuando el usuario envíe el formulario...
+        document.getElementById('formBusquedaOP').addEventListener('submit', function(e) {
             e.preventDefault();
-            const op = $('#opDetalle').val();
+            const op = document.getElementById('opDetalle').value.trim();
+            if (!op) return;
 
             $.ajax({
-                url: "{{ route('kanban.buscar.op') }}", // crea esta ruta en backend
+                url: "{{ route('kanban.buscar.op') }}",
                 method: 'GET',
-                data: { op },
+                data: {
+                    op
+                },
                 dataType: 'json',
                 success: function(data) {
-                    if (data && data.op) {
-                        const diferencias = calcularDiferencias(data);
-                        $('#resultadosDetalleOP').html(`
-                            <div class="card p-3 bg-dark text-white">
-                                <h5>Detalle de OP: ${data.op}</h5>
-                                <p><strong>Cliente:</strong> ${data.cliente} <br>
-                                <strong>Estilo:</strong> ${data.estilo} <br>
-                                <strong>Piezas:</strong> ${data.piezas}</p>
-                                <hr>
-                                ${diferencias}
-                            </div>
-                        `);
-                    } else {
-                        $('#resultadosDetalleOP').html(`<div class="alert alert-warning">No se encontró la OP.</div>`);
+                    if (!data || !data.op) {
+                        document.getElementById('resultadosDetalleOP').innerHTML =
+                            `<div class="alert alert-warning">No se encontró la OP.</div>`;
+                        return;
                     }
+
+                    // 1) Controles de checkboxes para mostrar/ocultar fases
+                    const controles = `
+            <div id="controlesFases" class="mb-3">
+              <label class="mr-2"><strong>Mostrar fases:</strong></label>
+              ${['corte','almacen','liberacion','parcial','rechazo','online'].map(key => {
+                const campo = 'fecha_' + key;
+                const label = obtenerEtiqueta(campo);
+                return `
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input fase-checkbox" type="checkbox"
+                               id="chk_${key}" value="${campo}" checked>
+                        <label class="form-check-label" for="chk_${key}">${label}</label>
+                      </div>
+                    `;
+              }).join('')}
+            </div>
+          `;
+
+                    // 2) Tabla de trazabilidad
+                    const tabla = construirTablaFechas(data);
+
+                    // 3) Contenedor para tiempo total
+                    const indicadorTiempo = `<div id="tiempoTotal" class="mb-2"></div>`;
+
+                    // 4) Contenedor de gráfico
+                    const grafico = `<div id="graficoLineaTiempo" style="height: 300px;"></div>`;
+
+                    // Inyectamos todo junto
+                    document.getElementById('resultadosDetalleOP').innerHTML =
+                        `<h5>Detalle de OP: ${data.op}</h5>` +
+                        controles +
+                        tabla +
+                        indicadorTiempo +
+                        grafico;
+
+                    // 5) Dibujamos por primera vez
+                    dibujarGraficoLinea(data);
+
+                    // 6) Cada vez que cambie un checkbox, redraw
+                    document.querySelectorAll('.fase-checkbox').forEach(chk =>
+                        chk.addEventListener('change', () => dibujarGraficoLinea(data))
+                    );
                 }
             });
         });
-
     </script>
+
 @endsection
