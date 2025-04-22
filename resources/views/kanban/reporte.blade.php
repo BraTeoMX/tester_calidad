@@ -102,27 +102,33 @@
             </form>
 
             <!-- 2. KPI CARDS -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card p-3 text-center">
+            <div class="row mb-4 d-flex flex-wrap">
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                    <div class="card p-3 text-center h-100">
                         <h6>Total OP</h6>
                         <h3 id="kpi-total-op">0</h3>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card p-3 text-center">
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                    <div class="card p-3 text-center h-100">
                         <h6>Total Piezas</h6>
                         <h3 id="kpi-total-piezas">0</h3>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card p-3 text-center">
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                    <div class="card p-3 text-center h-100">
                         <h6>Aceptados</h6>
                         <h3 id="kpi-aceptados">0</h3>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card p-3 text-center">
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                    <div class="card p-3 text-center h-100">
+                        <h6>Parciales</h6>
+                        <h3 id="kpi-parciales">0</h3>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                    <div class="card p-3 text-center h-100">
                         <h6>Rechazados</h6>
                         <h3 id="kpi-rechazados">0</h3>
                     </div>
@@ -193,7 +199,9 @@
                                 <th>Piezas</th>
                                 <th>Estatus</th>
                                 <th>Fecha Corte</th>
-                                <th>Fecha Liberación</th>
+                                <th>Fecha Aceptacion</th>
+                                <th>Fecha Parcial</th>
+                                <th>Fecha Rechazo</th>
                                 <th>Fecha Online</th>
                             </tr>
                         </thead>
@@ -505,6 +513,14 @@
                         render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
                     },
                     {
+                        data: 'fecha_parcial',
+                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                    },
+                    {
+                        data: 'fecha_rechazo',
+                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                    },
+                    {
                         data: 'fecha_online',
                         render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
                     }
@@ -529,6 +545,7 @@
                         $('#kpi-total-op').text(json.kpis.total_op);
                         $('#kpi-total-piezas').text(json.kpis.total_piezas);
                         $('#kpi-aceptados').text(json.kpis.aceptados);
+                        $('#kpi-parciales').text(json.kpis.parciales);
                         $('#kpi-rechazados').text(json.kpis.rechazados);
 
                         // 2. Actualizar pie chart
