@@ -281,7 +281,7 @@
                     <thead>
                         <tr>
                             <th>PARO</th>
-                            <th>CLIENTE</th>
+                            <th>Estilo</th>
                             <th>Nombre</th>
                             <th>Operacion</th>
                             <th>Piezas Auditadas</th>
@@ -617,7 +617,7 @@
                                 <td>${item.auditoresUnicos}</td>
                                 <td>
                                     <button type="button" class="custom-btn" 
-                                        onclick="abrirModalAQL('${item.modulo}', '${item.cliente}', '${tablaBodyId}')">
+                                        onclick="abrirModalAQL(&quot;${encodeURIComponent(item.modulo)}&quot;, &quot;${encodeURIComponent(item.cliente)}&quot;, &quot;${tablaBodyId}&quot;)">
                                         ${item.modulo}
                                     </button>
                                 </td>
@@ -773,7 +773,7 @@
                                 <td>${item.auditoresUnicos}</td>
                                 <td>
                                     <button type="button" class="custom-btn" 
-                                        onclick="abrirModalProceso('${item.modulo}', '${item.cliente}', '${tablaBodyId}')">
+                                        onclick="abrirModalProceso(&quot;${encodeURIComponent(item.modulo)}&quot;, &quot;${encodeURIComponent(item.cliente)}&quot;, &quot;${tablaBodyId}&quot;)">
                                         ${item.modulo}
                                     </button>
                                 </td>
@@ -897,6 +897,10 @@
         let activeModalId = null;
 
         function abrirModalAQL(modulo, cliente, tablaOrigenId) {
+            // Decodificar parámetros que podrían tener caracteres especiales
+            modulo = decodeURIComponent(modulo);
+            cliente = decodeURIComponent(cliente);
+
             // Mostrar modal vacío
             const modal = document.getElementById("modalAQL");
             const tbody = document.getElementById("modalAQLBody");
@@ -941,7 +945,7 @@
                     data.forEach(registro => {
                         rows += `<tr>
                             <td>${registro.minutos_paro ?? 'N/A'}</td>
-                            <td>${registro.cliente ?? 'N/A'}</td>
+                            <td>${registro.estilo ?? 'N/A'}</td>
                             <td>${registro.bulto ?? 'N/A'}</td>
                             <td>${registro.pieza ?? 'N/A'}</td>
                             <td>${registro.talla ?? 'N/A'}</td>
@@ -1020,6 +1024,10 @@
         let activeModalIdProceso = null;
 
         function abrirModalProceso(modulo, cliente, tablaOrigenId) {
+
+            // Decodificar los valores
+            modulo = decodeURIComponent(modulo);
+            cliente = decodeURIComponent(cliente);
             // Mostrar modal vacío con mensaje "Cargando..."
             const modal = document.getElementById("modalProceso");
             const tbody = document.getElementById("modalProcesoBody");
@@ -1063,7 +1071,7 @@
                     data.forEach(registro => {
                         rows += `<tr>
                             <td>${registro.minutos_paro ?? 'N/A'}</td>
-                            <td>${registro.cliente ?? 'N/A'}</td>
+                            <td>${registro.estilo ?? 'N/A'}</td>
                             <td>${registro.nombre ?? 'N/A'}</td>
                             <td>${registro.operacion ?? 'N/A'}</td>
                             <td>${registro.cantidad_auditada ?? 'N/A'}</td>

@@ -281,7 +281,7 @@
                     <thead>
                         <tr>
                             <th>PARO</th>
-                            <th>CLIENTE</th>
+                            <th>ESTILO</th>
                             <th>Nombre</th>
                             <th>Operacion</th>
                             <th>Piezas Auditadas</th>

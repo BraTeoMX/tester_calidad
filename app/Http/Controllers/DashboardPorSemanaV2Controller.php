@@ -464,13 +464,13 @@ class DashboardPorSemanaV2Controller extends Controller
         return $dataModuloEstiloProceso;
     }
 
-    private function getDatosModuloEstiloAQLDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra = null)
+    private function getDatosModuloClienteAQLDetalles($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra = null)
     {
-        $cacheKey = "aql_detalles_{$planta}_{$modulo}_{$estilo}_{$fechaInicio->format('Ymd')}_{$fechaFin->format('Ymd')}_" . ($tiempoExtra ? 'te' : 'tn');
+        $cacheKey = "aql_detalles_{$planta}_{$modulo}_{$cliente}_{$fechaInicio->format('Ymd')}_{$fechaFin->format('Ymd')}_" . ($tiempoExtra ? 'te' : 'tn');
 
-        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra) {
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra) {
             $query = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
+                ->where('cliente', $cliente)
                 ->where('planta', $planta)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                 ->with('tpAuditoriaAQL');
@@ -494,7 +494,7 @@ class DashboardPorSemanaV2Controller extends Controller
                     'cantidad_rechazada' => $registro->cantidad_rechazada,
                     'defectos' => $registro->tpAuditoriaAQL->pluck('tp')->filter()->implode(', ') ?: 'N/A',
                     'accion_correctiva' => $registro->ac ?? 'N/A',
-                    'hora' => optional($registro->created_at)->format('H:i:s') ?? 'N/A',
+                    'hora' => $registro->created_at ? Carbon::parse($registro->created_at)->format('d/m/Y - H:i:s'): 'N/A',
                 ];
             });
         });
@@ -523,7 +523,7 @@ class DashboardPorSemanaV2Controller extends Controller
         Log::info('fechaInicio: ' . $fechaInicio);
         Log::info('fechaFin: ' . $fechaFin);
 
-        $detalles = $this->getDatosModuloEstiloAQLDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra);
+        $detalles = $this->getDatosModuloClienteAQLDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra);
 
         return response()->json($detalles);
     }
@@ -532,14 +532,14 @@ class DashboardPorSemanaV2Controller extends Controller
     {
         Log::info('datos de request: ' . json_encode($request->all()));
         $modulo = $request->input('modulo');
-        $estilo = $request->input('estilo');
+        $cliente = $request->input('cliente');
         $fechaSemana = $request->input('fecha');
         $tiempoExtra = $request->input('tiempo_extra');
 
         $tiempoExtra = ($tiempoExtra === 'null' || $tiempoExtra === '') ? null : $tiempoExtra;
         $planta = "Intimark1";
 
-        if (!$modulo || !$estilo || !$fechaSemana) {
+        if (!$modulo || !$cliente || !$fechaSemana) {
             return response()->json(['error' => 'Faltan parámetros necesarios'], 400);
         }
 
@@ -549,18 +549,18 @@ class DashboardPorSemanaV2Controller extends Controller
         Log::info('fechaInicio: ' . $fechaInicio);
         Log::info('fechaFin: ' . $fechaFin);
         
-        $detalles = $this->getDatosModuloEstiloAQLDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra);
+        $detalles = $this->getDatosModuloClienteAQLDetalles($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra);
 
         return response()->json($detalles);
     }
 
-    private function getDatosModuloEstiloProcesoDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra = null)
+    private function getDatosModuloClienteProcesoDetalles($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra = null)
     {
-        $cacheKey = "proceso_detalles_{$planta}_{$modulo}_{$estilo}_{$fechaInicio->format('Ymd')}_{$fechaFin->format('Ymd')}_" . ($tiempoExtra ? 'te' : 'tn');
+        $cacheKey = "proceso_detalles_{$planta}_{$modulo}_{$cliente}_{$fechaInicio->format('Ymd')}_{$fechaFin->format('Ymd')}_" . ($tiempoExtra ? 'te' : 'tn');
 
-        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $modulo, $estilo, $planta, $tiempoExtra) {
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $modulo, $cliente, $planta, $tiempoExtra) {
             $query = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
+                ->where('cliente', $cliente)
                 ->where('planta', $planta)
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                 ->with('tpAseguramientoCalidad');
@@ -574,7 +574,7 @@ class DashboardPorSemanaV2Controller extends Controller
         return $query->get()->map(function ($registro) {
             return [
                 'minutos_paro' => $registro->minutos_paro,
-                'cliente' => $registro->cliente,
+                'estilo' => $registro->estilo,
                 'nombre' => $registro->nombre,
                 'operacion' => $registro->operacion,
                 'cantidad_auditada' => $registro->cantidad_auditada,
@@ -582,7 +582,7 @@ class DashboardPorSemanaV2Controller extends Controller
                 'tipo_problema' => $registro->tpAseguramientoCalidad->pluck('tp')->filter()->implode(', ') ?: 'N/A',
                 'ac' => $registro->ac ?? 'N/A',
                 'pxp' => $registro->pxp ?? 'N/A',
-                'hora' => optional($registro->created_at)->format('H:i:s') ?? 'N/A',
+                'hora' => $registro->created_at ? Carbon::parse($registro->created_at)->format('d/m/Y - H:i:s'): 'N/A',
             ];
         });
     });
@@ -609,7 +609,7 @@ class DashboardPorSemanaV2Controller extends Controller
         Log::info('fechaInicio: ' . $fechaInicio);
         Log::info('fechaFin: ' . $fechaFin);
 
-        $detalles = $this->getDatosModuloEstiloProcesoDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra);
+        $detalles = $this->getDatosModuloClienteProcesoDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra);
 
         return response()->json($detalles);
     }
@@ -618,14 +618,14 @@ class DashboardPorSemanaV2Controller extends Controller
     {
         Log::info('datos de request: ' . json_encode($request->all()));
         $modulo = $request->input('modulo');
-        $estilo = $request->input('estilo');
+        $cliente = $request->input('cliente');
         $fechaSemana = $request->input('fecha');
         $tiempoExtra = $request->input('tiempo_extra');
 
         $tiempoExtra = ($tiempoExtra === 'null' || $tiempoExtra === '') ? null : $tiempoExtra;
         $planta = "Intimark1";
 
-        if (!$modulo || !$estilo || !$fechaSemana) {
+        if (!$modulo || !$cliente || !$fechaSemana) {
             Log::warning('Faltan parámetros en obtenerDetallesProcesoP1');
             return response()->json(['error' => 'Faltan parámetros necesarios'], 400);
         }
@@ -635,7 +635,7 @@ class DashboardPorSemanaV2Controller extends Controller
         Log::info('fechaInicio: ' . $fechaInicio);
         Log::info('fechaFin: ' . $fechaFin);
 
-        $detalles = $this->getDatosModuloEstiloProcesoDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra);
+        $detalles = $this->getDatosModuloClienteProcesoDetalles($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra);
 
         return response()->json($detalles);
     }
