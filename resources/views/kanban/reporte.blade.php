@@ -186,6 +186,16 @@
                 </div>
             </div>
 
+            <div class="card card-body">
+                <!-- Gráfico de línea de tiempo por rango -->
+                <div class="card card-body mt-4">
+                    <h5 style="color:#fff;">Línea de Tiempo Promedio General por Rango</h5>
+                    <div id="controlesFasesRango" class="mb-3"></div>
+                    <div id="tiempoTotalRango" class="mb-2"></div>
+                    <div id="graficoLineaRango" style="height: 300px;"></div>
+                </div>
+            </div>
+
             <!-- 4. TABLE DATA -->
             <div class="card card-body">
                 <div class="table-responsive">
@@ -582,6 +592,8 @@
                         table.clear()
                             .rows.add(json.registros)
                             .draw();
+
+                        dibujarGraficoLineaRango(json);
                     }
                 });
             }
@@ -906,6 +918,147 @@
                     );
                 }
             });
+        }
+    </script>
+
+    <script>
+        function dibujarGraficoLineaRango(json) {
+            const registros = json.registros;
+            const fases = ['fecha_corte', 'fecha_almacen', 'fecha_liberacion', 'fecha_parcial', 'fecha_rechazo', 'fecha_online'];
+            const etiquetas = {
+                'fecha_corte': 'Corte',
+                'fecha_almacen': 'Almacén',
+                'fecha_liberacion': 'Liberación',
+                'fecha_parcial': 'Parcial',
+                'fecha_rechazo': 'Rechazo',
+                'fecha_online': 'Producción'
+            };
+
+            function construirControles() {
+                const html = `
+                    <label><strong style="color: #eee;">Mostrar fases:</strong></label>
+                    <div class="d-flex flex-wrap mt-2">
+                        ${fases.map(f => `
+                            <div class="custom-checkbox mr-3 mb-2">
+                                <input type="checkbox" class="fase-checkbox-rango" id="chk_rango_${f}" value="${f}" checked>
+                                <label for="chk_rango_${f}" class="ml-1">${etiquetas[f]}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                document.getElementById('controlesFasesRango').innerHTML = html;
+
+                document.querySelectorAll('.fase-checkbox-rango').forEach(chk =>
+                    chk.addEventListener('change', recalcularYdibujar)
+                );
+            }
+
+            function recalcularYdibujar() {
+                const fasesSeleccionadas = fases.filter(f => document.getElementById('chk_rango_' + f)?.checked);
+                const tiemposAcumulados = [];
+
+                for (let i = 0; i < fasesSeleccionadas.length - 1; i++) {
+                    const fase1 = fasesSeleccionadas[i];
+                    const fase2 = fasesSeleccionadas[i + 1];
+                    let sumaMs = 0;
+                    let conteo = 0;
+
+                    registros.forEach(r => {
+                        if (r[fase1] && r[fase2]) {
+                            const f1 = new Date(r[fase1]);
+                            const f2 = new Date(r[fase2]);
+                            const diff = f2 - f1;
+                            if (diff > 0) {
+                                sumaMs += diff;
+                                conteo++;
+                            }
+                        }
+                    });
+
+                    tiemposAcumulados.push({
+                        nombre: `${etiquetas[fase1]} → ${etiquetas[fase2]}`,
+                        tiempoMs: sumaMs,
+                        promedioMs: conteo ? Math.floor(sumaMs / conteo) : 0,
+                        conteo
+                    });
+                }
+
+                const seriesData = fasesSeleccionadas.map((f, i) => ({
+                    x: i,
+                    y: 0,
+                    name: etiquetas[f]
+                }));
+
+                const etiquetasIntermedias = tiemposAcumulados.map((t, i) => ({
+                    x: i + 0.5,
+                    y: 0,
+                    dataLabels: [{
+                        enabled: true,
+                        useHTML: true,
+                        formatter: function () {
+                            return `<span style="color:#fff;background:#333;padding:2px 6px;border-radius:4px;font-size:11px;">
+                                ${formatearTiempo(t.promedioMs)}</span>`;
+                        },
+                        style: { color: '#fff' },
+                        align: 'center',
+                        verticalAlign: 'bottom',
+                        y: -10
+                    }],
+                    marker: { enabled: false }
+                }));
+
+                Highcharts.chart('graficoLineaRango', {
+                    chart: {
+                        type: 'line',
+                        backgroundColor: '#111'
+                    },
+                    title: { text: '', style: { color: '#fff' } },
+                    xAxis: {
+                        categories: fasesSeleccionadas.map(f => etiquetas[f]),
+                        labels: { style: { color: '#fff' } }
+                    },
+                    yAxis: {
+                        title: { text: '' },
+                        labels: { enabled: false },
+                        gridLineWidth: 0
+                    },
+                    tooltip: {
+                        backgroundColor: '#222',
+                        style: { color: '#fff' },
+                        pointFormat: '{point.name}'
+                    },
+                    legend: { enabled: false },
+                    series: [
+                        {
+                            name: 'Fases',
+                            data: seriesData,
+                            marker: {
+                                enabled: true,
+                                radius: 4,
+                                fillColor: '#00e676'
+                            },
+                            lineWidth: 2,
+                            color: '#00e676'
+                        },
+                        {
+                            name: 'Intervalos',
+                            type: 'scatter',
+                            data: etiquetasIntermedias,
+                            enableMouseTracking: false,
+                            marker: { enabled: false }
+                        }
+                    ]
+                });
+
+                // Mostrar tiempo acumulado total
+                const totalMs = tiemposAcumulados.reduce((acc, t) => acc + t.tiempoMs, 0);
+                document.getElementById('tiempoTotalRango').innerHTML = `
+                    <p><strong>Tiempo acumulado total:</strong> ${formatearTiempo(totalMs)}</p>
+                `;
+            }
+
+            construirControles();
+            recalcularYdibujar();
         }
     </script>
 @endsection
