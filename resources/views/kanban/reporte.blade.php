@@ -617,8 +617,32 @@
 
             let tiempoTotal = '';
             if (puntos.length >= 2) {
-                const mins = Math.floor((puntos[puntos.length - 1].x - puntos[0].x) / 60000);
-                tiempoTotal = `<p><strong>Tiempo total:</strong> ${Math.floor(mins / 60)}h ${mins % 60}m</p>`;
+                const diffMs = puntos[puntos.length - 1].x - puntos[0].x;
+
+                const totalSeconds = Math.floor(diffMs / 1000);
+                const totalMinutes = Math.floor(totalSeconds / 60);
+                const totalHours = Math.floor(totalMinutes / 60);
+                const totalDays = Math.floor(totalHours / 24);
+
+                const horasRestantes = totalHours % 24;
+                const minutosRestantes = totalMinutes % 60;
+                const segundosRestantes = totalSeconds % 60;
+
+                const partesLegibles = [];
+                if (totalDays > 0) partesLegibles.push(`${totalDays} día${totalDays > 1 ? 's' : ''}`);
+                if (horasRestantes > 0) partesLegibles.push(`${horasRestantes} hora${horasRestantes > 1 ? 's' : ''}`);
+                if (minutosRestantes > 0) partesLegibles.push(`${minutosRestantes} minuto${minutosRestantes > 1 ? 's' : ''}`);
+                if (segundosRestantes > 0) partesLegibles.push(`${segundosRestantes} segundo${segundosRestantes > 1 ? 's' : ''}`);
+
+                const formatoLegible = partesLegibles.join(', ');
+                const formatoTecnico = `${String(totalHours).padStart(2, '0')}:${String(minutosRestantes).padStart(2, '0')}:${String(segundosRestantes).padStart(2, '0')}`;
+
+                tiempoTotal = `
+                    <p>
+                        <strong>Tiempo total:</strong><br>
+                        ${formatoLegible} &nbsp; <span style="color:#aaa">(${formatoTecnico})</span>
+                    </p>
+                `;
             }
 
             // Nueva serie para mostrar los tiempos entre puntos
