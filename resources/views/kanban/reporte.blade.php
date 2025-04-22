@@ -205,97 +205,72 @@
     </div>
 
     <style>
-        thead.thead-primary {
-            background-color: #59666e54;
-            /* Azul claro */
-            color: #333;
-            /* Color del texto */
+        /* Estilo para la gráfica en modo oscuro */
+        #graficoLineaTiempo {
+            background-color: #111;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 10px;
         }
 
-        .texto-blanco {
-            color: white !important;
+        /* Estilo general para etiquetas y texto */
+        #resultadosDetalleOP h5,
+        #resultadosDetalleOP table,
+        #resultadosDetalleOP label,
+        #resultadosDetalleOP p,
+        #resultadosDetalleOP th,
+        #resultadosDetalleOP td {
+            color: #fff;
         }
 
-        .alerta-exito {
-            background-color: #32CD32;
-            /* Color de fondo verde */
-            color: white;
-            /* Color de texto blanco */
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 20px;
+        /* Checkbox personalizado */
+        .custom-checkbox {
+            display: flex;
+            align-items: center;
+            margin-right: 12px;
         }
 
-        .sobre-escribir {
-            background-color: #FF8C00;
-            /* Color de fondo verde */
-            color: white;
-            /* Color de texto blanco */
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 20px;
-        }
-
-        .cambio-estatus {
-            background-color: #800080;
-            /* Color de fondo verde */
-            color: white;
-            /* Color de texto blanco */
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 20px;
-        }
-
-        .btn-verde-xd {
-            color: #fff !important;
-            background-color: #28a745 !important;
-            border-color: #28a745 !important;
-            box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08) !important;
-            padding: 0.5rem 2rem;
-            /* Aumenta el tamaño del botón */
-            font-size: 1.2rem;
-            /* Aumenta el tamaño de la fuente */
-            font-weight: bold;
-            /* Texto en negritas */
-            border-radius: 10px;
-            /* Ajusta las esquinas redondeadas */
-            transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+        .custom-checkbox input[type="checkbox"] {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #999;
+            border-radius: 3px;
+            margin-right: 6px;
             cursor: pointer;
-            /* Cambia el cursor a una mano */
+            position: relative;
+            background-color: #222;
         }
 
-        .btn-verde-xd:hover {
-            color: #fff !important;
-            background-color: #218838 !important;
-            border-color: #1e7e34 !important;
+        .custom-checkbox input[type="checkbox"]:checked {
+            background-color: #00c853;
+            border-color: #00c853;
         }
 
-        .btn-verde-xd:focus,
-        .btn-verde-xd.focus {
-            box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08), 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
+        .custom-checkbox input[type="checkbox"]::after {
+            content: '';
+            position: absolute;
+            width: 5px;
+            height: 10px;
+            border: solid #fff;
+            border-width: 0 2px 2px 0;
+            top: 2px;
+            left: 6px;
+            transform: rotate(45deg);
+            display: none;
         }
 
-        .btn-verde-xd:disabled,
-        .btn-verde-xd.disabled {
-            color: #fff !important;
-            background-color: #28a745 !important;
-            border-color: #28a745 !important;
+        .custom-checkbox input[type="checkbox"]:checked::after {
+            display: block;
         }
 
-        .btn-verde-xd:not(:disabled):not(.disabled).active,
-        .btn-verde-xd:not(:disabled):not(.disabled):active,
-        .show>.btn-verde-xd.dropdown-toggle {
-            color: #fff !important;
-            background-color: #1e7e34 !important;
-            border-color: #1c7430 !important;
-        }
-
-        .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
-        .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
-        .show>.btn-verde-xd.dropdown-toggle:focus {
-            box-shadow: none, 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
+        .custom-checkbox label {
+            user-select: none;
+            font-size: 14px;
+            color: #eee;
         }
     </style>
+
 
     <!-- DataTables CSS desde carpeta local -->
     <link rel="stylesheet" href="{{ asset('dataTable/css/dataTables.bootstrap5.min.css') }}">
@@ -556,7 +531,6 @@
     </script>
 
     <script>
-        // Mapea campo → etiqueta legible
         function obtenerEtiqueta(campo) {
             const etiquetas = {
                 'fecha_corte': 'Corte',
@@ -569,7 +543,6 @@
             return etiquetas[campo] || campo;
         }
 
-        // Construye la tabla de trazabilidad
         function construirTablaFechas(data) {
             const filas = [
                 ['Corte', data.fecha_corte],
@@ -581,40 +554,49 @@
             ];
 
             let html = `
-        <div class="table-responsive">
-          <table class="table table-bordered table-sm">
-            <thead>
-              <tr><th>Etapa</th><th>Fecha y Hora</th></tr>
-            </thead>
-            <tbody>
-      `;
+                    <div class="table-responsive">
+                    <table class="table table-bordered table-sm bg-dark">
+                        <thead>
+                        <tr><th>Etapa</th><th>Fecha y Hora</th></tr>
+                        </thead>
+                        <tbody>
+                `;
 
-            filas.forEach(([etapa, valor]) => {
-                html += `
-          <tr>
-            <td>${etapa}</td>
-            <td>${valor ? moment(valor).format('DD/MM/YYYY HH:mm:ss') : 'N/A'}</td>
-          </tr>
-        `;
-            });
+                        filas.forEach(([etapa, valor]) => {
+                            html += `
+                    <tr>
+                        <td>${etapa}</td>
+                        <td>${valor ? moment(valor).format('DD/MM/YYYY HH:mm:ss') : 'N/A'}</td>
+                    </tr>
+                    `;
+                        });
 
-            html += `
-            </tbody>
-          </table>
-        </div>
-      `;
+                        html += `
+                        </tbody>
+                    </table>
+                    </div>
+                `;
             return html;
         }
 
-        // Dibuja la línea de tiempo como gráfico de línea conectada
+        function formatearTiempo(ms) {
+            const minutos = Math.floor(ms / 60000);
+            if (minutos < 60) return `${minutos} min`;
+            const horas = Math.floor(minutos / 60);
+            const mins = minutos % 60;
+            if (horas < 24) return `${horas}h ${mins}m`;
+            const dias = Math.floor(horas / 24);
+            const horasRestantes = horas % 24;
+            return `${dias}d ${horasRestantes}h ${mins}m`;
+        }
+
+
         function dibujarGraficoLinea(data) {
-            // 1) ¿Qué fases están seleccionadas?
             const fasesSeleccionadas = [];
             document.querySelectorAll('.fase-checkbox').forEach(chk => {
                 if (chk.checked) fasesSeleccionadas.push(chk.value);
             });
 
-            // 2) Preparamos los puntos con tiempo (x=timestamp, y=0)
             const puntos = fasesSeleccionadas
                 .map(campo => {
                     const fecha = data[campo];
@@ -628,74 +610,91 @@
                 })
                 .filter(p => p !== null);
 
-            // 3) Ordenamos según el flujo deseado
-            const orden = ['fecha_corte', 'fecha_almacen', 'fecha_liberacion', 'fecha_parcial', 'fecha_rechazo',
-                'fecha_online'
-            ];
+            const orden = ['fecha_corte', 'fecha_almacen', 'fecha_liberacion', 'fecha_parcial', 'fecha_rechazo', 'fecha_online'];
             puntos.sort((a, b) => orden.indexOf(a.campo) - orden.indexOf(b.campo));
 
-            // 4) Extraemos solo los datos para Highcharts
-            const seriesData = puntos.map(p => ({
-                x: p.x,
-                y: p.y,
-                name: p.name
-            }));
+            const seriesData = puntos.map(p => ({ x: p.x, y: p.y, name: p.name }));
 
-            // 5) Calculamos tiempo total (primer → último)
             let tiempoTotal = '';
             if (puntos.length >= 2) {
                 const mins = Math.floor((puntos[puntos.length - 1].x - puntos[0].x) / 60000);
-                tiempoTotal = `<p><strong>Tiempo total:</strong> ${Math.floor(mins/60)}h ${mins%60}m</p>`;
+                tiempoTotal = `<p><strong>Tiempo total:</strong> ${Math.floor(mins / 60)}h ${mins % 60}m</p>`;
             }
 
-            // 6) Renderizamos Highcharts
+            // Nueva serie para mostrar los tiempos entre puntos
+            const etiquetasIntermedias = [];
+            for (let i = 0; i < puntos.length - 1; i++) {
+                const p1 = puntos[i];
+                const p2 = puntos[i + 1];
+                const tiempoMs = p2.x - p1.x;
+                etiquetasIntermedias.push({
+                    x: (p1.x + p2.x) / 2,
+                    y: 0,
+                    dataLabels: [{
+                        enabled: true,
+                        useHTML: true,
+                        formatter: function () {
+                            return `<span style="color:#fff;background:#333;padding:2px 6px;border-radius:4px;font-size:11px;">
+                                ${formatearTiempo(tiempoMs)}</span>`;
+                        },
+                        style: { color: '#fff' },
+                        align: 'center',
+                        verticalAlign: 'bottom',
+                        y: -10
+                    }],
+                    marker: { enabled: false }
+                });
+            }
+
             Highcharts.chart('graficoLineaTiempo', {
                 chart: {
                     type: 'line',
-                    backgroundColor: 'transparent'
+                    backgroundColor: '#111'
                 },
                 title: {
                     text: 'Línea de Tiempo de OP',
-                    style: {
-                        color: '#333'
-                    }
+                    style: { color: '#fff' }
                 },
                 xAxis: {
                     type: 'datetime',
-                    title: {
-                        text: 'Fecha y Hora'
-                    }
+                    title: { text: 'Fecha y Hora', style: { color: '#fff' } },
+                    labels: { style: { color: '#fff' } }
                 },
                 yAxis: {
-                    title: {
-                        text: ''
-                    },
-                    labels: {
-                        enabled: false
-                    },
+                    title: { text: '' },
+                    labels: { enabled: false },
                     gridLineWidth: 0
                 },
                 tooltip: {
+                    backgroundColor: '#222',
+                    style: { color: '#fff' },
                     pointFormat: '{point.name}: <b>{point.x:%d/%m/%Y %H:%M}</b>'
                 },
-                legend: {
-                    enabled: false
-                },
-                series: [{
-                    data: seriesData,
-                    marker: {
-                        enabled: true,
-                        radius: 4
+                legend: { enabled: false },
+                series: [
+                    {
+                        name: 'Trazabilidad',
+                        data: seriesData,
+                        marker: {
+                            enabled: true,
+                            radius: 4,
+                            fillColor: '#00e676'
+                        },
+                        lineWidth: 2,
+                        color: '#00e676'
                     },
-                    lineWidth: 2
-                }]
+                    {
+                        name: 'Intervalos',
+                        type: 'scatter',
+                        data: etiquetasIntermedias,
+                        enableMouseTracking: false,
+                        marker: { enabled: false }
+                    }
+                ]
             });
 
-            // 7) Actualizamos indicador de tiempo total
             document.getElementById('tiempoTotal').innerHTML = tiempoTotal;
         }
-
-        // Cuando el usuario envíe el formulario...
         document.getElementById('formBusquedaOP').addEventListener('submit', function(e) {
             e.preventDefault();
             const op = document.getElementById('opDetalle').value.trim();
@@ -715,45 +714,38 @@
                         return;
                     }
 
-                    // 1) Controles de checkboxes para mostrar/ocultar fases
                     const controles = `
-            <div id="controlesFases" class="mb-3">
-              <label class="mr-2"><strong>Mostrar fases:</strong></label>
-              ${['corte','almacen','liberacion','parcial','rechazo','online'].map(key => {
-                const campo = 'fecha_' + key;
-                const label = obtenerEtiqueta(campo);
-                return `
-                      <div class="form-check form-check-inline">
-                        <input class="form-check-input fase-checkbox" type="checkbox"
-                               id="chk_${key}" value="${campo}" checked>
-                        <label class="form-check-label" for="chk_${key}">${label}</label>
-                      </div>
+                        <div id="controlesFases" class="mb-3">
+                        <label><strong style="color: #eee;">Mostrar fases:</strong></label>
+                        <div class="d-flex flex-wrap mt-2">
+                            ${['corte', 'almacen', 'liberacion', 'parcial', 'rechazo', 'online'].map(key => {
+                            const campo = 'fecha_' + key;
+                            const label = obtenerEtiqueta(campo);
+                            return `
+                                    <div class="custom-checkbox">
+                                    <input type="checkbox" class="fase-checkbox" id="chk_${key}" value="${campo}" checked>
+                                    <label for="chk_${key}">${label}</label>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        </div>
                     `;
-              }).join('')}
-            </div>
-          `;
 
-                    // 2) Tabla de trazabilidad
                     const tabla = construirTablaFechas(data);
-
-                    // 3) Contenedor para tiempo total
                     const indicadorTiempo = `<div id="tiempoTotal" class="mb-2"></div>`;
+                    const grafico =
+                        `<div id="graficoLineaTiempo" class="mt-3" style="height: 300px;"></div>`;
 
-                    // 4) Contenedor de gráfico
-                    const grafico = `<div id="graficoLineaTiempo" style="height: 300px;"></div>`;
-
-                    // Inyectamos todo junto
                     document.getElementById('resultadosDetalleOP').innerHTML =
-                        `<h5>Detalle de OP: ${data.op}</h5>` +
+                        `<h5 style="color:#fff;">Detalle de OP: ${data.op}</h5>` +
                         controles +
                         tabla +
                         indicadorTiempo +
                         grafico;
 
-                    // 5) Dibujamos por primera vez
                     dibujarGraficoLinea(data);
 
-                    // 6) Cada vez que cambie un checkbox, redraw
                     document.querySelectorAll('.fase-checkbox').forEach(chk =>
                         chk.addEventListener('change', () => dibujarGraficoLinea(data))
                     );
