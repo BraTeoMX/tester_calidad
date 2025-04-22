@@ -238,567 +238,285 @@ class DashboardPorDiaV2Controller extends Controller
 
     private function getDatosModuloEstiloAQL($fecha, $plantaConsulta, $tiempoExtra = null)
     {
-        // Construcción de la consulta base usando la fecha y planta proporcionadas
-        $query = AuditoriaAQL::whereDate('created_at', $fecha)
-            ->where('planta', $plantaConsulta);
-
-        // Filtro condicional para $tiempoExtra
-        if (is_null($tiempoExtra)) {
-            $query->whereNull('tiempo_extra');
-        } else {
-            $query->where('tiempo_extra', $tiempoExtra);
-        }
-
-        // Obtener combinaciones únicas de módulo y estilo, y ordenar por módulo
-        $modulosEstilosAQL = $query->select('modulo', 'estilo')
-            ->distinct()
-            ->orderBy('modulo', 'asc')
+        // 1) Traer de una sola vez todos los registros del día, planta y tiempo extra (si aplica),
+        //    incluyendo la relación tpAuditoriaAQL para defectos.
+        $registros = AuditoriaAQL::with('tpAuditoriaAQL')
+            ->whereDate('created_at', $fecha)
+            ->where('planta', $plantaConsulta)
+            ->when(
+                is_null($tiempoExtra),
+                fn($q) => $q->whereNull('tiempo_extra'),
+                fn($q) => $q->where('tiempo_extra', $tiempoExtra)
+            )
             ->get();
 
-        // Inicializar un arreglo para almacenar los resultados
+        // 2) Agrupar toda la colección primero por módulo y luego por estilo
+        $agrupados = $registros->groupBy(['modulo', 'estilo']);
+
         $dataModuloEstiloAQL = [];
 
-        // Recorrer cada combinación de módulo y estilo
-        foreach ($modulosEstilosAQL as $item) {
-            $modulo = $item->modulo;
-            $estilo = $item->estilo;
+        // 3) Recorrer cada grupo (módulo → estilo) y calcular todas las métricas en memoria
+        foreach ($agrupados as $modulo => $porEstilo) {
+            foreach ($porEstilo as $estilo => $items) {
+                // Auditores únicos
+                $auditoresUnicos = $items->pluck('auditor')
+                    ->filter()
+                    ->unique()
+                    ->implode(', ');
 
-            // Obtener auditores únicos
-            $auditoresUnicos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->distinct()
-                ->pluck('auditor')
-                ->implode(', ');
+                // Supervisores únicos
+                $supervisoresUnicos = $items->pluck('team_leader')
+                    ->filter()
+                    ->unique()
+                    ->implode(', ');
 
-            //
-            // Obtener supervisores únicos
-            $supervisoresUnicos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->distinct()
-                ->pluck('team_leader')
-                ->implode(', ');
+                // Conteo de módulos únicos (siempre 1, pero lo mantenemos por consistencia)
+                $modulosUnicos = $items->pluck('modulo')
+                    ->unique()
+                    ->count();
 
-            // Obtener modulos únicos y otras métricas específicas para AQL
-            $modulosUnicos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->distinct()
-                ->count('modulo');
+                // Sumas y porcentaje de error AQL
+                $sumaAuditadaAQL  = $items->sum('cantidad_auditada');
+                $sumaRechazadaAQL = $items->sum('cantidad_rechazada');
+                $porcentajeErrorAQL = $sumaAuditadaAQL
+                    ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100
+                    : 0;
 
-            $sumaAuditadaAQL = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->sum('cantidad_auditada');
+                // Conteo total de operarios (dividiendo cadenas separadas por comas)
+                $conteoOperario = $items->pluck('nombre')
+                    ->flatMap(fn($n) => explode(',', $n))
+                    ->map(fn($n) => trim($n))
+                    ->filter()
+                    ->count();
 
-            $sumaRechazadaAQL = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->sum('cantidad_rechazada');
+                // Conteo y suma de minutos de paro, y promedio entero
+                $conteoMinutos = $items->pluck('minutos_paro')
+                    ->filter()
+                    ->count();
+                $sumaMinutos = $items->sum('minutos_paro');
+                $promedioMinutosEntero = $conteoMinutos
+                    ? (int) ceil($sumaMinutos / $conteoMinutos)
+                    : 0;
 
-            $porcentajeErrorAQL = ($sumaAuditadaAQL != 0) ? ($sumaRechazadaAQL / $sumaAuditadaAQL) * 100 : 0;
+                // Estilos únicos (en este contexto, solo el propio estilo)
+                $estilosUnicos = $items->pluck('estilo')
+                    ->unique()
+                    ->implode(', ');
 
-            $conteoOperario = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->whereNotNull('nombre')
-                ->where('nombre', '!=', '')
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->select(DB::raw('
-                    SUM(
-                        CHAR_LENGTH(nombre) - CHAR_LENGTH(REPLACE(nombre, ",", "")) + 1
-                    ) as total_nombres
-                '))
-                ->first()
-                ->total_nombres ?? 0;
+                // Defectos únicos con conteo
+                $defectosUnicos = $items->pluck('tpAuditoriaAQL')
+                    ->flatten()
+                    ->pluck('tp')
+                    ->filter(fn($tp) => $tp !== 'NINGUNO')
+                    ->countBy()
+                    ->map(fn($count, $tp) => $count > 1 ? "$tp ($count)" : $tp)
+                    ->sort()
+                    ->values()
+                    ->implode(', ') ?: 'N/A';
 
-            $conteoMinutos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->count('minutos_paro');
+                // Acciones correctivas únicas
+                $accionesCorrectivasUnicos = $items->pluck('ac')
+                    ->filter()
+                    ->unique()
+                    ->implode(', ') ?: 'N/A';
 
-            $sumaMinutos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->sum('minutos_paro');
+                // Lista de operarios con repeticiones formateadas
+                $operariosUnicos = $items->pluck('nombre')
+                    ->flatMap(fn($n) => explode(',', $n))
+                    ->map(fn($n) => trim($n))
+                    ->filter()
+                    ->countBy()
+                    ->map(fn($count, $name) => $count > 1 ? "$name ($count)" : $name)
+                    ->sort()
+                    ->values()
+                    ->implode(', ') ?: 'N/A';
 
-            $promedioMinutosEntero = $conteoMinutos != 0 ? ceil($sumaMinutos / $conteoMinutos) : 0;
+                // Minutos de paro modular
+                $sumaParoModular = $items->sum('minutos_paro_modular') ?: 'N/A';
+                $conteParoModular = $items->pluck('minutos_paro_modular')
+                    ->filter()
+                    ->count();
 
-            $estilosUnicos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->distinct()
-                ->pluck('estilo')
-                ->implode(', ');
+                // Piezas bulto y conteos de bultos
+                $sumaPiezasBulto           = $items->sum('pieza');
+                $cantidadBultosEncontrados  = $items->count();
+                $cantidadBultosRechazados   = $items
+                    ->filter(fn($i) => $i->cantidad_rechazada > 0)
+                    ->count();
 
-            $defectosUnicos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function ($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function ($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->whereHas('tpAuditoriaAQL', function ($query) {
-                    $query->where('tp', '!=', 'NINGUNO');
-                })
-                ->with(['tpAuditoriaAQL' => function ($query) {
-                    $query->where('tp', '!=', 'NINGUNO');
-                }])
-                ->get()
-                ->pluck('tpAuditoriaAQL.*.tp') // Obtiene los valores de 'tp'
-                ->flatten() // Aplana la colección anidada
-                ->filter() // Elimina valores nulos o vacíos
-                ->groupBy(fn($item) => $item) // Agrupa por el valor de 'tp'
-                ->map(function ($items, $key) {
-                    $count = $items->count();
-                    return $count > 1 ? "$key ($count)" : $key; // Agrega el conteo solo si es mayor a 1
-                })
-                ->sort() // Ordena alfabéticamente
-                ->values() // Reindexa la colección
-                ->implode(', ') ?: 'N/A';            
+                // Reparación de rechazo
+                $sumaReparacionRechazo = $items->sum('reparacion_rechazo');
 
-            $accionesCorrectivasUnicos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->distinct()
-                ->pluck('ac')
-                ->filter()  // Filtra valores nulos o vacíos
-                ->values()  // Reindexa la colección
-                ->implode(', ') ?: 'N/A';
-            
-            $operariosUnicos = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function ($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function ($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->pluck('nombre') // Obtiene los nombres
-                ->flatMap(function ($item) {
-                    return collect(explode(',', $item)) // Divide cada cadena por comas
-                        ->map(fn($name) => trim($name)) // Elimina espacios adicionales
-                        ->filter(); // Elimina valores vacíos o nulos
-                })
-                ->groupBy(fn($item) => $item) // Agrupa los nombres individuales
-                ->map(function ($items, $key) {
-                    $count = $items->count();
-                    return $count > 1 ? "$key ($count)" : $key; // Agrega el conteo solo si es mayor a 1
-                })
-                ->sort() // Ordena alfabéticamente
-                ->values() // Reindexa la colección
-                ->implode(', ') ?: 'N/A';            
+                // Piezas rechazadas únicas (sumadas)
+                $piezasRechazadasUnicas = $items
+                    ->filter(fn($i) => $i->cantidad_rechazada > 0)
+                    ->sum('pieza');
+                $piezasRechazadasUnicas = $piezasRechazadasUnicas > 0
+                    ? $piezasRechazadasUnicas
+                    : 'N/A';
 
-            $sumaParoModular = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->sum('minutos_paro_modular') ?: 'N/A';
-
-            //
-             // Nuevo cálculo para conteParoModular
-            $conteParoModular = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->count('minutos_paro_modular');
-
-            //
-            $sumaPiezasBulto = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->sum('pieza');
-
-            //
-            $cantidadBultosEncontrados = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->count();
-
-            //
-            $cantidadBultosRechazados = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->where('cantidad_rechazada', '>', 0)
-                ->count();
-
-            //
-            $sumaReparacionRechazo = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->sum('reparacion_rechazo');
-
-            //
-            $piezasRechazadasUnicas = AuditoriaAQL::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->where('cantidad_rechazada', '>', 0)
-                ->sum('pieza'); // Cambia pluck y implode por sum para obtener el total
-
-            // Si no encuentra datos, retorna 'N/A'
-            $piezasRechazadasUnicas = $piezasRechazadasUnicas > 0 ? $piezasRechazadasUnicas : 'N/A';
-
-            // Almacenar todos los resultados en el arreglo principal
-            $dataModuloEstiloAQL[] = [
-                'modulo' => $modulo,
-                'estilo' => $estilo,
-                'auditoresUnicos' => $auditoresUnicos,
-                'supervisoresUnicos' => $supervisoresUnicos,
-                'modulosUnicos' => $modulosUnicos,
-                'sumaAuditadaAQL' => $sumaAuditadaAQL,
-                'sumaRechazadaAQL' => $sumaRechazadaAQL,
-                'porcentajeErrorAQL' => $porcentajeErrorAQL,
-                'conteoOperario' => $conteoOperario,
-                'conteoMinutos' => $conteoMinutos,
-                'sumaMinutos' => $sumaMinutos,
-                'promedioMinutosEntero' => $promedioMinutosEntero,
-                'estilosUnicos' => $estilosUnicos,
-                'defectosUnicos' => $defectosUnicos,
-                'accionesCorrectivasUnicos' => $accionesCorrectivasUnicos,
-                'operariosUnicos' => $operariosUnicos,
-                'sumaParoModular' => $sumaParoModular,
-                'conteParoModular' => $conteParoModular, 
-                'sumaPiezasBulto' => $sumaPiezasBulto,
-                'cantidadBultosEncontrados' => $cantidadBultosEncontrados,
-                'cantidadBultosRechazados' => $cantidadBultosRechazados,
-                'sumaReparacionRechazo' => $sumaReparacionRechazo,
-                'piezasRechazadasUnicas' => $piezasRechazadasUnicas,
-            ];
+                // 4) Armar el array tal cual para devolverlo
+                $dataModuloEstiloAQL[] = [
+                    'modulo'                   => $modulo,
+                    'estilo'                   => $estilo,
+                    'auditoresUnicos'          => $auditoresUnicos,
+                    'supervisoresUnicos'       => $supervisoresUnicos,
+                    'modulosUnicos'            => $modulosUnicos,
+                    'sumaAuditadaAQL'          => $sumaAuditadaAQL,
+                    'sumaRechazadaAQL'         => $sumaRechazadaAQL,
+                    'porcentajeErrorAQL'       => $porcentajeErrorAQL,
+                    'conteoOperario'           => $conteoOperario,
+                    'conteoMinutos'            => $conteoMinutos,
+                    'sumaMinutos'              => $sumaMinutos,
+                    'promedioMinutosEntero'    => $promedioMinutosEntero,
+                    'estilosUnicos'            => $estilosUnicos,
+                    'defectosUnicos'           => $defectosUnicos,
+                    'accionesCorrectivasUnicos'=> $accionesCorrectivasUnicos,
+                    'operariosUnicos'          => $operariosUnicos,
+                    'sumaParoModular'          => $sumaParoModular,
+                    'conteParoModular'         => $conteParoModular,
+                    'sumaPiezasBulto'          => $sumaPiezasBulto,
+                    'cantidadBultosEncontrados' => $cantidadBultosEncontrados,
+                    'cantidadBultosRechazados' => $cantidadBultosRechazados,
+                    'sumaReparacionRechazo'    => $sumaReparacionRechazo,
+                    'piezasRechazadasUnicas'   => $piezasRechazadasUnicas,
+                ];
+            }
         }
 
-        // Retornar los datos procesados
         return $dataModuloEstiloAQL;
     }
 
     private function getDatosModuloEstiloProceso($fecha, $plantaConsulta, $tiempoExtra = null)
     {
-        // Construcción de la consulta base usando la fecha y planta proporcionadas
-        $query = AseguramientoCalidad::whereDate('created_at', $fecha)
-            ->where('planta', $plantaConsulta);
-
-        // Filtro condicional para $tiempoExtra
-        if (is_null($tiempoExtra)) {
-            $query->whereNull('tiempo_extra');
-        } else {
-            $query->where('tiempo_extra', $tiempoExtra);
-        }
-
-        // Obtener combinaciones únicas de módulo y estilo, y ordenar por módulo
-        $modulosEstilosProceso = $query->select('modulo', 'estilo')
-            ->distinct()
-            ->orderBy('modulo', 'asc')
+        // 1) Traer de una sola vez todos los registros del día, planta y tiempo extra (si aplica),
+        //    incluyendo la relación TpAseguramientoCalidad para los defectos.
+        $registros = AseguramientoCalidad::with('TpAseguramientoCalidad')
+            ->whereDate('created_at', $fecha)
+            ->where('planta', $plantaConsulta)
+            ->when(
+                is_null($tiempoExtra),
+                fn($q) => $q->whereNull('tiempo_extra'),
+                fn($q) => $q->where('tiempo_extra', $tiempoExtra)
+            )
             ->get();
 
-        // Inicializar un arreglo para almacenar los resultados
+        // 2) Agrupar la colección primero por módulo y luego por estilo
+        $agrupados = $registros->groupBy(['modulo', 'estilo']);
+
         $dataModuloEstiloProceso = [];
 
-        // Recorrer cada combinación de módulo y estilo
-        foreach ($modulosEstilosProceso as $item) {
-            $modulo = $item->modulo;
-            $estilo = $item->estilo;
+        // 3) Recorrer cada grupo y calcular todas las métricas en memoria
+        foreach ($agrupados as $modulo => $porEstilo) {
+            foreach ($porEstilo as $estilo => $items) {
+                // Auditores únicos
+                $auditoresUnicos = $items->pluck('auditor')
+                    ->filter()
+                    ->unique()
+                    ->implode(', ');
 
-            // Obtener auditores únicos
-            $auditoresUnicos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->distinct()
-                ->pluck('auditor')
-                ->implode(', ');
+                // Supervisores únicos
+                $supervisoresUnicos = $items->pluck('team_leader')
+                    ->filter()
+                    ->unique()
+                    ->implode(', ');
 
-            //
-            // Obtener supervisores únicos
-            $supervisoresUnicos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->distinct()
-                ->pluck('team_leader')
-                ->implode(', ');
+                // Cantidad de recorridos (máximo de repeticiones de un mismo nombre)
+                $cantidadRecorridos = $items->pluck('nombre')
+                    ->filter()
+                    ->countBy()
+                    ->max() ?: 0;
 
-            // Obtener el valor de cantidadRecorridos
-            $cantidadRecorridos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->selectRaw('nombre, COUNT(*) as cantidad_repeticiones')
-                ->groupBy('nombre')
-                ->orderByDesc('cantidad_repeticiones')
-                ->limit(1)
-                ->value('cantidad_repeticiones');
+                // Sumas y porcentaje de error de proceso
+                $sumaAuditadaProceso  = $items->sum('cantidad_auditada');
+                $sumaRechazadaProceso = $items->sum('cantidad_rechazada');
+                $porcentajeErrorProceso = $sumaAuditadaProceso
+                    ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100
+                    : 0;
 
-            // Otros cálculos específicos
-            $sumaAuditadaProceso = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->sum('cantidad_auditada');
+                // Conteo de operarios (sin utility)
+                $conteoOperario = $items
+                    ->filter(fn($i) => is_null($i->utility))
+                    ->pluck('nombre')
+                    ->filter()
+                    ->unique()
+                    ->count();
 
-            $sumaRechazadaProceso = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->sum('cantidad_rechazada');
+                // Conteo de operarios utility=1
+                $conteoUtility = $items
+                    ->filter(fn($i) => $i->utility == 1)
+                    ->pluck('nombre')
+                    ->filter()
+                    ->unique()
+                    ->count();
 
-            $porcentajeErrorProceso = ($sumaAuditadaProceso != 0) ? ($sumaRechazadaProceso / $sumaAuditadaProceso) * 100 : 0;
+                // Conteo y suma de minutos de paro, y promedio entero
+                $conteoMinutos = $items->pluck('minutos_paro')
+                    ->filter()
+                    ->count();
+                $sumaMinutos = $items->sum('minutos_paro');
+                $promedioMinutosEntero = $conteoMinutos
+                    ? (int) ceil($sumaMinutos / $conteoMinutos)
+                    : 0;
 
-            $conteoOperario = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->whereNull('utility')
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->distinct()
-                ->count('nombre');
+                // Operarios con rechazo > 0, contados y formateados
+                $operariosUnicos = $items
+                    ->filter(fn($i) => $i->cantidad_rechazada > 0)
+                    ->pluck('nombre')
+                    ->filter()
+                    ->countBy()
+                    ->map(fn($count, $name) => $count > 1 ? "$name ($count)" : $name)
+                    ->sort()
+                    ->values()
+                    ->implode(', ') ?: 'N/A';
 
-            $conteoUtility = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->where('utility', 1)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->distinct()
-                ->count('nombre');
+                // Paro modular
+                $sumaParoModular = $items->sum('minutos_paro_modular') ?: 'N/A';
+                $conteParoModular = $items->pluck('minutos_paro_modular')
+                    ->filter()
+                    ->count();
 
-            $conteoMinutos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->count('minutos_paro');
+                // Defectos únicos con relación TpAseguramientoCalidad
+                $defectosUnicos = $items->pluck('TpAseguramientoCalidad')
+                    ->flatten()
+                    ->pluck('tp')
+                    ->filter(fn($tp) => $tp !== 'NINGUNO')
+                    ->countBy()
+                    ->map(fn($count, $tp) => $count > 1 ? "$tp ($count)" : $tp)
+                    ->sort()
+                    ->values()
+                    ->implode(', ') ?: 'N/A';
 
-            $sumaMinutos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->sum('minutos_paro');
+                // Acciones correctivas únicas
+                $accionesCorrectivasUnicos = $items->pluck('ac')
+                    ->filter()
+                    ->unique()
+                    ->implode(', ') ?: 'N/A';
 
-            $promedioMinutosEntero = $conteoMinutos != 0 ? ceil($sumaMinutos / $conteoMinutos) : 0;
-
-            $operariosUnicos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function ($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function ($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->where('cantidad_rechazada', '>', 0)
-                ->pluck('nombre') // Obtiene los nombres
-                ->filter() // Elimina valores nulos o vacíos
-                ->groupBy(fn($item) => $item) // Agrupa por nombre
-                ->map(function ($items, $key) {
-                    $count = $items->count();
-                    return $count > 1 ? "$key ($count)" : $key; // Agrega el conteo solo si es mayor a 1
-                })
-                ->sort() // Ordena alfabéticamente
-                ->values() // Reindexa la colección
-                ->implode(', ') ?: 'N/A';
-
-            $sumaParoModular = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->sum('minutos_paro_modular') ?: 'N/A';
-
-            $conteParoModular = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->count('minutos_paro_modular');
-
-            // Obtener el valor de defectosUnicos
-            $defectosUnicos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function ($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function ($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->whereHas('TpAseguramientoCalidad', function ($query) {
-                    $query->where('tp', '!=', 'NINGUNO');
-                })
-                ->with(['TpAseguramientoCalidad' => function ($query) {
-                    $query->where('tp', '!=', 'NINGUNO');
-                }])
-                ->get()
-                ->pluck('TpAseguramientoCalidad.*.tp') // Obtiene los valores de 'tp'
-                ->flatten() // Aplana la colección anidada
-                ->filter() // Elimina valores nulos o vacíos
-                ->groupBy(fn($item) => $item) // Agrupa por el valor de 'tp'
-                ->map(function ($items, $key) {
-                    $count = $items->count();
-                    return $count > 1 ? "$key ($count)" : $key; // Agrega el conteo solo si es mayor a 1
-                })
-                ->sort() // Ordena alfabéticamente
-                ->values() // Reindexa la colección
-                ->implode(', ') ?: 'N/A';
-
-            //
-            $accionesCorrectivasUnicos = AseguramientoCalidad::where('modulo', $modulo)
-                ->where('estilo', $estilo)
-                ->whereDate('created_at', $fecha)
-                ->when(is_null($tiempoExtra), function($query) {
-                    return $query->whereNull('tiempo_extra');
-                }, function($query) use ($tiempoExtra) {
-                    return $query->where('tiempo_extra', $tiempoExtra);
-                })
-                ->distinct()
-                ->pluck('ac')
-                ->filter()  // Filtra valores nulos o vacíos
-                ->values()  // Reindexa la colección
-                ->implode(', ') ?: 'N/A';
-
-            // Almacenar todos los resultados en el arreglo principal
-            $dataModuloEstiloProceso[] = [
-                'modulo' => $modulo,
-                'estilo' => $estilo,
-                'auditoresUnicos' => $auditoresUnicos,
-                'supervisoresUnicos' => $supervisoresUnicos,
-                'cantidadRecorridos' => $cantidadRecorridos,
-                'sumaAuditadaProceso' => $sumaAuditadaProceso,
-                'sumaRechazadaProceso' => $sumaRechazadaProceso,
-                'porcentajeErrorProceso' => $porcentajeErrorProceso,
-                'conteoOperario' => $conteoOperario,
-                'conteoUtility' => $conteoUtility,
-                'conteoMinutos' => $conteoMinutos,
-                'sumaMinutos' => $sumaMinutos,
-                'promedioMinutosEntero' => $promedioMinutosEntero,
-                'operariosUnicos' => $operariosUnicos,
-                'sumaParoModular' => $sumaParoModular,
-                'conteParoModular' => $conteParoModular,
-                'defectosUnicos' => $defectosUnicos,
-                'accionesCorrectivasUnicos' => $accionesCorrectivasUnicos,
-            ];
+                // 4) Armar el array de salida idéntico al original
+                $dataModuloEstiloProceso[] = [
+                    'modulo'                   => $modulo,
+                    'estilo'                   => $estilo,
+                    'auditoresUnicos'          => $auditoresUnicos,
+                    'supervisoresUnicos'       => $supervisoresUnicos,
+                    'cantidadRecorridos'       => $cantidadRecorridos,
+                    'sumaAuditadaProceso'      => $sumaAuditadaProceso,
+                    'sumaRechazadaProceso'     => $sumaRechazadaProceso,
+                    'porcentajeErrorProceso'   => $porcentajeErrorProceso,
+                    'conteoOperario'           => $conteoOperario,
+                    'conteoUtility'            => $conteoUtility,
+                    'conteoMinutos'            => $conteoMinutos,
+                    'sumaMinutos'              => $sumaMinutos,
+                    'promedioMinutosEntero'    => $promedioMinutosEntero,
+                    'operariosUnicos'          => $operariosUnicos,
+                    'sumaParoModular'          => $sumaParoModular,
+                    'conteParoModular'         => $conteParoModular,
+                    'defectosUnicos'           => $defectosUnicos,
+                    'accionesCorrectivasUnicos'=> $accionesCorrectivasUnicos,
+                ];
+            }
         }
 
-        // Retornar los datos procesados
         return $dataModuloEstiloProceso;
     }
 
