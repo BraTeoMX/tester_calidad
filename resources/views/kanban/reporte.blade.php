@@ -204,6 +204,15 @@
         </div>
     </div>
 
+    <div id="modalDetalleOP" class="mi-modal">
+        <div class="mi-modal-contenido">
+            <span class="cerrar-modal" onclick="cerrarModalDetalleOP()">&times;</span>
+            <div id="contenidoModalDetalleOP">
+                <!-- Aquí se inyectará todo lo que ya generas con JS -->
+            </div>
+        </div>
+    </div>
+    
     <style>
         /* Estilo para la gráfica en modo oscuro */
         #graficoLineaTiempo {
@@ -269,6 +278,42 @@
             font-size: 14px;
             color: #eee;
         }
+
+        .mi-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .mi-modal-contenido {
+            background-color: #1a1a1a;
+            margin: 60px auto;
+            padding: 20px;
+            border: 1px solid #555;
+            width: 90%;
+            max-width: 900px;
+            border-radius: 10px;
+            color: #fff;
+        }
+
+        .cerrar-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .cerrar-modal:hover {
+            color: #fff;
+        }
+
     </style>
 
 
@@ -429,7 +474,10 @@
             // 3) DataTable
             const table = $('#tabla-kanban').DataTable({
                 columns: [{
-                        data: 'op'
+                        data: 'op',
+                        render: function (data, type, row) {
+                            return `<button class="btn btn-sm btn-outline-info" onclick="mostrarDetalleOPDesdeTabla('${data}')">${data}</button>`;
+                        }
                     },
                     {
                         data: 'planta',
@@ -778,4 +826,69 @@
         });
     </script>
 
+    <script>
+        document.addEventListener('keydown', function (event) {
+            const modal = document.getElementById('modalDetalleOP');
+            if (event.key === 'Escape' && modal.style.display === 'block') {
+                cerrarModalDetalleOP();
+            }
+        });
+
+        function abrirModalDetalleOP(contenidoHTML) {
+            document.getElementById('contenidoModalDetalleOP').innerHTML = contenidoHTML;
+            document.getElementById('modalDetalleOP').style.display = 'block';
+        }
+
+        function cerrarModalDetalleOP() {
+            document.getElementById('modalDetalleOP').style.display = 'none';
+        }
+
+        function mostrarDetalleOPDesdeTabla(op) {
+            $.ajax({
+                url: "{{ route('kanban.buscar.op') }}",
+                method: 'GET',
+                data: { op },
+                dataType: 'json',
+                success: function(data) {
+                    if (!data || !data.op) {
+                        abrirModalDetalleOP(`<div class="alert alert-warning">No se encontró la OP.</div>`);
+                        return;
+                    }
+
+                    const controles = `
+                        <div id="controlesFases" class="mb-3">
+                            <label><strong style="color: #eee;">Mostrar fases:</strong></label>
+                            <div class="d-flex flex-wrap mt-2">
+                                ${['corte', 'almacen', 'liberacion', 'parcial', 'rechazo', 'online'].map(key => {
+                                    const campo = 'fecha_' + key;
+                                    const label = obtenerEtiqueta(campo);
+                                    return `
+                                        <div class="custom-checkbox mr-3 mb-2">
+                                            <input type="checkbox" class="fase-checkbox" id="chk_${key}" value="${campo}" checked>
+                                            <label for="chk_${key}" class="ml-1">${label}</label>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+
+                    const tabla = construirTablaFechas(data);
+                    const indicadorTiempo = `<div id="tiempoTotal" class="mb-2"></div>`;
+                    const grafico = `<div id="graficoLineaTiempo" class="mt-3" style="height: 300px;"></div>`;
+
+                    abrirModalDetalleOP(
+                        `<h5 style="color:#fff;">Detalle de OP: ${data.op}</h5>` +
+                        controles + tabla + indicadorTiempo + grafico
+                    );
+
+                    dibujarGraficoLinea(data);
+
+                    document.querySelectorAll('.fase-checkbox').forEach(chk =>
+                        chk.addEventListener('change', () => dibujarGraficoLinea(data))
+                    );
+                }
+            });
+        }
+    </script>
 @endsection
