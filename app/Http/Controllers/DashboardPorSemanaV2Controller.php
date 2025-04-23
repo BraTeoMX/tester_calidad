@@ -63,7 +63,7 @@ class DashboardPorSemanaV2Controller extends Controller
         $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
         $plantaConsulta = "Intimark1";
-        $cacheKey = "aql_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+        $cacheKey = "semana_aql_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
         Log::info("🔎 Iniciando consulta AQL para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
@@ -89,7 +89,7 @@ class DashboardPorSemanaV2Controller extends Controller
         $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
         $plantaConsulta = "Intimark1";
-        $cacheKey = "aqlte_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+        $cacheKey = "semana_aqlte_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
         Log::info("🔎 Iniciando consulta AQL TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
@@ -115,7 +115,7 @@ class DashboardPorSemanaV2Controller extends Controller
         $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
         $plantaConsulta = "Intimark1";
-        $cacheKey = "proceso_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+        $cacheKey = "semana_proceso_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
         Log::info("🔎 Iniciando consulta Proceso para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
@@ -141,7 +141,7 @@ class DashboardPorSemanaV2Controller extends Controller
         $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
         $plantaConsulta = "Intimark1";
-        $cacheKey = "proceso_te_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+        $cacheKey = "semana_proceso_te_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
         Log::info("🔎 Iniciando consulta Proceso TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
@@ -167,7 +167,7 @@ class DashboardPorSemanaV2Controller extends Controller
         $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
         $plantaConsulta = "Intimark2";
-        $cacheKey = "aql_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+        $cacheKey = "semana_aql_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
         Log::info("🔎 P2 Iniciando consulta AQL para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
@@ -193,7 +193,7 @@ class DashboardPorSemanaV2Controller extends Controller
         $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
         $plantaConsulta = "Intimark2";
-        $cacheKey = "aqlte_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+        $cacheKey = "semana_aqlte_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
         Log::info("🔎 P2 Iniciando consulta AQL TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
@@ -219,7 +219,7 @@ class DashboardPorSemanaV2Controller extends Controller
         $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
         $plantaConsulta = "Intimark2";
-        $cacheKey = "proceso_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+        $cacheKey = "semana_proceso_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
         Log::info("🔎 P2 Iniciando consulta Proceso para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
@@ -245,7 +245,7 @@ class DashboardPorSemanaV2Controller extends Controller
         $fechaFin = Carbon::parse($fechaRaw)->endOfWeek()->setTime(23, 59, 59);
 
         $plantaConsulta = "Intimark2";
-        $cacheKey = "proceso_te_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
+        $cacheKey = "semana_proceso_te_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
         Log::info("🔎 P2 Iniciando consulta Proceso TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
@@ -466,7 +466,7 @@ class DashboardPorSemanaV2Controller extends Controller
 
     private function getDatosModuloClienteAQLDetalles($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra = null)
     {
-        $cacheKey = "aql_detalles_{$planta}_{$modulo}_{$cliente}_{$fechaInicio->format('Ymd')}_{$fechaFin->format('Ymd')}_" . ($tiempoExtra ? 'te' : 'tn');
+        $cacheKey = "semana_aql_detalles_{$planta}_{$modulo}_{$cliente}_{$fechaInicio->format('Ymd')}_{$fechaFin->format('Ymd')}_" . ($tiempoExtra ? 'te' : 'tn');
 
         return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra) {
             $query = AuditoriaAQL::where('modulo', $modulo)
@@ -556,7 +556,7 @@ class DashboardPorSemanaV2Controller extends Controller
 
     private function getDatosModuloClienteProcesoDetalles($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra = null)
     {
-        $cacheKey = "proceso_detalles_{$planta}_{$modulo}_{$cliente}_{$fechaInicio->format('Ymd')}_{$fechaFin->format('Ymd')}_" . ($tiempoExtra ? 'te' : 'tn');
+        $cacheKey = "semana_proceso_detalles_{$planta}_{$modulo}_{$cliente}_{$fechaInicio->format('Ymd')}_{$fechaFin->format('Ymd')}_" . ($tiempoExtra ? 'te' : 'tn');
 
         return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $modulo, $cliente, $planta, $tiempoExtra) {
             $query = AseguramientoCalidad::where('modulo', $modulo)

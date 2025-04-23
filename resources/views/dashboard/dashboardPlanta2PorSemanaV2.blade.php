@@ -5,7 +5,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
-                    <h2 class="card-title" style="text-align: center; font-weight: bold;">Dashboard Consulta por semana Planta 1
+                    <h2 class="card-title" style="text-align: center; font-weight: bold;">Dashboard Consulta por semana Planta 2
                         - San Bartolo </h2>
                 </div>
             </div>
@@ -57,7 +57,7 @@
                                     <th>Auditor</th>
                                     <th>Modulo (AQL)</th>
                                     <th>Supervisor</th>
-                                    <th>Estilo</th>
+                                    <th>Cliente</th>
                                     <th>Numero de Operarios</th>
                                     <th>Cantidad Paro</th>
                                     <th>Minutos Paro</th>
@@ -105,7 +105,7 @@
                                     <th>Auditor</th>
                                     <th>Modulo</th>
                                     <th>Supervisor</th>
-                                    <th>Estilo</th>
+                                    <th>Cliente</th>
                                     <th>Recorridos</th>
                                     <th>Numero de Operarios</th>
                                     <th>Numero de Utility</th>
@@ -162,7 +162,7 @@
                                     <th>Auditor</th>
                                     <th>Modulo (AQL)</th>
                                     <th>Supervisor</th>
-                                    <th>Estilo</th>
+                                    <th>Cliente</th>
                                     <th>Numero de Operarios</th>
                                     <th>Cantidad Paro</th>
                                     <th>Minutos Paro</th>
@@ -210,7 +210,7 @@
                                     <th>Auditor</th>
                                     <th>Modulo</th>
                                     <th>Supervisor</th>
-                                    <th>Estilo</th>
+                                    <th>Cliente</th>
                                     <th>Recorridos</th>
                                     <th>Numero de Operarios</th>
                                     <th>Numero de Utility</th>
