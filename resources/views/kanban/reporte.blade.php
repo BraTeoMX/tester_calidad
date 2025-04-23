@@ -135,6 +135,14 @@
                 </div>
             </div>
 
+            <div class="card card-body">
+                <!-- Gráfico de línea de tiempo por rango -->
+                <h5 style="color:#fff;">Línea de Tiempo Promedio General por Rango</h5>
+                <div id="controlesFasesRango" class="mb-3"></div>
+                <div id="tiempoTotalRango" class="mb-2"></div>
+                <div id="graficoLineaRango" style="height: 300px;"></div>
+            </div>
+
             <!-- 3. GRÁFICO HIGHCHARTS -->
             <div class="row mb-4">
                 <!-- Pie: 1/3 -->
@@ -186,16 +194,6 @@
                 </div>
             </div>
 
-            <div class="card card-body">
-                <!-- Gráfico de línea de tiempo por rango -->
-                <div class="card card-body mt-4">
-                    <h5 style="color:#fff;">Línea de Tiempo Promedio General por Rango</h5>
-                    <div id="controlesFasesRango" class="mb-3"></div>
-                    <div id="tiempoTotalRango" class="mb-2"></div>
-                    <div id="graficoLineaRango" style="height: 300px;"></div>
-                </div>
-            </div>
-
             <!-- 4. TABLE DATA -->
             <div class="card card-body">
                 <div class="table-responsive">
@@ -209,7 +207,7 @@
                                 <th>Piezas</th>
                                 <th>Estatus</th>
                                 <th>Fecha Corte</th>
-                                <th>Fecha Aceptacion</th>
+                                <th>Fecha Aceptado</th>
                                 <th>Fecha Parcial</th>
                                 <th>Fecha Rechazo</th>
                                 <th>Fecha Online</th>
@@ -467,7 +465,7 @@
                         color: '#3498db' // Azul claro
                     },
                     {
-                        name: 'Liberación',
+                        name: 'Aceptado',
                         data: [null, null, 0, null],
                         color: '#27ae60' // ✅ Verde
                     },
@@ -583,7 +581,7 @@
 
                         // 4. Actualizar stacked column chart
                         flowChart.series[0].setData([total, almacen, null]); // OP
-                        flowChart.series[1].setData([null, null, liberacion]); // Liberación
+                        flowChart.series[1].setData([null, null, liberacion]); // Aceptado
                         flowChart.series[2].setData([null, null, parciales]); // Parcial
                         flowChart.series[3].setData([null, null, rechazados]); // Rechazo
                         flowChart.series[4].setData([null, null, null, produccion]);
@@ -612,7 +610,7 @@
             const etiquetas = {
                 'fecha_corte': 'Corte',
                 'fecha_almacen': 'Almacén',
-                'fecha_liberacion': 'Liberación',
+                'fecha_liberacion': 'Aceptado',
                 'fecha_parcial': 'Parcial',
                 'fecha_rechazo': 'Rechazo',
                 'fecha_online': 'Producción'
@@ -624,7 +622,7 @@
             const filas = [
                 ['Corte', data.fecha_corte],
                 ['Almacén', data.fecha_almacen],
-                ['Liberación', data.fecha_liberacion],
+                ['Aceptado', data.fecha_liberacion],
                 ['Parcial', data.fecha_parcial],
                 ['Rechazo', data.fecha_rechazo],
                 ['Producción', data.fecha_online]
@@ -928,7 +926,7 @@
             const etiquetas = {
                 'fecha_corte': 'Corte',
                 'fecha_almacen': 'Almacén',
-                'fecha_liberacion': 'Liberación',
+                'fecha_liberacion': 'Aceptado',
                 'fecha_parcial': 'Parcial',
                 'fecha_rechazo': 'Rechazo',
                 'fecha_online': 'Producción'
