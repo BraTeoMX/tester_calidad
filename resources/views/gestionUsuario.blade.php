@@ -210,7 +210,7 @@
                                                             data-email="{{ $user->email }}" 
                                                             data-auditor="{{ $user->tipo_auditor }}" 
                                                             data-puesto="{{ $user->puesto }}" 
-                                                            data-planta="{{ $user->planta }}" 
+                                                            data-planta="{{ $user->Planta }}" 
                                                             id="openEditModalButton">
                                                         <i class="tim-icons icon-pencil"></i>
                                                     </button>
@@ -273,8 +273,8 @@
                                                 </div>
                                             </div>
                                             <div class="mb-3">
-                                                <label for="editPlanta" class="form-label">Planta</label>
-                                                <select class="form-control" name="editPlanta" id="editPlanta">
+                                                <label for="editPlantaM" class="form-label">Planta</label>
+                                                <select class="form-control" name="editPlantaM" id="editPlantaM">
                                                     <option value="Planta1">Ixtlahuaca</option>
                                                     <option value="Planta2">San Bartolo</option>
                                                 </select>
@@ -500,7 +500,7 @@
                 document.getElementById('editName').value = userName;
                 document.getElementById('editTipoAuditoria').value = userAuditor;
                 document.getElementById('editPuestos').value = userPuesto;
-                document.getElementById('editPlanta').value = userPlanta;
+                document.getElementById('editPlantaM').value = userPlanta;
                 document.getElementById('editEmail').value = userEmail;
 
                 // Abrir el modal de edición

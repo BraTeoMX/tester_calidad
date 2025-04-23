@@ -156,7 +156,7 @@ class UserManagementController extends Controller
         $user->name = $request->input('editName');
         $user->no_empleado = $request->input('editNumeroEmpleado');
         $user->email = $request->input('editEmail');
-        $user->planta = $request->input('editPlanta');
+        $user->planta = $request->input('editPlantaM');
         $user->puesto = $request->input('editPuestos');
         $user->tipo_auditor = $request->input('editTipoAuditoria');
 
