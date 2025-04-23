@@ -617,7 +617,7 @@
                                 <td>${item.auditoresUnicos}</td>
                                 <td>
                                     <button type="button" class="custom-btn" 
-                                        onclick="abrirModalAQL('${item.modulo}', '${item.estilo}', '${tablaBodyId}')">
+                                        onclick="abrirModalAQL(&quot;${encodeURIComponent(item.modulo)}&quot;, &quot;${encodeURIComponent(item.cliente)}&quot;, &quot;${tablaBodyId}&quot;)">
                                         ${item.modulo}
                                     </button>
                                 </td>
@@ -773,12 +773,12 @@
                                 <td>${item.auditoresUnicos}</td>
                                 <td>
                                     <button type="button" class="custom-btn" 
-                                        onclick="abrirModalProceso('${item.modulo}', '${item.estilo}', '${tablaBodyId}')">
+                                        onclick="abrirModalProceso(&quot;${encodeURIComponent(item.modulo)}&quot;, &quot;${encodeURIComponent(item.cliente)}&quot;, &quot;${tablaBodyId}&quot;)">
                                         ${item.modulo}
                                     </button>
                                 </td>
                                 <td>${item.supervisoresUnicos}</td>
-                                <td>${item.estilo}</td>
+                                <td>${item.cliente}</td>
                                 <td>${item.cantidadRecorridos}</td>
                                 <td>${item.conteoOperario}</td>
                                 <td>${item.conteoUtility}</td>
@@ -896,7 +896,11 @@
     <script>
         let activeModalId = null;
 
-        function abrirModalAQL(modulo, estilo, tablaOrigenId) {
+        function abrirModalAQL(modulo, cliente, tablaOrigenId) {
+
+            // Decodificar parámetros que podrían tener caracteres especiales
+            modulo = decodeURIComponent(modulo);
+            cliente = decodeURIComponent(cliente);
             // Mostrar modal vacío
             const modal = document.getElementById("modalAQL");
             const tbody = document.getElementById("modalAQLBody");
@@ -917,14 +921,20 @@
             activeModalId = "modalAQL";
 
             // Asignar título dinámico
-            titulo.textContent = `Detalles de AQL para Módulo ${modulo}, Estilo: ${estilo}`;
+            titulo.textContent = `Detalles de AQL para Módulo ${modulo}, Cliente: ${cliente}`;
 
             // Determinar si es tiempo extra según la tabla origen
             const tiempo_extra = (tablaOrigenId === "tablaAQLGeneralTENuevoBody") ? 1 : null;
             const fecha = document.getElementById("fecha_inicio").value;
 
             // Hacer fetch a un endpoint que te pasaré después
-            fetch(`dashboardSemanaPlanta2V2/buscarAQL/detalles?modulo=${modulo}&estilo=${estilo}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
+            const url = new URL('dashboardSemanaPlanta2V2/buscarAQL/detalles', window.location.origin);
+            url.searchParams.set('modulo', modulo);
+            url.searchParams.set('cliente', cliente);
+            url.searchParams.set('fecha', fecha);
+            url.searchParams.set('tiempo_extra', tiempo_extra);
+
+            fetch(url)
                 .then(res => res.json())
                 .then(data => {
                     if (data.error) {
@@ -1019,7 +1029,11 @@
     <script>
         let activeModalIdProceso = null;
 
-        function abrirModalProceso(modulo, estilo, tablaOrigenId) {
+        function abrirModalProceso(modulo, cliente, tablaOrigenId) {
+
+            // Decodificar los valores
+            modulo = decodeURIComponent(modulo);
+            cliente = decodeURIComponent(cliente);
             // Mostrar modal vacío con mensaje "Cargando..."
             const modal = document.getElementById("modalProceso");
             const tbody = document.getElementById("modalProcesoBody");
@@ -1039,14 +1053,20 @@
             activeModalIdProceso = "modalProceso";
 
             // Asignar título dinámico
-            titulo.textContent = `Detalles de Proceso para Módulo ${modulo}, Estilo: ${estilo}`;
+            titulo.textContent = `Detalles de Proceso para Módulo ${modulo}, Cliente: ${cliente}`;
 
             // Determinar si es tiempo extra
             const tiempo_extra = (tablaOrigenId.includes("TE")) ? 1 : null;
             const fecha = document.getElementById("fecha_inicio").value;
 
             // Fetch a endpoint (lo verás en el siguiente paso del backend)
-            fetch(`dashboardSemanaPlanta2V2/buscarProceso/detalles?modulo=${modulo}&estilo=${estilo}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
+            const url = new URL('dashboardSemanaPlanta2V2/buscarProceso/detalles', window.location.origin);
+            url.searchParams.set('modulo', modulo);
+            url.searchParams.set('cliente', cliente);
+            url.searchParams.set('fecha', fecha);
+            url.searchParams.set('tiempo_extra', tiempo_extra);
+
+            fetch(url)
                 .then(res => res.json())
                 .then(data => {
                     if (data.error) {
@@ -1063,7 +1083,7 @@
                     data.forEach(registro => {
                         rows += `<tr>
                             <td>${registro.minutos_paro ?? 'N/A'}</td>
-                            <td>${registro.cliente ?? 'N/A'}</td>
+                            <td>${registro.estilo ?? 'N/A'}</td>
                             <td>${registro.nombre ?? 'N/A'}</td>
                             <td>${registro.operacion ?? 'N/A'}</td>
                             <td>${registro.cantidad_auditada ?? 'N/A'}</td>

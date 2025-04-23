@@ -505,14 +505,14 @@ class DashboardPorSemanaV2Controller extends Controller
     {
         Log::info('datos de request: ' . json_encode($request->all()));
         $modulo = $request->input('modulo');
-        $estilo = $request->input('estilo');
+        $cliente = $request->input('cliente');
         $fechaSemana = $request->input('fecha');
         $tiempoExtra = $request->input('tiempo_extra');
 
         $tiempoExtra = ($tiempoExtra === 'null' || $tiempoExtra === '') ? null : $tiempoExtra;
         $planta = "Intimark2";
 
-        if (!$modulo || !$estilo || !$fechaSemana) {
+        if (!$modulo || !$cliente || !$fechaSemana) {
             Log::warning('Faltan parámetros necesarios en obtenerDetallesAQLP2');
             return response()->json(['error' => 'Faltan parámetros necesarios'], 400);
         }
@@ -523,7 +523,7 @@ class DashboardPorSemanaV2Controller extends Controller
         Log::info('fechaInicio: ' . $fechaInicio);
         Log::info('fechaFin: ' . $fechaFin);
 
-        $detalles = $this->getDatosModuloClienteAQLDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra);
+        $detalles = $this->getDatosModuloClienteAQLDetalles($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra);
 
         return response()->json($detalles);
     }
@@ -592,14 +592,14 @@ class DashboardPorSemanaV2Controller extends Controller
     {
         Log::info('datos de request: ' . json_encode($request->all()));
         $modulo = $request->input('modulo');
-        $estilo = $request->input('estilo');
+        $cliente = $request->input('cliente');
         $fechaSemana = $request->input('fecha');
         $tiempoExtra = $request->input('tiempo_extra');
 
         $tiempoExtra = ($tiempoExtra === 'null' || $tiempoExtra === '') ? null : $tiempoExtra;
         $planta = "Intimark2";
 
-        if (!$modulo || !$estilo || !$fechaSemana) {
+        if (!$modulo || !$cliente || !$fechaSemana) {
             Log::warning('Faltan parámetros en obtenerDetallesProcesoP2');
             return response()->json(['error' => 'Faltan parámetros necesarios'], 400);
         }
@@ -609,7 +609,7 @@ class DashboardPorSemanaV2Controller extends Controller
         Log::info('fechaInicio: ' . $fechaInicio);
         Log::info('fechaFin: ' . $fechaFin);
 
-        $detalles = $this->getDatosModuloClienteProcesoDetalles($fechaInicio, $fechaFin, $planta, $modulo, $estilo, $tiempoExtra);
+        $detalles = $this->getDatosModuloClienteProcesoDetalles($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra);
 
         return response()->json($detalles);
     }

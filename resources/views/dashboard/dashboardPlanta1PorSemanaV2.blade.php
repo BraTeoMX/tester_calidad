@@ -928,7 +928,13 @@
             const fecha = document.getElementById("fecha_inicio").value;
 
             // Hacer fetch a un endpoint que te pasaré después
-            fetch(`dashboardSemanaPlanta1V2/buscarAQL/detalles?modulo=${modulo}&cliente=${cliente}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
+            const url = new URL('dashboardSemanaPlanta1V2/buscarAQL/detalles', window.location.origin);
+            url.searchParams.set('modulo', modulo);
+            url.searchParams.set('cliente', cliente);
+            url.searchParams.set('fecha', fecha);
+            url.searchParams.set('tiempo_extra', tiempo_extra);
+
+            fetch(url)
                 .then(res => res.json())
                 .then(data => {
                     if (data.error) {
@@ -1054,7 +1060,14 @@
             const fecha = document.getElementById("fecha_inicio").value;
 
             // Fetch a endpoint (lo verás en el siguiente paso del backend)
-            fetch(`dashboardSemanaPlanta1V2/buscarProceso/detalles?modulo=${modulo}&cliente=${cliente}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
+            // Fetch a endpoint (lo verás en el siguiente paso del backend)
+            const url = new URL('dashboardSemanaPlanta1V2/buscarProceso/detalles', window.location.origin);
+            url.searchParams.set('modulo', modulo);
+            url.searchParams.set('cliente', cliente);
+            url.searchParams.set('fecha', fecha);
+            url.searchParams.set('tiempo_extra', tiempo_extra);
+
+            fetch(url)
                 .then(res => res.json())
                 .then(data => {
                     if (data.error) {
