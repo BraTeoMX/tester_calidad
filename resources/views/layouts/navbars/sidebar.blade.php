@@ -35,12 +35,30 @@
                             </li>
                         </ul>
                     </div>
-                </li>                
-                <li class="nav-item{{ $pageSlug == 'dashboardPorSemanal' ? ' active' : '' }}">
-                    <a class="nav-link" href="{{ route('dashboar.dashboardPlanta1PorSemana') }}">
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-toggle="collapse" href="#consultaPorSemanaMenu" aria-expanded="false">
                         <i class="tim-icons icon-tap-02"></i>
-                        <p>{{ __('Consulta por Semana') }}</p>
+                        <p>{{ __('Consulta por Semana') }}
+                            <b class="caret"></b>
+                        </p>
                     </a>
+                    <div class="collapse" id="consultaPorSemanaMenu">
+                        <ul class="nav">
+                            <li class="nav-item{{ $pageSlug == 'dashboardSemanaPlanta1V2' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('dashboardSemanaPlanta1V2') }}">
+                                    <i class="tim-icons icon-pin"></i>
+                                    <p>Planta 1 - Ixtlahuaca</p>
+                                </a>
+                            </li>
+                            <li class="nav-item{{ $pageSlug == 'dashboardSemanaPlanta2V2' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('dashboardSemanaPlanta2V2') }}">
+                                    <i class="tim-icons icon-pin"></i>
+                                    <p>Planta 2 - San Bartolo</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
                 <li class="nav-item{{ $pageSlug == 'dashboardComparativoClientes' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('dashboarComparativaModulo.semanaComparativaGeneral') }}">
