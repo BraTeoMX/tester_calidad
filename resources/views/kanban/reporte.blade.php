@@ -141,6 +141,7 @@
                 <div id="controlesFasesRango" class="mb-3"></div>
                 <div id="tiempoTotalRango" class="mb-2"></div>
                 <div id="graficoLineaRango" style="height: 300px;"></div>
+                <div id="cantidadRegistrosRango" class="mb-2"></div>
             </div>
 
             <!-- 3. GRÁFICO HIGHCHARTS -->
@@ -207,10 +208,15 @@
                                 <th>Piezas</th>
                                 <th>Estatus</th>
                                 <th>Fecha Corte</th>
+                                <th>Fecha Almacen</th>
                                 <th>Fecha Aceptado</th>
                                 <th>Fecha Parcial</th>
                                 <th>Fecha Rechazo</th>
                                 <th>Fecha Online</th>
+                                <th>Tiempo Corte - Almacén</th>
+                                <th>Tiempo Almacén - Calidad</th>
+                                <th>Tiempo Calidad - Producción</th>
+                                <th>Tiempo Corte - Producción</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -517,6 +523,10 @@
                         render: d => moment(d).format('DD/MM/YYYY HH:mm')
                     },
                     {
+                        data: 'fecha_almacen',
+                        render: d => moment(d).format('DD/MM/YYYY HH:mm')
+                    },
+                    {
                         data: 'fecha_liberacion',
                         render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
                     },
@@ -531,6 +541,38 @@
                     {
                         data: 'fecha_online',
                         render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                    },
+                    {
+                        data: null,
+                        render: row => {
+                            if (!row.fecha_corte || !row.fecha_almacen) return 'N/A';
+                            const diff = moment.duration(moment(row.fecha_almacen).diff(moment(row.fecha_corte)));
+                            return `${diff.days()}d ${diff.hours()}h ${diff.minutes()}m ${diff.seconds()}s`;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: row => {
+                            if (!row.fecha_almacen || !row.fecha_liberacion) return 'N/A';
+                            const diff = moment.duration(moment(row.fecha_liberacion).diff(moment(row.fecha_almacen)));
+                            return `${diff.days()}d ${diff.hours()}h ${diff.minutes()}m ${diff.seconds()}s`;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: row => {
+                            if (!row.fecha_liberacion || !row.fecha_online) return 'N/A';
+                            const diff = moment.duration(moment(row.fecha_online).diff(moment(row.fecha_liberacion)));
+                            return `${diff.days()}d ${diff.hours()}h ${diff.minutes()}m ${diff.seconds()}s`;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: row => {
+                            if (!row.fecha_corte || !row.fecha_online) return 'N/A';
+                            const diff = moment.duration(moment(row.fecha_online).diff(moment(row.fecha_corte)));
+                            return `${diff.days()}d ${diff.hours()}h ${diff.minutes()}m ${diff.seconds()}s`;
+                        }
                     }
                 ],
                 dom: 'Bfrtip',
@@ -954,6 +996,14 @@
             function recalcularYdibujar() {
                 const fasesSeleccionadas = fases.filter(f => document.getElementById('chk_rango_' + f)?.checked);
                 const tiemposAcumulados = [];
+                // ✅ Contar registros que tienen TODAS las fases seleccionadas con valor
+                let registrosValidos = 0;
+
+                if (fasesSeleccionadas.length > 0) {
+                    registrosValidos = registros.filter(r =>
+                        fasesSeleccionadas.some(f => !!r[f])
+                    ).length;
+                }
 
                 for (let i = 0; i < fasesSeleccionadas.length - 1; i++) {
                     const fase1 = fasesSeleccionadas[i];
@@ -1048,10 +1098,15 @@
                     ]
                 });
 
-                // Mostrar tiempo acumulado total
+                // ✅ Mostrar tiempo acumulado total
                 const totalMs = tiemposAcumulados.reduce((acc, t) => acc + t.tiempoMs, 0);
                 document.getElementById('tiempoTotalRango').innerHTML = `
                     <p><strong>Tiempo acumulado total:</strong> ${formatearTiempo(totalMs)}</p>
+                `;
+
+                // Mostrar el resultado real debajo del gráfico
+                document.getElementById('cantidadRegistrosRango').innerHTML = `
+                    <p><strong>Registros considerados en el análisis:</strong> ${registrosValidos}</p>
                 `;
             }
 
