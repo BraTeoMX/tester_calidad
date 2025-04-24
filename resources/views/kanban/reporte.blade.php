@@ -75,10 +75,10 @@
                     <label for="hasta" class="form-label">Fecha Corte Hasta</label>
                     <input type="date" id="hasta" name="hasta" class="form-control">
                 </div>
-                <div class="col-md-2">
+                {{-- <div class="col-md-2">
                     <label for="op" class="form-label">OP</label>
                     <input type="text" id="op" name="op" class="form-control" placeholder="OP">
-                </div>
+                </div> --}}
                 <div class="col-md-2">
                     <label for="planta" class="form-label">Planta</label>
                     <select id="planta" name="planta" class="form-control">
