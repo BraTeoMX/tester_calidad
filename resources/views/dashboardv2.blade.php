@@ -494,15 +494,22 @@
             /**
              * 1) GRÁFICA DE CLIENTES
              */
-             function renderGraficaClientes(clientes) {
-                const categorias = Object.keys(clientes);
-                const dataAQL = categorias.map(c => clientes[c]['% AQL'] || 0);
-                const dataProceso = categorias.map(c => clientes[c]['% PROCESO'] || 0);
+             function renderGraficaClientes(clientes) { // Sabemos que 'clientes' es un Objeto
 
+                // ----- Procesamiento ORIGINAL (Correcto para Objeto) -----
+                const categorias = Object.keys(clientes);
+                const dataAQL = categorias.map(c => (clientes[c] ? parseFloat(clientes[c]['% AQL']) : 0) || 0);
+                const dataProceso = categorias.map(c => (clientes[c] ? parseFloat(clientes[c]['% PROCESO']) : 0) || 0);
+
+                // ----- Depuración Opcional (Verificar antes del chart) -----
+                // console.log("renderGraficaClientes - ANTES:", JSON.stringify(categorias));
+                // ---------------------------------------------------------
+
+                // ----- Crear el gráfico -----
                 Highcharts.chart('graficaClientePorDia', {
                     chart: {
                         type: 'column',
-                        backgroundColor: 'transparent', // El fondo es el del contenedor (azul oscuro)
+                        backgroundColor: 'transparent',
                         style: {
                             fontFamily: 'Arial, sans-serif',
                             color: '#ffffff'
@@ -511,14 +518,14 @@
                     title: {
                         text: 'COMPARATIVO AQL Y PROCESO - CLIENTES (DÍA ACTUAL)',
                         align: 'center',
-                        style: { 
+                        style: {
                             color: '#ffffff',
                             fontWeight: 'bold',
                             fontSize: '20px'
                         }
                     },
                     xAxis: {
-                        categories: categorias,
+                        categories: categorias, // Pasamos el array de NOMBRES correcto
                         crosshair: true,
                         lineColor: '#ffffff',
                         tickColor: '#ffffff',
@@ -547,13 +554,45 @@
                         shared: true,
                         backgroundColor: '#000000',
                         style: { color: '#ffffff' },
+                        // ----- INICIO DE LA CORRECCIÓN EN FORMATTER -----
                         formatter: function () {
-                            let tooltip = `<b>${this.x}</b><br/>`;
+                            // 'this.x' nos da el índice (0, 1, 2...) según los logs.
+                            const index = this.x;
+
+                            // Necesitamos obtener el nombre de la categoría usando ese índice.
+                            // Accedemos al array de categorías original que está en las opciones del gráfico.
+                            let categoryName = ''; // Nombre por defecto
+
+                            // Verificamos que el contexto y el índice sean válidos
+                            if (this.points && this.points.length > 0 && typeof index === 'number') {
+                                // Obtenemos el objeto chart desde el punto
+                                const chart = this.points[0].series.chart;
+                                // Accedemos a las categorías del eje X (usualmente el primero, índice 0)
+                                const xAxisCategories = chart.options?.xAxis?.[0]?.categories;
+
+                                if (xAxisCategories && index >= 0 && index < xAxisCategories.length) {
+                                    // Obtenemos el nombre usando el índice
+                                    categoryName = xAxisCategories[index];
+                                } else {
+                                    // Fallback si no se encuentran las categorías o el índice es inválido
+                                    // A veces this.points[0].key contiene el nombre de la categoría
+                                    categoryName = this.points[0].key || `Índice ${index}`;
+                                    console.warn("Tooltip: No se pudo obtener categoría por índice. Usando key o índice.");
+                                }
+                            } else {
+                                console.warn("Tooltip: Contexto inválido para obtener categoría (this.points o this.x).", this);
+                                // Si this.x directamente fuera el nombre (aunque los logs digan que no), podríamos usarlo
+                                categoryName = typeof this.x === 'string' ? this.x : 'Error';
+                            }
+
+                            // Construimos el tooltip usando el categoryName obtenido
+                            let tooltip = `<b>${categoryName}</b><br/>`;
                             this.points.forEach(point => {
                                 tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
                             });
                             return tooltip;
                         }
+                        // ----- FIN DE LA CORRECCIÓN EN FORMATTER -----
                     },
                     plotOptions: {
                         column: {
@@ -581,9 +620,17 @@
              * 2) GRÁFICA DE SUPERVISORES
              */
             function renderGraficaSupervisores(supervisores) {
+
+                // ----- Procesamiento ORIGINAL (Asumiendo Objeto) -----
+                // Si tus datos de supervisores fueran un Array, necesitarías cambiar esta parte
+                // como hicimos antes, pero vamos a probar primero asumiendo que son Objeto.
                 const categorias = Object.keys(supervisores);
-                const dataAQL = categorias.map(c => supervisores[c]['% AQL'] || 0);
-                const dataProceso = categorias.map(c => supervisores[c]['% PROCESO'] || 0);
+                const dataAQL = categorias.map(c => (supervisores[c] ? parseFloat(supervisores[c]['% AQL']) : 0) || 0);
+                const dataProceso = categorias.map(c => (supervisores[c] ? parseFloat(supervisores[c]['% PROCESO']) : 0) || 0);
+
+                // ----- Depuración Opcional (Verificar antes del chart) -----
+                // console.log("renderGraficaSupervisores - ANTES:", JSON.stringify(categorias));
+                // ---------------------------------------------------------
 
                 Highcharts.chart('graficaSupervisorPorDia', {
                     chart: {
@@ -597,14 +644,14 @@
                     title: {
                         text: 'COMPARATIVO AQL Y PROCESO - SUPERVISORES (DÍA ACTUAL)',
                         align: 'center',
-                        style: { 
+                        style: {
                             color: '#ffffff',
                             fontWeight: 'bold',
-                            fontSize: '20px' 
+                            fontSize: '20px'
                         }
                     },
                     xAxis: {
-                        categories: categorias,
+                        categories: categorias, // Pasamos el array de NOMBRES (asumiendo Objeto)
                         crosshair: true,
                         lineColor: '#ffffff',
                         tickColor: '#ffffff',
@@ -633,14 +680,36 @@
                         shared: true,
                         backgroundColor: '#000000',
                         style: { color: '#ffffff' },
+                        // ----- INICIO DE LA CORRECCIÓN EN FORMATTER -----
                         formatter: function () {
-                            let tooltip = `<b>${this.x}</b><br/>`;
+                            // 'this.x' probablemente da el índice (0, 1, 2...)
+                            const index = this.x;
+                            let categoryName = ''; // Nombre por defecto
+
+                            // Buscamos el nombre en las opciones del gráfico usando el índice
+                            if (this.points && this.points.length > 0 && typeof index === 'number') {
+                                const chart = this.points[0].series.chart;
+                                const xAxisCategories = chart.options?.xAxis?.[0]?.categories;
+
+                                if (xAxisCategories && index >= 0 && index < xAxisCategories.length) {
+                                    categoryName = xAxisCategories[index];
+                                } else {
+                                    categoryName = this.points[0].key || `Índice ${index}`;
+                                    console.warn("Tooltip Supervisor: No se pudo obtener categoría por índice. Usando key o índice.");
+                                }
+                            } else {
+                                console.warn("Tooltip Supervisor: Contexto inválido para obtener categoría (this.points o this.x).", this);
+                                categoryName = typeof this.x === 'string' ? this.x : 'Error';
+                            }
+
+                            // Construimos el tooltip usando el categoryName obtenido
+                            let tooltip = `<b>${categoryName}</b><br/>`;
                             this.points.forEach(point => {
-                                tooltip += `<span style="color:${point.color}">\u25CF</span> 
-                                    ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
                             });
                             return tooltip;
                         }
+                        // ----- FIN DE LA CORRECCIÓN EN FORMATTER -----
                     },
                     plotOptions: {
                         column: {
@@ -668,9 +737,16 @@
              * 3) GRÁFICA DE MÓDULOS
              */
             function renderGraficaModulos(modulos) {
+
+                // ----- Procesamiento ORIGINAL (Asumiendo Objeto) -----
+                // Si tus datos de modulos fueran un Array, necesitarías cambiar esta parte.
                 const categorias = Object.keys(modulos);
-                const dataAQL = categorias.map(c => modulos[c]['% AQL'] || 0);
-                const dataProceso = categorias.map(c => modulos[c]['% PROCESO'] || 0);
+                const dataAQL = categorias.map(c => (modulos[c] ? parseFloat(modulos[c]['% AQL']) : 0) || 0);
+                const dataProceso = categorias.map(c => (modulos[c] ? parseFloat(modulos[c]['% PROCESO']) : 0) || 0);
+
+                // ----- Depuración Opcional (Verificar antes del chart) -----
+                // console.log("renderGraficaModulos - ANTES:", JSON.stringify(categorias));
+                // ---------------------------------------------------------
 
                 Highcharts.chart('graficaModuloPorDia', {
                     chart: {
@@ -684,14 +760,14 @@
                     title: {
                         text: 'COMPARATIVO AQL Y PROCESO - MÓDULOS (DÍA ACTUAL)',
                         align: 'center',
-                        style: { 
+                        style: {
                             color: '#ffffff',
                             fontWeight: 'bold',
-                            fontSize: '20px' 
+                            fontSize: '20px'
                         }
                     },
                     xAxis: {
-                        categories: categorias,
+                        categories: categorias, // Pasamos el array de identificadores/nombres
                         crosshair: true,
                         lineColor: '#ffffff',
                         tickColor: '#ffffff',
@@ -720,14 +796,36 @@
                         shared: true,
                         backgroundColor: '#000000',
                         style: { color: '#ffffff' },
+                        // ----- INICIO DE LA CORRECCIÓN EN FORMATTER -----
                         formatter: function () {
-                            let tooltip = `<b>${this.x}</b><br/>`;
+                            // 'this.x' probablemente da el índice (0, 1, 2...)
+                            const index = this.x;
+                            let categoryName = ''; // Nombre/ID por defecto
+
+                            // Buscamos el nombre/ID en las opciones del gráfico usando el índice
+                            if (this.points && this.points.length > 0 && typeof index === 'number') {
+                                const chart = this.points[0].series.chart;
+                                const xAxisCategories = chart.options?.xAxis?.[0]?.categories;
+
+                                if (xAxisCategories && index >= 0 && index < xAxisCategories.length) {
+                                    categoryName = xAxisCategories[index];
+                                } else {
+                                    categoryName = this.points[0].key || `Índice ${index}`;
+                                    console.warn("Tooltip Módulo: No se pudo obtener categoría por índice. Usando key o índice.");
+                                }
+                            } else {
+                                console.warn("Tooltip Módulo: Contexto inválido para obtener categoría (this.points o this.x).", this);
+                                categoryName = typeof this.x === 'string' ? this.x : 'Error';
+                            }
+
+                            // Construimos el tooltip usando el categoryName obtenido
+                            let tooltip = `<b>${categoryName}</b><br/>`;
                             this.points.forEach(point => {
-                                tooltip += `<span style="color:${point.color}">\u25CF</span> 
-                                    ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
                             });
                             return tooltip;
                         }
+                        // ----- FIN DE LA CORRECCIÓN EN FORMATTER -----
                     },
                     plotOptions: {
                         column: {
@@ -893,9 +991,16 @@
              * 1) GRÁFICA DE CLIENTES (SEMANA)
              */
             function renderGraficaClientesSemanal(clientes) {
-                const categorias = clientes.map(c => c.cliente);
-                const dataAQL = clientes.map(c => c['% AQL'] || 0);
-                const dataProceso = clientes.map(c => c['% PROCESO'] || 0);
+
+                // ----- Procesamiento para Array (Como estaba en tu código) -----
+                // ¡Asegúrate de que la clave 'cliente' sea la correcta para tus datos semanales!
+                const categorias = clientes.map(c => (c && c.cliente ? String(c.cliente) : 'Cliente N/D') );
+                const dataAQL = clientes.map(c => (c ? parseFloat(c['% AQL']) : 0) || 0);
+                const dataProceso = clientes.map(c => (c ? parseFloat(c['% PROCESO']) : 0) || 0);
+
+                // ----- Depuración Opcional -----
+                // console.log("renderGraficaClientesSemanal - ANTES:", JSON.stringify(categorias));
+                // -----------------------------
 
                 Highcharts.chart('graficaClientesSemanal', {
                     chart: {
@@ -909,14 +1014,14 @@
                     title: {
                         text: 'COMPARATIVO AQL Y PROCESO - CLIENTES (SEMANA ACTUAL)',
                         align: 'center',
-                        style: { 
+                        style: {
                             color: '#ffffff',
                             fontWeight: 'bold',
                             fontSize: '20px'
                         }
                     },
                     xAxis: {
-                        categories: categorias,
+                        categories: categorias, // Pasamos el array de NOMBRES correcto
                         crosshair: true,
                         lineColor: '#ffffff',
                         tickColor: '#ffffff',
@@ -937,13 +1042,37 @@
                         shared: true,
                         backgroundColor: '#000000',
                         style: { color: '#ffffff' },
+                        // ----- INICIO DE LA CORRECCIÓN EN FORMATTER -----
                         formatter: function () {
-                            let tooltip = `<b>${this.x}</b><br/>`;
+                            // Asumimos que this.x podría dar el índice
+                            const index = this.x;
+                            let categoryName = ''; // Nombre por defecto
+
+                            // Buscamos el nombre en las opciones del gráfico usando el índice
+                            if (this.points && this.points.length > 0 && typeof index === 'number') {
+                                const chart = this.points[0].series.chart;
+                                const xAxisCategories = chart.options?.xAxis?.[0]?.categories;
+
+                                if (xAxisCategories && index >= 0 && index < xAxisCategories.length) {
+                                    categoryName = xAxisCategories[index];
+                                } else {
+                                    categoryName = this.points[0].key || `Índice ${index}`;
+                                    console.warn("Tooltip Cliente Semanal: No se pudo obtener categoría por índice. Usando key o índice.");
+                                }
+                            } else {
+                                console.warn("Tooltip Cliente Semanal: Contexto inválido para obtener categoría (this.points o this.x).", this);
+                                // Si this.x SÍ fuera el nombre (porque los datos se procesaron bien), lo usamos
+                                categoryName = typeof this.x === 'string' ? this.x : 'Error';
+                            }
+
+                            // Construimos el tooltip usando el categoryName obtenido
+                            let tooltip = `<b>${categoryName}</b><br/>`;
                             this.points.forEach(point => {
                                 tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
                             });
                             return tooltip;
                         }
+                        // ----- FIN DE LA CORRECCIÓN EN FORMATTER -----
                     },
                     plotOptions: {
                         column: {
@@ -968,9 +1097,15 @@
              * 2) GRÁFICA DE SUPERVISORES (SEMANA)
              */
             function renderGraficaSupervisoresSemanal(supervisores) {
-                const categorias = supervisores.map(s => s.team_leader);
-                const dataAQL = supervisores.map(s => s['% AQL'] || 0);
-                const dataProceso = supervisores.map(s => s['% PROCESO'] || 0);
+                // ----- Procesamiento para Array (Como estaba en tu código) -----
+                // ¡Verifica que la clave 'team_leader' sea la correcta!
+                const categorias = supervisores.map(s => (s && s.team_leader ? String(s.team_leader) : 'Supervisor N/D'));
+                const dataAQL = supervisores.map(s => (s ? parseFloat(s['% AQL']) : 0) || 0);
+                const dataProceso = supervisores.map(s => (s ? parseFloat(s['% PROCESO']) : 0) || 0);
+
+                // ----- Depuración Opcional -----
+                // console.log("renderGraficaSupervisoresSemanal - ANTES:", JSON.stringify(categorias));
+                // -----------------------------
 
                 Highcharts.chart('graficaSupervisoresSemanal', {
                     chart: {
@@ -984,14 +1119,14 @@
                     title: {
                         text: 'COMPARATIVO AQL Y PROCESO - SUPERVISORES (SEMANA ACTUAL)',
                         align: 'center',
-                        style: { 
+                        style: {
                             color: '#ffffff',
                             fontWeight: 'bold',
                             fontSize: '20px'
                         }
                     },
                     xAxis: {
-                        categories: categorias,
+                        categories: categorias, // Pasamos el array de NOMBRES correcto
                         crosshair: true,
                         lineColor: '#ffffff',
                         tickColor: '#ffffff',
@@ -1012,13 +1147,37 @@
                         shared: true,
                         backgroundColor: '#000000',
                         style: { color: '#ffffff' },
+                        // ----- INICIO DE LA CORRECCIÓN EN FORMATTER -----
                         formatter: function () {
-                            let tooltip = `<b>${this.x}</b><br/>`;
+                            // Asumimos que this.x podría dar el índice
+                            const index = this.x;
+                            let categoryName = ''; // Nombre por defecto
+
+                            // Buscamos el nombre en las opciones del gráfico usando el índice
+                            if (this.points && this.points.length > 0 && typeof index === 'number') {
+                                const chart = this.points[0].series.chart;
+                                const xAxisCategories = chart.options?.xAxis?.[0]?.categories;
+
+                                if (xAxisCategories && index >= 0 && index < xAxisCategories.length) {
+                                    categoryName = xAxisCategories[index];
+                                } else {
+                                    categoryName = this.points[0].key || `Índice ${index}`;
+                                    console.warn("Tooltip Supervisor Semanal: No se pudo obtener categoría por índice. Usando key o índice.");
+                                }
+                            } else {
+                                console.warn("Tooltip Supervisor Semanal: Contexto inválido para obtener categoría (this.points o this.x).", this);
+                                // Si this.x SÍ fuera el nombre (porque los datos se procesaron bien), lo usamos
+                                categoryName = typeof this.x === 'string' ? this.x : 'Error';
+                            }
+
+                            // Construimos el tooltip usando el categoryName obtenido
+                            let tooltip = `<b>${categoryName}</b><br/>`;
                             this.points.forEach(point => {
                                 tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
                             });
                             return tooltip;
                         }
+                        // ----- FIN DE LA CORRECCIÓN EN FORMATTER -----
                     },
                     plotOptions: {
                         column: {
@@ -1043,9 +1202,16 @@
              * 3) GRÁFICA DE MÓDULOS (SEMANA)
              */
             function renderGraficaModulosSemanal(modulos) {
-                const categorias = modulos.map(m => m.modulo);
-                const dataAQL = modulos.map(m => m['% AQL'] || 0);
-                const dataProceso = modulos.map(m => m['% PROCESO'] || 0);
+
+                // ----- Procesamiento para Array (Como estaba en tu código) -----
+                // ¡Verifica que la clave 'modulo' sea la correcta!
+                const categorias = modulos.map(m => (m && m.modulo ? String(m.modulo) : 'Módulo N/D'));
+                const dataAQL = modulos.map(m => (m ? parseFloat(m['% AQL']) : 0) || 0);
+                const dataProceso = modulos.map(m => (m ? parseFloat(m['% PROCESO']) : 0) || 0);
+
+                // ----- Depuración Opcional -----
+                // console.log("renderGraficaModulosSemanal - ANTES:", JSON.stringify(categorias));
+                // -----------------------------
 
                 Highcharts.chart('graficaModulosSemanal', {
                     chart: {
@@ -1059,14 +1225,14 @@
                     title: {
                         text: 'COMPARATIVO AQL Y PROCESO - MÓDULOS (SEMANA ACTUAL)',
                         align: 'center',
-                        style: { 
+                        style: {
                             color: '#ffffff',
                             fontWeight: 'bold',
                             fontSize: '20px'
                         }
                     },
                     xAxis: {
-                        categories: categorias,
+                        categories: categorias, // Pasamos el array de identificadores/nombres
                         crosshair: true,
                         lineColor: '#ffffff',
                         tickColor: '#ffffff',
@@ -1087,13 +1253,37 @@
                         shared: true,
                         backgroundColor: '#000000',
                         style: { color: '#ffffff' },
+                        // ----- INICIO DE LA CORRECCIÓN EN FORMATTER -----
                         formatter: function () {
-                            let tooltip = `<b>${this.x}</b><br/>`;
+                            // Asumimos que this.x podría dar el índice
+                            const index = this.x;
+                            let categoryName = ''; // Nombre/ID por defecto
+
+                            // Buscamos el nombre/ID en las opciones del gráfico usando el índice
+                            if (this.points && this.points.length > 0 && typeof index === 'number') {
+                                const chart = this.points[0].series.chart;
+                                const xAxisCategories = chart.options?.xAxis?.[0]?.categories;
+
+                                if (xAxisCategories && index >= 0 && index < xAxisCategories.length) {
+                                    categoryName = xAxisCategories[index];
+                                } else {
+                                    categoryName = this.points[0].key || `Índice ${index}`;
+                                    console.warn("Tooltip Módulo Semanal: No se pudo obtener categoría por índice. Usando key o índice.");
+                                }
+                            } else {
+                                console.warn("Tooltip Módulo Semanal: Contexto inválido para obtener categoría (this.points o this.x).", this);
+                                // Si this.x SÍ fuera el nombre/ID (porque los datos se procesaron bien), lo usamos
+                                categoryName = (typeof this.x === 'string' || typeof this.x === 'number') ? this.x : 'Error'; // Permitir números si el ID es numérico
+                            }
+
+                            // Construimos el tooltip usando el categoryName obtenido
+                            let tooltip = `<b>${categoryName}</b><br/>`;
                             this.points.forEach(point => {
                                 tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
                             });
                             return tooltip;
                         }
+                        // ----- FIN DE LA CORRECCIÓN EN FORMATTER -----
                     },
                     plotOptions: {
                         column: {
