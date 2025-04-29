@@ -176,193 +176,310 @@ class HomeController extends Controller
 
     public function getDashboardDataSemanaV2()
     {
-        $fechaActual = Carbon::now()->toDateString();
+        // Usamos Carbon para determinar el inicio y fin de la semana actual
+        // Es importante calcular esto fuera del closure de Cache::remember
+        // para que la clave de caché sea consistente durante toda la semana.
+        $startOfWeek = Carbon::now()->startOfWeek(); // Lunes 00:00:00
+        $endOfWeek = Carbon::now()->endOfWeek();     // Domingo 23:59:59
 
-        // Cacheamos los datos semanales por 6 horas (21600 segundos)
-        $datosSemana = Cache::remember('datosSemana_' . $fechaActual, 21600, function () {
-            return $this->calcularPorcentajesSemanaActual();
+        // Generamos una clave de caché basada en el inicio de la semana
+        $cacheKey = 'datosSemana_' . $startOfWeek->toDateString();
+        // Tiempo de caché: 6 horas (21600 segundos), como en el original.
+        $cacheTime = 21600;
+
+        // Obtenemos los datos (desde caché o calculándolos)
+        $datosSemana = Cache::remember($cacheKey, $cacheTime, function () use ($startOfWeek, $endOfWeek) {
+            // Llama a la nueva función optimizada, pasando el rango de fechas
+            return $this->calcularPorcentajesSemanaActualOptimizado($startOfWeek, $endOfWeek);
         });
 
+        // Retorna los datos (cacheados o recién calculados)
         return response()->json($datosSemana);
     }
 
-    private function calcularPorcentajesSemanaActual()
+    /**
+     * Calcula los porcentajes de AQL y PROCESO para el rango de fechas especificado (semana),
+     * agrupados por cliente, supervisor y módulo, usando solo dos consultas DB.
+     *
+     * @param \Carbon\Carbon $fechaInicio Inicio del rango (ej. Lunes 00:00:00)
+     * @param \Carbon\Carbon $fechaFin    Fin del rango (ej. Domingo 23:59:59)
+     * @return array Estructura con los datos para clientes, supervisores y módulos.
+     */
+    private function calcularPorcentajesSemanaActualOptimizado(Carbon $fechaInicio, Carbon $fechaFin)
     {
-        // Obtener la fecha de inicio y fin de la semana actual
-        $fechaInicioSemana = Carbon::now()->startOfWeek()->toDateString();
-        $fechaFinSemana = Carbon::now()->endOfWeek()->toDateString();
-
-        // Consultas para cada caso y modelo
-        $clientesAQL = AuditoriaAQL::select('cliente',
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
-                DB::raw('SUM(cantidad_auditada) as total_auditada'))
-            ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
-            ->groupBy('cliente')
+        // --- 1. Consulta Optimizada para AQL (Rango Semanal) ---
+        $aqlData = AuditoriaAQL::select(
+                'cliente',
+                'team_leader',
+                'modulo',
+                DB::raw('SUM(cantidad_auditada) as total_auditada'),
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada')
+            )
+            // Usamos whereBetween con los objetos Carbon completos para el rango semanal
+            ->whereBetween('created_at', [$fechaInicio->toDateTimeString(), $fechaFin->toDateTimeString()])
+            ->groupBy('cliente', 'team_leader', 'modulo')
             ->get();
 
-        $clientesProceso = AseguramientoCalidad::select('cliente',
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
-                DB::raw('SUM(cantidad_auditada) as total_auditada'))
-            ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
-            ->groupBy('cliente')
+        // --- 2. Consulta Optimizada para PROCESO (Rango Semanal) ---
+        $procesoData = AseguramientoCalidad::select(
+                'cliente',
+                'team_leader',
+                'modulo',
+                DB::raw('SUM(cantidad_auditada) as total_auditada'),
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada')
+            )
+             // Usamos whereBetween con los objetos Carbon completos para el rango semanal
+            ->whereBetween('created_at', [$fechaInicio->toDateTimeString(), $fechaFin->toDateTimeString()])
+            ->groupBy('cliente', 'team_leader', 'modulo')
             ->get();
 
-        $supervisoresAQL = AuditoriaAQL::select('team_leader',
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
-                DB::raw('SUM(cantidad_auditada) as total_auditada'))
-            ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
-            ->groupBy('team_leader')
-            ->get();
+        // --- 3. Procesamiento en PHP (Acumulación de Sumas) ---
+        // Idéntico al procesamiento diario, solo cambian los datos de entrada (semanales)
+        $sumsByClient = [];
+        $sumsBySupervisor = [];
+        $sumsByModulo = [];
+        $uniqueKeys = ['clientes' => [], 'supervisores' => [], 'modulos' => []];
 
-        $supervisoresProceso = AseguramientoCalidad::select('team_leader',
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
-                DB::raw('SUM(cantidad_auditada) as total_auditada'))
-            ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
-            ->groupBy('team_leader')
-            ->get();
+        // Procesamos los datos de AQL
+        foreach ($aqlData as $item) {
+            $cliente = $item->cliente ?? 'N/A';
+            $supervisor = $item->team_leader ?? 'N/A';
+            $modulo = $item->modulo ?? 'N/A';
 
-        $modulosAQL = AuditoriaAQL::select('modulo',
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
-                DB::raw('SUM(cantidad_auditada) as total_auditada'))
-            ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
-            ->groupBy('modulo')
-            ->get();
+            $sumsByClient[$cliente]['aql_auditada'] = ($sumsByClient[$cliente]['aql_auditada'] ?? 0) + $item->total_auditada;
+            $sumsByClient[$cliente]['aql_rechazada'] = ($sumsByClient[$cliente]['aql_rechazada'] ?? 0) + $item->total_rechazada;
+            $uniqueKeys['clientes'][$cliente] = true;
 
-        $modulosProceso = AseguramientoCalidad::select('modulo',
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
-                DB::raw('SUM(cantidad_auditada) as total_auditada'))
-            ->whereBetween('created_at', [$fechaInicioSemana, $fechaFinSemana])
-            ->groupBy('modulo')
-            ->get();
+            $sumsBySupervisor[$supervisor]['aql_auditada'] = ($sumsBySupervisor[$supervisor]['aql_auditada'] ?? 0) + $item->total_auditada;
+            $sumsBySupervisor[$supervisor]['aql_rechazada'] = ($sumsBySupervisor[$supervisor]['aql_rechazada'] ?? 0) + $item->total_rechazada;
+            $uniqueKeys['supervisores'][$supervisor] = true;
 
-        // Formatear los resultados
-        $clientes = $this->formatearResultados($clientesAQL, $clientesProceso, 'cliente');
-        $supervisores = $this->formatearResultados($supervisoresAQL, $supervisoresProceso, 'team_leader');
-        $modulos = $this->formatearResultados($modulosAQL, $modulosProceso, 'modulo');
+            $sumsByModulo[$modulo]['aql_auditada'] = ($sumsByModulo[$modulo]['aql_auditada'] ?? 0) + $item->total_auditada;
+            $sumsByModulo[$modulo]['aql_rechazada'] = ($sumsByModulo[$modulo]['aql_rechazada'] ?? 0) + $item->total_rechazada;
+            $uniqueKeys['modulos'][$modulo] = true;
+        }
 
-        // Retornar los resultados
-        return [
-            'clientes' => $clientes,
-            'supervisores' => $supervisores,
-            'modulos' => $modulos,
-        ];
-    }
+        // Procesamos los datos de PROCESO
+        foreach ($procesoData as $item) {
+            $cliente = $item->cliente ?? 'N/A';
+            $supervisor = $item->team_leader ?? 'N/A';
+            $modulo = $item->modulo ?? 'N/A';
 
-    private function formatearResultados($aqlData, $procesoData, $columna)
-    {
-        $resultados = [];
+            $sumsByClient[$cliente]['proceso_auditada'] = ($sumsByClient[$cliente]['proceso_auditada'] ?? 0) + $item->total_auditada;
+            $sumsByClient[$cliente]['proceso_rechazada'] = ($sumsByClient[$cliente]['proceso_rechazada'] ?? 0) + $item->total_rechazada;
+            $uniqueKeys['clientes'][$cliente] = true;
 
-        // Unificar las claves de ambos datasets
-        $claves = collect($aqlData->pluck($columna))->merge($procesoData->pluck($columna))->unique();
+            $sumsBySupervisor[$supervisor]['proceso_auditada'] = ($sumsBySupervisor[$supervisor]['proceso_auditada'] ?? 0) + $item->total_auditada;
+            $sumsBySupervisor[$supervisor]['proceso_rechazada'] = ($sumsBySupervisor[$supervisor]['proceso_rechazada'] ?? 0) + $item->total_rechazada;
+            $uniqueKeys['supervisores'][$supervisor] = true;
 
-        foreach ($claves as $clave) {
-            $aql = $aqlData->firstWhere($columna, $clave);
-            $proceso = $procesoData->firstWhere($columna, $clave);
+            $sumsByModulo[$modulo]['proceso_auditada'] = ($sumsByModulo[$modulo]['proceso_auditada'] ?? 0) + $item->total_auditada;
+            $sumsByModulo[$modulo]['proceso_rechazada'] = ($sumsByModulo[$modulo]['proceso_rechazada'] ?? 0) + $item->total_rechazada;
+            $uniqueKeys['modulos'][$modulo] = true;
+        }
 
-            $porcentajeAQL = $aql && $aql->total_auditada > 0
-                ? ($aql->total_rechazada / $aql->total_auditada) * 100
-                : 0;
+        // --- 4. Calcular Porcentajes Finales ---
+        // Idéntico al cálculo diario
+        $clientesResult = [];
+        foreach (array_keys($uniqueKeys['clientes']) as $cliente) {
+            $auditadaAQL = $sumsByClient[$cliente]['aql_auditada'] ?? 0;
+            $rechazadaAQL = $sumsByClient[$cliente]['aql_rechazada'] ?? 0;
+            $auditadaProceso = $sumsByClient[$cliente]['proceso_auditada'] ?? 0;
+            $rechazadaProceso = $sumsByClient[$cliente]['proceso_rechazada'] ?? 0;
 
-            $porcentajeProceso = $proceso && $proceso->total_auditada > 0
-                ? ($proceso->total_rechazada / $proceso->total_auditada) * 100
-                : 0;
-
-            $resultados[] = [
-                $columna => $clave,
-                '% AQL' => round($porcentajeAQL, 2),
-                '% PROCESO' => round($porcentajeProceso, 2),
+            // Diferencia clave: La estructura de retorno original usaba un array de objetos/arrays, no un array asociativo.
+            $clientesResult[] = [
+                'cliente' => $cliente, // Añadimos la clave como un campo
+                '% AQL' => $auditadaAQL > 0 ? round(($rechazadaAQL / $auditadaAQL) * 100, 2) : 0,
+                '% PROCESO' => $auditadaProceso > 0 ? round(($rechazadaProceso / $auditadaProceso) * 100, 2) : 0,
             ];
         }
 
-        return $resultados;
+        $supervisoresResult = [];
+        foreach (array_keys($uniqueKeys['supervisores']) as $supervisor) {
+            $auditadaAQL = $sumsBySupervisor[$supervisor]['aql_auditada'] ?? 0;
+            $rechazadaAQL = $sumsBySupervisor[$supervisor]['aql_rechazada'] ?? 0;
+            $auditadaProceso = $sumsBySupervisor[$supervisor]['proceso_auditada'] ?? 0;
+            $rechazadaProceso = $sumsBySupervisor[$supervisor]['proceso_rechazada'] ?? 0;
+
+            $supervisoresResult[] = [
+                'team_leader' => $supervisor, // Añadimos la clave como un campo
+                '% AQL' => $auditadaAQL > 0 ? round(($rechazadaAQL / $auditadaAQL) * 100, 2) : 0,
+                '% PROCESO' => $auditadaProceso > 0 ? round(($rechazadaProceso / $auditadaProceso) * 100, 2) : 0,
+            ];
+        }
+
+        $modulosResult = [];
+        foreach (array_keys($uniqueKeys['modulos']) as $modulo) {
+            $auditadaAQL = $sumsByModulo[$modulo]['aql_auditada'] ?? 0;
+            $rechazadaAQL = $sumsByModulo[$modulo]['aql_rechazada'] ?? 0;
+            $auditadaProceso = $sumsByModulo[$modulo]['proceso_auditada'] ?? 0;
+            $rechazadaProceso = $sumsByModulo[$modulo]['proceso_rechazada'] ?? 0;
+
+            $modulosResult[] = [
+                'modulo' => $modulo, // Añadimos la clave como un campo
+                '% AQL' => $auditadaAQL > 0 ? round(($rechazadaAQL / $auditadaAQL) * 100, 2) : 0,
+                '% PROCESO' => $auditadaProceso > 0 ? round(($rechazadaProceso / $auditadaProceso) * 100, 2) : 0,
+            ];
+        }
+
+        // --- 5. Retornar Estructura Final ---
+        // Mantenemos la estructura original que espera la vista
+        return [
+            'clientes' => $clientesResult,
+            'supervisores' => $supervisoresResult,
+            'modulos' => $modulosResult,
+        ];
     }
 
     public function getDashboardDataDiaV2()
     {
         $fechaActual = Carbon::now()->toDateString();
 
-        // Cacheamos los datos del día actual por 5 minutos
-        $datosDia = Cache::remember('datosDia_' . $fechaActual, 3600, function () use ($fechaActual) {
-            return $this->calcularPorcentajesDia($fechaActual);
+        // Cacheamos los datos del día actual.
+        // Nota: El tiempo original era 3600 (1 hora), no 5 minutos. Lo mantengo en 3600.
+        // Ajusta el tiempo (tercer argumento de Cache::remember) si necesitas 5 minutos (300).
+        $cacheKey = 'datosDia_' . $fechaActual;
+        $cacheTime = 3600; // 1 hora en segundos
+
+        $datosDia = Cache::remember($cacheKey, $cacheTime, function () use ($fechaActual) {
+            // Llama a la nueva función optimizada
+            return $this->calcularPorcentajesDiaOptimizado($fechaActual);
         });
 
+        // Retorna los datos (cacheados o recién calculados)
         return response()->json($datosDia);
     }
 
-    private function calcularPorcentajesDia($fechaActual)
+    /**
+     * Calcula los porcentajes de AQL y PROCESO para el día especificado,
+     * agrupados por cliente, supervisor y módulo, usando solo dos consultas DB.
+     *
+     * @param string $fechaActual Fecha en formato YYYY-MM-DD
+     * @return array Estructura con los datos para clientes, supervisores y módulos.
+     */
+    private function calcularPorcentajesDiaOptimizado($fechaActual)
     {
-        // Consultas para Clientes, Supervisores y Módulos
-        $clientesAQL = AuditoriaAQL::select('cliente',
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
-                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+        // --- 1. Consulta Optimizada para AQL ---
+        // Obtenemos sumas agrupadas por todas las combinaciones relevantes en una sola consulta.
+        $aqlData = AuditoriaAQL::select(
+                'cliente',
+                'team_leader',
+                'modulo',
+                DB::raw('SUM(cantidad_auditada) as total_auditada'),
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada')
+            )
             ->whereDate('created_at', $fechaActual)
-            ->groupBy('cliente')
+            // Agrupamos por las tres columnas para obtener todas las combinaciones
+            ->groupBy('cliente', 'team_leader', 'modulo')
             ->get();
 
-        $clientesProceso = AseguramientoCalidad::select('cliente',
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
-                DB::raw('SUM(cantidad_auditada) as total_auditada'))
+        // --- 2. Consulta Optimizada para PROCESO ---
+        // Hacemos lo mismo para la tabla de aseguramientos_calidad
+        $procesoData = AseguramientoCalidad::select(
+                'cliente',
+                'team_leader',
+                'modulo',
+                DB::raw('SUM(cantidad_auditada) as total_auditada'),
+                DB::raw('SUM(cantidad_rechazada) as total_rechazada')
+            )
             ->whereDate('created_at', $fechaActual)
-            ->groupBy('cliente')
+            // Agrupamos por las tres columnas
+            ->groupBy('cliente', 'team_leader', 'modulo')
             ->get();
 
-        $supervisoresAQL = AuditoriaAQL::select('team_leader',
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
-                DB::raw('SUM(cantidad_auditada) as total_auditada'))
-            ->whereDate('created_at', $fechaActual)
-            ->groupBy('team_leader')
-            ->get();
+        // --- 3. Procesamiento en PHP ---
+        // Inicializamos arrays para acumular los totales por cada categoría
+        $sumsByClient = [];
+        $sumsBySupervisor = [];
+        $sumsByModulo = [];
+        $uniqueKeys = ['clientes' => [], 'supervisores' => [], 'modulos' => []];
 
-        $supervisoresProceso = AseguramientoCalidad::select('team_leader',
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
-                DB::raw('SUM(cantidad_auditada) as total_auditada'))
-            ->whereDate('created_at', $fechaActual)
-            ->groupBy('team_leader')
-            ->get();
+        // Procesamos los datos de AQL
+        foreach ($aqlData as $item) {
+            $cliente = $item->cliente ?? 'N/A'; // Manejar nulos si es posible
+            $supervisor = $item->team_leader ?? 'N/A';
+            $modulo = $item->modulo ?? 'N/A';
 
-        $modulosAQL = AuditoriaAQL::select('modulo',
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
-                DB::raw('SUM(cantidad_auditada) as total_auditada'))
-            ->whereDate('created_at', $fechaActual)
-            ->groupBy('modulo')
-            ->get();
+            // Acumulamos por cliente
+            $sumsByClient[$cliente]['aql_auditada'] = ($sumsByClient[$cliente]['aql_auditada'] ?? 0) + $item->total_auditada;
+            $sumsByClient[$cliente]['aql_rechazada'] = ($sumsByClient[$cliente]['aql_rechazada'] ?? 0) + $item->total_rechazada;
+            $uniqueKeys['clientes'][$cliente] = true; // Registrar cliente único
 
-        $modulosProceso = AseguramientoCalidad::select('modulo',
-                DB::raw('SUM(cantidad_rechazada) as total_rechazada'),
-                DB::raw('SUM(cantidad_auditada) as total_auditada'))
-            ->whereDate('created_at', $fechaActual)
-            ->groupBy('modulo')
-            ->get();
+            // Acumulamos por supervisor
+            $sumsBySupervisor[$supervisor]['aql_auditada'] = ($sumsBySupervisor[$supervisor]['aql_auditada'] ?? 0) + $item->total_auditada;
+            $sumsBySupervisor[$supervisor]['aql_rechazada'] = ($sumsBySupervisor[$supervisor]['aql_rechazada'] ?? 0) + $item->total_rechazada;
+            $uniqueKeys['supervisores'][$supervisor] = true; // Registrar supervisor único
 
-        // Formatear resultados
-        $clientes = $this->formatearResultadosDia($clientesAQL, $clientesProceso, 'cliente');
-        $supervisores = $this->formatearResultadosDia($supervisoresAQL, $supervisoresProceso, 'team_leader');
-        $modulos = $this->formatearResultadosDia($modulosAQL, $modulosProceso, 'modulo');
+            // Acumulamos por modulo
+            $sumsByModulo[$modulo]['aql_auditada'] = ($sumsByModulo[$modulo]['aql_auditada'] ?? 0) + $item->total_auditada;
+            $sumsByModulo[$modulo]['aql_rechazada'] = ($sumsByModulo[$modulo]['aql_rechazada'] ?? 0) + $item->total_rechazada;
+            $uniqueKeys['modulos'][$modulo] = true; // Registrar modulo único
+        }
 
+        // Procesamos los datos de PROCESO
+        foreach ($procesoData as $item) {
+            $cliente = $item->cliente ?? 'N/A';
+            $supervisor = $item->team_leader ?? 'N/A';
+            $modulo = $item->modulo ?? 'N/A';
+
+            // Acumulamos por cliente
+            $sumsByClient[$cliente]['proceso_auditada'] = ($sumsByClient[$cliente]['proceso_auditada'] ?? 0) + $item->total_auditada;
+            $sumsByClient[$cliente]['proceso_rechazada'] = ($sumsByClient[$cliente]['proceso_rechazada'] ?? 0) + $item->total_rechazada;
+            $uniqueKeys['clientes'][$cliente] = true;
+
+            // Acumulamos por supervisor
+            $sumsBySupervisor[$supervisor]['proceso_auditada'] = ($sumsBySupervisor[$supervisor]['proceso_auditada'] ?? 0) + $item->total_auditada;
+            $sumsBySupervisor[$supervisor]['proceso_rechazada'] = ($sumsBySupervisor[$supervisor]['proceso_rechazada'] ?? 0) + $item->total_rechazada;
+            $uniqueKeys['supervisores'][$supervisor] = true;
+
+            // Acumulamos por modulo
+            $sumsByModulo[$modulo]['proceso_auditada'] = ($sumsByModulo[$modulo]['proceso_auditada'] ?? 0) + $item->total_auditada;
+            $sumsByModulo[$modulo]['proceso_rechazada'] = ($sumsByModulo[$modulo]['proceso_rechazada'] ?? 0) + $item->total_rechazada;
+            $uniqueKeys['modulos'][$modulo] = true;
+        }
+
+        // --- 4. Calcular Porcentajes Finales ---
+        $clientesResult = [];
+        foreach (array_keys($uniqueKeys['clientes']) as $cliente) {
+            $auditadaAQL = $sumsByClient[$cliente]['aql_auditada'] ?? 0;
+            $rechazadaAQL = $sumsByClient[$cliente]['aql_rechazada'] ?? 0;
+            $auditadaProceso = $sumsByClient[$cliente]['proceso_auditada'] ?? 0;
+            $rechazadaProceso = $sumsByClient[$cliente]['proceso_rechazada'] ?? 0;
+
+            $clientesResult[$cliente]['% AQL'] = $auditadaAQL > 0 ? round(($rechazadaAQL / $auditadaAQL) * 100, 2) : 0;
+            $clientesResult[$cliente]['% PROCESO'] = $auditadaProceso > 0 ? round(($rechazadaProceso / $auditadaProceso) * 100, 2) : 0;
+        }
+
+        $supervisoresResult = [];
+        foreach (array_keys($uniqueKeys['supervisores']) as $supervisor) {
+            $auditadaAQL = $sumsBySupervisor[$supervisor]['aql_auditada'] ?? 0;
+            $rechazadaAQL = $sumsBySupervisor[$supervisor]['aql_rechazada'] ?? 0;
+            $auditadaProceso = $sumsBySupervisor[$supervisor]['proceso_auditada'] ?? 0;
+            $rechazadaProceso = $sumsBySupervisor[$supervisor]['proceso_rechazada'] ?? 0;
+
+            $supervisoresResult[$supervisor]['% AQL'] = $auditadaAQL > 0 ? round(($rechazadaAQL / $auditadaAQL) * 100, 2) : 0;
+            $supervisoresResult[$supervisor]['% PROCESO'] = $auditadaProceso > 0 ? round(($rechazadaProceso / $auditadaProceso) * 100, 2) : 0;
+        }
+
+        $modulosResult = [];
+        foreach (array_keys($uniqueKeys['modulos']) as $modulo) {
+            $auditadaAQL = $sumsByModulo[$modulo]['aql_auditada'] ?? 0;
+            $rechazadaAQL = $sumsByModulo[$modulo]['aql_rechazada'] ?? 0;
+            $auditadaProceso = $sumsByModulo[$modulo]['proceso_auditada'] ?? 0;
+            $rechazadaProceso = $sumsByModulo[$modulo]['proceso_rechazada'] ?? 0;
+
+            $modulosResult[$modulo]['% AQL'] = $auditadaAQL > 0 ? round(($rechazadaAQL / $auditadaAQL) * 100, 2) : 0;
+            $modulosResult[$modulo]['% PROCESO'] = $auditadaProceso > 0 ? round(($rechazadaProceso / $auditadaProceso) * 100, 2) : 0;
+        }
+
+        // --- 5. Retornar Estructura Final ---
+        // Mantenemos la estructura original que espera la vista
         return [
-            'clientes' => $clientes,
-            'supervisores' => $supervisores,
-            'modulos' => $modulos,
+            'clientes' => $clientesResult,
+            'supervisores' => $supervisoresResult,
+            'modulos' => $modulosResult,
         ];
-    }
-
-    private function formatearResultadosDia($datosAQL, $datosProceso, $campo)
-    {
-        $resultados = [];
-
-        foreach ($datosAQL as $itemAQL) {
-            $resultados[$itemAQL->$campo]['% AQL'] = $itemAQL->total_auditada != 0
-                ? ($itemAQL->total_rechazada / $itemAQL->total_auditada) * 100
-                : 0;
-        }
-
-        foreach ($datosProceso as $itemProceso) {
-            $resultados[$itemProceso->$campo]['% PROCESO'] = $itemProceso->total_auditada != 0
-                ? ($itemProceso->total_rechazada / $itemProceso->total_auditada) * 100
-                : 0;
-        }
-
-        return $resultados;
     }
 
     public function getMensualGeneralV2()
