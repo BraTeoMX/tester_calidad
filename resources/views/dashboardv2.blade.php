@@ -1297,7 +1297,8 @@
                         backgroundColor: '#000000',
                         style: { color: '#ffffff' },
                         formatter: function () {
-                            let tooltip = `<b>Día ${this.x}</b><br/>`;
+                            // Solución: Sumar 1 a this.x
+                            let tooltip = `<b>Día ${this.x + 1}</b><br/>`; 
                             this.points.forEach(point => {
                                 tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
                             });
@@ -1484,7 +1485,7 @@
                         backgroundColor: '#000000',
                         style: { color: '#ffffff' },
                         formatter: function () {
-                            let tooltip = `<b>Día ${this.x}</b><br/>`;
+                            let tooltip = `<b>Día ${this.x + 1}</b><br/>`;
                             this.points.forEach(point => {
                                 // Mostrar solo puntos con valor mayor a 0
                                 if (point.y > 0) {
@@ -1658,7 +1659,7 @@
                         backgroundColor: '#000000',
                         style: { color: '#ffffff' },
                         formatter: function () {
-                            let tooltip = `<b>Día ${this.x}</b><br/>`;
+                            let tooltip = `<b>Día ${this.x + 1}</b><br/>`;
                             this.points.forEach(point => {
                                 // Mostrar solo puntos con valor mayor a 0
                                 if (point.y > 0) {
