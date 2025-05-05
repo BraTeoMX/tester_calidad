@@ -201,7 +201,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/auditoriaProcesoV3/obtenerSupervisores', [AuditoriaProcesoV3Controller::class, 'obtenerSupervisor'])->name('procesoV3.obtenerSupervisores');
     Route::post('/auditoriaProcesoV3/formAltaProceso', [AuditoriaProcesoV3Controller::class, 'formAltaProceso'])->name('procesoV3.formAltaProceso');
     Route::get('/auditoriaProcesoV3/registro', [AuditoriaProcesoV3Controller::class, 'auditoriaProceso'])->name('procesoV3.registro');
-
+    Route::get('/auditoriaProcesoV3/registro/lista', [AuditoriaProcesoV3Controller::class, 'obtenerListaProcesos'])->name('procesoV3.registro.lista');
+    Route::get('/auditoriaProcesoV3/registro/nombres', [AuditoriaProcesoV3Controller::class, 'obtenerNombresGenerales'])->name('procesoV3.registro.obtenerNombresGenerales');
+    Route::get('/auditoriaProcesoV3/registro/operaciones', [AuditoriaProcesoV3Controller::class, 'obtenerOperaciones'])->name('procesoV3.registro.obtenerOperaciones');
+    Route::get('/auditoriaProcesoV3/registro/accion_correctiva', [AuditoriaProcesoV3Controller::class, 'accionCorrectivaProceso'])->name('procesoV3.registro.accionCorrectivaProceso');
+    Route::get('/auditoriaProcesoV3/registro/defectos', [AuditoriaProcesoV3Controller::class, 'defectosProceso'])->name('procesoV3.registro.defectos');
+    Route::post('/auditoriaProcesoV3/registro/crear_defectos', [AuditoriaProcesoV3Controller::class, 'crearDefecto'])->name('procesoV3.registro.crearDefecto');
+    Route::post('/auditoriaProcesoV3/registro/formRegistro', [AuditoriaProcesoV3Controller::class, 'formRegistro'])->name('procesoV3.registro.formRegistro');
 
 
 

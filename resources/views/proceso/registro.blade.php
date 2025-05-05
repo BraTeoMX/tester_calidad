@@ -697,7 +697,7 @@
 
                 // Petición AJAX para cargar los datos en la tabla del modal
                 $.ajax({
-                    url: "{{ route('obtenerListaProcesosV2') }}",
+                    url: "{{ route('procesoV3.registro.lista') }}",
                     type: 'GET',
                     success: function (response) {
                         var tabla = $('#tablaProcesos1');
@@ -824,7 +824,7 @@
                 allowClear: true,
                 minimumInputLength: 0,
                 ajax: {
-                    url: "{{ route('obtenerNombresGenerales') }}",
+                    url: "{{ route('procesoV3.registro.obtenerNombresGenerales') }}",
                     type: 'GET',
                     dataType: 'json',
                     delay: 250,
@@ -867,7 +867,7 @@
                     allowClear: true,
                     minimumInputLength: 0, // Muestra la lista completa sin escribir
                     ajax: {
-                        url: "{{ route('obtenerOperaciones') }}", // Ruta en Laravel
+                        url: "{{ route('procesoV3.registro.obtenerOperaciones') }}", // Ruta en Laravel
                         type: 'GET',
                         dataType: 'json',
                         delay: 250,
@@ -922,7 +922,7 @@
         $(document).ready(function () {
             // Realizar la consulta AJAX al cargar la página
             $.ajax({
-                url: "{{ route('accionCorrectivaProceso') }}", // Ruta en Laravel
+                url: "{{ route('procesoV3.registro.accionCorrectivaProceso') }}", // Ruta en Laravel
                 type: 'GET',
                 dataType: 'json',
                 success: function (response) {
@@ -958,7 +958,7 @@
                 placeholder: 'Selecciona una opción',
                 width: '100%',
                 ajax: {
-                    url: "{{ route('defectosProcesoV2') }}",
+                    url: "{{ route('procesoV3.registro.defectos') }}",
                     type: 'GET',
                     dataType: 'json',
                     delay: 250,
@@ -1037,7 +1037,7 @@
                 }
 
                 $.ajax({
-                    url: "{{ route('crearDefectoProcesoV2') }}",
+                    url: "{{ route('procesoV3.registro.crearDefecto') }}",
                     type: 'POST',
                     dataType: 'json',
                     data: {
@@ -1175,7 +1175,7 @@
 
                 // Enviar datos vía AJAX
                 $.ajax({
-                    url: "{{ route('formRegistroAuditoriaProcesoV2') }}",
+                    url: "{{ route('procesoV3.registro.formRegistro') }}",
                     type: "POST",
                     data: JSON.stringify(formData),
                     contentType: "application/json",

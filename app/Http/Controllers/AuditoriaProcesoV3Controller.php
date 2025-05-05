@@ -248,7 +248,7 @@ class AuditoriaProcesoV3Controller extends Controller
         return view('proceso.registro', compact('mesesEnEspanol', 'pageSlug', 'data', 'resultadoFinal', 'observacion', 'observacionTE'));
     }
 
-    public function obtenerListaProcesosV2()
+    public function obtenerListaProcesos()
     {
         $fechaActual = now()->toDateString();
         $auditorPlanta = Auth::user()->Planta;
@@ -357,7 +357,7 @@ class AuditoriaProcesoV3Controller extends Controller
         ]);
     }
 
-    public function defectosProcesoV2(Request $request)
+    public function defectosProceso(Request $request)
     {
         $search = $request->input('search');
 
@@ -375,7 +375,7 @@ class AuditoriaProcesoV3Controller extends Controller
         ]);
     }
 
-    public function crearDefectoProcesoV2(Request $request)
+    public function crearDefecto(Request $request)
     {
         try {
             $nombre = strtoupper(trim($request->input('nombre')));
@@ -405,7 +405,7 @@ class AuditoriaProcesoV3Controller extends Controller
         }
     }
 
-    public function formRegistroAuditoriaProcesoV2(Request $request)
+    public function formRegistro(Request $request)
     {
         try {
             // Convertir JSON recibido a un array asociativo
