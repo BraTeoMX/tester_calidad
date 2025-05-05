@@ -12,6 +12,7 @@ use App\Http\Controllers\InspeccionEstampadoHorno;
 use  App\Http\Controllers\AuditoriaProcesoCorteController;
 use App\Http\Controllers\AuditoriaProcesoController;
 use App\Http\Controllers\AuditoriaProcesoV2Controller;
+use App\Http\Controllers\AuditoriaProcesoV3Controller;
 use App\Http\Controllers\AuditoriaAQLController;
 use App\Http\Controllers\Maquila;
 use App\Http\Controllers\viewlistaFormularios;
@@ -193,7 +194,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/api/finalizar-paro-proceso-despues', [AuditoriaProcesoV2Controller::class, 'finalizarParoProcesodespues'])->name('finalizarParoProcesodespues');
     Route::post('/observacion-proceso-v2', [AuditoriaProcesoV2Controller::class, 'guardarObservacionProceso'])->name('guardarObservacionProceso');
     Route::post('/observacion-proceso-te-v2', [AuditoriaProcesoV2Controller::class, 'guardarObservacionProcesoTE'])->name('guardarObservacionProcesoTE');
-
+    //secion de la tercera version de Auditoria Proceso reutilizando mucho del codigo de la segunda version
+    Route::get('/auditoriaProcesoV3/inicio', [AuditoriaProcesoV3Controller::class, 'altaProcesoV3'])->name('procesoV3.inicio');
+    Route::get('/auditoriaProcesoV3/obtenerModulos', [AuditoriaProcesoV3Controller::class, 'obtenerModulos'])->name('procesoV3.obtenerModulos');
+    Route::get('/auditoriaProcesoV3/obtenerEstilos', [AuditoriaProcesoV3Controller::class, 'obtenerEstilos'])->name('procesoV3.obtenerEstilos');
+    Route::get('/auditoriaProcesoV3/obtenerSupervisores', [AuditoriaProcesoV3Controller::class, 'obtenerSupervisor'])->name('procesoV3.obtenerSupervisores');
+    Route::post('/auditoriaProcesoV3/formAltaProceso', [AuditoriaProcesoV3Controller::class, 'formAltaProceso'])->name('procesoV3.formAltaProceso');
+    Route::get('/auditoriaProcesoV3/registro', [AuditoriaProcesoV3Controller::class, 'auditoriaProceso'])->name('procesoV3.registro');
 
 
 
