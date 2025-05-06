@@ -526,24 +526,39 @@ class AuditoriaProcesoV3Controller extends Controller
         }
     }
 
-    public function obtenerRegistrosTurnoNormalV2(Request $request)
+    public function obtenerRegistroDia(Request $request)
     {
         try {
-            // Obtener fecha actual
-            $fechaActual = now()->toDateString();
-            
-            // Filtrar por módulo recibido en el request
+            $fechaActual = Carbon::today()->toDateString();
             $modulo = $request->input('modulo');
 
-            // Consulta optimizada con relación a TpAseguramientoCalidad
-            $mostrarRegistro = AseguramientoCalidad::with('tpAseguramientoCalidad')
+            // Validación básica del módulo
+            if (empty($modulo)) {
+                 // Devuelve arrays vacíos si no hay módulo, para que el JS no falle
+                 Log::warning('Intento de obtenerListaProcesos sin especificar módulo.');
+                 return response()->json([
+                    'registrosNormales' => [],
+                    'registrosExtras' => [],
+                 ], 200); // Opcional: podrías devolver 400 Bad Request
+                 // return response()->json(['error' => 'El parámetro módulo es requerido.'], 400);
+            }
+
+            // 1. --- UNA SOLA CONSULTA ---
+            // Obtiene TODOS los registros del día y módulo, incluyendo la relación necesaria.
+            $registrosDelDia = AseguramientoCalidad::with('tpAseguramientoCalidad') // Carga ansiosa de la relación
                 ->whereDate('created_at', $fechaActual)
                 ->where('modulo', $modulo)
-                ->whereNull('tiempo_extra')
+                ->orderBy('created_at', 'asc') // O el orden que prefieras
                 ->get();
 
-            // Transformar los datos para incluir la lista de defectos y conservar los nombres de las propiedades esperadas
-            $mostrarRegistro = $mostrarRegistro->map(function ($registro) {
+            // 2. --- TRANSFORMAR DATOS (UNA SOLA VEZ) ---
+            // Aplicamos el formato deseado a toda la colección antes de dividirla.
+            $registrosTransformados = $registrosDelDia->map(function ($registro) {
+                // Formateo de la lista de defectos
+                $defectosStr = $registro->tpAseguramientoCalidad->isNotEmpty()
+                    ? $registro->tpAseguramientoCalidad->pluck('tp')->implode(', ')
+                    : 'N/A';
+
                 return [
                     'id' => $registro->id,
                     'inicio_paro' => $registro->inicio_paro,
@@ -551,22 +566,41 @@ class AuditoriaProcesoV3Controller extends Controller
                     'minutos_paro' => $registro->minutos_paro,
                     'nombre' => $registro->nombre,
                     'operacion' => $registro->operacion,
-                    'cantidad_auditada' => $registro->cantidad_auditada, // se renombra para que coincida con JS
-                    'cantidad_rechazada' => $registro->cantidad_rechazada, // se renombra para que coincida con JS
-                    // Agregar defectos extraídos de la relación
-                    'defectos' => $registro->tpAseguramientoCalidad->isNotEmpty() 
-                        ? $registro->tpAseguramientoCalidad->pluck('tp')->implode(', ') 
-                        : 'N/A',
-                    'ac' => $registro->ac, // para que JS lo lea como "ac"
+                    'cantidad_auditada' => $registro->cantidad_auditada,
+                    'cantidad_rechazada' => $registro->cantidad_rechazada,
+                    'defectos' => $defectosStr,
+                    'ac' => $registro->ac,
                     'pxp' => $registro->pxp,
-                    'created_at' => $registro->created_at, // se enviará la fecha completa para que JS la formatee
+                    // Enviar fecha en un formato estándar que JS pueda interpretar fácilmente
+                    'created_at' => $registro->created_at ? $registro->created_at->toIso8601String() : null,
+                    // Incluimos la columna clave para la partición
+                    'tiempo_extra' => $registro->tiempo_extra,
                 ];
             });
 
-            // Retornar datos en formato JSON
-            return response()->json(['registros' => $mostrarRegistro], 200);
+            // 3. --- SEPARAR LA COLECCIÓN TRANSFORMADA ---
+            // Usamos `partition`. Los que cumplen la condición (tiempo_extra == 1) van al primer array ($registrosExtras).
+            // Los que NO cumplen (tiempo_extra es null u otro valor) van al segundo array ($registrosNormales).
+            list($registrosExtrasCollection, $registrosNormalesCollection) = $registrosTransformados->partition(function ($registro) {
+                // La condición es que tiempo_extra sea estrictamente 1
+                return $registro['tiempo_extra'] == 1;
+            });
+
+            // 4. --- RETORNAR JSON CON AMBOS GRUPOS ---
+            // Usamos ->values() para asegurar que sean arrays indexados numéricamente (evita objetos si quedan pocos elementos)
+            return response()->json([
+                'registrosNormales' => $registrosNormalesCollection->values(),
+                'registrosExtras' => $registrosExtrasCollection->values(),
+            ], 200);
+
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener registros: ' . $e->getMessage()], 500);
+            // Registrar el error real para diagnóstico interno
+            Log::error("Error en obtenerListaProcesos V3: " . $e->getMessage(), [
+                'modulo' => $request->input('modulo'),
+                'trace' => $e->getTraceAsString() // Opcional, puede ser muy largo
+            ]);
+            // Devolver un error genérico al cliente
+            return response()->json(['error' => 'Ocurrió un error interno al obtener los registros.'], 500);
         }
     }
     
@@ -621,49 +655,6 @@ class AuditoriaProcesoV3Controller extends Controller
         }
     }
 
-    public function obtenerRegistrosTurnoTiempoExtraV2(Request $request)
-    {
-        try {
-            // Obtener fecha actual
-            $fechaActual = now()->toDateString();
-            
-            // Filtrar por módulo recibido en el request
-            $modulo = $request->input('modulo');
-
-            // Consulta optimizada con relación a TpAseguramientoCalidad
-            $mostrarRegistro = AseguramientoCalidad::with('tpAseguramientoCalidad')
-                ->whereDate('created_at', $fechaActual)
-                ->where('modulo', $modulo)
-                ->where('tiempo_extra', 1)
-                ->get();
-
-            // Transformar los datos para incluir la lista de defectos y conservar los nombres de las propiedades esperadas
-            $mostrarRegistro = $mostrarRegistro->map(function ($registro) {
-                return [
-                    'id' => $registro->id,
-                    'inicio_paro' => $registro->inicio_paro,
-                    'fin_paro' => $registro->fin_paro,
-                    'minutos_paro' => $registro->minutos_paro,
-                    'nombre' => $registro->nombre,
-                    'operacion' => $registro->operacion,
-                    'cantidad_auditada' => $registro->cantidad_auditada, // se renombra para que coincida con JS
-                    'cantidad_rechazada' => $registro->cantidad_rechazada, // se renombra para que coincida con JS
-                    // Agregar defectos extraídos de la relación
-                    'defectos' => $registro->tpAseguramientoCalidad->isNotEmpty() 
-                        ? $registro->tpAseguramientoCalidad->pluck('tp')->implode(', ') 
-                        : 'N/A',
-                    'ac' => $registro->ac, // para que JS lo lea como "ac"
-                    'pxp' => $registro->pxp,
-                    'created_at' => $registro->created_at, // se enviará la fecha completa para que JS la formatee
-                ];
-            });
-    
-            // Retornar datos en formato JSON
-            return response()->json(['registros' => $mostrarRegistro], 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener registros: ' . $e->getMessage()], 500);
-        }
-    }
 
     public function buscarUltimoRegistroProceso(Request $request)
     {
