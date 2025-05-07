@@ -242,17 +242,19 @@ class ScreenV2Controller extends Controller
             $auditorDato = Auth::user()->name;
             $bulto = $request->input('bulto_seleccionado');
             $fechaHoy = now()->toDateString();
+            $tipoPanelNombre = $request->input('tipo_panel_nombre');
 
-            // Buscar inspección existente del día actual para el mismo bulto
+            // Buscar inspección existente del día actual para el mismo bulto y tipo de panel
             $inspeccion = InspeccionHorno::where('bulto', $bulto)
                 ->whereDate('created_at', $fechaHoy)
+                ->where('panel', $tipoPanelNombre)
                 ->first();
 
             if (!$inspeccion) {
                 // Crear nueva inspección si no existe
                 $inspeccion = new InspeccionHorno();
                 $inspeccion->auditor    = $auditorDato;
-                $inspeccion->panel      = $request->input('tipo_panel_nombre');
+                $inspeccion->panel      = $tipoPanelNombre;
                 $inspeccion->maquina    = $request->input('tipo_maquina_nombre');
                 $inspeccion->grafica    = $request->input('valor_grafica');
                 $inspeccion->op         = $request->input('op_select');
