@@ -51,18 +51,47 @@
         }
     </style>
 
+    <!-- DataTables CSS desde carpeta local -->
+    <link rel="stylesheet" href="{{ asset('dataTable/css/dataTables.bootstrap5.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dataTable/css/buttons.bootstrap5.min.css') }}">
+
+    <!-- jQuery y DataTables desde local -->
+    <script src="{{ asset('dataTable/js/jquery-3.6.0.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/dataTables.bootstrap5.min.js') }}"></script>
+
+    <!-- Botones para exportar -->
+    <script src="{{ asset('dataTable/js/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/buttons.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/jszip.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/buttons.html5.min.js') }}"></script>
+
     <script>
         $(document).ready(function() {
-            // Define el número de columnas para los mensajes de colspan, ajusta si cambian los headers
-            const COLUMNAS_REGISTROS = 16; // Auditor, Bulto, OP,..., Hora Registro (16 columnas en total para los datos de inspección)
+            const COLUMNAS_REGISTROS = 16;
+            let dataTableInstances = []; // Para almacenar instancias de DataTables y poder destruirlas
+        
+            // Función para destruir todas las instancias activas de DataTables
+            function destruirDataTablesExistentes() {
+                dataTableInstances.forEach(function(table) {
+                    if ($.fn.DataTable.isDataTable(table.selector)) {
+                        table.instance.destroy();
+                    }
+                });
+                dataTableInstances = []; // Resetear el array
+            }
         
             function cargarReportePorDia(fechaSeleccionada) {
                 if (!fechaSeleccionada) {
                     alert("Por favor, seleccione una fecha.");
+                    destruirDataTablesExistentes(); // Destruir tablas antes de mostrar error
                     $("#contenedor-tablas-maquinas").html(`<div class="card card-body"><p class="text-center text-danger">Error: Fecha no proporcionada.</p></div>`);
-                    $("#contenedor-resumen-general").empty(); // Limpiar también el resumen general
+                    $("#contenedor-resumen-general").empty();
                     return;
                 }
+        
+                // Destruir DataTables existentes antes de una nueva carga
+                destruirDataTablesExistentes();
         
                 $("#contenedor-tablas-maquinas").html(`<div class="card card-body"><p class="text-center">Cargando datos... <i class="fas fa-spinner fa-spin"></i></p></div>`);
                 $("#contenedor-resumen-general").empty();
@@ -75,12 +104,17 @@
                     success: function(response) {
                         var contenedorMaquinas = $("#contenedor-tablas-maquinas");
                         var contenedorResumenGeneral = $("#contenedor-resumen-general");
+                        
+                        // Destruir DataTables ANTES de vaciar los contenedores por si acaso
+                        destruirDataTablesExistentes();
                         contenedorMaquinas.empty();
                         contenedorResumenGeneral.empty();
         
                         // --- Renderizar Tablas por Máquina ---
                         if (response.reportePorMaquina && Object.keys(response.reportePorMaquina).length > 0) {
+                            let machineTableIndex = 0; // Para generar IDs únicos para cada tabla de máquina
                             $.each(response.reportePorMaquina, function(nombreMaquina, dataMaquina) {
+                                const tableId = `tabla-maquina-${machineTableIndex}`;
                                 let cardHtml = `
                                     <div class="card mt-3">
                                         <div class="card-header card-header-info">
@@ -88,8 +122,8 @@
                                         </div>
                                         <div class="card-body">
                                             <div class="table-responsive">
-                                                <table class="table table-striped table-hover table-sm">
-                                                    <thead class="thead-primary"> <tr>
+                                                <table id="${tableId}" class="table table-striped table-hover table-sm display"> <thead class="thead-light">
+                                                        <tr>
                                                             <th>Auditor</th>
                                                             <th>Bulto</th>
                                                             <th>OP</th>
@@ -132,16 +166,19 @@
                                         </tr>`;
                                     });
                                 } else {
+                                    // DataTables no maneja bien tbody vacíos si se inicializa,
+                                    // pero para consistencia visual lo dejamos, aunque la tabla no se inicializará si no hay datos.
                                     cardHtml += `<tr><td colspan="${COLUMNAS_REGISTROS}" class="text-center">No hay registros de inspección para esta máquina.</td></tr>`;
                                 }
                                 cardHtml += `</tbody>`;
         
-                                // --- tfoot para la tabla de la máquina ---
                                 if (dataMaquina.resumen) {
-                                    cardHtml += `<tfoot> <tr>
+                                    cardHtml += `<tfoot class="table-secondary">
+                                        <tr>
                                             <td colspan="6" class="text-right font-weight-bold">TOTALES MÁQUINA:</td>
                                             <td class="text-right font-weight-bold">${Number(dataMaquina.resumen.totalCantidadAuditada).toLocaleString()}</td>
-                                            <td colspan="4"></td> <td class="text-right font-weight-bold" colspan="2">Def. Screen: ${Number(dataMaquina.resumen.totalScreenDefectos).toLocaleString()}</td>
+                                            <td colspan="4"></td>
+                                            <td class="text-right font-weight-bold" colspan="2">Def. Screen: ${Number(dataMaquina.resumen.totalScreenDefectos).toLocaleString()}</td>
                                             <td class="text-right font-weight-bold" colspan="2">Def. Plancha: ${Number(dataMaquina.resumen.totalPlanchaDefectos).toLocaleString()}</td>
                                             <td class="text-right font-weight-bold">
                                                 Total Def: ${Number(dataMaquina.resumen.totalDefectosCombinados).toLocaleString()}<br>
@@ -155,6 +192,35 @@
                                         </div>
                                     </div>`;
                                 contenedorMaquinas.append(cardHtml);
+        
+                                // Inicializar DataTables para esta tabla específica SI HAY DATOS
+                                if (dataMaquina.registros && dataMaquina.registros.length > 0) {
+                                    let dtInstance = $(`#${tableId}`).DataTable({
+                                        dom: 'Bfrtip', // B para Buttons, f para filtering input, r para processing display, t para the table, i para table information, p para pagination control
+                                        buttons: [
+                                            {
+                                                extend: 'excelHtml5',
+                                                text: 'Exportar a Excel',
+                                                title: `Reporte Máquina - ${nombreMaquina} - ${fechaSeleccionada}`,
+                                                footer: true, // Esto asegura que el tfoot se incluya en la exportación
+                                                exportOptions: {
+                                                    // Aquí podrías especificar columnas si fuera necesario, pero con footer:true es usualmente suficiente.
+                                                    // columns: ':visible' // Exporta solo columnas visibles
+                                                }
+                                            }
+                                        ],
+                                        // Puedes agregar más opciones de DataTables aquí:
+                                        // paging: true,
+                                        // searching: true,
+                                        // ordering: true,
+                                        // info: true,
+                                        language: { // Traducciones opcionales
+                                            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                                        }
+                                    });
+                                    dataTableInstances.push({selector: `#${tableId}`, instance: dtInstance});
+                                }
+                                machineTableIndex++;
                             });
                         } else {
                             contenedorMaquinas.html(`<div class="card card-body"><p class="text-center">No se encontraron datos de inspección para la fecha seleccionada.</p></div>`);
@@ -162,14 +228,15 @@
         
                         // --- Renderizar Tabla de Resumen General ---
                         if (response.resumenGeneral && response.resumenGeneral.detallePorMaquina && response.resumenGeneral.detallePorMaquina.length > 0) {
+                            const resumenTableId = 'tabla-resumen-general';
                             let resumenGeneralHtml = `
                                 <div class="card">
                                     <div class="card-header card-header-success">
-                                        <h4 class="card-title mb-0">Resumen General del Día</h4>
+                                        <h4 class="card-title mb-0">Resumen General del Día (${fechaSeleccionada})</h4>
                                     </div>
                                     <div class="card-body">
                                         <div class="table-responsive">
-                                            <table class="table table-bordered table-hover table-sm">
+                                            <table id="${resumenTableId}" class="table table-bordered table-hover table-sm display">
                                                 <thead class="thead-light">
                                                     <tr>
                                                         <th>Máquina</th>
@@ -192,9 +259,8 @@
                                 </tr>`;
                             });
                             resumenGeneralHtml += `</tbody>`;
-        
-                            // --- tfoot para la tabla de resumen general ---
-                            resumenGeneralHtml += `<tfoot class="table-active font-weight-bold"> <tr>
+                            resumenGeneralHtml += `<tfoot class="table-active font-weight-bold">
+                                <tr>
                                     <td>TOTAL GENERAL:</td>
                                     <td class="text-right">${Number(response.resumenGeneral.totalCantidadAuditadaGlobal).toLocaleString()}</td>
                                     <td class="text-right">${Number(response.resumenGeneral.totalScreenDefectosGlobal).toLocaleString()}</td>
@@ -208,13 +274,34 @@
                                     </div>
                                 </div>`;
                             contenedorResumenGeneral.html(resumenGeneralHtml);
-                        } else if (Object.keys(response.reportePorMaquina).length > 0) { // Si hay datos por máquina pero no resumen general (debería haber)
-                            contenedorResumenGeneral.html(`<div class="card card-body"><p class="text-center">No se generó el resumen general.</p></div>`);
+        
+                            // Inicializar DataTables para la tabla de resumen general
+                            let dtResumenInstance = $(`#${resumenTableId}`).DataTable({
+                                dom: 'Bfrtip',
+                                buttons: [
+                                    {
+                                        extend: 'excelHtml5',
+                                        text: 'Exportar Resumen a Excel',
+                                        title: `Resumen General - ${fechaSeleccionada}`,
+                                        footer: true // Incluir tfoot
+                                    }
+                                ],
+                                paging: false, // Generalmente no se pagina la tabla de resumen
+                                searching: false,
+                                info: false,
+                                ordering: true, // Permitir ordenar si se desea
+                                language: {
+                                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                                }
+                            });
+                            dataTableInstances.push({selector: `#${resumenTableId}`, instance: dtResumenInstance});
+                        } else if (Object.keys(response.reportePorMaquina).length > 0) {
+                             contenedorResumenGeneral.html(`<div class="card card-body"><p class="text-center">No se generó el resumen general.</p></div>`);
                         }
-                        // Si no hay datos por máquina, el mensaje ya se mostró y el resumen general no se muestra.
         
                     },
                     error: function(jqXHR, textStatus, errorThrown) {
+                        destruirDataTablesExistentes(); // Destruir en caso de error también
                         $("#contenedor-tablas-maquinas").html(`<div class="card card-body"><p class="text-center text-danger">Error al cargar los registros.</p></div>`);
                         $("#contenedor-resumen-general").empty();
                         console.error("Error AJAX:", textStatus, errorThrown, jqXHR.responseText);
@@ -227,12 +314,6 @@
                 var fechaSeleccionada = $("#fecha_reporte").val();
                 cargarReportePorDia(fechaSeleccionada);
             });
-        
-            // Opcional: Cargar datos para la fecha por defecto (hoy) al cargar la página
-            // var fechaInicial = $("#fecha_reporte").val();
-            // if(fechaInicial) {
-            //     cargarReportePorDia(fechaInicial);
-            // }
         });
-    </script>
+        </script>
 @endsection
