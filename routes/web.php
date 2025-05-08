@@ -557,6 +557,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     //Seccion del apartado reportes de Screen y plancha
     Route::get('/reportesScreen', [ReportesScreenController::class, 'index'])->name('reportesScreen.index');
+    Route::get('/reportesScreen/datosPorDia', [ReportesScreenController::class, 'bultosPorDia'])->name('reportesScreen.datosPorDia');
     Route::get('/reportesScreen/obtenerDatos', [ReportesScreenController::class, 'obtenerDatos'])->name('reportesScreen.obtenerDatos');
 
 });
