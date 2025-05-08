@@ -41,103 +41,109 @@ class ReportesScreenController extends Controller
 
     public function bultosPorDia(Request $request)
     {
-        // Validar que la fecha_inicio esté presente
         $request->validate([
             'fecha_inicio' => 'required|date_format:Y-m-d',
         ]);
 
-        // Obtener la fecha seleccionada del request
         $fechaSeleccionada = Carbon::parse($request->input('fecha_inicio'));
-
-        // Establecer el inicio y fin del día seleccionado
         $inicioDia = $fechaSeleccionada->copy()->startOfDay();
         $finDia    = $fechaSeleccionada->copy()->endOfDay();
 
-        // Traer las inspecciones del día seleccionado con las relaciones necesarias
         $inspecciones = InspeccionHorno::with([
-            'tecnicas',           // Relación con InspeccionHornoTecnica
-            'fibras',             // Relación con InspeccionHornoFibra
-            'screen.defectos',    // Relación: InspeccionHornoScreen y sus defectos
-            'plancha.defectos'    // Relación: InspeccionHornoPlancha y sus defectos
+            'tecnicas',
+            'fibras',
+            'screen.defectos',
+            'plancha.defectos'
         ])
         ->whereBetween('created_at', [$inicioDia, $finDia])
-        // Se elimina el filtro por auditor: ->where('auditor', $auditorDato)
-        ->orderBy('created_at', 'desc') // Opcional: ordenar los registros
+        ->orderBy('maquina') // Opcional: Ordenar por máquina para que las tablas aparezcan en orden
+        ->orderBy('created_at', 'desc')
         ->get();
 
-        // Procesar cada registro para formatear los datos a mostrar
-        $data = $inspecciones->map(function ($inspeccion) {
-            // Técnicas
-            $tecnicas = 'N/A';
-            if ($inspeccion->tecnicas->isNotEmpty()) {
-                $tecnicaItems = $inspeccion->tecnicas
-                    ->pluck('nombre')
-                    ->unique()
-                    ->map(function ($tecnica) {
-                        return '<li>' . e($tecnica) . '</li>'; // e() para escapar HTML
-                    });
-                $tecnicas = '<ul>' . $tecnicaItems->implode('') . '</ul>';
-            }
+        // Agrupar las inspecciones por el campo 'maquina'
+        // Si 'maquina' puede ser null o vacío, se agruparán bajo una clave vacía o null.
+        $inspeccionesAgrupadas = $inspecciones->groupBy('maquina');
 
-            // Fibras
-            $fibras = 'N/A';
-            if ($inspeccion->fibras->isNotEmpty()) {
-                $fibraItems = $inspeccion->fibras
-                    ->map(function ($fibra) {
-                        return '<li>' . e($fibra->nombre) . ' (' . e($fibra->cantidad) . ')</li>';
-                    })
-                    ->unique(); // Considera si el unique debe ir antes o después del map según tu lógica
-                $fibras = '<ul>' . $fibraItems->implode('') . '</ul>';
-            }
+        $datosAgrupadosParaJson = [];
 
-            // Defectos de Screen
-            $screenDefectos = 'N/A';
-            if ($inspeccion->screen && $inspeccion->screen->defectos->isNotEmpty()) {
-                $screenDefectoItems = $inspeccion->screen->defectos
-                    ->map(function ($defecto) {
-                        return '<li>' . e($defecto->nombre) . ' (' . e($defecto->cantidad) . ')</li>';
-                    })
-                    ->unique();
-                $screenDefectos = '<ul>' . $screenDefectoItems->implode('') . '</ul>';
-            }
+        foreach ($inspeccionesAgrupadas as $nombreMaquina => $registrosMaquina) {
+            $datosMaquina = $registrosMaquina->map(function ($inspeccion) {
+                // Técnicas
+                $tecnicas = 'N/A';
+                if ($inspeccion->tecnicas->isNotEmpty()) {
+                    $tecnicaItems = $inspeccion->tecnicas
+                        ->pluck('nombre')
+                        ->unique()
+                        ->map(function ($tecnica) {
+                            return '<li>' . e($tecnica) . '</li>';
+                        });
+                    $tecnicas = '<ul>' . $tecnicaItems->implode('') . '</ul>';
+                }
 
-            // Defectos de Plancha
-            $planchaDefectos = 'N/A';
-            if ($inspeccion->plancha && $inspeccion->plancha->defectos->isNotEmpty()) {
-                $planchaItems = $inspeccion->plancha->defectos
-                    ->map(function ($defecto) {
-                        return '<li>' . e($defecto->nombre) . ' (' . e($defecto->cantidad) . ')</li>';
-                    })
-                    ->unique();
-                $planchaDefectos = '<ul>' . $planchaItems->implode('') . '</ul>';
-            }
+                // Fibras
+                $fibras = 'N/A';
+                if ($inspeccion->fibras->isNotEmpty()) {
+                    $fibraItems = $inspeccion->fibras
+                        ->map(function ($fibra) {
+                            return '<li>' . e($fibra->nombre) . ' (' . e($fibra->cantidad) . ')</li>';
+                        })
+                        ->unique();
+                    $fibras = '<ul>' . $fibraItems->implode('') . '</ul>';
+                }
 
-            $tecnicoScreen  = $inspeccion->screen ? e($inspeccion->screen->nombre_tecnico) : 'N/A';
-            $tecnicoPlancha = $inspeccion->plancha ? e($inspeccion->plancha->nombre_tecnico) : 'N/A';
+                // Defectos de Screen
+                $screenDefectos = 'N/A';
+                if ($inspeccion->screen && $inspeccion->screen->defectos->isNotEmpty()) {
+                    $screenDefectoItems = $inspeccion->screen->defectos
+                        ->map(function ($defecto) {
+                            return '<li>' . e($defecto->nombre) . ' (' . e($defecto->cantidad) . ')</li>';
+                        })
+                        ->unique();
+                    $screenDefectos = '<ul>' . $screenDefectoItems->implode('') . '</ul>';
+                }
 
-            return [
-                // 'id' ya no es necesario para el reporte sin acciones
-                'auditor'         => e($inspeccion->auditor) ?? 'N/A',
-                'bulto'           => e($inspeccion->bulto) ?? 'N/A',
-                'op'              => e($inspeccion->op) ?? 'N/A',
-                'cliente'         => e($inspeccion->cliente) ?? 'N/A',
-                'estilo'          => e($inspeccion->estilo) ?? 'N/A',
-                'color'           => e($inspeccion->color) ?? 'N/A',
-                'cantidad'        => e($inspeccion->cantidad) ?? 'N/A',
-                'panel'           => e($inspeccion->panel) ?? 'N/A',
-                'maquina'         => e($inspeccion->maquina) ?? 'N/A',
-                'grafica'         => e($inspeccion->grafica) ?? 'N/A',
-                'tecnicas'        => $tecnicas, // Ya viene escapado si es necesario desde la lógica de arriba
-                'fibras'          => $fibras,   // Ya viene escapado
-                'screenDefectos'  => $screenDefectos, // Ya viene escapado
-                'planchaDefectos' => $planchaDefectos, // Ya viene escapado
-                'tecnico_screen'  => $tecnicoScreen,
-                'tecnico_plancha' => $tecnicoPlancha,
-                'fecha'           => $inspeccion->created_at ? $inspeccion->created_at->format('H:i:s') : 'N/A'
-            ];
-        });
+                // Defectos de Plancha
+                $planchaDefectos = 'N/A';
+                if ($inspeccion->plancha && $inspeccion->plancha->defectos->isNotEmpty()) {
+                    $planchaItems = $inspeccion->plancha->defectos
+                        ->map(function ($defecto) {
+                            return '<li>' . e($defecto->nombre) . ' (' . e($defecto->cantidad) . ')</li>';
+                        })
+                        ->unique();
+                    $planchaDefectos = '<ul>' . $planchaItems->implode('') . '</ul>';
+                }
 
-        return response()->json(['data' => $data]);
+                $tecnicoScreen  = $inspeccion->screen ? e($inspeccion->screen->nombre_tecnico) : 'N/A';
+                $tecnicoPlancha = $inspeccion->plancha ? e($inspeccion->plancha->nombre_tecnico) : 'N/A';
+
+                return [
+                    'auditor'           => e($inspeccion->auditor) ?? 'N/A',
+                    'bulto'             => e($inspeccion->bulto) ?? 'N/A',
+                    'op'                => e($inspeccion->op) ?? 'N/A',
+                    'cliente'           => e($inspeccion->cliente) ?? 'N/A',
+                    'estilo'            => e($inspeccion->estilo) ?? 'N/A',
+                    'color'             => e($inspeccion->color) ?? 'N/A',
+                    'cantidad'          => e($inspeccion->cantidad) ?? 'N/A',
+                    'panel'             => e($inspeccion->panel) ?? 'N/A',
+                    // 'maquina' ya no se necesita aquí porque estará en la clave del grupo
+                    'grafica'           => e($inspeccion->grafica) ?? 'N/A',
+                    'tecnicas'          => $tecnicas,
+                    'fibras'            => $fibras,
+                    'screenDefectos'    => $screenDefectos,
+                    'planchaDefectos'   => $planchaDefectos,
+                    'tecnico_screen'    => $tecnicoScreen,
+                    'tecnico_plancha'   => $tecnicoPlancha,
+                    'fecha'             => $inspeccion->created_at ? $inspeccion->created_at->format('H:i:s') : 'N/A'
+                ];
+            });
+            // Usar el nombre de la máquina (o "No especificada" si es null/vacío) como clave
+            $keyMaquina = !empty($nombreMaquina) ? $nombreMaquina : 'Máquina no especificada';
+            $datosAgrupadosParaJson[$keyMaquina] = $datosMaquina;
+        }
+        // Si quieres un orden específico para las máquinas (alfabético por nombre de máquina)
+        // ksort($datosAgrupadosParaJson); // Ordena por las claves (nombres de máquina)
+
+        return response()->json(['dataGroupedByMachine' => $datosAgrupadosParaJson]);
     }
 
     public function screenV2(Request $request)
