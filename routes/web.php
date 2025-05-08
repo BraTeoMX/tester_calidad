@@ -40,6 +40,7 @@ use App\Http\Controllers\ConsutlaEstatusController;
 use App\Http\Controllers\EtiquetasV2Controller;
 use App\Http\Controllers\GestionUsuarioController;
 use App\Http\Controllers\ScreenV2Controller;
+use App\Http\Controllers\ReportesScreenController;
 use App\Http\Controllers\DashboardPorDiaV2Controller;
 use App\Http\Controllers\DashboardPorSemanaV2Controller;
 use App\Http\Controllers\DashboardBusquedaOPController;
@@ -554,5 +555,8 @@ Route::group(['middleware' => 'auth'], function () {
 
 
 
+    //Seccion del apartado reportes de Screen y plancha
+    Route::get('/reportesScreen', [ReportesScreenController::class, 'index'])->name('reportesScreen.index');
+    Route::get('/reportesScreen/obtenerDatos', [ReportesScreenController::class, 'obtenerDatos'])->name('reportesScreen.obtenerDatos');
 
 });
