@@ -52,98 +52,188 @@ class ReportesScreenController extends Controller
         $inspecciones = InspeccionHorno::with([
             'tecnicas',
             'fibras',
-            'screen.defectos',
-            'plancha.defectos'
+            'screen.defectos', // Esta es la relación InspeccionHornoScreen y sus defectos
+            'plancha.defectos' // Esta es la relación InspeccionHornoPlancha y sus defectos
         ])
         ->whereBetween('created_at', [$inicioDia, $finDia])
-        ->orderBy('maquina') // Opcional: Ordenar por máquina para que las tablas aparezcan en orden
+        ->orderBy('maquina')
         ->orderBy('created_at', 'desc')
         ->get();
 
-        // Agrupar las inspecciones por el campo 'maquina'
-        // Si 'maquina' puede ser null o vacío, se agruparán bajo una clave vacía o null.
-        $inspeccionesAgrupadas = $inspecciones->groupBy('maquina');
+        $reportePorMaquina = [];
+        $resumenGeneralDetalle = [];
 
-        $datosAgrupadosParaJson = [];
+        // Variables para el resumen global
+        $totalCantidadAuditadaGlobal = 0;
+        $totalScreenDefectosGlobal = 0;
+        $totalPlanchaDefectosGlobal = 0;
+        $totalDefectosCombinadosGlobal = 0;
+
+
+        // Primero, procesamos cada inspección para obtener sus datos formateados y conteos de defectos
+        $inspeccionesProcesadas = $inspecciones->map(function ($inspeccion) {
+            // Formateo de Técnicas (como antes)
+            $tecnicasHtml = 'N/A';
+            if ($inspeccion->tecnicas->isNotEmpty()) {
+                $tecnicaItems = $inspeccion->tecnicas->pluck('nombre')->unique()->map(function ($tecnica) {
+                    return '<li>' . e($tecnica) . '</li>';
+                });
+                $tecnicasHtml = '<ul>' . $tecnicaItems->implode('') . '</ul>';
+            }
+
+            // Formateo de Fibras (como antes)
+            $fibrasHtml = 'N/A';
+            if ($inspeccion->fibras->isNotEmpty()) {
+                $fibraItems = $inspeccion->fibras->map(function ($fibra) {
+                    return '<li>' . e($fibra->nombre) . ' (' . e($fibra->cantidad) . ')</li>';
+                })->unique();
+                $fibrasHtml = '<ul>' . $fibraItems->implode('') . '</ul>';
+            }
+
+            // Formateo y conteo de Defectos de Screen
+            $screenDefectosHtml = 'N/A';
+            $cantidadNumericaScreenDefectos = 0;
+            if ($inspeccion->screen && $inspeccion->screen->defectos->isNotEmpty()) {
+                // Aquí asumimos que $defecto->cantidad es el número que va entre paréntesis
+                $screenDefectoItems = $inspeccion->screen->defectos->map(function ($defecto) {
+                    return '<li>' . e($defecto->nombre) . ' (' . e($defecto->cantidad) . ')</li>';
+                })->unique(); // Unique sobre el string HTML del <li>
+                $screenDefectosHtml = '<ul>' . $screenDefectoItems->implode('') . '</ul>';
+                // Para el conteo numérico, sumamos las cantidades originales de los defectos de screen
+                $cantidadNumericaScreenDefectos = $inspeccion->screen->defectos->sum('cantidad');
+            }
+
+
+            // Formateo y conteo de Defectos de Plancha
+            $planchaDefectosHtml = 'N/A';
+            $cantidadNumericaPlanchaDefectos = 0;
+            if ($inspeccion->plancha && $inspeccion->plancha->defectos->isNotEmpty()) {
+                $planchaItems = $inspeccion->plancha->defectos->map(function ($defecto) {
+                     return '<li>' . e($defecto->nombre) . ' (' . e($defecto->cantidad) . ')</li>';
+                })->unique();
+                $planchaDefectosHtml = '<ul>' . $planchaItems->implode('') . '</ul>';
+                // Sumamos las cantidades originales de los defectos de plancha
+                $cantidadNumericaPlanchaDefectos = $inspeccion->plancha->defectos->sum('cantidad');
+            }
+
+
+            $tecnicoScreen  = $inspeccion->screen ? e($inspeccion->screen->nombre_tecnico) : 'N/A';
+            $tecnicoPlancha = $inspeccion->plancha ? e($inspeccion->plancha->nombre_tecnico) : 'N/A';
+
+            return [
+                'auditor'           => e($inspeccion->auditor) ?? 'N/A',
+                'bulto'             => e($inspeccion->bulto) ?? 'N/A',
+                'op'                => e($inspeccion->op) ?? 'N/A',
+                'cliente'           => e($inspeccion->cliente) ?? 'N/A',
+                'estilo'            => e($inspeccion->estilo) ?? 'N/A',
+                'color'             => e($inspeccion->color) ?? 'N/A',
+                'cantidad'          => (int) ($inspeccion->cantidad ?? 0), // Asegurar que sea numérico
+                'panel'             => e($inspeccion->panel) ?? 'N/A',
+                'maquina'           => $inspeccion->maquina, // Necesitamos este campo para agrupar después
+                'grafica'           => e($inspeccion->grafica) ?? 'N/A',
+                'tecnicasHtml'      => $tecnicasHtml,
+                'fibrasHtml'        => $fibrasHtml,
+                'screenDefectosHtml'=> $screenDefectosHtml,
+                'planchaDefectosHtml'=> $planchaDefectosHtml,
+                'cantidadNumericaScreenDefectos' => $cantidadNumericaScreenDefectos,
+                'cantidadNumericaPlanchaDefectos' => $cantidadNumericaPlanchaDefectos,
+                'tecnico_screen'    => $tecnicoScreen,
+                'tecnico_plancha'   => $tecnicoPlancha,
+                'fecha'             => $inspeccion->created_at ? $inspeccion->created_at->format('H:i:s') : 'N/A'
+            ];
+        });
+
+        // Agrupar las inspecciones ya procesadas por el campo 'maquina'
+        $inspeccionesAgrupadas = $inspeccionesProcesadas->groupBy('maquina');
 
         foreach ($inspeccionesAgrupadas as $nombreMaquina => $registrosMaquina) {
-            $datosMaquina = $registrosMaquina->map(function ($inspeccion) {
-                // Técnicas
-                $tecnicas = 'N/A';
-                if ($inspeccion->tecnicas->isNotEmpty()) {
-                    $tecnicaItems = $inspeccion->tecnicas
-                        ->pluck('nombre')
-                        ->unique()
-                        ->map(function ($tecnica) {
-                            return '<li>' . e($tecnica) . '</li>';
-                        });
-                    $tecnicas = '<ul>' . $tecnicaItems->implode('') . '</ul>';
-                }
+            $totalCantidadAuditadaMaquina = $registrosMaquina->sum('cantidad');
+            $totalScreenDefectosMaquina = $registrosMaquina->sum('cantidadNumericaScreenDefectos');
+            $totalPlanchaDefectosMaquina = $registrosMaquina->sum('cantidadNumericaPlanchaDefectos');
+            $totalDefectosCombinadosMaquina = $totalScreenDefectosMaquina + $totalPlanchaDefectosMaquina;
 
-                // Fibras
-                $fibras = 'N/A';
-                if ($inspeccion->fibras->isNotEmpty()) {
-                    $fibraItems = $inspeccion->fibras
-                        ->map(function ($fibra) {
-                            return '<li>' . e($fibra->nombre) . ' (' . e($fibra->cantidad) . ')</li>';
-                        })
-                        ->unique();
-                    $fibras = '<ul>' . $fibraItems->implode('') . '</ul>';
-                }
+            $porcentajeDefectosMaquina = 0;
+            if ($totalCantidadAuditadaMaquina > 0) {
+                $porcentajeDefectosMaquina = round(($totalDefectosCombinadosMaquina / $totalCantidadAuditadaMaquina) * 100, 2);
+            }
 
-                // Defectos de Screen
-                $screenDefectos = 'N/A';
-                if ($inspeccion->screen && $inspeccion->screen->defectos->isNotEmpty()) {
-                    $screenDefectoItems = $inspeccion->screen->defectos
-                        ->map(function ($defecto) {
-                            return '<li>' . e($defecto->nombre) . ' (' . e($defecto->cantidad) . ')</li>';
-                        })
-                        ->unique();
-                    $screenDefectos = '<ul>' . $screenDefectoItems->implode('') . '</ul>';
-                }
+            $keyMaquina = !empty($nombreMaquina) ? e($nombreMaquina) : 'Máquina no especificada';
 
-                // Defectos de Plancha
-                $planchaDefectos = 'N/A';
-                if ($inspeccion->plancha && $inspeccion->plancha->defectos->isNotEmpty()) {
-                    $planchaItems = $inspeccion->plancha->defectos
-                        ->map(function ($defecto) {
-                            return '<li>' . e($defecto->nombre) . ' (' . e($defecto->cantidad) . ')</li>';
-                        })
-                        ->unique();
-                    $planchaDefectos = '<ul>' . $planchaItems->implode('') . '</ul>';
-                }
+            // Acumulamos para el resumen global
+            $totalCantidadAuditadaGlobal += $totalCantidadAuditadaMaquina;
+            $totalScreenDefectosGlobal += $totalScreenDefectosMaquina;
+            $totalPlanchaDefectosGlobal += $totalPlanchaDefectosMaquina;
+            $totalDefectosCombinadosGlobal += $totalDefectosCombinadosMaquina;
 
-                $tecnicoScreen  = $inspeccion->screen ? e($inspeccion->screen->nombre_tecnico) : 'N/A';
-                $tecnicoPlancha = $inspeccion->plancha ? e($inspeccion->plancha->nombre_tecnico) : 'N/A';
+            // Datos para la tabla individual de la máquina
+            $reportePorMaquina[$keyMaquina] = [
+                'registros' => $registrosMaquina->map(function($reg){ // Quitamos 'maquina' de los registros individuales
+                    unset($reg['maquina']);
+                    return $reg;
+                })->values()->all(), // values()->all() para reindexar array si es necesario
+                'resumen' => [
+                    'totalCantidadAuditada' => $totalCantidadAuditadaMaquina,
+                    'totalScreenDefectos'   => $totalScreenDefectosMaquina,
+                    'totalPlanchaDefectos'  => $totalPlanchaDefectosMaquina,
+                    'totalDefectosCombinados' => $totalDefectosCombinadosMaquina,
+                    'porcentajeDefectos'    => $porcentajeDefectosMaquina,
+                ]
+            ];
 
-                return [
-                    'auditor'           => e($inspeccion->auditor) ?? 'N/A',
-                    'bulto'             => e($inspeccion->bulto) ?? 'N/A',
-                    'op'                => e($inspeccion->op) ?? 'N/A',
-                    'cliente'           => e($inspeccion->cliente) ?? 'N/A',
-                    'estilo'            => e($inspeccion->estilo) ?? 'N/A',
-                    'color'             => e($inspeccion->color) ?? 'N/A',
-                    'cantidad'          => e($inspeccion->cantidad) ?? 'N/A',
-                    'panel'             => e($inspeccion->panel) ?? 'N/A',
-                    // 'maquina' ya no se necesita aquí porque estará en la clave del grupo
-                    'grafica'           => e($inspeccion->grafica) ?? 'N/A',
-                    'tecnicas'          => $tecnicas,
-                    'fibras'            => $fibras,
-                    'screenDefectos'    => $screenDefectos,
-                    'planchaDefectos'   => $planchaDefectos,
-                    'tecnico_screen'    => $tecnicoScreen,
-                    'tecnico_plancha'   => $tecnicoPlancha,
-                    'fecha'             => $inspeccion->created_at ? $inspeccion->created_at->format('H:i:s') : 'N/A'
-                ];
-            });
-            // Usar el nombre de la máquina (o "No especificada" si es null/vacío) como clave
-            $keyMaquina = !empty($nombreMaquina) ? $nombreMaquina : 'Máquina no especificada';
-            $datosAgrupadosParaJson[$keyMaquina] = $datosMaquina;
+            // Datos para la tabla de resumen general
+            $resumenGeneralDetalle[] = [
+                'nombreMaquina' => $keyMaquina,
+                'cantidadAuditada' => $totalCantidadAuditadaMaquina,
+                'cantidadScreenDefectos' => $totalScreenDefectosMaquina, // Para desglose si es necesario
+                'cantidadPlanchaDefectos' => $totalPlanchaDefectosMaquina, // Para desglose si es necesario
+                'cantidadDefectosCombinados' => $totalDefectosCombinadosMaquina,
+                'porcentajeDefectos' => $porcentajeDefectosMaquina,
+            ];
         }
-        // Si quieres un orden específico para las máquinas (alfabético por nombre de máquina)
-        // ksort($datosAgrupadosParaJson); // Ordena por las claves (nombres de máquina)
 
-        return response()->json(['dataGroupedByMachine' => $datosAgrupadosParaJson]);
+        $porcentajeDefectosGlobal = 0;
+        if ($totalCantidadAuditadaGlobal > 0) {
+            $porcentajeDefectosGlobal = round(($totalDefectosCombinadosGlobal / $totalCantidadAuditadaGlobal) * 100, 2);
+        }
+
+        // Estructura de respuesta final
+        $respuestaJson = [
+            'reportePorMaquina' => $reportePorMaquina,
+            'resumenGeneral' => [
+                'totalCantidadAuditadaGlobal' => $totalCantidadAuditadaGlobal,
+                'totalScreenDefectosGlobal' => $totalScreenDefectosGlobal,
+                'totalPlanchaDefectosGlobal' => $totalPlanchaDefectosGlobal,
+                'totalDefectosCombinadosGlobal' => $totalDefectosCombinadosGlobal,
+                'porcentajeDefectosGlobal' => $porcentajeDefectosGlobal,
+                'detallePorMaquina' => $resumenGeneralDetalle,
+            ]
+        ];
+        // ksort($respuestaJson['reportePorMaquina']); // Si quieres ordenar las máquinas alfabéticamente por clave
+
+        return response()->json($respuestaJson);
+    }
+
+    private function calcularCantidadNumericaDefectos($defectosHtml)
+    {
+        if ($defectosHtml === 'N/A' || empty($defectosHtml)) {
+            return 0;
+        }
+
+        $totalDefectos = 0;
+        // Usamos expresiones regulares para encontrar los <li> y extraer la cantidad
+        // El patrón busca: <li>CualquierTexto(NUMERO)</li> o <li>CualquierTextoSinNumero</li>
+        preg_match_all('/<li>.*?(\((\d+)\))?<\/li>/i', $defectosHtml, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            if (isset($match[2]) && is_numeric($match[2])) {
+                // Si hay un número entre paréntesis (ej. $match[2] es '2' de '(2)')
+                $totalDefectos += (int)$match[2];
+            } else {
+                // Si no hay paréntesis con número, pero el <li> existe, cuenta como 1
+                $totalDefectos += 1;
+            }
+        }
+        return $totalDefectos;
     }
 
     public function screenV2(Request $request)
