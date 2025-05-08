@@ -117,6 +117,7 @@ class ReportesScreenController extends Controller
 
             return [
                 // 'id' ya no es necesario para el reporte sin acciones
+                'auditor'         => e($inspeccion->auditor) ?? 'N/A',
                 'bulto'           => e($inspeccion->bulto) ?? 'N/A',
                 'op'              => e($inspeccion->op) ?? 'N/A',
                 'cliente'         => e($inspeccion->cliente) ?? 'N/A',
@@ -137,21 +138,6 @@ class ReportesScreenController extends Controller
         });
 
         return response()->json(['data' => $data]);
-    }
-
-    public function eliminarBulto($id)
-    {
-        try {
-            // Buscar el registro
-            $inspeccion = InspeccionHorno::findOrFail($id);
-
-            // Eliminar el registro (y sus relaciones si aplica por "cascade")
-            $inspeccion->delete();
-
-            return response()->json(['success' => true, 'message' => 'Registro eliminado correctamente.']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error al eliminar el registro.']);
-        }
     }
 
     public function screenV2(Request $request)

@@ -6,38 +6,35 @@
         <div class="card">
             <div class="card-header card-header-primary">
                 <div class="row">
-                    <div class="col-md-9">
-                        <h3 class="card-title">Reporte Screen</h3>
-                    </div>
-                    <div class="col-md-3 text-right">
-                        Fecha: {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
+                    <div class="col-md-12">
+                        <h3 class="card-title" style="text-align: center; font-weight: bold;">Reporte Screen</h3>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card card-body">
-            {{-- Selector de Fecha y Botón --}}
-            <div class="row mb-3">
-                <div class="col-md-5"> {{-- Ajustado para dar más espacio al input y menos al botón --}}
-                    <div class="form-group">
-                        <label for="fecha_reporte" class="form-label">Seleccionar Fecha del Reporte</label>
-                        <input type="date" class="form-control" id="fecha_reporte" name="fecha_reporte" value="{{ now()->format('Y-m-d') }}" required> {{-- Valor por defecto: hoy --}}
-                    </div>
-                </div>
-                <div class="col-md-3 d-flex align-items-end"> {{-- Alineado al final para el botón --}}
-                    <div class="form-group w-100">
-                         <label class="d-block">&nbsp;</label> <button type="button" class="btn btn-primary w-100" id="btnMostrarDatos">Mostrar Datos</button>
-                    </div>
+        <div class="row">
+            <div class="col-md-6 d-flex align-items-center"> {{-- Ajustado para dar más espacio al input y menos al botón --}}
+                <div class="form-group w-100">
+                    <label for="fecha_reporte" class="form-label">Seleccionar Fecha del Reporte</label>
+                    <input type="date" class="form-control" id="fecha_reporte" name="fecha_reporte" value="{{ now()->format('Y-m-d') }}" required> {{-- Valor por defecto: hoy --}}
                 </div>
             </div>
+            <div class="col-md-6 d-flex align-items-end"> {{-- Alineado al final para el botón --}}
+                <div class="form-group">
+                    <label class="d-block">&nbsp;</label> <button type="button" class="btn btn-secondary w-100" id="btnMostrarDatos">Mostrar Datos</button>
+                </div>
+            </div>
+        </div>
 
+        <div class="card card-body">
             {{-- Tabla para mostrar los registros --}}
             <div class="table-responsive">
                 <h3>Registros del Día Seleccionado</h3>
                 <table class="table table-striped" id="tabla-reporte-screen">
-                    <thead class="thead-primary"> {{-- Cambiado a thead-dark para mejor contraste --}}
+                    <thead class="thead-primary">
                         <tr>
+                            <th>Auditor</th>
                             <th>Bulto</th>
                             <th>OP</th>
                             <th>Cliente</th>
@@ -108,6 +105,7 @@
                             // Iterar sobre cada registro y construir la fila
                             $.each(response.data, function(index, registro) {
                                 var row = "<tr>";
+                                row += "<td>" + registro.auditor + "</td>";
                                 row += "<td>" + registro.bulto + "</td>";
                                 row += "<td>" + registro.op + "</td>";
                                 row += "<td>" + registro.cliente + "</td>";
@@ -145,13 +143,6 @@
                 var fechaSeleccionada = $("#fecha_reporte").val();
                 cargarReportePorDia(fechaSeleccionada);
             });
-    
-            // Opcional: Cargar datos para la fecha por defecto (hoy) al cargar la página
-            // var fechaInicial = $("#fecha_reporte").val();
-            // if(fechaInicial) {
-            //     cargarReportePorDia(fechaInicial);
-            // }
-    
         });
     </script>
 @endsection
