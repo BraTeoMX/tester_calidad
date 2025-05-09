@@ -60,12 +60,24 @@
                         </ul>
                     </div>
                 </li>
+                <li class="nav-item{{ $pageSlug == 'HornoReporte' ? ' active' : '' }}">
+                    <a class="nav-link" href="{{ route('reportesScreen.index') }}">
+                        <i class="tim-icons icon-basket-simple"></i>
+                        <p>{{ __('CONSULTA SCREEN') }}</p>
+                    </a>
+                </li>
                 <li class="nav-item{{ $pageSlug == 'dashboardComparativoClientes' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('dashboarComparativaModulo.semanaComparativaGeneral') }}">
                         <i class="tim-icons icon-bag-16"></i>
                         <p>{{ __('Comparativo Clientes') }}</p>
                     </a>
                 </li>
+                {{--<li class="nav-item{{ $pageSlug == 'reporte_kanban' ? ' active' : '' }}">
+                    <a class="nav-link" href="{{ route('kanban.reporte') }}">
+                        <i class="tim-icons icon-molecule-40"></i>
+                        <p>{{ __('CONSULTA KANBAN') }}</p>
+                    </a>
+                </li> --}}
                 <li class="nav-item{{ $pageSlug == 'busquedaOP' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('busqueda_OP.index') }}">
                         <i class="material-symbols-outlined">action_key</i>
@@ -133,6 +145,13 @@
                                     <p style="text-align: center;">{{ __('AUDITORIA ETIQUETAS') }}</p>
                                 </a>
                             </li>
+                            {{--<li class="nav-item{{ $pageSlug == 'kanban' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('kanban.index') }}">
+                                    <i class="material-icons">edit_document</i>
+                                    <p>{{ __(' ') }}</p>
+                                    <p style="text-align: center;">{{ __('AUDITORIA KANBAN') }}</p>
+                                </a>
+                            </li>--}}
                             <li class="nav-item{{ $pageSlug == 'Progreso Corte' ? ' active' : '' }}">
                                 <a class="nav-link" href="{{ route('auditoriaCorte.inicioAuditoriaCorte') }}">
                                     <i class="material-icons">edit_document</i>

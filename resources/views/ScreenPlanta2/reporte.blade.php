@@ -122,7 +122,7 @@
                                         </div>
                                         <div class="card-body">
                                             <div class="table-responsive">
-                                                <table id="${tableId}" class="table table-striped table-hover table-sm display"> <thead class="thead-light">
+                                                <table id="${tableId}" class="table table-striped table-hover table-sm display"> <thead class="thead-primary">
                                                         <tr>
                                                             <th>Auditor</th>
                                                             <th>Bulto</th>
@@ -173,7 +173,7 @@
                                 cardHtml += `</tbody>`;
         
                                 if (dataMaquina.resumen) {
-                                    cardHtml += `<tfoot class="table-secondary">
+                                    cardHtml += `<tfoot>
                                         <tr>
                                             <td colspan="6" class="text-right font-weight-bold">TOTALES MÁQUINA:</td>
                                             <td class="text-right font-weight-bold">${Number(dataMaquina.resumen.totalCantidadAuditada).toLocaleString()}</td>
@@ -237,7 +237,7 @@
                                     <div class="card-body">
                                         <div class="table-responsive">
                                             <table id="${resumenTableId}" class="table table-bordered table-hover table-sm display">
-                                                <thead class="thead-light">
+                                                <thead>
                                                     <tr>
                                                         <th>Máquina</th>
                                                         <th class="text-right">Cantidad Auditada</th>
