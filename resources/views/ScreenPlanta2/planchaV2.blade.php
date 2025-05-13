@@ -221,6 +221,9 @@
     </style>
 
     <script>
+        // Variable para almacenar la instancia de DataTable de la tabla principal "plancha"
+        var tablaPlanchaInstance = null;
+
         $(document).ready(function() {
             // 1. Establecer la fecha actual por defecto en el input
             var hoy = new Date();
@@ -242,11 +245,7 @@
         function cargarDatosPorFechaSeleccionada() {
             var fechaSeleccionada = $('#fecha_busqueda').val();
 
-            // Validar que haya una fecha seleccionada (aunque por defecto siempre la habrá)
             if (!fechaSeleccionada) {
-                // Si por alguna razón no hay fecha (no debería pasar con la inicialización),
-                // puedes optar por no hacer nada, mostrar un error, o usar la fecha actual nuevamente.
-                // Aquí, por robustez, re-establecemos la fecha actual si está vacía.
                 var hoy = new Date();
                 var dia = ("0" + hoy.getDate()).slice(-2);
                 var mes = ("0" + (hoy.getMonth() + 1)).slice(-2);
@@ -254,27 +253,37 @@
                 $('#fecha_busqueda').val(fechaSeleccionada);
             }
             
-            // Mostrar mensaje de carga en las tablas
-            $("#tabla-screen tbody").html('<tr><td colspan="13" class="text-center">Cargando datos...</td></tr>');
-            $("#tabla-screen-strart tbody").html('<tr><td colspan="3" class="text-center">Cargando datos...</td></tr>');
+            // Mostrar mensaje de carga en la tabla de estadísticas
+            // La tabla principal (#tabla-screen) mostrará su propio mensaje dentro de cargarRegistros
+            $("#tabla-screen-strart tbody").html('<tr><td colspan="3" class="text-center">Cargando datos estadísticos...</td></tr>');
 
             // Llamar a las funciones que cargan los datos, pasando la fecha
             cargarRegistros(fechaSeleccionada);
             cargarDatosEstadisticos(fechaSeleccionada);
         }
 
-        // Modificada para aceptar y enviar la fecha
+        // Modificada para aceptar y enviar la fecha, e integrar DataTables
         function cargarRegistros(fecha) {
+            // 1. Destruir la instancia de DataTable si existe
+            if (tablaPlanchaInstance) {
+                tablaPlanchaInstance.destroy();
+            }
+            // Limpiar el tbody y mostrar mensaje de carga específico para esta tabla
+            // Asumimos que la tabla principal sigue teniendo el ID "tabla-screen" según tu script original
+            $("#tabla-screen tbody").html('<tr><td colspan="13" class="text-center">Cargando registros de plancha para la fecha ' + fecha + '...</td></tr>');
+
             $.ajax({
-                url: "{{ route('planchaV2.data') }}",
+                url: "{{ route('planchaV2.data') }}", // Ruta para los datos de plancha
                 method: "GET",
-                data: { fecha: fecha }, // Enviar la fecha seleccionada al backend
+                data: { fecha: fecha }, 
                 dataType: "json",
                 success: function(data) {
-                    let tabla = "";
+                    let tablaContenido = "";
                     if (data && data.length > 0) {
                         data.forEach(registro => {
-                            tabla += `<tr>
+                            // El campo tecnico_screen podría ser tecnico_plancha si es específico de esta vista
+                            // Lo mantendré como tecnico_screen según tu HTML original. Ajusta si es necesario.
+                            tablaContenido += `<tr>
                                 <td>${registro.op !== null && registro.op !== undefined ? registro.op : 'N/A'}</td>
                                 <td>${registro.panel !== null && registro.panel !== undefined ? registro.panel : 'N/A'}</td>
                                 <td>${registro.maquina !== null && registro.maquina !== undefined ? registro.maquina : 'N/A'}</td>
@@ -285,47 +294,92 @@
                                 <td>${registro.estilo !== null && registro.estilo !== undefined ? registro.estilo : 'N/A'}</td>
                                 <td>${registro.color !== null && registro.color !== undefined ? registro.color : 'N/A'}</td>
                                 <td>${registro.cantidad !== null && registro.cantidad !== undefined ? registro.cantidad : '0'}</td>
-                                <td>${registro.tecnico_screen !== null && registro.tecnico_screen !== undefined ? registro.tecnico_screen : 'N/A'}</td>
+                                <td>${registro.tecnico_screen !== null && registro.tecnico_screen !== undefined ? registro.tecnico_screen : 'N/A'}</td> 
                                 <td>${registro.defectos !== null && registro.defectos !== undefined ? registro.defectos : 'Sin defectos'}</td>
                                 <td>${registro.accion_correctiva !== null && registro.accion_correctiva !== undefined ? registro.accion_correctiva : 'N/A'}</td>
                             </tr>`;
                         });
                     } else {
-                        tabla = '<tr><td colspan="13" class="text-center">No se encontraron registros para la fecha seleccionada.</td></tr>';
+                        tablaContenido = '<tr><td colspan="13" class="text-center">No se encontraron registros para la fecha seleccionada.</td></tr>';
                     }
-                    $("#tabla-screen tbody").html(tabla);
+                    // 2. Rellenar el tbody con el nuevo contenido
+                    $("#tabla-screen tbody").html(tablaContenido);
+
+                    // 3. Inicializar DataTables en la tabla #tabla-screen
+                    tablaPlanchaInstance = $('#tabla-screen').DataTable({
+                        responsive: true,
+                        dom: 'Bfrtip', 
+                        buttons: [
+                            {
+                                extend: 'excelHtml5',
+                                text: 'Exportar a Excel',
+                                titleAttr: 'Exportar a Excel',
+                                className: 'btn btn-success mb-2',
+                                title: 'Registros Plancha - ' + fecha, // Título del archivo Excel dinámico
+                                exportOptions: {
+                                    columns: ':visible'
+                                }
+                            }
+                        ],
+                        language: { // Traducción al español
+                            "sProcessing":     "Procesando...",
+                            "sLengthMenu":     "Mostrar _MENU_ registros",
+                            "sZeroRecords":    "No se encontraron resultados",
+                            "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                            "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                            "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                            "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                            "sSearch":         "Buscar:",
+                            "oPaginate": {
+                                "sFirst":    "Primero",
+                                "sLast":     "Último",
+                                "sNext":     "Siguiente",
+                                "sPrevious": "Anterior"
+                            },
+                            "buttons": {
+                                "excel": "Exportar a Excel",
+                                // ... otras traducciones de botones si los usas
+                            }
+                            // ... (resto de las traducciones que tenías)
+                        }
+                    });
                 },
-                error: function(error) {
-                    console.error("Error al obtener datos de registros:", error);
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error al obtener datos de registros (planchaV2.data):", textStatus, errorThrown, jqXHR.responseText);
+                    if (tablaPlanchaInstance) {
+                        tablaPlanchaInstance.destroy();
+                        tablaPlanchaInstance = null; 
+                    }
                     $("#tabla-screen tbody").html('<tr><td colspan="13" class="text-center">Error al cargar los datos. Revise la consola.</td></tr>');
                 }
             });
         }
 
-        // Modificada para aceptar y enviar la fecha
+        // Modificada para aceptar y enviar la fecha (para la tabla de estadísticas)
         function cargarDatosEstadisticos(fecha) {
             $.ajax({
-                url: "{{ route('planchaV2.strart') }}", // Revisar si 'strart' es correcto o debería ser 'stats'
+                url: "{{ route('planchaV2.strart') }}", // Ruta para las estadísticas de plancha
                 method: "GET",
-                data: { fecha: fecha }, // Enviar la fecha seleccionada al backend
+                data: { fecha: fecha }, 
                 dataType: "json",
                 success: function (data) {
                     let fila = "";
-                    if (data) { // Asumiendo que el backend siempre devuelve un objeto
+                    if (data) {
                         fila = `
                             <tr>
-                                <td>${data.cantidad_total_revisada}</td>
-                                <td>${data.cantidad_defectos}</td>
-                                <td>${data.porcentaje_defectos} %</td>
+                                <td>${data.cantidad_total_revisada !== null && data.cantidad_total_revisada !== undefined ? data.cantidad_total_revisada : '0'}</td>
+                                <td>${data.cantidad_defectos !== null && data.cantidad_defectos !== undefined ? data.cantidad_defectos : '0'}</td>
+                                <td>${data.porcentaje_defectos !== null && data.porcentaje_defectos !== undefined ? data.porcentaje_defectos.toFixed(2) : '0.00'} %</td>
                             </tr>
                         `;
-                    } else { // Este caso es menos probable si el backend siempre responde con la estructura JSON
+                    } else {
                         fila = '<tr><td colspan="3" class="text-center">No se pudieron cargar los datos estadísticos.</td></tr>';
                     }
+                    // Asumimos que la tabla de estadísticas sigue teniendo el ID "tabla-screen-strart"
                     $("#tabla-screen-strart tbody").html(fila);
                 },
-                error: function (error) {
-                    console.error("Error al obtener datos estadísticos:", error);
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error("Error al obtener datos estadísticos (planchaV2.strart):", textStatus, errorThrown, jqXHR.responseText);
                     $("#tabla-screen-strart tbody").html('<tr><td colspan="3" class="text-center">Error al cargar datos estadísticos. Revise la consola.</td></tr>');
                 }
             });

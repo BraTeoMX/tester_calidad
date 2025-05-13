@@ -303,7 +303,25 @@
         }
     </style>
 
+    <!-- DataTables CSS desde carpeta local -->
+    <link rel="stylesheet" href="{{ asset('dataTable/css/dataTables.bootstrap5.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dataTable/css/buttons.bootstrap5.min.css') }}">
+
+    <!-- jQuery y DataTables desde local -->
+    <script src="{{ asset('dataTable/js/jquery-3.6.0.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/dataTables.bootstrap5.min.js') }}"></script>
+
+    <!-- Botones para exportar -->
+    <script src="{{ asset('dataTable/js/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/buttons.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/jszip.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/buttons.html5.min.js') }}"></script>
+
     <script>
+        // Variable para almacenar la instancia de DataTable de la tabla principal
+        var tablaScreenInstance = null;
+    
         $(document).ready(function() {
             // 1. Establecer la fecha actual por defecto en el input
             var hoy = new Date();
@@ -311,21 +329,22 @@
             var mes = ("0" + (hoy.getMonth() + 1)).slice(-2); // getMonth() es 0-indexed
             var fechaActual = hoy.getFullYear() + "-" + mes + "-" + dia;
             $('#fecha_busqueda').val(fechaActual);
-
+    
             // 2. Cargar datos con la fecha actual al iniciar la página
             cargarDatosPorFechaSeleccionada();
-
+    
             // 3. Evento para el botón "Mostrar datos"
             $('#btnMostrarDatos').on('click', function() {
                 cargarDatosPorFechaSeleccionada();
             });
         });
-
+    
         // Función unificada para cargar todos los datos según la fecha
         function cargarDatosPorFechaSeleccionada() {
             var fechaSeleccionada = $('#fecha_busqueda').val();
-
+    
             if (!fechaSeleccionada) {
+                // Este bloque es un fallback, pero con la inicialización, no debería ser necesario.
                 var hoy = new Date();
                 var dia = ("0" + hoy.getDate()).slice(-2);
                 var mes = ("0" + (hoy.getMonth() + 1)).slice(-2);
@@ -333,27 +352,34 @@
                 $('#fecha_busqueda').val(fechaSeleccionada);
             }
             
-            // Mostrar mensaje de carga en las tablas
-            $("#tabla-screen tbody").html('<tr><td colspan="13" class="text-center">Cargando datos...</td></tr>');
-            $("#tabla-screen-strart tbody").html('<tr><td colspan="3" class="text-center">Cargando datos...</td></tr>');
-
-            // Llamar a las funciones que cargan los datos, pasando la fecha
-            cargarRegistros(fechaSeleccionada);
+            // Mensaje de carga para la tabla de estadísticas
+            $("#tabla-screen-strart tbody").html('<tr><td colspan="3" class="text-center">Cargando datos estadísticos...</td></tr>');
+    
+            // Llamar a las funciones que cargan los datos
+            cargarRegistros(fechaSeleccionada); // Esta se encargará de su propio mensaje de carga y DataTable
             cargarDatosEstadisticos(fechaSeleccionada);
         }
-
-        // Modificada para aceptar y enviar la fecha
+    
+        // Modificada para aceptar y enviar la fecha, e integrar DataTables
         function cargarRegistros(fecha) {
+            // 1. Destruir la instancia de DataTable si existe
+            // Esto es crucial para que la tabla se actualice correctamente con nuevos datos y configuraciones
+            if (tablaScreenInstance) {
+                tablaScreenInstance.destroy();
+            }
+            // Limpiar el tbody y mostrar mensaje de carga específico para esta tabla
+            $("#tabla-screen tbody").html('<tr><td colspan="13" class="text-center">Cargando registros para la fecha ' + fecha + '...</td></tr>');
+    
             $.ajax({
-                url: "{{ route('screenV2.data') }}", // Ruta para esta vista
+                url: "{{ route('screenV2.data') }}",
                 method: "GET",
-                data: { fecha: fecha }, // Enviar la fecha seleccionada al backend
+                data: { fecha: fecha },
                 dataType: "json",
                 success: function(data) {
-                    let tabla = "";
+                    let tablaContenido = ""; // Usamos un nombre diferente para el contenido HTML
                     if (data && data.length > 0) {
                         data.forEach(registro => {
-                            tabla += `<tr>
+                            tablaContenido += `<tr>
                                 <td>${registro.op !== null && registro.op !== undefined ? registro.op : 'N/A'}</td>
                                 <td>${registro.panel !== null && registro.panel !== undefined ? registro.panel : 'N/A'}</td>
                                 <td>${registro.maquina !== null && registro.maquina !== undefined ? registro.maquina : 'N/A'}</td>
@@ -370,35 +396,101 @@
                             </tr>`;
                         });
                     } else {
-                        tabla = '<tr><td colspan="13" class="text-center">No se encontraron registros para la fecha seleccionada.</td></tr>';
+                        tablaContenido = '<tr><td colspan="13" class="text-center">No se encontraron registros para la fecha seleccionada.</td></tr>';
                     }
-                    $("#tabla-screen tbody").html(tabla);
+                    // 2. Rellenar el tbody con el nuevo contenido
+                    $("#tabla-screen tbody").html(tablaContenido);
+    
+                    // 3. Inicializar DataTables en la tabla #tabla-screen
+                    tablaScreenInstance = $('#tabla-screen').DataTable({
+                        responsive: true, // Para adaptabilidad en móviles
+                        // Configuración del DOM de DataTables para incluir botones y otros elementos
+                        // B = Buttons, l = length changing input, f = filtering input,
+                        // r = processing display element, t = The table, i = Table information summary, p = pagination control
+                        dom: 'Bfrtip', 
+                        buttons: [
+                            {
+                                extend: 'excelHtml5', // Tipo de botón para exportar a Excel
+                                text: 'Exportar a Excel', // Texto del botón
+                                titleAttr: 'Exportar a Excel', // Tooltip del botón
+                                className: 'btn btn-success mb-2', // Clases para estilizar (ej. Bootstrap)
+                                title: 'Registros Screen - ' + fecha, // Nombre del archivo Excel (incluye la fecha)
+                                exportOptions: {
+                                    columns: ':visible' // Exportar solo las columnas visibles
+                                    // Puedes especificar columnas exactas: columns: [ 0, 1, 2, 3, 4, 5, ... ]
+                                }
+                            }
+                            // Puedes añadir más botones aquí, por ejemplo 'csvHtml5', 'pdfHtml5', 'print'
+                        ],
+                        // Opcional: Traducción de DataTables al español
+                        language: {
+                            "sProcessing":     "Procesando...",
+                            "sLengthMenu":     "Mostrar _MENU_ registros",
+                            "sZeroRecords":    "No se encontraron resultados",
+                            "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                            "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                            "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                            "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                            "sInfoPostFix":    "",
+                            "sSearch":         "Buscar:",
+                            "sUrl":            "",
+                            "sInfoThousands":  ",",
+                            "sLoadingRecords": "Cargando...",
+                            "oPaginate": {
+                                "sFirst":    "Primero",
+                                "sLast":     "Último",
+                                "sNext":     "Siguiente",
+                                "sPrevious": "Anterior"
+                            },
+                            "oAria": {
+                                "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                            },
+                            "buttons": {
+                                "excel": "Exportar a Excel",
+                                "copy": "Copiar",
+                                "csv": "CSV",
+                                "pdf": "PDF",
+                                "print": "Imprimir",
+                                "colvis": "Visibilidad de Columnas"
+                            }
+                        },
+                        // Opcional: Guardar el estado de la tabla (paginación, orden, búsqueda)
+                        // stateSave: true, 
+                    });
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     console.error("Error al obtener datos de registros:", textStatus, errorThrown, jqXHR.responseText);
+                     // Si hay un error, y DataTable fue instanciada, la destruimos para evitar inconsistencias.
+                    if (tablaScreenInstance) {
+                        tablaScreenInstance.destroy();
+                        tablaScreenInstance = null; // Resetear la instancia
+                    }
                     $("#tabla-screen tbody").html('<tr><td colspan="13" class="text-center">Error al cargar los datos. Revise la consola.</td></tr>');
                 }
             });
         }
-
-        // Modificada para aceptar y enviar la fecha
+    
+        // Función para cargarDatosEstadisticos (sin cambios relacionados con DataTables)
         function cargarDatosEstadisticos(fecha) {
             $.ajax({
-                url: "{{ route('screenV2.strart') }}", // Ruta para esta vista y función
+                url: "{{ route('screenV2.strart') }}", // Asegúrate que la ruta sea correcta (strart vs stats)
                 method: "GET",
-                data: { fecha: fecha }, // Enviar la fecha seleccionada al backend
+                data: { fecha: fecha },
                 dataType: "json",
                 success: function (data) {
                     let fila = "";
                     if (data) {
                         fila = `
                             <tr>
-                                <td>${data.cantidad_total_revisada}</td>
-                                <td>${data.cantidad_defectos}</td>
-                                <td>${data.porcentaje_defectos} %</td>
+                                <td>${data.cantidad_total_revisada !== null && data.cantidad_total_revisada !== undefined ? data.cantidad_total_revisada : '0'}</td>
+                                <td>${data.cantidad_defectos !== null && data.cantidad_defectos !== undefined ? data.cantidad_defectos : '0'}</td>
+                                <td>${data.porcentaje_defectos !== null && data.porcentaje_defectos !== undefined ? data.porcentaje_defectos.toFixed(2) : '0.00'} %</td>
                             </tr>
                         `;
                     } else {
+                        // Este caso es menos probable si el backend siempre devuelve una estructura JSON,
+                        // incluso con ceros o vacíos.
                         fila = '<tr><td colspan="3" class="text-center">No se pudieron cargar los datos estadísticos.</td></tr>';
                     }
                     $("#tabla-screen-strart tbody").html(fila);
