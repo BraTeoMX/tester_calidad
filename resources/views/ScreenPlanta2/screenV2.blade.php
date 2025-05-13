@@ -15,6 +15,25 @@
                 </div>
             </div>
         </div>
+        {{-- Selector de Fecha --}}
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-5 d-flex align-items-center">
+                        <div class="form-group w-100">
+                            <label for="fecha_busqueda" class="form-label">Seleccionar Fecha:</label>
+                            <input type="date" class="form-control" id="fecha_busqueda" name="fecha_busqueda">
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-secondary" id="btnMostrarDatos">Mostrar datos</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-md-6">
                 <div class="card card-body table-responsive">
@@ -286,65 +305,107 @@
 
     <script>
         $(document).ready(function() {
-            cargarRegistros();
+            // 1. Establecer la fecha actual por defecto en el input
+            var hoy = new Date();
+            var dia = ("0" + hoy.getDate()).slice(-2);
+            var mes = ("0" + (hoy.getMonth() + 1)).slice(-2); // getMonth() es 0-indexed
+            var fechaActual = hoy.getFullYear() + "-" + mes + "-" + dia;
+            $('#fecha_busqueda').val(fechaActual);
+
+            // 2. Cargar datos con la fecha actual al iniciar la página
+            cargarDatosPorFechaSeleccionada();
+
+            // 3. Evento para el botón "Mostrar datos"
+            $('#btnMostrarDatos').on('click', function() {
+                cargarDatosPorFechaSeleccionada();
+            });
         });
 
-        function cargarRegistros() {
+        // Función unificada para cargar todos los datos según la fecha
+        function cargarDatosPorFechaSeleccionada() {
+            var fechaSeleccionada = $('#fecha_busqueda').val();
+
+            if (!fechaSeleccionada) {
+                var hoy = new Date();
+                var dia = ("0" + hoy.getDate()).slice(-2);
+                var mes = ("0" + (hoy.getMonth() + 1)).slice(-2);
+                fechaSeleccionada = hoy.getFullYear() + "-" + mes + "-" + dia;
+                $('#fecha_busqueda').val(fechaSeleccionada);
+            }
+            
+            // Mostrar mensaje de carga en las tablas
+            $("#tabla-screen tbody").html('<tr><td colspan="13" class="text-center">Cargando datos...</td></tr>');
+            $("#tabla-screen-strart tbody").html('<tr><td colspan="3" class="text-center">Cargando datos...</td></tr>');
+
+            // Llamar a las funciones que cargan los datos, pasando la fecha
+            cargarRegistros(fechaSeleccionada);
+            cargarDatosEstadisticos(fechaSeleccionada);
+        }
+
+        // Modificada para aceptar y enviar la fecha
+        function cargarRegistros(fecha) {
             $.ajax({
-                url: "{{ route('screenV2.data') }}",
+                url: "{{ route('screenV2.data') }}", // Ruta para esta vista
                 method: "GET",
+                data: { fecha: fecha }, // Enviar la fecha seleccionada al backend
                 dataType: "json",
                 success: function(data) {
                     let tabla = "";
-                    data.forEach(registro => {
-                        tabla += `<tr>
-                            <td>${registro.op}</td>
-                            <td>${registro.panel}</td>
-                            <td>${registro.maquina}</td>
-                            <td>${registro.tecnicas}</td>
-                            <td>${registro.fibras}</td>
-                            <td>${registro.grafica}</td>
-                            <td>${registro.cliente}</td>
-                            <td>${registro.estilo}</td>
-                            <td>${registro.color}</td>
-                            <td>${registro.cantidad}</td>
-                            <td>${registro.tecnico_screen}</td>
-                            <td>${registro.defectos}</td>
-                            <td>${registro.accion_correctiva}</td>
-                        </tr>`;
-                    });
+                    if (data && data.length > 0) {
+                        data.forEach(registro => {
+                            tabla += `<tr>
+                                <td>${registro.op !== null && registro.op !== undefined ? registro.op : 'N/A'}</td>
+                                <td>${registro.panel !== null && registro.panel !== undefined ? registro.panel : 'N/A'}</td>
+                                <td>${registro.maquina !== null && registro.maquina !== undefined ? registro.maquina : 'N/A'}</td>
+                                <td>${registro.tecnicas !== null && registro.tecnicas !== undefined ? registro.tecnicas : 'N/A'}</td>
+                                <td>${registro.fibras !== null && registro.fibras !== undefined ? registro.fibras : 'N/A'}</td>
+                                <td>${registro.grafica !== null && registro.grafica !== undefined ? registro.grafica : 'N/A'}</td>
+                                <td>${registro.cliente !== null && registro.cliente !== undefined ? registro.cliente : 'N/A'}</td>
+                                <td>${registro.estilo !== null && registro.estilo !== undefined ? registro.estilo : 'N/A'}</td>
+                                <td>${registro.color !== null && registro.color !== undefined ? registro.color : 'N/A'}</td>
+                                <td>${registro.cantidad !== null && registro.cantidad !== undefined ? registro.cantidad : '0'}</td>
+                                <td>${registro.tecnico_screen !== null && registro.tecnico_screen !== undefined ? registro.tecnico_screen : 'N/A'}</td>
+                                <td>${registro.defectos !== null && registro.defectos !== undefined ? registro.defectos : 'Sin defectos'}</td>
+                                <td>${registro.accion_correctiva !== null && registro.accion_correctiva !== undefined ? registro.accion_correctiva : 'N/A'}</td>
+                            </tr>`;
+                        });
+                    } else {
+                        tabla = '<tr><td colspan="13" class="text-center">No se encontraron registros para la fecha seleccionada.</td></tr>';
+                    }
                     $("#tabla-screen tbody").html(tabla);
                 },
-                error: function(error) {
-                    console.error("Error al obtener datos:", error);
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error al obtener datos de registros:", textStatus, errorThrown, jqXHR.responseText);
+                    $("#tabla-screen tbody").html('<tr><td colspan="13" class="text-center">Error al cargar los datos. Revise la consola.</td></tr>');
                 }
             });
         }
-    </script>
 
-    <script>
-        $(document).ready(function() {
-            cargarDatosEstadisticos();
-        });
-
-        function cargarDatosEstadisticos() {
+        // Modificada para aceptar y enviar la fecha
+        function cargarDatosEstadisticos(fecha) {
             $.ajax({
-                url: "{{ route('screenV2.strart') }}", // Llamamos a la ruta de la función getScreenStats
+                url: "{{ route('screenV2.strart') }}", // Ruta para esta vista y función
                 method: "GET",
+                data: { fecha: fecha }, // Enviar la fecha seleccionada al backend
                 dataType: "json",
-                success: function(data) {
-                    let fila = `
-                        <tr>
-                            <td>${data.cantidad_total_revisada}</td>
-                            <td>${data.cantidad_defectos}</td>
-                            <td>${data.porcentaje_defectos} %</td>
-                        </tr>
-                    `;
-
+                success: function (data) {
+                    let fila = "";
+                    if (data) {
+                        fila = `
+                            <tr>
+                                <td>${data.cantidad_total_revisada}</td>
+                                <td>${data.cantidad_defectos}</td>
+                                <td>${data.porcentaje_defectos} %</td>
+                            </tr>
+                        `;
+                    } else {
+                        fila = '<tr><td colspan="3" class="text-center">No se pudieron cargar los datos estadísticos.</td></tr>';
+                    }
                     $("#tabla-screen-strart tbody").html(fila);
                 },
-                error: function(error) {
-                    console.error("Error al obtener datos estadísticos:", error);
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error("Error al obtener datos estadísticos:", textStatus, errorThrown, jqXHR.responseText);
+                    $("#tabla-screen-strart tbody").html('<tr><td colspan="3" class="text-center">Error al cargar datos estadísticos. Revise la consola.</td></tr>');
                 }
             });
         }

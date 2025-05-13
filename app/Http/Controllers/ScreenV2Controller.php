@@ -475,29 +475,25 @@ class ScreenV2Controller extends Controller
         return view('ScreenPlanta2.screenV2', compact('mesesEnEspanol', 'registroHornoDia'));
     }
 
-    public function getScreenData()
+    public function getScreenData(Request $request) // Añadir Request
     {
         $auditorDato = Auth::user()->name;
         $auditorPuesto = Auth::user()->puesto;
-        // Iniciar la consulta base
-        $query = InspeccionHorno::with(['screen.defectos', 'tecnicas', 'fibras'])
-                                ->whereHas('screen') // Asegura que solo se obtengan inspecciones que tengan una pantalla asociada
-                                ->orderBy('created_at', 'desc')
-                                ->whereDate('created_at', Carbon::today());
 
-        // Aplicar el filtro de auditor condicionalmente
+        $fechaInput = $request->input('fecha');
+        // Usar toDateString() para asegurar que solo comparamos fechas
+        $fechaSeleccionada = $fechaInput ? Carbon::parse($fechaInput)->toDateString() : Carbon::today()->toDateString();
+
+        $query = InspeccionHorno::with(['screen.defectos', 'tecnicas', 'fibras'])
+            ->whereHas('screen')
+            ->orderBy('created_at', 'desc')
+            ->whereDate('created_at', $fechaSeleccionada); // Filtrar por fecha seleccionada
+
         if ($auditorPuesto !== 'Administrador' && $auditorPuesto !== 'Gerente de Calidad') {
-            // Si el puesto NO es Administrador NI Gerente de Calidad,
-            // entonces filtramos por el nombre del auditor.
             $query->where('auditor', $auditorDato);
         }
-        // Si el puesto ES Administrador o Gerente de Calidad, no se añade el ->where('auditor', $auditorDato),
-        // por lo que se obtendrán todos los registros del día para esos puestos.
 
-        // Ejecutar la consulta
         $inspecciones = $query->get();
-
-        // Agrupar los registros por la columna "op"
         $grouped = $inspecciones->groupBy('op');
 
         // Preparar los datos finales
@@ -609,13 +605,24 @@ class ScreenV2Controller extends Controller
         return response()->json($result);
     }
 
-    public function getScreenStats()
+    public function getScreenStats(Request $request) // Añadir Request
     {
-        // Obtener las inspecciones que tengan la relación "screen" (y sus defectos)
-        $inspecciones = InspeccionHorno::with(['screen.defectos'])
-                            ->whereHas('screen')
-                            ->whereDate('created_at', Carbon::today())
-                            ->get();
+        $auditorDato = Auth::user()->name;
+        $auditorPuesto = Auth::user()->puesto;
+
+        $fechaInput = $request->input('fecha');
+        $fechaSeleccionada = $fechaInput ? Carbon::parse($fechaInput)->toDateString() : Carbon::today()->toDateString();
+
+        $query = InspeccionHorno::with(['screen.defectos'])
+            ->whereHas('screen')
+            ->whereDate('created_at', $fechaSeleccionada); // Filtrar por fecha
+
+        // Aplicar el filtro de auditor para consistencia
+        if ($auditorPuesto !== 'Administrador' && $auditorPuesto !== 'Gerente de Calidad') {
+            $query->where('auditor', $auditorDato);
+        }
+
+        $inspecciones = $query->get();
 
         // Calcular la Cantidad total revisada (suma de la columna "cantidad" de InspeccionHorno)
         $cantidad_total_revisada = $inspecciones->sum('cantidad');
