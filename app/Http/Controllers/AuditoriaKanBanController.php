@@ -13,6 +13,8 @@ use App\Models\CatalogoComentarioKanban;
 use App\Models\ReporteKanban;
 use App\Models\ReporteKanbanComentario;
 use App\Models\TicketCorte;
+use App\Models\TicketOffline;
+use App\Models\TicketApproved;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -326,35 +328,101 @@ class AuditoriaKanBanController extends Controller
         return response()->json(['mensaje' => 'Registro eliminado correctamente.']);
     }
 
-    public function checkActualizacionOnline()
+    public function checkActualizacionesKanban()
     {
-        // Clave única para que no se repita dentro de 5 horas
-        $cacheKey = 'actualizacion_online_kanban';
+        $respuestaGlobal = ['status' => 'ok', 'message' => '', 'updates_performed' => []];
+        $cacheKeyGlobal = 'actualizacion_kanban_global'; // Única clave de caché
 
-        if (!Cache::has($cacheKey)) {
-            // Tiempo hasta el próximo intento: 5 horas
-            Cache::put($cacheKey, now(), now()->addHours(5));
+        if (!Cache::has($cacheKeyGlobal)) {
+            // Si la caché no está activa, procedemos con todas las actualizaciones
+            // y luego establecemos la caché.
+            Log::info("Iniciando todos los procesos de actualización de Kanban (caché no activa).");
+            $respuestaGlobal['message'] = 'Procesos de actualización iniciados.';
 
-            // Solo registros sin fecha_online
-            $registros = ReporteKanban::whereNull('fecha_online')->get();
+            // --- 1. Proceso para fecha_online ---
+            $registrosOnline = ReporteKanban::whereNull('fecha_online')->get();
+            if ($registrosOnline->count() > 0 && class_exists(JobAQL::class)) {
+                Log::info("Procesando 'fecha_online' para " . $registrosOnline->count() . " registros.");
+                $updatesOnlineCount = 0;
+                foreach ($registrosOnline as $registro) {
+                    $jobOnline = JobAQL::where('prodid', $registro->op)
+                                      ->where('oprname', 'ON LINE')
+                                      ->orderBy('payrolldate', 'asc')
+                                      ->first();
 
-            // Solo si hay registros
-            if ($registros->count() > 0 && JobAQL::exists()) {
-                foreach ($registros as $registro) {
-                    $job = JobAQL::where('prodid', $registro->op)
-                                ->where('oprname', 'ON LINE')
-                                ->orderBy('payrolldate', 'asc')
-                                ->first();
-
-                    if ($job && $job->payrolldate) {
-                        $registro->fecha_online = $job->payrolldate;
+                    if ($jobOnline && $jobOnline->payrolldate) {
+                        $registro->fecha_online = $jobOnline->payrolldate;
                         $registro->save();
+                        $updatesOnlineCount++;
+                        Log::info("ReporteKanban ID {$registro->id} actualizado con fecha_online: {$jobOnline->payrolldate}");
                     }
                 }
+                $respuestaGlobal['updates_performed']['online'] = "{$updatesOnlineCount} registros actualizados.";
+            } else {
+                $respuestaGlobal['updates_performed']['online'] = 'No se encontraron registros para actualizar o JobAQL no disponible.';
+                Log::info("'fecha_online': No hay registros para actualizar o JobAQL no está disponible.");
             }
+
+            // --- 2. Proceso para fecha_offline ---
+            $registrosOffline = ReporteKanban::whereNull('fecha_offline')->get();
+            if ($registrosOffline->count() > 0 && class_exists(TicketOffline::class)) {
+                Log::info("Procesando 'fecha_offline' para " . $registrosOffline->count() . " registros.");
+                $updatesOfflineCount = 0;
+                foreach ($registrosOffline as $registro) {
+                    $ticketOffline = TicketOffline::where('op', $registro->op)
+                                                // ->orderBy('fecha', 'desc') // Ajusta si necesitas un orden específico
+                                                ->first();
+
+                    // CAMBIA 'fecha_generacion' por el nombre real de tu campo de fecha en TicketOffline
+                    if ($ticketOffline && $ticketOffline->fecha) {
+                        $registro->fecha_offline = $ticketOffline->fecha;
+                        $registro->save();
+                        $updatesOfflineCount++;
+                        Log::info("ReporteKanban ID {$registro->id} actualizado con fecha_offline: {$ticketOffline->fecha}");
+                    }
+                }
+                $respuestaGlobal['updates_performed']['offline'] = "{$updatesOfflineCount} registros actualizados.";
+            } else {
+                $respuestaGlobal['updates_performed']['offline'] = 'No se encontraron registros para actualizar o TicketOffline no disponible.';
+                Log::info("'fecha_offline': No hay registros para actualizar o TicketOffline no está disponible.");
+            }
+
+            // --- 3. Proceso para fecha_approved ---
+            $registrosApproved = ReporteKanban::whereNull('fecha_approved')->get();
+            if ($registrosApproved->count() > 0 && class_exists(TicketApproved::class)) {
+                Log::info("Procesando 'fecha_approved' para " . $registrosApproved->count() . " registros.");
+                $updatesApprovedCount = 0;
+                foreach ($registrosApproved as $registro) {
+                    $ticketApproved = TicketApproved::where('op', $registro->op)
+                                                  // ->orderBy('fecha', 'desc') // Ajusta si necesitas un orden específico
+                                                  ->first();
+
+                    // CAMBIA 'fecha_aprobacion' por el nombre real de tu campo de fecha en TicketApproved
+                    if ($ticketApproved && $ticketApproved->fecha) {
+                        $registro->fecha_approved = $ticketApproved->fecha;
+                        $registro->save();
+                        $updatesApprovedCount++;
+                        Log::info("ReporteKanban ID {$registro->id} actualizado con fecha_approved: {$ticketApproved->fecha}");
+                    }
+                }
+                $respuestaGlobal['updates_performed']['approved'] = "{$updatesApprovedCount} registros actualizados.";
+            } else {
+                $respuestaGlobal['updates_performed']['approved'] = 'No se encontraron registros para actualizar o TicketApproved no disponible.';
+                Log::info("'fecha_approved': No hay registros para actualizar o TicketApproved no está disponible.");
+            }
+
+            // Establecer la caché global DESPUÉS de que todos los procesos hayan intentado ejecutarse.
+            // Tiempo hasta el próximo intento: 3 horas (o lo que definas)
+            Cache::put($cacheKeyGlobal, now(), now()->addHours(3));
+            Log::info("Todos los procesos de actualización de Kanban completados. Caché global establecida.");
+
+        } else {
+            // La caché global está activa, no hacemos nada.
+            $respuestaGlobal['message'] = 'Procesos de actualización en espera (caché global activa).';
+            Log::info("Procesos de actualización de Kanban omitidos debido a caché global activa.");
         }
 
-        return response()->json(['status' => 'ok']);
+        return response()->json($respuestaGlobal);
     }
 
     public function buscarPorOP(Request $request)

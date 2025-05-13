@@ -540,7 +540,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/kanban/parcial/liberar', [AuditoriaKanBanController::class, 'liberarParcial'])->name('kanban.parcial.liberar');
     Route::get('/kanban/registros-hoy', [AuditoriaKanBanController::class, 'obtenerRegistrosHoy'])->name('kanban.registrosHoy');
     Route::post('/kanban/eliminar', [AuditoriaKanBanController::class, 'eliminar'])->name('kanban.eliminar');
-    Route::get('/kanban/check-actualizacion-online', [AuditoriaKanBanController::class, 'checkActualizacionOnline'])->name('kanban.check-actualizacion-online');
+    Route::get('/kanban/check-actualizacion', [AuditoriaKanBanController::class, 'checkActualizacionesKanban'])->name('kanban.check-actualizacion');
     Route::get('/kanban/buscar-op', [AuditoriaKanBanController::class, 'buscarPorOP'])->name('kanban.buscar.op');
 
 
