@@ -478,13 +478,24 @@ class ScreenV2Controller extends Controller
     public function getScreenData()
     {
         $auditorDato = Auth::user()->name;
-        // Obtener todos los registros con sus relaciones
-        $inspecciones = InspeccionHorno::with(['screen.defectos', 'tecnicas', 'fibras'])
-                            ->whereHas('screen')
-                            ->orderBy('created_at', 'desc')
-                            ->where('auditor', $auditorDato)
-                            ->whereDate('created_at', Carbon::today())
-                            ->get();
+        $auditorPuesto = Auth::user()->puesto;
+        // Iniciar la consulta base
+        $query = InspeccionHorno::with(['screen.defectos', 'tecnicas', 'fibras'])
+                                ->whereHas('screen') // Asegura que solo se obtengan inspecciones que tengan una pantalla asociada
+                                ->orderBy('created_at', 'desc')
+                                ->whereDate('created_at', Carbon::today());
+
+        // Aplicar el filtro de auditor condicionalmente
+        if ($auditorPuesto !== 'Administrador' && $auditorPuesto !== 'Gerente de Calidad') {
+            // Si el puesto NO es Administrador NI Gerente de Calidad,
+            // entonces filtramos por el nombre del auditor.
+            $query->where('auditor', $auditorDato);
+        }
+        // Si el puesto ES Administrador o Gerente de Calidad, no se añade el ->where('auditor', $auditorDato),
+        // por lo que se obtendrán todos los registros del día para esos puestos.
+
+        // Ejecutar la consulta
+        $inspecciones = $query->get();
 
         // Agrupar los registros por la columna "op"
         $grouped = $inspecciones->groupBy('op');
@@ -649,18 +660,29 @@ class ScreenV2Controller extends Controller
         return view('ScreenPlanta2.planchaV2', compact('mesesEnEspanol'));
     }
 
-    public function getPlanchaData()
+    public function getPlanchaData(Request $request)
     {
         $auditorDato = Auth::user()->name;
-        // Obtener todos los registros con sus relaciones
-        $inspecciones = InspeccionHorno::with(['plancha.defectos', 'tecnicas', 'fibras'])
-                            ->whereHas('plancha')
-                            ->whereDate('created_at', Carbon::today())
-                            ->orderBy('created_at', 'desc')
-                            ->where('auditor', $auditorDato)
-                            ->get();
+        $auditorPuesto = Auth::user()->puesto;
 
-        // Agrupar los registros por la columna "op"
+        // Obtener la fecha de la solicitud. Si no se provee, usar la fecha actual.
+        $fechaInput = $request->input('fecha');
+        $fechaSeleccionada = $fechaInput ? Carbon::parse($fechaInput)->toDateString() : Carbon::today()->toDateString();
+
+        $query = InspeccionHorno::with([
+            'plancha.defectos',
+            'tecnicas',
+            'fibras'
+        ])
+        ->whereHas('plancha')
+        ->whereDate('created_at', $fechaSeleccionada) // Filtrar por la fecha seleccionada
+        ->orderBy('created_at', 'desc');
+
+        if ($auditorPuesto !== 'Administrador' && $auditorPuesto !== 'Gerente de Calidad') {
+            $query->where('auditor', $auditorDato);
+        }
+
+        $inspecciones = $query->get();
         $grouped = $inspecciones->groupBy('op');
 
         // Preparar los datos finales
@@ -772,13 +794,24 @@ class ScreenV2Controller extends Controller
         return response()->json($result);
     }
 
-    public function getPlanchaStats()
+    public function getPlanchaStats(Request $request)
     {
-        // Obtener las inspecciones que tengan la relación "plancha" (y sus defectos)
-        $inspecciones = InspeccionHorno::with(['plancha.defectos'])
-                            ->whereHas('plancha')
-                            ->whereDate('created_at', Carbon::today())
-                            ->get();
+        $auditorDato = Auth::user()->name;
+        $auditorPuesto = Auth::user()->puesto;
+
+        $fechaInput = $request->input('fecha');
+        $fechaSeleccionada = $fechaInput ? Carbon::parse($fechaInput)->toDateString() : Carbon::today()->toDateString();
+
+        $query = InspeccionHorno::with(['plancha.defectos'])
+            ->whereHas('plancha')
+            ->whereDate('created_at', $fechaSeleccionada);
+
+        // Aplicar el mismo filtro de auditor que en getPlanchaData para consistencia
+        if ($auditorPuesto !== 'Administrador' && $auditorPuesto !== 'Gerente de Calidad') {
+            $query->where('auditor', $auditorDato);
+        }
+        
+        $inspecciones = $query->get();
 
         // Calcular la Cantidad total revisada (suma de la columna "cantidad" de InspeccionHorno)
         $cantidad_total_revisada = $inspecciones->sum('plancha.piezas_auditadas');
