@@ -217,6 +217,9 @@
                                 <th>Tiempo Almacén - Calidad</th>
                                 <th>Tiempo Calidad - Producción</th>
                                 <th>Tiempo Corte - Producción</th>
+                                <th>Tiempo Producción - Offline</th>
+                                <th>Tiempo Offline - Approved</th>
+                                <th>Tiempo Corte - Approved</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -573,6 +576,36 @@
                             const diff = moment.duration(moment(row.fecha_online).diff(moment(row.fecha_corte)));
                             return `${diff.days()}d ${diff.hours()}h ${diff.minutes()}m ${diff.seconds()}s`;
                         }
+                    },
+                    {
+                        data: null, // Tiempo Producción - Offline
+                        title: "Tiempo Prod-Offline", // Título opcional para exportaciones si el HTML no lo tiene
+                        render: function(data, type, row) {
+                            if (!row.fecha_online || !row.fecha_offline) return 'N/A';
+                            const diff = moment.duration(moment(row.fecha_offline).diff(moment(row.fecha_online)));
+                            if (diff.asMilliseconds() < 0) return 'Error'; // Fechas en orden incorrecto
+                            return `${Math.floor(diff.asDays())}d ${diff.hours()}h ${diff.minutes()}m`;
+                        }
+                    },
+                    {
+                        data: null, // Tiempo Offline - Approved
+                        title: "Tiempo Offline-Approved",
+                        render: function(data, type, row) {
+                            if (!row.fecha_offline || !row.fecha_approved) return 'N/A';
+                            const diff = moment.duration(moment(row.fecha_approved).diff(moment(row.fecha_offline)));
+                            if (diff.asMilliseconds() < 0) return 'Error';
+                            return `${Math.floor(diff.asDays())}d ${diff.hours()}h ${diff.minutes()}m`;
+                        }
+                    },
+                    {
+                        data: null, // Tiempo Corte - Approved
+                        title: "Tiempo Corte-Approved",
+                        render: function(data, type, row) {
+                            if (!row.fecha_corte || !row.fecha_approved) return 'N/A';
+                            const diff = moment.duration(moment(row.fecha_approved).diff(moment(row.fecha_corte)));
+                            if (diff.asMilliseconds() < 0) return 'Error';
+                            return `${Math.floor(diff.asDays())}d ${diff.hours()}h ${diff.minutes()}m`;
+                        }
                     }
                 ],
                 dom: 'Bfrtip',
@@ -655,7 +688,9 @@
                 'fecha_liberacion': 'Aceptado',
                 'fecha_parcial': 'Parcial',
                 'fecha_rechazo': 'Rechazo',
-                'fecha_online': 'Producción'
+                'fecha_online': 'Producción',
+                'fecha_offline': 'Offline',
+                'fecha_approved': 'Approved'
             };
             return etiquetas[campo] || campo;
         }
@@ -667,7 +702,9 @@
                 ['Aceptado', data.fecha_liberacion],
                 ['Parcial', data.fecha_parcial],
                 ['Rechazo', data.fecha_rechazo],
-                ['Producción', data.fecha_online]
+                ['Producción', data.fecha_online],
+                ['Offline', data.fecha_offline],
+                ['Approved', data.fecha_approved]
             ];
 
             let html = `
@@ -677,28 +714,36 @@
                         <tr><th>Etapa</th><th>Fecha y Hora</th></tr>
                         </thead>
                         <tbody>
-                `;
+                    `;
 
-                        filas.forEach(([etapa, valor]) => {
-                            html += `
+            filas.forEach(([etapa, valor]) => {
+                // Solo mostrar filas si la etapa tiene un valor o es una de las etapas principales (opcional)
+                // Si quieres que siempre aparezcan aunque no tengan fecha, elimina la condición `|| valor`
+                // o ajusta qué etapas siempre deben mostrarse. Para este ejemplo, se mostrarán si hay valor.
+                if (valor || ['Corte', 'Almacén', 'Aceptado', 'Producción', 'Offline', 'Approved'].includes(etapa)) {
+                    html += `
                     <tr>
                         <td>${etapa}</td>
                         <td>${valor ? moment(valor).format('DD/MM/YYYY HH:mm:ss') : 'N/A'}</td>
                     </tr>
                     `;
-                        });
+                }
+            });
 
-                        html += `
+            html += `
                         </tbody>
                     </table>
                     </div>
-                `;
+                    `;
             return html;
         }
 
         function formatearTiempo(ms) {
+            if (ms < 0) ms = 0; // Asegurar que no haya tiempos negativos si las fechas están en orden incorrecto
             const minutos = Math.floor(ms / 60000);
-            if (minutos < 60) return `${minutos} min`;
+            if (minutos === 0 && ms > 0) return `${Math.floor(ms/1000)}s`; // Mostrar segundos si es menos de un minuto
+            if (minutos < 1) return '0m'; // Si es 0ms o muy poco
+            if (minutos < 60) return `${minutos}m`; // Corrección: 'min' a 'm' para consistencia
             const horas = Math.floor(minutos / 60);
             const mins = minutos % 60;
             if (horas < 24) return `${horas}h ${mins}m`;
@@ -722,13 +767,23 @@
                         x: new Date(fecha).getTime(),
                         y: 0,
                         name: obtenerEtiqueta(campo),
-                        campo
+                        campo // Mantener el campo original para ordenar
                     };
                 })
                 .filter(p => p !== null);
 
-            const orden = ['fecha_corte', 'fecha_almacen', 'fecha_liberacion', 'fecha_parcial', 'fecha_rechazo', 'fecha_online'];
-            puntos.sort((a, b) => orden.indexOf(a.campo) - orden.indexOf(b.campo));
+            // ✅ NUEVO: Incluir los nuevos indicadores en el orden deseado
+            // Ajusta este orden según la secuencia lógica de tu proceso
+            const orden = ['fecha_corte', 'fecha_almacen', 'fecha_liberacion', 'fecha_parcial', 'fecha_rechazo', 'fecha_online', 'fecha_offline', 'fecha_approved'];
+            puntos.sort((a, b) => {
+                // Si alguna fase no está en 'orden', se puede poner al final o manejar como error
+                const indexA = orden.indexOf(a.campo);
+                const indexB = orden.indexOf(b.campo);
+                if (indexA === -1) return 1; // a después si no está en orden
+                if (indexB === -1) return -1; // b después si no está en orden
+                return indexA - indexB;
+            });
+
 
             const seriesData = puntos.map(p => ({ x: p.x, y: p.y, name: p.name }));
 
@@ -736,55 +791,40 @@
             if (puntos.length >= 2) {
                 const diffMs = puntos[puntos.length - 1].x - puntos[0].x;
 
-                const totalSeconds = Math.floor(diffMs / 1000);
-                const totalMinutes = Math.floor(totalSeconds / 60);
-                const totalHours = Math.floor(totalMinutes / 60);
-                const totalDays = Math.floor(totalHours / 24);
-
-                const horasRestantes = totalHours % 24;
-                const minutosRestantes = totalMinutes % 60;
-                const segundosRestantes = totalSeconds % 60;
-
-                const partesLegibles = [];
-                if (totalDays > 0) partesLegibles.push(`${totalDays} día${totalDays > 1 ? 's' : ''}`);
-                if (horasRestantes > 0) partesLegibles.push(`${horasRestantes} hora${horasRestantes > 1 ? 's' : ''}`);
-                if (minutosRestantes > 0) partesLegibles.push(`${minutosRestantes} minuto${minutosRestantes > 1 ? 's' : ''}`);
-                if (segundosRestantes > 0) partesLegibles.push(`${segundosRestantes} segundo${segundosRestantes > 1 ? 's' : ''}`);
-
-                const formatoLegible = partesLegibles.join(', ');
-                const formatoTecnico = `${String(totalHours).padStart(2, '0')}:${String(minutosRestantes).padStart(2, '0')}:${String(segundosRestantes).padStart(2, '0')}`;
-
+                // Reutilizando la lógica mejorada de formatearTiempo para el tiempo total
+                // Si quieres el formato anterior detallado, puedes revertir esta parte.
                 tiempoTotal = `
                     <p>
-                        <strong>Tiempo total:</strong><br>
-                        ${formatoLegible} &nbsp; <span style="color:#aaa">(${formatoTecnico})</span>
+                        <strong>Tiempo total (primera a última fase seleccionada):</strong><br>
+                        ${formatearTiempo(diffMs)}
                     </p>
                 `;
             }
 
-            // Nueva serie para mostrar los tiempos entre puntos
             const etiquetasIntermedias = [];
             for (let i = 0; i < puntos.length - 1; i++) {
                 const p1 = puntos[i];
                 const p2 = puntos[i + 1];
                 const tiempoMs = p2.x - p1.x;
-                etiquetasIntermedias.push({
-                    x: (p1.x + p2.x) / 2,
-                    y: 0,
-                    dataLabels: [{
-                        enabled: true,
-                        useHTML: true,
-                        formatter: function () {
-                            return `<span style="color:#fff;background:#333;padding:2px 6px;border-radius:4px;font-size:11px;">
-                                ${formatearTiempo(tiempoMs)}</span>`;
-                        },
-                        style: { color: '#fff' },
-                        align: 'center',
-                        verticalAlign: 'bottom',
-                        y: -10
-                    }],
-                    marker: { enabled: false }
-                });
+                if (tiempoMs >= 0) { // Solo mostrar si el tiempo es positivo o cero
+                    etiquetasIntermedias.push({
+                        x: (p1.x + p2.x) / 2,
+                        y: 0,
+                        dataLabels: [{
+                            enabled: true,
+                            useHTML: true,
+                            formatter: function () {
+                                return `<span style="color:#fff;background:#333;padding:2px 6px;border-radius:4px;font-size:11px;">
+                                        ${formatearTiempo(tiempoMs)}</span>`;
+                            },
+                            style: { color: '#fff' },
+                            align: 'center',
+                            verticalAlign: 'bottom',
+                            y: -10
+                        }],
+                        marker: { enabled: false }
+                    });
+                }
             }
 
             Highcharts.chart('graficoLineaTiempo', {
@@ -836,60 +876,71 @@
 
             document.getElementById('tiempoTotal').innerHTML = tiempoTotal;
         }
+
         document.getElementById('formBusquedaOP').addEventListener('submit', function(e) {
             e.preventDefault();
             const op = document.getElementById('opDetalle').value.trim();
             if (!op) return;
 
             $.ajax({
-                url: "{{ route('kanban.buscar.op') }}",
+                url: "{{ route('kanban.buscar.op') }}", // Asegúrate que esta ruta es correcta
                 method: 'GET',
                 data: {
                     op
                 },
                 dataType: 'json',
-                success: function(data) {
-                    if (!data || !data.op) {
+                success: function(responseData) { // Renombrado 'data' a 'responseData' para claridad
+                    if (!responseData || !responseData.op) { // Usar responseData aquí
                         document.getElementById('resultadosDetalleOP').innerHTML =
                             `<div class="alert alert-warning">No se encontró la OP.</div>`;
                         return;
                     }
 
+                    // ✅ NUEVO: Incluir los nuevos indicadores en la lista para los checkboxes
+                    const todasLasFases = ['corte', 'almacen', 'liberacion', 'parcial', 'rechazo', 'online', 'offline', 'approved'];
+
                     const controles = `
                         <div id="controlesFases" class="mb-3">
                         <label><strong style="color: #eee;">Mostrar fases:</strong></label>
                         <div class="d-flex flex-wrap mt-2">
-                            ${['corte', 'almacen', 'liberacion', 'parcial', 'rechazo', 'online'].map(key => {
-                            const campo = 'fecha_' + key;
-                            const label = obtenerEtiqueta(campo);
-                            return `
-                                    <div class="custom-checkbox">
-                                    <input type="checkbox" class="fase-checkbox" id="chk_${key}" value="${campo}" checked>
-                                    <label for="chk_${key}">${label}</label>
-                                    </div>
-                                `;
+                            ${todasLasFases.map(key => {
+                                const campo = 'fecha_' + key;
+                                const label = obtenerEtiqueta(campo);
+                                // Verificar si el campo existe en los datos para marcarlo por defecto (opcional)
+                                // Por ahora, todos se marcan por defecto si la fase existe en `todasLasFases`
+                                const checked = responseData[campo] ? 'checked' : ''; // Marcar solo si hay fecha
+                                // O simplemente 'checked' para todas por defecto: const checked = 'checked';
+                                return `
+                                    <div class="custom-checkbox mr-2 mb-1"> <input type="checkbox" class="fase-checkbox" id="chk_${key}" value="${campo}" ${checked}>
+                                        <label for="chk_${key}" class="ml-1">${label}</label> </div>
+                                    `;
                             }).join('')}
                         </div>
                         </div>
-                    `;
+                        `;
 
-                    const tabla = construirTablaFechas(data);
+                    const tabla = construirTablaFechas(responseData); // Usar responseData aquí
                     const indicadorTiempo = `<div id="tiempoTotal" class="mb-2"></div>`;
                     const grafico =
                         `<div id="graficoLineaTiempo" class="mt-3" style="height: 300px;"></div>`;
 
                     document.getElementById('resultadosDetalleOP').innerHTML =
-                        `<h5 style="color:#fff;">Detalle de OP: ${data.op}</h5>` +
+                        `<h5 style="color:#fff;">Detalle de OP: ${responseData.op}</h5>` + // Usar responseData aquí
                         controles +
                         tabla +
                         indicadorTiempo +
                         grafico;
 
-                    dibujarGraficoLinea(data);
+                    dibujarGraficoLinea(responseData); // Usar responseData aquí
 
                     document.querySelectorAll('.fase-checkbox').forEach(chk =>
-                        chk.addEventListener('change', () => dibujarGraficoLinea(data))
+                        chk.addEventListener('change', () => dibujarGraficoLinea(responseData)) // Usar responseData aquí
                     );
+                },
+                error: function(jqXHR, textStatus, errorThrown) { // Manejo básico de errores AJAX
+                    console.error("Error en la búsqueda de OP:", textStatus, errorThrown);
+                    document.getElementById('resultadosDetalleOP').innerHTML =
+                        `<div class="alert alert-danger">Error al buscar la OP. Por favor, inténtelo más tarde.</div>`;
                 }
             });
         });
@@ -928,7 +979,7 @@
                         <div id="controlesFases" class="mb-3">
                             <label><strong style="color: #eee;">Mostrar fases:</strong></label>
                             <div class="d-flex flex-wrap mt-2">
-                                ${['corte', 'almacen', 'liberacion', 'parcial', 'rechazo', 'online'].map(key => {
+                                ${['corte', 'almacen', 'liberacion', 'parcial', 'rechazo', 'online', 'offline', 'approved'].map(key => {
                                     const campo = 'fecha_' + key;
                                     const label = obtenerEtiqueta(campo);
                                     return `
@@ -964,14 +1015,16 @@
     <script>
         function dibujarGraficoLineaRango(json) {
             const registros = json.registros;
-            const fases = ['fecha_corte', 'fecha_almacen', 'fecha_liberacion', 'fecha_parcial', 'fecha_rechazo', 'fecha_online'];
+            const fases = ['fecha_corte', 'fecha_almacen', 'fecha_liberacion', 'fecha_parcial', 'fecha_rechazo', 'fecha_online', 'fecha_offline', 'fecha_approved'];
             const etiquetas = {
                 'fecha_corte': 'Corte',
                 'fecha_almacen': 'Almacén',
                 'fecha_liberacion': 'Aceptado',
                 'fecha_parcial': 'Parcial',
                 'fecha_rechazo': 'Rechazo',
-                'fecha_online': 'Producción'
+                'fecha_online': 'Producción',
+                'fecha_offline': 'Offline',
+                'fecha_approved': 'Approved'
             };
 
             function construirControles() {
@@ -996,7 +1049,6 @@
             function recalcularYdibujar() {
                 const fasesSeleccionadas = fases.filter(f => document.getElementById('chk_rango_' + f)?.checked);
                 const tiemposAcumulados = [];
-                // ✅ Contar registros que tienen TODAS las fases seleccionadas con valor
                 let registrosValidos = 0;
 
                 if (fasesSeleccionadas.length > 0) {
@@ -1045,7 +1097,7 @@
                         useHTML: true,
                         formatter: function () {
                             return `<span style="color:#fff;background:#333;padding:2px 6px;border-radius:4px;font-size:11px;">
-                                ${formatearTiempo(t.promedioMs)}</span>`;
+                                        ${formatearTiempo(t.promedioMs)}</span>`;
                         },
                         style: { color: '#fff' },
                         align: 'center',
@@ -1098,17 +1150,33 @@
                     ]
                 });
 
-                // ✅ Mostrar tiempo acumulado total
                 const totalMs = tiemposAcumulados.reduce((acc, t) => acc + t.tiempoMs, 0);
                 document.getElementById('tiempoTotalRango').innerHTML = `
                     <p><strong>Tiempo acumulado total:</strong> ${formatearTiempo(totalMs)}</p>
                 `;
 
-                // Mostrar el resultado real debajo del gráfico
                 document.getElementById('cantidadRegistrosRango').innerHTML = `
                     <p><strong>Registros considerados en el análisis:</strong> ${registrosValidos}</p>
                 `;
             }
+
+            // Asegúrate de que la función formatearTiempo exista y esté definida en tu script.
+            // Ejemplo de función formatearTiempo (debes adaptarla a tus necesidades):
+            function formatearTiempo(ms) {
+                if (ms === 0) return '0s';
+                const segundos = Math.floor((ms / 1000) % 60);
+                const minutos = Math.floor((ms / (1000 * 60)) % 60);
+                const horas = Math.floor((ms / (1000 * 60 * 60)) % 24);
+                const dias = Math.floor(ms / (1000 * 60 * 60 * 24));
+
+                let str = "";
+                if (dias > 0) str += dias + "d ";
+                if (horas > 0) str += horas + "h ";
+                if (minutos > 0) str += minutos + "m ";
+                if (segundos > 0 || str === "") str += segundos + "s";
+                return str.trim();
+            }
+
 
             construirControles();
             recalcularYdibujar();
