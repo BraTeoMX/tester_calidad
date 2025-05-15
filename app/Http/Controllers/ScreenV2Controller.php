@@ -516,8 +516,9 @@ class ScreenV2Controller extends Controller
                 return '<ul>' . $filteredItems->map(fn($item) => "<li>" . htmlspecialchars($item, ENT_QUOTES, 'UTF-8') . "</li>")->implode('') . '</ul>';
             };
             
-            // Helper para generar listas HTML agregadas (con conteo/suma)
+            // Helper para generar listas HTML agregadas (con conteo/suma) - Lo mantenemos por si se usa en 'defectos'
             $generateAggregatedHtmlList = function ($collection, $relationAccessor, $nameProperty, $valueProperty = null, $defaultText = 'N/A') {
+                // ... (definición original de $generateAggregatedHtmlList sin cambios)
                 $aggregated = [];
                 foreach ($collection as $item) {
                     $relatedItems = null;
@@ -548,7 +549,7 @@ class ScreenV2Controller extends Controller
                     } elseif ($relatedItems && is_object($relatedItems) && !$valueProperty) { // Caso para relación a objeto único (no colección)
                         $name = isset($relatedItems->{$nameProperty}) ? trim($relatedItems->{$nameProperty}) : null;
                         if ($name) {
-                             $aggregated[$name] = ($aggregated[$name] ?? 0) + 1;
+                            $aggregated[$name] = ($aggregated[$name] ?? 0) + 1;
                         }
                     }
                 }
@@ -573,14 +574,22 @@ class ScreenV2Controller extends Controller
             
             // Para técnico_screen y acción_correctiva, que vienen de la relación 'screen'
             $tecnicosTexto = $generateHtmlList($group->pluck('screen.nombre_tecnico'));
-            $accionesCorrectivasTexto = $generateHtmlList($group->pluck('screen.accion_correctiva'), 'N/A'); // Tu original tenía 'N/A' como default aquí
+            $accionesCorrectivasTexto = $generateHtmlList($group->pluck('screen.accion_correctiva'), 'N/A');
             
             // Para defectos (agregados con suma de cantidad)
             $defectosTexto = $generateAggregatedHtmlList($group, 'screen.defectos', 'nombre', 'cantidad', 'Sin defectos');
             
-            // Para técnicas y fibras (agregados con conteo de ocurrencias)
-            $tecnicasTexto = $generateAggregatedHtmlList($group, 'tecnicas', 'nombre', null, 'Sin técnicas');
-            $fibrasTexto = $generateAggregatedHtmlList($group, 'fibras', 'nombre', null, 'Sin fibras');
+            // MODIFICACIÓN AQUÍ: Cambiar a $generateHtmlList para técnicas y fibras
+            // Se asume que 'tecnicas' y 'fibras' son relaciones que devuelven una colección de objetos,
+            // y cada objeto tiene una propiedad 'nombre'.
+            $tecnicasTexto = $generateHtmlList(
+                $group->pluck('tecnicas')->flatten()->pluck('nombre'), // Obtiene todos los nombres de todas las técnicas del grupo
+                'Sin técnicas'
+            );
+            $fibrasTexto = $generateHtmlList(
+                $group->pluck('fibras')->flatten()->pluck('nombre'), // Obtiene todos los nombres de todas las fibras del grupo
+                'Sin fibras'
+            );
 
             // Campos directos, con fallback y sanitización
             $op = htmlspecialchars($first->op ?? 'N/A', ENT_QUOTES, 'UTF-8');
@@ -596,18 +605,18 @@ class ScreenV2Controller extends Controller
                 'op'                => $op,
                 'panel'             => $panelesTexto,
                 'maquina'           => $maquinasTexto,
-                'tecnicas'          => $tecnicasTexto,
-                'fibras'            => $fibrasTexto,
+                'tecnicas'          => $tecnicasTexto, // Mostrará lista de nombres únicos
+                'fibras'            => $fibrasTexto,   // Mostrará lista de nombres únicos
                 'grafica'           => $graficasTexto,
                 'cliente'           => $clientesTexto,
                 'estilo'            => $estilo,
                 'color'             => $color,
                 'tecnico_screen'    => $tecnicosTexto,
-                'cantidad'          => $totalCantidad, // Es un número
+                'cantidad'          => $totalCantidad, 
                 'defectos'          => $defectosTexto,
                 'accion_correctiva' => $accionesCorrectivasTexto,
             ];
-        })->values(); // values() para reindexar el array y asegurar que sea una lista JSON
+        })->values(); 
 
         return response()->json($result);
     }
@@ -697,6 +706,10 @@ class ScreenV2Controller extends Controller
         }
 
         $inspecciones = $query->get();
+        // No se añade el chequeo de $inspecciones->isEmpty() para mantener la lógica original.
+        // Si $inspecciones está vacía, $grouped->map resultará en una colección vacía,
+        // y la respuesta JSON será [] como es usual.
+
         $grouped = $inspecciones->groupBy('op');
 
         // Preparar los datos finales
@@ -707,7 +720,7 @@ class ScreenV2Controller extends Controller
             // Sumar la cantidad total de los registros del mismo "op"
             $totalCantidad = $group->sum('plancha.piezas_auditadas'); // Se mantiene como suma numérica
 
-            // Función auxiliar para generar listas HTML o 'N/A'
+            // Función auxiliar para generar listas HTML o 'N/A' (VERSIÓN ORIGINAL DEL USUARIO)
             $generateHtmlListOrNA = function (Collection $items, $pluckPath) {
                 $filteredItems = $items->pluck($pluckPath)
                                     ->map(fn($item) => is_scalar($item) ? trim((string)$item) : null)
@@ -729,7 +742,7 @@ class ScreenV2Controller extends Controller
             $accionesCorrectivasTexto = $generateHtmlListOrNA($group, 'plancha.accion_correctiva');
 
 
-            // Agrupar y sumar la cantidad de defectos por nombre
+            // Agrupar y sumar la cantidad de defectos por nombre (LÓGICA ORIGINAL DEL USUARIO)
             $defectosAggregados = [];
             foreach ($group as $registro) {
                 if ($registro->plancha && $registro->plancha->defectos) {
@@ -751,60 +764,49 @@ class ScreenV2Controller extends Controller
                 array_keys($defectosAggregados), array_values($defectosAggregados))) . '</ul>'
                 : 'N/A';
 
+            // ---- INICIO DE CAMBIOS EXCLUSIVOS PARA TÉCNICAS Y FIBRAS ----
 
-            // Agrupar y contar técnicas
-            $tecnicasAggregadas = [];
-            foreach ($group as $registro) {
-                if ($registro->tecnicas) { // Asumiendo que 'tecnicas' es una relación (colección)
-                    foreach ($registro->tecnicas as $tecnica) {
-                        $nombre = trim($tecnica->nombre ?? '');
-                        if (!empty($nombre)) { // Solo procesar si el nombre de la técnica no está vacío
-                            if (isset($tecnicasAggregadas[$nombre])) {
-                                $tecnicasAggregadas[$nombre]++;
-                            } else {
-                                $tecnicasAggregadas[$nombre] = 1;
-                            }
-                        }
-                    }
-                }
-            }
-            $tecnicasTexto = !empty($tecnicasAggregadas)
-                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($tecnicasAggregadas), array_values($tecnicasAggregadas))) . '</ul>'
-                : 'N/A';
+            // Nuevo helper para generar listas HTML de ítems únicos a partir de una colección aplanada
+            // (sin conteo y sin htmlspecialchars en los ítems para ser consistente con $generateHtmlListOrNA original)
+            $generateUniqueItemListHtml = function (Collection $flatNameCollection, $defaultText = 'N/A') {
+                $uniqueNames = $flatNameCollection
+                    ->map(fn($name) => is_scalar($name) ? trim((string)$name) : null)
+                    ->filter(fn($name) => $name !== null && $name !== '')
+                    ->unique()
+                    ->values(); // Devuelve una colección para poder usar ->map()->implode()
 
-            // Agrupar y contar fibras
-            $fibrasAggregadas = [];
-            foreach ($group as $registro) {
-                if ($registro->fibras) { // Asumiendo que 'fibras' es una relación (colección)
-                    foreach ($registro->fibras as $fibra) {
-                        $nombre = trim($fibra->nombre ?? '');
-                        if (!empty($nombre)) { // Solo procesar si el nombre de la fibra no está vacío
-                            if (isset($fibrasAggregadas[$nombre])) {
-                                $fibrasAggregadas[$nombre]++;
-                            } else {
-                                $fibrasAggregadas[$nombre] = 1;
-                            }
-                        }
-                    }
+                if ($uniqueNames->isEmpty()) {
+                    return $defaultText;
                 }
-            }
-            $fibrasTexto = !empty($fibrasAggregadas)
-                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($fibrasAggregadas), array_values($fibrasAggregadas))) . '</ul>'
-                : 'N/A';
+                // Genera la lista sin htmlspecialchars para ser consistente con el $generateHtmlListOrNA original
+                return '<ul>' . $uniqueNames->map(fn($name) => "<li>{$name}</li>")->implode('') . '</ul>';
+            };
+
+            // Procesamiento para "tecnicas" para obtener una lista de nombres únicos
+            $nombresTecnicas = $group->pluck('tecnicas') // Colección de colecciones de objetos Tecnica
+                                    ->flatten()          // Colección de objetos Tecnica
+                                    ->pluck('nombre');    // Colección de nombres de técnicas (strings)
+            $tecnicasTexto = $generateUniqueItemListHtml($nombresTecnicas, 'N/A'); // Puedes usar 'Sin técnicas' como default si prefieres
+
+            // Procesamiento para "fibras" para obtener una lista de nombres únicos
+            $nombresFibras = $group->pluck('fibras')   // Colección de colecciones de objetos Fibra
+                                ->flatten()        // Colección de objetos Fibra
+                                ->pluck('nombre');  // Colección de nombres de fibras (strings)
+            $fibrasTexto = $generateUniqueItemListHtml($nombresFibras, 'N/A');   // Puedes usar 'Sin fibras' como default si prefieres
+
+            // ---- FIN DE CAMBIOS EXCLUSIVOS PARA TÉCNICAS Y FIBRAS ----
 
             return [
                 'op'                => !empty(trim((string)($first->op ?? ''))) ? $first->op : 'N/A',
                 'panel'             => $panelesTexto,
                 'maquina'           => $maquinasTexto,
-                'tecnicas'          => $tecnicasTexto,
-                'fibras'            => $fibrasTexto,
+                'tecnicas'          => $tecnicasTexto, // MODIFICADO: Mostrará lista de nombres únicos sin conteo
+                'fibras'            => $fibrasTexto,   // MODIFICADO: Mostrará lista de nombres únicos sin conteo
                 'grafica'           => $graficasTexto,
                 'cliente'           => $clientesTexto,
                 'estilo'            => !empty(trim((string)($first->estilo ?? ''))) ? $first->estilo : 'N/A',
                 'color'             => !empty(trim((string)($first->color ?? ''))) ? $first->color : 'N/A',
-                'tecnico_screen'    => $tecnicosTexto,
+                'tecnico_screen'    => $tecnicosTexto, // Mantenido el nombre de clave original
                 'cantidad'          => $totalCantidad, // Se mantiene como número
                 'defectos'          => $defectosTexto,
                 'accion_correctiva' => $accionesCorrectivasTexto
