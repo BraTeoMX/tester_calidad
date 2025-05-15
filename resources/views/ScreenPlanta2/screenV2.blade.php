@@ -320,17 +320,6 @@
 
     <script>
         $(document).ready(function() {
-            // 1. Establecer la fecha actual por defecto en el input
-            var hoy = new Date();
-            var dia = ("0" + hoy.getDate()).slice(-2);
-            var mes = ("0" + (hoy.getMonth() + 1)).slice(-2); // getMonth() es 0-indexed
-            var fechaActual = hoy.getFullYear() + "-" + mes + "-" + dia;
-            $('#fecha_busqueda').val(fechaActual);
-
-            // 2. Cargar datos con la fecha actual al iniciar la página
-            cargarDatosPorFechaSeleccionada();
-
-            // 3. Evento para el botón "Mostrar datos"
             $('#btnMostrarDatos').on('click', function() {
                 cargarDatosPorFechaSeleccionada();
             });
@@ -340,16 +329,19 @@
         function cargarDatosPorFechaSeleccionada() {
             var fechaSeleccionada = $('#fecha_busqueda').val();
 
+            // Si el campo de fecha está vacío al hacer clic, se alerta al usuario y no se procede.
             if (!fechaSeleccionada) {
-                var hoy = new Date();
-                var dia = ("0" + hoy.getDate()).slice(-2);
-                var mes = ("0" + (hoy.getMonth() + 1)).slice(-2);
-                fechaSeleccionada = hoy.getFullYear() + "-" + mes + "-" + dia;
-                $('#fecha_busqueda').val(fechaSeleccionada);
+                alert("Por favor, seleccione una fecha para continuar.");
+                // Opcionalmente, puedes limpiar las tablas si ya tenían algún mensaje
+                $("#tabla-screen tbody").html('<tr><td colspan="13" class="text-center">Seleccione una fecha para ver los registros.</td></tr>');
+                $("#tabla-screen-strart tbody").html('<tr><td colspan="3" class="text-center">Seleccione una fecha para ver las estadísticas.</td></tr>');
+                return; // Salir de la función si no hay fecha.
             }
             
             // Mensaje de carga para la tabla de estadísticas
             $("#tabla-screen-strart tbody").html('<tr><td colspan="3" class="text-center">Cargando datos estadísticos...</td></tr>');
+            // Mostrar mensaje de carga en la tabla principal
+            $("#tabla-screen tbody").html('<tr><td colspan="13" class="text-center">Cargando registros para la fecha ' + fechaSeleccionada + '...</td></tr>');
 
             // Llamar a las funciones que cargan los datos
             cargarRegistros(fechaSeleccionada); 
@@ -357,15 +349,6 @@
         }
 
         function cargarRegistros(fecha) {
-            // Ya no necesitamos destruir la instancia de DataTable:
-            // if (tablaScreenInstance) {
-            //     tablaScreenInstance.destroy();
-            //     tablaScreenInstance = null; 
-            // }
-
-            // Mostrar mensaje de carga en la tabla principal
-            $("#tabla-screen tbody").html('<tr><td colspan="13" class="text-center">Cargando registros para la fecha ' + fecha + '...</td></tr>');
-
             $.ajax({
                 url: "{{ route('screenV2.data') }}", // Asegúrate que esta ruta exista y funcione en tu backend (Laravel)
                 method: "GET",
@@ -395,10 +378,6 @@
                         tablaContenido = '<tr><td colspan="13" class="text-center">No se encontraron registros para la fecha seleccionada.</td></tr>';
                     }
                     $("#tabla-screen tbody").html(tablaContenido);
-
-                    // Ya no inicializamos DataTables:
-                    // tablaScreenInstance = $('#tabla-screen').DataTable({ ... });
-
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     console.error("Error al obtener datos de registros:", textStatus, errorThrown, jqXHR.responseText);
@@ -416,7 +395,6 @@
                 success: function (data) {
                     let fila = "";
                     if (data) {
-                        // Mantenemos la comprobación de nulos/undefined aquí por si acaso el backend no los maneja para esta tabla específica
                         const cantidadTotalRevisada = data.cantidad_total_revisada !== null && data.cantidad_total_revisada !== undefined ? data.cantidad_total_revisada : '0';
                         const cantidadDefectos = data.cantidad_defectos !== null && data.cantidad_defectos !== undefined ? data.cantidad_defectos : '0';
                         const porcentajeDefectos = data.porcentaje_defectos !== null && data.porcentaje_defectos !== undefined ? parseFloat(data.porcentaje_defectos).toFixed(2) : '0.00';
