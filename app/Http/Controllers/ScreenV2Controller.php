@@ -577,7 +577,7 @@ class ScreenV2Controller extends Controller
             $accionesCorrectivasTexto = $generateHtmlList($group->pluck('screen.accion_correctiva'), 'N/A');
             
             // Para defectos (agregados con suma de cantidad)
-            $defectosTexto = $generateAggregatedHtmlList($group, 'screen.defectos', 'nombre', 'cantidad', 'Sin defectos');
+            $defectosTexto = $generateAggregatedHtmlList($group, 'screen.defectos', 'nombre', 'cantidad', 'N/A');
             
             // MODIFICACIÓN AQUÍ: Cambiar a $generateHtmlList para técnicas y fibras
             // Se asume que 'tecnicas' y 'fibras' son relaciones que devuelven una colección de objetos,
@@ -621,7 +621,7 @@ class ScreenV2Controller extends Controller
         return response()->json($result);
     }
 
-    public function getScreenStats(Request $request) // Añadir Request
+    public function getScreenStats(Request $request)
     {
         $auditorDato = Auth::user()->name;
         $auditorPuesto = Auth::user()->puesto;
@@ -629,47 +629,59 @@ class ScreenV2Controller extends Controller
         $fechaInput = $request->input('fecha');
         $fechaSeleccionada = $fechaInput ? Carbon::parse($fechaInput)->toDateString() : Carbon::today()->toDateString();
 
-        $query = InspeccionHorno::with(['screen.defectos'])
+        $query = InspeccionHorno::with(['screen.defectos']) // Eager load para eficiencia
             ->whereHas('screen')
-            ->whereDate('created_at', $fechaSeleccionada); // Filtrar por fecha
+            ->whereDate('created_at', $fechaSeleccionada);
 
-        // Aplicar el filtro de auditor para consistencia
         if ($auditorPuesto !== 'Administrador' && $auditorPuesto !== 'Gerente de Calidad') {
             $query->where('auditor', $auditorDato);
         }
 
         $inspecciones = $query->get();
 
-        // Calcular la Cantidad total revisada (suma de la columna "cantidad" de InspeccionHorno)
-        $cantidad_total_revisada = $inspecciones->sum('cantidad');
+        // 1. Calcular la Cantidad total revisada
+        // El método sum() de Eloquent en una colección ya devuelve 0 si la colección está vacía
+        // o si todos los valores son null para el campo sumado.
+        // Casteamos a float para asegurar que sea un número de punto flotante (ej. 0.0).
+        $cantidad_total_revisada = (float) $inspecciones->sum('cantidad');
 
-        // Inicializar la variable para la cantidad total de defectos
-        $cantidad_defectos = 0;
+        // 2. Calcular la Cantidad total de defectos
+        $cantidad_defectos = 0.0; // Inicializar como float para consistencia
 
-        // Recorrer cada inspección y sumar la cantidad de defectos de la relación "screen.defectos"
         foreach ($inspecciones as $inspeccion) {
+            // Verificar que las relaciones existan antes de intentar acceder a ellas
             if ($inspeccion->screen && $inspeccion->screen->defectos) {
                 foreach ($inspeccion->screen->defectos as $defecto) {
-                    // Se asume que $defecto->cantidad es un valor numérico
-                    $cantidad_defectos += $defecto->cantidad;
+                    // Asegurarse de que $defecto->cantidad existe, es numérico y no es null antes de sumar
+                    // Si $defecto->cantidad es null, isset() será false.
+                    // is_numeric() verifica si es un número o un string numérico.
+                    if (isset($defecto->cantidad) && is_numeric($defecto->cantidad)) {
+                        $cantidad_defectos += (float) $defecto->cantidad;
+                    }
+                    // Si no cumple la condición, no se suma nada (efectivamente se suma 0 para ese defecto)
                 }
             }
         }
 
-        // Calcular el porcentaje de defectos
-        // Se asume que "Porcentaje de defectos" es: (Cantidad de defectos / Cantidad total revisada) * 100
-        $porcentaje_defectos = 0;
+        // 3. Calcular el porcentaje de defectos
+        $porcentaje_defectos = 0.0; // Inicializar como float
+
+        // Asegurarse de que $cantidad_total_revisada sea mayor que 0 para evitar división por cero.
+        // Las variables $cantidad_defectos y $cantidad_total_revisada ya son floats.
         if ($cantidad_total_revisada > 0) {
             $porcentaje_defectos = ($cantidad_defectos / $cantidad_total_revisada) * 100;
         }
-        // Redondear el porcentaje a 2 decimales (opcional)
-        $porcentaje_defectos = round($porcentaje_defectos, 2);
 
-        // Retornar los datos estadísticos en formato JSON
+        // Redondear el porcentaje a 2 decimales. round() devuelve un float.
+        // Este paso ya estaba en tu código y es correcto.
+        $porcentaje_defectos_redondeado = round($porcentaje_defectos, 2);
+
+        // Retornar los datos estadísticos en formato JSON.
+        // Todos los valores ya deberían ser floats (0.0 en caso de no datos o cálculos no válidos).
         return response()->json([
             'cantidad_total_revisada' => $cantidad_total_revisada,
             'cantidad_defectos'       => $cantidad_defectos,
-            'porcentaje_defectos'     => $porcentaje_defectos
+            'porcentaje_defectos'     => $porcentaje_defectos_redondeado
         ]);
     }
 
@@ -824,47 +836,63 @@ class ScreenV2Controller extends Controller
         $fechaInput = $request->input('fecha');
         $fechaSeleccionada = $fechaInput ? Carbon::parse($fechaInput)->toDateString() : Carbon::today()->toDateString();
 
-        $query = InspeccionHorno::with(['plancha.defectos'])
-            ->whereHas('plancha')
+        $query = InspeccionHorno::with(['plancha.defectos']) // Eager load para eficiencia
+            ->whereHas('plancha') // Asegura que la inspección tiene una 'plancha' asociada
             ->whereDate('created_at', $fechaSeleccionada);
 
-        // Aplicar el mismo filtro de auditor que en getPlanchaData para consistencia
         if ($auditorPuesto !== 'Administrador' && $auditorPuesto !== 'Gerente de Calidad') {
             $query->where('auditor', $auditorDato);
         }
         
         $inspecciones = $query->get();
 
-        // Calcular la Cantidad total revisada (suma de la columna "cantidad" de InspeccionHorno)
-        $cantidad_total_revisada = $inspecciones->sum('plancha.piezas_auditadas');
+        // 1. Calcular la Cantidad total revisada
+        // Sumaremos 'piezas_auditadas' de la relación 'plancha'.
+        // Usamos un callback en sum() para manejar de forma segura el acceso a la propiedad de la relación.
+        $cantidad_total_revisada = $inspecciones->sum(function ($inspeccion) {
+            // Se asume que 'plancha' es una relación (ej. uno a uno) y ya está cargada.
+            // 'whereHas' asegura que $inspeccion->plancha existe.
+            if ($inspeccion->plancha && isset($inspeccion->plancha->piezas_auditadas) && is_numeric($inspeccion->plancha->piezas_auditadas)) {
+                return (float) $inspeccion->plancha->piezas_auditadas;
+            }
+            return 0.0; // Si no hay plancha, o piezas_auditadas no es numérico/no existe, sumar 0 para esta inspección.
+        });
+        // $cantidad_total_revisada ya será un float (ej. 0.0) debido al retorno de 0.0 o (float)valor en el callback.
 
-        // Inicializar la variable para la cantidad total de defectos
-        $cantidad_defectos = 0;
+        // 2. Calcular la Cantidad total de defectos
+        $cantidad_defectos = 0.0; // Inicializar como float para consistencia
 
-        // Recorrer cada inspección y sumar la cantidad de defectos de la relación "screen.defectos"
         foreach ($inspecciones as $inspeccion) {
+            // Verificar que las relaciones 'plancha' y 'plancha.defectos' existan
             if ($inspeccion->plancha && $inspeccion->plancha->defectos) {
                 foreach ($inspeccion->plancha->defectos as $defecto) {
-                    // Se asume que $defecto->cantidad es un valor numérico
-                    $cantidad_defectos += $defecto->cantidad;
+                    // Asegurarse de que $defecto->cantidad existe, es numérico y no es null antes de sumar
+                    if (isset($defecto->cantidad) && is_numeric($defecto->cantidad)) {
+                        $cantidad_defectos += (float) $defecto->cantidad;
+                    }
+                    // Si no cumple la condición, no se suma nada (efectivamente se suma 0 para ese defecto)
                 }
             }
         }
 
-        // Calcular el porcentaje de defectos
-        // Se asume que "Porcentaje de defectos" es: (Cantidad de defectos / Cantidad total revisada) * 100
-        $porcentaje_defectos = 0;
+        // 3. Calcular el porcentaje de defectos
+        $porcentaje_defectos = 0.0; // Inicializar como float
+
+        // Asegurarse de que $cantidad_total_revisada sea mayor que 0 para evitar división por cero.
         if ($cantidad_total_revisada > 0) {
             $porcentaje_defectos = ($cantidad_defectos / $cantidad_total_revisada) * 100;
         }
-        // Redondear el porcentaje a 2 decimales (opcional)
-        $porcentaje_defectos = round($porcentaje_defectos, 2);
 
-        // Retornar los datos estadísticos en formato JSON
+        // Redondear el porcentaje a 2 decimales. round() devuelve un float.
+        // Este paso ya estaba en tu código y es correcto.
+        $porcentaje_defectos_redondeado = round($porcentaje_defectos, 2);
+
+        // Retornar los datos estadísticos en formato JSON.
+        // Todos los valores ya deberían ser floats.
         return response()->json([
             'cantidad_total_revisada' => $cantidad_total_revisada,
             'cantidad_defectos'       => $cantidad_defectos,
-            'porcentaje_defectos'     => $porcentaje_defectos
+            'porcentaje_defectos'     => $porcentaje_defectos_redondeado
         ]);
     }
 
