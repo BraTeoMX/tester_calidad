@@ -488,6 +488,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/formControlHorno', [ScreenV2Controller::class, 'formControlHorno'])->name('formControlHorno');
     Route::delete('/inspeccion/{id}', [ScreenV2Controller::class, 'eliminarBulto'])->name('eliminarBulto');
     Route::get('/screenV2/exportar', [ScreenV2Controller::class, 'exportarExcelScreenV2'])->name('screenV2.exportarExcel');
+    Route::get('/planchaV2/exportar', [ScreenV2Controller::class, 'exportarExcelPlanchaV2'])->name('planchaV2.exportarExcel');
 
 
     //apartado para dashboard con la segunda version por dia

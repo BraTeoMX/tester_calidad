@@ -1207,4 +1207,278 @@ class ScreenV2Controller extends Controller
     }
 
 
+    // =========================================================================
+    // NUEVOS MÉTODOS PRIVADOS PARA PREPARAR DATOS DE PLANCHA PARA EXCEL
+    // =========================================================================
+
+    private function _obtenerDatosPlanchaParaExcel($fechaSeleccionada, $auditorDato, $auditorPuesto)
+    {
+        $query = InspeccionHorno::with(['plancha.defectos', 'tecnicas', 'fibras'])
+            ->whereHas('plancha')
+            ->whereDate('created_at', $fechaSeleccionada)
+            ->orderBy('created_at', 'desc');
+
+        if ($auditorPuesto !== 'Administrador' && $auditorPuesto !== 'Gerente de Calidad') {
+            $query->where('auditor', $auditorDato);
+        }
+        $inspecciones = $query->get();
+
+        if ($inspecciones->isEmpty()) {
+            return collect([]);
+        }
+
+        $grouped = $inspecciones->groupBy('op');
+
+        // Helper para convertir HTML de listas a texto plano para Excel
+        $formatListForExcel = function ($htmlString, $defaultText = 'N/A') {
+            if (is_null($htmlString) || $htmlString === $defaultText || $htmlString === '<ul></ul>') {
+                return $defaultText;
+            }
+            // Extraer items de <li>
+            preg_match_all('/<li>(.*?)<\/li>/', $htmlString, $matches);
+            $items = $matches[1];
+            if (empty($items)) {
+                // Si no hay <li>, podría ser que $htmlString ya sea 'N/A' o un texto simple.
+                // Si strip_tags devuelve algo, úsalo, si no, el default.
+                $plainText = trim(strip_tags($htmlString));
+                return !empty($plainText) ? $plainText : $defaultText;
+            }
+            return implode(", ", array_map('trim', $items));
+        };
+
+
+        $result = $grouped->map(function (Collection $group) use ($formatListForExcel) {
+            $first = $group->first();
+            $totalCantidadExcel = $group->sum('plancha.piezas_auditadas');
+
+            // Reutilizamos los helpers originales para generar el HTML interno primero
+            // y luego lo convertimos a texto plano.
+
+            $_generateHtmlListOrNA = function (Collection $items, $pluckPath) {
+                $filteredItems = $items->pluck($pluckPath)
+                    ->map(fn($item) => is_scalar($item) ? trim((string)$item) : null)
+                    ->filter(fn($item) => $item !== null && $item !== '')
+                    ->unique()->values()->all();
+                if (empty($filteredItems)) return 'N/A';
+                return '<ul>' . implode('', array_map(fn($item) => "<li>".htmlspecialchars($item, ENT_QUOTES, 'UTF-8')."</li>", $filteredItems)) . '</ul>';
+            };
+            
+            $_generateUniqueItemListHtml = function (Collection $flatNameCollection, $defaultText = 'N/A') {
+                $uniqueNames = $flatNameCollection
+                    ->map(fn($name) => is_scalar($name) ? trim((string)$name) : null)
+                    ->filter(fn($name) => $name !== null && $name !== '')
+                    ->unique()->values();
+                if ($uniqueNames->isEmpty()) return $defaultText;
+                return '<ul>' . $uniqueNames->map(fn($name) => "<li>".htmlspecialchars($name, ENT_QUOTES, 'UTF-8')."</li>")->implode('') . '</ul>';
+            };
+            
+            // Generar HTML con helpers originales
+            $htmlPaneles = $_generateHtmlListOrNA($group, 'panel');
+            $htmlMaquinas = $_generateHtmlListOrNA($group, 'maquina');
+            $htmlGraficas = $_generateHtmlListOrNA($group, 'grafica');
+            $htmlClientes = $_generateHtmlListOrNA($group, 'cliente');
+            $htmlTecnicos = $_generateHtmlListOrNA($group, 'plancha.nombre_tecnico');
+            $htmlAcciones = $_generateHtmlListOrNA($group, 'plancha.accion_correctiva');
+
+            $htmlNombresTecnicas = $_generateUniqueItemListHtml($group->pluck('tecnicas')->flatten()->pluck('nombre'), 'N/A');
+            $htmlNombresFibras = $_generateUniqueItemListHtml($group->pluck('fibras')->flatten()->pluck('nombre'), 'N/A');
+            
+            $_defectosAggregados = [];
+            foreach ($group as $registro) {
+                if ($registro->plancha && $registro->plancha->defectos) {
+                    foreach ($registro->plancha->defectos as $defecto) {
+                        $nombre = trim($defecto->nombre ?? '');
+                        if (!empty($nombre)) {
+                            $cantidadDefecto = $defecto->cantidad ?? 0;
+                            $_defectosAggregados[$nombre] = ($_defectosAggregados[$nombre] ?? 0) + $cantidadDefecto;
+                        }
+                    }
+                }
+            }
+            $htmlDefectos = !empty($_defectosAggregados)
+                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>" . htmlspecialchars($nombre, ENT_QUOTES, 'UTF-8') . " ({$cantidad})</li>", 
+                array_keys($_defectosAggregados), array_values($_defectosAggregados))) . '</ul>'
+                : 'N/A';
+
+            return (object) [ // Devolver objeto stdClass como en tu ejemplo de Screen
+                'op' => !empty(trim((string)($first->op ?? ''))) ? $first->op : 'N/A',
+                'panel' => $formatListForExcel($htmlPaneles),
+                'maquina' => $formatListForExcel($htmlMaquinas),
+                'tecnicas' => $formatListForExcel($htmlNombresTecnicas),
+                'fibras' => $formatListForExcel($htmlNombresFibras),
+                'grafica' => $formatListForExcel($htmlGraficas),
+                'cliente' => $formatListForExcel($htmlClientes),
+                'estilo' => !empty(trim((string)($first->estilo ?? ''))) ? $first->estilo : 'N/A',
+                'color' => !empty(trim((string)($first->color ?? ''))) ? $first->color : 'N/A',
+                'tecnico_screen' => $formatListForExcel($htmlTecnicos), // Nombre de la clave como en la vista
+                'cantidad' => (float) $totalCantidadExcel,
+                'defectos' => $formatListForExcel($htmlDefectos),
+                'accion_correctiva' => $formatListForExcel($htmlAcciones),
+            ];
+        })->values();
+
+        return $result;
+    }
+
+    private function _obtenerEstadisticasPlanchaParaExcel($fechaSeleccionada, $auditorDato, $auditorPuesto)
+    {
+        // Esta lógica es idéntica a getPlanchaStats, solo que devolvemos el array directamente
+        $query = InspeccionHorno::with(['plancha.defectos'])
+            ->whereHas('plancha')
+            ->whereDate('created_at', $fechaSeleccionada);
+
+        if ($auditorPuesto !== 'Administrador' && $auditorPuesto !== 'Gerente de Calidad') {
+            $query->where('auditor', $auditorDato);
+        }
+        $inspecciones = $query->get();
+
+        $cantidad_total_revisada = $inspecciones->sum(function ($inspeccion) {
+            if ($inspeccion->plancha && isset($inspeccion->plancha->piezas_auditadas) && is_numeric($inspeccion->plancha->piezas_auditadas)) {
+                return (float) $inspeccion->plancha->piezas_auditadas;
+            }
+            return 0.0;
+        });
+
+        $cantidad_defectos = 0.0;
+        foreach ($inspecciones as $inspeccion) {
+            if ($inspeccion->plancha && $inspeccion->plancha->defectos) {
+                foreach ($inspeccion->plancha->defectos as $defecto) {
+                    if (isset($defecto->cantidad) && is_numeric($defecto->cantidad)) {
+                        $cantidad_defectos += (float) $defecto->cantidad;
+                    }
+                }
+            }
+        }
+
+        $porcentaje_defectos = 0.0;
+        if ($cantidad_total_revisada > 0) {
+            $porcentaje_defectos = ($cantidad_defectos / $cantidad_total_revisada) * 100;
+        }
+
+        return [
+            'cantidad_total_revisada' => (float) $cantidad_total_revisada,
+            'cantidad_defectos'       => (float) $cantidad_defectos,
+            'porcentaje_defectos'     => round($porcentaje_defectos, 2)
+        ];
+    }
+
+
+    // =========================================================================
+    // NUEVO MÉTODO PÚBLICO PARA EXPORTAR PLANCHA A EXCEL
+    // =========================================================================
+    public function exportarExcelPlanchaV2(Request $request)
+    {
+        $fechaInput = $request->input('fecha');
+        $fechaSeleccionada = $fechaInput ? Carbon::parse($fechaInput)->toDateString() : Carbon::today()->toDateString();
+
+        $auditorDato = Auth::user()->name;
+        $auditorPuesto = Auth::user()->puesto;
+
+        $registrosData = $this->_obtenerDatosPlanchaParaExcel($fechaSeleccionada, $auditorDato, $auditorPuesto);
+        $estadisticasData = $this->_obtenerEstadisticasPlanchaParaExcel($fechaSeleccionada, $auditorDato, $auditorPuesto);
+
+        $spreadsheet = new Spreadsheet();
+
+        // --- Hoja 1: Registros Plancha ---
+        $sheetRegistros = $spreadsheet->getActiveSheet();
+        $sheetRegistros->setTitle('Registros Plancha');
+
+        $columnasRegistros = [
+            'A' => 'OP', 'B' => 'Panel', 'C' => 'Máquina', 'D' => 'Técnicas',
+            'E' => 'Fibras', 'F' => 'Gráfica', 'G' => 'Cliente', 'H' => 'Estilo',
+            'I' => 'Color', 'J' => 'Cantidad', 'K' => 'Técnico Screen', // O Técnico Plancha, ajusta el header
+            'L' => 'Defectos', 'M' => 'Acción Correctiva'
+        ];
+        $rowNum = 1;
+        foreach ($columnasRegistros as $colLetra => $titulo) {
+            $sheetRegistros->setCellValue($colLetra . $rowNum, $titulo);
+            $sheetRegistros->getColumnDimension($colLetra)->setAutoSize(true);
+            $sheetRegistros->getStyle($colLetra . $rowNum)->getFont()->setBold(true);
+            $sheetRegistros->getStyle($colLetra . $rowNum)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFE0E0E0');
+            $sheetRegistros->getStyle($colLetra . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+        $rowNum++;
+
+        if ($registrosData->isNotEmpty()) {
+            foreach ($registrosData as $registro) { // $registro es un objeto stdClass
+                $sheetRegistros->setCellValue('A' . $rowNum, $registro->op);
+                $sheetRegistros->setCellValue('B' . $rowNum, $registro->panel);
+                $sheetRegistros->setCellValue('C' . $rowNum, $registro->maquina);
+                $sheetRegistros->setCellValue('D' . $rowNum, $registro->tecnicas);
+                $sheetRegistros->setCellValue('E' . $rowNum, $registro->fibras);
+                $sheetRegistros->setCellValue('F' . $rowNum, $registro->grafica);
+                $sheetRegistros->setCellValue('G' . $rowNum, $registro->cliente);
+                $sheetRegistros->setCellValue('H' . $rowNum, $registro->estilo);
+                $sheetRegistros->setCellValue('I' . $rowNum, $registro->color);
+                $sheetRegistros->setCellValueExplicit('J' . $rowNum, $registro->cantidad, DataType::TYPE_NUMERIC);
+                $sheetRegistros->setCellValue('K' . $rowNum, $registro->tecnico_screen); // Usa la clave del objeto
+                $sheetRegistros->setCellValue('L' . $rowNum, $registro->defectos);
+                $sheetRegistros->setCellValue('M' . $rowNum, $registro->accion_correctiva);
+                
+                // Ajustar texto en celdas
+                foreach (range('B', 'M') as $col) { // Columnas que pueden tener listas
+                    if($col !== 'J'){ // Excluir columna de cantidad numérica
+                         $sheetRegistros->getStyle($col . $rowNum)->getAlignment()->setWrapText(true);
+                         $sheetRegistros->getStyle($col . $rowNum)->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
+                    }
+                }
+                $rowNum++;
+            }
+        } else {
+            $sheetRegistros->setCellValue('A' . $rowNum, 'No se encontraron registros para la fecha seleccionada.');
+            $sheetRegistros->mergeCells('A'.$rowNum.':M'.$rowNum);
+            $sheetRegistros->getStyle('A'.$rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+        if ($registrosData->isNotEmpty()) {
+            $styleArrayBordes = ['borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FF000000']]]];
+            $sheetRegistros->getStyle('A1:M' . ($rowNum -1) )->applyFromArray($styleArrayBordes);
+        }
+
+        // --- Hoja 2: Estadísticas Plancha ---
+        $sheetEstadisticas = $spreadsheet->createSheet();
+        $sheetEstadisticas->setTitle('Estadísticas Plancha');
+
+        $columnasEstadisticas = ['A' => 'Gran total revisado', 'B' => 'Gran total de defectos', 'C' => 'Porcentaje de defectos'];
+        $rowNumEst = 1;
+        foreach ($columnasEstadisticas as $colLetra => $titulo) {
+            $sheetEstadisticas->setCellValue($colLetra . $rowNumEst, $titulo);
+            $sheetEstadisticas->getColumnDimension($colLetra)->setAutoSize(true);
+            $sheetEstadisticas->getStyle($colLetra . $rowNumEst)->getFont()->setBold(true);
+            $sheetEstadisticas->getStyle($colLetra . $rowNumEst)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFE0E0E0');
+            $sheetEstadisticas->getStyle($colLetra . $rowNumEst)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+        $rowNumEst++;
+
+        if (!empty($estadisticasData)) {
+            $sheetEstadisticas->setCellValueExplicit('A' . $rowNumEst, $estadisticasData['cantidad_total_revisada'], DataType::TYPE_NUMERIC);
+            $sheetEstadisticas->setCellValueExplicit('B' . $rowNumEst, $estadisticasData['cantidad_defectos'], DataType::TYPE_NUMERIC);
+            $sheetEstadisticas->setCellValueExplicit('C' . $rowNumEst, $estadisticasData['porcentaje_defectos'] / 100, DataType::TYPE_NUMERIC);
+            $sheetEstadisticas->getStyle('C' . $rowNumEst)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
+        } else {
+            $sheetEstadisticas->setCellValue('A' . $rowNumEst, 'No se pudieron cargar los datos estadísticos.');
+            $sheetEstadisticas->mergeCells('A'.$rowNumEst.':C'.$rowNumEst);
+            $sheetEstadisticas->getStyle('A'.$rowNumEst)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+        if (!empty($estadisticasData)) {
+            $styleArrayBordesEst = ['borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FF000000']]]];
+            $sheetEstadisticas->getStyle('A1:C' . $rowNumEst)->applyFromArray($styleArrayBordesEst);
+        }
+
+        $spreadsheet->setActiveSheetIndex(0);
+        $filename = "Reporte_Plancha_V2_" . Carbon::parse($fechaSeleccionada)->format('Ymd') . ".xlsx";
+        
+        if (ob_get_length()) ob_end_clean();
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
+    }
+
 }
