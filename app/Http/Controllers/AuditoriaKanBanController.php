@@ -400,6 +400,7 @@ class AuditoriaKanBanController extends Controller
                     // CAMBIA 'fecha_aprobacion' por el nombre real de tu campo de fecha en TicketApproved
                     if ($ticketApproved && $ticketApproved->fecha) {
                         $registro->fecha_approved = $ticketApproved->fecha;
+                        $registro->piezas = $ticketApproved->cantidad;
                         $registro->save();
                         $updatesApprovedCount++;
                         Log::info("ReporteKanban ID {$registro->id} actualizado con fecha_approved: {$ticketApproved->fecha}");

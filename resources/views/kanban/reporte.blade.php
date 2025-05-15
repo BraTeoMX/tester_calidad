@@ -213,6 +213,8 @@
                                 <th>Fecha Parcial</th>
                                 <th>Fecha Rechazo</th>
                                 <th>Fecha Online</th>
+                                <th>Fecha Offline</th>
+                                <th>Fecha Approved</th>
                                 <th>Tiempo Corte - Almacén</th>
                                 <th>Tiempo Almacén - Calidad</th>
                                 <th>Tiempo Calidad - Producción</th>
@@ -543,6 +545,14 @@
                     },
                     {
                         data: 'fecha_online',
+                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                    },
+                    {
+                        data: 'fecha_offline',
+                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                    },
+                    {
+                        data: 'fecha_approved',
                         render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
                     },
                     {
