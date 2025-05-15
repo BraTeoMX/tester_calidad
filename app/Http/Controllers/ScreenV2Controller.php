@@ -26,6 +26,14 @@ use App\Models\Tipo_Fibra;
 use App\Models\Tipo_Tecnica;
 use App\Models\Horno_Banda;
 use Illuminate\Support\Collection;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+use PhpOffice\PhpSpreadsheet\Cell\DataType; // Para especificar tipos de datos
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 class ScreenV2Controller extends Controller
 {
@@ -908,6 +916,294 @@ class ScreenV2Controller extends Controller
 
         // Redirigir a la misma vista con un mensaje de éxito
         return redirect()->back()->with('success', 'Datos guardados correctamente.');
+    }
+
+
+    // --- MÉTODOS PRIVADOS PARA PREPARAR DATOS PARA EXCEL ---
+
+    private function obtenerDatosRegistrosParaExcel($fechaSeleccionada, $auditorDato, $auditorPuesto)
+    {
+        $query = InspeccionHorno::with(['screen.defectos', 'tecnicas', 'fibras'])
+            ->whereHas('screen')
+            ->orderBy('created_at', 'desc')
+            ->whereDate('created_at', $fechaSeleccionada);
+
+        if ($auditorPuesto !== 'Administrador' && $auditorPuesto !== 'Gerente de Calidad') {
+            $query->where('auditor', $auditorDato);
+        }
+        $inspecciones = $query->get();
+
+        if ($inspecciones->isEmpty()) {
+            return collect([]);
+        }
+
+        $grouped = $inspecciones->groupBy('op');
+
+        $stripHtmlAndJoin = function ($htmlString, $defaultText = 'N/A') {
+            if (is_null($htmlString) || $htmlString === $defaultText || empty(trim(strip_tags($htmlString)))) {
+                return $defaultText;
+            }
+            $text = str_replace(['<li>', '</li>'], [', ', ''], $htmlString);
+            $text = strip_tags($text);
+            $text = preg_replace('/^,\s*|\s*,\s*$/', '', $text);
+            $text = preg_replace('/\s*,\s*,/', ', ', $text);
+            return empty(trim($text)) ? $defaultText : trim($text);
+        }; // <--- PUNTO Y COMA AÑADIDO
+
+        $result = $grouped->map(function ($group) use ($stripHtmlAndJoin) {
+            $first = $group->first();
+
+            $originalGenerateHtmlList = function ($itemsCollection, $defaultText = 'N/A') {
+                $filteredItems = $itemsCollection->unique()->filter(function ($value) {
+                    return !is_null($value) && $value !== '';
+                })->values();
+
+                if ($filteredItems->isEmpty()) {
+                    return $defaultText;
+                }
+                return '<ul>' . $filteredItems->map(fn($item) => "<li>" . htmlspecialchars($item, ENT_QUOTES, 'UTF-8') . "</li>")->implode('') . '</ul>';
+            }; // <--- PUNTO Y COMA AÑADIDO
+            
+            $originalGenerateAggregatedHtmlList = function ($collection, $relationAccessor, $nameProperty, $valueProperty = null, $defaultText = 'N/A') {
+                $aggregated = [];
+                foreach ($collection as $item) {
+                    $relatedItems = null;
+                    $relations = explode('.', $relationAccessor);
+                    $tempItem = $item;
+                    foreach ($relations as $relationName) {
+                        if (isset($tempItem->{$relationName})) {
+                            $tempItem = $tempItem->{$relationName};
+                        } else {
+                            $tempItem = null;
+                            break;
+                        }
+                    }
+                    $relatedItems = $tempItem;
+
+                    if ($relatedItems && is_iterable($relatedItems)) {
+                        foreach ($relatedItems as $relatedItem) {
+                            $name = isset($relatedItem->{$nameProperty}) ? trim($relatedItem->{$nameProperty}) : null;
+                            if ($name) {
+                                if ($valueProperty && isset($relatedItem->{$valueProperty}) && is_numeric($relatedItem->{$valueProperty})) {
+                                    $aggregated[$name] = ($aggregated[$name] ?? 0) + $relatedItem->{$valueProperty};
+                                } elseif (!$valueProperty) {
+                                    $aggregated[$name] = ($aggregated[$name] ?? 0) + 1;
+                                }
+                            }
+                        }
+                    } elseif ($relatedItems && is_object($relatedItems) && !$valueProperty) {
+                        $name = isset($relatedItems->{$nameProperty}) ? trim($relatedItems->{$nameProperty}) : null;
+                        if ($name) {
+                            $aggregated[$name] = ($aggregated[$name] ?? 0) + 1;
+                        }
+                    }
+                }
+
+                if (empty($aggregated)) {
+                    return $defaultText;
+                }
+
+                $listContent = '';
+                foreach ($aggregated as $name => $countOrSum) {
+                    $displayValue = ($valueProperty || $countOrSum > 1) ? " ({$countOrSum})" : "";
+                    $listContent .= "<li>" . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . $displayValue . "</li>";
+                }
+                return '<ul>' . $listContent . '</ul>';
+            }; // <--- PUNTO Y COMA AÑADIDO
+
+            $op_excel = $first->op ?? 'N/A';
+            $panel_excel = $stripHtmlAndJoin($originalGenerateHtmlList($group->pluck('panel')));
+            $maquina_excel = $stripHtmlAndJoin($originalGenerateHtmlList($group->pluck('maquina')));
+            $tecnicas_excel = $stripHtmlAndJoin($originalGenerateHtmlList($group->pluck('tecnicas')->flatten()->pluck('nombre'), 'Sin técnicas'));
+            $fibras_excel = $stripHtmlAndJoin($originalGenerateHtmlList($group->pluck('fibras')->flatten()->pluck('nombre'), 'Sin fibras'));
+            $grafica_excel = $stripHtmlAndJoin($originalGenerateHtmlList($group->pluck('grafica')));
+            $cliente_excel = $stripHtmlAndJoin($originalGenerateHtmlList($group->pluck('cliente')));
+            $estilo_excel = $first->estilo ?? 'N/A';
+            $color_excel = $first->color ?? 'N/A';
+            $tecnico_screen_excel = $stripHtmlAndJoin($originalGenerateHtmlList($group->pluck('screen.nombre_tecnico')));
+            $cantidad_excel = $group->sum(function($item) {
+                return isset($item->cantidad) && is_numeric($item->cantidad) ? (float) $item->cantidad : 0.0;
+            });
+            $defectos_excel = $stripHtmlAndJoin($originalGenerateAggregatedHtmlList($group, 'screen.defectos', 'nombre', 'cantidad', 'N/A'));
+            $accion_correctiva_excel = $stripHtmlAndJoin($originalGenerateHtmlList($group->pluck('screen.accion_correctiva'), 'N/A'));
+            
+            return (object) [
+                'op'                => $op_excel,
+                'panel'             => $panel_excel,
+                'maquina'           => $maquina_excel,
+                'tecnicas'          => $tecnicas_excel,
+                'fibras'            => $fibras_excel,
+                'grafica'           => $grafica_excel,
+                'cliente'           => $cliente_excel,
+                'estilo'            => $estilo_excel,
+                'color'             => $color_excel,
+                'cantidad'          => $cantidad_excel,
+                'tecnico_screen'    => $tecnico_screen_excel,
+                'defectos'          => $defectos_excel,
+                'accion_correctiva' => $accion_correctiva_excel,
+            ];
+        })->values();
+
+        return $result;
+    }
+
+    private function obtenerDatosEstadisticasParaExcel($fechaSeleccionada, $auditorDato, $auditorPuesto)
+    {
+        // Esta lógica es idéntica a getScreenStats, solo que devolvemos el array directamente
+        $query = InspeccionHorno::with(['screen.defectos'])
+            ->whereHas('screen')
+            ->whereDate('created_at', $fechaSeleccionada);
+
+        if ($auditorPuesto !== 'Administrador' && $auditorPuesto !== 'Gerente de Calidad') {
+            $query->where('auditor', $auditorDato);
+        }
+        $inspecciones = $query->get();
+
+        $cantidad_total_revisada = (float) $inspecciones->sum('cantidad');
+        $cantidad_defectos = 0.0;
+
+        foreach ($inspecciones as $inspeccion) {
+            if ($inspeccion->screen && $inspeccion->screen->defectos) {
+                foreach ($inspeccion->screen->defectos as $defecto) {
+                    if (isset($defecto->cantidad) && is_numeric($defecto->cantidad)) {
+                        $cantidad_defectos += (float) $defecto->cantidad;
+                    }
+                }
+            }
+        }
+
+        $porcentaje_defectos = 0.0;
+        if ($cantidad_total_revisada > 0) {
+            $porcentaje_defectos = ($cantidad_defectos / $cantidad_total_revisada) * 100;
+        }
+
+        return [
+            'cantidad_total_revisada' => $cantidad_total_revisada, // float
+            'cantidad_defectos'       => $cantidad_defectos,       // float
+            'porcentaje_defectos'     => round($porcentaje_defectos, 2) // float
+        ];
+    }
+
+    // --- MÉTODO PÚBLICO PARA EXPORTAR A EXCEL ---
+    public function exportarExcelScreenV2(Request $request)
+    {
+        $fechaInput = $request->input('fecha');
+        // Si no se proporciona fecha, usar la fecha actual (o manejar error si prefieres)
+        $fechaSeleccionada = $fechaInput ? Carbon::parse($fechaInput)->toDateString() : Carbon::today()->toDateString();
+
+        $auditorDato = Auth::user()->name;
+        $auditorPuesto = Auth::user()->puesto;
+
+        $registrosData = $this->obtenerDatosRegistrosParaExcel($fechaSeleccionada, $auditorDato, $auditorPuesto);
+        $estadisticasData = $this->obtenerDatosEstadisticasParaExcel($fechaSeleccionada, $auditorDato, $auditorPuesto);
+
+        $spreadsheet = new Spreadsheet();
+
+        // --- Configuración de la Hoja 1: Registros Screen ---
+        $sheetRegistros = $spreadsheet->getActiveSheet();
+        $sheetRegistros->setTitle('Registros Screen');
+
+        $columnasRegistros = [
+            'A' => 'OP', 'B' => 'Panel', 'C' => 'Máquina', 'D' => 'Técnicas',
+            'E' => 'Fibras', 'F' => 'Gráfica', 'G' => 'Cliente', 'H' => 'Estilo',
+            'I' => 'Color', 'J' => 'Cantidad', 'K' => 'Técnico Screen',
+            'L' => 'Defectos', 'M' => 'Acción Correctiva'
+        ];
+        $rowNum = 1;
+        foreach ($columnasRegistros as $colLetra => $titulo) {
+            $sheetRegistros->setCellValue($colLetra . $rowNum, $titulo);
+            $sheetRegistros->getColumnDimension($colLetra)->setAutoSize(true);
+            $sheetRegistros->getStyle($colLetra . $rowNum)->getFont()->setBold(true);
+            $sheetRegistros->getStyle($colLetra . $rowNum)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFE0E0E0'); // Gris claro
+            $sheetRegistros->getStyle($colLetra . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+        $rowNum++; // Siguiente fila para los datos
+
+        if ($registrosData->isNotEmpty()) {
+            foreach ($registrosData as $registro) { // $registro es un objeto stdClass
+                $sheetRegistros->setCellValue('A' . $rowNum, $registro->op);
+                $sheetRegistros->setCellValue('B' . $rowNum, $registro->panel);
+                $sheetRegistros->setCellValue('C' . $rowNum, $registro->maquina);
+                $sheetRegistros->setCellValue('D' . $rowNum, $registro->tecnicas);
+                $sheetRegistros->setCellValue('E' . $rowNum, $registro->fibras);
+                $sheetRegistros->setCellValue('F' . $rowNum, $registro->grafica);
+                $sheetRegistros->setCellValue('G' . $rowNum, $registro->cliente);
+                $sheetRegistros->setCellValue('H' . $rowNum, $registro->estilo);
+                $sheetRegistros->setCellValue('I' . $rowNum, $registro->color);
+                $sheetRegistros->setCellValueExplicit('J' . $rowNum, $registro->cantidad, DataType::TYPE_NUMERIC);
+                $sheetRegistros->setCellValue('K' . $rowNum, $registro->tecnico_screen);
+                $sheetRegistros->setCellValue('L' . $rowNum, $registro->defectos);
+                $sheetRegistros->setCellValue('M' . $rowNum, $registro->accion_correctiva);
+                $rowNum++;
+            }
+        } else {
+            $sheetRegistros->setCellValue('A' . $rowNum, 'No se encontraron registros para la fecha seleccionada.');
+            $sheetRegistros->mergeCells('A'.$rowNum.':M'.$rowNum); // M es la última columna de registros
+            $sheetRegistros->getStyle('A'.$rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+        // Aplicar bordes a la tabla de registros
+        if ($registrosData->isNotEmpty()) {
+            $styleArrayBordes = ['borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FF000000']]]];
+            $sheetRegistros->getStyle('A1:M' . ($rowNum -1) )->applyFromArray($styleArrayBordes);
+        }
+
+        // --- Configuración de la Hoja 2: Estadísticas Screen ---
+        $sheetEstadisticas = $spreadsheet->createSheet(); // Crear una nueva hoja
+        $sheetEstadisticas->setTitle('Estadísticas Screen');
+
+        $columnasEstadisticas = ['A' => 'Gran total revisado', 'B' => 'Gran total de defectos', 'C' => 'Porcentaje de defectos'];
+        $rowNumEst = 1;
+        foreach ($columnasEstadisticas as $colLetra => $titulo) {
+            $sheetEstadisticas->setCellValue($colLetra . $rowNumEst, $titulo);
+            $sheetEstadisticas->getColumnDimension($colLetra)->setAutoSize(true);
+            $sheetEstadisticas->getStyle($colLetra . $rowNumEst)->getFont()->setBold(true);
+            $sheetEstadisticas->getStyle($colLetra . $rowNumEst)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFE0E0E0');
+            $sheetEstadisticas->getStyle($colLetra . $rowNumEst)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+        $rowNumEst++;
+
+        if (!empty($estadisticasData)) {
+            $sheetEstadisticas->setCellValueExplicit('A' . $rowNumEst, $estadisticasData['cantidad_total_revisada'], DataType::TYPE_NUMERIC);
+            $sheetEstadisticas->setCellValueExplicit('B' . $rowNumEst, $estadisticasData['cantidad_defectos'], DataType::TYPE_NUMERIC);
+            // Guardar porcentaje como número (ej. 0.25 para 25%) y aplicar formato
+            $sheetEstadisticas->setCellValueExplicit('C' . $rowNumEst, $estadisticasData['porcentaje_defectos'] / 100, DataType::TYPE_NUMERIC);
+            $sheetEstadisticas->getStyle('C' . $rowNumEst)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
+        } else {
+            $sheetEstadisticas->setCellValue('A' . $rowNumEst, 'No se pudieron cargar los datos estadísticos.');
+            $sheetEstadisticas->mergeCells('A'.$rowNumEst.':C'.$rowNumEst); // C es la última columna de estadísticas
+            $sheetEstadisticas->getStyle('A'.$rowNumEst)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+        // Aplicar bordes a la tabla de estadísticas
+        if (!empty($estadisticasData)) {
+             $styleArrayBordesEst = ['borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FF000000']]]];
+            $sheetEstadisticas->getStyle('A1:C' . $rowNumEst)->applyFromArray($styleArrayBordesEst);
+        }
+
+
+        // Establecer la primera hoja como activa al abrir el archivo
+        $spreadsheet->setActiveSheetIndex(0);
+
+        // --- Preparar y enviar el archivo para descarga ---
+        $filename = "Reporte_Screen_Planta2_" . Carbon::parse($fechaSeleccionada)->format('Ymd') . ".xlsx";
+        
+        // Limpiar cualquier salida previa (importante para evitar corrupción del archivo)
+        if (ob_get_length()) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        // Si estás usando HTTPS, podrías necesitar esto para IE
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Fecha en el pasado
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // Siempre modificado
+        header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+        header('Pragma: public'); // HTTP/1.0
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit; // Es importante llamar a exit después de enviar el archivo
+        
     }
 
 

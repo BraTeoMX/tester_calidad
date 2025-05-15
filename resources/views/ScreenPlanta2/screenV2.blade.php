@@ -30,6 +30,14 @@
                             <button type="button" class="btn btn-secondary" id="btnMostrarDatos">Mostrar datos</button>
                         </div>
                     </div>
+                    {{-- NUEVO BOTÓN PARA EXPORTAR --}}
+                    <div class="col-md-3 d-flex align-items-end"> {{-- Ajustado a col-md-3 --}}
+                        <div class="form-group">
+                            <button type="button" class="btn btn-success" id="btnExportarExcel"> {{-- Color verde (success) --}}
+                                <i class="fa fa-file-excel-o"></i> Exportar a Excel {{-- Ejemplo con FontAwesome --}}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -324,6 +332,22 @@
                 cargarDatosPorFechaSeleccionada();
             });
         });
+
+        // === NUEVO: MANEJADOR PARA EL BOTÓN DE EXPORTAR EXCEL ===
+        $('#btnExportarExcel').on('click', function() {
+            var fechaSeleccionada = $('#fecha_busqueda').val();
+
+            if (!fechaSeleccionada) {
+                alert("Por favor, seleccione una fecha para exportar los datos.");
+                return; // No continuar si no hay fecha
+            }
+
+            var urlExportar = "{{ route('screenV2.exportarExcel') }}?fecha=" + fechaSeleccionada;
+
+            // Redirigir a la URL de exportación. El backend se encargará de generar y enviar el archivo.
+            window.location.href = urlExportar;
+        });
+        // === FIN DEL NUEVO MANEJADOR ===
 
         // Función unificada para cargar todos los datos según la fecha
         function cargarDatosPorFechaSeleccionada() {

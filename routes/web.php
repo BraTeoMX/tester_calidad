@@ -487,6 +487,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/bultosPorDia', [ScreenV2Controller::class, 'bultosPorDia'])->name('bultosPorDia');
     Route::post('/formControlHorno', [ScreenV2Controller::class, 'formControlHorno'])->name('formControlHorno');
     Route::delete('/inspeccion/{id}', [ScreenV2Controller::class, 'eliminarBulto'])->name('eliminarBulto');
+    Route::get('/screenV2/exportar', [ScreenV2Controller::class, 'exportarExcelScreenV2'])->name('screenV2.exportarExcel');
+
 
     //apartado para dashboard con la segunda version por dia
     Route::get('/dashboardPlanta1V2', [DashboardPorDiaV2Controller::class, 'dashboardPlanta1V2'])->name('dashboardPlanta1V2');
