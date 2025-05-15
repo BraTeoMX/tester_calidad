@@ -475,132 +475,138 @@ class ScreenV2Controller extends Controller
         return view('ScreenPlanta2.screenV2', compact('mesesEnEspanol', 'registroHornoDia'));
     }
 
-    public function getScreenData(Request $request) // Añadir Request
+    public function getScreenData(Request $request)
     {
         $auditorDato = Auth::user()->name;
         $auditorPuesto = Auth::user()->puesto;
 
         $fechaInput = $request->input('fecha');
-        // Usar toDateString() para asegurar que solo comparamos fechas
         $fechaSeleccionada = $fechaInput ? Carbon::parse($fechaInput)->toDateString() : Carbon::today()->toDateString();
 
         $query = InspeccionHorno::with(['screen.defectos', 'tecnicas', 'fibras'])
-            ->whereHas('screen')
+            ->whereHas('screen') // Solo inspecciones que tengan una relación 'screen'
             ->orderBy('created_at', 'desc')
-            ->whereDate('created_at', $fechaSeleccionada); // Filtrar por fecha seleccionada
+            ->whereDate('created_at', $fechaSeleccionada);
 
         if ($auditorPuesto !== 'Administrador' && $auditorPuesto !== 'Gerente de Calidad') {
             $query->where('auditor', $auditorDato);
         }
 
         $inspecciones = $query->get();
+
+        if ($inspecciones->isEmpty()) {
+            return response()->json([]); // Devolver array vacío si no hay inspecciones
+        }
+
         $grouped = $inspecciones->groupBy('op');
 
-        // Preparar los datos finales
         $result = $grouped->map(function ($group) {
-            // Tomamos el primer registro del grupo para campos comunes
-            $first = $group->first();
+            $first = $group->first(); // $group no estará vacío aquí
 
-            // Sumar la cantidad total de los registros del mismo "op"
-            $totalCantidad = $group->sum('cantidad');
+            // Helper para generar listas HTML o devolver un texto por defecto
+            $generateHtmlList = function ($itemsCollection, $defaultText = 'N/A') {
+                $filteredItems = $itemsCollection->unique()->filter(function ($value) {
+                    return !is_null($value) && $value !== ''; // Filtrar nulos y strings vacíos
+                })->values();
 
-            // 🔹 Agrupar valores únicos en listas (sin cantidad)
-            $panelesTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('panel')->unique()->toArray())) . '</ul>';
-
-            $maquinasTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('maquina')->unique()->toArray())) . '</ul>';
-
-            $graficasTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('grafica')->unique()->toArray())) . '</ul>';
-
-            $clientesTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('cliente')->unique()->toArray())) . '</ul>';
-
-            $tecnicosTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('screen.nombre_tecnico')->unique()->toArray())) . '</ul>';
-
-            // 🔹 Agrupar acciones correctivas y evitar listas vacías
-            $accionesCorrectivasTexto = $group->pluck('screen.accion_correctiva')->unique()->filter()->toArray();
-            $accionesCorrectivasTexto = count($accionesCorrectivasTexto) 
-                ? '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", $accionesCorrectivasTexto)) . '</ul>' 
-                : 'N/A';
-
-            // Agrupar y sumar la cantidad de defectos por nombre
-            $defectosAggregados = [];
-            foreach ($group as $registro) {
-                if ($registro->screen && $registro->screen->defectos) {
-                    foreach ($registro->screen->defectos as $defecto) {
-                        $nombre = trim($defecto->nombre);
-                        $cantidadDefecto = $defecto->cantidad;  // Asumiendo que "cantidad" es un campo numérico
-                        if (isset($defectosAggregados[$nombre])) {
-                            $defectosAggregados[$nombre] += $cantidadDefecto;
+                if ($filteredItems->isEmpty()) {
+                    return $defaultText;
+                }
+                return '<ul>' . $filteredItems->map(fn($item) => "<li>" . htmlspecialchars($item, ENT_QUOTES, 'UTF-8') . "</li>")->implode('') . '</ul>';
+            };
+            
+            // Helper para generar listas HTML agregadas (con conteo/suma)
+            $generateAggregatedHtmlList = function ($collection, $relationAccessor, $nameProperty, $valueProperty = null, $defaultText = 'N/A') {
+                $aggregated = [];
+                foreach ($collection as $item) {
+                    $relatedItems = null;
+                    // Acceder a la relación, incluso si está anidada (ej. 'screen.defectos')
+                    $relations = explode('.', $relationAccessor);
+                    $tempItem = $item;
+                    foreach ($relations as $relationName) {
+                        if (isset($tempItem->{$relationName})) {
+                            $tempItem = $tempItem->{$relationName};
                         } else {
-                            $defectosAggregados[$nombre] = $cantidadDefecto;
+                            $tempItem = null;
+                            break;
+                        }
+                    }
+                    $relatedItems = $tempItem;
+
+                    if ($relatedItems && is_iterable($relatedItems)) {
+                        foreach ($relatedItems as $relatedItem) {
+                            $name = isset($relatedItem->{$nameProperty}) ? trim($relatedItem->{$nameProperty}) : null;
+                            if ($name) {
+                                if ($valueProperty && isset($relatedItem->{$valueProperty}) && is_numeric($relatedItem->{$valueProperty})) {
+                                    $aggregated[$name] = ($aggregated[$name] ?? 0) + $relatedItem->{$valueProperty};
+                                } elseif (!$valueProperty) { // Si no hay valueProperty, contamos ocurrencias
+                                    $aggregated[$name] = ($aggregated[$name] ?? 0) + 1;
+                                }
+                            }
+                        }
+                    } elseif ($relatedItems && is_object($relatedItems) && !$valueProperty) { // Caso para relación a objeto único (no colección)
+                        $name = isset($relatedItems->{$nameProperty}) ? trim($relatedItems->{$nameProperty}) : null;
+                        if ($name) {
+                             $aggregated[$name] = ($aggregated[$name] ?? 0) + 1;
                         }
                     }
                 }
-            }
-            $defectosTexto = count($defectosAggregados) 
-                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($defectosAggregados), array_values($defectosAggregados))) . '</ul>' 
-                : 'Sin defectos';
 
-            //
-            // 🔹 Agrupar y contar técnicas
-            $tecnicasAggregadas = [];
-            foreach ($group as $registro) {
-                if ($registro->tecnicas) {
-                    foreach ($registro->tecnicas as $tecnica) {
-                        $nombre = $tecnica->nombre;
-                        if (isset($tecnicasAggregadas[$nombre])) {
-                            $tecnicasAggregadas[$nombre]++;
-                        } else {
-                            $tecnicasAggregadas[$nombre] = 1;
-                        }
-                    }
+                if (empty($aggregated)) {
+                    return $defaultText;
                 }
-            }
-            $tecnicasTexto = count($tecnicasAggregadas) 
-                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($tecnicasAggregadas), array_values($tecnicasAggregadas))) . '</ul>'
-                : 'Sin técnicas';
 
-            // 🔹 Agrupar y contar fibras
-            $fibrasAggregadas = [];
-            foreach ($group as $registro) {
-                if ($registro->fibras) {
-                    foreach ($registro->fibras as $fibra) {
-                        $nombre = $fibra->nombre;
-                        if (isset($fibrasAggregadas[$nombre])) {
-                            $fibrasAggregadas[$nombre]++;
-                        } else {
-                            $fibrasAggregadas[$nombre] = 1;
-                        }
-                    }
+                $listContent = '';
+                foreach ($aggregated as $name => $countOrSum) {
+                    $displayValue = ($valueProperty || $countOrSum > 1) ? " ({$countOrSum})" : ""; // Mostrar valor solo si es suma o conteo > 1
+                    $listContent .= "<li>" . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . $displayValue . "</li>";
                 }
-            }
-            $fibrasTexto = count($fibrasAggregadas) 
-                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($fibrasAggregadas), array_values($fibrasAggregadas))) . '</ul>'
-                : 'Sin fibras';
+                return '<ul>' . $listContent . '</ul>';
+            };
+
+
+            $panelesTexto = $generateHtmlList($group->pluck('panel'));
+            $maquinasTexto = $generateHtmlList($group->pluck('maquina'));
+            $graficasTexto = $generateHtmlList($group->pluck('grafica'));
+            $clientesTexto = $generateHtmlList($group->pluck('cliente'));
+            
+            // Para técnico_screen y acción_correctiva, que vienen de la relación 'screen'
+            $tecnicosTexto = $generateHtmlList($group->pluck('screen.nombre_tecnico'));
+            $accionesCorrectivasTexto = $generateHtmlList($group->pluck('screen.accion_correctiva'), 'N/A'); // Tu original tenía 'N/A' como default aquí
+            
+            // Para defectos (agregados con suma de cantidad)
+            $defectosTexto = $generateAggregatedHtmlList($group, 'screen.defectos', 'nombre', 'cantidad', 'Sin defectos');
+            
+            // Para técnicas y fibras (agregados con conteo de ocurrencias)
+            $tecnicasTexto = $generateAggregatedHtmlList($group, 'tecnicas', 'nombre', null, 'Sin técnicas');
+            $fibrasTexto = $generateAggregatedHtmlList($group, 'fibras', 'nombre', null, 'Sin fibras');
+
+            // Campos directos, con fallback y sanitización
+            $op = htmlspecialchars($first->op ?? 'N/A', ENT_QUOTES, 'UTF-8');
+            $estilo = htmlspecialchars($first->estilo ?? 'N/A', ENT_QUOTES, 'UTF-8');
+            $color = htmlspecialchars($first->color ?? 'N/A', ENT_QUOTES, 'UTF-8');
+
+            // Suma de cantidad, asegurando que solo se sumen números
+            $totalCantidad = $group->sum(function($item) {
+                return isset($item->cantidad) && is_numeric($item->cantidad) ? $item->cantidad : 0;
+            });
 
             return [
-                'op'                => $first->op,
+                'op'                => $op,
                 'panel'             => $panelesTexto,
                 'maquina'           => $maquinasTexto,
                 'tecnicas'          => $tecnicasTexto,
                 'fibras'            => $fibrasTexto,
                 'grafica'           => $graficasTexto,
                 'cliente'           => $clientesTexto,
-                'estilo'            => $first->estilo,
-                'color'             => $first->color,
+                'estilo'            => $estilo,
+                'color'             => $color,
                 'tecnico_screen'    => $tecnicosTexto,
-                'cantidad'          => $totalCantidad,
+                'cantidad'          => $totalCantidad, // Es un número
                 'defectos'          => $defectosTexto,
-                'accion_correctiva' => $accionesCorrectivasTexto
+                'accion_correctiva' => $accionesCorrectivasTexto,
             ];
-        })->values(); // values() para reindexar el array
+        })->values(); // values() para reindexar el array y asegurar que sea una lista JSON
 
         return response()->json($result);
     }

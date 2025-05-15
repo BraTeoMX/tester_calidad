@@ -7,7 +7,7 @@
             <div class="card-header card-header-primary">
                 <div class="row">
                     <div class="col-md-9">
-                        <h3 class="card-title">Screen 1</h3>
+                        <h3 class="card-title">Screen </h3>
                     </div>
                     <div class="col-md-3 text-right">
                         Fecha: {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
@@ -362,6 +362,11 @@
     
         // Modificada para aceptar y enviar la fecha, e integrar DataTables
         function cargarRegistros(fecha) {
+            // 1. Destruir la instancia de DataTable si existe
+            // Esto es crucial para que la tabla se actualice correctamente con nuevos datos y configuraciones
+            if (tablaScreenInstance) {
+                tablaScreenInstance.destroy();
+            }
             // Limpiar el tbody y mostrar mensaje de carga específico para esta tabla
             $("#tabla-screen tbody").html('<tr><td colspan="13" class="text-center">Cargando registros para la fecha ' + fecha + '...</td></tr>');
     
@@ -399,7 +404,6 @@
                     // 3. Inicializar DataTables en la tabla #tabla-screen
                     tablaScreenInstance = $('#tabla-screen').DataTable({
                         responsive: true, // Para adaptabilidad en móviles
-                        destroy: true, // Para que se sobreescriba la instancia anterior
                         // Configuración del DOM de DataTables para incluir botones y otros elementos
                         // B = Buttons, l = length changing input, f = filtering input,
                         // r = processing display element, t = The table, i = Table information summary, p = pagination control
