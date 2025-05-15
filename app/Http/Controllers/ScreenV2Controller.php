@@ -25,6 +25,7 @@ use App\Models\Tecnicos;
 use App\Models\Tipo_Fibra;
 use App\Models\Tipo_Tecnica;
 use App\Models\Horno_Banda;
+use Illuminate\Support\Collection;
 
 class ScreenV2Controller extends Controller
 {
@@ -699,106 +700,112 @@ class ScreenV2Controller extends Controller
         $grouped = $inspecciones->groupBy('op');
 
         // Preparar los datos finales
-        $result = $grouped->map(function ($group) {
+        $result = $grouped->map(function (Collection $group) {
             // Tomamos el primer registro del grupo para campos comunes
             $first = $group->first();
 
             // Sumar la cantidad total de los registros del mismo "op"
-            $totalCantidad = $group->sum('plancha.piezas_auditadas');
+            $totalCantidad = $group->sum('plancha.piezas_auditadas'); // Se mantiene como suma numérica
 
-            // 🔹 Agrupar valores únicos en listas (sin cantidad)
-            $panelesTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('panel')->unique()->toArray())) . '</ul>';
+            // Función auxiliar para generar listas HTML o 'N/A'
+            $generateHtmlListOrNA = function (Collection $items, $pluckPath) {
+                $filteredItems = $items->pluck($pluckPath)
+                                    ->map(fn($item) => is_scalar($item) ? trim((string)$item) : null)
+                                    ->filter(fn($item) => $item !== null && $item !== '')
+                                    ->unique()
+                                    ->values() // Re-indexar para asegurar un array limpio
+                                    ->all();
+                if (empty($filteredItems)) {
+                    return 'N/A';
+                }
+                return '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", $filteredItems)) . '</ul>';
+            };
+            
+            $panelesTexto = $generateHtmlListOrNA($group, 'panel');
+            $maquinasTexto = $generateHtmlListOrNA($group, 'maquina');
+            $graficasTexto = $generateHtmlListOrNA($group, 'grafica');
+            $clientesTexto = $generateHtmlListOrNA($group, 'cliente');
+            $tecnicosTexto = $generateHtmlListOrNA($group, 'plancha.nombre_tecnico');
+            $accionesCorrectivasTexto = $generateHtmlListOrNA($group, 'plancha.accion_correctiva');
 
-            $maquinasTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('maquina')->unique()->toArray())) . '</ul>';
-
-            $graficasTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('grafica')->unique()->toArray())) . '</ul>';
-
-            $clientesTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('cliente')->unique()->toArray())) . '</ul>';
-
-            $tecnicosTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('plancha.nombre_tecnico')->unique()->toArray())) . '</ul>';
-
-            // 🔹 Agrupar acciones correctivas y evitar listas vacías
-            $accionesCorrectivasTexto = $group->pluck('plancha.accion_correctiva')->unique()->filter()->toArray();
-            $accionesCorrectivasTexto = count($accionesCorrectivasTexto) 
-                ? '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", $accionesCorrectivasTexto)) . '</ul>' 
-                : 'N/A';
 
             // Agrupar y sumar la cantidad de defectos por nombre
             $defectosAggregados = [];
             foreach ($group as $registro) {
                 if ($registro->plancha && $registro->plancha->defectos) {
                     foreach ($registro->plancha->defectos as $defecto) {
-                        $nombre = trim($defecto->nombre);
-                        $cantidadDefecto = $defecto->cantidad;  // Asumiendo que "cantidad" es un campo numérico
-                        if (isset($defectosAggregados[$nombre])) {
-                            $defectosAggregados[$nombre] += $cantidadDefecto;
-                        } else {
-                            $defectosAggregados[$nombre] = $cantidadDefecto;
+                        $nombre = trim($defecto->nombre ?? '');
+                        if (!empty($nombre)) { // Solo procesar si el nombre del defecto no está vacío
+                            $cantidadDefecto = $defecto->cantidad ?? 0; // Asumir 0 si la cantidad es null
+                            if (isset($defectosAggregados[$nombre])) {
+                                $defectosAggregados[$nombre] += $cantidadDefecto;
+                            } else {
+                                $defectosAggregados[$nombre] = $cantidadDefecto;
+                            }
                         }
                     }
                 }
             }
-            $defectosTexto = count($defectosAggregados) 
+            $defectosTexto = !empty($defectosAggregados)
                 ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($defectosAggregados), array_values($defectosAggregados))) . '</ul>' 
-                : 'Sin defectos';
+                array_keys($defectosAggregados), array_values($defectosAggregados))) . '</ul>'
+                : 'N/A';
 
-            //
-            // 🔹 Agrupar y contar técnicas
+
+            // Agrupar y contar técnicas
             $tecnicasAggregadas = [];
             foreach ($group as $registro) {
-                if ($registro->tecnicas) {
+                if ($registro->tecnicas) { // Asumiendo que 'tecnicas' es una relación (colección)
                     foreach ($registro->tecnicas as $tecnica) {
-                        $nombre = $tecnica->nombre;
-                        if (isset($tecnicasAggregadas[$nombre])) {
-                            $tecnicasAggregadas[$nombre]++;
-                        } else {
-                            $tecnicasAggregadas[$nombre] = 1;
+                        $nombre = trim($tecnica->nombre ?? '');
+                        if (!empty($nombre)) { // Solo procesar si el nombre de la técnica no está vacío
+                            if (isset($tecnicasAggregadas[$nombre])) {
+                                $tecnicasAggregadas[$nombre]++;
+                            } else {
+                                $tecnicasAggregadas[$nombre] = 1;
+                            }
                         }
                     }
                 }
             }
-            $tecnicasTexto = count($tecnicasAggregadas) 
+            $tecnicasTexto = !empty($tecnicasAggregadas)
                 ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
                 array_keys($tecnicasAggregadas), array_values($tecnicasAggregadas))) . '</ul>'
-                : 'Sin técnicas';
+                : 'N/A';
 
-            // 🔹 Agrupar y contar fibras
+            // Agrupar y contar fibras
             $fibrasAggregadas = [];
             foreach ($group as $registro) {
-                if ($registro->fibras) {
+                if ($registro->fibras) { // Asumiendo que 'fibras' es una relación (colección)
                     foreach ($registro->fibras as $fibra) {
-                        $nombre = $fibra->nombre;
-                        if (isset($fibrasAggregadas[$nombre])) {
-                            $fibrasAggregadas[$nombre]++;
-                        } else {
-                            $fibrasAggregadas[$nombre] = 1;
+                        $nombre = trim($fibra->nombre ?? '');
+                        if (!empty($nombre)) { // Solo procesar si el nombre de la fibra no está vacío
+                            if (isset($fibrasAggregadas[$nombre])) {
+                                $fibrasAggregadas[$nombre]++;
+                            } else {
+                                $fibrasAggregadas[$nombre] = 1;
+                            }
                         }
                     }
                 }
             }
-            $fibrasTexto = count($fibrasAggregadas) 
+            $fibrasTexto = !empty($fibrasAggregadas)
                 ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
                 array_keys($fibrasAggregadas), array_values($fibrasAggregadas))) . '</ul>'
-                : 'Sin fibras';
+                : 'N/A';
 
             return [
-                'op'                => $first->op,
+                'op'                => !empty(trim((string)($first->op ?? ''))) ? $first->op : 'N/A',
                 'panel'             => $panelesTexto,
                 'maquina'           => $maquinasTexto,
                 'tecnicas'          => $tecnicasTexto,
                 'fibras'            => $fibrasTexto,
                 'grafica'           => $graficasTexto,
                 'cliente'           => $clientesTexto,
-                'estilo'            => $first->estilo,
-                'color'             => $first->color,
+                'estilo'            => !empty(trim((string)($first->estilo ?? ''))) ? $first->estilo : 'N/A',
+                'color'             => !empty(trim((string)($first->color ?? ''))) ? $first->color : 'N/A',
                 'tecnico_screen'    => $tecnicosTexto,
-                'cantidad'          => $totalCantidad,
+                'cantidad'          => $totalCantidad, // Se mantiene como número
                 'defectos'          => $defectosTexto,
                 'accion_correctiva' => $accionesCorrectivasTexto
             ];
