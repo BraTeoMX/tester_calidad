@@ -1,67 +1,6 @@
 @extends('layouts.app', ['pageSlug' => 'kanban', 'titlePage' => __('kanban')])
 
 @section('content')
-    {{-- ... dentro de tu vista ... --}}
-    @if (session('error'))
-        <div class="alert alert-danger">
-            {{ session('error') }}
-        </div>
-    @endif
-    @if (session('success'))
-        <div class="alert alerta-exito">
-            {{ session('success') }}
-            @if (session('sorteo'))
-                <br>{{ session('sorteo') }}
-            @endif
-        </div>
-    @endif
-    @if (session('sobre-escribir'))
-        <div class="alert sobre-escribir">
-            {{ session('sobre-escribir') }}
-        </div>
-    @endif
-    @if (session('status'))
-        {{-- A menudo utilizado para mensajes de estado genéricos --}}
-        <div class="alert alert-secondary">
-            {{ session('status') }}
-        </div>
-    @endif
-    @if (session('cambio-estatus'))
-        <div class="alert cambio-estatus">
-            {{ session('cambio-estatus') }}
-        </div>
-    @endif
-    <style>
-        .alerta-exito {
-            background-color: #32CD32;
-            /* Color de fondo verde */
-            color: white;
-            /* Color de texto blanco */
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 20px;
-        }
-
-        .sobre-escribir {
-            background-color: #FF8C00;
-            /* Color de fondo verde */
-            color: white;
-            /* Color de texto blanco */
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 20px;
-        }
-
-        .cambio-estatus {
-            background-color: #800080;
-            /* Color de fondo verde */
-            color: white;
-            /* Color de texto blanco */
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 20px;
-        }
-    </style>
     {{-- ... el resto de tu vista ... --}}
     <div class="content">
         <div class="container-fluid">
@@ -153,7 +92,7 @@
 
             <div class="card">
                 <div class="card-header card-header-primary">
-                    <h3>Registros por dia - ordenes liberadas en AMP </h3>
+                    <h3>Registros por dia - ordenes liberadas en AMP</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -167,17 +106,16 @@
                                     <th>ESTILO</th>
                                     <th>ESTATUS</th>
                                     <th>COMENTARIOS</th>
-                                    <th>ACTUALIZAR</th>
                                     <th>FECHA DE LIBERACION</th>
                                     <th>FECHA DE PARCIAL</th>
                                     <th>FECHA DE RECHAZADO</th>
-                                    <th>Eliminar</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Se cargará vía AJAX -->
                             </tbody>
                         </table>
+                    </div>
+                    <div class="mt-3"> <button id="btn-actualizar-todo" class="btn btn-success">Guardar Cambios Masivos</button>
                     </div>
                 </div>
             </div>
@@ -463,7 +401,7 @@
                         const id = item.id;
                         // Si existen comentarios se crea un array a partir de la cadena,
                         // de lo contrario se usa un array vacío
-                        const comentarios = item.comentarios ? item.comentarios.split(',') : [];
+                        // const comentarios = item.comentarios ? item.comentarios.split(',') : []; // Ya no es necesario aquí directamente
 
                         tbody += `
                             <tr data-id="${id}">
@@ -484,15 +422,9 @@
                                     <select class="form-control select-comentario" id="selectComentario-${id}"></select>
                                     <div class="selected-options-container mt-2" id="selectedContainer-${id}"></div>
                                 </td>
-                                <td>
-                                    <button class="btn btn-info btn-sm btn-aplicar-cambios" data-id="${id}">Actualizar</button>
-                                </td>
                                 <td>${item.fecha_liberacion || ''}</td>
                                 <td>${item.fecha_parcial || ''}</td>
                                 <td>${item.fecha_rechazo || ''}</td>
-                                <td>
-                                    <button class="btn btn-danger btn-sm btn-eliminar" data-id="${id}">Eliminar</button>
-                                </td>
                             </tr>
                         `;
                     });
@@ -505,17 +437,20 @@
 
                         // Si existen comentarios, se separan y se agregan al contenedor de la fila
                         if (item.comentarios) {
-                            const lista = item.comentarios.split(',');
-                            lista.forEach(comentario => {
-                                if (comentario.trim() !== '') {
-                                    agregarComentarioFila(item.id, comentario.trim());
-                                }
-                            });
+                            const lista = typeof item.comentarios === 'string' ? item.comentarios.split(',') : item.comentarios; // Asegurar que sea iterable
+                            if (Array.isArray(lista)) {
+                                lista.forEach(comentario => {
+                                    if (comentario && comentario.trim() !== '') { // Verificar que comentario no sea null o undefined
+                                        agregarComentarioFila(item.id, comentario.trim());
+                                    }
+                                });
+                            }
                         }
                     });
                 },
                 error: function (xhr) {
                     console.error(xhr.responseText);
+                    // El colspan="10" ahora es correcto porque hemos eliminado 2 columnas
                     $('#tabla-registros-hoy tbody').html('<tr><td colspan="10" class="text-center text-danger">Error al cargar los registros.</td></tr>');
                 }
             });
@@ -523,11 +458,19 @@
 
         function inicializarSelect2Comentarios(idFila) {
             const select = $(`#selectComentario-${idFila}`);
-            const container = $(`#selectedContainer-${idFila}`);
-            comentariosSeleccionadosPorFila[idFila] = new Set();
+            // const container = $(`#selectedContainer-${idFila}`); // No se usa directamente aquí
+            
+            // Asegurar que el set se inicializa solo una vez o se limpia si es necesario
+            if (!comentariosSeleccionadosPorFila[idFila]) {
+                comentariosSeleccionadosPorFila[idFila] = new Set();
+            } else {
+                // Si se recargan los datos, es posible que quieras limpiar los comentarios antiguos 
+                // si no se manejan correctamente al agregar desde item.comentarios
+            }
+
 
             select.select2({
-                width: '100%', 
+                width: '100%',
                 placeholder: 'Selecciona un comentario',
                 templateResult: function (data) {
                     if (data.id === 'crear_comentario') {
@@ -556,7 +499,7 @@
                 const data = e.params.data;
 
                 if (data.id === 'crear_comentario') {
-                    select.val(null).trigger('change');
+                    select.val(null).trigger('change'); // Limpiar la selección del select2
 
                     const nuevoComentario = prompt('Escribe el nuevo comentario:');
                     if (!nuevoComentario || nuevoComentario.trim() === '') {
@@ -577,29 +520,39 @@
                                 agregarComentarioFila(idFila, nombre);
                             }
                             alert('Comentario creado correctamente');
+                            // No es necesario recargar toda la tabla, solo actualizar este select si fuera necesario
+                            // o simplemente añadirlo visualmente, lo cual ya hace agregarComentarioFila
                         },
                         error: function (xhr) {
                             console.error(xhr.responseText);
                             alert('Error al crear el comentario');
                         }
                     });
-
                     return;
                 }
 
-                if (!comentariosSeleccionadosPorFila[idFila].has(data.id)) {
+                // Solo agregar si no es la opción de "crear" y no existe ya
+                if (data.id && data.id !== 'crear_comentario' && !comentariosSeleccionadosPorFila[idFila].has(data.id)) {
                     agregarComentarioFila(idFila, data.id);
                 }
-
-                select.val(null).trigger('change');
+                select.val(null).trigger('change'); // Limpiar la selección del select2
             });
         }
 
         function agregarComentarioFila(idFila, texto) {
+            // Asegurar que el set para la fila existe
+            if (!comentariosSeleccionadosPorFila[idFila]) {
+                comentariosSeleccionadosPorFila[idFila] = new Set();
+            }
+            
+            // Evitar duplicados visuales y en el Set
+            if (comentariosSeleccionadosPorFila[idFila].has(texto)) {
+                return; // Ya existe, no hacer nada
+            }
+
             const container = $(`#selectedContainer-${idFila}`);
             const div = $(`
-                <div class="selected-option d-flex align-items-center justify-content-between border rounded p-2 mb-1" data-id="${texto}">
-                    <span class="option-text flex-grow-1 mx-2">${texto}</span>
+                <div class="selected-option d-flex align-items-center justify-content-between border rounded p-2 mb-1" data-texto="${texto}"> <span class="option-text flex-grow-1 mx-2">${texto}</span>
                     <button type="button" class="btn btn-danger btn-sm remove-option">Eliminar</button>
                 </div>
             `);
@@ -616,61 +569,96 @@
         $(document).ready(function () {
             cargarRegistrosHoy();
 
-            // Evento para eliminar registro
-            $('#tabla-registros-hoy').on('click', '.btn-eliminar', function () {
-                const id = $(this).data('id');
+            // Evento para el botón de actualización masiva
+            $('#btn-actualizar-todo').on('click', function () {
+                const registrosParaActualizar = [];
+                let alMenosUnCambio = false; // Para verificar si hay algo que enviar
 
-                if (!confirm('¿Estás seguro de eliminar este registro?')) return;
+                // Iterar sobre cada fila del tbody
+                $('#tabla-registros-hoy tbody tr').each(function () {
+                    const fila = $(this);
+                    const id = fila.data('id'); // Obtener el ID del atributo data-id de la fila
+
+                    // Asegurarse de que la fila tenga un ID (evitar filas de mensajes como "cargando..." o "error")
+                    if (id === undefined || id === null) {
+                        return; // Saltar esta iteración si no hay ID
+                    }
+
+                    const accion = fila.find('.select-accion').val();
+                    const comentariosArray = comentariosSeleccionadosPorFila[id] ? Array.from(comentariosSeleccionadosPorFila[id]) : [];
+
+                    // Solo incluir registros que tengan una acción seleccionada
+                    // o si quieres enviar todos los registros independientemente de si cambió el estatus,
+                    // puedes quitar esta condición `if (accion)` o ajustarla.
+                    // Por ahora, solo enviaremos los que tienen un estatus definido.
+                    if (accion) {
+                        registrosParaActualizar.push({
+                            id: id,
+                            accion: accion, // 'estatus' en el backend
+                            comentarios: comentariosArray
+                        });
+                        alMenosUnCambio = true;
+                    } else {
+                        // Opcional: si quieres también enviar registros sin acción pero con comentarios nuevos.
+                        // if (comentariosArray.length > 0) {
+                        //     registrosParaActualizar.push({
+                        //         id: id,
+                        //         accion: null, // O el estatus actual si lo puedes obtener
+                        //         comentarios: comentariosArray
+                        //     });
+                        //    alMenosUnCambio = true;
+                        // }
+                    }
+                });
+
+                if (!alMenosUnCambio) {
+                    alert('No hay cambios para actualizar. Selecciona un estatus en al menos un registro.');
+                    return;
+                }
+
+                if (!confirm('¿Estás seguro de que deseas actualizar los registros seleccionados masivamente?')) {
+                    return;
+                }
+
+                // Deshabilitar botón para evitar múltiples envíos
+                $(this).prop('disabled', true).text('Procesando...');
 
                 $.ajax({
-                    url: '{{ route("kanban.eliminar") }}',
+                    url: '{{ route("kanban.actualizarMasivo") }}', // NUEVA RUTA que necesitarás crear en Laravel
                     method: 'POST',
-                    data: { id: id },
+                    data: {
+                        registros: registrosParaActualizar // Enviamos el array de registros
+                    },
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
                     success: function (response) {
-                        alert(response.mensaje);
-                        cargarRegistrosHoy();
+                        alert(response.mensaje || 'Registros actualizados correctamente.');
+                        cargarRegistrosHoy(); // Recargar la tabla para ver los cambios
                     },
                     error: function (xhr) {
                         console.error(xhr.responseText);
-                        alert('Error al eliminar el registro.');
-                    }
-                });
-            });
-
-            // Evento para aplicar cambios: actualiza el select de estatus y los comentarios (tomados del div)
-            $('#tabla-registros-hoy').on('click', '.btn-aplicar-cambios', function () {
-                const fila = $(this).closest('tr');
-                const id = fila.data('id');
-                const accion = fila.find('.select-accion').val();
-
-                if (!accion) {
-                    alert('Selecciona una acción válida');
-                    return;
-                }
-
-                const comentarios = Array.from(comentariosSeleccionadosPorFila[id]);
-
-                $.ajax({
-                    url: '{{ route("kanban.actualizar") }}',
-                    method: 'POST',
-                    data: {
-                        id: id,
-                        accion: accion,
-                        comentarios: comentarios
+                        let errorMsg = 'Error al actualizar los registros.';
+                        if (xhr.responseJSON && xhr.responseJSON.mensaje) {
+                            errorMsg = xhr.responseJSON.mensaje;
+                        } else if(xhr.responseJSON && xhr.responseJSON.errors){
+                            // Si Laravel devuelve errores de validación específicos
+                            try {
+                                const errors = xhr.responseJSON.errors;
+                                let messages = [];
+                                for(const key in errors){
+                                    messages.push(errors[key].join("\n"));
+                                }
+                                errorMsg = messages.join("\n");
+                            } catch (e) {
+                                // No hacer nada, usar el mensaje genérico
+                            }
+                        }
+                        alert(errorMsg);
                     },
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    success: function (res) {
-                        alert(res.mensaje);
-                        cargarRegistrosHoy();
-                    },
-                    error: function (xhr) {
-                        console.error(xhr.responseText);
-                        alert('Error al actualizar');
+                    complete: function() {
+                        // Volver a habilitar el botón
+                        $('#btn-actualizar-todo').prop('disabled', false).text('Guardar Cambios Masivos');
                     }
                 });
             });

@@ -545,6 +545,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/kanban/eliminar', [AuditoriaKanBanController::class, 'eliminar'])->name('kanban.eliminar');
     Route::get('/kanban/check-actualizacion', [AuditoriaKanBanController::class, 'checkActualizacionesKanban'])->name('kanban.check-actualizacion');
     Route::get('/kanban/buscar-op', [AuditoriaKanBanController::class, 'buscarPorOP'])->name('kanban.buscar.op');
+    Route::post('/kanban/actualizar-masivo', [AuditoriaKanBanController::class, 'actualizarMasivo'])->name('kanban.actualizarMasivo');
 
 
     //Seccion bultos no finalizados

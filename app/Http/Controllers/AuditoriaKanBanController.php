@@ -247,6 +247,97 @@ class AuditoriaKanBanController extends Controller
         return response()->json(['mensaje' => 'Registro actualizado correctamente']);
     }
 
+    public function actualizarMasivo(Request $request)
+    {
+        $registros = $request->input('registros', []);
+        $errores = [];
+        $actualizadosCorrectamente = 0;
+
+        if (empty($registros)) {
+            return response()->json(['mensaje' => 'No se proporcionaron registros para actualizar.'], 400);
+        }
+
+        // Opcional: Usar una transacción para asegurar que todo se actualice o nada.
+        // DB::beginTransaction();
+        // try {
+
+        foreach ($registros as $registroData) {
+            $kanban = ReporteKanban::find($registroData['id']);
+
+            if (!$kanban) {
+                $errores[] = "Registro con ID {$registroData['id']} no encontrado.";
+                continue; // Saltar al siguiente registro
+            }
+
+            // Actualizar campos del registro principal
+            $kanban->estatus = $registroData['accion']; // 'accion' viene del frontend
+
+            // Reiniciar fechas antes de asignar la nueva basada en el estatus
+            $kanban->fecha_liberacion = null;
+            $kanban->fecha_parcial    = null;
+            $kanban->fecha_rechazo    = null;
+
+            if ($kanban->estatus == '1') { // Aceptado
+                $kanban->fecha_liberacion = now();
+            } elseif ($kanban->estatus == '2') { // Parcial
+                $kanban->fecha_parcial = now();
+            } elseif ($kanban->estatus == '3') { // Rechazado
+                $kanban->fecha_rechazo = now();
+            }
+            // Si el estatus es vacío o null y no quieres cambiar la fecha, esta lógica está bien.
+            // Si un estatus vacío/null debe limpiar las fechas, ya está cubierto por el reinicio.
+
+            $kanban->save();
+
+            // Manejo de comentarios (similar a tu función original)
+            $comentariosNuevos = $registroData['comentarios'] ?? []; // Comentarios enviados para este registro
+
+            $comentariosExistentes = ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)
+                ->pluck('nombre')
+                ->toArray();
+
+            // Comentarios para eliminar
+            $paraEliminar = array_diff($comentariosExistentes, $comentariosNuevos);
+            if (!empty($paraEliminar)) {
+                ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)
+                    ->whereIn('nombre', $paraEliminar)
+                    ->delete();
+            }
+
+            // Comentarios para agregar
+            $paraAgregar = array_diff($comentariosNuevos, $comentariosExistentes);
+            foreach ($paraAgregar as $comentarioNombre) {
+                if (!empty($comentarioNombre)) { // Asegurarse de no guardar comentarios vacíos
+                    $comentarioKanban = new ReporteKanbanComentario();
+                    $comentarioKanban->reporte_kanban_id = $kanban->id;
+                    $comentarioKanban->nombre = $comentarioNombre;
+                    $comentarioKanban->save();
+                }
+            }
+            $actualizadosCorrectamente++;
+        }
+
+        //     DB::commit();
+        //     return response()->json([
+        //         'mensaje' => "Actualización masiva completada. {$actualizadosCorrectamente} registros procesados.",
+        //         'errores' => $errores // Enviar lista de errores si los hubo
+        //     ]);
+        // } catch (\Exception $e) {
+        //     DB::rollBack();
+        //     Log::error('Error en actualización masiva: ' . $e->getMessage());
+        //     return response()->json(['mensaje' => 'Ocurrió un error durante la actualización masiva.'], 500);
+        // }
+
+        // Sin transacción:
+        if (!empty($errores)) {
+            return response()->json([
+                'mensaje' => "Actualización masiva completada con algunos errores. {$actualizadosCorrectamente} registros procesados.",
+                'errores' => $errores
+            ], 207); // Multi-Status, o un 200 con detalle de errores
+        }
+
+        return response()->json(['mensaje' => "Actualización masiva completada. {$actualizadosCorrectamente} registros procesados."]);
+    }
 
     public function obtenerParciales(Request $request)
     {
@@ -277,9 +368,11 @@ class AuditoriaKanBanController extends Controller
     public function obtenerRegistrosHoy(Request $request)
     {
         $hoy = Carbon::today();
+        $dosDiasAtras = Carbon::today()->subDays(2);
 
         $registros = ReporteKanban::with('comentarios')
             ->whereDate('created_at', $hoy)
+            ->orWhereDate('created_at', $dosDiasAtras)
             ->get();
 
         $data = $registros->map(function ($registro) {
