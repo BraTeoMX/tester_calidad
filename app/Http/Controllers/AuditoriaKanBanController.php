@@ -278,22 +278,30 @@ class AuditoriaKanBanController extends Controller
 
                 // ---- INICIO DE LA LÓGICA DE OMISIÓN ----
                 $omitirEsteRegistro = false;
-                if ($nuevoEstatus === $kanban->estatus) { // El nuevo estatus es idéntico al actual
+
+                // Cambiar de === a == para la comparación principal entre el nuevo estado (string) y el actual (int/DB type)
+                if ($nuevoEstatus == $kanban->estatus) { 
+                    // Si entramos aquí, significa que '1' == 1 (true), o '2' == 2 (true), o '' == 0 (true, si así se guarda '' en DB) etc.
+                    // Ahora, la lógica interna sigue usando $nuevoEstatus (string) contra strings literales, lo cual está bien.
                     if ($nuevoEstatus === '1' && $kanban->fecha_liberacion !== null) {
                         $omitirEsteRegistro = true;
                     } elseif ($nuevoEstatus === '2' && $kanban->fecha_parcial !== null) {
                         $omitirEsteRegistro = true;
                     } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo !== null) {
                         $omitirEsteRegistro = true;
-                    } elseif ($nuevoEstatus === '' && $kanban->fecha_liberacion === null && $kanban->fecha_parcial === null && $kanban->fecha_rechazo === null) {
-                        // Si el nuevo estado es 'sin seleccionar' (vacío) y ya está así (sin fechas)
+                    } elseif ($nuevoEstatus === '' && // Si el nuevo estado es "sin seleccionar" (string vacío)
+                            $kanban->fecha_liberacion === null && 
+                            $kanban->fecha_parcial === null && 
+                            $kanban->fecha_rechazo === null) {
+                        // Y si kanban->estatus también representa un estado "vacío" (ej. 0, que es == a '')
+                        // y no hay fechas establecidas.
                         $omitirEsteRegistro = true;
                     }
                 }
 
                 if ($omitirEsteRegistro) {
                     $registrosOmitidos++;
-                    continue; // Saltar al siguiente registro, no se necesita actualizar
+                    continue; 
                 }
                 // ---- FIN DE LA LÓGICA DE OMISIÓN ----
 
@@ -378,7 +386,6 @@ class AuditoriaKanBanController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack(); // Revertir cambios en caso de error
-            Log::error("Error en actualización masiva: {$e->getMessage()} en {$e->getFile()}:{$e->getLine()}");
             // Agregar el error a la lista de errores para el usuario, si es apropiado
             $errores[] = "Error interno del servidor durante la actualización masiva. {$e->getMessage()}"; 
             return response()->json([
