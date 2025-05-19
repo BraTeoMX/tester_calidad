@@ -423,6 +423,22 @@ class AuditoriaKanBanController extends Controller
 
     public function obtenerRegistrosHoy() // Mantengo el nombre original por ahora
     {
+        $hoyCarbon = Carbon::today();
+        $diasARestar = 2; // Valor por defecto (ej. para Jueves, Viernes)
+
+        // Lógica para determinar cuántos días restar basado en el día de la semana
+        if ($hoyCarbon->isMonday()) {
+            // Lunes: subDays(4) para incluir desde el Jueves anterior (Jue, Vie, Sab, Dom)
+            $diasARestar = 4;
+        } elseif ($hoyCarbon->isTuesday()) {
+            // Martes: subDays(3) para incluir desde el Sábado anterior (Sab, Dom, Lun)
+            $diasARestar = 3;
+        } elseif ($hoyCarbon->isSunday()) {
+            // Domingo: subDays(3) para incluir desde el Viernes (Vie, Sab)
+            $diasARestar = 3;
+        }
+
+        $inicioRango = Carbon::today()->subDays($diasARestar)->startOfDay();
         // Fecha de inicio del rango: Hace 4 días a las 00:00:00
         $inicioRango = Carbon::today()->subDays(4)->startOfDay(); 
 
@@ -430,9 +446,23 @@ class AuditoriaKanBanController extends Controller
         $finRango = Carbon::today()->endOfDay();
 
         $registros = ReporteKanban::with('comentarios')
-            // Filtra los registros donde 'created_at' está entre $inicioRango y $finRango
+            // 1. Filtro principal: registros dentro del rango dinámico de fechas
             ->whereBetween('created_at', [$inicioRango, $finRango])
-            ->orderBy('created_at', 'asc') // Ordena los registros por fecha de creación
+            // 2. Filtro adicional para la lógica de omisión selectiva:
+            ->where(function ($query) use ($inicioRango) {
+                // Mantenemos un registro si CUMPLE ALGUNA de estas condiciones:
+                // a) El registro NO fue creado el día exacto de $inicioRango (es decir, es más reciente)
+                $query->whereDate('created_at', '!=', $inicioRango->toDateString())
+                      // b) O SI fue creado el día exacto de $inicioRango, PERO todas sus fechas de estado son NULL
+                      //    (es decir, aún no ha sido procesado/completado)
+                      ->orWhere(function ($subQuery) use ($inicioRango) {
+                          $subQuery->whereDate('created_at', $inicioRango->toDateString())
+                                   ->whereNull('fecha_liberacion')
+                                   ->whereNull('fecha_parcial')
+                                   ->whereNull('fecha_rechazo');
+                      });
+            })
+            ->orderBy('created_at', 'asc')
             ->get();
 
         $data = $registros->map(function ($registro) {
