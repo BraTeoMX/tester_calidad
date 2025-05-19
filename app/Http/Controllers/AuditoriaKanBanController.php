@@ -365,14 +365,18 @@ class AuditoriaKanBanController extends Controller
         return response()->json(['mensaje' => 'Registro liberado correctamente.']);
     }
 
-    public function obtenerRegistrosHoy(Request $request)
+    public function obtenerRegistrosHoy() // Mantengo el nombre original por ahora
     {
-        $hoy = Carbon::today();
-        $dosDiasAtras = Carbon::today()->subDays(2);
+        // Fecha de inicio del rango: Hace 4 días a las 00:00:00
+        $inicioRango = Carbon::today()->subDays(4)->startOfDay(); 
+
+        // Fecha de fin del rango: Hoy a las 23:59:59
+        $finRango = Carbon::today()->endOfDay();
 
         $registros = ReporteKanban::with('comentarios')
-            ->whereDate('created_at', $hoy)
-            ->orWhereDate('created_at', $dosDiasAtras)
+            // Filtra los registros donde 'created_at' está entre $inicioRango y $finRango
+            ->whereBetween('created_at', [$inicioRango, $finRango])
+            ->orderBy('created_at', 'asc') // Ordena los registros por fecha de creación
             ->get();
 
         $data = $registros->map(function ($registro) {
@@ -380,17 +384,15 @@ class AuditoriaKanBanController extends Controller
                 'fecha_corte'    => $registro->fecha_corte
                     ? Carbon::parse($registro->fecha_corte)->format('Y-m-d H:i')
                     : 'N/A',
-                'fecha_almacen'    => $registro->fecha_almacen
+                'fecha_almacen'  => $registro->fecha_almacen
                     ? Carbon::parse($registro->fecha_almacen)->format('Y-m-d H:i')
                     : 'N/A',
-                'op'               => $registro->op ?? 'N/A',
-                'cliente'          => $registro->cliente ?? 'N/A',
-                'estilo'           => $registro->estilo ?? 'N/A',
-                // Retornamos el valor real de estatus (1,2,3) o vacío para que el select muestre "Selecciona"
-                'estatus'          => $registro->estatus ?? '',
-                // Retornamos los comentarios como cadena separada por coma  
-                'comentarios'      => $registro->comentarios->pluck('nombre')->implode(','),
-                'fecha_parcial'    => $registro->fecha_parcial
+                'op'             => $registro->op ?? 'N/A',
+                'cliente'        => $registro->cliente ?? 'N/A',
+                'estilo'         => $registro->estilo ?? 'N/A',
+                'estatus'        => $registro->estatus ?? '',
+                'comentarios'    => $registro->comentarios->pluck('nombre')->implode(','),
+                'fecha_parcial'  => $registro->fecha_parcial
                     ? Carbon::parse($registro->fecha_parcial)->format('Y-m-d H:i')
                     : 'N/A',
                 'fecha_liberacion' => $registro->fecha_liberacion
@@ -399,7 +401,8 @@ class AuditoriaKanBanController extends Controller
                 'fecha_rechazo' => $registro->fecha_rechazo
                     ? Carbon::parse($registro->fecha_rechazo)->format('Y-m-d H:i')
                     : 'N/A',
-                'id'               => $registro->id,
+                'id'             => $registro->id,
+                'created_at_debug' => $registro->created_at->format('Y-m-d H:i:s') // Para depuración
             ];
         });
 
