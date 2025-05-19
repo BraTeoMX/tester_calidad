@@ -660,6 +660,18 @@
             width: 100% !important;
         }
     </style>
+    <style>
+
+        tr.paro-advertencia td {
+            background-color: #59470F !important; /* Amarillo mostaza oscuro */
+            color: #F0F0F0 !important; /* Texto claro para contraste */
+        }
+
+        tr.paro-critico td {
+            background-color: #5D1A1A !important; /* Rojo sangre oscuro */
+            color: #F0F0F0 !important; /* Texto claro para contraste */
+        }
+    </style>
 
     <!-- Si ya existe un comentario, deshabilitamos el textarea y el botón -->
     @if(isset($observacion) && !empty($observacion))
@@ -1365,26 +1377,58 @@
                 let totalRechazadaGeneral = 0;
 
                 if (!registros || registros.length === 0) {
-                    tbodyElement.append(`<tr><td colspan="10" class="text-center">No hay registros disponibles para el tipo '${tipo}'</td></tr>`);
+                    tbodyElement.append(`<tr><td colspan="10" class="text-center">No hay registros disponibles para el tipo '${tipo}'</td></tr>`); // Ajusta colspan si es necesario
                 } else {
+                    const ahora = new Date(); // Obtener la hora actual una vez fuera del bucle para eficiencia
+
                     $.each(registros, function (index, registro) {
                         let paroHtml = "-";
-                        if (registro.inicio_paro) {
-                            if (registro.fin_paro) {
-                                paroHtml = registro.minutos_paro !== null ? registro.minutos_paro : 'Calculando...';
-                            } else {
-                                let urlFinalizarParo = `/auditoriaProcesoV3/registro/finalizar-paro/${registro.id}`;
-                                paroHtml = `<button class="btn btn-primary btn-sm fin-paro-btn" data-id="${registro.id}" data-url="${urlFinalizarParo}" data-tipo="${tipo}">
-                                                Fin Paro Proceso
-                                            </button>`;
+                        let claseFilaAdicional = ''; // Variable para la clase de resaltado de la fila
+
+                        // Determinar si el paro está activo y calcular resaltado
+                        // Un paro está activo si ha iniciado (registro.inicio_paro es true/tiene valor)
+                        // Y no ha finalizado (!registro.fin_paro es true / registro.fin_paro es null/undefined)
+                        const paroEstaActivo = registro.inicio_paro && !registro.fin_paro;
+
+                        if (paroEstaActivo) {
+                            // El paro está activo, se mostrará el botón "Fin Paro Proceso"
+                            let urlFinalizarParo = `/auditoriaProcesoV3/registro/finalizar-paro/${registro.id}`;
+                            paroHtml = `<button class="btn btn-primary btn-sm fin-paro-btn" data-id="${registro.id}" data-url="${urlFinalizarParo}" data-tipo="${tipo}">
+                                            Fin Paro Proceso
+                                        </button>`;
+
+                            // Calcular diferencia de tiempo basada en registro.created_at
+                            if (registro.created_at) {
+                                const horaCreacionRegistro = new Date(registro.created_at);
+                                if (!isNaN(horaCreacionRegistro.getTime())) { // Verificar que la fecha sea válida
+                                    const diffMs = ahora.getTime() - horaCreacionRegistro.getTime();
+                                    const diffMins = Math.floor(diffMs / 60000); // Convertir milisegundos a minutos
+
+                                    if (diffMins >= 10 && diffMins <= 15) {
+                                        claseFilaAdicional = 'paro-advertencia'; // Amarillo oscuro
+                                    } else if (diffMins > 15) {
+                                        claseFilaAdicional = 'paro-critico';   // Rojo oscuro
+                                    }
+                                } else {
+                                    console.warn(`Fecha created_at inválida para el registro ID: ${registro.id}`, registro.created_at);
+                                }
                             }
+                        } else if (registro.inicio_paro && registro.fin_paro) {
+                            // El paro inició y ya finalizó, mostrar duración
+                            paroHtml = registro.minutos_paro !== null ? registro.minutos_paro : 'Calculando...';
                         }
-                        // *** CORRECCIÓN AQUÍ: URL para eliminar ***
-                        // La ruta en Laravel es /auditoriaProcesoV3/registro/{id} con método DELETE
+                        // Si el paro nunca inició (else implícito), paroHtml sigue siendo "-" y no hay resaltado.
+
+
+                        // URL para eliminar (manteniendo la estructura que tienes)
+                        // Asegúrate que esta URL coincida con tu definición de ruta en Laravel: DELETE /auditoriaProcesoV3/registro/eliminar/{id}
                         let urlEliminar = `/auditoriaProcesoV3/registro/eliminar/${registro.id}`;
 
+                        // Construir la fila HTML, añadiendo la clase de resaltado si aplica
+                        // Nota el colspan="10" en la primera celda si no hay registros, ajusta el número de columnas de tus datos.
+                        // Aquí asumimos que tienes 10 columnas de datos (paro, nombre, operacion, ..., hora).
                         let fila = `
-                            <tr>
+                            <tr class="${claseFilaAdicional}">
                                 <td>${paroHtml}</td>
                                 <td><input type="text" class="form-control texto-blanco" value="${registro.nombre || ''}" readonly></td>
                                 <td><input type="text" class="form-control texto-blanco" value="${registro.operacion || ''}" readonly></td>
@@ -1402,6 +1446,7 @@
                             </tr>`;
                         tbodyElement.append(fila);
 
+                        // --- Calcular estadísticas ---
                         totalAuditadaGeneral += parseInt(registro.cantidad_auditada) || 0;
                         totalRechazadaGeneral += parseInt(registro.cantidad_rechazada) || 0;
 
@@ -1415,6 +1460,7 @@
                         }
                     });
                 }
+
                 fnActualizarIndividual(registrosAgrupados);
                 fnActualizarGeneral(totalAuditadaGeneral, totalRechazadaGeneral);
             }
