@@ -1600,7 +1600,7 @@
                     const modulo = $('#paros-container').data('modulo');
         
                     $.ajax({
-                        url: '/api/paros-no-finalizados',  // Nuevo endpoint para paros no finalizados
+                        url: '/auditoriaProcesoV3/registro/paros-no-finalizados',  // Nuevo endpoint para paros no finalizados
                         method: 'GET',
                         data: { modulo: modulo }, 
                         beforeSend: function () {
@@ -1613,8 +1613,8 @@
                                         <table class="table table-striped table-hover">
                                             <thead class="thead-primary">
                                                 <tr>
-                                                    <th>Paro</th>
                                                     <th>Nombre</th>
+                                                    <th>Operacion</th>
                                                     <th>Inicio Paro</th>
                                                     <th>Acción</th>
                                                 </tr>
@@ -1624,20 +1624,11 @@
                                 response.forEach(item => {
                                     // Para cada registro, si fin_paro es nulo, se muestra botón para finalizar
                                     let paroHtml = "";
-                                    if (item.inicio_paro === null) {
-                                        paroHtml = "-";
-                                    } else if (item.fin_paro !== null) {
-                                        paroHtml = item.minutos_paro;
-                                    } else {
-                                        paroHtml = `<button class="btn btn-primary btn-sm finalizar-paro" data-id="${item.id}">
-                                                        Finalizar Paro Pendiente
-                                                    </button>`;
-                                    }
         
                                     contenido += `
                                         <tr>
-                                            <td>${paroHtml}</td>
                                             <td>${item.nombre}</td>
+                                            <td>${item.operacion}</td>
                                             <td>${item.inicio_paro}</td>
                                             <td>
                                                 <button class="btn btn-danger btn-sm finalizar-paro" data-id="${item.id}">
@@ -1677,7 +1668,7 @@
                 $('body').append(spinnerHtml);
         
                 $.ajax({
-                    url: '/api/finalizar-paro-proceso-despues', // Nuevo endpoint (ver sección de Controller)
+                    url: '/auditoriaProcesoV3/registro/finalizar-paro-proceso-despues', // Nuevo endpoint (ver sección de Controller)
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                     data: { id: id }, // Ya no se envían piezas reparadas

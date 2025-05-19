@@ -467,7 +467,7 @@ class AuditoriaProcesoV3Controller extends Controller
         try {
             // Convertir JSON recibido a un array asociativo
             $datosFormulario = $request->json()->all();
-            Log::info("Datos recibidos en el controlador:", $datosFormulario);
+            //Log::info("Datos recibidos en el controlador:", $datosFormulario);
 
             // Si no hay piezas rechazadas, limpiar 'ac' y 'tp'
             if ($datosFormulario['auditoria'][0]['cantidad_rechazada'] == 0) {
@@ -592,7 +592,7 @@ class AuditoriaProcesoV3Controller extends Controller
             // Validación básica del módulo
             if (empty($modulo)) {
                  // Devuelve arrays vacíos si no hay módulo, para que el JS no falle
-                 Log::warning('Intento de obtenerListaProcesos sin especificar módulo.');
+                 //Log::warning('Intento de obtenerListaProcesos sin especificar módulo.');
                  return response()->json([
                     'registrosNormales' => [],
                     'registrosExtras' => [],
@@ -689,7 +689,7 @@ class AuditoriaProcesoV3Controller extends Controller
 
     public function eliminarRegistroGeneral($id) // MODIFICADO: Recibe $id directamente
     {
-        Log::info('Intentando eliminar registro con ID:', ['id' => $id]); // Log para verificar llegada
+        //Log::info('Intentando eliminar registro con ID:', ['id' => $id]); // Log para verificar llegada
 
         try {
             // Encuentra el registro por ID. Cambia 'AseguramientoCalidad' por tu modelo real si es diferente.
@@ -701,7 +701,7 @@ class AuditoriaProcesoV3Controller extends Controller
                 return response()->json(['error' => 'Registro no encontrado.'], 404);
             }
 
-            Log::info('Registro encontrado:', ['registro_data' => $registro->toArray()]); // Log de datos del registro
+            //Log::info('Registro encontrado:', ['registro_data' => $registro->toArray()]); // Log de datos del registro
 
             // Verificar si el registro tiene un estatus que impida su eliminación
             // Ajusta 'estatus' al nombre real del campo en tu modelo si es diferente.
@@ -713,7 +713,7 @@ class AuditoriaProcesoV3Controller extends Controller
             }
 
             $registro->delete(); // Eliminar el registro de la base de datos
-            Log::info('Registro eliminado correctamente:', ['id' => $id]);
+            //Log::info('Registro eliminado correctamente:', ['id' => $id]);
 
             return response()->json(['message' => 'Registro eliminado correctamente.'], 200);
 
