@@ -212,6 +212,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/auditoriaProcesoV3/registro/crear_defectos', [AuditoriaProcesoV3Controller::class, 'crearDefecto'])->name('procesoV3.registro.crearDefecto');
     Route::post('/auditoriaProcesoV3/registro/formRegistro', [AuditoriaProcesoV3Controller::class, 'formRegistro'])->name('procesoV3.registro.formRegistro');
     Route::get('/auditoriaProcesoV3/registro/obtenerRegistroDia', [AuditoriaProcesoV3Controller::class, 'obtenerRegistroDia'])->name('procesoV3.registro.obtenerRegistroDia');
+    Route::delete('/auditoriaProcesoV3/registro/eliminar/{id}', [AuditoriaProcesoV3Controller::class, 'eliminarRegistroGeneral'])->name('procesoV3.registro.eliminar');
+    Route::post('/auditoriaProcesoV3/registro/finalizar-paro/{id}', [AuditoriaProcesoV3Controller::class, 'finalizarParoGeneral'])->name('procesoV3.registro.finalizarParo');
+
 
 
 

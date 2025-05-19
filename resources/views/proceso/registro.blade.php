@@ -1300,96 +1300,89 @@
 
     <script>
         $(document).ready(function () {
-        
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
             // --- FUNCIÓN ÚNICA PARA CARGAR AMBAS TABLAS ---
             window.cargarTablasRegistros = function() {
-                let modulo = $("#modulo").val(); // Asegúrate que este selector exista y tenga valor
-        
+                let modulo = $("#modulo").val();
+
                 if (!modulo) {
                     console.warn("Módulo no seleccionado.");
-                    // Limpiar tablas y mostrar mensaje
-                    $("#registros-turno-normal tbody").html('<tr><td colspan="10" class="text-center">Seleccione un módulo</td></tr>'); // Ajusta colspan si es necesario
+                    $("#registros-turno-normal tbody").html('<tr><td colspan="10" class="text-center">Seleccione un módulo</td></tr>');
                     $("#registros-turno-extra tbody").html('<tr><td colspan="10" class="text-center">Seleccione un módulo</td></tr>');
-                    // Limpiar stats
                     actualizarTablaIndividualNormal({});
                     actualizarTotalGeneralNormal(0, 0);
                     actualizarTablaIndividualExtra({});
                     actualizarTotalGeneralExtra(0, 0);
                     return;
                 }
-        
-                // Mostrar algún indicador de carga (opcional)
-                // $("#loadingIndicator").show();
-        
+
+                // $("#loadingIndicator").show(); // Opcional: indicador de carga
+
                 $.ajax({
-                    url: "{{ route('procesoV3.registro.obtenerRegistroDia') }}", // *** USA LA NUEVA RUTA V3 ***
+                    url: "{{ route('procesoV3.registro.obtenerRegistroDia') }}", // Ruta de Laravel para obtener datos
                     type: "GET",
                     data: { modulo: modulo },
                     dataType: "json",
                     success: function (response) {
-                        // Llama a la función para poblar la tabla normal
                         popularTabla(
-                            response.registrosNormales || [], // Asegura que sea un array
+                            response.registrosNormales || [],
                             $("#registros-turno-normal tbody"),
-                            actualizarTablaIndividualNormal, // Función para actualizar stats individuales normales
-                            actualizarTotalGeneralNormal,   // Función para actualizar stats generales normales
-                            'normal'                        // Identificador de tipo
+                            actualizarTablaIndividualNormal,
+                            actualizarTotalGeneralNormal,
+                            'normal'
                         );
-        
-                        // Llama a la función para poblar la tabla extra
                         popularTabla(
-                            response.registrosExtras || [],  // Asegura que sea un array
+                            response.registrosExtras || [],
                             $("#registros-turno-extra tbody"),
-                            actualizarTablaIndividualExtra, // Función para actualizar stats individuales extras
-                            actualizarTotalGeneralExtra,   // Función para actualizar stats generales extras
-                            'extra'                         // Identificador de tipo
+                            actualizarTablaIndividualExtra,
+                            actualizarTotalGeneralExtra,
+                            'extra'
                         );
                     },
                     error: function (xhr) {
                         console.error("Error AJAX al cargar registros:", xhr.status, xhr.responseText);
                         $("#registros-turno-normal tbody").html('<tr><td colspan="10" class="text-center">Error al cargar datos</td></tr>');
                         $("#registros-turno-extra tbody").html('<tr><td colspan="10" class="text-center">Error al cargar datos</td></tr>');
-                        alert("Error al cargar los registros. Intente de nuevo.");
+                        Swal.fire('Error', 'Error al cargar los registros. Intente de nuevo.', 'error');
                     },
                     complete: function() {
-                        // Ocultar indicador de carga (opcional)
-                        // $("#loadingIndicator").hide();
+                        // $("#loadingIndicator").hide(); // Opcional
                     }
                 });
             }
-        
+
             // --- FUNCIÓN HELPER REUTILIZABLE PARA POBLAR UNA TABLA Y CALCULAR STATS ---
             function popularTabla(registros, tbodyElement, fnActualizarIndividual, fnActualizarGeneral, tipo) {
-                tbodyElement.empty(); // Limpiar tabla específica
-        
+                tbodyElement.empty();
+
                 let registrosAgrupados = {};
                 let totalAuditadaGeneral = 0;
                 let totalRechazadaGeneral = 0;
-        
+
                 if (!registros || registros.length === 0) {
-                    tbodyElement.append(`<tr><td colspan="10" class="text-center">No hay registros disponibles</td></tr>`); // Ajusta colspan
+                    tbodyElement.append(`<tr><td colspan="10" class="text-center">No hay registros disponibles para el tipo '${tipo}'</td></tr>`);
                 } else {
                     $.each(registros, function (index, registro) {
-                        // --- Lógica para construir la fila (similar a tu código original) ---
                         let paroHtml = "-";
                         if (registro.inicio_paro) {
                             if (registro.fin_paro) {
                                 paroHtml = registro.minutos_paro !== null ? registro.minutos_paro : 'Calculando...';
                             } else {
-                                // **Importante:** Definir URL para finalizar paro y eliminar
-                                // Es mejor si la ruta puede recibir el ID directamente
-                                let urlFinalizarParo = `/auditoriaProcesoV3/registro/${registro.id}/finalizar-paro`; // Ajusta si tu ruta es diferente
-                                let urlEliminar = `/auditoriaProcesoV3/registro/${registro.id}`; // Ajusta si tu ruta es diferente
-        
+                                let urlFinalizarParo = `/auditoriaProcesoV3/registro/finalizar-paro/${registro.id}`;
                                 paroHtml = `<button class="btn btn-primary btn-sm fin-paro-btn" data-id="${registro.id}" data-url="${urlFinalizarParo}" data-tipo="${tipo}">
                                                 Fin Paro Proceso
                                             </button>`;
                             }
                         }
-                        // Definir URL de eliminar incluso si no hay paro activo
-                        let urlEliminar = `/auditoriaProcesoV3/registro/${registro.id}`;
-        
-                        // Construir la fila HTML
+                        // *** CORRECCIÓN AQUÍ: URL para eliminar ***
+                        // La ruta en Laravel es /auditoriaProcesoV3/registro/{id} con método DELETE
+                        let urlEliminar = `/auditoriaProcesoV3/registro/eliminar/${registro.id}`;
+
                         let fila = `
                             <tr>
                                 <td>${paroHtml}</td>
@@ -1408,12 +1401,11 @@
                                 <td>${registro.created_at ? new Date(registro.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</td>
                             </tr>`;
                         tbodyElement.append(fila);
-        
-                        // --- Calcular estadísticas (en cliente, como solicitado) ---
+
                         totalAuditadaGeneral += parseInt(registro.cantidad_auditada) || 0;
                         totalRechazadaGeneral += parseInt(registro.cantidad_rechazada) || 0;
-        
-                        if (registro.nombre) { // Agrupar solo si hay nombre
+
+                        if (registro.nombre) {
                             if (!registrosAgrupados[registro.nombre]) {
                                 registrosAgrupados[registro.nombre] = { cantidad_registros: 0, total_auditada: 0, total_rechazada: 0 };
                             }
@@ -1423,30 +1415,25 @@
                         }
                     });
                 }
-        
-                // Llamar a las funciones de actualización de estadísticas correspondientes
                 fnActualizarIndividual(registrosAgrupados);
                 fnActualizarGeneral(totalAuditadaGeneral, totalRechazadaGeneral);
             }
-        
-            // --- FUNCIONES PARA ACTUALIZAR ESTADÍSTICAS (Tus funciones, adaptadas si es necesario) ---
+
+            // --- Tus funciones para actualizar estadísticas (sin cambios, asumiendo que funcionan) ---
             function actualizarTotalGeneralNormal(totalAuditada, totalRechazada) {
                 let porcentajeRechazo = totalAuditada > 0 ? ((totalRechazada / totalAuditada) * 100).toFixed(2) : "0.00";
-                $("#total_auditada_general").val(totalAuditada); // Asume que este ID es para Normal
-                $("#total_rechazada_general").val(totalRechazada); // Asume que este ID es para Normal
-                $("#total_porcentaje_general").val(porcentajeRechazo); // Asume que este ID es para Normal
+                $("#total_auditada_general").val(totalAuditada);
+                $("#total_rechazada_general").val(totalRechazada);
+                $("#total_porcentaje_general").val(porcentajeRechazo);
             }
             function actualizarTablaIndividualNormal(registrosAgrupados) {
-                let tbody = $(".table-total-individual tbody"); // Asume que esta clase es para Normal
+                let tbody = $(".table-total-individual tbody"); // Asegúrate que este selector sea único para la tabla normal
                 tbody.empty();
-                // ... (resto de tu lógica para llenar la tabla individual normal) ...
                 if (Object.keys(registrosAgrupados).length === 0) {
                     tbody.append(`<tr><td colspan="5" class="text-center">No hay datos disponibles</td></tr>`);
                 } else {
                     $.each(registrosAgrupados, function (nombre, data) {
-                        let porcentajeRechazado = data.total_auditada > 0
-                            ? ((data.total_rechazada / data.total_auditada) * 100).toFixed(2)
-                            : "0.00";
+                        let porcentajeRechazado = data.total_auditada > 0 ? ((data.total_rechazada / data.total_auditada) * 100).toFixed(2) : "0.00";
                         let fila = `
                             <tr>
                                 <td><input type="text" class="form-control texto-blanco" value="${nombre}" readonly></td>
@@ -1461,21 +1448,18 @@
             }
             function actualizarTotalGeneralExtra(totalAuditada, totalRechazada) {
                 let porcentajeRechazo = totalAuditada > 0 ? ((totalRechazada / totalAuditada) * 100).toFixed(2) : "0.00";
-                $("#total_auditada_general-tiempo-extra").val(totalAuditada); // ID específico para Extra
-                $("#total_rechazada_general-tiempo-extra").val(totalRechazada); // ID específico para Extra
-                $("#total_porcentaje_general-tiempo-extra").val(porcentajeRechazo); // ID específico para Extra
+                $("#total_auditada_general-tiempo-extra").val(totalAuditada);
+                $("#total_rechazada_general-tiempo-extra").val(totalRechazada);
+                $("#total_porcentaje_general-tiempo-extra").val(porcentajeRechazo);
             }
             function actualizarTablaIndividualExtra(registrosAgrupados) {
-                let tbody = $(".table-total-individual-tiempo-extra tbody"); // Clase específica para Extra
+                let tbody = $(".table-total-individual-tiempo-extra tbody"); // Asegúrate que este selector sea único para la tabla extra
                 tbody.empty();
-                // ... (resto de tu lógica para llenar la tabla individual extra) ...
                 if (Object.keys(registrosAgrupados).length === 0) {
                     tbody.append(`<tr><td colspan="5" class="text-center">No hay datos disponibles</td></tr>`);
                 } else {
                     $.each(registrosAgrupados, function (nombre, data) {
-                        let porcentajeRechazado = data.total_auditada > 0
-                            ? ((data.total_rechazada / data.total_auditada) * 100).toFixed(2)
-                            : "0.00";
+                        let porcentajeRechazado = data.total_auditada > 0 ? ((data.total_rechazada / data.total_auditada) * 100).toFixed(2) : "0.00";
                         let fila = `
                             <tr>
                                 <td><input type="text" class="form-control texto-blanco" value="${nombre}" readonly></td>
@@ -1488,56 +1472,54 @@
                     });
                 }
             }
-        
-        
-            // --- MANEJADORES DE EVENTOS DELEGADOS (para botones dentro de las tablas) ---
-            // Usamos clases genéricas y el atributo data-tipo si la acción necesita diferenciar
-        
-            // Finalizar Paro (Manejador único)
-            // Escucha en un contenedor estático que envuelva ambas tablas, o en document.body
+
+            // --- MANEJADORES DE EVENTOS DELEGADOS ---
             $(document.body).on("click", ".fin-paro-btn", function(e) {
                 e.preventDefault();
                 let boton = $(this);
-                // let registroId = boton.data("id"); // No siempre necesario si la URL lo contiene
-                let url = boton.data("url"); // URL específica del botón
-                let tipoRegistro = boton.data("tipo"); // 'normal' o 'extra'
-        
-                // Deshabilitar botón para evitar doble clic
+                let url = boton.data("url");
+                let tipoRegistro = boton.data("tipo");
                 boton.prop('disabled', true).text('...');
-        
                 $.ajax({
                     url: url,
-                    type: "POST", // O PUT/PATCH según tu ruta
-                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    type: "POST", // O PUT/PATCH según tu ruta de finalizar paro
+                    // headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }, // Ya está en $.ajaxSetup
                     success: function(response) {
-                        // Actualizar celda con minutos, quitar botón
-                        boton.closest("td").text(response.minutos_paro);
-                        // alert(`✅ Paro finalizado (${tipoRegistro}). Duración: ${response.minutos_paro} minutos.`);
-                        Swal.fire('¡Éxito!', `Paro finalizado (${tipoRegistro}). Duración: ${response.minutos_paro} minutos.`, 'success');
-                        // NOTA: Los stats generales/individuales NO se actualizan automáticamente aquí
+                        if (response.minutos_paro !== undefined) {
+                            boton.closest("td").text(response.minutos_paro);
+                            Swal.fire('¡Éxito!', `Paro finalizado (${tipoRegistro}). Duración: ${response.minutos_paro} minutos.`, 'success');
+                        } else if (response.warning) {
+                            Swal.fire('Advertencia', response.warning, 'warning');
+                            boton.prop('disabled', false).text('Fin Paro Proceso');
+                        } else {
+                            Swal.fire('Respuesta inesperada', 'El servidor no devolvió la información esperada.', 'question');
+                            boton.prop('disabled', false).text('Fin Paro Proceso');
+                        }
                     },
                     error: function(xhr) {
                         console.error(`Error finalizar paro (${tipoRegistro}):`, xhr.responseText);
-                        // alert(`❌ Error al finalizar el paro (${tipoRegistro}).`);
-                        Swal.fire('Error', `Error al finalizar el paro (${tipoRegistro}).`, 'error');
-                        // Habilitar botón de nuevo en caso de error
+                        let errorMsg = `Error al finalizar el paro (${tipoRegistro}).`;
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            errorMsg = xhr.responseJSON.error;
+                        }
+                        Swal.fire('Error', errorMsg, 'error');
                         boton.prop('disabled', false).text('Fin Paro Proceso');
                     }
                 });
             });
-        
+
             // Eliminar Registro (Manejador único)
             $(document.body).on("click", ".eliminar-registro", function (e) {
                 e.preventDefault();
                 let boton = $(this);
-                // let registroId = boton.data("id");
-                let url = boton.data("url");
+                let url = boton.data("url"); // URL ya corregida desde popularTabla
                 let tipoRegistro = boton.data("tipo");
-        
+                let registroId = boton.data("id"); // Para el mensaje de confirmación
+
                 Swal.fire({
                     title: `¿Eliminar Registro (${tipoRegistro})?`,
                     text: "Esta acción no se puede deshacer.",
-                    icon: 'warning',
+                    icon: 'warning', // Esto debería funcionar con SweetAlert2 moderno
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#3085d6',
@@ -1545,52 +1527,66 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        boton.prop('disabled', true).text('Eliminando...'); // Deshabilitar botón
                         $.ajax({
                             url: url,
-                            type: "DELETE", // Usa el método DELETE
-                            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                            type: "DELETE",
+                            // headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }, // Ya está en $.ajaxSetup
+                            dataType: "json", // Esperamos JSON del servidor
                             success: function(response) {
-                                // Eliminar la fila de la tabla con efecto visual
-                                boton.closest("tr").fadeOut(400, function() {
-                                    $(this).remove();
-                                    // ** Importante: Los cálculos de stats hechos en JS quedan desactualizados **
-                                    // Para solucionarlo bien: o el backend devuelve stats actualizados,
-                                    // o se hace un reload completo (`cargarTablasRegistros()`), lo cual es menos ideal.
-                                    console.warn(`Registro ${tipoRegistro} eliminado. Stats desactualizados hasta próximo refresh.`);
-                                });
-                                // alert(`✅ Registro eliminado (${tipoRegistro}).`);
-                                Swal.fire('¡Eliminado!', `Registro ${tipoRegistro} eliminado.`, 'success');
+                                if (response.message) {
+                                    Swal.fire('¡Eliminado!', `Registro ${tipoRegistro} eliminado: ${response.message}`, 'success');
+                                    boton.closest("tr").fadeOut(400, function() {
+                                        $(this).remove();
+                                        // ** IMPORTANTE: Recalcular estadísticas o recargar tablas **
+                                        // La forma más simple pero menos ideal es:
+                                        // cargarTablasRegistros();
+                                        // O, si quieres ser más granular, tendrías que obtener los datos de la fila eliminada
+                                        // y restarlos de tus variables de estadísticas globales, luego actualizar el DOM.
+                                        console.warn(`Registro ${tipoRegistro} (ID: ${registroId}) eliminado. Stats en cliente pueden estar desactualizados hasta próximo refresh completo o recálculo manual.`);
+                                    });
+                                } else if (response.warning) {
+                                    // Esto es para manejar el caso donde el controlador devuelve un warning con status 200
+                                    Swal.fire('Advertencia', response.warning, 'warning');
+                                    boton.prop('disabled', false).text('Eliminar'); // Habilitar botón de nuevo
+                                } else {
+                                    Swal.fire('Respuesta inesperada', 'El servidor no devolvió el mensaje esperado.', 'question');
+                                    boton.prop('disabled', false).text('Eliminar');
+                                }
                             },
                             error: function(xhr) {
-                                console.error(`Error eliminar registro (${tipoRegistro}):`, xhr.responseText);
-                                let errorMsg = `Error al eliminar el registro (${tipoRegistro}).`;
-                                // Manejar warnings específicos del backend (ej. paro activo)
-                                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.warning) {
-                                    errorMsg = `⚠ ${xhr.responseJSON.warning}`;
-                                } else if (xhr.responseJSON && xhr.responseJSON.error) {
-                                    errorMsg = `❌ ${xhr.responseJSON.error}`;
+                                console.error(`Error eliminar registro (${tipoRegistro} - ID: ${registroId}):`, xhr.status, xhr.responseText);
+                                let errorMsg = `Error al eliminar el registro (${tipoRegistro} - ID: ${registroId}).`;
+                                if (xhr.responseJSON && xhr.responseJSON.error) {
+                                    errorMsg = `Error: ${xhr.responseJSON.error}`;
+                                } else if (xhr.responseJSON && xhr.responseJSON.message) { // Algunos errores de Laravel vienen en 'message'
+                                    errorMsg = `Error: ${xhr.responseJSON.message}`;
+                                } else if (xhr.status === 0) {
+                                    errorMsg = "No se pudo conectar con el servidor. Verifique su conexión de red.";
+                                } else if (xhr.status === 404) {
+                                    errorMsg = "Recurso no encontrado en el servidor (Error 404). Verifique la URL.";
+                                } else if (xhr.status === 500) {
+                                    errorMsg = "Error interno del servidor (Error 500).";
                                 }
-                                // alert(errorMsg);
                                 Swal.fire('Error', errorMsg, 'error');
+                                boton.prop('disabled', false).text('Eliminar'); // Habilitar botón de nuevo
                             }
                         });
                     }
                 });
             });
-        
+
             // --- MANEJADORES PARA LOS COMENTARIOS (mantener como estaban si funcionan) ---
-            $('#guardarComentario').on('click', function () { /* ... tu lógica ... */ });
-            $('#guardarComentarioTE').on('click', function () { /* ... tu lógica ... */ });
-        
-        
+            // $('#guardarComentario').on('click', function () { /* ... tu lógica ... */ });
+            // $('#guardarComentarioTE').on('click', function () { /* ... tu lógica ... */ });
+
             // --- CARGA INICIAL AL ENTRAR A LA PÁGINA ---
             cargarTablasRegistros();
-        
+
             // --- OPCIONAL: RECARGAR SI CAMBIA EL MÓDULO ---
             $('#modulo').on('change', function() {
                 cargarTablasRegistros();
             });
-        
         }); // Fin de $(document).ready
     </script>
 

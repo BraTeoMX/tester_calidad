@@ -661,7 +661,7 @@ class AuditoriaProcesoV3Controller extends Controller
         }
     }
     
-    public function cambiarEstadoInicioParoTurnoNormal(Request $request)
+    public function finalizarParoGeneral(Request $request)
     {
         try {
             $id = $request->id;
@@ -687,28 +687,43 @@ class AuditoriaProcesoV3Controller extends Controller
         }
     }
 
-    public function eliminarRegistroTurnoNormal(Request $request)
+    public function eliminarRegistroGeneral($id) // MODIFICADO: Recibe $id directamente
     {
+        Log::info('Intentando eliminar registro con ID:', ['id' => $id]); // Log para verificar llegada
+
         try {
-            $id = $request->id;
-            $registro = AseguramientoCalidad::find($id);
+            // Encuentra el registro por ID. Cambia 'AseguramientoCalidad' por tu modelo real si es diferente.
+            // Si tu modelo se llama AuditoriaProceso, úsalo.
+            $registro = AseguramientoCalidad::find($id); // O el modelo que estés usando.
 
             if (!$registro) {
-                return response()->json(['error' => 'Registro no encontrado'], 404);
+                Log::warning('Registro no encontrado para eliminar:', ['id' => $id]);
+                return response()->json(['error' => 'Registro no encontrado.'], 404);
             }
 
-            // Verificar si el registro tiene estatus (por ejemplo, si no es nulo o es igual a 1)
-            if (!is_null($registro->estatus)) {
+            Log::info('Registro encontrado:', ['registro_data' => $registro->toArray()]); // Log de datos del registro
+
+            // Verificar si el registro tiene un estatus que impida su eliminación
+            // Ajusta 'estatus' al nombre real del campo en tu modelo si es diferente.
+            if (!is_null($registro->estatus) /* && $registro->estatus != VALOR_PERMITIDO_PARA_ELIMINAR */) {
+                Log::info('Intento de eliminar registro con estatus finalizado:', ['id' => $id, 'estatus' => $registro->estatus]);
                 return response()->json([
-                    'warning' => 'No se puede eliminar porque ya se finalizó la auditoría.'
-                ], 200); // ⚠ Se devuelve un código 200 en lugar de 400 para no disparar "error" en AJAX
+                    'warning' => 'No se puede eliminar el registro porque ya tiene un estatus final o procesado.'
+                ], 200); // Se devuelve un código 200 para que AJAX lo maneje en 'success'
             }
 
-            $registro->delete(); // Eliminar el registro
+            $registro->delete(); // Eliminar el registro de la base de datos
+            Log::info('Registro eliminado correctamente:', ['id' => $id]);
 
-            return response()->json(['message' => 'Registro eliminado correctamente'], 200);
+            return response()->json(['message' => 'Registro eliminado correctamente.'], 200);
+
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al eliminar el registro: ' . $e->getMessage()], 500);
+            Log::error('Error al eliminar el registro:', [
+                'id' => $id,
+                'error_message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString() // Útil para debugging detallado
+            ]);
+            return response()->json(['error' => 'Error interno del servidor al eliminar el registro. Revise los logs.'], 500);
         }
     }
 

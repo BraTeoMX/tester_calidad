@@ -26,7 +26,8 @@
     <link href="{{ asset('black') }}/css/theme.css" rel="stylesheet" />
     <!-- Select2 CSS desde local -->
     <link rel="stylesheet" href="{{ asset('select2/css/select2.min.css') }}">
-
+    <!-- SweetAlert CSS desde local -->
+    <link href="{{ asset('css/sweetalert2.min.css') }}" rel="stylesheet">
 
     <!-- jQuery local -->
     <script src="{{ asset('jquery/jquery-3.6.0.min.js') }}"></script>
