@@ -285,7 +285,7 @@
 
                                 var fila = '<tr>' +
                                     '<td>' +
-                                        '<form method="POST" action="{{ route("formAltaProcesoV2") }}">' +
+                                        '<form method="POST" action="{{ route("procesoV3.formAltaProceso") }}">' +
                                         '@csrf' + // Laravel manejará esto correctamente al renderizar la vista
                                         '<input type="hidden" name="modulo" value="' + moduloSafe + '">' +
                                         '<input type="hidden" name="estilo" value="' + estiloSafe + '">' +
