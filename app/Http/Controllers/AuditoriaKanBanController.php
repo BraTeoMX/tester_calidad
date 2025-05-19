@@ -249,94 +249,143 @@ class AuditoriaKanBanController extends Controller
 
     public function actualizarMasivo(Request $request)
     {
-        $registros = $request->input('registros', []);
+        $registrosInput = $request->input('registros', []);
         $errores = [];
-        $actualizadosCorrectamente = 0;
+        $registrosActualizados = 0;
+        $registrosOmitidos = 0; // Nuevo contador para registros que no necesitaron actualización
 
-        if (empty($registros)) {
+        if (empty($registrosInput)) {
             return response()->json(['mensaje' => 'No se proporcionaron registros para actualizar.'], 400);
         }
 
-        // Opcional: Usar una transacción para asegurar que todo se actualice o nada.
-        // DB::beginTransaction();
-        // try {
-
-        foreach ($registros as $registroData) {
-            $kanban = ReporteKanban::find($registroData['id']);
-
-            if (!$kanban) {
-                $errores[] = "Registro con ID {$registroData['id']} no encontrado.";
-                continue; // Saltar al siguiente registro
-            }
-
-            // Actualizar campos del registro principal
-            $kanban->estatus = $registroData['accion']; // 'accion' viene del frontend
-
-            // Reiniciar fechas antes de asignar la nueva basada en el estatus
-            $kanban->fecha_liberacion = null;
-            $kanban->fecha_parcial    = null;
-            $kanban->fecha_rechazo    = null;
-
-            if ($kanban->estatus == '1') { // Aceptado
-                $kanban->fecha_liberacion = now();
-            } elseif ($kanban->estatus == '2') { // Parcial
-                $kanban->fecha_parcial = now();
-            } elseif ($kanban->estatus == '3') { // Rechazado
-                $kanban->fecha_rechazo = now();
-            }
-            // Si el estatus es vacío o null y no quieres cambiar la fecha, esta lógica está bien.
-            // Si un estatus vacío/null debe limpiar las fechas, ya está cubierto por el reinicio.
-
-            $kanban->save();
-
-            // Manejo de comentarios (similar a tu función original)
-            $comentariosNuevos = $registroData['comentarios'] ?? []; // Comentarios enviados para este registro
-
-            $comentariosExistentes = ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)
-                ->pluck('nombre')
-                ->toArray();
-
-            // Comentarios para eliminar
-            $paraEliminar = array_diff($comentariosExistentes, $comentariosNuevos);
-            if (!empty($paraEliminar)) {
-                ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)
-                    ->whereIn('nombre', $paraEliminar)
-                    ->delete();
-            }
-
-            // Comentarios para agregar
-            $paraAgregar = array_diff($comentariosNuevos, $comentariosExistentes);
-            foreach ($paraAgregar as $comentarioNombre) {
-                if (!empty($comentarioNombre)) { // Asegurarse de no guardar comentarios vacíos
-                    $comentarioKanban = new ReporteKanbanComentario();
-                    $comentarioKanban->reporte_kanban_id = $kanban->id;
-                    $comentarioKanban->nombre = $comentarioNombre;
-                    $comentarioKanban->save();
+        // Recomendado: Usar una transacción para asegurar la atomicidad de las operaciones
+        DB::beginTransaction();
+        try {
+            foreach ($registrosInput as $registroData) {
+                if (empty($registroData['id'])) {
+                    $errores[] = "Se recibió un registro sin ID.";
+                    continue;
                 }
+
+                $kanban = ReporteKanban::find($registroData['id']);
+
+                if (!$kanban) {
+                    $errores[] = "Registro con ID {$registroData['id']} no encontrado.";
+                    continue;
+                }
+
+                $nuevoEstatus = (string) ($registroData['accion'] ?? ''); // Aseguramos que sea string, default a vacío
+
+                // ---- INICIO DE LA LÓGICA DE OMISIÓN ----
+                $omitirEsteRegistro = false;
+                if ($nuevoEstatus === $kanban->estatus) { // El nuevo estatus es idéntico al actual
+                    if ($nuevoEstatus === '1' && $kanban->fecha_liberacion !== null) {
+                        $omitirEsteRegistro = true;
+                    } elseif ($nuevoEstatus === '2' && $kanban->fecha_parcial !== null) {
+                        $omitirEsteRegistro = true;
+                    } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo !== null) {
+                        $omitirEsteRegistro = true;
+                    } elseif ($nuevoEstatus === '' && $kanban->fecha_liberacion === null && $kanban->fecha_parcial === null && $kanban->fecha_rechazo === null) {
+                        // Si el nuevo estado es 'sin seleccionar' (vacío) y ya está así (sin fechas)
+                        $omitirEsteRegistro = true;
+                    }
+                }
+
+                if ($omitirEsteRegistro) {
+                    $registrosOmitidos++;
+                    continue; // Saltar al siguiente registro, no se necesita actualizar
+                }
+                // ---- FIN DE LA LÓGICA DE OMISIÓN ----
+
+                // Si no se omite, se procede con la actualización
+                $kanban->estatus = $nuevoEstatus;
+
+                // Reiniciar fechas antes de asignar la nueva basada en el estatus
+                // Esta parte es crucial: si el estatus cambia, la fecha anterior se borra
+                // y se establece la nueva. Si el estatus es el mismo pero la fecha estaba null, se establece.
+                $kanban->fecha_liberacion = null;
+                $kanban->fecha_parcial    = null;
+                $kanban->fecha_rechazo    = null;
+
+                if ($nuevoEstatus === '1') { // Aceptado
+                    $kanban->fecha_liberacion = Carbon::now();
+                } elseif ($nuevoEstatus === '2') { // Parcial
+                    $kanban->fecha_parcial = Carbon::now();
+                } elseif ($nuevoEstatus === '3') { // Rechazado
+                    $kanban->fecha_rechazo = Carbon::now();
+                }
+                // Si $nuevoEstatus es '', todas las fechas quedan null, lo cual es correcto.
+
+                $kanban->save(); // Guardar cambios en el registro principal
+
+                // Manejo de comentarios (solo si el registro principal fue procesado)
+                // Convertimos $registroData['comentarios'] a array si es string separado por comas,
+                // o lo tomamos como array si ya lo es. Ajustar según cómo llegue del frontend.
+                $comentariosNuevosInput = $registroData['comentarios'] ?? ''; // Puede ser un string o array
+                
+                // Si los comentarios vienen como un string separado por comas y pueden tener espacios
+                if (is_string($comentariosNuevosInput)) {
+                    $comentariosNuevos = !empty($comentariosNuevosInput) ? array_map('trim', explode(',', $comentariosNuevosInput)) : [];
+                } elseif (is_array($comentariosNuevosInput)) {
+                    $comentariosNuevos = $comentariosNuevosInput;
+                } else {
+                    $comentariosNuevos = [];
+                }
+                // Filtrar elementos vacíos que puedan resultar del explode si hay comas consecutivas o al final
+                $comentariosNuevos = array_filter($comentariosNuevos, function($value) { return !empty($value); });
+
+
+                $comentariosExistentes = ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)
+                    ->pluck('nombre')
+                    ->toArray();
+
+                // Comentarios para eliminar
+                $paraEliminar = array_diff($comentariosExistentes, $comentariosNuevos);
+                if (!empty($paraEliminar)) {
+                    ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)
+                        ->whereIn('nombre', $paraEliminar)
+                        ->delete();
+                }
+
+                // Comentarios para agregar
+                $paraAgregar = array_diff($comentariosNuevos, $comentariosExistentes);
+                foreach ($paraAgregar as $comentarioNombre) {
+                    // Asegurarse de no guardar comentarios vacíos (ya filtrado arriba, pero doble check no daña)
+                    if (!empty($comentarioNombre)) {
+                        ReporteKanbanComentario::create([
+                            'reporte_kanban_id' => $kanban->id,
+                            'nombre' => $comentarioNombre,
+                        ]);
+                    }
+                }
+                $registrosActualizados++;
             }
-            $actualizadosCorrectamente++;
-        }
 
-        //     DB::commit();
-        //     return response()->json([
-        //         'mensaje' => "Actualización masiva completada. {$actualizadosCorrectamente} registros procesados.",
-        //         'errores' => $errores // Enviar lista de errores si los hubo
-        //     ]);
-        // } catch (\Exception $e) {
-        //     DB::rollBack();
-        //     Log::error('Error en actualización masiva: ' . $e->getMessage());
-        //     return response()->json(['mensaje' => 'Ocurrió un error durante la actualización masiva.'], 500);
-        // }
+            DB::commit(); // Confirmar todos los cambios si no hubo excepciones
 
-        // Sin transacción:
-        if (!empty($errores)) {
+            $mensaje = "Actualización masiva completada. {$registrosActualizados} registros actualizados.";
+            if ($registrosOmitidos > 0) {
+                $mensaje .= " {$registrosOmitidos} registros fueron omitidos por no requerir cambios.";
+            }
+            if (!empty($errores)) {
+                $mensaje .= " Se encontraron algunos problemas.";
+            }
+
             return response()->json([
-                'mensaje' => "Actualización masiva completada con algunos errores. {$actualizadosCorrectamente} registros procesados.",
-                'errores' => $errores
-            ], 207); // Multi-Status, o un 200 con detalle de errores
-        }
+                'mensaje' => $mensaje,
+                'errores' => $errores // Enviar lista de errores si los hubo
+            ], empty($errores) ? 200 : 207); // 200 OK o 207 Multi-Status si hubo errores parciales
 
-        return response()->json(['mensaje' => "Actualización masiva completada. {$actualizadosCorrectamente} registros procesados."]);
+        } catch (\Exception $e) {
+            DB::rollBack(); // Revertir cambios en caso de error
+            Log::error("Error en actualización masiva: {$e->getMessage()} en {$e->getFile()}:{$e->getLine()}");
+            // Agregar el error a la lista de errores para el usuario, si es apropiado
+            $errores[] = "Error interno del servidor durante la actualización masiva. {$e->getMessage()}"; 
+            return response()->json([
+                'mensaje' => 'Ocurrió un error crítico durante la actualización masiva. No se procesaron todos los registros.',
+                'errores' => $errores // Incluir el error de la excepción
+            ], 500);
+        }
     }
 
     public function obtenerParciales(Request $request)
