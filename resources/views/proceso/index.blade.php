@@ -12,9 +12,7 @@
                             <h3 class="card-title">AUDITORIA CONTROL DE CALIDAD</h3>
                         </div>
                         <div class="col-auto">
-                            <h4>Fecha:
-                                {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
-                            </h4>
+                            <h4>Fecha: {{ $fechaActualParaVista }}</h4>
                         </div>
                     </div>
                 </div>
@@ -59,13 +57,7 @@
                                             </select>                                            
                                         </td>
                                         <td>
-                                            <select name="gerente_produccion" class="form-control" required title="Por favor, selecciona una opción">
-                                               <!-- <option value="" selected>Selecciona una opción</option> -->
-                                                @foreach ($gerenteProduccion as $gerente)
-                                                    <option value="{{ $gerente->nombre }}">
-                                                        {{ $gerente->nombre }}
-                                                    </option>
-                                                @endforeach
+                                            <select name="gerente_produccion" id="select_gerente_produccion_id" class="form-control" required title="Por favor, selecciona una opción">
                                             </select>
                                         </td>
                                         <td><input type="text" class="form-control me-2 texto-blanco" name="auditor" id="auditor"
@@ -121,11 +113,10 @@
                                                         <h2 class="mb-0">
                                                             <button class="btn btn-danger btn-block" type="button" data-toggle="collapse"
                                                                 data-target="#collapseOne5" aria-expanded="true" aria-controls="collapseOne5">
-                                                                En Proceso
+                                                                En Proceso <span id="loaderTablaProcesos1" style="display:none;">(Cargando...)</span>
                                                             </button>
                                                         </h2>
                                                     </div>
-                                    
                                                     <div id="collapseOne5" class="collapse show" aria-labelledby="headingOne5"
                                                         data-parent="#accordionExample5">
                                                         <div class="card-body">
@@ -141,25 +132,8 @@
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody id="tablaProcesos1">
-                                                                        @foreach($procesoActual as $proceso)
-                                                                            <tr>
-                                                                                <td> 
-                                                                                    <form method="POST" action="{{ route('formAltaProcesoV2') }}">
-                                                                                        @csrf
-                                                                                        <input type="hidden" name="modulo" value="{{ $proceso->modulo }}">
-                                                                                        <input type="hidden" name="estilo" value="{{ $proceso->estilo }}">
-                                                                                        <input type="hidden" name="team_leader" value="{{ $proceso->team_leader }}">
-                                                                                        <input type="hidden" name="gerente_produccion" value="{{ $proceso->gerente_produccion }}">
-                                                                                        <input type="hidden" name="auditor" value="{{ $proceso->auditor }}">
-                                                                                        <input type="hidden" name="turno" value="{{ $proceso->turno }}">
-                                                                                        <button type="submit" class="btn btn-primary">Acceder</button>
-                                                                                    </form>
-                                                                                </td>
-                                                                                <td>{{ $proceso->modulo }}</td>
-                                                                                <td>{{ $proceso->estilo }}</td>
-                                                                                <td>{{ $proceso->team_leader }}</td>
-                                                                            </tr>
-                                                                        @endforeach
+                                                                        {{-- Las filas se cargarán aquí por AJAX --}}
+                                                                        <tr><td colspan="4" class="text-center">Cargando datos...</td></tr>
                                                                     </tbody>
                                                                 </table>
                                                             </div>
@@ -177,11 +151,10 @@
                                                         <h2 class="mb-0">
                                                             <button class="btn btn-success btn-block" type="button" data-toggle="collapse"
                                                                 data-target="#collapseOne6" aria-expanded="true" aria-controls="collapseOne6">
-                                                                Finalizado
+                                                                Finalizado <span id="loaderTablaProcesos2" style="display:none;">(Cargando...)</span>
                                                             </button>
                                                         </h2>
                                                     </div>
-                                    
                                                     <div id="collapseOne6" class="collapse show" aria-labelledby="headingOne6"
                                                         data-parent="#accordionExample6">
                                                         <div class="card-body">
@@ -193,27 +166,12 @@
                                                                             <th>Accion</th>
                                                                             <th>Módulo</th>
                                                                             <th>Estilo</th>
+                                                                            {{-- Supervisor no está aquí según tu HTML original para esta tabla --}}
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody id="tablaProcesos2">
-                                                                        @foreach($procesoFinal as $proceso)
-                                                                            <tr>
-                                                                                <td>
-                                                                                    <form method="POST" action="{{ route('formAltaProcesoV2') }}">
-                                                                                        @csrf
-                                                                                        <input type="hidden" name="modulo" value="{{ $proceso->modulo }}">
-                                                                                        <input type="hidden" name="estilo" value="{{ $proceso->estilo }}">
-                                                                                        <input type="hidden" name="team_leader" value="{{ $proceso->team_leader }}">
-                                                                                        <input type="hidden" name="gerente_produccion" value="{{ $proceso->gerente_produccion }}">
-                                                                                        <input type="hidden" name="auditor" value="{{ $proceso->auditor }}">
-                                                                                        <input type="hidden" name="turno" value="{{ $proceso->turno }}">
-                                                                                        <button type="submit" class="btn btn-primary">Acceder</button>
-                                                                                    </form>
-                                                                                </td>
-                                                                                <td>{{ $proceso->modulo }}</td>
-                                                                                <td>{{ $proceso->estilo }}</td>
-                                                                            </tr>
-                                                                        @endforeach
+                                                                        {{-- Las filas se cargarán aquí por AJAX --}}
+                                                                        <tr><td colspan="3" class="text-center">Cargando datos...</td></tr>
                                                                     </tbody>
                                                                 </table>
                                                             </div>
@@ -293,11 +251,87 @@
     </style>
     <script>
         $(document).ready(function() {
+
+            // --- FUNCIÓN PARA CARGAR PROCESOS (ACTUAL Y FINAL) ---
+            function cargarProcesos(tipo, tablaId, loaderId, colspan) {
+                var $loader = $('#' + loaderId);
+                var $tbody = $('#' + tablaId);
+
+                $loader.show();
+                $tbody.html('<tr><td colspan="' + colspan + '" class="text-center">Cargando datos...</td></tr>');
+
+                $.ajax({
+                    url: "{{ route('procesoV3.ajax.procesos') }}",
+                    type: "GET",
+                    data: { tipo: tipo }, // 'actual' o 'final'
+                    dataType: "json",
+                    success: function(data) {
+                        $tbody.empty(); // Limpiar el "Cargando datos..."
+                        if (data && data.length > 0) {
+                            $.each(data, function(index, proceso) {
+                                // Sanitizar valores para atributos HTML (evitar que comillas rompan el value)
+                                var moduloSafe = proceso.modulo ? proceso.modulo.toString().replace(/"/g, '&quot;') : '';
+                                var estiloSafe = proceso.estilo ? proceso.estilo.toString().replace(/"/g, '&quot;') : '';
+                                var teamLeaderSafe = proceso.team_leader ? proceso.team_leader.toString().replace(/"/g, '&quot;') : '';
+                                var gerenteProdSafe = proceso.gerente_produccion ? proceso.gerente_produccion.toString().replace(/"/g, '&quot;') : '';
+                                var auditorSafe = proceso.auditor ? proceso.auditor.toString().replace(/"/g, '&quot;') : '';
+                                var turnoSafe = proceso.turno ? proceso.turno.toString().replace(/"/g, '&quot;') : '';
+                                var clienteSafe = proceso.cliente ? proceso.cliente.toString().replace(/"/g, '&quot;') : ''; // Añadido por si acaso
+
+                                var supervisorColHtml = '';
+                                if (tipo === 'actual') {
+                                    supervisorColHtml = '<td>' + (proceso.team_leader || 'N/A') + '</td>';
+                                }
+
+                                var fila = '<tr>' +
+                                    '<td>' +
+                                        '<form method="POST" action="{{ route("formAltaProcesoV2") }}">' +
+                                        '@csrf' + // Laravel manejará esto correctamente al renderizar la vista
+                                        '<input type="hidden" name="modulo" value="' + moduloSafe + '">' +
+                                        '<input type="hidden" name="estilo" value="' + estiloSafe + '">' +
+                                        '<input type="hidden" name="team_leader" value="' + teamLeaderSafe + '">' +
+                                        '<input type="hidden" name="gerente_produccion" value="' + gerenteProdSafe + '">' +
+                                        '<input type="hidden" name="auditor" value="' + auditorSafe + '">' +
+                                        '<input type="hidden" name="cliente" value="' + clienteSafe + '">' + // Asegúrate que cliente viene en el select del controller
+                                        '<input type="hidden" name="turno" value="' + turnoSafe + '">' +
+                                        '<button type="submit" class="btn btn-primary btn-sm">Acceder</button>' +
+                                        '</form>' +
+                                    '</td>' +
+                                    '<td>' + (proceso.modulo || 'N/A') + '</td>' +
+                                    '<td>' + (proceso.estilo || 'N/A') + '</td>' +
+                                    supervisorColHtml + // Se añade la columna de supervisor solo si es 'actual'
+                                    '</tr>';
+                                $tbody.append(fila);
+                            });
+                        } else {
+                            $tbody.append('<tr><td colspan="' + colspan + '" class="text-center">No hay procesos para mostrar.</td></tr>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error al cargar procesos (" + tipo + "):", xhr.responseText);
+                        $tbody.html('<tr><td colspan="' + colspan + '" class="text-center text-danger">Error al cargar datos. Por favor, intente de nuevo.</td></tr>');
+                    },
+                    complete: function() {
+                        $loader.hide();
+                    }
+                });
+            }
+
+            // --- LLAMADAS INICIALES PARA CARGAR LAS TABLAS ---
+            cargarProcesos('actual', 'tablaProcesos1', 'loaderTablaProcesos1', 4); // 4 columnas para "En Proceso"
+            cargarProcesos('final', 'tablaProcesos2', 'loaderTablaProcesos2', 3);   // 3 columnas para "Finalizado"
+
+
+            // --- TU LÓGICA EXISTENTE PARA LOS SEARCH INPUTS ---
+            // Esta lógica debería seguir funcionando una vez que las tablas estén pobladas por AJAX.
             $('#searchInput1').on('keyup', function() {
                 var value = $(this).val().toLowerCase();
                 $('#tablaProcesos1 tr').filter(function() {
-                    var modulo = $(this).find('td:eq(1)').text().toLowerCase();
-                    var estilo = $(this).find('td:eq(2)').text().toLowerCase();
+                    var modulo = $(this).find('td:eq(1)').text().toLowerCase(); // Columna Módulo
+                    var estilo = $(this).find('td:eq(2)').text().toLowerCase(); // Columna Estilo
+                    // Si la tabla 'actual' tiene la columna supervisor en td:eq(3) y quieres buscar por ella también:
+                    // var supervisor = $(this).find('td:eq(3)').text().toLowerCase();
+                    // $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1 || supervisor.indexOf(value) > -1);
                     $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
                 });
             });
@@ -305,15 +339,18 @@
             $('#searchInput2').on('keyup', function() {
                 var value = $(this).val().toLowerCase();
                 $('#tablaProcesos2 tr').filter(function() {
-                    var modulo = $(this).find('td:eq(1)').text().toLowerCase();
-                    var estilo = $(this).find('td:eq(2)').text().toLowerCase();
+                    var modulo = $(this).find('td:eq(1)').text().toLowerCase(); // Columna Módulo
+                    var estilo = $(this).find('td:eq(2)').text().toLowerCase(); // Columna Estilo
                     $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
                 });
             });
 
+            // Si tienes searchInput3 y searchInput4 para otras tablas, asegúrate que esas tablas se carguen
+            // de manera similar si también son dinámicas, o que la lógica de búsqueda sea la correcta.
+            // Por ahora, las mantengo como las tenías:
             $('#searchInput3').on('keyup', function() {
                 var value = $(this).val().toLowerCase();
-                $('#tablaProcesos3 tr').filter(function() {
+                $('#tablaProcesos3 tr').filter(function() { // Asume que tablaProcesos3 existe
                     var modulo = $(this).find('td:eq(1)').text().toLowerCase();
                     var estilo = $(this).find('td:eq(2)').text().toLowerCase();
                     $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
@@ -322,7 +359,7 @@
 
             $('#searchInput4').on('keyup', function() {
                 var value = $(this).val().toLowerCase();
-                $('#tablaProcesos4 tr').filter(function() {
+                $('#tablaProcesos4 tr').filter(function() { // Asume que tablaProcesos4 existe
                     var modulo = $(this).find('td:eq(1)').text().toLowerCase();
                     var estilo = $(this).find('td:eq(2)').text().toLowerCase();
                     $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
@@ -416,6 +453,48 @@
                 var clienteSeleccionado = $(this).find(':selected').data('cliente');
                 $("#cliente").val(clienteSeleccionado || ""); // Si no hay cliente, dejar vacío
             });
+
+            // --- NUEVA LÓGICA AJAX PARA CARGAR GERENTES DE PRODUCCIÓN ---
+            function cargarGerentesProduccion() {
+                var $selectGerentes = $('#select_gerente_produccion_id'); // Usamos el ID definido
+                // Mantenemos "Cargando..." mientras se hace la petición
+                $selectGerentes.empty().append('<option value="">Cargando gerentes...</option>').trigger('change');
+
+                $.ajax({
+                    url: "{{ route('procesoV3.ajax.gerentesProduccion') }}", // Ruta definida para gerentes
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+                        $selectGerentes.empty(); // Limpiar el "Cargando..." o cualquier opción previa
+
+                        if (data && data.length > 0) {
+                            $.each(data, function(index, gerente) {
+                                var $option = $('<option>', {
+                                    value: gerente.nombre,
+                                    text: gerente.nombre
+                                });
+
+                                if (index === 0) { // Si es el primer elemento de la lista
+                                    $option.prop('selected', true); // Establecer como seleccionado
+                                }
+                                $selectGerentes.append($option);
+                            });
+                        } else {
+                            // Si no hay gerentes, mostrar un mensaje y que esa opción quede seleccionada
+                            console.warn("No se encontraron gerentes de producción.");
+                            $selectGerentes.append('<option value="" selected>No hay gerentes disponibles</option>');
+                        }
+                        $selectGerentes.trigger('change'); // Notificar a Select2 de los cambios
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error al cargar gerentes de producción:", xhr.responseText);
+                        $selectGerentes.empty().append('<option value="">Error al cargar gerentes</option>').trigger('change');
+                    }
+                });
+            }
+
+            // Llamar a la función para cargar los gerentes cuando el DOM esté listo
+            cargarGerentesProduccion();
         });
     </script>
     

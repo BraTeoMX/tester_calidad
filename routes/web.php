@@ -197,6 +197,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/observacion-proceso-te-v2', [AuditoriaProcesoV2Controller::class, 'guardarObservacionProcesoTE'])->name('guardarObservacionProcesoTE');
     //secion de la tercera version de Auditoria Proceso reutilizando mucho del codigo de la segunda version
     Route::get('/auditoriaProcesoV3/inicio', [AuditoriaProcesoV3Controller::class, 'altaProcesoV3'])->name('procesoV3.inicio');
+    Route::get('/auditoriaProcesoV3/ajax/gerentes-produccion', [AuditoriaProcesoV3Controller::class, 'obtenerGerentesProduccionAjax'])->name('procesoV3.ajax.gerentesProduccion');
+    Route::get('/auditoriaProcesoV3/ajax/procesos', [AuditoriaProcesoV3Controller::class, 'obtenerProcesosAjax'])->name('procesoV3.ajax.procesos');
     Route::get('/auditoriaProcesoV3/obtenerModulos', [AuditoriaProcesoV3Controller::class, 'obtenerModulos'])->name('procesoV3.obtenerModulos');
     Route::get('/auditoriaProcesoV3/obtenerEstilos', [AuditoriaProcesoV3Controller::class, 'obtenerEstilos'])->name('procesoV3.obtenerEstilos');
     Route::get('/auditoriaProcesoV3/obtenerSupervisores', [AuditoriaProcesoV3Controller::class, 'obtenerSupervisor'])->name('procesoV3.obtenerSupervisores');

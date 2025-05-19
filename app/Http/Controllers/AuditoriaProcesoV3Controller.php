@@ -17,6 +17,8 @@ use App\Mail\NotificacionParo;
 use App\Models\ModuloEstilo;
 use App\Models\ModuloEstiloTemporal;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 
 use App\Models\EvaluacionCorte;
@@ -27,51 +29,30 @@ class AuditoriaProcesoV3Controller extends Controller
 
     public function altaProcesoV3(Request $request)
     {
-        $pageSlug ='';
+        $pageSlug = 'proceso'; // O el que corresponda para tu layout
         $auditorDato = Auth::user()->name;
         $tipoUsuario = Auth::user()->puesto;
 
-        //dd($registroEvaluacionCorte->all()); 
         $mesesEnEspanol = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
-        $fechaActual = Carbon::now()->toDateString();
-        $auditorPlanta = Auth::user()->Planta;
-        $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
+        // Formateamos la fecha aquí para evitar lógica en la vista
+        $fechaActualCarbon = Carbon::now();
+        $fechaActualParaVista = $fechaActualCarbon->format('d ') . $mesesEnEspanol[$fechaActualCarbon->format('n') - 1] . $fechaActualCarbon->format(' Y');
 
-        $gerenteProduccion = CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
-            ->orderBy('jefe_produccion')
-            ->where('planta', $datoPlanta)
-            ->where('estatus', 1)
-            ->where('jefe_produccion', 1)
-            ->get();
-
-        $procesoActual = AseguramientoCalidad::where('estatus', NULL)  
-            ->where('planta', $datoPlanta)
-            ->whereDate('created_at', $fechaActual)
-            ->select('modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
-            ->distinct()
-            ->orderBy('modulo', 'asc');
-        // Aplicar el filtro del auditor solo si el tipo de usuario no es "Administrador" o "Gerente de Calidad"
-        if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
-            $procesoActual->where('auditor', $auditorDato);
-        }
-        $procesoActual = $procesoActual->get();
-
-        $procesoFinal =  AseguramientoCalidad::where('estatus', 1) 
-            ->where('planta', $datoPlanta)
-            ->whereDate('created_at', $fechaActual)
-            ->select('modulo','estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
-            ->distinct()
-            ->orderBy('modulo', 'asc');
-        // Aplicar el filtro del auditor solo si el tipo de usuario no es "Administrador" o "Gerente de Calidad"
-        if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
-            $procesoFinal->where('auditor', $auditorDato);
-        }
-        $procesoFinal = $procesoFinal->get();
-        return view('proceso.index', compact('pageSlug', 'auditorDato', 'tipoUsuario', 'mesesEnEspanol', 'gerenteProduccion', 
-                    'procesoActual', 'procesoFinal'));
+        return view('proceso.index', compact(
+            'pageSlug',
+            'auditorDato', // Necesario para el campo readonly en el formulario principal
+            'tipoUsuario', // Podría ser necesario para lógica condicional en la vista
+            'fechaActualParaVista'
+            // Los siguientes datos se cargarán por AJAX:
+            // 'gerenteProduccion',
+            // 'procesoActual',
+            // 'procesoFinal'
+        ));
     }
+
+    
 
     public function obtenerModulos()
     {
@@ -94,6 +75,82 @@ class AuditoriaProcesoV3Controller extends Controller
             ->values();
 
         return response()->json($listaModulos);
+    }
+
+    // Nuevo método para obtener Gerentes de Producción vía AJAX
+    public function obtenerGerentesProduccionAjax(Request $request)
+    {
+        $auditorPlanta = Auth::user()->Planta;
+        $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
+
+        // Clave única para el caché por planta
+        $cacheKey = "gerentes_produccion_{$datoPlanta}";
+        $tiempoCache = 60 ; // Cachear por 1 minuto (en segundos)
+
+        $gerenteProduccion = Cache::remember($cacheKey, $tiempoCache, function () use ($datoPlanta) {
+            return CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
+                ->orderBy('jefe_produccion') // O por 'nombre' si es más relevante para el display
+                ->where('planta', $datoPlanta)
+                ->where('estatus', 1)
+                ->where('jefe_produccion', 1) // Asumo que esto filtra a los que SÍ son jefes de producción
+                ->select('nombre') // Solo lo que necesitas para el select
+                ->get();
+        });
+
+        return response()->json($gerenteProduccion);
+    }
+
+    // Nuevo método unificado para obtener Procesos (Actuales y Finales) vía AJAX
+    public function obtenerProcesosAjax(Request $request)
+    {
+        $tipoProceso = $request->query('tipo'); // 'actual' o 'final'
+
+        if (!in_array($tipoProceso, ['actual', 'final'])) {
+            return response()->json(['error' => 'Tipo de proceso no válido'], 400);
+        }
+
+        $auditorDato = Auth::user()->name;
+        $tipoUsuario = Auth::user()->puesto;
+        $auditorPlanta = Auth::user()->Planta;
+        $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
+        $fechaActual = Carbon::now()->toDateString();
+
+        // Clave de caché dinámica
+        $cacheKeyParts = [
+            'procesos',
+            $tipoProceso,
+            $datoPlanta,
+            $fechaActual
+        ];
+        if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
+            $cacheKeyParts[] = "auditor_{$auditorDato}";
+        } else {
+            $cacheKeyParts[] = "todos";
+        }
+        $cacheKey = implode('_', $cacheKeyParts);
+        $tiempoCache = 60; // Cachear por 1 minutos (ajusta según la frecuencia de actualización)
+
+        $procesos = Cache::remember($cacheKey, $tiempoCache, function () use ($tipoProceso, $datoPlanta, $fechaActual, $tipoUsuario, $auditorDato) {
+            $query = AseguramientoCalidad::where('planta', $datoPlanta)
+                ->whereDate('created_at', $fechaActual)
+                ->select('modulo', 'estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
+                ->distinct()
+                ->orderBy('modulo', 'asc');
+
+            if ($tipoProceso === 'actual') {
+                $query->whereNull('estatus');
+            } else { // 'final'
+                $query->where('estatus', 1);
+            }
+
+            if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
+                $query->where('auditor', $auditorDato);
+            }
+
+            return $query->get();
+        });
+
+        return response()->json($procesos);
     }
 
     public function obtenerEstilos(Request $request)
