@@ -22,70 +22,12 @@ use Illuminate\Support\Facades\Log;
 class AuditoriaAQLV3Controller extends Controller
 {
 
-    public function index(Request $request) 
+    public function index(Request $request)
     {
         $pageSlug ='';
-        $fechaActual = Carbon::now()->toDateString();
         $auditorDato = Auth::user()->name;
-        $auditorPlanta = Auth::user()->Planta;
-        $tipoUsuario = Auth::user()->puesto;
-        $mesesEnEspanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-        ];
 
-        if($auditorPlanta == "Planta1"){
-            $datoPlanta = "Intimark1";
-        }else{
-            $datoPlanta = "Intimark2";
-        }
-
-        $datosCategoriaSupervisor = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
-            ->whereBetween('moduleid', ['100A', '299A'])
-            ->get(['moduleid']); // Obtener solo la columna necesaria
-
-        // Obtener datos del segundo modelo, asegurando valores únicos
-        $datosModuloEstiloTemporal = ModuloEstiloTemporal::where('prodpoolid', $datoPlanta)
-            ->whereBetween('moduleid', ['100A', '299A'])
-            ->distinct('moduleid') // Asegurarte de que sean únicos
-            ->get(['moduleid']); // Obtener solo la columna necesaria
-
-        // Combinar ambos resultados y eliminar duplicados
-        $listaModulos = $datosCategoriaSupervisor->concat($datosModuloEstiloTemporal)
-            ->unique('moduleid') // Asegurar que no haya duplicados en la columna `moduleid`
-            ->sortBy('moduleid') // Ordenar los resultados (opcional)
-            ->values(); // Resetear los índices
-        //dd($listaModulos);
-
-        $procesoActualAQL = AuditoriaAQL::where('estatus', NULL)
-            ->where('planta', $datoPlanta)
-            ->whereDate('created_at', $fechaActual)
-            ->select('modulo', 'op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
-            ->distinct()
-            ->orderBy('modulo', 'asc');
-
-        // Aplicar el filtro del auditor solo si el tipo de usuario no es "Administrador" o "Gerente de Calidad"
-        if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
-            $procesoActualAQL->where('auditor', $auditorDato);
-        }
-
-        // Ejecutar la consulta
-        $procesoActualAQL = $procesoActualAQL->get();
-
-        $procesoFinalAQL = AuditoriaAQL::where('estatus', 1)
-            ->where('planta', $datoPlanta)
-            ->whereDate('created_at', $fechaActual)
-            ->select('modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
-            ->distinct()
-            ->get();
-        $gerenteProduccion = CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
-            ->orderBy('jefe_produccion')
-            ->where('planta', $datoPlanta)
-            ->where('estatus', 1)
-            ->where('jefe_produccion', 1)
-            ->get();
-
-        return view('AQL.index', compact('mesesEnEspanol', 'pageSlug', 'auditorDato',
-                'listaModulos', 'procesoActualAQL', 'procesoFinalAQL', 'gerenteProduccion'));
+        return view('AQL.index', compact('pageSlug', 'auditorDato'));
     }
 
     public function initialData(Request $request)
@@ -199,6 +141,77 @@ class AuditoriaAQLV3Controller extends Controller
             'supervisorRelacionado' => $supervisorRelacionado,
             'supervisores' => $supervisores
         ]);
+    }
+
+    public function getProcesoActualAQL()
+    {
+        $fechaActual = Carbon::now()->toDateString();
+        $auditorDato = Auth::user()->name;
+        $auditorPlanta = Auth::user()->Planta;
+        $tipoUsuario = Auth::user()->puesto;
+
+        if ($auditorPlanta == "Planta1") {
+            $datoPlanta = "Intimark1";
+        } else {
+            $datoPlanta = "Intimark2";
+        }
+
+        $query = AuditoriaAQL::whereNull('estatus') // whereNull es más idiomático para buscar nulos
+            ->where('planta', $datoPlanta)
+            ->whereDate('created_at', $fechaActual)
+            ->select('modulo', 'op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion') //Añadí 'area' porque lo usas en la vista
+            ->distinct()
+            ->orderBy('modulo', 'asc');
+
+        if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
+            $query->where('auditor', $auditorDato);
+        }
+
+        $procesoActualAQL = $query->get();
+
+        // Agrupar para evitar duplicados en la vista (lógica similar a tu @php)
+        $valoresMostrados = [];
+        $resultadoFiltrado = [];
+        foreach ($procesoActualAQL as $proceso) {
+            if (!isset($valoresMostrados[$proceso->area][$proceso->modulo][$proceso->op])) {
+                $resultadoFiltrado[] = $proceso;
+                $valoresMostrados[$proceso->area][$proceso->modulo][$proceso->op] = true;
+            }
+        }
+
+        return response()->json($resultadoFiltrado);
+    }
+
+    public function getProcesoFinalAQL()
+    {
+        $fechaActual = Carbon::now()->toDateString();
+        $auditorPlanta = Auth::user()->Planta;
+        // $tipoUsuario = Auth::user()->puesto; // No se usa en esta consulta, pero lo dejo por si acaso
+        // $auditorDato = Auth::user()->name; // No se usa en esta consulta
+
+        if ($auditorPlanta == "Planta1") {
+            $datoPlanta = "Intimark1";
+        } else {
+            $datoPlanta = "Intimark2";
+        }
+
+        $procesoFinalAQL = AuditoriaAQL::where('estatus', 1)
+            ->where('planta', $datoPlanta)
+            ->whereDate('created_at', $fechaActual)
+            ->select('modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion') //Añadí 'area'
+            ->distinct()
+            ->get(); // El orderBy no es estrictamente necesario si el filtrado se hace en el front o si el orden natural es aceptable.
+
+        // Agrupar para evitar duplicados en la vista (lógica similar a tu @php)
+        $valoresMostrados = [];
+        $resultadoFiltrado = [];
+        foreach ($procesoFinalAQL as $proceso) {
+            if (!isset($valoresMostrados[$proceso->area][$proceso->modulo][$proceso->op])) {
+                $resultadoFiltrado[] = $proceso;
+                $valoresMostrados[$proceso->area][$proceso->modulo][$proceso->op] = true;
+            }
+        }
+        return response()->json($resultadoFiltrado);
     }
 
     public function formAltaProcesoAQL_v2(Request $request) 

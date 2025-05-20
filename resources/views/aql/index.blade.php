@@ -78,7 +78,6 @@
         </div>
 
         <div class="card">
-            <!--Aqui se edita el encabezado que es el que se muestra -->
             <div class="card-header card-header-primary">
                 <div class="row align-items-center justify-content-between">
                     <div class="col">
@@ -91,7 +90,6 @@
             </div>
             <hr>
             <div class="card-body">
-                <!--Desde aqui inicia la edicion del codigo para mostrar el contenido-->
                 <div class="accordion" id="accordionExample">
                     <div class="card">
                         <div class="card-header" id="headingOne">
@@ -134,36 +132,7 @@
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody id="tablaProcesos1">
-                                                                    @php
-                                                                        $valoresMostrados = [];
-                                                                    @endphp
-                                                                    @foreach($procesoActualAQL as $proceso)
-                                                                        @if (!isset($valoresMostrados[$proceso->area][$proceso->modulo][$proceso->op]))
-                                                                            <tr>
-                                                                                <td>
-                                                                                    <form method="POST" action="{{ route('auditoriaAQL.formAltaProcesoAQL_v2') }}">
-                                                                                        @csrf
-                                                                                        <input type="hidden" name="area" value="{{ $proceso->area }}">
-                                                                                        <input type="hidden" name="modulo" value="{{ $proceso->modulo }}">
-                                                                                        <input type="hidden" name="op" value="{{ $proceso->op }}">
-                                                                                        <input type="hidden" name="estilo" value="{{ $proceso->estilo }}">
-                                                                                        <input type="hidden" name="cliente" value="{{ $proceso->cliente }}">
-                                                                                        <input type="hidden" name="team_leader" value="{{ $proceso->team_leader }}">
-                                                                                        <input type="hidden" name="gerente_produccion" value="{{ $proceso->gerente_produccion }}">
-                                                                                        <input type="hidden" name="auditor" value="{{ $proceso->auditor }}">
-                                                                                        <input type="hidden" name="turno" value="{{ $proceso->turno }}">
-                                                                                        <button type="submit" class="btn btn-primary">Acceder</button>
-                                                                                    </form>
-                                                                                </td>
-                                                                                <td>{{ $proceso->modulo }}</td>
-                                                                                <td>{{ $proceso->op }}</td>
-                                                                                <!-- Agrega aquí el resto de las columnas que deseas mostrar -->
-                                                                            </tr>
-                                                                            @php
-                                                                                $valoresMostrados[$proceso->area][$proceso->modulo][$proceso->op] = true;
-                                                                            @endphp
-                                                                        @endif
-                                                                    @endforeach
+                                                                    <tr><td colspan="3" class="text-center">Cargando datos...</td></tr>
                                                                 </tbody>
                                                             </table>
                                                         </div>
@@ -172,9 +141,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Fin del acordeón 1 -->
                                     <div class="col-md-6">
-                                        {{-- Inicio de Acordeon --}}
                                         <div class="accordion" id="accordionExample6">
                                             <div class="card">
                                                 <div class="card-header" id="headingOne6">
@@ -200,36 +167,7 @@
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody id="tablaProcesos2">
-                                                                    @php
-                                                                        $valoresMostrados = [];
-                                                                    @endphp
-                                                                    @foreach($procesoFinalAQL as $proceso)
-                                                                        @if (!isset($valoresMostrados[$proceso->area][$proceso->modulo][$proceso->op]))
-                                                                            <tr>
-                                                                                <td>
-                                                                                    <form method="POST" action="{{ route('auditoriaAQL.formAltaProcesoAQL_v2') }}">
-                                                                                        @csrf
-                                                                                        <input type="hidden" name="area" value="{{ $proceso->area }}">
-                                                                                        <input type="hidden" name="modulo" value="{{ $proceso->modulo }}">
-                                                                                        <input type="hidden" name="op" value="{{ $proceso->op }}">
-                                                                                        <input type="hidden" name="estilo" value="{{ $proceso->estilo }}">
-                                                                                        <input type="hidden" name="cliente" value="{{ $proceso->cliente }}">
-                                                                                        <input type="hidden" name="team_leader" value="{{ $proceso->team_leader }}">
-                                                                                        <input type="hidden" name="gerente_produccion" value="{{ $proceso->gerente_produccion }}">
-                                                                                        <input type="hidden" name="auditor" value="{{ $proceso->auditor }}">
-                                                                                        <input type="hidden" name="turno" value="{{ $proceso->turno }}">
-                                                                                        <button type="submit" class="btn btn-primary">Acceder</button>
-                                                                                    </form>
-                                                                                </td>
-                                                                                <td>{{ $proceso->modulo }}</td>
-                                                                                <td>{{ $proceso->op }}</td>
-                                                                                <!-- Agrega aquí el resto de las columnas que deseas mostrar -->
-                                                                            </tr>
-                                                                            @php
-                                                                                $valoresMostrados[$proceso->area][$proceso->modulo][$proceso->op] = true;
-                                                                            @endphp
-                                                                        @endif
-                                                                    @endforeach
+                                                                    <tr><td colspan="3" class="text-center">Cargando datos...</td></tr>
                                                                 </tbody>
                                                             </table>
                                                         </div>
@@ -238,14 +176,11 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Fin del acordeón 2 -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!--Fin de la edicion del codigo para mostrar el contenido-->
             </div>
         </div>
 
@@ -503,39 +438,98 @@
 
     <script>
         $(document).ready(function() {
+            // Función para poblar una tabla con datos
+            function poblarTabla(idTablaBody, datos, rutaFormulario) {
+                const tablaBody = $('#' + idTablaBody);
+                tablaBody.empty(); // Limpiar contenido previo (ej. "Cargando datos...")
+
+                if (datos && datos.length > 0) {
+                    datos.forEach(function(proceso) {
+                        // Asegurarse de que los valores no sean null o undefined antes de usarlos
+                        const area = proceso.area || '';
+                        const modulo = proceso.modulo || '';
+                        const op = proceso.op || '';
+                        const estilo = proceso.estilo || '';
+                        const cliente = proceso.cliente || '';
+                        const team_leader = proceso.team_leader || '';
+                        const gerente_produccion = proceso.gerente_produccion || '';
+                        const auditor = proceso.auditor || '';
+                        const turno = proceso.turno || '';
+
+                        let filaHtml = `
+                            <tr>
+                                <td>
+                                    <form method="POST" action="${rutaFormulario}">
+                                        <input type="hidden" name="_token" value="${$('meta[name="csrf-token"]').attr('content')}">
+                                        <input type="hidden" name="area" value="${area}">
+                                        <input type="hidden" name="modulo" value="${modulo}">
+                                        <input type="hidden" name="op" value="${op}">
+                                        <input type="hidden" name="estilo" value="${estilo}">
+                                        <input type="hidden" name="cliente" value="${cliente}">
+                                        <input type="hidden" name="team_leader" value="${team_leader}">
+                                        <input type="hidden" name="gerente_produccion" value="${gerente_produccion}">
+                                        <input type="hidden" name="auditor" value="${auditor}">
+                                        <input type="hidden" name="turno" value="${turno}">
+                                        <button type="submit" class="btn btn-primary">Acceder</button>
+                                    </form>
+                                </td>
+                                <td>${modulo}</td>
+                                <td>${op}</td>
+                            </tr>
+                        `;
+                        tablaBody.append(filaHtml);
+                    });
+                } else {
+                    tablaBody.append('<tr><td colspan="3" class="text-center">No hay datos disponibles.</td></tr>');
+                }
+            }
+
+            // Cargar datos para la tabla de procesos actuales (En Proceso)
+            $.ajax({
+                url: "{{ route('AQLV3.data.procesoActual') }}",
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    poblarTabla('tablaProcesos1', data, "{{ route('auditoriaAQL.formAltaProcesoAQL_v2') }}");
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error al cargar procesos actuales:", error);
+                    $('#tablaProcesos1').html('<tr><td colspan="3" class="text-center">Error al cargar los datos.</td></tr>');
+                }
+            });
+
+            // Cargar datos para la tabla de procesos finalizados
+            $.ajax({
+                url: "{{ route('AQLV3.data.procesoFinal') }}",
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    poblarTabla('tablaProcesos2', data, "{{ route('auditoriaAQL.formAltaProcesoAQL_v2') }}");
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error al cargar procesos finalizados:", error);
+                    $('#tablaProcesos2').html('<tr><td colspan="3" class="text-center">Error al cargar los datos.</td></tr>');
+                }
+            });
+
+            // Funcionalidad de búsqueda para la tabla 1
             $('#searchInput1').on('keyup', function() {
                 var value = $(this).val().toLowerCase();
                 $('#tablaProcesos1 tr').filter(function() {
-                    var modulo = $(this).find('td:eq(1)').text().toLowerCase();
-                    var estilo = $(this).find('td:eq(2)').text().toLowerCase();
-                    $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
+                    // Asegúrate de que las celdas existan antes de intentar leer su texto
+                    var modulo = $(this).find('td:eq(1)').text() ? $(this).find('td:eq(1)').text().toLowerCase() : "";
+                    var op = $(this).find('td:eq(2)').text() ? $(this).find('td:eq(2)').text().toLowerCase() : "";
+                    $(this).toggle(modulo.indexOf(value) > -1 || op.indexOf(value) > -1);
                 });
             });
 
+            // Funcionalidad de búsqueda para la tabla 2
             $('#searchInput2').on('keyup', function() {
                 var value = $(this).val().toLowerCase();
                 $('#tablaProcesos2 tr').filter(function() {
-                    var modulo = $(this).find('td:eq(1)').text().toLowerCase();
-                    var estilo = $(this).find('td:eq(2)').text().toLowerCase();
-                    $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
-                });
-            });
-
-            $('#searchInput3').on('keyup', function() {
-                var value = $(this).val().toLowerCase();
-                $('#tablaProcesos3 tr').filter(function() {
-                    var modulo = $(this).find('td:eq(1)').text().toLowerCase();
-                    var estilo = $(this).find('td:eq(2)').text().toLowerCase();
-                    $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
-                });
-            });
-
-            $('#searchInput4').on('keyup', function() {
-                var value = $(this).val().toLowerCase();
-                $('#tablaProcesos4 tr').filter(function() {
-                    var modulo = $(this).find('td:eq(1)').text().toLowerCase();
-                    var estilo = $(this).find('td:eq(2)').text().toLowerCase();
-                    $(this).toggle(modulo.indexOf(value) > -1 || estilo.indexOf(value) > -1);
+                    var modulo = $(this).find('td:eq(1)').text() ? $(this).find('td:eq(1)').text().toLowerCase() : "";
+                    var op = $(this).find('td:eq(2)').text() ? $(this).find('td:eq(2)').text().toLowerCase() : "";
+                    $(this).toggle(modulo.indexOf(value) > -1 || op.indexOf(value) > -1);
                 });
             });
         });
