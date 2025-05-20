@@ -114,43 +114,93 @@ class AuditoriaProcesoV3Controller extends Controller
         $auditorPlanta = Auth::user()->Planta;
         $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
         $fechaActual = Carbon::now()->toDateString();
+        $tiempoCache = Carbon::now()->addMinutes(1); // Cachear por 1 minuto
 
-        // Clave de caché dinámica
-        $cacheKeyParts = [
+        // Partes base para la clave de caché
+        $baseCacheKeyParts = [
             'procesos',
-            $tipoProceso,
             $datoPlanta,
             $fechaActual
         ];
+
         if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
-            $cacheKeyParts[] = "auditor_{$auditorDato}";
+            $baseCacheKeyParts[] = "auditor_{$auditorDato}";
         } else {
-            $cacheKeyParts[] = "todos";
+            $baseCacheKeyParts[] = "todos";
         }
-        $cacheKey = implode('_', $cacheKeyParts);
-        $tiempoCache = 60; // Cachear por 1 minutos (ajusta según la frecuencia de actualización)
 
-        $procesos = Cache::remember($cacheKey, $tiempoCache, function () use ($tipoProceso, $datoPlanta, $fechaActual, $tipoUsuario, $auditorDato) {
-            $query = AseguramientoCalidad::where('planta', $datoPlanta)
-                ->whereDate('created_at', $fechaActual)
-                ->select('modulo', 'estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
-                ->distinct()
-                ->orderBy('modulo', 'asc');
+        // Claves de caché específicas para procesos actuales y finales
+        $cacheKeyActual = implode('_', array_merge($baseCacheKeyParts, ['actual']));
+        $cacheKeyFinal = implode('_', array_merge($baseCacheKeyParts, ['final']));
 
-            if ($tipoProceso === 'actual') {
-                $query->whereNull('estatus');
-            } else { // 'final'
-                $query->where('estatus', 1);
+        $procesosSolicitados = null;
+
+        // Intentar obtener los procesos solicitados desde la caché primero
+        if ($tipoProceso === 'actual') {
+            if (Cache::has($cacheKeyActual)) {
+                $procesosSolicitados = Cache::get($cacheKeyActual);
+            }
+        } else { // 'final'
+            if (Cache::has($cacheKeyFinal)) {
+                $procesosSolicitados = Cache::get($cacheKeyFinal);
+            }
+        }
+
+        if ($procesosSolicitados !== null) {
+            return response()->json($procesosSolicitados);
+        }
+
+        // Si no está en caché, realizar una consulta combinada para ambos tipos
+        // y luego popular la caché para ambos.
+
+        // Columnas a seleccionar (sin 'estatus' para el resultado final, pero necesaria para la división)
+        $selectColumns = ['modulo', 'estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion'];
+        $queryColumns = array_merge($selectColumns, ['estatus']); // Añadir 'estatus' para la consulta
+
+        $baseQuery = AseguramientoCalidad::where('planta', $datoPlanta)
+            ->whereDate('created_at', $fechaActual)
+            ->select($queryColumns) // Seleccionar con 'estatus' para poder diferenciar
+            ->distinct() // Distinct se aplicará a todas las columnas seleccionadas, incluyendo 'estatus'
+            ->orderBy('modulo', 'asc');
+
+        if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
+            $baseQuery->where('auditor', $auditorDato);
+        }
+
+        // Clonar la consulta base y añadir la condición para ambos tipos de estatus
+        $combinedQuery = clone $baseQuery;
+        $todosLosProcesosDb = $combinedQuery->where(function ($query) {
+            $query->whereNull('estatus')      // Procesos actuales
+                  ->orWhere('estatus', 1); // Procesos finales
+        })->get();
+
+        $procesosActuales = [];
+        $procesosFinales = [];
+
+        foreach ($todosLosProcesosDb as $procesoDb) {
+            // Preparamos el objeto/array sin la columna 'estatus' para el JSON final
+            $procesoData = new \stdClass(); // O usa un array si lo prefieres
+            foreach ($selectColumns as $column) {
+                $procesoData->{$column} = $procesoDb->{$column};
             }
 
-            if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
-                $query->where('auditor', $auditorDato);
+            if ($procesoDb->estatus === null) {
+                $procesosActuales[] = $procesoData;
+            } elseif ($procesoDb->estatus == 1) { // Usar comparación no estricta por si 'estatus' es numérico
+                $procesosFinales[] = $procesoData;
             }
+        }
 
-            return $query->get();
-        });
+        // Guardar ambos resultados en sus respectivas cachés
+        Cache::put($cacheKeyActual, $procesosActuales, $tiempoCache);
+        Cache::put($cacheKeyFinal, $procesosFinales, $tiempoCache);
 
-        return response()->json($procesos);
+        // Devolver el tipo de proceso que se solicitó originalmente
+        if ($tipoProceso === 'actual') {
+            return response()->json($procesosActuales);
+        } else { // 'final'
+            return response()->json($procesosFinales);
+        }
     }
 
     public function obtenerEstilos(Request $request) // Renombrado de obtenerEstilosV2 si es el mismo método
