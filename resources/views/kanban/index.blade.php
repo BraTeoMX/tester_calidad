@@ -297,6 +297,20 @@
         const comentariosSeleccionadosPorFila = {};
 
         function cargarRegistrosHoy() {
+            // ---- INICIO DE LA MODIFICACIÓN ----
+            // Limpiar el estado de los comentarios seleccionados para todas las filas
+            // ya que la tabla se va a reconstruir completamente.
+            for (const key in comentariosSeleccionadosPorFila) {
+                if (comentariosSeleccionadosPorFila.hasOwnProperty(key)) {
+                    delete comentariosSeleccionadosPorFila[key];
+                    // Si sabes que siempre es un Set, podrías hacer:
+                    // comentariosSeleccionadosPorFila[key].clear();
+                    // Pero delete es más seguro si la clave podría no existir o no ser un Set en algún punto.
+                    // Al borrar la propiedad, la próxima vez que se acceda en `inicializarSelect2Comentarios` o `agregarComentarioFila`,
+                    // se creará un nuevo Set.
+                }
+            }
+            // ---- FIN DE LA MODIFICACIÓN ----
             $.ajax({
                 url: '{{ route("kanban.registrosHoy") }}',
                 method: 'GET',

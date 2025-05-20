@@ -285,8 +285,6 @@ class AuditoriaKanBanController extends Controller
                     // Ahora, la lógica interna sigue usando $nuevoEstatus (string) contra strings literales, lo cual está bien.
                     if ($nuevoEstatus === '1' && $kanban->fecha_liberacion !== null) {
                         $omitirEsteRegistro = true;
-                    } elseif ($nuevoEstatus === '2' && $kanban->fecha_parcial !== null) {
-                        $omitirEsteRegistro = true;
                     } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo !== null) {
                         $omitirEsteRegistro = true;
                     } elseif ($nuevoEstatus === '' && // Si el nuevo estado es "sin seleccionar" (string vacío)
