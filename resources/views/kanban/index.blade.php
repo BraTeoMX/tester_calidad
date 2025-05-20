@@ -492,49 +492,86 @@
             // Evento para el botón de actualización masiva
             $('#btn-actualizar-todo').on('click', function () {
                 const registrosParaActualizar = [];
-                let alMenosUnCambio = false; // Para verificar si hay algo que enviar
+                // let alMenosUnCambio = false; // Lo determinaremos por el tamaño de registrosParaActualizar
+                
+                // ---- INICIO DE VALIDACIONES ----
+                let validacionesPasadas = true;
+                const mensajesErrorValidacion = [];
+                let hayRegistrosConAccion = false; // Para saber si al menos un registro tiene un estatus seleccionado
 
-                // Iterar sobre cada fila del tbody
                 $('#tabla-registros-hoy tbody tr').each(function () {
                     const fila = $(this);
-                    const id = fila.data('id'); // Obtener el ID del atributo data-id de la fila
+                    const id = fila.data('id');
 
-                    // Asegurarse de que la fila tenga un ID (evitar filas de mensajes como "cargando..." o "error")
+                    // Asegurarse de que la fila tenga un ID (evitar filas de mensajes)
                     if (id === undefined || id === null) {
                         return; // Saltar esta iteración si no hay ID
                     }
 
-                    const accion = fila.find('.select-accion').val();
+                    const accion = fila.find('.select-accion').val(); // Estatus seleccionado
                     const comentariosArray = comentariosSeleccionadosPorFila[id] ? Array.from(comentariosSeleccionadosPorFila[id]) : [];
+                    const op = fila.find('td').eq(2).text(); // Tomamos la OP de la tercera celda para el mensaje
 
-                    // Solo incluir registros que tengan una acción seleccionada
-                    // o si quieres enviar todos los registros independientemente de si cambió el estatus,
-                    // puedes quitar esta condición `if (accion)` o ajustarla.
-                    // Por ahora, solo enviaremos los que tienen un estatus definido.
+                    // Solo aplicar validaciones y considerar para actualizar si se ha seleccionado una acción
                     if (accion) {
+                        hayRegistrosConAccion = true; // Marcamos que al menos un registro tiene un estatus
+
+                        // Regla 1: Estatus '1' (Aceptado) -> Comentarios deben estar vacíos
+                        if (accion === '1' && comentariosArray.length > 0) {
+                            validacionesPasadas = false;
+                            mensajesErrorValidacion.push(`- OP ${op} (ID: ${id}): Con estatus "Aceptado", los comentarios deben estar vacíos.`);
+                        }
+
+                        // Regla 2: Estatus '2' (Parcial) -> Comentarios deben tener al menos un registro
+                        if (accion === '2' && comentariosArray.length === 0) {
+                            validacionesPasadas = false;
+                            mensajesErrorValidacion.push(`- OP ${op} (ID: ${id}): Con estatus "Parcial", se requiere al menos un comentario.`);
+                        }
+
+                        // Regla 3: Estatus '3' (Rechazado) -> Comentarios deben estar vacíos
+                        if (accion === '3' && comentariosArray.length > 0) {
+                            validacionesPasadas = false;
+                            mensajesErrorValidacion.push(`- OP ${op} (ID: ${id}): Con estatus "Rechazado", los comentarios deben estar vacíos.`);
+                        }
+                        
+                        // Si pasa las validaciones específicas para este registro (o no aplican), se añade
+                        // Pero el envío final dependerá de la bandera global `validacionesPasadas`
                         registrosParaActualizar.push({
                             id: id,
-                            accion: accion, // 'estatus' en el backend
+                            accion: accion,
                             comentarios: comentariosArray
                         });
-                        alMenosUnCambio = true;
-                    } else {
-                        // Opcional: si quieres también enviar registros sin acción pero con comentarios nuevos.
-                        // if (comentariosArray.length > 0) {
-                        //     registrosParaActualizar.push({
-                        //         id: id,
-                        //         accion: null, // O el estatus actual si lo puedes obtener
-                        //         comentarios: comentariosArray
-                        //     });
-                        //    alMenosUnCambio = true;
-                        // }
                     }
+                    // Opcional: Si quisieras enviar registros que SOLO tienen cambios en comentarios (sin acción seleccionada),
+                    // esa lógica iría aquí, pero las validaciones actuales están atadas a una acción seleccionada.
+                    // Por ahora, si `accion` está vacío, ese registro no se incluye en `registrosParaActualizar`.
                 });
 
-                if (!alMenosUnCambio) {
+                // Verificar si se seleccionó algún estatus en alguna fila
+                if (!hayRegistrosConAccion) {
                     alert('No hay cambios para actualizar. Selecciona un estatus en al menos un registro.');
                     return;
                 }
+
+                // Si alguna validación falló, mostrar errores y no continuar
+                if (!validacionesPasadas) {
+                    alert("Por favor, corrige los siguientes errores antes de guardar:\n\n" + mensajesErrorValidacion.join("\n"));
+                    return; // Detener el proceso
+                }
+                
+                // Si llegamos aquí, todas las validaciones pasaron para los registros con acción seleccionada
+                // y hay al menos un registro con acción.
+                // (registrosParaActualizar ya solo contiene los que tienen acción)
+
+                if (registrosParaActualizar.length === 0) {
+                    // Este caso podría darse si todos los que tenían acción fallaron la validación,
+                    // aunque el chequeo de `!validacionesPasadas` ya debería haberlo capturado.
+                    // Es una doble verificación.
+                    alert('No hay registros válidos para actualizar después de las validaciones.');
+                    return;
+                }
+
+                // ---- FIN DE VALIDACIONES ----
 
                 if (!confirm('¿Estás seguro de que deseas actualizar los registros seleccionados masivamente?')) {
                     return;
