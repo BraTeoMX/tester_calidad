@@ -595,7 +595,7 @@
                                 Swal.fire({ // Reemplazo de alert
                                     icon: 'success',
                                     title: '¡Éxito!',
-                                    text: response.mensaje || 'Registros actualizados correctamente.'
+                                    text: 'Registros actualizados correctamente.'//response.mensaje || 'Registros actualizados correctamente.'
                                 });
                                 cargarRegistrosHoy(); 
                             },
