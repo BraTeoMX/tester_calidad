@@ -780,94 +780,272 @@
 
     <script>
         $(document).ready(function () {
-            // Inicializar select2
-            $('#estilo_proceso').select2({
-                placeholder: 'Seleccione un estilo',
-                allowClear: true
-            });
+            let estilosDataParaSelect2 = []; // Para almacenar los datos formateados para Select2
+            const valorEstiloPreseleccionadoBlade = "{{ $data['estilo'] ?? '' }}"; // Valor inicial de Blade
 
-            function cargarEstilos() {
+            // Función matcher personalizada (opcional, si la búsqueda por defecto no es suficiente)
+            // Por defecto, select2 busca en el campo 'text'. Si 'text' es 'itemid', buscará por 'itemid'.
+            // Si quieres buscar también en 'custname' con el mismo input:
+            function estiloCustomMatcher(params, data) {
+                if ($.trim(params.term) === '') {
+                    return data;
+                }
+                if (typeof data.text === 'undefined' || typeof data.originalData === 'undefined') {
+                    return null;
+                }
+                const term = params.term.toLowerCase();
+                const itemIdText = String(data.originalData.itemid).toLowerCase();
+                const custNameText = String(data.originalData.custname || '').toLowerCase(); // custname puede ser null
+
+                if (itemIdText.includes(term) || custNameText.includes(term)) {
+                    return data;
+                }
+                return null;
+            }
+
+            function cargarYConfigurarEstilos() {
                 var moduleid = $('#modulo').val(); // Asegurar que se está obteniendo el moduleid correctamente
 
-                $.ajax({
-                    url: "{{ route('obtenerEstilosV2') }}",
-                    type: 'GET',
-                    data: { moduleid: moduleid },
-                    success: function (response) {
-                        var selectEstilo = $('#estilo_proceso');
-                        selectEstilo.empty();
-                        selectEstilo.append('<option value="">Seleccione un estilo</option>');
+                // Mostrar estado de carga y deshabilitar
+                $('#estilo_proceso').prop('disabled', true);
+                if ($('#estilo_proceso').data('select2')) {
+                    $('#estilo_proceso').select2('destroy');
+                }
+                $('#estilo_proceso').html('<option value="">Cargando estilos...</option>');
 
-                        $.each(response.estilos, function (index, estilo) {
-                            var selected = (estilo.itemid == "{{ $data['estilo'] }}") ? "selected" : "";
-                            selectEstilo.append('<option value="' + estilo.itemid + '" data-cliente="' + estilo.custname + '" ' + selected + '>' + estilo.itemid + '</option>');
+                $.ajax({
+                    url: "{{ route('obtenerEstilosV2') }}", // Asegúrate que esta ruta apunta a tu método `obtenerEstilos`
+                    type: 'GET',
+                    data: { moduleid: moduleid }, // Enviar moduleid si es necesario para la consulta
+                    dataType: 'json',
+                    success: function (response) {
+                        estilosDataParaSelect2 = $.map(response.estilos || [], function (estilo) {
+                            return {
+                                id: estilo.itemid, // El valor de la opción
+                                text: estilo.itemid, // El texto que se muestra (y se busca por defecto)
+                                originalData: estilo // Guardamos el objeto original para data adicional
+                            };
                         });
 
-                        // Disparar el evento de cambio manualmente para actualizar el cliente y la URL
-                        selectEstilo.trigger('change');
+                        // Destruir select2 si ya existe (por si se recarga) y limpiar opciones
+                        if ($('#estilo_proceso').data('select2')) {
+                            $('#estilo_proceso').select2('destroy');
+                        }
+                        $('#estilo_proceso').empty(); // Limpiar opciones antiguas
+
+                        // Inicializar select2 con los datos locales
+                        $('#estilo_proceso').select2({
+                            placeholder: 'Seleccione un estilo o busque',
+                            allowClear: true,
+                            data: estilosDataParaSelect2, // ¡Los datos cargados!
+                            // Descomenta la siguiente línea si quieres la búsqueda personalizada en itemid y custname
+                            // matcher: estiloCustomMatcher,
+                        });
+
+                        // Añadir la opción "Seleccione un estilo" como la primera opción si no está ya por el placeholder
+                        if (estilosDataParaSelect2.length > 0) { // Solo si hay datos, para no mostrarlo solo
+                            $('#estilo_proceso').prepend('<option value="" data-placeholder="true"></option>');
+                        }
+
+
+                        // Intentar restaurar la selección basada en el valor de Blade
+                        if (valorEstiloPreseleccionadoBlade) {
+                            $('#estilo_proceso').val(valorEstiloPreseleccionadoBlade).trigger('change.select2');
+                        } else {
+                            $('#estilo_proceso').val("").trigger('change.select2'); // Para asegurar que el placeholder se muestre
+                        }
+
+                        $('#estilo_proceso').prop('disabled', false);
+
+                        // Si después de seleccionar el valor por defecto necesitas ejecutar la lógica de 'change'
+                        // explícitamente (porque 'change.select2' podría no disparar todos los listeners 'change' genéricos):
+                        // $('#estilo_proceso').trigger('change');
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error("Error al cargar estilos:", textStatus, errorThrown);
+                        if ($('#estilo_proceso').data('select2')) {
+                            $('#estilo_proceso').select2('destroy');
+                        }
+                        $('#estilo_proceso').html('<option value="">Error al cargar estilos</option>').prop('disabled', true);
                     }
                 });
             }
 
-            // Cargar estilos al iniciar la página
-            cargarEstilos();
+            // Cargar estilos al iniciar la página (o cuando el módulo esté disponible)
+            if ($('#modulo').val()) { // Solo cargar si hay un módulo seleccionado inicialmente
+                cargarYConfigurarEstilos();
+            } else {
+                // Configurar select2 vacío si no hay módulo inicial, para que se vea bien
+                $('#estilo_proceso').select2({
+                    placeholder: 'Seleccione primero un módulo',
+                    allowClear: true
+                }).prop('disabled', true);
+            }
 
-            // Cuando se seleccione un estilo, actualizar el cliente automáticamente y cambiar la URL
+
+            // Cuando cambie el módulo, recargar los estilos
+            $('#modulo').on('change', function () {
+                cargarYConfigurarEstilos();
+            });
+
+            // Cuando se seleccione un estilo, actualizar el cliente y la URL
             $('#estilo_proceso').on('change', function () {
-                var cliente = $(this).find(':selected').data('cliente');
-                $('#cliente').val(cliente || '');
+                var selectedData = $(this).select2('data')[0]; // Obtener el objeto de datos de la opción seleccionada
+                var cliente = '';
+                var nuevoEstilo = $(this).val();
 
-                var nuevoEstilo = $(this).val(); // Obtener el nuevo estilo seleccionado
-                actualizarURL('estilo', nuevoEstilo);
+                if (selectedData && selectedData.originalData) {
+                    cliente = selectedData.originalData.custname;
+                } else if (!nuevoEstilo && $('#cliente').length) { // Si se deselecciona (valor vacío)
+                    cliente = ''; // Limpiar cliente si se deselecciona estilo
+                }
+
+
+                $('#cliente').val(cliente || ''); // Actualizar el campo cliente (asegúrate que existe un input#cliente)
+
+                if (nuevoEstilo) { // Solo actualizar URL si hay un estilo válido
+                    actualizarURL('estilo', nuevoEstilo);
+                } else {
+                    actualizarURL('estilo', ''); // Opcional: limpiar el parámetro si se deselecciona
+                }
             });
 
             function actualizarURL(parametro, valor) {
                 var url = new URL(window.location.href);
-                url.searchParams.set(parametro, valor); // Cambia el valor del parámetro en la URL
-                window.history.pushState({}, '', url); // Actualiza la URL sin recargar la página
+                if (valor) {
+                    url.searchParams.set(parametro, valor);
+                } else {
+                    url.searchParams.delete(parametro); // Eliminar el parámetro si el valor es vacío/nulo
+                }
+                // Usar replaceState para no llenar el historial con cada cambio de filtro si no es deseado
+                window.history.replaceState({}, '', url);
             }
         });
     </script>
 
     <script>
         $(document).ready(function () {
-            $('#lista_nombre').select2({
-                placeholder: 'Selecciona una opción',
-                allowClear: true,
-                minimumInputLength: 0,
-                ajax: {
-                    url: "{{ route('procesoV3.registro.obtenerNombresGenerales') }}",
+            // Variable para almacenar los datos de los nombres/empleados una vez cargados
+            let nombresData = [];
+
+            // Función matcher personalizada para que select2 busque en múltiples campos
+            function customMatcher(params, data) {
+                // Si no hay término de búsqueda, mostrar todas las opciones
+                // (select2 maneja esto internamente si retornamos 'data' cuando no hay término)
+                if ($.trim(params.term) === '') {
+                    return data;
+                }
+
+                // Si la opción no tiene 'text' o no tiene 'originalData' (nuestros datos crudos), no la incluimos
+                if (typeof data.text === 'undefined' || typeof data.originalData === 'undefined') {
+                    return null;
+                }
+
+                const term = params.term.toLowerCase();
+                const personnelNumber = String(data.originalData.personnelnumber).toLowerCase();
+                const name = data.originalData.name.toLowerCase();
+
+                // Si el término de búsqueda se encuentra en el número de personal o en el nombre
+                if (personnelNumber.includes(term) || name.includes(term)) {
+                    return data; // Devuelve el objeto de datos si hay coincidencia
+                }
+
+                // Devuelve null si no hay coincidencia
+                return null;
+            }
+
+            // Función para cargar datos e inicializar (o re-inicializar) Select2
+            function cargarEInicializarSelectNombres(moduloId) {
+                if (!moduloId) {
+                    // Si no hay módulo, limpiar el select y deshabilitarlo
+                    $('#lista_nombre').empty().append('<option value="">Selecciona primero un módulo</option>').prop('disabled', true);
+                    if ($('#lista_nombre').data('select2')) { // Destruir instancia previa si existe
+                        $('#lista_nombre').select2('destroy');
+                    }
+                    return;
+                }
+
+                // Mostrar estado de carga
+                $('#lista_nombre').prop('disabled', true).empty().append('<option value="">Cargando empleados...</option>');
+                if ($('#lista_nombre').data('select2')) { // Destruir instancia previa si existe
+                    $('#lista_nombre').select2('destroy');
+                }
+                $('#lista_nombre').empty();
+
+
+                $.ajax({
+                    url: "{{ route('procesoV3.registro.obtenerNombresGenerales') }}", // Tu endpoint actual
                     type: 'GET',
                     dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return {
-                            search: params.term || '', 
-                            modulo: $('#modulo').val()
-                        };
+                    data: {
+                        modulo: moduloId,
+                        search: '' // Importante: search vacío para traer todos los del módulo
                     },
-                    processResults: function (data) {
-                        return {
-                            results: $.map(data.nombres, function (item) {
-                                return {
-                                    id: item.name, // El valor del select será el 'name'
-                                    text: item.personnelnumber + " - " + item.name, // Lo que se muestra en el select
-                                    data: {
-                                        personnelnumber: item.personnelnumber // Guardamos el número de empleado en "data"
-                                    }
-                                };
-                            })
-                        };
+                    success: function (response) {
+                        // Mapear los datos recibidos al formato que Select2 espera
+                        // y guardar los datos originales para la búsqueda y la selección
+                        nombresData = $.map(response.nombres, function (item) {
+                            return {
+                                id: item.name, // El valor que se enviará del select (puede ser item.personnelnumber si lo prefieres)
+                                text: item.personnelnumber + " - " + item.name, // Lo que se muestra en el select
+                                originalData: item // Guardamos el objeto completo para el matcher y el evento 'select'
+                            };
+                        });
+
+                        // Inicializar Select2 con los datos locales
+                        $('#lista_nombre').select2({
+                            placeholder: 'Selecciona una opción o busca',
+                            allowClear: true,
+                            data: nombresData, // ¡Aquí pasamos los datos cargados!
+                            matcher: customMatcher, // Nuestra función de búsqueda personalizada
+                            minimumInputLength: 0 // Permite abrir y ver la lista sin escribir
+                        });
+
+                        $('#lista_nombre').prop('disabled', false);
+                        // Asegurar que el placeholder se muestre si no hay valor inicial
+                        if ($('#lista_nombre').find('option[value=""]').length === 0) {
+                            $('#lista_nombre').prepend('<option value="" selected>Selecciona una opción</option>');
+                        }
+                        $('#lista_nombre').val("").trigger('change');
+
+
                     },
-                    cache: true
-                }
-            });
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error("Error al cargar nombres:", textStatus, errorThrown);
+                        $('#lista_nombre').empty().append('<option value="">Error al cargar datos</option>').prop('disabled', true);
+                    }
+                });
+            }
 
             // Capturar el número de empleado al seleccionar una opción
             $('#lista_nombre').on('select2:select', function (e) {
                 let selectedData = e.params.data; // Captura los datos de la opción seleccionada
-                $(this).attr("data-personnelnumber", selectedData.data.personnelnumber); // Guardamos el número de empleado en un atributo
+                if (selectedData && selectedData.originalData) {
+                    // Guardamos el número de empleado en un atributo data-* del select
+                    $(this).attr("data-personnelnumber", selectedData.originalData.personnelnumber);
+                    // También puedes asignarlo a un input hidden si es para un formulario
+                    // $('#id_del_input_hidden_para_personnelnumber').val(selectedData.originalData.personnelnumber);
+                } else if (selectedData && selectedData.id === "") {
+                    // Si se selecciona la opción "Selecciona una opción" (placeholder)
+                    $(this).removeAttr("data-personnelnumber");
+                }
             });
+
+            // Lógica para cuando el campo #modulo cambie (si aplica)
+            // o para la carga inicial.
+            // Asumiré que tienes un input con id="modulo"
+            let moduloActual = $('#modulo').val();
+            if (moduloActual) {
+                cargarEInicializarSelectNombres(moduloActual);
+            } else {
+                $('#lista_nombre').empty().append('<option value="">Selecciona primero un módulo</option>').prop('disabled', true);
+            }
+
+            $('#modulo').on('change', function () {
+                let nuevoModuloId = $(this).val();
+                cargarEInicializarSelectNombres(nuevoModuloId);
+            });
+
         });
     </script>
 

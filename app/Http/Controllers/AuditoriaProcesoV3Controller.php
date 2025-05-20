@@ -153,30 +153,49 @@ class AuditoriaProcesoV3Controller extends Controller
         return response()->json($procesos);
     }
 
-    public function obtenerEstilos(Request $request)
+    public function obtenerEstilos(Request $request) // Renombrado de obtenerEstilosV2 si es el mismo método
     {
         $moduleid = $request->input('moduleid');
 
-        // Obtener los estilos con su respectivo cliente desde ModuloEstilo
-        $itemidsModuloEstilo = ModuloEstilo::select('itemid', 'custname')
-            ->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$moduleid])
-            ->distinct('itemid', 'custname')
-            ->orderBy('prioridad') // Priorizar los relacionados al módulo
-            ->orderBy('itemid') // Ordenar por itemid después
-            ->get();
+        // Clave de caché única. Considera si moduleid puede ser nulo o ausente.
+        $cacheKey = "estilos_modulo_" . ($moduleid ?? 'global'); // 'global' o 'todos' si moduleid es opcional para la consulta general
+        $minutesToCache = 2;
 
-        // Obtener los estilos desde ModuloEstiloTemporal
-        $itemidsModuloEstiloTemporal = ModuloEstiloTemporal::select('itemid', 'custname')
-            ->distinct('itemid', 'custname')
-            ->orderBy('itemid') // Ordenar por itemid
-            ->get();
+        // Intentar obtener desde el caché
+        if (Cache::has($cacheKey)) {
+            $estilosCombinados = Cache::get($cacheKey);
+        } else {
+            // Obtener los estilos con su respectivo cliente desde ModuloEstilo
+            $queryModuloEstilo = ModuloEstilo::select('itemid', 'custname');
+            if ($moduleid) {
+                // Aplicar prioridad solo si moduleid está presente
+                $queryModuloEstilo->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$moduleid])
+                                  ->orderBy('prioridad');
+            }
+            $itemidsModuloEstilo = $queryModuloEstilo->orderBy('itemid')->distinct()->get();
 
-        // Combinar ambos resultados y eliminar duplicados
-        $estilosCombinados = $itemidsModuloEstilo->concat($itemidsModuloEstiloTemporal)
-            ->unique('itemid');
+
+            // Obtener los estilos desde ModuloEstiloTemporal
+            $itemidsModuloEstiloTemporal = ModuloEstiloTemporal::select('itemid', 'custname')
+                ->distinct()
+                ->orderBy('itemid')
+                ->get();
+
+            // Combinar ambos resultados y eliminar duplicados por 'itemid',
+            // dando preferencia a los de $itemidsModuloEstilo (que ya están priorizados si había moduleid)
+            $estilosCombinados = $itemidsModuloEstilo
+                ->concat($itemidsModuloEstiloTemporal)
+                ->unique('itemid') // unique opera sobre la colección y mantiene el primer elemento encontrado con ese 'itemid'
+                ->values(); // Reindexa la colección
+
+            // Solo guardar en caché si la consulta devolvió resultados
+            if ($estilosCombinados->isNotEmpty()) {
+                Cache::put($cacheKey, $estilosCombinados, now()->addMinutes($minutesToCache));
+            }
+        }
 
         return response()->json([
-            'estilos' => $estilosCombinados->values(),
+            'estilos' => $estilosCombinados,
         ]);
     }
 
@@ -332,37 +351,56 @@ class AuditoriaProcesoV3Controller extends Controller
 
     public function obtenerNombresGenerales(Request $request)
     {
-        $modulo = $request->input('modulo'); // Obtener el módulo desde AJAX
-        $search = $request->input('search'); // Obtener el término de búsqueda
+        $modulo = $request->input('modulo');
+        $search = $request->input('search');
         $auditorPlanta = auth()->user()->Planta ?? 'Planta1'; // Ajustar según sea necesario
         $detectarPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
-        //Log::info('Planta detectada:', ['planta' => $detectarPlanta]);
 
-        // Base de la consulta
-        $query = AuditoriaProceso::where('prodpoolid', $detectarPlanta)
-            ->whereNotIn('name', [
-                '831A-EMPAQUE P2 T1', 
-                '830A-EMPAQUE P1 T1', 
-                'VIRTUAL P2T1 02', 
-                'VIRTUAL P2T1 01'
-            ])
-            ->where('name', 'not like', '1%')
-            ->where('name', 'not like', '2%');
+        // Crear una clave única para el caché basada en los parámetros que afectan la consulta
+        // Es importante incluir todos los parámetros que cambian el resultado de la consulta.
+        $cacheKey = "nombresGenerales_{$detectarPlanta}_modulo_{$modulo}_search_" . md5((string)$search);
+        $minutesToCache = 5;
 
-        // Si el usuario está buscando, filtrar los resultados
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('personnelnumber', 'like', "%$search%")
-                ->orWhere('name', 'like', "%$search%");
-            });
+        // Intentar obtener los datos desde el caché primero
+        if (Cache::has($cacheKey)) {
+            $nombresGenerales = Cache::get($cacheKey);
+            // Si lo que está cacheado es una marca indicando "sin resultados",
+            // podríamos querer re-evaluar. Pero para el caso de "no cachear si está vacío",
+            // simplemente devolvemos lo que sea que esté en caché (que no debería ser un "vacío" si se implementa correctamente).
+            // O, si el caché pudiera contener un marcador explícito de "no resultados", aquí se manejaría.
+            // Por simplicidad, si está en caché, se devuelve. El truco está en no ponerlo si está vacío.
+        } else {
+            // Base de la consulta
+            $query = AuditoriaProceso::where('prodpoolid', $detectarPlanta)
+                ->whereNotIn('name', [
+                    '831A-EMPAQUE P2 T1',
+                    '830A-EMPAQUE P1 T1',
+                    'VIRTUAL P2T1 02',
+                    'VIRTUAL P2T1 01'
+                ])
+                ->where('name', 'not like', '1%')
+                ->where('name', 'not like', '2%');
+
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('personnelnumber', 'like', "%$search%")
+                    ->orWhere('name', 'like', "%$search%");
+                });
+            }
+
+            $nombresGenerales = $query
+                ->select('personnelnumber', 'name', 'moduleid')
+                ->distinct()
+                ->orderByRaw("CASE WHEN moduleid = ? THEN 0 ELSE 1 END, name ASC", [$modulo])
+                ->get();
+
+            // Solo guardar en caché si la consulta devolvió resultados
+            if ($nombresGenerales->isNotEmpty()) {
+                Cache::put($cacheKey, $nombresGenerales, now()->addMinutes($minutesToCache));
+            }
+            // Si $nombresGenerales está vacío, no se guarda nada en caché.
+            // La próxima vez que se llame con los mismos parámetros, se volverá a consultar la BD.
         }
-
-        // Obtener todos los datos y ordenarlos
-        $nombresGenerales = $query
-            ->select('personnelnumber', 'name', 'moduleid')
-            ->distinct()
-            ->orderByRaw("CASE WHEN moduleid = ? THEN 0 ELSE 1 END, name ASC", [$modulo])
-            ->get();
 
         return response()->json([
             'nombres' => $nombresGenerales
