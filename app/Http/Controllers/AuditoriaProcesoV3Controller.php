@@ -411,33 +411,40 @@ class AuditoriaProcesoV3Controller extends Controller
     public function obtenerOperaciones(Request $request)
     {
         $modulo = $request->input('modulo');
-        $search = $request->input('search');
+        // El 'search' del request ya no se usará para filtrar resultados si cargamos todo al cliente.
+        // Se mantiene aquí por si el endpoint se usa de otra manera o para una carga inicial condicionada.
 
-        $excluidos = [
-            "APP SCREEN:    /    /", 
-            "APPROVED     /    /", 
-            "APPROVED / /",
-            "APPROVED //",
-            "OFF LINE", 
-            "ON CUT", 
-            "ON LINE", 
-            "OUT CUT"
-        ];
+        // Clave de caché. Si el módulo es opcional y no tenerlo significa "todos los módulos", ajústalo.
+        $cacheKey = "operaciones_modulo_" . ($modulo ?? 'todos_los_modulos');
+        $minutesToCache = 5; // Puedes ajustar este valor
 
-        $query = JobOperacion::whereNotIn('oprname', $excluidos);
+        if (Cache::has($cacheKey)) {
+            $operaciones = Cache::get($cacheKey);
+        } else {
+            $excluidos = [
+                "APP SCREEN:   /   /", "APPROVED    /   /", "APPROVED / /",
+                "APPROVED //", "OFF LINE", "ON CUT", "ON LINE", "OUT CUT"
+            ];
 
-        // Filtrar por módulo si existe
-        if (!empty($modulo)) {
-            $query->where('moduleid', $modulo);
+            $query = JobOperacion::whereNotIn('oprname', $excluidos);
+
+            if (!empty($modulo)) {
+                $query->where('moduleid', $modulo);
+            }
+
+            // Cuando se carga todo para el cliente, no se aplica el $search del request aquí.
+            // La búsqueda se hará en el cliente.
+            $operacionesResult = $query->select('oprname')->distinct()->orderBy('oprname', 'asc')->get();
+
+            // Solo guardar en caché si la consulta devolvió resultados
+            if ($operacionesResult->isNotEmpty()) {
+                Cache::put($cacheKey, $operacionesResult, now()->addMinutes($minutesToCache));
+            }
+            // Asignar siempre para tener un valor (puede ser colección vacía)
+            $operaciones = $operacionesResult;
         }
 
-        // Aplicar búsqueda si el usuario está escribiendo
-        if (!empty($search)) {
-            $query->where('oprname', 'like', "%$search%");
-        }
-
-        $operaciones = $query->select('oprname')->distinct()->orderBy('oprname', 'asc')->get();
-
+        // El cliente se encargará de añadir la opción "[OTRA OPERACIÓN]"
         return response()->json([
             'operaciones' => $operaciones
         ]);

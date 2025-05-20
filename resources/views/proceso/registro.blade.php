@@ -814,7 +814,7 @@
                 $('#estilo_proceso').html('<option value="">Cargando estilos...</option>');
 
                 $.ajax({
-                    url: "{{ route('obtenerEstilosV2') }}", // Asegúrate que esta ruta apunta a tu método `obtenerEstilos`
+                    url: "{{ route('procesoV3.obtenerEstilos') }}", // Asegúrate que esta ruta apunta a tu método `obtenerEstilos`
                     type: 'GET',
                     data: { moduleid: moduleid }, // Enviar moduleid si es necesario para la consulta
                     dataType: 'json',
@@ -1049,64 +1049,160 @@
         });
     </script>
 
-    <script>
+    <script> 
         $(document).ready(function () {
-            function cargarOperaciones() {
-                $(".operacion-select").select2({
-                    placeholder: 'Selecciona una opción',
-                    allowClear: true,
-                    minimumInputLength: 0, // Muestra la lista completa sin escribir
-                    ajax: {
-                        url: "{{ route('procesoV3.registro.obtenerOperaciones') }}", // Ruta en Laravel
-                        type: 'GET',
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            return {
-                                search: params.term || '', // Si no hay búsqueda, devuelve toda la lista
-                                modulo: $('#modulo').val() // Enviar el módulo actual para ordenar los resultados
-                            };
-                        },
-                        processResults: function (data) {
-                            let opciones = [
-                                { id: '', text: 'Selecciona una opción' },
-                                { id: 'otra', text: '[OTRA OPERACIÓN]' }
-                            ];
+            const $selectOperaciones = $(".operacion-select"); // Considera usar un ID si es una única instancia para más precisión
+            const $inputOtraOperacion = $selectOperaciones.closest("td").find(".otra-operacion-input");
+            const $selectContainer = $selectOperaciones.closest(".operacion-select-container");
 
-                            $.each(data.operaciones, function (index, item) {
-                                opciones.push({
-                                    id: item.oprname, // Se envía 'oprname' como valor
-                                    text: item.oprname // Se muestra 'oprname'
-                                });
-                            });
+            // Función para gestionar el estado (visible/oculto, habilitado/deshabilitado, required)
+            function gestionarEstadoCampos(esModoOtraOperacion) {
+                if (esModoOtraOperacion) {
+                    // Modo "OTRA OPERACIÓN" activo
+                    $selectContainer.hide();
+                    $selectOperaciones.prop('disabled', true).removeAttr('required'); // Deshabilitar select
 
-                            return { results: opciones };
-                        },
-                        cache: true
+                    $inputOtraOperacion.show().val('').focus(); // Mostrar, limpiar y enfocar input
+                    $inputOtraOperacion.prop('disabled', false).attr('required', 'required'); // Habilitar input y hacerlo required
+                } else {
+                    // Modo selección de lista activo
+                    $selectContainer.show();
+                    $selectOperaciones.prop('disabled', false).attr('required', 'required'); // Habilitar select y hacerlo required
+
+                    $inputOtraOperacion.hide().val(''); // Ocultar y limpiar input
+                    $inputOtraOperacion.prop('disabled', true).removeAttr('required'); // Deshabilitar input
+                }
+            }
+
+            function cargarYConfigurarOperaciones() {
+                const moduloActual = $('#modulo').val();
+                // Guardar el valor seleccionado actual del select (si existe y es relevante para preselección)
+                const valorSeleccionadoPreviamente = $selectOperaciones.val();
+
+                $selectOperaciones.prop('disabled', true); // Deshabilitar mientras carga
+                if ($selectOperaciones.data('select2')) {
+                    $selectOperaciones.select2('destroy');
+                }
+                // Mostrar un placeholder de carga. No borraremos las opciones estáticas del HTML aún.
+                $selectOperaciones.html('<option value="">Cargando operaciones...</option>');
+
+                $.ajax({
+                    url: "{{ route('procesoV3.registro.obtenerOperaciones') }}",
+                    type: 'GET',
+                    data: { modulo: moduloActual, search: '' }, // search: '' para traer todos del módulo
+                    dataType: 'json',
+                    success: function (response) {
+                        let opcionesDinamicas = $.map(response.operaciones || [], function (item) {
+                            return { id: item.oprname, text: item.oprname };
+                        });
+
+                        // Preparamos los datos para Select2
+                        // La opción "Selecciona una opción" (value="") será el placeholder de Select2
+                        // La opción "[OTRA OPERACIÓN]" (value="otra") la añadimos a los datos.
+                        const datosParaSelect2 = [
+                            // La opción { id: '', text: 'Selecciona una opción'} se maneja con placeholder
+                            { id: 'otra', text: '[OTRA OPERACIÓN]' }, // Importante: id debe ser 'otra'
+                            ...opcionesDinamicas
+                        ];
+
+                        // Destruir select2 si existe (por si es una recarga) y vaciar el select HTML
+                        // para que Select2 lo reconstruya solo con la opción 'data'.
+                        if ($selectOperaciones.data('select2')) {
+                            $selectOperaciones.select2('destroy');
+                        }
+                        $selectOperaciones.empty(); // Limpiar el select de cualquier <option> previa
+
+                        $selectOperaciones.select2({
+                            placeholder: 'Selecciona una opción o busca', // Esto crea la opción vacía visualmente
+                            allowClear: true,
+                            minimumInputLength: 0,
+                            data: datosParaSelect2 // Usar los datos cargados y procesados
+                        });
+
+                        // Lógica de preselección (si aplica, ej. al editar un formulario)
+                        // Aquí debes decidir qué valor preseleccionar. Si el valor original era 'otra', o una operación específica.
+                        let valorASeleccionar = null;
+                        if (valorSeleccionadoPreviamente === 'otra') {
+                            valorASeleccionar = 'otra';
+                        } else if (valorSeleccionadoPreviamente && opcionesDinamicas.some(op => op.id === valorSeleccionadoPreviamente)) {
+                            valorASeleccionar = valorSeleccionadoPreviamente;
+                        }
+                        $selectOperaciones.val(valorASeleccionar).trigger('change.select2'); // Dispara el evento para actualizar UI y lógica
+
+                        // El evento 'change' (que se define más abajo) llamará a gestionarEstadoCampos.
+                        // Si no hay valor preseleccionado (valorASeleccionar es null),
+                        // el 'change' se dispara con null, y gestionarEstadoCampos se llamará con 'false'.
+                        // Es importante que el 'change' se dispare DESPUÉS de inicializar select2.
+
+                        // Habilitar el select (gestionarEstadoCampos se encarga de esto en base al valor)
+                        // $selectOperaciones.prop('disabled', false); // Se maneja en gestionarEstadoCampos
+
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error("Error al cargar operaciones:", textStatus, errorThrown);
+                        if ($selectOperaciones.data('select2')) {
+                            $selectOperaciones.select2('destroy');
+                        }
+                        // En caso de error, restaurar las opciones estáticas básicas que estaban en el HTML
+                        // o al menos la de "otra" para que la lógica no se rompa completamente.
+                        $selectOperaciones.html('<option value="">Error al cargar</option><option value="otra">[OTRA OPERACIÓN]</option>');
+                        $selectOperaciones.select2({ placeholder: 'Error al cargar' }); // Reinicializar select2
+                        gestionarEstadoCampos(false); // Asumir estado no-otra
+                        $selectOperaciones.prop('disabled', true); // Deshabilitar por error
                     }
                 });
             }
 
-            // Cargar operaciones al iniciar
-            cargarOperaciones();
-
-            // Manejar selección de "OTRA OPERACIÓN"
-            $(document).on('change', '.operacion-select', function () {
-                let select = $(this);
-                let inputOtraOperacion = select.closest("td").find(".otra-operacion-input");
-
-                if (select.val() === 'otra') {
-                    select.closest("td").find(".operacion-select-container").hide(); // Oculta el contenedor del select
-                    inputOtraOperacion.show().val('').focus(); // Muestra el input de texto
+            // Cargar operaciones al iniciar si el módulo está disponible
+            if ($('#modulo').val()) {
+                cargarYConfigurarOperaciones();
+            } else {
+                // Si no hay módulo, inicializar Select2 con las opciones estáticas que ya están en el HTML
+                // o con un set de datos mínimo si el HTML fue limpiado.
+                if ($selectOperaciones.data('select2')) {
+                    $selectOperaciones.select2('destroy');
                 }
+                $selectOperaciones.empty(); // Limpiar por si acaso
+                $selectOperaciones.select2({
+                    placeholder: 'Selecciona primero un módulo',
+                    allowClear: true,
+                    data: [ // Solo permitir "otra" si no hay módulo, o ninguna si se prefiere
+                        { id: 'otra', text: '[OTRA OPERACIÓN]' }
+                    ]
+                }).prop('disabled', true); // Deshabilitar el select
+                gestionarEstadoCampos(false); // Asegurar estado de campos (input de "otra" oculto y deshabilitado)
+                $selectOperaciones.prop('disabled', true); // Redundante pero seguro.
+            }
+
+            // Manejar el cambio del módulo para recargar las operaciones
+            $('#modulo').on('change', function () {
+                cargarYConfigurarOperaciones();
             });
 
-            // Transformar a mayúsculas en el input de "OTRA OPERACIÓN"
-            $(document).on('input', '.otra-operacion-input', function () {
+            // Manejar el cambio en el select de operaciones
+            $selectOperaciones.on('change', function () {
+                const esModoOtra = $(this).val() === 'otra';
+                gestionarEstadoCampos(esModoOtra);
+            });
+
+            // Transformar a mayúsculas el input de "OTRA OPERACIÓN"
+            $inputOtraOperacion.on('input', function () {
                 $(this).val($(this).val().toUpperCase());
             });
+
+            // Llamada inicial a gestionarEstadoCampos por si el HTML tiene "otra" preseleccionado
+            // (aunque con la carga dinámica y el .val(null).trigger('change') esto debería cubrirse)
+            // Se ejecuta después de la posible inicialización síncrona de select2 (si no hay módulo)
+            // o se ejecutará por el trigger('change') después de la carga AJAX.
+            const valorActualSelect = $selectOperaciones.val();
+            gestionarEstadoCampos(valorActualSelect === 'otra');
+            if (!$('#modulo').val() && valorActualSelect !== 'otra') { // Si no hay módulo y no es 'otra'
+                $selectOperaciones.prop('disabled', true); // Asegurar que el select esté deshabilitado.
+            }
+
+
         });
-    </script>
+    </script> 
 
     <script>
         $(document).ready(function () {
