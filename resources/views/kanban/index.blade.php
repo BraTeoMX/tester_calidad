@@ -491,131 +491,154 @@
 
             // Evento para el botón de actualización masiva
             $('#btn-actualizar-todo').on('click', function () {
+                const botonActualizar = $(this); // Guardar referencia al botón
                 const registrosParaActualizar = [];
-                // let alMenosUnCambio = false; // Lo determinaremos por el tamaño de registrosParaActualizar
                 
-                // ---- INICIO DE VALIDACIONES ----
                 let validacionesPasadas = true;
                 const mensajesErrorValidacion = [];
-                let hayRegistrosConAccion = false; // Para saber si al menos un registro tiene un estatus seleccionado
+                let hayRegistrosConAccion = false;
 
                 $('#tabla-registros-hoy tbody tr').each(function () {
                     const fila = $(this);
                     const id = fila.data('id');
 
-                    // Asegurarse de que la fila tenga un ID (evitar filas de mensajes)
                     if (id === undefined || id === null) {
-                        return; // Saltar esta iteración si no hay ID
+                        return; 
                     }
 
-                    const accion = fila.find('.select-accion').val(); // Estatus seleccionado
+                    const accion = fila.find('.select-accion').val();
                     const comentariosArray = comentariosSeleccionadosPorFila[id] ? Array.from(comentariosSeleccionadosPorFila[id]) : [];
-                    const op = fila.find('td').eq(2).text(); // Tomamos la OP de la tercera celda para el mensaje
+                    const op = fila.find('td').eq(2).text(); 
 
-                    // Solo aplicar validaciones y considerar para actualizar si se ha seleccionado una acción
                     if (accion) {
-                        hayRegistrosConAccion = true; // Marcamos que al menos un registro tiene un estatus
+                        hayRegistrosConAccion = true; 
 
-                        // Regla 1: Estatus '1' (Aceptado) -> Comentarios deben estar vacíos
                         if (accion === '1' && comentariosArray.length > 0) {
                             validacionesPasadas = false;
                             mensajesErrorValidacion.push(`- OP ${op} (ID: ${id}): Con estatus "Aceptado", los comentarios deben estar vacíos.`);
                         }
 
-                        // Regla 2: Estatus '2' (Parcial) -> Comentarios deben tener al menos un registro
                         if (accion === '2' && comentariosArray.length === 0) {
                             validacionesPasadas = false;
                             mensajesErrorValidacion.push(`- OP ${op} (ID: ${id}): Con estatus "Parcial", se requiere al menos un comentario.`);
                         }
 
-                        // Regla 3: Estatus '3' (Rechazado) -> Comentarios deben estar vacíos
                         if (accion === '3' && comentariosArray.length > 0) {
                             validacionesPasadas = false;
                             mensajesErrorValidacion.push(`- OP ${op} (ID: ${id}): Con estatus "Rechazado", los comentarios deben estar vacíos.`);
                         }
                         
-                        // Si pasa las validaciones específicas para este registro (o no aplican), se añade
-                        // Pero el envío final dependerá de la bandera global `validacionesPasadas`
                         registrosParaActualizar.push({
                             id: id,
                             accion: accion,
                             comentarios: comentariosArray
                         });
                     }
-                    // Opcional: Si quisieras enviar registros que SOLO tienen cambios en comentarios (sin acción seleccionada),
-                    // esa lógica iría aquí, pero las validaciones actuales están atadas a una acción seleccionada.
-                    // Por ahora, si `accion` está vacío, ese registro no se incluye en `registrosParaActualizar`.
                 });
 
-                // Verificar si se seleccionó algún estatus en alguna fila
                 if (!hayRegistrosConAccion) {
-                    alert('No hay cambios para actualizar. Selecciona un estatus en al menos un registro.');
+                    Swal.fire({ // Reemplazo de alert
+                        icon: 'info',
+                        title: 'Atención',
+                        text: 'No hay cambios para actualizar. Selecciona un estatus en al menos un registro.'
+                    });
                     return;
                 }
 
-                // Si alguna validación falló, mostrar errores y no continuar
                 if (!validacionesPasadas) {
-                    alert("Por favor, corrige los siguientes errores antes de guardar:\n\n" + mensajesErrorValidacion.join("\n"));
-                    return; // Detener el proceso
+                    Swal.fire({ 
+                        icon: 'error',
+                        title: 'Errores de Validación',
+                        // Usamos la propiedad 'text' y unimos los errores con saltos de línea
+                        text: "Por favor, corrige los siguientes errores antes de guardar:\n\n" + 
+                            mensajesErrorValidacion.join("\n"), // Cada error en una nueva línea
+                        confirmButtonText: 'Entendido'
+                    });
+                    return; 
                 }
                 
-                // Si llegamos aquí, todas las validaciones pasaron para los registros con acción seleccionada
-                // y hay al menos un registro con acción.
-                // (registrosParaActualizar ya solo contiene los que tienen acción)
-
                 if (registrosParaActualizar.length === 0) {
-                    // Este caso podría darse si todos los que tenían acción fallaron la validación,
-                    // aunque el chequeo de `!validacionesPasadas` ya debería haberlo capturado.
-                    // Es una doble verificación.
-                    alert('No hay registros válidos para actualizar después de las validaciones.');
+                    // Este chequeo es una salvaguarda, usualmente `!validacionesPasadas` o `!hayRegistrosConAccion` lo cubrirían.
+                    Swal.fire({ // Reemplazo de alert
+                        icon: 'warning',
+                        title: 'Sin Registros Válidos',
+                        text: 'No hay registros válidos para actualizar después de las validaciones.'
+                    });
                     return;
                 }
 
-                // ---- FIN DE VALIDACIONES ----
+                // Reemplazo de confirm()
+                Swal.fire({
+                    title: 'Confirmar Actualización',
+                    text: '¿Estás seguro de que deseas actualizar los registros seleccionados masivamente?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, actualizar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Usuario confirmó
+                        botonActualizar.prop('disabled', true).text('Procesando...');
 
-                if (!confirm('¿Estás seguro de que deseas actualizar los registros seleccionados masivamente?')) {
-                    return;
-                }
-
-                // Deshabilitar botón para evitar múltiples envíos
-                $(this).prop('disabled', true).text('Procesando...');
-
-                $.ajax({
-                    url: '{{ route("kanban.actualizarMasivo") }}', // NUEVA RUTA que necesitarás crear en Laravel
-                    method: 'POST',
-                    data: {
-                        registros: registrosParaActualizar // Enviamos el array de registros
-                    },
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    success: function (response) {
-                        alert(response.mensaje || 'Registros actualizados correctamente.');
-                        cargarRegistrosHoy(); // Recargar la tabla para ver los cambios
-                    },
-                    error: function (xhr) {
-                        console.error(xhr.responseText);
-                        let errorMsg = 'Error al actualizar los registros.';
-                        if (xhr.responseJSON && xhr.responseJSON.mensaje) {
-                            errorMsg = xhr.responseJSON.mensaje;
-                        } else if(xhr.responseJSON && xhr.responseJSON.errors){
-                            // Si Laravel devuelve errores de validación específicos
-                            try {
-                                const errors = xhr.responseJSON.errors;
-                                let messages = [];
-                                for(const key in errors){
-                                    messages.push(errors[key].join("\n"));
+                        $.ajax({
+                            url: '{{ route("kanban.actualizarMasivo") }}',
+                            method: 'POST',
+                            data: {
+                                registros: registrosParaActualizar
+                            },
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            success: function (response) {
+                                Swal.fire({ // Reemplazo de alert
+                                    icon: 'success',
+                                    title: '¡Éxito!',
+                                    text: response.mensaje || 'Registros actualizados correctamente.'
+                                });
+                                cargarRegistrosHoy(); 
+                            },
+                            error: function (xhr) {
+                                console.error(xhr.responseText);
+                                let errorMsg = 'Error al actualizar los registros.';
+                                // ... (tu lógica existente para construir errorMsg a partir de xhr.responseJSON) ...
+                                if (xhr.responseJSON) {
+                                    if (xhr.responseJSON.mensaje) {
+                                        errorMsg = xhr.responseJSON.mensaje;
+                                    }
+                                    if (xhr.responseJSON.errores && Array.isArray(xhr.responseJSON.errores) && xhr.responseJSON.errores.length > 0) {
+                                        const backendErrors = xhr.responseJSON.errores.filter(e => e).join("\n"); // Filtra nulos o vacíos
+                                        if (backendErrors) {
+                                        errorMsg += "\n\nErrores del servidor:\n" + backendErrors;
+                                        }
+                                    } else if (xhr.responseJSON.errors && typeof xhr.responseJSON.errors === 'object') {
+                                        try {
+                                            const errors = xhr.responseJSON.errors;
+                                            let messages = [];
+                                            for (const key in errors) {
+                                                if (errors[key] && Array.isArray(errors[key])) {
+                                                    messages.push(errors[key].join("\n"));
+                                                }
+                                            }
+                                            if (messages.length > 0) {
+                                                errorMsg += "\n\nErrores del servidor:\n" + messages.join("\n");
+                                            }
+                                        } catch (e) { /* No hacer nada */ }
+                                    }
                                 }
-                                errorMsg = messages.join("\n");
-                            } catch (e) {
-                                // No hacer nada, usar el mensaje genérico
+                                Swal.fire({ // Reemplazo de alert
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: errorMsg
+                                });
+                            },
+                            complete: function() {
+                                botonActualizar.prop('disabled', false).text('Guardar Cambios Masivos');
                             }
-                        }
-                        alert(errorMsg);
-                    },
-                    complete: function() {
-                        // Volver a habilitar el botón
-                        $('#btn-actualizar-todo').prop('disabled', false).text('Guardar Cambios Masivos');
+                        });
+                    } else {
+                        // Usuario canceló, el botón no se deshabilitó así que no es necesario re-habilitarlo aquí.
                     }
                 });
             });
