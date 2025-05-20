@@ -422,7 +422,7 @@ class AuditoriaProcesoV3Controller extends Controller
             $operaciones = Cache::get($cacheKey);
         } else {
             $excluidos = [
-                "APP SCREEN:   /   /", "APPROVED    /   /", "APPROVED / /",
+                "APP SCREEN:   /   /", "APPROVED     /    /", "APPROVED    /   /", "APPROVED / /",
                 "APPROVED //", "OFF LINE", "ON CUT", "ON LINE", "OUT CUT"
             ];
 

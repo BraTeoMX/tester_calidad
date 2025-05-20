@@ -13,6 +13,7 @@ use  App\Http\Controllers\AuditoriaProcesoCorteController;
 use App\Http\Controllers\AuditoriaProcesoController;
 use App\Http\Controllers\AuditoriaProcesoV2Controller;
 use App\Http\Controllers\AuditoriaProcesoV3Controller;
+use App\Http\Controllers\AuditoriaAQLV3Controller;
 use App\Http\Controllers\AuditoriaAQLController;
 use App\Http\Controllers\Maquila;
 use App\Http\Controllers\viewlistaFormularios;
@@ -420,6 +421,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/finalizar-paro-aql', [AuditoriaAQL_v2Controller::class, 'finalizarParoAQL'])->name('finalizar.paro.aql');
     Route::get('/auditoriaAQLverificarFinalizacion', [AuditoriaAQL_v2Controller::class, 'verificarFinalizacion'])->name('auditoriaAQL.verificarFinalizacion');
     Route::get('/verificarAQLFinalizacionTE', [AuditoriaAQL_v2Controller::class, 'verificarFinalizacionTE'])->name('auditoriaAQL.verificarFinalizacionTE');
+    //Tercera version para la auditoria AQL
+    Route::get('/auditoriaAQLV3/inicio', [AuditoriaAQLV3Controller::class, 'index'])->name('AQLV3.inicio');
+    Route::get('/auditoriaAQLV3/initial-data', [AuditoriaAQLV3Controller::class, 'initialData'])->name('AQLV3.initialData');
+    Route::get('/auditoriaAQLV3/lista-modulos', [AuditoriaAQLV3Controller::class, 'listaModulos'])->name('AQLV3.listaModulos');
+    Route::get('/auditoriaAQLV3/gerentes-produccion', [AuditoriaAQLV3Controller::class, 'gerentesProduccion'])->name('AQLV3.gerentesProduccion');
+    Route::post('/auditoriaAQLV3/ordenes-op', [AuditoriaAQLV3Controller::class, 'cargarOrdenesOP'])->name('AQLV3.cargarOrdenesOP');
+    Route::get('/auditoriaAQLV3/obtener-supervisor', [AuditoriaAQLV3Controller::class, 'obtenerSupervisor'])->name('AQLV3.obtenerSupervisor');
 
 
 
