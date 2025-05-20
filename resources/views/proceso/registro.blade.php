@@ -1333,10 +1333,8 @@
                     return;
                 }
 
-                // $("#loadingIndicator").show(); // Opcional: indicador de carga
-
                 $.ajax({
-                    url: "{{ route('procesoV3.registro.obtenerRegistroDia') }}", // Ruta de Laravel para obtener datos
+                    url: "{{ route('procesoV3.registro.obtenerRegistroDia') }}",
                     type: "GET",
                     data: { modulo: modulo },
                     dataType: "json",
@@ -1363,7 +1361,7 @@
                         Swal.fire('Error', 'Error al cargar los registros. Intente de nuevo.', 'error');
                     },
                     complete: function() {
-                        // $("#loadingIndicator").hide(); // Opcional
+                        // $("#loadingIndicator").hide();
                     }
                 });
             }
@@ -1377,56 +1375,40 @@
                 let totalRechazadaGeneral = 0;
 
                 if (!registros || registros.length === 0) {
-                    tbodyElement.append(`<tr><td colspan="10" class="text-center">No hay registros disponibles para el tipo '${tipo}'</td></tr>`); // Ajusta colspan si es necesario
+                    tbodyElement.append(`<tr><td colspan="10" class="text-center">No hay registros disponibles para el tipo '${tipo}'</td></tr>`);
                 } else {
-                    const ahora = new Date(); // Obtener la hora actual una vez fuera del bucle para eficiencia
+                    const ahora = new Date();
 
                     $.each(registros, function (index, registro) {
                         let paroHtml = "-";
-                        let claseFilaAdicional = ''; // Variable para la clase de resaltado de la fila
-
-                        // Determinar si el paro está activo y calcular resaltado
-                        // Un paro está activo si ha iniciado (registro.inicio_paro es true/tiene valor)
-                        // Y no ha finalizado (!registro.fin_paro es true / registro.fin_paro es null/undefined)
+                        let claseFilaAdicional = '';
                         const paroEstaActivo = registro.inicio_paro && !registro.fin_paro;
 
                         if (paroEstaActivo) {
-                            // El paro está activo, se mostrará el botón "Fin Paro Proceso"
                             let urlFinalizarParo = `/auditoriaProcesoV3/registro/finalizar-paro/${registro.id}`;
                             paroHtml = `<button class="btn btn-primary btn-sm fin-paro-btn" data-id="${registro.id}" data-url="${urlFinalizarParo}" data-tipo="${tipo}">
                                             Fin Paro Proceso
                                         </button>`;
-
-                            // Calcular diferencia de tiempo basada en registro.created_at
                             if (registro.created_at) {
                                 const horaCreacionRegistro = new Date(registro.created_at);
-                                if (!isNaN(horaCreacionRegistro.getTime())) { // Verificar que la fecha sea válida
+                                if (!isNaN(horaCreacionRegistro.getTime())) {
                                     const diffMs = ahora.getTime() - horaCreacionRegistro.getTime();
-                                    const diffMins = Math.floor(diffMs / 60000); // Convertir milisegundos a minutos
-
+                                    const diffMins = Math.floor(diffMs / 60000);
                                     if (diffMins >= 10 && diffMins <= 15) {
-                                        claseFilaAdicional = 'paro-advertencia'; // Amarillo oscuro
+                                        claseFilaAdicional = 'paro-advertencia';
                                     } else if (diffMins > 15) {
-                                        claseFilaAdicional = 'paro-critico';   // Rojo oscuro
+                                        claseFilaAdicional = 'paro-critico';
                                     }
                                 } else {
                                     console.warn(`Fecha created_at inválida para el registro ID: ${registro.id}`, registro.created_at);
                                 }
                             }
                         } else if (registro.inicio_paro && registro.fin_paro) {
-                            // El paro inició y ya finalizó, mostrar duración
                             paroHtml = registro.minutos_paro !== null ? registro.minutos_paro : 'Calculando...';
                         }
-                        // Si el paro nunca inició (else implícito), paroHtml sigue siendo "-" y no hay resaltado.
+                        
+                        let urlEliminar = `/auditoriaProcesoV3/registro/eliminar/${registro.id}`; // Asegúrate que esta URL sea correcta para tu ruta DELETE
 
-
-                        // URL para eliminar (manteniendo la estructura que tienes)
-                        // Asegúrate que esta URL coincida con tu definición de ruta en Laravel: DELETE /auditoriaProcesoV3/registro/eliminar/{id}
-                        let urlEliminar = `/auditoriaProcesoV3/registro/eliminar/${registro.id}`;
-
-                        // Construir la fila HTML, añadiendo la clase de resaltado si aplica
-                        // Nota el colspan="10" en la primera celda si no hay registros, ajusta el número de columnas de tus datos.
-                        // Aquí asumimos que tienes 10 columnas de datos (paro, nombre, operacion, ..., hora).
                         let fila = `
                             <tr class="${claseFilaAdicional}">
                                 <td>${paroHtml}</td>
@@ -1446,7 +1428,6 @@
                             </tr>`;
                         tbodyElement.append(fila);
 
-                        // --- Calcular estadísticas ---
                         totalAuditadaGeneral += parseInt(registro.cantidad_auditada) || 0;
                         totalRechazadaGeneral += parseInt(registro.cantidad_rechazada) || 0;
 
@@ -1460,12 +1441,11 @@
                         }
                     });
                 }
-
                 fnActualizarIndividual(registrosAgrupados);
                 fnActualizarGeneral(totalAuditadaGeneral, totalRechazadaGeneral);
             }
 
-            // --- Tus funciones para actualizar estadísticas (sin cambios, asumiendo que funcionan) ---
+            // --- Funciones para actualizar estadísticas ---
             function actualizarTotalGeneralNormal(totalAuditada, totalRechazada) {
                 let porcentajeRechazo = totalAuditada > 0 ? ((totalRechazada / totalAuditada) * 100).toFixed(2) : "0.00";
                 $("#total_auditada_general").val(totalAuditada);
@@ -1473,7 +1453,7 @@
                 $("#total_porcentaje_general").val(porcentajeRechazo);
             }
             function actualizarTablaIndividualNormal(registrosAgrupados) {
-                let tbody = $(".table-total-individual tbody"); // Asegúrate que este selector sea único para la tabla normal
+                let tbody = $(".table-total-individual tbody");
                 tbody.empty();
                 if (Object.keys(registrosAgrupados).length === 0) {
                     tbody.append(`<tr><td colspan="5" class="text-center">No hay datos disponibles</td></tr>`);
@@ -1499,7 +1479,7 @@
                 $("#total_porcentaje_general-tiempo-extra").val(porcentajeRechazo);
             }
             function actualizarTablaIndividualExtra(registrosAgrupados) {
-                let tbody = $(".table-total-individual-tiempo-extra tbody"); // Asegúrate que este selector sea único para la tabla extra
+                let tbody = $(".table-total-individual-tiempo-extra tbody");
                 tbody.empty();
                 if (Object.keys(registrosAgrupados).length === 0) {
                     tbody.append(`<tr><td colspan="5" class="text-center">No hay datos disponibles</td></tr>`);
@@ -1528,12 +1508,16 @@
                 boton.prop('disabled', true).text('...');
                 $.ajax({
                     url: url,
-                    type: "POST", // O PUT/PATCH según tu ruta de finalizar paro
-                    // headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }, // Ya está en $.ajaxSetup
+                    type: "POST",
                     success: function(response) {
                         if (response.minutos_paro !== undefined) {
+                            // MODIFICACIÓN: Quitar clases de resaltado al finalizar paro
+                            boton.closest("tr").removeClass('paro-advertencia paro-critico');
                             boton.closest("td").text(response.minutos_paro);
                             Swal.fire('¡Éxito!', `Paro finalizado (${tipoRegistro}). Duración: ${response.minutos_paro} minutos.`, 'success');
+                            // OPCIONAL: Si finalizar un paro afecta las estadísticas de alguna manera (ej. tiempo total de paro),
+                            // podrías llamar a cargarTablasRegistros() aquí también.
+                            // cargarTablasRegistros(); 
                         } else if (response.warning) {
                             Swal.fire('Advertencia', response.warning, 'warning');
                             boton.prop('disabled', false).text('Fin Paro Proceso');
@@ -1558,14 +1542,14 @@
             $(document.body).on("click", ".eliminar-registro", function (e) {
                 e.preventDefault();
                 let boton = $(this);
-                let url = boton.data("url"); // URL ya corregida desde popularTabla
+                let url = boton.data("url");
                 let tipoRegistro = boton.data("tipo");
-                let registroId = boton.data("id"); // Para el mensaje de confirmación
+                let registroId = boton.data("id");
 
                 Swal.fire({
                     title: `¿Eliminar Registro (${tipoRegistro})?`,
                     text: "Esta acción no se puede deshacer.",
-                    icon: 'warning', // Esto debería funcionar con SweetAlert2 moderno
+                    icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#3085d6',
@@ -1573,28 +1557,24 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        boton.prop('disabled', true).text('Eliminando...'); // Deshabilitar botón
+                        boton.prop('disabled', true).text('Eliminando...');
                         $.ajax({
                             url: url,
                             type: "DELETE",
-                            // headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }, // Ya está en $.ajaxSetup
-                            dataType: "json", // Esperamos JSON del servidor
+                            dataType: "json",
                             success: function(response) {
                                 if (response.message) {
                                     Swal.fire('¡Eliminado!', `Registro ${tipoRegistro} eliminado: ${response.message}`, 'success');
                                     boton.closest("tr").fadeOut(400, function() {
                                         $(this).remove();
-                                        // ** IMPORTANTE: Recalcular estadísticas o recargar tablas **
-                                        // La forma más simple pero menos ideal es:
-                                        // cargarTablasRegistros();
-                                        // O, si quieres ser más granular, tendrías que obtener los datos de la fila eliminada
-                                        // y restarlos de tus variables de estadísticas globales, luego actualizar el DOM.
-                                        console.warn(`Registro ${tipoRegistro} (ID: ${registroId}) eliminado. Stats en cliente pueden estar desactualizados hasta próximo refresh completo o recálculo manual.`);
+                                        // *** PUNTO CLAVE: Actualizar las tablas de estadísticas ***
+                                        // Llamar a cargarTablasRegistros() recargará todos los datos y
+                                        // reconstruirá las tablas, incluyendo las de estadísticas.
+                                        cargarTablasRegistros();
                                     });
                                 } else if (response.warning) {
-                                    // Esto es para manejar el caso donde el controlador devuelve un warning con status 200
                                     Swal.fire('Advertencia', response.warning, 'warning');
-                                    boton.prop('disabled', false).text('Eliminar'); // Habilitar botón de nuevo
+                                    boton.prop('disabled', false).text('Eliminar');
                                 } else {
                                     Swal.fire('Respuesta inesperada', 'El servidor no devolvió el mensaje esperado.', 'question');
                                     boton.prop('disabled', false).text('Eliminar');
@@ -1605,7 +1585,7 @@
                                 let errorMsg = `Error al eliminar el registro (${tipoRegistro} - ID: ${registroId}).`;
                                 if (xhr.responseJSON && xhr.responseJSON.error) {
                                     errorMsg = `Error: ${xhr.responseJSON.error}`;
-                                } else if (xhr.responseJSON && xhr.responseJSON.message) { // Algunos errores de Laravel vienen en 'message'
+                                } else if (xhr.responseJSON && xhr.responseJSON.message) {
                                     errorMsg = `Error: ${xhr.responseJSON.message}`;
                                 } else if (xhr.status === 0) {
                                     errorMsg = "No se pudo conectar con el servidor. Verifique su conexión de red.";
@@ -1615,16 +1595,12 @@
                                     errorMsg = "Error interno del servidor (Error 500).";
                                 }
                                 Swal.fire('Error', errorMsg, 'error');
-                                boton.prop('disabled', false).text('Eliminar'); // Habilitar botón de nuevo
+                                boton.prop('disabled', false).text('Eliminar');
                             }
                         });
                     }
                 });
             });
-
-            // --- MANEJADORES PARA LOS COMENTARIOS (mantener como estaban si funcionan) ---
-            // $('#guardarComentario').on('click', function () { /* ... tu lógica ... */ });
-            // $('#guardarComentarioTE').on('click', function () { /* ... tu lógica ... */ });
 
             // --- CARGA INICIAL AL ENTRAR A LA PÁGINA ---
             cargarTablasRegistros();
@@ -1633,7 +1609,8 @@
             $('#modulo').on('change', function() {
                 cargarTablasRegistros();
             });
-        }); // Fin de $(document).ready
+        });
+
     </script>
 
     <script>
