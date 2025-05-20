@@ -18,6 +18,7 @@ use App\Models\ModuloEstiloTemporal;
 use App\Models\ModuloEstilo;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class AuditoriaAQLV3Controller extends Controller
 {
@@ -50,19 +51,36 @@ class AuditoriaAQLV3Controller extends Controller
         $auditorPlanta = Auth::user()->Planta;
         $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
 
-        $datosCategoriaSupervisor = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
-            ->whereBetween('moduleid', ['100A', '299A'])
-            ->get(['moduleid']);
+        $cacheKey = 'listaModulos_' . $datoPlanta;
+        $minutes = 5;
 
-        $datosModuloEstiloTemporal = ModuloEstiloTemporal::where('prodpoolid', $datoPlanta)
-            ->whereBetween('moduleid', ['100A', '299A'])
-            ->distinct('moduleid')
-            ->get(['moduleid']);
+        // Intentar obtener de la caché
+        $listaModulos = Cache::get($cacheKey);
 
-        $listaModulos = $datosCategoriaSupervisor->concat($datosModuloEstiloTemporal)
-            ->unique('moduleid')
-            ->sortBy('moduleid')
-            ->values();
+        if (is_null($listaModulos)) { // Si no está en caché o es null
+            $datosCategoriaSupervisor = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
+                ->whereBetween('moduleid', ['100A', '299A'])
+                ->get(['moduleid']);
+
+            $datosModuloEstiloTemporal = ModuloEstiloTemporal::where('prodpoolid', $datoPlanta)
+                ->whereBetween('moduleid', ['100A', '299A'])
+                ->distinct('moduleid')
+                ->get(['moduleid']);
+
+            $calculatedList = $datosCategoriaSupervisor->concat($datosModuloEstiloTemporal)
+                ->unique('moduleid')
+                ->sortBy('moduleid')
+                ->values();
+
+            if ($calculatedList->isNotEmpty()) {
+                Cache::put($cacheKey, $calculatedList, $minutes); // Guardar en caché solo si no está vacía
+                $listaModulos = $calculatedList;
+            } else {
+                // No guardar en caché si está vacía.
+                // $listaModulos permanecerá null o puedes asignarle un array vacío para la respuesta.
+                $listaModulos = collect([]); // O $listaModulos = [];
+            }
+        }
 
         return response()->json($listaModulos);
     }
