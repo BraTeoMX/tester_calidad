@@ -10,7 +10,12 @@ class ReporteKanbanComentario extends Model
     use HasFactory;
     protected $table = 'reporte_kanban_comentarios';
 
-    protected $fillable = [];
+    protected $fillable = [
+        'reporte_kanban_id',
+        'nombre',
+        'created_at',
+        'updated_at',
+    ];
 
     public function reporte()
     {

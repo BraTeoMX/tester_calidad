@@ -18,57 +18,6 @@
                         </div>
                     </div>
                 </div>
-                <hr>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <form id="formKanban">
-                            <table class="table tabla-kanban">
-                                <thead class="thead-primary">
-                                    <tr>
-                                        <th>OP</th>
-                                        <th>Planta</th>
-                                        <th>Fecha Sellado</th>
-                                        <th>Cliente</th>
-                                        <th>estilo</th>
-                                        <th>Piezas</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <select id="selectOP" class="form-control select-op"></select>
-                                        </td>
-                                        <td>
-                                            <select class="form-control" id="selectPlanta">
-                                                <option value="">selecciona una opcion</option>
-                                                <option value="1">Planta 1</option>
-                                                <option value="2">Planta 2</option>
-                                            </select>
-                                        </td> 
-                                        <td>
-                                            <span id="fechaText"></span>
-                                            <input type="hidden" id="fechaInput" name="fecha">
-                                        </td>
-                                        <td>
-                                            <span id="clienteText"></span>
-                                            <input type="hidden" id="clienteInput" name="cliente">
-                                        </td>
-                                        <td>
-                                            <span id="estiloText"></span>
-                                            <input type="hidden" id="estiloInput" name="estilo">
-                                        </td>
-                                        
-                                        <td>
-                                            <span id="piezasText"></span>
-                                            <input type="hidden" id="piezasInput" name="piezas_total">
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <button type="submit" class="btn-verde-xd">Generar Registro</button>
-                        </form>
-                    </div>
-                </div>
             </div>
 
             <div class="card card-body">
@@ -247,49 +196,6 @@
             box-shadow: none, 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
         }
     </style>
-
-    <script>
-        $(document).ready(function () {
-            $('#formKanban').on('submit', function (e) {
-                e.preventDefault();
-
-                let op = $('#selectOP').val();
-                let accion = $('#selectPlanta').val();
-
-                if (!accion) {
-                    alert('Por favor selecciona una acción válida antes de continuar.');
-                    $('#selectPlanta').focus();
-                    return;
-                }
-
-                let dataFormulario = {
-                    op: op,
-                    accion: accion,
-                    cliente: $('#clienteInput').val(),
-                    estilo: $('#estiloInput').val(),
-                    fecha: $('#fechaInput').val(),
-                    piezas_total: $('#piezasInput').val()
-                };
-
-                $.ajax({
-                    url: '{{ route("kanban.guardar") }}',
-                    method: 'POST',
-                    data: dataFormulario,
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    success: function (response) {
-                        alert('Guardado correctamente');
-                        cargarRegistrosHoy();
-                    },
-                    error: function (xhr) {
-                        console.error(xhr.responseText);
-                        alert('Error al guardar');
-                    }
-                });
-            });
-        });
-    </script>
 
     <script>
         $(document).ready(function () {

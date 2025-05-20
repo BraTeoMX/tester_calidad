@@ -330,7 +330,7 @@ class AuditoriaKanBanController extends Controller
                 // Convertimos $registroData['comentarios'] a array si es string separado por comas,
                 // o lo tomamos como array si ya lo es. Ajustar según cómo llegue del frontend.
                 $comentariosNuevosInput = $registroData['comentarios'] ?? ''; // Puede ser un string o array
-                
+                Log::info("Comentarios nuevos: " . json_encode($comentariosNuevosInput));
                 // Si los comentarios vienen como un string separado por comas y pueden tener espacios
                 if (is_string($comentariosNuevosInput)) {
                     $comentariosNuevos = !empty($comentariosNuevosInput) ? array_map('trim', explode(',', $comentariosNuevosInput)) : [];
@@ -346,7 +346,7 @@ class AuditoriaKanBanController extends Controller
                 $comentariosExistentes = ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)
                     ->pluck('nombre')
                     ->toArray();
-
+                //Log::info("datos: ", json_encode($comentariosExistentes));
                 // Comentarios para eliminar
                 $paraEliminar = array_diff($comentariosExistentes, $comentariosNuevos);
                 if (!empty($paraEliminar)) {
@@ -366,6 +366,7 @@ class AuditoriaKanBanController extends Controller
                         ]);
                     }
                 }
+                //Log::info("Comentarios nuevos guardados: " . json_encode($paraAgregar));
                 $registrosActualizados++;
             }
 
