@@ -235,7 +235,7 @@ class AuditoriaAQLV3Controller extends Controller
         ]);
     }
 
-    public function formAltaProcesoAQLV3(Request $request)
+    public function formAltaAQLV3(Request $request)
     {
         $pageSlug = '';
 
@@ -263,12 +263,12 @@ class AuditoriaAQLV3Controller extends Controller
             'gerente_produccion' => $request->gerente_produccion,
         ];
 
-        return redirect()->route('AQL.registro', $data)
+        return redirect()->route('AQLV3.registro', $data)
                          ->with('cambio-estatus', 'Iniciando en modulo: ' . $data['modulo'])
                          ->with('pageSlug', $pageSlug);
     }
 
-    public function auditoriaAQL_v2(Request $request)
+    public function registro(Request $request)
     {
 
         $pageSlug ='';
@@ -332,7 +332,7 @@ class AuditoriaAQLV3Controller extends Controller
         $resultadoFinal = $resultadoFinalSinTE || $resultadoFinalConTE;
         
 
-        return view('auditoriaAQL.auditoriaAQL_v2', compact('mesesEnEspanol', 'pageSlug',
+        return view('aql.registro', compact('mesesEnEspanol', 'pageSlug',
             'data', 'resultadoFinal'));
     }
 

@@ -17,7 +17,7 @@
                 </div>
                 <hr>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('auditoriaAQL.formAltaProcesoAQL_v2') }}"> 
+                    <form method="POST" action="{{ route('AQLV3.formAltaAQLV3') }}"> 
                         @csrf
                         <div class="table-responsive">
                             <table class="table table-200">
@@ -489,10 +489,10 @@
                 dataType: 'json',
                 success: function(data) {
                     // Poblar tabla de procesos "En Proceso"
-                    poblarTabla('tablaProcesos1', data.actuales, "{{ route('AQL.formAltaProcesoAQLV3') }}");
+                    poblarTabla('tablaProcesos1', data.actuales, "{{ route('AQLV3.formAltaAQLV3') }}");
                     
                     // Poblar tabla de procesos "Finalizados"
-                    poblarTabla('tablaProcesos2', data.finalizados, "{{ route('AQL.formAltaProcesoAQLV3') }}");
+                    poblarTabla('tablaProcesos2', data.finalizados, "{{ route('AQLV3.formAltaAQLV3') }}");
                 },
                 error: function(xhr, status, error) {
                     console.error("Error al cargar datos de auditoría AQL:", error);
