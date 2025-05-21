@@ -4,6 +4,21 @@
             <a href="#" class="simple-text logo-normal">{{ _('INTIMARK') }}</a>
         </div>
         <ul class="nav">
+            @if (auth()->check() && (auth()->user()->hasRole('kanban')))
+                <li class="nav-item{{ $pageSlug == 'kanban' ? ' active' : '' }}">
+                    <a class="nav-link" href="{{ route('kanban.index') }}">
+                        <i class="material-icons">edit_document</i>
+                        <p>{{ __(' ') }}</p>
+                        <p style="text-align: center;">{{ __('AUDITORIA KANBAN') }}</p>
+                    </a>
+                </li>
+                <li class="nav-item{{ $pageSlug == 'reporte_kanban' ? ' active' : '' }}">
+                    <a class="nav-link" href="{{ route('kanban.reporte') }}">
+                        <i class="tim-icons icon-molecule-40"></i>
+                        <p>{{ __('CONSULTA KANBAN') }}</p>
+                    </a>
+                </li>
+            @endif
             @if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Gerente de Calidad')
                     || auth()->user()->hasRole('Gerente')))
                 <li class="nav-item{{ $pageSlug == 'dashboard' ? ' active' : '' }}">
@@ -72,12 +87,6 @@
                         <p>{{ __('Comparativo Clientes') }}</p>
                     </a>
                 </li>
-                {{--<li class="nav-item{{ $pageSlug == 'reporte_kanban' ? ' active' : '' }}">
-                    <a class="nav-link" href="{{ route('kanban.reporte') }}">
-                        <i class="tim-icons icon-molecule-40"></i>
-                        <p>{{ __('CONSULTA KANBAN') }}</p>
-                    </a>
-                </li> --}}
                 <li class="nav-item{{ $pageSlug == 'busquedaOP' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('busqueda_OP.index') }}">
                         <i class="material-symbols-outlined">action_key</i>
@@ -145,13 +154,6 @@
                                     <p style="text-align: center;">{{ __('AUDITORIA ETIQUETAS') }}</p>
                                 </a>
                             </li>
-                            {{--<li class="nav-item{{ $pageSlug == 'kanban' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('kanban.index') }}">
-                                    <i class="material-icons">edit_document</i>
-                                    <p>{{ __(' ') }}</p>
-                                    <p style="text-align: center;">{{ __('AUDITORIA KANBAN') }}</p>
-                                </a>
-                            </li>--}}
                             <li class="nav-item{{ $pageSlug == 'Progreso Corte' ? ' active' : '' }}">
                                 <a class="nav-link" href="{{ route('auditoriaCorte.inicioAuditoriaCorte') }}">
                                     <i class="material-icons">edit_document</i>

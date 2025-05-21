@@ -161,7 +161,25 @@ class AuditoriaAQLV3Controller extends Controller
         ]);
     }
 
-    public function getProcesoActualAQL()
+    private function filtrarProcesosUnicos($procesos)
+    {
+        $valoresMostrados = [];
+        $resultadoFiltrado = [];
+        foreach ($procesos as $proceso) {
+            // Usamos 'default_area' si $proceso->area es null para evitar errores con la clave del array
+            $areaKey = $proceso->area ?? 'default_area_key'; 
+            $moduloKey = $proceso->modulo ?? 'default_modulo_key';
+            $opKey = $proceso->op ?? 'default_op_key';
+
+            if (!isset($valoresMostrados[$areaKey][$moduloKey][$opKey])) {
+                $resultadoFiltrado[] = $proceso;
+                $valoresMostrados[$areaKey][$moduloKey][$opKey] = true;
+            }
+        }
+        return $resultadoFiltrado;
+    }
+
+    public function getAuditoriaAQLData()
     {
         $fechaActual = Carbon::now()->toDateString();
         $auditorDato = Auth::user()->name;
@@ -174,62 +192,47 @@ class AuditoriaAQLV3Controller extends Controller
             $datoPlanta = "Intimark2";
         }
 
-        $query = AuditoriaAQL::whereNull('estatus') // whereNull es más idiomático para buscar nulos
+        // Consulta unificada para obtener datos en proceso (estatus IS NULL) y finalizados (estatus = 1)
+        $query = AuditoriaAQL::query()
+            ->where(function ($q) {
+                $q->whereNull('estatus')
+                  ->orWhere('estatus', 1);
+            })
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
-            ->select('modulo', 'op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion') //Añadí 'area' porque lo usas en la vista
-            ->distinct()
-            ->orderBy('modulo', 'asc');
+            ->select( // Asegúrate de que todos los campos necesarios estén aquí
+                'estatus', 'modulo', 'op', 'team_leader', 
+                'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion'
+            )
+            ->orderBy('modulo', 'asc'); // Ordenar para consistencia en el filtro PHP
 
+        // Aplicar filtro por auditor si no es Administrador o Gerente de Calidad
         if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
             $query->where('auditor', $auditorDato);
         }
 
-        $procesoActualAQL = $query->get();
+        $todosLosProcesos = $query->get();
 
-        // Agrupar para evitar duplicados en la vista (lógica similar a tu @php)
-        $valoresMostrados = [];
-        $resultadoFiltrado = [];
-        foreach ($procesoActualAQL as $proceso) {
-            if (!isset($valoresMostrados[$proceso->area][$proceso->modulo][$proceso->op])) {
-                $resultadoFiltrado[] = $proceso;
-                $valoresMostrados[$proceso->area][$proceso->modulo][$proceso->op] = true;
+        // Separar los procesos en "actuales" (en proceso) y "finalizados"
+        $procesosActualesRaw = [];
+        $procesosFinalizadosRaw = [];
+
+        foreach ($todosLosProcesos as $proceso) {
+            if (is_null($proceso->estatus)) {
+                $procesosActualesRaw[] = $proceso;
+            } elseif ($proceso->estatus == 1) {
+                $procesosFinalizadosRaw[] = $proceso;
             }
         }
 
-        return response()->json($resultadoFiltrado);
-    }
-
-    public function getProcesoFinalAQL()
-    {
-        $fechaActual = Carbon::now()->toDateString();
-        $auditorPlanta = Auth::user()->Planta;
-        // $tipoUsuario = Auth::user()->puesto; // No se usa en esta consulta, pero lo dejo por si acaso
-        // $auditorDato = Auth::user()->name; // No se usa en esta consulta
-
-        if ($auditorPlanta == "Planta1") {
-            $datoPlanta = "Intimark1";
-        } else {
-            $datoPlanta = "Intimark2";
-        }
-
-        $procesoFinalAQL = AuditoriaAQL::where('estatus', 1)
-            ->where('planta', $datoPlanta)
-            ->whereDate('created_at', $fechaActual)
-            ->select('modulo','op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion') //Añadí 'area'
-            ->distinct()
-            ->get(); // El orderBy no es estrictamente necesario si el filtrado se hace en el front o si el orden natural es aceptable.
-
-        // Agrupar para evitar duplicados en la vista (lógica similar a tu @php)
-        $valoresMostrados = [];
-        $resultadoFiltrado = [];
-        foreach ($procesoFinalAQL as $proceso) {
-            if (!isset($valoresMostrados[$proceso->area][$proceso->modulo][$proceso->op])) {
-                $resultadoFiltrado[] = $proceso;
-                $valoresMostrados[$proceso->area][$proceso->modulo][$proceso->op] = true;
-            }
-        }
-        return response()->json($resultadoFiltrado);
+        // Aplicar el filtrado para evitar duplicados en la vista (basado en area, modulo, op)
+        $procesosActualesFiltrados = $this->filtrarProcesosUnicos($procesosActualesRaw);
+        $procesosFinalizadosFiltrados = $this->filtrarProcesosUnicos($procesosFinalizadosRaw);
+        
+        return response()->json([
+            'actuales' => $procesosActualesFiltrados,
+            'finalizados' => $procesosFinalizadosFiltrados,
+        ]);
     }
 
     public function formAltaProcesoAQL_v2(Request $request) 

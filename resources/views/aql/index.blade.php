@@ -446,7 +446,7 @@
                 if (datos && datos.length > 0) {
                     datos.forEach(function(proceso) {
                         // Asegurarse de que los valores no sean null o undefined antes de usarlos
-                        const area = proceso.area || '';
+                        const area = proceso.area || ''; // Es importante que 'area' venga en los datos
                         const modulo = proceso.modulo || '';
                         const op = proceso.op || '';
                         const estilo = proceso.estilo || '';
@@ -484,46 +484,36 @@
                 }
             }
 
-            // Cargar datos para la tabla de procesos actuales (En Proceso)
+            // Cargar datos para ambas tablas con una sola llamada AJAX
             $.ajax({
-                url: "{{ route('AQLV3.data.procesoActual') }}",
+                url: "{{ route('AQLV3.data.procesos') }}", // URL de la nueva ruta unificada
                 type: 'GET',
                 dataType: 'json',
                 success: function(data) {
-                    poblarTabla('tablaProcesos1', data, "{{ route('auditoriaAQL.formAltaProcesoAQL_v2') }}");
+                    // Poblar tabla de procesos "En Proceso"
+                    poblarTabla('tablaProcesos1', data.actuales, "{{ route('auditoriaAQL.formAltaProcesoAQL_v2') }}");
+                    
+                    // Poblar tabla de procesos "Finalizados"
+                    poblarTabla('tablaProcesos2', data.finalizados, "{{ route('auditoriaAQL.formAltaProcesoAQL_v2') }}");
                 },
                 error: function(xhr, status, error) {
-                    console.error("Error al cargar procesos actuales:", error);
-                    $('#tablaProcesos1').html('<tr><td colspan="3" class="text-center">Error al cargar los datos.</td></tr>');
+                    console.error("Error al cargar datos de auditoría AQL:", error);
+                    $('#tablaProcesos1').html('<tr><td colspan="3" class="text-center">Error al cargar los datos (En Proceso).</td></tr>');
+                    $('#tablaProcesos2').html('<tr><td colspan="3" class="text-center">Error al cargar los datos (Finalizados).</td></tr>');
                 }
             });
 
-            // Cargar datos para la tabla de procesos finalizados
-            $.ajax({
-                url: "{{ route('AQLV3.data.procesoFinal') }}",
-                type: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    poblarTabla('tablaProcesos2', data, "{{ route('auditoriaAQL.formAltaProcesoAQL_v2') }}");
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error al cargar procesos finalizados:", error);
-                    $('#tablaProcesos2').html('<tr><td colspan="3" class="text-center">Error al cargar los datos.</td></tr>');
-                }
-            });
-
-            // Funcionalidad de búsqueda para la tabla 1
+            // Funcionalidad de búsqueda para la tabla 1 (sin cambios)
             $('#searchInput1').on('keyup', function() {
                 var value = $(this).val().toLowerCase();
                 $('#tablaProcesos1 tr').filter(function() {
-                    // Asegúrate de que las celdas existan antes de intentar leer su texto
                     var modulo = $(this).find('td:eq(1)').text() ? $(this).find('td:eq(1)').text().toLowerCase() : "";
                     var op = $(this).find('td:eq(2)').text() ? $(this).find('td:eq(2)').text().toLowerCase() : "";
                     $(this).toggle(modulo.indexOf(value) > -1 || op.indexOf(value) > -1);
                 });
             });
 
-            // Funcionalidad de búsqueda para la tabla 2
+            // Funcionalidad de búsqueda para la tabla 2 (sin cambios)
             $('#searchInput2').on('keyup', function() {
                 var value = $(this).val().toLowerCase();
                 $('#tablaProcesos2 tr').filter(function() {
@@ -534,5 +524,4 @@
             });
         });
     </script>
-
 @endsection
