@@ -235,25 +235,37 @@ class AuditoriaAQLV3Controller extends Controller
         ]);
     }
 
-    public function formAltaProcesoAQL_v2(Request $request) 
+    public function formAltaProcesoAQLV3(Request $request)
     {
-        $pageSlug ='';
+        $pageSlug = '';
 
+        // Optimización: Seleccionar solo la columna 'customername'
         $datoUnicoOP = JobAQL::where('prodid', $request->op)
+            ->select('customername') // Aquí se especifica la columna deseada
             ->first();
-        //dd($datoUnicoOP);
+
+        if (!$datoUnicoOP) {
+            return redirect()->back()->with('error', 'La OP proporcionada no fue encontrada.');
+            // O si prefieres que 'cliente' sea nulo o un string vacío:
+            // $customerName = null; // o $customerName = '';
+        } else {
+            // $customerName = $datoUnicoOP->customername; // No es necesario si se maneja en el array $data
+        }
+
         $data = [
             'modulo' => $request->modulo,
             'estilo' => $request->estilo,
             'op' => $request->op,
-            'cliente' => $datoUnicoOP->customername,
+            'cliente' => $datoUnicoOP ? $datoUnicoOP->customername : null, // O un valor por defecto si prefieres
             'auditor' => $request->auditor,
             'turno' => $request->turno,
             'team_leader' => $request->team_leader,
             'gerente_produccion' => $request->gerente_produccion,
         ];
-        //dd($data);
-        return redirect()->route('auditoriaAQL.auditoriaAQL_v2', $data)->with('cambio-estatus', 'Iniciando en modulo: '. $data['modulo'])->with('pageSlug', $pageSlug);
+
+        return redirect()->route('AQL.registro', $data)
+                         ->with('cambio-estatus', 'Iniciando en modulo: ' . $data['modulo'])
+                         ->with('pageSlug', $pageSlug);
     }
 
     public function auditoriaAQL_v2(Request $request)

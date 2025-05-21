@@ -446,7 +446,6 @@
                 if (datos && datos.length > 0) {
                     datos.forEach(function(proceso) {
                         // Asegurarse de que los valores no sean null o undefined antes de usarlos
-                        const area = proceso.area || ''; // Es importante que 'area' venga en los datos
                         const modulo = proceso.modulo || '';
                         const op = proceso.op || '';
                         const estilo = proceso.estilo || '';
@@ -461,7 +460,6 @@
                                 <td>
                                     <form method="POST" action="${rutaFormulario}">
                                         <input type="hidden" name="_token" value="${$('meta[name="csrf-token"]').attr('content')}">
-                                        <input type="hidden" name="area" value="${area}">
                                         <input type="hidden" name="modulo" value="${modulo}">
                                         <input type="hidden" name="op" value="${op}">
                                         <input type="hidden" name="estilo" value="${estilo}">
@@ -491,10 +489,10 @@
                 dataType: 'json',
                 success: function(data) {
                     // Poblar tabla de procesos "En Proceso"
-                    poblarTabla('tablaProcesos1', data.actuales, "{{ route('auditoriaAQL.formAltaProcesoAQL_v2') }}");
+                    poblarTabla('tablaProcesos1', data.actuales, "{{ route('AQL.formAltaProcesoAQLV3') }}");
                     
                     // Poblar tabla de procesos "Finalizados"
-                    poblarTabla('tablaProcesos2', data.finalizados, "{{ route('auditoriaAQL.formAltaProcesoAQL_v2') }}");
+                    poblarTabla('tablaProcesos2', data.finalizados, "{{ route('AQL.formAltaProcesoAQLV3') }}");
                 },
                 error: function(xhr, status, error) {
                     console.error("Error al cargar datos de auditoría AQL:", error);
