@@ -678,7 +678,7 @@
                     let select2Data = dataFromServer.map(item => ({
                         id: item.prodid,
                         text: item.prodid 
-                    }));
+                    })); 
 
                     const selectedValueFromUrl = getParameterByName('op');
 
@@ -744,9 +744,6 @@
             const opSelect = $('#op_seleccion'); // Este es tu select de OPs
             const bultoSelect = $('#bulto_seleccion');
 
-            // --- INICIO: Lógica para op_seleccion (adaptada de tu solicitud anterior) ---
-            // Esta parte es crucial para que opSelect funcione con carga local
-            // y para que podamos saber cuándo cargar los bultos.
             $.ajax({
                 url: "{{ route('obtener.opciones.op') }}", // Ruta para obtener todas las OPs
                 type: 'GET',
