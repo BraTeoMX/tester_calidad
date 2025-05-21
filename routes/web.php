@@ -431,6 +431,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/auditoriaAQLV3/data/procesos', [AuditoriaAQLV3Controller::class, 'getAuditoriaAQLData'])->name('AQLV3.data.procesos');
     Route::post('/auditoriaAQLV3/formAltaAQLV3', [AuditoriaAQLV3Controller::class, 'formAltaAQLV3'])->name('AQLV3.formAltaAQLV3');
     Route::get('/auditoriaAQLV3/registro', [AuditoriaAQLV3Controller::class, 'registro'])->name('AQLV3.registro');
+    Route::get('/auditoriaAQLV3/registro/obtener-op', [AuditoriaAQLV3Controller::class, 'obtenerOpcionesOP'])->name('AQLV3.obtener.op');
 
 
 

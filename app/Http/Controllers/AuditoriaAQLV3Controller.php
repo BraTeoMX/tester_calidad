@@ -367,17 +367,32 @@ class AuditoriaAQLV3Controller extends Controller
 
     public function obtenerOpcionesOP(Request $request)
     {
-        $query = $request->input('search', '');
+        $cacheKey = 'opciones_op_todas_lista';
+        $duracionCacheEnSegundos = 5 * 60; // 5 minutos
 
+        // Intentar obtener de la caché primero
+        if (Cache::has($cacheKey)) {
+            $datosOP = Cache::get($cacheKey);
+            return response()->json($datosOP);
+        }
+
+        // Verificar si JobAQL tiene algún registro. Esto es para la condición de cacheo.
+        $jobAQLExiste = JobAQL::exists();
+
+        // Obtener todos los prodid de ambas tablas, unirlos, eliminar duplicados y ordenar.
+        // No se usa el input 'search' aquí porque cargaremos toda la lista.
         $datosOP = JobAQL::select('prodid')
-            ->where('prodid', 'like', "%{$query}%")
             ->union(
                 JobAQLTemporal::select('prodid')
-                    ->where('prodid', 'like', "%{$query}%")
             )
             ->distinct()
             ->orderBy('prodid')
-            ->get();
+            ->get(); // Devuelve una colección de objetos, cada uno con una propiedad 'prodid'
+
+        // Aplicar el cacheo solo si JobAQL tiene datos.
+        if ($jobAQLExiste) {
+            Cache::put($cacheKey, $datosOP, $duracionCacheEnSegundos);
+        }
 
         return response()->json($datosOP);
     }

@@ -658,71 +658,83 @@
 
     <script>
         $(document).ready(function () {
-            // Configuración de Select2
-            const select2Options = {
-                placeholder: 'Selecciona una opción',
-                allowClear: true,
-                language: {
-                    noResults: function () {
-                        return "No se encontraron resultados";
-                    },
-                },
-                ajax: {
-                    url: "{{ route('obtener.opciones.op') }}",
-                    type: 'GET',
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return {
-                            search: params.term || '', // Enviar búsqueda o vacío para obtener todos
-                        };
-                    },
-                    processResults: function (data) {
-                        // Si no hay datos, Select2 mostrará automáticamente el mensaje "No se encontraron resultados"
-                        return {
-                            results: data.map(item => ({
-                                id: item.prodid,
-                                text: item.prodid,
-                            })),
-                        };
-                    },
-                    cache: true,
-                },
-            };
-
             const opSelect = $('#op_seleccion');
 
-            // Inicializa Select2
-            opSelect.select2(select2Options);
-
-            // Función para obtener el parámetro de la URL
             function getParameterByName(name) {
                 const url = new URL(window.location.href);
                 return url.searchParams.get(name);
             }
 
-            // Función para preseleccionar el valor basado en el parámetro de la URL
-            function preselectValue() {
-                const selectedValue = getParameterByName('op'); // Obtiene el valor del parámetro 'op'
-                if (selectedValue) {
-                    // Crea una opción temporal y selecciónala
-                    const optionExists = opSelect.find(`option[value="${selectedValue}"]`).length > 0;
-                    if (!optionExists) {
-                        const newOption = new Option(selectedValue, selectedValue, true, true);
-                        opSelect.append(newOption).trigger('change');
-                    } else {
-                        opSelect.val(selectedValue).trigger('change');
+            // 1. Cargar todos los datos de OP vía AJAX una sola vez
+            $.ajax({
+                url: "{{ route('AQLV3.obtener.op') }}", // Esta ruta llama a tu función obtenerOpcionesOP modificada
+                type: 'GET',
+                dataType: 'json',
+                success: function (dataFromServer) {
+                    // dataFromServer es un array de objetos, ej: [{prodid: 'OP001'}, {prodid: 'OP002'}]
+                    
+                    // Mapear los datos al formato que Select2 espera para la opción 'data':
+                    // un array de objetos con 'id' y 'text'.
+                    let select2Data = dataFromServer.map(item => ({
+                        id: item.prodid,
+                        text: item.prodid 
+                    }));
+
+                    const selectedValueFromUrl = getParameterByName('op');
+
+                    // Lógica para preseleccionar si viene un valor en la URL
+                    if (selectedValueFromUrl) {
+                        const valueExistsInLoadedData = select2Data.some(item => item.id === selectedValueFromUrl);
+                        
+                        if (!valueExistsInLoadedData) {
+                            // Si el valor de la URL no está en los datos masivos y quieres que aparezca
+                            // lo añadimos a `select2Data`. Esto asegura que pueda ser seleccionado.
+                            console.warn(`El valor '${selectedValueFromUrl}' de la URL no estaba en la lista inicial. Añadiéndolo para selección.`);
+                            select2Data.unshift({ id: selectedValueFromUrl, text: selectedValueFromUrl }); // Añadir al principio
+                            // Opcional: re-ordenar `select2Data` si el orden es crítico después de añadir
+                            // select2Data.sort((a, b) => a.text.localeCompare(b.text));
+                        }
                     }
+
+                    // Configuración de Select2 para usar datos locales
+                    const select2Options = {
+                        placeholder: 'Selecciona una opción',
+                        allowClear: true,
+                        language: {
+                            noResults: function () {
+                                return "No se encontraron resultados";
+                            }
+                        },
+                        data: select2Data // Proporcionar los datos locales a Select2
+                    };
+
+                    // Limpiar el select (quitar "Cargando opciones...") e inicializar Select2
+                    opSelect.empty().select2(select2Options);
+
+                    // Intentar preseleccionar el valor después de que Select2 esté inicializado con datos
+                    if (selectedValueFromUrl) {
+                        opSelect.val(selectedValueFromUrl).trigger('change');
+                    }
+
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar opciones OP:", error);
+                    opSelect.empty().append('<option value="">Error al cargar opciones</option>');
+                    // Opcionalmente, inicializar Select2 con un mensaje de error
+                    opSelect.select2({
+                        placeholder: 'Error al cargar',
+                        language: {
+                            noResults: function () { return "Error al cargar opciones"; }
+                        }
+                    });
                 }
-            }
+            });
 
-            // Llama a la función para preseleccionar el valor al cargar
-            preselectValue();
-
-            // Maneja el evento 'change' para no actualizar la URL
+            // Manejador de evento 'change' (para tus acciones posteriores)
             opSelect.on('change', function () {
                 const selectedValue = $(this).val();
-                console.log('Valor seleccionado:', selectedValue); // Realiza acciones según sea necesario
+                console.log('Valor seleccionado:', selectedValue);
+                // Aquí puedes realizar otras acciones cuando el usuario selecciona una OP
             });
         });
     </script>
