@@ -86,17 +86,20 @@ class AuditoriaAQLV3Controller extends Controller
     }
 
     // Método para obtener los gerentes de producción
-    public function gerentesProduccion(Request $request)
+    public function gerentesProduccion()
     {
         $auditorPlanta = Auth::user()->Planta;
         $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
+        $cacheKey = 'gerentes_produccion_planta_' . $datoPlanta;
 
-        $gerentes = CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
-            ->orderBy('jefe_produccion')
-            ->where('planta', $datoPlanta)
-            ->where('estatus', 1)
-            ->where('jefe_produccion', 1) // Asumo que es `jefe_produccion` el campo correcto
-            ->get(['nombre']); // Devuelve solo el nombre o los campos que necesites
+        $duracionCacheEnSegundos = 120; // 2 minutos * 60 segundos/minuto
+        $gerentes = Cache::remember($cacheKey, $duracionCacheEnSegundos, function () use ($datoPlanta) {
+            return CategoriaTeamLeader::where('planta', $datoPlanta)
+                ->where('estatus', 1)           // Filtra por planta y estatus
+                ->where('jefe_produccion', 1)   // Filtra solo los que son jefes de producción
+                ->orderBy('nombre', 'asc')      // Ordena los resultados por el nombre del gerente
+                ->get(['nombre']);              // Obtiene solo la columna 'nombre'
+        });
 
         return response()->json($gerentes);
     }

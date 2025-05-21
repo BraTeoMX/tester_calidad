@@ -56,7 +56,6 @@
                                         </td>
                                         <td>
                                             <select name="gerente_produccion" id="gerente_produccion" class="form-control" required title="Por favor, selecciona una opción">
-                                                <option value="" selected>Cargando gerentes...</option>
                                             </select>
                                         </td>
                                         <td><input type="text" class="form-control texto-blanco" name="auditor" id="auditor"
@@ -400,16 +399,10 @@
                 success: function(data) {
                     var $gerenteSelect = $('#gerente_produccion');
                     $gerenteSelect.empty();
-                    $gerenteSelect.append('<option value="" selected>Selecciona una opción</option>');
                     $.each(data, function(index, gerente) {
                         $gerenteSelect.append('<option value="' + gerente.nombre + '">' + gerente.nombre + '</option>');
                     });
 
-                    // Si #gerente_produccion también usa Select2, inicialízalo aquí:
-                    // $('#gerente_produccion').select2({
-                    //  placeholder: 'Seleccione una opción',
-                    //  allowClear: true
-                    // });
                 },
                 error: function(xhr, status, error) {
                     console.error("Error al cargar gerentes de producción: ", error);
