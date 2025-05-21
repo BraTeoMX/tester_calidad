@@ -56,23 +56,59 @@ class AuditoriaProcesoV3Controller extends Controller
 
     public function obtenerModulos()
     {
-        $auditorPlanta = Auth::user()->Planta;
+        $usuario = Auth::user();
+
+        // Es una buena práctica verificar si Auth::user() devolvió un usuario,
+        // aunque las rutas suelen estar protegidas por el middleware de autenticación.
+        if (!$usuario) {
+            return response()->json(['error' => 'Usuario no autenticado.'], 401);
+        }
+
+        $auditorPlanta = $usuario->Planta;
         $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
-        // Obtener datos de las dos tablas
-        $datosCategoriaSupervisor = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
-            ->whereBetween('moduleid', ['100A', '299A'])
-            ->get(['moduleid']);
 
-        $datosModuloEstiloTemporal = ModuloEstiloTemporal::where('prodpoolid', $datoPlanta)
-            ->whereBetween('moduleid', ['100A', '299A'])
-            ->distinct('moduleid')
-            ->get(['moduleid']);
+        // Clave de caché única para la planta especificada.
+        // He añadido _v2 por si existiera una caché antigua con una clave similar.
+        $claveCache = "modulos_planta_{$datoPlanta}_v2";
+        
+        // Tiempo de caché en segundos (60 segundos = 1 minuto)
+        $tiempoCache = 60;
+        // Alternativamente, usando Carbon para una definición más explícita del tiempo:
+        // $tiempoCache = Carbon::now()->addMinutes(1);
 
-        // Combinar y eliminar duplicados
-        $listaModulos = $datosCategoriaSupervisor->concat($datosModuloEstiloTemporal)
-            ->unique('moduleid')
-            ->sortBy('moduleid')
-            ->values();
+        $listaModulos = Cache::remember($claveCache, $tiempoCache, function () use ($datoPlanta) {
+            // Consulta para CategoriaSupervisor
+            // Seleccionamos solo 'moduleid' para la operación UNION
+            $queryCategoriaSupervisor = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
+                ->whereBetween('moduleid', ['100A', '299A'])
+                ->select('moduleid');
+
+            // Consulta para ModuloEstiloTemporal
+            // Seleccionamos solo 'moduleid' para la operación UNION
+            $queryModuloEstiloTemporal = ModuloEstiloTemporal::where('prodpoolid', $datoPlanta)
+                ->whereBetween('moduleid', ['100A', '299A'])
+                ->select('moduleid');
+
+            // Usamos UNION para combinar los resultados.
+            // UNION inherentemente devuelve filas distintas (basado en las columnas seleccionadas).
+            // Ordenamos la lista combinada final por 'moduleid'.
+            // get() devolverá una colección de objetos, cada uno con la propiedad 'moduleid'.
+            $modulos = $queryCategoriaSupervisor
+                ->union($queryModuloEstiloTemporal)
+                ->orderBy('moduleid', 'asc') // Ordenar en la base de datos
+                ->get();
+
+            // El resultado de get() es una Colección de objetos, por ejemplo:
+            // Illuminate\Support\Collection {#123
+            //   all: [
+            //     {#456 ▼ +"moduleid": "100A"},
+            //     {#789 ▼ +"moduleid": "101A"},
+            //   ]
+            // }
+            // Esto coincide con la estructura que generaba tu secuencia original de operaciones
+            // y producirá un JSON como: [{"moduleid":"100A"}, {"moduleid":"101A"}, ...]
+            return $modulos;
+        });
 
         return response()->json($listaModulos);
     }
@@ -376,26 +412,59 @@ class AuditoriaProcesoV3Controller extends Controller
 
     public function obtenerListaProcesos()
     {
-        $fechaActual = now()->toDateString();
-        $auditorPlanta = Auth::user()->Planta;
-        $auditorDato = Auth::user()->name;
-        $tipoUsuario = Auth::user()->puesto;
+        $usuario = Auth::user();
+        if (!$usuario) {
+            return response()->json(['error' => 'Usuario no autenticado.'], 401);
+        }
+
+        $fechaActual = Carbon::now()->toDateString(); // Usar Carbon para consistencia
+        $auditorPlanta = $usuario->Planta;
+        $auditorDato = $usuario->name;
+        $tipoUsuario = $usuario->puesto;
         $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
 
-        $procesoActual = AseguramientoCalidad::whereNull('estatus')
-            ->where('planta', $datoPlanta)
-            ->whereDate('created_at', $fechaActual)
-            ->select('modulo', 'estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
-            ->distinct()
-            ->orderBy('modulo', 'asc');
-        // Aplicar el filtro del auditor solo si el tipo de usuario no es "Administrador" o "Gerente de Calidad"
+        // --- Clave de Caché Dinámica ---
+        // Construimos una clave que identifique unívocamente esta consulta
+        $cacheKeyParts = [
+            'lista_procesos_actuales', // Identificador base
+            $datoPlanta,
+            $fechaActual,
+        ];
+
+        // La clave de caché debe variar si la consulta varía (por ejemplo, si se filtra por auditor)
         if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
-            $procesoActual->where('auditor', $auditorDato);
+            $cacheKeyParts[] = "auditor_{$auditorDato}";
+        } else {
+            $cacheKeyParts[] = "todos_los_auditores"; // O simplemente omitir si no hay filtro de auditor
         }
-        $procesoActual = $procesoActual->get();
+        $cacheKey = implode('_', $cacheKeyParts);
+
+        // --- Tiempo de Caché ---
+        $minutesToCache = 1; // 1 minuto de caché
+
+        // --- Lógica de Caché y Consulta ---
+        $procesos = Cache::remember($cacheKey, now()->addMinutes($minutesToCache), function () use ($datoPlanta, $fechaActual, $tipoUsuario, $auditorDato) {
+            
+            $query = AseguramientoCalidad::whereNull('estatus')
+                ->where('planta', $datoPlanta)
+                // Optimización para whereDate:
+                // Si 'created_at' es DATETIME o TIMESTAMP, es mejor usar whereBetween para aprovechar índices
+                ->whereBetween('created_at', [Carbon::parse($fechaActual)->startOfDay(), Carbon::parse($fechaActual)->endOfDay()])
+                // ->whereDate('created_at', $fechaActual) // Alternativa si 'created_at' es solo DATE o prefieres esta sintaxis y tienes índices funcionales
+                ->select('modulo', 'estilo', 'team_leader', 'turno', 'auditor', 'cliente', 'gerente_produccion')
+                ->distinct() // distinct() puede ser costoso. Asegúrate de que los índices lo cubran.
+                ->orderBy('modulo', 'asc');
+
+            // Aplicar el filtro del auditor solo si el tipo de usuario no es "Administrador" o "Gerente de Calidad"
+            if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
+                $query->where('auditor', $auditorDato);
+            }
+
+            return $query->get();
+        });
 
         return response()->json([
-            'procesos' => $procesoActual,
+            'procesos' => $procesos,
         ]);
     }
 
@@ -511,16 +580,39 @@ class AuditoriaProcesoV3Controller extends Controller
 
     public function defectosProceso(Request $request)
     {
-        $search = $request->input('search');
+        $search = $request->input('search'); // Puede ser null si no se envía
 
-        $query = CategoriaTipoProblema::whereIn('area', ['proceso', 'playera']);
+        // --- Clave de Caché Dinámica ---
+        // La clave debe cambiar si el término de búsqueda cambia.
+        // Usamos md5 para el término de búsqueda para asegurar una clave válida y de longitud consistente.
+        // Si search es null o una cadena vacía, podríamos usar un marcador como 'todos'.
+        $searchTermForCache = !empty($search) ? md5($search) : 'todos';
+        $cacheKey = "defectos_proceso_search_{$searchTermForCache}";
 
-        // Aplicar filtro si el usuario escribe algo
-        if (!empty($search)) {
-            $query->where('nombre', 'like', "%$search%");
-        }
+        // --- Tiempo de Caché ---
+        $minutesToCache = 1; // 1 minuto
 
-        $defectos = $query->select('nombre')->distinct()->orderBy('nombre', 'asc')->get();
+        // --- Lógica de Caché y Consulta ---
+        $defectos = Cache::remember($cacheKey, $minutesToCache * 60, function () use ($search) {
+            // El segundo argumento de remember es en segundos, o puedes usar now()->addMinutes()
+            
+            $query = CategoriaTipoProblema::whereIn('area', ['proceso', 'playera']);
+
+            // Aplicar filtro de búsqueda si el usuario escribe algo
+            if (!empty($search)) {
+                // Esta es la parte que puede ser lenta en tablas grandes sin Full-Text Search
+                $query->where('nombre', 'like', "%{$search}%");
+            }
+
+            // Seleccionar solo la columna 'nombre', obtener valores distintos, ordenar y ejecutar
+            return $query->select('nombre')
+                         ->distinct()
+                         ->orderBy('nombre', 'asc')
+                         ->get();
+            // El resultado será una colección de objetos, cada uno con una propiedad 'nombre', ej: [{"nombre":"Defecto A"}]
+            // Si quisieras una lista plana de strings ["Defecto A", "Defecto B"], usarías:
+            // ->pluck('nombre');
+        });
 
         return response()->json([
             'defectos' => $defectos
