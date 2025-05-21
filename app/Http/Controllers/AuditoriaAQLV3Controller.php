@@ -452,24 +452,25 @@ class AuditoriaAQLV3Controller extends Controller
 
     public function obtenerDefectosAQL(Request $request)
     {
-        $search = $request->input('search', '');
+        // La búsqueda por término ('search') ya no es necesaria aquí
+        // si todas las opciones se cargan para búsqueda local en Select2.
+        // Si aún necesitas una carga inicial filtrada por algún motivo, puedes mantenerla,
+        // pero la búsqueda de Select2 operará sobre el conjunto de datos ya cargado.
 
-        // Construye la consulta base
-        $query = CategoriaTipoProblema::whereIn('area', ['proceso', 'playera', 'aql']);
-
-        // Aplica filtro de búsqueda si existe un término
-        if ($search !== '') {
-            $query = $query->where('nombre', 'like', "%{$search}%");
-        }
-
-        $categorias = $query->get();
+        $defectos = Cache::remember('defectos_aql_todos', 30, function () {
+            // Obtenemos todos los defectos para el área 'aql', 'proceso', 'playera'
+            // Si solo necesitas 'aql' para este select en específico, ajusta el whereIn.
+            return CategoriaTipoProblema::whereIn('area', ['proceso', 'playera', 'aql'])
+                                        ->orderBy('nombre', 'asc') // Opcional: ordenar los resultados
+                                        ->get(['id', 'nombre']); // Solo seleccionamos los campos necesarios
+        });
 
         // Si no se encuentran resultados, devolver arreglo vacío
-        if ($categorias->isEmpty()) {
+        if ($defectos->isEmpty()) {
             return response()->json([]);
         }
 
-        return response()->json($categorias);
+        return response()->json($defectos);
     }
 
     public function crearDefectoAQL(Request $request)
@@ -486,7 +487,7 @@ class AuditoriaAQLV3Controller extends Controller
 
             // Verificar si el defecto ya existe
             $defectoExistente = CategoriaTipoProblema::where('nombre', $nombre)
-                ->where('area', 'aql') // Opcional: para buscar solo en el área "aql"
+                ->where('area', 'aql') // Asumimos que los nuevos defectos son siempre para 'aql'
                 ->first();
 
             if ($defectoExistente) {
@@ -497,8 +498,11 @@ class AuditoriaAQLV3Controller extends Controller
             // Crear un nuevo defecto si no existe
             $nuevoDefecto = CategoriaTipoProblema::create([
                 'nombre' => $nombre,
-                'area' => 'aql',
+                'area' => 'aql', // Asignar el área directamente
             ]);
+
+            // Invalidar el caché para que la próxima carga incluya el nuevo defecto
+            Cache::forget('defectos_aql_todos');
 
             return response()->json($nuevoDefecto);
         } catch (\Exception $e) {

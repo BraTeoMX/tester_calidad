@@ -884,41 +884,71 @@
         $(document).ready(function () {
             const tpSelect = $('#tpSelectAQL');
             const selectedOptionsContainer = $('#selectedOptionsContainerAQL');
+            let allDefectsData = []; // Variable para almacenar todos los defectos cargados
 
-            // Configuración de Select2
-            tpSelect.select2({
-                placeholder: 'Selecciona una o más opciones',
-                allowClear: true,
-                ajax: {
-                    url: "{{ route('obtener.defectos.aql') }}",
+            // Función para procesar y preparar los datos para Select2
+            function processDataForSelect2(data) {
+                const options = data.map(item => ({
+                    id: item.nombre, // O item.id si 'id' es el identificador único
+                    text: item.nombre,
+                }));
+                // Añadir la opción de crear defecto al principio
+                options.unshift({ id: 'CREAR_DEFECTO', text: 'CREAR DEFECTO', action: true });
+                return options;
+            }
+
+            // Función para inicializar o actualizar Select2
+            function initializeOrUpdateTpSelect(processedData) {
+                // Si Select2 ya está inicializado, destrúyelo antes de volver a inicializar
+                if (tpSelect.hasClass("select2-hidden-accessible")) {
+                    tpSelect.select2('destroy').empty(); // Destruye y limpia opciones previas
+                }
+
+                tpSelect.select2({
+                    placeholder: 'Selecciona una o más opciones',
+                    allowClear: true,
+                    data: processedData, // Usar los datos cargados localmente
+                    templateResult: function (data) {
+                        if (data.action) {
+                            return $('<span style="color: #007bff; font-weight: bold;">' + data.text + '</span>');
+                        }
+                        return data.text;
+                    },
+                    language: {
+                        noResults: function () {
+                            return "No se encontraron resultados";
+                        },
+                        searching: function () {
+                            return "Buscando..."; // Mensaje mientras se escribe en la búsqueda local
+                        }
+                    },
+                });
+                // Limpiar la selección actual después de (re)inicializar para evitar que quede algo seleccionado por defecto
+                tpSelect.val(null).trigger('change');
+            }
+
+            // Función para cargar los defectos iniciales
+            function loadInitialDefects() {
+                $.ajax({
+                    url: "{{ route('AQLV3.defectos.aql') }}", // Ruta para obtener todos los defectos
                     type: 'GET',
                     dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return { search: params.term || '' };
+                    success: function (data) {
+                        allDefectsData = data; // Guardar los datos originales
+                        const processedData = processDataForSelect2(data);
+                        initializeOrUpdateTpSelect(processedData);
                     },
-                    processResults: function (data) {
-                        const options = data.map(item => ({
-                            id: item.nombre,
-                            text: item.nombre,
-                        }));
-                        options.unshift({ id: 'CREAR_DEFECTO', text: 'CREAR DEFECTO', action: true });
-                        return { results: options };
-                    },
-                    cache: true,
-                },
-                templateResult: function (data) {
-                    if (data.action) {
-                        return $('<span style="color: #007bff; font-weight: bold;">' + data.text + '</span>');
+                    error: function (xhr) {
+                        console.error('Error al cargar defectos:', xhr);
+                        alert('Error al cargar los defectos iniciales.');
+                        // Opcionalmente, inicializar Select2 con solo la opción de crear
+                        initializeOrUpdateTpSelect(processDataForSelect2([]));
                     }
-                    return data.text;
-                },
-                language: {
-                    noResults: function () {
-                        return "No se encontraron resultados";
-                    },
-                },
-            });
+                });
+            }
+
+            // Cargar los defectos al iniciar la página
+            loadInitialDefects();
 
             // Evento al seleccionar una opción
             tpSelect.on('select2:select', function (e) {
@@ -926,68 +956,84 @@
 
                 if (selected.id === 'CREAR_DEFECTO') {
                     $('#nuevoConceptoModal').modal('show');
-                    tpSelect.val(null).trigger('change'); // Resetea la selección
+                    // No es necesario resetear aquí si se limpia después de cada selección exitosa
+                    // o al abrir el modal, ya que podría interferir con la reapertura de select2
+                    // tpSelect.val(null).trigger('change'); // Considera si esto es necesario o causa problemas
                     return;
                 }
 
                 // Agregar la selección al contenedor
                 addOptionToContainer(selected.id, selected.text);
-                tpSelect.val(null).trigger('change');
+                tpSelect.val(null).trigger('change'); // Resetea el select después de agregar al contenedor
             });
 
             // Agregar la opción seleccionada al contenedor
             function addOptionToContainer(id, text) {
-                // Crear un elemento de la lista
                 const optionElement = $(`
-                    <div class="selected-option d-flex align-items-center justify-content-between border p-2 mb-1">
-                        <button class="btn btn-primary btn-sm duplicate-option">+</button>
+                    <div class="selected-option d-flex align-items-center justify-content-between border p-2 mb-1" data-id="${id}">
+                        <button class="btn btn-primary btn-sm duplicate-option" title="Duplicar defecto">+</button>
                         <span class="option-text flex-grow-1 mx-2">${text}</span>
-                        <button class="btn btn-danger btn-sm remove-option">Eliminar</button>
+                        <button class="btn btn-danger btn-sm remove-option" title="Eliminar defecto">Eliminar</button>
                     </div>
                 `);
 
-                // Añadir eventos para los botones
                 optionElement.find('.duplicate-option').on('click', function () {
-                    addOptionToContainer(id, text); // Duplicar la opción
+                    addOptionToContainer(id, text);
                 });
 
                 optionElement.find('.remove-option').on('click', function () {
-                    optionElement.remove(); // Eliminar la opción
+                    optionElement.remove();
                 });
 
-                // Agregar la opción al contenedor
                 selectedOptionsContainer.append(optionElement);
             }
 
             // Evento para abrir el modal y crear un nuevo defecto
             $('#guardarNuevoConcepto').on('click', function () {
-                const nuevoDefecto = $('#nuevoConceptoInput').val();
+                const nuevoDefectoNombre = $('#nuevoConceptoInput').val().trim();
 
-                if (!nuevoDefecto) {
+                if (!nuevoDefectoNombre) {
                     alert('Por favor, ingresa un defecto válido.');
                     return;
                 }
 
                 $.ajax({
-                    url: "{{ route('crear.defecto.aql') }}",
+                    url: "{{ route('AQLV3.crear.defecto.aql') }}",
                     type: 'POST',
                     dataType: 'json',
                     data: {
-                        nombre: nuevoDefecto,
+                        nombre: nuevoDefectoNombre,
                         _token: '{{ csrf_token() }}',
                     },
-                    success: function (data) {
-                        const newOption = new Option(data.nombre, data.nombre, true, true);
-                        tpSelect.append(newOption).trigger('change');
-                        addOptionToContainer(data.nombre, data.nombre); // Agregar al contenedor
+                    success: function (newDefect) { // 'newDefect' es el objeto defecto devuelto por el servidor
+                        // Agregar al contenedor visual
+                        addOptionToContainer(newDefect.nombre, newDefect.nombre);
+
+                        // Recargar todos los defectos para actualizar la lista de Select2
+                        // Esto asegura que el nuevo defecto esté disponible y el caché se refresque en el servidor
+                        loadInitialDefects();
+
                         $('#nuevoConceptoModal').modal('hide');
                         $('#nuevoConceptoInput').val('');
+
                     },
                     error: function (xhr) {
-                        alert('Ocurrió un error al guardar el defecto: ' + xhr.responseJSON.error);
+                        let errorMessage = 'Ocurrió un error al guardar el defecto.';
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            errorMessage += ' ' + xhr.responseJSON.error;
+                        }
+                        alert(errorMessage);
                     },
                 });
             });
+
+            // Cuando el modal de nuevo concepto se cierre (por cualquier motivo),
+            // reestablecer el select para asegurar que no quede "CREAR DEFECTO" seleccionado
+            // y el placeholder sea visible.
+            $('#nuevoConceptoModal').on('hidden.bs.modal', function () {
+                tpSelect.val(null).trigger('change');
+            });
+
         });
     </script>
 

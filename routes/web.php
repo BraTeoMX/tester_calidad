@@ -433,6 +433,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/auditoriaAQLV3/registro', [AuditoriaAQLV3Controller::class, 'registro'])->name('AQLV3.registro');
     Route::get('/auditoriaAQLV3/registro/obtener-op', [AuditoriaAQLV3Controller::class, 'obtenerOpcionesOP'])->name('AQLV3.obtener.op');
     Route::get('/auditoriaAQLV3/registro/obtener-bulto', [AuditoriaAQLV3Controller::class, 'obtenerOpcionesBulto'])->name('AQLV3.obtener.bulto');
+    Route::get('/auditoriaAQLV3/registro/obtenerDefectosAQL', [AuditoriaAQLV3Controller::class, 'obtenerDefectosAQL'])->name('AQLV3.defectos.aql');
+    Route::post('/auditoriaAQLV3/registro/crearDefectoAQL', [AuditoriaAQLV3Controller::class, 'crearDefectoAQL'])->name('AQLV3.crear.defecto.aql');
 
 
 
