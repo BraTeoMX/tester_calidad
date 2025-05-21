@@ -885,6 +885,8 @@
             const tpSelect = $('#tpSelectAQL');
             const selectedOptionsContainer = $('#selectedOptionsContainerAQL');
             let allDefectsData = []; // Variable para almacenar todos los defectos cargados
+            let defectsDataLoaded = false; // Bandera para controlar si los datos ya se cargaron
+            let isLoadingDefects = false; // Bandera para evitar múltiples cargas simultáneas
 
             // Función para procesar y preparar los datos para Select2
             function processDataForSelect2(data) {
@@ -899,15 +901,14 @@
 
             // Función para inicializar o actualizar Select2
             function initializeOrUpdateTpSelect(processedData) {
-                // Si Select2 ya está inicializado, destrúyelo antes de volver a inicializar
                 if (tpSelect.hasClass("select2-hidden-accessible")) {
-                    tpSelect.select2('destroy').empty(); // Destruye y limpia opciones previas
+                    tpSelect.select2('destroy').empty();
                 }
 
                 tpSelect.select2({
                     placeholder: 'Selecciona una o más opciones',
                     allowClear: true,
-                    data: processedData, // Usar los datos cargados localmente
+                    data: processedData,
                     templateResult: function (data) {
                         if (data.action) {
                             return $('<span style="color: #007bff; font-weight: bold;">' + data.text + '</span>');
@@ -919,36 +920,63 @@
                             return "No se encontraron resultados";
                         },
                         searching: function () {
-                            return "Buscando..."; // Mensaje mientras se escribe en la búsqueda local
+                            return "Buscando...";
                         }
                     },
                 });
-                // Limpiar la selección actual después de (re)inicializar para evitar que quede algo seleccionado por defecto
                 tpSelect.val(null).trigger('change');
             }
 
-            // Función para cargar los defectos iniciales
+            // Función para cargar los defectos
             function loadInitialDefects() {
+                // Si ya están cargados y no forzamos recarga, no hacer nada (útil si se llama desde varios sitios)
+                // Para el caso de "cargar al abrir", el 'defectsDataLoaded' ya controla esto afuera.
+                // Esta función ahora se enfoca solo en cargar.
+                if (isLoadingDefects) {
+                    return; // Ya hay una carga en curso
+                }
+                isLoadingDefects = true;
+
+                // Mostrar algún indicador de carga si se desea, p.ej., dentro del select
+                // tpSelect.prop('disabled', true); // Deshabilitar mientras carga
+
                 $.ajax({
-                    url: "{{ route('AQLV3.defectos.aql') }}", // Ruta para obtener todos los defectos
+                    url: "{{ route('AQLV3.defectos.aql') }}",
                     type: 'GET',
                     dataType: 'json',
                     success: function (data) {
-                        allDefectsData = data; // Guardar los datos originales
+                        allDefectsData = data;
                         const processedData = processDataForSelect2(data);
                         initializeOrUpdateTpSelect(processedData);
+                        defectsDataLoaded = true; // Marcar que los datos se cargaron exitosamente
                     },
                     error: function (xhr) {
                         console.error('Error al cargar defectos:', xhr);
-                        alert('Error al cargar los defectos iniciales.');
-                        // Opcionalmente, inicializar Select2 con solo la opción de crear
+                        alert('Error al cargar los defectos.');
+                        // Dejar defectsDataLoaded como false para permitir un nuevo intento al abrir
+                        defectsDataLoaded = false;
+                        // Opcionalmente, reinicializar con solo la opción de crear si falla la carga
                         initializeOrUpdateTpSelect(processDataForSelect2([]));
+                    },
+                    complete: function() {
+                        isLoadingDefects = false; // Termina la carga (exitosa o no)
+                        // tpSelect.prop('disabled', false); // Habilitar de nuevo
                     }
                 });
             }
 
-            // Cargar los defectos al iniciar la página
-            loadInitialDefects();
+            // Inicializar Select2 con la opción "CREAR DEFECTO" únicamente al cargar la página.
+            // Los datos completos se cargarán al abrir el select.
+            const initialMinimalData = processDataForSelect2([]); // Solo contendrá "CREAR DEFECTO"
+            initializeOrUpdateTpSelect(initialMinimalData);
+
+
+            // Evento para cargar los datos cuando se abre el Select2 por primera vez
+            tpSelect.on('select2:open', function () {
+                if (!defectsDataLoaded && !isLoadingDefects) { // Solo cargar si no se han cargado y no hay una carga en curso
+                    loadInitialDefects();
+                }
+            });
 
             // Evento al seleccionar una opción
             tpSelect.on('select2:select', function (e) {
@@ -956,15 +984,11 @@
 
                 if (selected.id === 'CREAR_DEFECTO') {
                     $('#nuevoConceptoModal').modal('show');
-                    // No es necesario resetear aquí si se limpia después de cada selección exitosa
-                    // o al abrir el modal, ya que podría interferir con la reapertura de select2
-                    // tpSelect.val(null).trigger('change'); // Considera si esto es necesario o causa problemas
                     return;
                 }
 
-                // Agregar la selección al contenedor
                 addOptionToContainer(selected.id, selected.text);
-                tpSelect.val(null).trigger('change'); // Resetea el select después de agregar al contenedor
+                tpSelect.val(null).trigger('change');
             });
 
             // Agregar la opción seleccionada al contenedor
@@ -988,7 +1012,7 @@
                 selectedOptionsContainer.append(optionElement);
             }
 
-            // Evento para abrir el modal y crear un nuevo defecto
+            // Evento para guardar un nuevo defecto
             $('#guardarNuevoConcepto').on('click', function () {
                 const nuevoDefectoNombre = $('#nuevoConceptoInput').val().trim();
 
@@ -1005,17 +1029,19 @@
                         nombre: nuevoDefectoNombre,
                         _token: '{{ csrf_token() }}',
                     },
-                    success: function (newDefect) { // 'newDefect' es el objeto defecto devuelto por el servidor
-                        // Agregar al contenedor visual
+                    success: function (newDefect) {
                         addOptionToContainer(newDefect.nombre, newDefect.nombre);
-
-                        // Recargar todos los defectos para actualizar la lista de Select2
-                        // Esto asegura que el nuevo defecto esté disponible y el caché se refresque en el servidor
-                        loadInitialDefects();
+                        
+                        // Forzar la recarga de defectos para incluir el nuevo.
+                        // Esto invalidará la bandera `defectsDataLoaded` temporalmente si es necesario
+                        // o simplemente llamará a loadInitialDefects que actualizará todo.
+                        defectsDataLoaded = false; // Para asegurar que se recarguen al abrir si se quiere la lista más fresca
+                                                // o podrías simplemente llamar a loadInitialDefects() directamente.
+                                                // Llamar a loadInitialDefects() es más directo aquí.
+                        loadInitialDefects(); // Esto recargará y actualizará la bandera 'defectsDataLoaded' a true.
 
                         $('#nuevoConceptoModal').modal('hide');
                         $('#nuevoConceptoInput').val('');
-
                     },
                     error: function (xhr) {
                         let errorMessage = 'Ocurrió un error al guardar el defecto.';
@@ -1027,13 +1053,10 @@
                 });
             });
 
-            // Cuando el modal de nuevo concepto se cierre (por cualquier motivo),
-            // reestablecer el select para asegurar que no quede "CREAR DEFECTO" seleccionado
-            // y el placeholder sea visible.
+            // Cuando el modal de nuevo concepto se cierre
             $('#nuevoConceptoModal').on('hidden.bs.modal', function () {
                 tpSelect.val(null).trigger('change');
             });
-
         });
     </script>
 
