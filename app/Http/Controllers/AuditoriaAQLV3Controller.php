@@ -401,39 +401,50 @@ class AuditoriaAQLV3Controller extends Controller
     public function obtenerOpcionesBulto(Request $request)
     {
         $opSeleccionada = $request->input('op');
-        $search = $request->input('search', '');
 
-        // Si no se proporciona la OP, devuelve vacío
         if (!$opSeleccionada) {
-            return response()->json([]);
+            return response()->json([]); // Importante: si no hay OP, no hay bultos
         }
 
-        // Construye las consultas individuales con el filtro si existe búsqueda
-        if ($search !== '') {
-            $queryJobAQL = JobAQL::where('prodid', $opSeleccionada)
-                ->where('prodpackticketid', 'like', "%{$search}%")
-                ->select('prodid', 'prodpackticketid', 'qty', 'itemid', 'colorname', 'customername', 'inventcolorid', 'inventsizeid');
+        // La clave de caché ahora incluye la OP específica
+        $cacheKey = 'bultos_para_op_' . $opSeleccionada;
+        $duracionCacheEnSegundos = 5 * 60; // 5 minutos
 
-            $queryJobAQLTemporal = JobAQLTemporal::where('prodid', $opSeleccionada)
-                ->where('prodpackticketid', 'like', "%{$search}%")
-                ->select('prodid', 'prodpackticketid', 'qty', 'itemid', 'colorname', 'customername', 'inventcolorid', 'inventsizeid');
-
-            $query = $queryJobAQL->union($queryJobAQLTemporal)->distinct();
-        } else {
-            $query = JobAQL::where('prodid', $opSeleccionada)
-                ->select('prodid', 'prodpackticketid', 'qty', 'itemid', 'colorname', 'customername', 'inventcolorid', 'inventsizeid')
-                ->union(
-                    JobAQLTemporal::where('prodid', $opSeleccionada)
-                        ->select('prodid', 'prodpackticketid', 'qty', 'itemid', 'colorname', 'customername', 'inventcolorid', 'inventsizeid')
-                )
-                ->distinct();
+        // Intentar obtener de la caché
+        if (Cache::has($cacheKey)) {
+            return response()->json(Cache::get($cacheKey));
         }
 
-        $datosBulto = $query->orderBy('prodpackticketid')->get();
+        // Condición para cachear: ¿Existen registros en JobAQL para esta OP?
+        $jobAQLExisteParaEstaOP = JobAQL::where('prodid', $opSeleccionada)->exists();
 
-        // Si no se encuentran resultados, devuelve arreglo vacío
-        if ($datosBulto->isEmpty()) {
-            return response()->json([]);
+        // Columnas que necesitas para la lógica del frontend (incluyendo las de 'extra')
+        $selectColumns = [
+            'prodid',
+            'prodpackticketid',
+            'qty',
+            'itemid',
+            'colorname',
+            'customername',
+            'inventcolorid',
+            'inventsizeid'
+        ];
+
+        // Consulta para obtener TODOS los bultos de la OP, sin el filtro 'search' de bulto
+        $query = JobAQL::where('prodid', $opSeleccionada)
+            ->select($selectColumns)
+            ->union(
+                JobAQLTemporal::where('prodid', $opSeleccionada)
+                    ->select($selectColumns)
+            )
+            ->distinct() // Aplicado al resultado de la unión
+            ->orderBy('prodpackticketid'); // Ordenar los bultos
+
+        $datosBulto = $query->get();
+
+        // Cachear solo si la condición se cumple
+        if ($jobAQLExisteParaEstaOP) {
+            Cache::put($cacheKey, $datosBulto, $duracionCacheEnSegundos);
         }
 
         return response()->json($datosBulto);

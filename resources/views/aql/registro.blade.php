@@ -741,90 +741,118 @@
 
     <script>
         $(document).ready(function () {
-            const opSelect = $('#op_seleccion');
+            const opSelect = $('#op_seleccion'); // Este es tu select de OPs
             const bultoSelect = $('#bulto_seleccion');
 
-            // Configuración de Select2 para "op_seleccion"
-            opSelect.select2({
-                placeholder: 'Selecciona una OP',
-                allowClear: true,
-                ajax: {
-                    url: "{{ route('obtener.opciones.op') }}",
+            // --- INICIO: Lógica para op_seleccion (adaptada de tu solicitud anterior) ---
+            // Esta parte es crucial para que opSelect funcione con carga local
+            // y para que podamos saber cuándo cargar los bultos.
+            $.ajax({
+                url: "{{ route('obtener.opciones.op') }}", // Ruta para obtener todas las OPs
+                type: 'GET',
+                dataType: 'json',
+                success: function (dataOpsServer) {
+                    let select2OpData = dataOpsServer.map(item => ({
+                        id: item.prodid,
+                        text: item.prodid
+                    }));
+
+                    // (Aquí iría la lógica de preselección de OP si viene por URL, como en el ejemplo anterior)
+                    // const selectedValueOpFromUrl = getParameterByName('op');
+                    // if (selectedValueOpFromUrl) { ... añadir a select2OpData si no existe ... }
+                    
+                    opSelect.empty().select2({
+                        placeholder: 'Selecciona una OP',
+                        allowClear: true,
+                        language: { noResults: function () { return "No se encontraron resultados"; } },
+                        data: select2OpData
+                    });
+
+                    // (Si hay una OP preseleccionada por URL, establecerla)
+                    // if (selectedValueOpFromUrl) { opSelect.val(selectedValueOpFromUrl).trigger('change'); }
+                    // O, si no hay preselección de URL, pero quieres cargar bultos si hay un valor inicial:
+                    const initialOp = opSelect.val();
+                    if (initialOp) {
+                        cargarBultosParaOP(initialOp);
+                    }
+                },
+                error: function() {
+                    opSelect.empty().append('<option value="">Error al cargar OPs</option>');
+                    opSelect.select2({ placeholder: 'Error al cargar OPs' });
+                }
+            });
+            // --- FIN: Lógica para op_seleccion ---
+
+
+            // Función para cargar bultos para una OP específica
+            function cargarBultosParaOP(selectedOp) {
+                if (!selectedOp) {
+                    bultoSelect.empty().append('<option value="">Selecciona una OP primero...</option>');
+                    bultoSelect.select2({ // Re-inicializar para mostrar placeholder
+                        placeholder: 'Selecciona una OP primero',
+                        allowClear: true,
+                        data: [] // Sin datos
+                    }).val(null).trigger('change');
+                    limpiarCamposDependientesDeBulto(); // Limpiar campos si se deselecciona OP
+                    return;
+                }
+
+                bultoSelect.empty().append('<option value="">Cargando bultos...</option>').prop('disabled', true);
+                bultoSelect.select2({ placeholder: 'Cargando bultos...' }); // Actualizar placeholder visualmente
+
+                $.ajax({
+                    url: "{{ route('AQLV3.obtener.bulto') }}", // Ruta al controlador de bultos modificado
                     type: 'GET',
                     dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return {
-                            search: params.term || '',
-                        };
-                    },
-                    processResults: function (data) {
-                        return {
-                            results: data.map(item => ({
-                                id: item.prodid,
-                                text: item.prodid,
-                            })),
-                        };
-                    },
-                    cache: true,
-                },
-                language: {
-                    noResults: function () {
-                        return "No se encontraron resultados";
-                    },
-                },
-            });
+                    data: { op: selectedOp }, // Solo enviamos la OP
+                    success: function (dataBultosServer) {
+                        // dataBultosServer es un array de objetos con todos los datos del bulto
+                        const select2BultoData = dataBultosServer.map(item => ({
+                            id: item.prodpackticketid,       // Lo que se usará como valor del select
+                            text: item.prodpackticketid,     // Lo que se mostrará en el select
+                            extra: item                  // Guardar el objeto completo para uso posterior
+                        }));
 
-            // Configuración de Select2 para "bulto_seleccion"
-            bultoSelect.select2({
-                placeholder: 'Selecciona un bulto',
-                allowClear: true,
-                ajax: {
-                    url: "{{ route('obtener.opciones.bulto') }}",
-                    type: 'GET',
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        const selectedOp = opSelect.val();
-                        if (!selectedOp) {
-                            console.error("Debes seleccionar una OP primero.");
-                            return {};
-                        }
-                        return {
-                            op: selectedOp,
-                            search: params.term || '',
-                        };
+                        bultoSelect.empty().select2({
+                            placeholder: 'Selecciona un bulto',
+                            allowClear: true,
+                            language: { noResults: function () { return "No se encontraron resultados"; } },
+                            data: select2BultoData // Usar los datos locales
+                        });
+                        bultoSelect.prop('disabled', false);
+                        // Aquí podrías añadir lógica para preseleccionar un bulto si viene por URL,
+                        // similar a como se haría con la OP.
                     },
-                    processResults: function (data) {
-                        // Si no hay datos o se encuentra un error, muestra un mensaje vacío
-                        if (!data || data.length === 0) {
-                            return { results: [] };
-                        }
-                        return {
-                            results: data.map(item => ({
-                                id: item.prodpackticketid,
-                                text: item.prodpackticketid,
-                                extra: item, // Almacena datos adicionales
-                            })),
-                        };
-                    },
-                    cache: true,
-                },
-                language: {
-                    noResults: function () {
-                        return "No se encontraron resultados";
-                    },
-                },
-            });
+                    error: function (xhr, status, error) {
+                        console.error("Error al cargar bultos para OP " + selectedOp + ":", error);
+                        bultoSelect.empty().append('<option value="">Error al cargar bultos</option>');
+                        bultoSelect.select2({ placeholder: 'Error al cargar bultos' });
+                        bultoSelect.prop('disabled', false);
+                    }
+                });
+            }
+            
+            function limpiarCamposDependientesDeBulto() {
+                $('#pieza-seleccion').val('');
+                $('#estilo-seleccion').val('');
+                $('#color-seleccion').val('');
+                $('#talla-seleccion').val('');
+                $('#customername_hidden').val('');
+                $('form input[name="inventcolorid"][type="hidden"]').remove(); // Eliminar si se añadió
+            }
 
-            // Evento para recargar "bulto_seleccion" al cambiar "op_seleccion"
+
+            // Evento cuando cambia la selección de OP
             opSelect.on('change', function () {
-                bultoSelect.val(null).trigger('change');
+                const selectedOp = $(this).val();
+                limpiarCamposDependientesDeBulto(); // Limpia campos antes de cargar nuevos bultos
+                bultoSelect.val(null).trigger('change'); // Resetea el select de bultos visualmente y su valor
+                cargarBultosParaOP(selectedOp);
             });
 
-            // Evento para manejar selección de "bulto_seleccion"
+            // Evento para manejar la selección de un bulto (esta lógica se mantiene)
             bultoSelect.on('select2:select', function (e) {
-                const data = e.params.data.extra; // Obtén los datos adicionales del registro seleccionado
+                const data = e.params.data.extra; // Obtener los datos adicionales del bulto seleccionado
 
                 if (data) {
                     $('#pieza-seleccion').val(data.qty || '');
@@ -832,16 +860,28 @@
                     $('#color-seleccion').val(data.colorname || '');
                     $('#talla-seleccion').val(data.inventsizeid || '');
                     $('#customername_hidden').val(data.customername || '');
-                    // Opcional: Almacena datos adicionales en inputs ocultos
-                    $('<input>').attr({
-                        type: 'hidden',
-                        name: 'inventcolorid',
-                        value: data.inventcolorid || '',
-                    }).appendTo('form');
+                    
+                    // Manejo del input oculto 'inventcolorid'
+                    // Primero, remover cualquier input oculto 'inventcolorid' existente para evitar duplicados
+                    $(this).closest('form').find('input[name="inventcolorid"][type="hidden"]').remove();
+                    // Luego, añadir el nuevo input oculto
+                    if(data.inventcolorid) { // Solo añadir si hay valor
+                        $('<input>').attr({
+                            type: 'hidden',
+                            name: 'inventcolorid',
+                            value: data.inventcolorid
+                        }).appendTo($(this).closest('form')); // Añadir al formulario donde está bultoSelect
+                    }
+                } else {
+                    // Si por alguna razón no hay 'data' (no debería ocurrir si el mapeo es correcto)
+                    limpiarCamposDependientesDeBulto();
                 }
             });
+
+            // (Si necesitas getParameterByName para preselección por URL)
+            // function getParameterByName(name) { ... }
         });
-    </script>
+        </script>
 
     <script>
         $(document).ready(function () {
