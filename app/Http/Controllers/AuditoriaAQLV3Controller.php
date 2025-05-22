@@ -342,26 +342,73 @@ class AuditoriaAQLV3Controller extends Controller
     public function obtenerAQLenProceso(Request $request)
     {
         // Datos de entrada
-        $fechaActual = now()->toDateString(); 
-        $tipoUsuario = Auth::user()->puesto; 
-        $auditorDato = Auth::user()->name; 
+        $fechaActual = now()->toDateString();
+        $usuarioAutenticado = Auth::user();
+        $tipoUsuario = $usuarioAutenticado->puesto;
+        $auditorDato = $usuarioAutenticado->name;
 
-        // Construimos la consulta
-        $procesoActualAQL = AuditoriaAQL::whereNull('estatus')
-            ->whereDate('created_at', $fechaActual)
-            ->select('modulo', 'op', 'team_leader', 'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion')
-            ->distinct()
-            ->orderBy('modulo', 'asc');
-
-        // Aplicar filtro si no es Administrador o Gerente de Calidad
+        // Construir una clave única para el caché
+        $cacheKey = 'aql_en_proceso_groupby_' . $fechaActual; // Modificada para reflejar la nueva lógica
         if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
-            $procesoActualAQL->where('auditor', $auditorDato);
+            $cacheKey .= '_' . str_replace(' ', '_', strtolower($auditorDato));
         }
 
-        // Ejecutar la consulta
-        $procesos = $procesoActualAQL->get();
+        // Duración del caché en segundos
+        $cacheDuration = 30; // 30 segundos
 
-        // Retornar la respuesta
+        // Columnas finales a seleccionar de la tabla principal
+        $columnsToSelect = [
+            'auditoria_aqls.id as registro_id', // Opcional: para ver el ID del registro seleccionado
+            'auditoria_aqls.modulo',
+            'auditoria_aqls.op',
+            'auditoria_aqls.team_leader',
+            'auditoria_aqls.turno',
+            'auditoria_aqls.auditor',
+            'auditoria_aqls.estilo',
+            'auditoria_aqls.cliente',
+            'auditoria_aqls.gerente_produccion',
+            // No incluyas 'estatus' aquí si siempre va a ser nulo por la condición de la subconsulta
+            // No incluyas 'created_at' si siempre va a ser $fechaActual por la condición
+        ];
+
+        $procesos = Cache::remember($cacheKey, $cacheDuration, function () use ($fechaActual, $tipoUsuario, $auditorDato, $columnsToSelect) {
+            // Subconsulta para encontrar el ID máximo (registro más próximo)
+            // para cada combinación de modulo y op que cumpla las condiciones.
+            $subQuery = AuditoriaAQL::select('modulo', 'op') // Columnas por las que se agrupa
+                ->selectRaw('MAX(id) as max_id') // Selecciona el ID máximo para cada grupo
+                ->whereNull('estatus')
+                ->whereDate('created_at', $fechaActual);
+
+            // Aplicar filtro de auditor DENTRO de la subconsulta
+            // para que el MAX(id) se determine sobre los registros correctos.
+            if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
+                $subQuery->where('auditor', $auditorDato);
+            }
+
+            $subQuery->groupBy('modulo', 'op');
+
+            // Consulta principal que se une con la subconsulta
+            // para obtener todas las columnas del registro con el ID máximo.
+            $query = AuditoriaAQL::query() // Iniciar con query() para claridad
+                ->select($columnsToSelect)
+                // Unir con la subconsulta (latest_aql_records es un alias para la subconsulta)
+                ->joinSub($subQuery, 'latest_aql_records', function ($join) {
+                    // La unión se hace sobre el 'id' de la tabla principal
+                    // y el 'max_id' obtenido de la subconsulta.
+                    $join->on('auditoria_aqls.id', '=', 'latest_aql_records.max_id');
+                    // Opcionalmente, si quisieras ser extra explícito (aunque redundante si id es PK):
+                    // $join->on('auditoria_aqls.modulo', '=', 'latest_aql_records.modulo');
+                    // $join->on('auditoria_aqls.op', '=', 'latest_aql_records.op');
+                })
+                // Los filtros de 'estatus', 'created_at' y 'auditor' ya están implícitos
+                // en la subconsulta que determinó los 'max_id'.
+                // Unir por 'auditoria_aqls.id' = 'latest_aql_records.max_id' asegura que
+                // los registros recuperados ya cumplen esas condiciones.
+                ->orderBy('auditoria_aqls.modulo', 'asc'); // Ordenar el resultado final
+
+            return $query->get();
+        });
+
         return response()->json($procesos);
     }
 

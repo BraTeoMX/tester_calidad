@@ -2000,6 +2000,71 @@
         });
     </script>
         
-        
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const openModalBtn = document.getElementById('openModalAQL');
+            const closeModalBtn = document.getElementById('closeModalAQL');
+            const modal = document.getElementById('customModalAQL');
+            const tbody = document.getElementById('tablaProcesosAQL');
+
+            // Abrir el modal y cargar los datos con AJAX
+            openModalBtn.addEventListener('click', function () {
+                modal.style.display = 'block';
+
+                // Hacer la petición AJAX
+                fetch('{{ route('AQLV3.proceso_actual') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({})
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Limpiar la tabla
+                        tbody.innerHTML = '';
+
+                        // Insertar las filas dinámicamente
+                        data.forEach(proceso => {
+                            const row = `
+                                <tr>
+                                    <td>
+                                        <form method="POST" action="{{ route('AQLV3.formAltaAQLV3') }}">
+                                            @csrf
+                                            <input type="hidden" name="modulo" value="${proceso.modulo}">
+                                            <input type="hidden" name="op" value="${proceso.op}">
+                                            <input type="hidden" name="estilo" value="${proceso.estilo}">
+                                            <input type="hidden" name="cliente" value="${proceso.cliente}">
+                                            <input type="hidden" name="team_leader" value="${proceso.team_leader}">
+                                            <input type="hidden" name="gerente_produccion" value="${proceso.gerente_produccion}">
+                                            <input type="hidden" name="auditor" value="${proceso.auditor}">
+                                            <input type="hidden" name="turno" value="${proceso.turno}">
+                                            <button type="submit" class="btn btn-primary">Acceder</button>
+                                        </form>
+                                    </td>
+                                    <td>${proceso.modulo}</td>
+                                    <td>${proceso.op}</td>
+                                </tr>
+                            `;
+                            tbody.innerHTML += row;
+                        });
+                    })
+                    .catch(error => console.error('Error al cargar los procesos:', error));
+            });
+
+            // Cerrar el modal con el botón
+            closeModalBtn.addEventListener('click', function () {
+                modal.style.display = 'none';
+            });
+
+            // Cerrar el modal con la tecla "ESC"
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+    </script>
     
 @endsection

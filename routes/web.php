@@ -442,8 +442,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/auditoriaAQLV3/registro/finalizar-paro', [AuditoriaAQLV3Controller::class, 'finalizarParoAQL'])->name('AQLV3.finalizar.paro');
     Route::post('/auditoriaAQLV3/registro/finalizarAuditoriaGeneral', [AuditoriaAQLV3Controller::class, 'finalizarAuditoriaModuloUnificado'])->name('AQLV3.finalizar.auditoria.modulo');
     Route::post('/auditoriaAQLV3/registro/buscar-registro', [AuditoriaAQLV3Controller::class, 'buscarUltimoRegistro'])->name('AQLV3.buscarUltimoRegistro');
-
-
+    Route::post('/auditoriaAQLV3/registro/Proceso-actual', [AuditoriaAQLV3Controller::class, 'obtenerAQLenProceso'])->name('AQLV3.proceso_actual');
 
 
 
