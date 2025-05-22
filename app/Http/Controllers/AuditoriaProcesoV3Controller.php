@@ -1103,4 +1103,123 @@ class AuditoriaProcesoV3Controller extends Controller
     }
 
 
+    public function finalizarAuditoriaModuloUnificado(Request $request)
+    {
+
+        $modulo = $request->input('modulo');
+        $observaciones = $request->input('observaciones');
+        $tipoTurno = $request->input('tipo_turno');
+        $estatusFinalizado = 1; // Estatus de finalizado
+        $fechaActual = Carbon::now()->toDateString();
+
+        // --- Verificación de Paros Pendientes ---
+        $queryParosPendientes = AseguramientoCalidad::whereDate('created_at', $fechaActual)
+            ->where('modulo', $modulo)
+            ->whereNotNull('inicio_paro')
+            ->whereNull('fin_paro');
+
+        if ($tipoTurno === 'extra') {
+            $queryParosPendientes->where('tiempo_extra', 1);
+            $mensajeErrorParo = 'Tiene paros pendientes en tiempo extra. Finalícelos e intente de nuevo.';
+        } else { // 'normal'
+            $queryParosPendientes->where(function ($query) {
+                $query->where('tiempo_extra', 0)
+                      ->orWhereNull('tiempo_extra');
+            });
+            $mensajeErrorParo = 'Tiene paros pendientes en turno normal. Finalícelos e intente de nuevo.';
+        }
+
+        $parosPendientes = $queryParosPendientes->exists();
+
+        if ($parosPendientes) {
+            return response()->json([
+                'success' => false,
+                'message' => $mensajeErrorParo
+            ]);
+        }
+
+        // --- Proceder con la Actualización/Finalización ---
+        // Primero, verifica si ya está finalizado para evitar re-finalizar innecesariamente
+        // o para manejar el caso en que no hay registros que finalizar.
+        $queryBaseRegistros = AseguramientoCalidad::whereDate('created_at', $fechaActual)
+            ->where('modulo', $modulo);
+
+        if ($tipoTurno === 'extra') {
+            $queryBaseRegistros->where('tiempo_extra', 1);
+        } else { // 'normal'
+            $queryBaseRegistros->where(function ($query) {
+                $query->where('tiempo_extra', 0)
+                      ->orWhereNull('tiempo_extra');
+            });
+        }
+        
+        // Clonar para contar y luego para actualizar
+        $queryParaContar = clone $queryBaseRegistros;
+        $queryParaActualizar = clone $queryBaseRegistros;
+
+        $existenRegistrosParaTurno = $queryParaContar->exists();
+
+        if (!$existenRegistrosParaTurno) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay registros para finalizar en el turno de ' . ($tipoTurno === 'extra' ? 'tiempo extra' : 'normal') . '.'
+            ]);
+        }
+        
+        // Actualizar los registros del turno específico.
+        // Aquí es donde decides si guardas la observación 
+        // o en cada registro. Si es en cada registro, se replicará.
+        // Para este ejemplo, asumiré un campo 'observacion' y 'estatus'
+        $datosActualizar = [
+             // Si tienes un campo específico para la observación general del turno, úsalo:
+            'observacion' => $observaciones,
+            // Si no, y la observación de finalización va en el mismo campo 'observacion' que los registros individuales:
+            // 'observacion' => $observaciones, // Descomenta y ajusta si es necesario
+            'estatus' => $estatusFinalizado
+        ];
+
+
+        $registrosActualizados = $queryParaActualizar->update($datosActualizar);
+
+        if ($registrosActualizados > 0) {
+            return response()->json([
+                'success'   => true,
+                'message'   => 'Finalización de turno ' . ($tipoTurno === 'extra' ? 'extra' : 'normal') . ' aplicada correctamente.',
+                'observacion_guardada' => $observaciones,
+                'tipo_turno_finalizado' => $tipoTurno
+            ]);
+        } else {
+            // Esto podría pasar si los registros ya estaban finalizados con estatus 1
+            // o si, por alguna razón, la query de existencia pasó pero la de actualización no afectó filas (raro si estatus no era ya 1).
+            // Es bueno verificar si ya estaban finalizados.
+            $yaFinalizadoQuery = clone $queryBaseRegistros; // Reusamos la query base
+            $yaFinalizado = $yaFinalizadoQuery->where('estatus', $estatusFinalizado)->exists();
+
+            if ($yaFinalizado) {
+                 // Si ya estaba finalizado, pero se quiere actualizar la observación
+                $queryParaActualizarObs = clone $queryBaseRegistros;
+                $obsActualizada = $queryParaActualizarObs->where('estatus', $estatusFinalizado)
+                                                          ->update(['observacion_general' => $observaciones]);
+                if($obsActualizada > 0) {
+                    return response()->json([
+                        'success'   => true,
+                        'message'   => 'Observación del turno ' . ($tipoTurno === 'extra' ? 'extra' : 'normal') . ' actualizada.',
+                        'observacion_guardada' => $observaciones,
+                        'tipo_turno_finalizado' => $tipoTurno
+                    ]);
+                }
+                 return response()->json([
+                    'success'   => true, // O false, dependiendo de cómo quieras manejar "ya estaba hecho"
+                    'message'   => 'El turno ' . ($tipoTurno === 'extra' ? 'extra' : 'normal') . ' ya estaba finalizado. No se realizaron cambios.',
+                    'observacion_guardada' => $observaciones, // Podrías devolver la observación existente si prefieres
+                    'tipo_turno_finalizado' => $tipoTurno
+                ]);
+            }
+
+            return response()->json([
+                'success'   => false,
+                'message'   => 'No se actualizaron registros para el turno de ' . ($tipoTurno === 'extra' ? 'tiempo extra' : 'normal') . '. Podrían ya estar actualizados o no existir.'
+            ]);
+        }
+    }
 }

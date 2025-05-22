@@ -407,11 +407,11 @@
                         </table>
                     </div>
                     <!-- Panel de comentario -->
-                    <div class="row" id="comentarioPanel">
+                    <div class="row" id="panelComentarioProcesoNormal"> 
                         <div class="col-lg-6">
                             <p>Observaciones</p>
-                            <textarea id="comentarioInput" class="form-control texto-blanco" rows="3" placeholder="Escribe tu comentario">{{ $observacion ?? '' }}</textarea>
-                            <button id="guardarComentario" class="btn btn-danger mt-2">Finalizar</button>
+                            <textarea id="observacionProcesoNormal" class="form-control texto-blanco" rows="3" placeholder="Escribe tu comentario">{{ $observacionNormal ?? '' }}</textarea>
+                            <button id="btnFinalizarProcesoNormal" class="btn btn-danger mt-2">Finalizar</button>
                         </div>
                     </div>
                 </div>
@@ -439,12 +439,11 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- Panel de comentario -->
-                    <div class="row" id="comentarioPanelTE">
+                    <div class="row" id="panelComentarioProcesoExtra">
                         <div class="col-lg-6">
                             <p>Observaciones</p>
-                            <textarea id="comentarioInputTE" class="form-control texto-blanco" rows="3" placeholder="Escribe tu comentario">{{ $observacionTE ?? '' }}</textarea>
-                            <button id="guardarComentarioTE" class="btn btn-danger mt-2">Finalizar</button>
+                            <textarea id="observacionProcesoExtra" class="form-control texto-blanco" rows="3" placeholder="Escribe tu comentario">{{ $observacionExtra ?? '' }}</textarea>
+                            <button id="btnFinalizarProcesoExtra" class="btn btn-danger mt-2">Finalizar Tiempo Extra</button>
                         </div>
                     </div>
                 </div>
@@ -672,24 +671,6 @@
             color: #F0F0F0 !important; /* Texto claro para contraste */
         }
     </style>
-
-    <!-- Si ya existe un comentario, deshabilitamos el textarea y el botón -->
-    @if(isset($observacion) && !empty($observacion))
-    <script>
-        $(document).ready(function(){
-            $('#comentarioInput').prop('disabled', true);
-            $('#guardarComentario').prop('disabled', true);
-        });
-    </script>
-    @endif
-    @if(isset($observacionTE) && !empty($observacionTE))
-    <script>
-        $(document).ready(function(){
-            $('#comentarioInputTE').prop('disabled', true);
-            $('#guardarComentarioTE').prop('disabled', true);
-        });
-    </script>
-    @endif
 
     <script>
         $(document).ready(function () {
@@ -1962,6 +1943,107 @@
                     }
                 });
             });
+
+            // --- AJUSTE: Función para actualizar UI del panel de comentario con NUEVOS IDs ---
+            function actualizarPanelComentario(tipoTurno, finalizado, observacion) {
+                let textareaSelector = '';
+                let buttonSelector = '';
+
+                if (tipoTurno === 'normal') {
+                    textareaSelector = '#observacionProcesoNormal';
+                    buttonSelector = '#btnFinalizarProcesoNormal';
+                } else { // 'extra'
+                    textareaSelector = '#observacionProcesoExtra';
+                    buttonSelector = '#btnFinalizarProcesoExtra';
+                }
+
+                $(textareaSelector).val(observacion);
+                if (finalizado) {
+                    $(textareaSelector).prop('readonly', true); // Usamos readonly para textarea
+                    $(buttonSelector).prop('disabled', true).text('Finalizado');
+                } else {
+                    $(textareaSelector).prop('readonly', false);
+                    $(buttonSelector).prop('disabled', false).text(tipoTurno === 'normal' ? 'Finalizar' : 'Finalizar Tiempo Extra');
+                }
+            }
+            
+            // (La función cargarTablasRegistros llamará a actualizarPanelComentario,
+            // y esa función ya está actualizada arriba para usar los nuevos IDs)
+
+            // --- AJUSTE: Eventos para los botones "Finalizar" usando el estilo AQL ---
+            $('#btnFinalizarProcesoNormal').on('click', function() {
+                // 'this' se refiere al botón presionado.
+                finalizarAuditoriaProcesoEstiloAQL('normal', '#observacionProcesoNormal', this);
+            });
+
+            $('#btnFinalizarProcesoExtra').on('click', function() {
+                // 'this' se refiere al botón presionado.
+                finalizarAuditoriaProcesoEstiloAQL('extra', '#observacionProcesoExtra', this);
+            });
+
+            /**
+             * Función genérica para finalizar la auditoría de Proceso (estilo AQL).
+             * @param {string} tipoTurno - 'normal' o 'extra'.
+             * @param {string} selectorTextareaObservaciones - Selector CSS para el textarea.
+             * @param {HTMLElement} botonPresionado - El botón que disparó el evento.
+             */
+            function finalizarAuditoriaProcesoEstiloAQL(tipoTurno, selectorTextareaObservaciones, botonPresionado) {
+                const modulo = $("#modulo").val(); // Asegúrate que #modulo existe y tiene valor
+                const observaciones = $(selectorTextareaObservaciones).val().trim();
+
+                if (!modulo) {
+                    Swal.fire('Atención', 'Por favor, seleccione un módulo primero.', 'warning');
+                    return;
+                }
+                if (observaciones === '') {
+                    Swal.fire('Atención', 'Por favor, ingrese una observación.', 'warning');
+                    return;
+                }
+
+                // Confirmación con SweetAlert (similar a tu script de AQL)
+                Swal.fire({
+                    title: `¿Finalizar auditoría de ${tipoTurno === 'normal' ? 'Turno Normal' : 'Tiempo Extra'} (Proceso)?`,
+                    text: "Esta acción marcará la auditoría como completada.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, finalizar',
+                    confirmButtonColor: '#d33',
+                    cancelButtonText: 'Cancelar',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $(botonPresionado).prop('disabled', true).text('Finalizando...'); // Estado intermedio
+
+                        $.ajax({
+                            url: "{{ route('procesoV3.finalizar.auditoria.modulo') }}", // TU RUTA para Proceso
+                            type: "POST",
+                            data: {
+                                modulo: modulo,
+                                observaciones: observaciones,
+                                tipo_turno: tipoTurno, // El backend de Proceso espera 'normal' o 'extra'
+                                _token: $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire('¡Éxito!', response.message, 'success');
+                                    // Actualizar la UI directamente o llamando a actualizarPanelComentario
+                                    $(selectorTextareaObservaciones).prop('readonly', true);
+                                    $(botonPresionado).text('Finalizado'); // Ya está disabled
+                                    // Si quieres usar la función centralizada para asegurar consistencia:
+                                    // actualizarPanelComentario(tipoTurno, true, response.observacion_guardada);
+                                } else {
+                                    Swal.fire('Error', response.message || 'No se pudo finalizar la auditoría.', 'error');
+                                    $(botonPresionado).prop('disabled', false).text(tipoTurno === 'normal' ? 'Finalizar' : 'Finalizar Tiempo Extra'); // Restaurar botón
+                                }
+                            },
+                            error: function (xhr) {
+                                console.error("Error al finalizar auditoría (Proceso):", xhr.responseText);
+                                Swal.fire('Error de Comunicación', 'Problema al conectar con el servidor.', 'error');
+                                $(botonPresionado).prop('disabled', false).text(tipoTurno === 'normal' ? 'Finalizar' : 'Finalizar Tiempo Extra'); // Restaurar botón
+                            }
+                        });
+                    }
+                });
+            }
 
             // --- CARGA INICIAL AL ENTRAR A LA PÁGINA ---
             cargarTablasRegistros();

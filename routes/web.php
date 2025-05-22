@@ -217,6 +217,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/auditoriaProcesoV3/registro/finalizar-paro/{id}', [AuditoriaProcesoV3Controller::class, 'finalizarParoGeneral'])->name('procesoV3.registro.finalizarParo');
     Route::get('/auditoriaProcesoV3/registro/paros-no-finalizados', [AuditoriaProcesoV3Controller::class, 'parosNoFinalizados'])->name('procesoV3.registro.parosNoFinalizados');
     Route::post('/auditoriaProcesoV3/registro/finalizar-paro-proceso-despues', [AuditoriaProcesoV3Controller::class, 'finalizarParoProcesodespues'])->name('procesoV3.registro.finalizarParoProcesodespues');
+    Route::post('/auditoriaProcesoV3/registro/finalizarAuditoriaGeneral', [AuditoriaProcesoV3Controller::class, 'finalizarAuditoriaModuloUnificado'])->name('procesoV3.finalizar.auditoria.modulo');
 
 
 
