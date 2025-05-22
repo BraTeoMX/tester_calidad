@@ -817,8 +817,8 @@
                             data: select2BultoData // Usar los datos locales
                         });
                         bultoSelect.prop('disabled', false);
-                        // Aquí podrías añadir lógica para preseleccionar un bulto si viene por URL,
-                        // similar a como se haría con la OP.
+                        // Asegurar que se muestre el placeholder por defecto y no el primer bulto.
+                        bultoSelect.val(null).trigger('change');
                     },
                     error: function (xhr, status, error) {
                         console.error("Error al cargar bultos para OP " + selectedOp + ":", error);
@@ -878,7 +878,7 @@
             // (Si necesitas getParameterByName para preselección por URL)
             // function getParameterByName(name) { ... }
         });
-        </script>
+    </script>
 
     <script>
         $(document).ready(function () {
@@ -1158,18 +1158,25 @@
 
                 let esValido = true;
                 let formData = {};
+                let primerCampoInvalido = null; // Para hacer focus en el primer error
 
-                // Obtenemos el valor actual de cantidad_rechazada para saber si validamos ciertos campos
-                const valorCantidadRechazada = $('#cantidad_rechazada').val();
+                const valorCantidadRechazada = parseInt($('#cantidad_rechazada').val(), 10) || 0;
 
-                // Validar inputs y selects visibles (excepto los excluidos)
-                $(`${tablasObjetivo.join(', ')} input:visible, ${tablasObjetivo.join(', ')} select:visible`).not('#tpSelectAQL, #nombre_select').each(function () {
-                    const name = $(this).attr('name'); 
+                if (typeof tablasObjetivo !== 'undefined' && tablasObjetivo.length > 0) {
+                    selectorValidacion = `${tablasObjetivo.join(', ')} input:visible, ${tablasObjetivo.join(', ')} select:visible`;
+                }
+
+
+                $(selectorValidacion).not('#tpSelectAQL, #nombre_select').each(function () {
+                    const name = $(this).attr('name');
                     const value = $(this).val();
 
-                    if ($(this).prop('required') && !value) {
+                    if ($(this).prop('required') && (!value || (Array.isArray(value) && value.length === 0))) {
                         esValido = false;
                         $(this).addClass('is-invalid');
+                        if (!primerCampoInvalido) {
+                            primerCampoInvalido = $(this);
+                        }
                     } else {
                         $(this).removeClass('is-invalid');
                     }
@@ -1179,106 +1186,159 @@
                     }
                 });
 
-                // Si hay algún campo requerido vacío, mostrar alerta genérica
                 if (!esValido) {
-                    alert('Por favor, completa todos los campos requeridos.');
-                    return; 
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Campos incompletos',
+                        text: 'Por favor, completa todos los campos requeridos.',
+                        didOpen: () => {
+                            if (primerCampoInvalido) {
+                                primerCampoInvalido.focus();
+                            }
+                        }
+                    });
+                    return;
                 }
 
                 // Validaciones adicionales si cantidad_rechazada > 0
                 if (valorCantidadRechazada > 0) {
                     if ($('#selectedOptionsContainerAQL').children().length === 0) {
-                        alert('Por favor, selecciona al menos una opción en "Tipo de Defecto".');
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Atención',
+                            text: 'Por favor, selecciona al menos una opción en "Tipo de Defecto".'
+                        });
                         return;
                     }
 
                     if ($('#selectedOptionsContainerNombre').children().length === 0) {
-                        alert('Por favor, selecciona al menos una opción en "Nombre".');
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Atención',
+                            text: 'Por favor, selecciona al menos una opción en "Nombre".'
+                        });
                         return;
                     }
 
                     const defectCount = $('#selectedOptionsContainerAQL .selected-option').length;
-                    const cantRechazadaNum = parseInt(valorCantidadRechazada, 10);
-                    if (defectCount !== cantRechazadaNum) {
-                        alert(`La cantidad de defectos seleccionados (${defectCount}) debe coincidir con las piezas rechazadas (${cantRechazadaNum}).`);
+                    if (defectCount !== valorCantidadRechazada) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Verificación de cantidades',
+                            text: `La cantidad de defectos seleccionados (${defectCount}) debe coincidir con las piezas rechazadas (${valorCantidadRechazada}).`
+                        });
                         return;
                     }
                 }
 
-                // Serializar las opciones seleccionadas en caso de que cantidad_rechazada > 0
+                // Serializar las opciones seleccionadas
+                const selectedAQL = [];
                 if (valorCantidadRechazada > 0) {
-                    // Procesar `selectedAQL` eliminando el texto de los botones (por ejemplo, "Eliminar")
-                    const selectedAQL = [];
                     $('#selectedOptionsContainerAQL .selected-option').each(function () {
-                        let text = $(this).text().trim();
-                        // Remover palabras específicas como "Eliminar"
-                        text = text.replace(/^\+/, '').replace(/\bEliminar\b/g, '').trim();
+                        // Extraer el texto del span, que es más confiable que .text() del div completo
+                        let text = $(this).find('.option-text').text().trim();
                         selectedAQL.push(text);
                     });
-                    formData['selectedAQL'] = selectedAQL;
+                }
+                formData['selectedAQL'] = selectedAQL;
 
-                    // Procesar `selectedNombre` eliminando el texto de los botones (por ejemplo, "Eliminar")
-                    const selectedNombre = [];
+
+                const selectedNombre = [];
+                if (valorCantidadRechazada > 0) { // Asumo que esto también depende de cantidad_rechazada
                     $('#selectedOptionsContainerNombre .selected-option').each(function () {
-                        let text = $(this).text().trim();
-                        // Remover palabras específicas como "Eliminar"
-                        text = text.replace(/\bEliminar\b/g, '').trim();
+                        // Similarmente, si tienes una estructura específica para el texto
+                        let text = $(this).find('.option-text').text().trim(); // Ajusta si la clase es otra
+                        if(!text) { // Fallback si no hay .option-text
+                            text = $(this).text().trim().replace(/\bEliminar\b/g, '').replace(/^\+/, '').trim();
+                        }
                         selectedNombre.push(text);
                     });
-                    formData['selectedNombre'] = selectedNombre;
-                } else {
-                    // Si es 0, no agregamos estos datos
-                    formData['selectedAQL'] = [];
-                    formData['selectedNombre'] = [];
                 }
+                formData['selectedNombre'] = selectedNombre;
 
-                // ** Ajuste adicional **
-                // Reasignamos siempre los valores de la primera tabla para asegurarnos 
-                // de que se incluyan sin importar el valor de cantidad_rechazada.
+
+                // ** Ajuste adicional ** (Este bloque parece redundante si el primer loop ya captura todo)
+                // Si `tablasObjetivo` o el selector general ya cubren `#tabla-datos-principales`, este bloque puede no ser necesario
+                // o puede simplificarse para solo añadir campos que no se hayan capturado (inputs hidden, por ejemplo)
+                // Reevalúa si este bloque es estrictamente necesario o si el primer bucle de validación ya recolecta todo.
                 $('#tabla-datos-principales input, #tabla-datos-principales select').each(function () {
-                    const name = $(this).attr('name'); 
+                    const name = $(this).attr('name');
                     const value = $(this).val();
+                    // Añadir solo si el nombre existe y no fue capturado previamente,
+                    // o si quieres asegurar que estos valores sobreescriban (cuidado con eso)
                     if (name && typeof formData[name] === 'undefined') {
+                        formData[name] = value;
+                    } else if (name && formData[name] !== value) {
+                        // Considera si este es el comportamiento deseado: ¿sobrescribir si ya existe y es diferente?
+                        // Esto podría pasar si un campo está tanto en `tablasObjetivo` como en `#tabla-datos-principales`.
                         formData[name] = value;
                     }
                 });
 
+                // Añadir campos ocultos que podrían no ser visibles pero son necesarios
+                $('form input[type="hidden"]').each(function() {
+                    const name = $(this).attr('name');
+                    const value = $(this).val();
+                    if (name && typeof formData[name] === 'undefined') { // Solo añadir si no está ya
+                        formData[name] = value;
+                    }
+                });
+
+
                 // Enviar datos mediante AJAX
+                Swal.fire({
+                    title: 'Guardando...',
+                    text: 'Por favor, espera.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
                 $.ajax({
-                    url: "{{ route('guardar.registro.aql') }}", // Reemplaza con la ruta correcta
+                    url: "{{ route('guardar.registro.aql') }}",
                     type: 'POST',
                     data: {
-                        ...formData,
+                        ...formData, // Desestructura formData aquí
                         _token: '{{ csrf_token() }}',
                     },
                     success: function (response) {
-                        alert('✅ Datos guardados correctamente.');
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Guardado!',
+                            text: 'Datos guardados correctamente.'
+                        }).then(() => {
+                            if (valorCantidadRechazada > 0) {
+                                location.reload(); // Recargar la página
+                            } else {
+                                // Limpiar los campos
+                                $('#bulto_seleccion').val(null).trigger('change'); // Usa null para Select2
+                                $('#pieza-seleccion').val('');
+                                $('#estilo-seleccion').val('');
+                                $('#color-seleccion').val('');
+                                $('#talla-seleccion').val('');
+                                $('#cantidad_auditada').val('');
+                                $('#cantidad_rechazada').val(''); // Debería ser 0 o null
+                                $('#selectedOptionsContainerAQL').empty();
+                                $('#accion_correctiva').val('');
+                                $('#selectedOptionsContainerNombre').empty();
 
-                        
+                                // Resetear cualquier otro campo del formulario si es necesario
+                                // Ejemplo: $('form#tuFormulario')[0].reset(); (si es un <form>)
+                                // O limpiar campos uno por uno.
 
-                        // Si cantidad_rechazada es mayor a 0, recargar la página
-                        if ($('#cantidad_rechazada').val() > 0) {
-                            location.reload(); // Recargar la página
-                        } else {
-                            // Limpiar los campos de la segunda tabla
-                            $('#bulto_seleccion').val('').trigger('change');
-                            $('#pieza-seleccion').val('');
-                            $('#estilo-seleccion').val('');
-                            $('#color-seleccion').val('');
-                            $('#talla-seleccion').val('');
-                            $('#cantidad_auditada').val('');
-                            $('#cantidad_rechazada').val('');
-                            $('#selectedOptionsContainerAQL').empty();
-                            $('#accion_correctiva').val('');
-                            $('#selectedOptionsContainerNombre').empty();
-
-                            // Disparar evento personalizado
-                            const event = new Event('registroGuardado');
-                            window.dispatchEvent(event);
-                        }
+                                // Disparar evento personalizado
+                                const event = new Event('registroGuardado');
+                                window.dispatchEvent(event);
+                            }
+                        });
                     },
                     error: function (xhr) {
-                        alert('❌ Hubo un error al guardar los datos. Por favor, intenta nuevamente.');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Hubo un error al guardar los datos. Por favor, intenta nuevamente.'
+                        });
                     }
                 });
             });
@@ -2166,11 +2226,11 @@
                     const modulo = $('#bultos-container').data('modulo');
 
                     $.ajax({
-                        url: '/api/bultos-no-finalizados',
+                        url: '/auditoriaAQLV3/registro/bultos-no-finalizados', // Asegúrate que esta ruta sea correcta
                         method: 'GET',
-                        data: { modulo: modulo }, 
+                        data: { modulo: modulo },
                         beforeSend: function () {
-                            $('#bultos-container').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Cargando datos...</p></div>');
+                            $('#bultos-container').html('<div class="text-center mt-3 mb-3"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Cargando datos...</p></div>');
                         },
                         success: function (response) {
                             if (response.length > 0) {
@@ -2204,64 +2264,102 @@
                                 contenido += '</tbody></table></div>';
                                 $('#bultos-container').html(contenido);
                             } else {
-                                $('#bultos-container').html('<p class="text-warning text-center">No se encontraron bultos no finalizados.</p>');
+                                $('#bultos-container').html('<p class="text-warning text-center mt-3 mb-3">No se encontraron bultos no finalizados.</p>');
                             }
                             datosCargados = true;
                         },
                         error: function () {
-                            $('#bultos-container').html('<p class="text-danger text-center">Error al cargar los datos.</p>');
+                            $('#bultos-container').html('<p class="text-danger text-center mt-3 mb-3">Error al cargar los datos.</p>');
+                            // datosCargados podría quedar en false para permitir un reintento, o true para no reintentar.
+                            // Si se quiere reintentar, se deja en false.
+                            datosCargados = false;
                         }
                     });
                 }
             });
 
-             // Delegamos el evento click para los botones "Finalizar Paro Pendiente"
+            // Delegamos el evento click para los botones "Finalizar Paro Pendiente"
             $(document).on('click', '.finalizar-paro', function () {
-                let id = $(this).data('id');
+                let paroId = $(this).data('id'); // Renombrado de 'id' a 'paroId' para claridad
 
-                // Preguntamos primero por las piezas reparadas
-                let piezasReparadas = prompt("Ingresa el número de piezas reparadas:", "0");
-
-                // Si el usuario cancela o deja vacío, no continuamos
-                if (piezasReparadas === null) return;
-
-                // Confirmación de la acción
-                if (confirm("¿Estás seguro de que deseas finalizar este paro?")) {
-
-                    // Agregamos un spinner temporal en la parte superior
-                    const spinnerHtml = `
-                        <div id="processing-spinner" class="position-fixed top-0 start-50 translate-middle-x mt-3 p-2 bg-dark text-white rounded shadow" style="z-index: 1050;">
-                            <div class="spinner-border spinner-border-sm text-light" role="status"></div>
-                            Procesando solicitud...
-                        </div>`;
-                    $('body').append(spinnerHtml);
-
-                    $.ajax({
-                        url: '/api/finalizar-paro-aql-despues',
-                        method: 'POST',
-                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        data: {
-                            id: id,
-                            piezasReparadas: piezasReparadas
-                        },
-                        success: function (response) {
-                            // Eliminamos el spinner al finalizar la operación
-                            $('#processing-spinner').remove();
-
-                            if (response.success) {
-                                alert(`✅ Paro finalizado correctamente.\nMinutos Paro: ${response.minutos_paro}\nPiezas Reparadas: ${response.reparacion_rechazo}`); 
-                                $('#collapseBultos').collapse('hide');
-                                datosCargados = false;
-                            } else {
-                                alert(`❌ Error: ${response.message}`);
-                            }
-                        },
-                        error: function (xhr, status, error) {
-                            $('#processing-spinner').remove();
-                            alert("⚠️ Ocurrió un error al intentar finalizar el paro.");
+                Swal.fire({
+                    title: 'Piezas Reparadas',
+                    input: 'number',
+                    inputLabel: 'Ingresa el número de piezas reparadas',
+                    inputValue: 0,
+                    showCancelButton: true,
+                    confirmButtonText: 'Siguiente <i class="fas fa-arrow-right"></i>',
+                    cancelButtonText: 'Cancelar',
+                    inputValidator: (value) => {
+                        const numValue = parseInt(value);
+                        if (isNaN(numValue) || numValue < 0) {
+                            return 'Por favor, ingresa un número válido de piezas (0 o mayor).';
                         }
-                    });
-                }
+                    }
+                }).then((resultPiezas) => {
+                    if (resultPiezas.isConfirmed) {
+                        const piezasReparadas = resultPiezas.value;
+
+                        Swal.fire({
+                            title: 'Confirmar Acción',
+                            text: '¿Estás seguro de que deseas finalizar este paro?',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Sí, finalizar',
+                            cancelButtonText: 'No, cancelar'
+                        }).then((resultConfirm) => {
+                            if (resultConfirm.isConfirmed) {
+                                Swal.fire({
+                                    title: 'Procesando...',
+                                    text: 'Finalizando el paro, por favor espera.',
+                                    allowOutsideClick: false,
+                                    didOpen: () => {
+                                        Swal.showLoading();
+                                    }
+                                });
+
+                                $.ajax({
+                                    url: '/api/finalizar-paro-aql-despues', // Asegúrate que esta ruta sea correcta
+                                    method: 'POST',
+                                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                                    data: {
+                                        id: paroId, // Nombre del parámetro que espera tu backend
+                                        piezasReparadas: piezasReparadas
+                                    },
+                                    success: function (response) {
+                                        if (response.success) {
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: '¡Paro Finalizado!',
+                                                html: `El paro se finalizó correctamente.<br>
+                                                    <b>Minutos de Paro:</b> ${response.minutos_paro || 'N/A'}<br>
+                                                    <b>Piezas Reparadas Registradas:</b> ${response.reparacion_rechazo || 'N/A'}`
+                                            }).then(() => {
+                                                $('#collapseBultos').collapse('hide');
+                                                datosCargados = false; // Para que se recarguen los datos la próxima vez
+                                            });
+                                        } else {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Error al Finalizar',
+                                                text: response.message || 'No se pudo finalizar el paro.'
+                                            });
+                                        }
+                                    },
+                                    error: function (xhr, status, error) {
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Error de Comunicación',
+                                            text: 'Ocurrió un error al intentar finalizar el paro. Por favor, intenta más tarde.'
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
             });
         });
     </script>
