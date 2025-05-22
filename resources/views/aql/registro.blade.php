@@ -1065,39 +1065,89 @@
             const nombreSelect = $('#nombre_select');
             const selectedOptionsContainerNombre = $('#selectedOptionsContainerNombre');
             const selectedIds = new Set();
-        
-            // Configuración de Select2
+            let localData = [];
+            let dataLoaded = false;
+
+            function initializeSelect2WithLocalData() {
+                if (nombreSelect.data('select2')) {
+                    nombreSelect.select2('destroy');
+                }
+
+                nombreSelect.empty(); // Limpia opciones previas si existen
+                nombreSelect.select2({
+                    placeholder: 'Selecciona una opción',
+                    allowClear: true,
+                    data: localData,
+                    matcher: function (params, data) {
+                        if ($.trim(params.term) === '') return data;
+                        if (typeof data.text === 'undefined') return null;
+
+                        const term = params.term.toLowerCase();
+                        const text = data.text.toLowerCase();
+
+                        return text.includes(term) ? data : null;
+                    },
+                    language: {
+                        noResults: function () {
+                            return "No se encontraron resultados";
+                        }
+                    }
+                });
+
+                nombreSelect.prop('disabled', false); // Asegura que esté habilitado
+                nombreSelect.val(null).trigger('change'); // Limpia selección automática
+            }
+
             nombreSelect.select2({
-                placeholder: 'Selecciona una opción',
+                placeholder: 'Haz clic para cargar opciones...',
                 allowClear: true,
-                ajax: {
+                language: {
+                    noResults: function () {
+                        return "Haz clic para cargar opciones.";
+                    }
+                }
+            });
+
+            nombreSelect.one('select2:open', function () {
+                if (dataLoaded) {
+                    initializeSelect2WithLocalData();
+                    return;
+                }
+
+                if (nombreSelect.data('select2')) {
+                    nombreSelect.select2('destroy');
+                }
+
+                nombreSelect.select2({
+                    placeholder: 'Cargando datos...',
+                    disabled: true
+                });
+
+                $.ajax({
                     url: "{{ route('AQLV3.obtener.nombres') }}",
                     type: 'GET',
                     dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return {
-                            modulo: $('#modulo').val(),
-                            search: params.term // Envía el término de búsqueda
-                        };
+                    data: {
+                        modulo: $('#modulo').val()
                     },
-                    processResults: function (data) {
-                        const options = data.map(item => ({
-                            id: item.name, // El valor será solo el nombre
-                            text: `${item.personnelnumber} - ${item.name}` // Se muestra número y nombre para facilitar la búsqueda
+                    success: function (data) {
+                        localData = data.map(item => ({
+                            id: item.name,
+                            text: `${item.personnelnumber} - ${item.name}`
                         }));
-                        return { results: options };
+
+                        dataLoaded = true;
+                        initializeSelect2WithLocalData();
+
+                        setTimeout(() => nombreSelect.select2('open'), 50);
                     },
-                    cache: true,
-                },
-                language: {
-                    noResults: function () {
-                        return "No se encontraron resultados";
-                    },
-                },
+                    error: function (xhr, status, error) {
+                        console.error("Error al cargar los datos:", error);
+                        alert('Ocurrió un error al cargar las opciones.');
+                    }
+                });
             });
-        
-            // Evento al seleccionar una opción
+
             nombreSelect.on('select2:select', function (e) {
                 const selected = e.params.data;
                 if (selectedIds.has(selected.id)) {
@@ -1105,12 +1155,11 @@
                     nombreSelect.val(null).trigger('change');
                     return;
                 }
-                // Aquí se almacena y muestra solo el nombre (selected.id)
+
                 addOptionToContainer(selected.id, selected.id);
                 nombreSelect.val(null).trigger('change');
             });
-        
-            // Función para agregar la opción seleccionada al contenedor
+
             function addOptionToContainer(id, text) {
                 selectedIds.add(id);
                 const optionElement = $(`
@@ -1683,7 +1732,6 @@
                     title: 'Piezas Reparadas',
                     input: 'number',
                     inputLabel: 'Ingresa el número de piezas reparadas para este paro:',
-                    inputValue: 0, // Valor inicial
                     showCancelButton: true,
                     confirmButtonText: 'Finalizar Paro',
                     cancelButtonText: 'Cancelar',
@@ -2001,7 +2049,6 @@
                     title: 'Piezas Reparadas',
                     input: 'number',
                     inputLabel: 'Ingresa el número de piezas reparadas',
-                    inputValue: 0,
                     showCancelButton: true,
                     confirmButtonText: 'Siguiente <i class="fas fa-arrow-right"></i>',
                     cancelButtonText: 'Cancelar',
