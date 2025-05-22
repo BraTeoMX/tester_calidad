@@ -667,16 +667,13 @@ class AuditoriaProcesoV3Controller extends Controller
             $diaSemana = $fechaHoraActual->dayOfWeek;
 
             // Buscar la planta asociada al módulo
-            $primerCaracter = substr($datosFormulario['modulo'], 0, 1); // Obtiene el primer carácter
+            $primerCaracter = substr($datosFormulario['modulo'], 0, 1);
 
-            // Definir el valor de $plantaBusqueda según el primer carácter
-            if ($primerCaracter === '1') {
-                $plantaBusqueda = "Intimark1";
-            } elseif ($primerCaracter === '2') {
-                $plantaBusqueda = "Intimark2";
-            } else {
-                $plantaBusqueda = null; // O algún valor por defecto si no coincide con 1 o 2
-            }
+            $plantaBusqueda = match ($primerCaracter) {
+                '1' => 'Intimark1',
+                '2' => 'Intimark2',
+                default => null, // O el valor por defecto que necesites
+            };
 
 
             // Obtener el cliente desde la base de datos

@@ -635,11 +635,14 @@ class AuditoriaAQLV3Controller extends Controller
                 ->where('cantidad_rechazada', '>', 0)
                 ->count();
             
-            // Obtener el ID seleccionado desde el formulario
-            $plantaBusqueda = CategoriaSupervisor::where('moduleid', $request->modulo)
-            ->pluck('prodpoolid')
-            ->first(); 
-            //dd($plantaBusqueda);
+            // Buscar la planta asociada al módulo
+            $primerCaracter = substr($request->modulo, 0, 1);
+
+            $plantaBusqueda = match ($primerCaracter) {
+                '1' => 'Intimark1',
+                '2' => 'Intimark2',
+                default => null, // O el valor por defecto que necesites
+            };
 
             $nombreFinal = $request->selectedNombre;
             $nombreFinalValidado = null;

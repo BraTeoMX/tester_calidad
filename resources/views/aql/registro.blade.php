@@ -1296,7 +1296,7 @@
                 });
 
                 $.ajax({
-                    url: "{{ route('guardar.registro.aql') }}",
+                    url: "{{ route('AQLV3.guardar.registro') }}",
                     type: 'POST',
                     data: {
                         ...formData, // Desestructura formData aquí
