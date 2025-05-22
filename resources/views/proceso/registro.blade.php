@@ -1536,6 +1536,16 @@
                     formData.auditoria.push(row);
                 });
 
+                // Enviar datos mediante AJAX
+                Swal.fire({
+                    title: 'Guardando...',
+                    text: 'Por favor, espera.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
                 // Enviar datos vía AJAX
                 $.ajax({
                     url: "{{ route('procesoV3.registro.formRegistro') }}",
