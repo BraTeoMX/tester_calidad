@@ -439,7 +439,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/auditoriaAQLV3/registro/bultos-no-finalizados', [AuditoriaAQLV3Controller::class, 'bultosNoFinalizados']);
     Route::get('/auditoriaAQLV3/registro/mostrar-registros', [AuditoriaAQLV3Controller::class, 'mostrarRegistrosAqlUnificado'])->name('AQLV3.mostrar.registros');
     Route::post('/auditoriaAQLV3/registro/finalizar-paro', [AuditoriaAQLV3Controller::class, 'finalizarParoAQL'])->name('AQLV3.finalizar.paro');
-    Route::get('/auditoriaAQLV3/registro/verificarFinalizacion', [AuditoriaAQLV3Controller::class, 'verificarFinalizacion'])->name('AQLV3.finalizar.auditoria.modulo');
+    Route::post('/auditoriaAQLV3/registro/finalizarAuditoriaGeneral', [AuditoriaAQLV3Controller::class, 'finalizarAuditoriaModuloUnificado'])->name('AQLV3.finalizar.auditoria.modulo');
     Route::post('/auditoriaAQLV3/registro/buscar-registro', [AuditoriaAQLV3Controller::class, 'buscarUltimoRegistro'])->name('AQLV3.buscarUltimoRegistro');
 
 

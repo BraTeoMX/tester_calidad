@@ -837,41 +837,84 @@ class AuditoriaAQLV3Controller extends Controller
         }
     }
 
-    public function formFinalizarProceso_v2(Request $request)
+    public function finalizarAuditoriaModuloUnificado(Request $request)
     {
-        $modulo = $request->input('modulo');
-        $observacion = $request->input('observacion');
-        $estatus = 1;
-        $fechaActual = \Carbon\Carbon::now()->toDateString();
 
-        // Verificar si hay registros con 'inicio_paro' NO nulo y 'fin_paro' en NULL
-        $parosPendientes = AuditoriaAQL::whereDate('created_at', $fechaActual)
+        $modulo = $request->input('modulo');
+        $observaciones = $request->input('observaciones');
+        $tipoTurno = $request->input('tipo_turno');
+        $estatus = 1; // Estatus de finalizado
+        $fechaActual = Carbon::now()->toDateString();
+
+        // --- Verificación de Paros Pendientes ---
+        $queryParosPendientes = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('modulo', $modulo)
-            ->whereNotNull('inicio_paro')  // Tiene un inicio de paro registrado
-            ->whereNull('fin_paro')        // Pero no ha finalizado el paro
-            ->exists();
+            ->whereNotNull('inicio_paro')
+            ->whereNull('fin_paro');
+
+        if ($tipoTurno === 'tiempo_extra') {
+            $queryParosPendientes->where('tiempo_extra', 1);
+            $mensajeErrorParo = 'Tiene paros pendientes en tiempo extra, finalícelos e intente de nuevo.';
+        } else { // 'normal'
+            // Para turno normal, asumimos que 'tiempo_extra' es null o 0. Ajusta si es diferente.
+            $queryParosPendientes->where(function ($query) {
+                $query->where('tiempo_extra', 0)
+                      ->orWhereNull('tiempo_extra');
+            });
+            $mensajeErrorParo = 'Tiene paros pendientes en turno normal, finalícelos e intente de nuevo.';
+        }
+
+        $parosPendientes = $queryParosPendientes->exists();
 
         if ($parosPendientes) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tiene paros pendientes, finalicelos e intente de nuevo.'
+                'message' => $mensajeErrorParo
             ]);
         }
 
-        // Si no hay paros pendientes, proceder con la actualización
-        AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $modulo)
-            ->where('tiempo_extra', null)
-            ->update([
-                'observacion' => $observacion,
-                'estatus' => $estatus
-            ]);
+        // --- Proceder con la Actualización/Finalización ---
+        $queryActualizacion = AuditoriaAQL::whereDate('created_at', $fechaActual)
+            ->where('modulo', $modulo);
 
-        return response()->json([
-            'success'     => true,
-            'observacion' => $observacion,
-            'message'     => 'Finalización aplicada correctamente.'
-        ]);
+        $datosActualizar = [
+            'observacion' => $observaciones, // Guardar las observaciones generales del turno
+            'estatus' => $estatus
+            // Considera si necesitas un campo específico para la observación de finalización
+            // y si 'observacion' se usa para otras cosas.
+            // Por ejemplo, podrías tener 'observacion_finalizacion' => $observaciones
+        ];
+
+        if ($tipoTurno === 'tiempo_extra') {
+            $queryActualizacion->where('tiempo_extra', 1);
+            $mensajeExito = 'Finalización de tiempo extra aplicada correctamente.';
+        } else { // 'normal'
+             // Para turno normal, actualiza los registros donde tiempo_extra es null o 0
+            $queryActualizacion->where(function ($query) {
+                $query->where('tiempo_extra', 0)
+                      ->orWhereNull('tiempo_extra');
+            });
+            $mensajeExito = 'Finalización de turno normal aplicada correctamente.';
+        }
+
+        // Ejecutar la actualización
+        // Es importante verificar si se actualizó algún registro para dar un mensaje más preciso.
+        $registrosActualizados = $queryActualizacion->update($datosActualizar);
+
+        if ($registrosActualizados > 0) {
+            return response()->json([
+                'success'   => true,
+                'message'   => $mensajeExito,
+                'observacion_guardada' => $observaciones // Devuelve la observación guardada para confirmación si es necesario
+            ]);
+        } else {
+            // Esto podría suceder si no hay registros que coincidan con los criterios para ese día/módulo/turno
+            // o si ya estaban finalizados con los mismos datos.
+            return response()->json([
+                'success'   => false,
+                'message'   => 'No se encontraron registros para finalizar o ya estaban actualizados para el turno de ' . $tipoTurno . '.'
+            ]);
+        }
     }
 
 
@@ -920,44 +963,6 @@ class AuditoriaAQLV3Controller extends Controller
             Log::error('Error en verificarEstadoFinalizacionUnificado: ' . $e->getMessage());
             return response()->json(['error' => 'Ocurrió un error al verificar el estado de finalización.'], 500);
         }
-    }
-
-    public function formFinalizarProceso_v2TE(Request $request)
-    {
-        $modulo = $request->input('modulo');
-        $observacion = $request->input('observacion');
-        $estatus = 1;
-        $fechaActual = \Carbon\Carbon::now()->toDateString();
-
-        // Verificar si hay registros con 'inicio_paro' NO nulo y 'fin_paro' en NULL
-        $parosPendientes = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $modulo)
-            ->whereNotNull('inicio_paro')
-            ->whereNull('fin_paro')
-            ->where('tiempo_extra', 1) // Filtra solo tiempo extra
-            ->exists();
-
-        if ($parosPendientes) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tiene paros pendientes en tiempo extra, finalícelos e intente de nuevo.'
-            ]);
-        }
-
-        // Si no hay paros pendientes, proceder con la actualización
-        AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $modulo)
-            ->where('tiempo_extra', 1) // Filtra solo tiempo extra
-            ->update([
-                'observacion' => $observacion,
-                'estatus' => $estatus
-            ]);
-
-        return response()->json([
-            'success'     => true,
-            'observacion' => $observacion,
-            'message'     => 'Finalización de tiempo extra aplicada correctamente.'
-        ]);
     }
 
 

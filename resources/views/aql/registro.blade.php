@@ -1789,66 +1789,108 @@
 
             // --- Eventos para los botones "Finalizar" de cada Card de Auditoría ---
             $('#btn-finalizar').on('click', function() {
-                finalizarAuditoriaModulo('normal', '#observacion');
+                finalizarAuditoriaModulo('normal', '#observacion', this); // 'this' es el botón clickeado
             });
 
             $('#btn-finalizar-TE').on('click', function() {
-                finalizarAuditoriaModulo('tiempo_extra', '#observacion-TE');
+                finalizarAuditoriaModulo('tiempo_extra', '#observacion-TE', this); // 'this' es el botón clickeado
             });
 
-            function finalizarAuditoriaModulo(tipoTurno, selectorTextareaObservaciones) {
-                const moduloInput = document.getElementById('modulo');
+            /**
+             * Función para finalizar la auditoría de un módulo específico (Turno Normal o Tiempo Extra).
+             * @param {string} tipoTurno - 'normal' o 'tiempo_extra'.
+             * @param {string} selectorTextareaObservaciones - Selector CSS para el textarea de observaciones.
+             * @param {HTMLElement} botonPresionado - El botón que disparó el evento.
+             */
+            function finalizarAuditoriaModulo(tipoTurno, selectorTextareaObservaciones, botonPresionado) {
+                // Es más robusto obtener el input del módulo cada vez, por si su valor pudiera cambiar
+                // o si el elemento no está presente al inicio.
+                const moduloInput = document.getElementById('modulo'); // Asumes que hay un input con id="modulo" general
+                
                 if (!moduloInput || !moduloInput.value) {
-                    Swal.fire('Error', 'No se ha definido el módulo.', 'error');
+                    Swal.fire('Error', 'No se ha definido el valor del módulo. Por favor, verifica la página.', 'error');
                     return;
                 }
                 const modulo = moduloInput.value;
                 const observaciones = $(selectorTextareaObservaciones).val().trim();
 
-                // Opcional: Validar que haya observaciones si son requeridas
-                // if (!observaciones) {
-                //     Swal.fire('Atención', 'Por favor, ingresa las observaciones antes de finalizar.', 'warning');
-                //     return;
-                // }
+
+                if (observaciones === '') {
+                    Swal.fire({
+                        title: 'Observaciones Requeridas',
+                        text: 'Por favor, ingresa tus observaciones antes de finalizar.',
+                        icon: 'warning',
+                        confirmButtonText: 'Entendido'
+                    });
+                    return;
+                }
 
                 Swal.fire({
                     title: `¿Finalizar auditoría de ${tipoTurno === 'normal' ? 'Turno Normal' : 'Tiempo Extra'}?`,
                     text: "Esta acción marcará la auditoría como completada para este módulo y turno. No podrás agregar más registros a este turno después de finalizar.",
-                    icon: 'warning', // Usar warning para una acción importante
+                    icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Sí, finalizar',
-                    confirmButtonColor: '#d33', // Color rojo para acción de "finalizar"
-                    cancelButtonText: 'Cancelar'
+                    confirmButtonColor: '#d33',
+                    cancelButtonText: 'Cancelar',
+                    reverseButtons: true // Opcional: Pone el botón de confirmar a la derecha
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        Swal.fire({ title: 'Finalizando Auditoría...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                        Swal.fire({
+                            title: 'Finalizando Auditoría...',
+                            text: 'Por favor, espera un momento.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        // Asegúrate que la ruta y el token CSRF sean correctos y estén disponibles.
+                        // La ruta se define en tus archivos de rutas de Laravel (web.php o api.php).
+                        // El token CSRF es importante para la seguridad en las peticiones POST.
                         $.ajax({
-                            url: "{{ route('AQLV3.finalizar.auditoria.modulo') }}", // Ruta para finalizar auditoría de módulo
+                            url: "{{ route('AQLV3.finalizar.auditoria.modulo') }}", // Reemplaza con tu nombre de ruta real
                             type: "POST",
                             data: {
                                 modulo: modulo,
                                 observaciones: observaciones,
-                                tipo_turno: tipoTurno,
-                                _token: "{{ csrf_token() }}"
+                                tipo_turno: tipoTurno, // Asegúrate que el backend espera 'tipo_turno'
+                                _token: "{{ csrf_token() }}" // Token CSRF de Laravel
                             },
                             success: function (response) {
                                 if (response.success) {
-                                    Swal.fire('¡Auditoría Finalizada!', response.message, 'success');
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: '¡Auditoría Finalizada!',
+                                        text: response.message || 'La auditoría se ha finalizado correctamente.'
+                                    });
                                     // Deshabilitar el botón correspondiente y el textarea
                                     $(selectorTextareaObservaciones).prop('disabled', true);
-                                    if (tipoTurno === 'normal') {
-                                        $('#btn-finalizar').prop('disabled', true);
-                                    } else {
-                                        $('#btn-finalizar-TE').prop('disabled', true);
-                                    }
-                                    // Aquí podrías querer deshabilitar también el formulario de nuevos registros para ese turno.
+                                    $(botonPresionado).prop('disabled', true); // Deshabilita el botón que fue presionado
+
+                                    // Aquí podrías querer deshabilitar también el formulario de nuevos registros
+                                    // para ese turno específico, si tienes uno. Por ejemplo:
+                                    // if (tipoTurno === 'normal') {
+                                    //     $('#idDelFormularioTurnoNormal :input').prop('disabled', true);
+                                    // } else {
+                                    //     $('#idDelFormularioTiempoExtra :input').prop('disabled', true);
+                                    // }
+
                                 } else {
-                                    Swal.fire('Error', response.message || 'No se pudo finalizar la auditoría.', 'error');
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: response.message || 'No se pudo finalizar la auditoría. Intenta de nuevo.'
+                                    });
                                 }
                             },
-                            error: function (xhr) {
-                                Swal.fire('Error de Comunicación', 'Hubo un error al conectar con el servidor.', 'error');
+                            error: function (xhr, status, error) {
                                 console.error("Error al finalizar auditoría de módulo:", xhr.responseText);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error de Comunicación',
+                                    text: 'Hubo un problema al conectar con el servidor. Por favor, revisa la consola para más detalles.'
+                                });
                             }
                         });
                     }
@@ -1860,126 +1902,6 @@
         });
     </script>
 
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const modulo = document.getElementById('observacion-container').getAttribute('data-modulo');
-            const btnFinalizar = document.getElementById('btn-finalizar');
-            const textarea = document.getElementById('observacion');
-
-            const moduloTE = document.getElementById('observacion-container-TE').getAttribute('data-modulo');
-            const btnFinalizarTE = document.getElementById('btn-finalizar-TE');
-            const textareaTE = document.getElementById('observacion-TE');
-
-            // Función para cargar el estado del tiempo normal
-            function cargarEstado() {
-                $.ajax({
-                    url: "{{ route('auditoriaAQL.verificarFinalizacion') }}",
-                    type: "GET",
-                    data: { modulo: modulo },
-                    success: function (response) {
-                        if (response.finalizado) {
-                            textarea.value = response.observacion;
-                            textarea.setAttribute('readonly', true);
-                            btnFinalizar.disabled = true;
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error al verificar el estado:", error);
-                    }
-                });
-            }
-
-            // Función para cargar el estado del tiempo extra
-            function cargarEstadoTE() {
-                $.ajax({
-                    url: "{{ route('auditoriaAQL.verificarFinalizacionTE') }}",
-                    type: "GET",
-                    data: { modulo: moduloTE },
-                    success: function (response) {
-                        if (response.finalizado) {
-                            textareaTE.value = response.observacion;
-                            textareaTE.setAttribute('readonly', true);
-                            btnFinalizarTE.disabled = true;
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error al verificar el estado del tiempo extra:", error);
-                    }
-                });
-            }
-
-            // Llamar a las funciones al cargar la página
-            cargarEstado();
-            cargarEstadoTE();
-
-            // Evento para finalizar tiempo normal
-            btnFinalizar.addEventListener('click', function (e) {
-                e.preventDefault();
-
-                const observacion = textarea.value.trim();
-                if (observacion === '') {
-                    alert("Por favor, ingrese una observación.");
-                    return;
-                }
-
-                $.ajax({
-                    url: "{{ route('auditoriaAQL.formFinalizarProceso_v2') }}",
-                    type: "POST",
-                    data: {
-                        modulo: modulo,
-                        observacion: observacion,
-                        _token: "{{ csrf_token() }}"
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            alert(response.message || "✅ Finalización aplicada correctamente.");
-                            cargarEstado();
-                        } else {
-                            alert(response.message || "❌ No se pudo aplicar la finalización.");
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error en la solicitud AJAX:", error);
-                        alert("❌ Hubo un error al procesar la solicitud.");
-                    }
-                });
-            });
-
-            // Evento para finalizar tiempo extra
-            btnFinalizarTE.addEventListener('click', function (e) {
-                e.preventDefault();
-
-                const observacion = textareaTE.value.trim();
-                if (observacion === '') {
-                    alert("Por favor, ingrese una observación.");
-                    return;
-                }
-
-                $.ajax({
-                    url: "{{ route('auditoriaAQL.formFinalizarProceso_v2TE') }}",
-                    type: "POST",
-                    data: {
-                        modulo: moduloTE,
-                        observacion: observacion,
-                        _token: "{{ csrf_token() }}"
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            alert(response.message || "✅ Finalización aplicada correctamente.");
-                            cargarEstadoTE();
-                        } else {
-                            alert(response.message || "No se pudo aplicar la finalización.");
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error en la solicitud AJAX:", error);
-                        alert("❌ Hubo un error al procesar la solicitud.");
-                    }
-                });
-            }); 
-        }); 
-    </script> 
     <script>
         $(document).ready(function () {
             let datosCargados = false;
