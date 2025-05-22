@@ -1347,756 +1347,472 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Asignar el listener para registroGuardado UNA sola vez
+            // Listener para el evento personalizado 'registroGuardado'
             window.addEventListener('registroGuardado', function () {
-                cargarRegistros();
+                cargarRegistrosUnificado();
             });
 
-            function cargarRegistros() {
-                const fechaActual = new Date().toISOString().slice(0, 10);
-                const modulo = document.getElementById('modulo').value;
+            let intervaloVerificarTiempos = null; // Para controlar el intervalo de verificación de paros
 
-                if (!modulo) {
-                    console.error("El módulo no está definido.");
+            /**
+             * Función principal para cargar y mostrar todos los registros (Turno Normal y Tiempo Extra).
+             */
+            function cargarRegistrosUnificado() {
+                const fechaActual = new Date().toISOString().slice(0, 10);
+                const moduloInput = document.getElementById('modulo'); // Asume que tienes un <input id="modulo">
+
+                if (!moduloInput || !moduloInput.value) {
+                    console.error("El input del módulo no está definido o no tiene valor.");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de Configuración',
+                        text: 'No se pudo encontrar el valor del módulo. Por favor, verifica la página.'
+                    });
                     return;
                 }
+                const modulo = moduloInput.value;
+
+                // Mostrar un loader general mientras se cargan los datos
+                Swal.fire({
+                    title: 'Cargando Registros...',
+                    text: 'Por favor, espera un momento.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
 
                 $.ajax({
-                    url: "{{ route('mostrar.registros.aql.dia') }}",
+                    url: "{{ route('AQLV3.mostrar.registros') }}", // NUEVA RUTA UNIFICADA
                     type: "GET",
                     data: {
-                        fechaActual: fechaActual,
+                        fechaActual: fechaActual, // El controlador tomará Carbon::now() si este no se envía
                         modulo: modulo
                     },
                     success: function (response) {
-                        // Tabla principal
-                        const tbody = document.querySelector("#tabla_registros_dia tbody");
-                        tbody.innerHTML = ""; // Limpiar el contenido actual
+                        Swal.close(); // Cerrar el loader
 
-                        let totalPiezasAuditadas = 0;
-                        let totalPiezasRechazadas = 0;
-
-                        // Para la tabla "Total por Bultos"
-                        let totalBultosAuditados = 0;
-                        let totalBultosRechazados = 0;
-
-                        // NUEVA VARIABLE para la tabla de "Total de piezas en bultos Auditados"
-                        let totalPiezasEnBultos = 0;
-
-                        response.forEach(function (registro) {
-                            // Construir la fila de la tabla principal
-                            const fila = `
-                                <tr class="${registro.tiempo_extra ? 'tiempo-extra' : ''}">
-                                    <td>
-                                        ${
-                                            registro.inicio_paro === null 
-                                            ? '-' 
-                                            : registro.fin_paro 
-                                                ? registro.minutos_paro 
-                                                : `<button class="btn btn-primary btn-finalizar-paro" data-id="${registro.id}">Fin Paro AQL</button>`
-                                        }
-                                    </td>
-                                    <td><input type="text" class="form-control texto-blanco" value="${registro.bulto}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" value="${registro.pieza}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" value="${registro.talla}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" value="${registro.color}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" value="${registro.estilo}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_auditada}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_rechazada}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" readonly value="${
-                                        registro.tp_auditoria_a_q_l 
-                                            ? registro.tp_auditoria_a_q_l.map(tp => tp.tp).join(', ') 
-                                            : ''}">
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-danger btn-eliminar" data-id="${registro.id}">
-                                            Eliminar
-                                        </button>
-                                    </td>
-                                    <td>${registro.created_at ? new Date(registro.created_at).toLocaleTimeString() : ''}</td>
-                                    <td>
-                                        ${
-                                        registro.reparacion_rechazo !== null && registro.reparacion_rechazo !== '' 
-                                        ? `<input type="text" class="form-control texto-blanco" value="${registro.reparacion_rechazo}" readonly>` 
-                                        : `<input type="text" class="form-control texto-blanco" value="-" readonly>`
-                                        }
-                                    </td>
-                                </tr>
-                            `;
-                            tbody.insertAdjacentHTML('beforeend', fila);
-
-                            // Acumular valores para las tablas secundarias de piezas
-                            totalPiezasAuditadas += registro.cantidad_auditada || 0;
-                            totalPiezasRechazadas += registro.cantidad_rechazada || 0;
-
-                            // Acumular valores para "Total por Bultos"
-                            totalBultosAuditados += 1;
-                            if ((registro.cantidad_rechazada || 0) > 0) {
-                                totalBultosRechazados += 1;
+                        // Procesar y mostrar registros para Turno Normal
+                        procesarYMostrarRegistros(
+                            response.turno_normal || [],
+                            '#tabla_registros_dia',
+                            'normal',
+                            { // IDs de las tablas de totales para Turno Normal
+                                piezasDia: 'tabla-piezas-dia',
+                                bultosTotales: 'tabla-bultos-totales',
+                                piezasEnBultos: 'tabla-piezas-bultos'
                             }
+                        );
 
-                            // ACUMULAR valor para "Total de piezas en bultos Auditados"
-                            // Asumiendo que `registro.pieza` es numérico:
-                            totalPiezasEnBultos += parseInt(registro.pieza) || 0;
-                        });
+                        // Procesar y mostrar registros para Tiempo Extra
+                        procesarYMostrarRegistros(
+                            response.tiempo_extra || [],
+                            '#tabla_registros_tiempo_extra',
+                            'te',
+                            { // IDs de las tablas de totales para Tiempo Extra
+                                piezasDia: 'tabla-piezas-dia-TE', // Asegúrate que estos IDs existan en tu HTML
+                                bultosTotales: 'tabla-bultos-totales-TE',
+                                piezasEnBultos: 'tabla-piezas-bultos-TE'
+                            }
+                        );
 
-                        // Actualizar la tabla de "Piezas auditadas por día"
-                        actualizarTablasSecundarias(totalPiezasAuditadas, totalPiezasRechazadas);
-
-                        // Actualizar la tabla de "Total por Bultos"
-                        actualizarBultosTotales(totalBultosAuditados, totalBultosRechazados);
-
-                        // NUEVA llamada: Actualizar la tabla de "Total de piezas en bultos Auditados"
-                        actualizarTablaPiezasEnBultos(totalPiezasEnBultos);
-
-                        // Vuelve a asignar eventos a los nuevos botones
-                        asignarEventosEliminar();
-                        asignarEventosFinalizarParo();
-
-                        // Al finalizar la creación de filas, inicia la monitorización
-                        setInterval(verificarTiemposParo, 60000); // Comprobar cada minuto
-                        verificarTiemposParo(); // Comprobar inmediatamente
-
-
+                        // (Re)iniciar la monitorización de tiempos de paro para ambas tablas
+                        iniciarOReiniciarMonitorizacionParos();
                     },
-                    error: function (error) {
-                        console.error("Error al cargar los registros:", error);
+                    error: function (xhr, status, error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error de Carga',
+                            text: 'No se pudieron cargar los registros. Por favor, intenta recargar la página.'
+                        });
+                        console.error("Error al cargar registros unificados:", xhr.responseText);
                     }
                 });
             }
 
-            function verificarTiemposParo() {
+            /**
+             * Procesa un conjunto de registros y los muestra en la tabla especificada,
+             * actualizando también sus tablas de totales correspondientes.
+             * @param {Array} registros - Array de objetos de registro.
+             * @param {string} tablaSelector - Selector CSS para la tabla principal (ej: '#tabla_registros_dia').
+             * @param {string} tipoTurno - Identificador ('normal' o 'te').
+             * @param {object} idsTablasTotales - Objeto con los IDs de las tablas de totales.
+             */
+            function procesarYMostrarRegistros(registros, tablaSelector, tipoTurno, idsTablasTotales) {
+                const tbody = document.querySelector(`${tablaSelector} tbody`);
+                if (!tbody) {
+                    console.error(`Tbody no encontrado para ${tablaSelector}`);
+                    return;
+                }
+                tbody.innerHTML = ""; // Limpiar contenido actual
+
+                let totales = {
+                    piezasAuditadas: 0,
+                    piezasRechazadas: 0,
+                    bultosAuditados: 0,
+                    bultosRechazados: 0,
+                    piezasEnBultos: 0
+                };
+
+                if (registros.length === 0) {
+                    const numColumnas = $(`${tablaSelector} thead th`).length || 12; // Default a 12 si no se encuentra
+                    tbody.innerHTML = `<tr><td colspan="${numColumnas}" class="text-center">No hay registros para mostrar.</td></tr>`;
+                } else {
+                    registros.forEach(function (registro) {
+                        // Clases específicas para botones si es necesario, o usar data-attributes
+                        const claseBotonEliminar = `btn-eliminar-${tipoTurno}`; // ej. btn-eliminar-normal, btn-eliminar-te
+                        const claseBotonFinalizarParo = `btn-finalizar-paro-${tipoTurno}`; // ej. btn-finalizar-paro-normal
+
+                        // Construir la fila de la tabla principal
+                        const filaHtml = `
+                            <tr class="${registro.tiempo_extra ? 'bg-light-blue' : ''}"> {/* Ejemplo de clase condicional */}
+                                <td>
+                                    ${registro.inicio_paro === null
+                                        ? '-'
+                                        : registro.fin_paro
+                                            ? (registro.minutos_paro !== null ? registro.minutos_paro : '-')
+                                            : `<button class="btn btn-primary btn-sm ${claseBotonFinalizarParo}" data-id="${registro.id}">Fin Paro</button>`
+                                    }
+                                </td>
+                                <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.bulto || ''}" readonly></td>
+                                <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.pieza || ''}" readonly></td>
+                                <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.talla || ''}" readonly></td>
+                                <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.color || ''}" readonly></td>
+                                <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.estilo || ''}" readonly></td>
+                                <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.cantidad_auditada || 0}" readonly></td>
+                                <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.cantidad_rechazada || 0}" readonly></td>
+                                <td><input type="text" class="form-control form-control-sm texto-blanco" readonly value="${
+                                    registro.tp_auditoria_a_q_l && registro.tp_auditoria_a_q_l.length > 0
+                                        ? registro.tp_auditoria_a_q_l.map(tp => tp.tp).join(', ')
+                                        : '-'
+                                }"></td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm ${claseBotonEliminar}" data-id="${registro.id}">
+                                        Eliminar
+                                    </button>
+                                </td>
+                                <td>${registro.created_at ? new Date(registro.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '-'}</td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm texto-blanco" value="${(registro.reparacion_rechazo !== null && registro.reparacion_rechazo !== '') ? registro.reparacion_rechazo : '-'}" readonly>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.insertAdjacentHTML('beforeend', filaHtml);
+
+                        // Acumular totales
+                        totales.piezasAuditadas += parseInt(registro.cantidad_auditada) || 0;
+                        totales.piezasRechazadas += parseInt(registro.cantidad_rechazada) || 0;
+                        totales.bultosAuditados += 1;
+                        if ((parseInt(registro.cantidad_rechazada) || 0) > 0) {
+                            totales.bultosRechazados += 1;
+                        }
+                        totales.piezasEnBultos += parseInt(registro.pieza) || 0; // Asegúrate que 'pieza' sea la cantidad de piezas en el bulto
+                    });
+                }
+
+                // Actualizar las tablas de totales correspondientes
+                actualizarTablaDeTotales(idsTablasTotales.piezasDia, [totales.piezasAuditadas, totales.piezasRechazadas], true);
+                actualizarTablaDeTotales(idsTablasTotales.bultosTotales, [totales.bultosAuditados, totales.bultosRechazados], true);
+                actualizarTablaDeTotales(idsTablasTotales.piezasEnBultos, [totales.piezasEnBultos], false); // Solo un valor, sin porcentaje
+            }
+
+            /**
+            * Función genérica para actualizar una tabla de totales (piezas, bultos, etc.).
+            * @param {string} tablaId - El ID de la tabla de totales (ej: 'tabla-piezas-dia').
+            * @param {Array<number>} valores - Array de valores a mostrar en los inputs.
+            * @param {boolean} calcularPorcentaje - Si se debe calcular y mostrar un porcentaje.
+            */
+            function actualizarTablaDeTotales(tablaId, valores, calcularPorcentaje = false) {
+                const tabla = document.getElementById(tablaId);
+                if (!tabla) {
+                    console.warn(`Tabla de totales con ID '${tablaId}' no encontrada.`);
+                    return;
+                }
+                let tbody = tabla.querySelector("tbody");
+                if (!tbody) { // Crear tbody si no existe
+                    tbody = document.createElement('tbody');
+                    tabla.appendChild(tbody);
+                }
+
+                let fila = tbody.querySelector("tr:first-child");
+                if (!fila) {
+                    // Crear la fila y los inputs si no existen
+                    const numInputsEsperados = valores.length + (calcularPorcentaje ? 1 : 0);
+                    let tdsHtml = '';
+                    for (let i = 0; i < numInputsEsperados; i++) {
+                        tdsHtml += `<td><input type="text" class="form-control form-control-sm texto-blanco" readonly></td>`;
+                    }
+                    fila = document.createElement('tr');
+                    fila.innerHTML = tdsHtml;
+                    tbody.appendChild(fila);
+                }
+
+                const inputs = fila.querySelectorAll("input");
+                valores.forEach((valor, index) => {
+                    if (inputs[index]) {
+                        inputs[index].value = valor || 0;
+                    }
+                });
+
+                if (calcularPorcentaje && inputs.length > valores.length) { // Hay un input extra para el porcentaje
+                    const total = parseFloat(valores[0]) || 0;       // ej. piezas auditadas, bultos auditados
+                    const parcial = parseFloat(valores[1]) || 0;     // ej. piezas rechazadas, bultos rechazados
+                    const porcentaje = total > 0 ? ((parcial / total) * 100).toFixed(2) : "0.00";
+                    inputs[valores.length].value = `${porcentaje}%`;
+                }
+            }
+
+
+            /**
+            * Inicia o reinicia el intervalo para verificar tiempos de paro en ambas tablas.
+            */
+            function iniciarOReiniciarMonitorizacionParos() {
+                if (intervaloVerificarTiempos) {
+                    clearInterval(intervaloVerificarTiempos);
+                }
+                // Ejecutar inmediatamente para ambas tablas y luego establecer intervalo
+                verificarTiemposParoTabla('#tabla_registros_dia');
+                verificarTiemposParoTabla('#tabla_registros_tiempo_extra');
+
+                intervaloVerificarTiempos = setInterval(function () {
+                    verificarTiemposParoTabla('#tabla_registros_dia');
+                    verificarTiemposParoTabla('#tabla_registros_tiempo_extra');
+                }, 60000); // Cada minuto
+            }
+
+
+            /**
+            * Verifica los tiempos de paro para una tabla específica y aplica estilos.
+            * @param {string} tablaSelector - Selector CSS de la tabla principal.
+            */
+            function verificarTiemposParoTabla(tablaSelector) {
                 const ahora = new Date();
+                document.querySelectorAll(`${tablaSelector} tbody tr`).forEach(fila => {
+                    // Usar la clase común que definimos en el HTML, por ejemplo, btn-finalizar-paro-normal o btn-finalizar-paro-te
+                    // O si es una clase genérica .btn-finalizar-paro-en-tabla
+                    const tipoTurno = tablaSelector.includes('tiempo_extra') ? 'te' : 'normal';
+                    const claseBotonFinalizarParo = `btn-finalizar-paro-${tipoTurno}`;
 
-                // Seleccionamos todas las filas
-                document.querySelectorAll('#tabla_registros_dia tbody tr').forEach(fila => {
-                    const botonParo = fila.querySelector('.btn-finalizar-paro');
-                    const celdaHora = fila.querySelector('td:nth-last-child(2)'); // Penúltima columna
+                    const botonParo = fila.querySelector(`.${claseBotonFinalizarParo}`);
+                    const celdaHora = fila.cells[fila.cells.length - 2]; // Penúltima celda es la hora
 
-                    // Si no hay botón o no hay hora, limpiar colores
-                    if (!botonParo || !celdaHora) {
-                        fila.style.backgroundColor = "";
+                    // Restablecer estilo por defecto
+                    fila.style.backgroundColor = "";
+                    fila.style.color = "";
+
+                    if (!botonParo || !celdaHora) { // Si no hay botón, no es un paro activo
                         return;
                     }
 
-                    // Obtener la hora del registro
                     const horaRegistroTexto = celdaHora.textContent.trim();
-                    if (!horaRegistroTexto) return;
+                    if (!horaRegistroTexto || horaRegistroTexto === '-') return; // Si no hay hora válida
 
-                    const [hora, minuto, segundo] = horaRegistroTexto.split(':').map(Number);
-                    const horaRegistro = new Date();
-                    horaRegistro.setHours(hora, minuto, segundo || 0);
+                    try {
+                        // Asumimos que la hora está en formato HH:MM:SS
+                        const partesHora = horaRegistroTexto.split(':');
+                        if (partesHora.length < 2) return; // Formato de hora inválido
 
-                    // Calcular la diferencia en minutos
-                    const diferenciaMinutos = Math.floor((ahora - horaRegistro) / 60000);
+                        const hora = parseInt(partesHora[0], 10);
+                        const minuto = parseInt(partesHora[1], 10);
+                        const segundo = partesHora[2] ? parseInt(partesHora[2], 10) : 0;
 
-                    // Limpiar colores previos
-                    fila.style.backgroundColor = "";
+                        if (isNaN(hora) || isNaN(minuto) || isNaN(segundo)) return; // Partes no numéricas
 
-                    // Aplicar color según el tiempo
-                    if (diferenciaMinutos >= 10 && diferenciaMinutos < 15) {
-                        fila.style.backgroundColor = "#996515"; // Amarillo Oscuro
-                        fila.style.color = "#fff";
-                    } else if (diferenciaMinutos >= 15) {
-                        fila.style.backgroundColor = "#8B0000"; // Rojo Oscuro
-                        fila.style.color = "#fff";
+                        const horaRegistro = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), hora, minuto, segundo);
+
+                        const diferenciaMinutos = Math.floor((ahora - horaRegistro) / 60000);
+
+                        if (diferenciaMinutos >= 15) {
+                            fila.style.backgroundColor = "#8B0000"; // Rojo Oscuro
+                            fila.style.color = "#fff";
+                        } else if (diferenciaMinutos >= 10) {
+                            fila.style.backgroundColor = "#996515"; // Naranja/Amarillo Oscuro
+                            fila.style.color = "#fff";
+                        }
+                    } catch (e) {
+                        console.error("Error parseando hora para verificarTiemposParo:", horaRegistroTexto, e);
                     }
                 });
             }
 
+            // --- MANEJO DE EVENTOS CON DELEGACIÓN ---
 
-            function actualizarTablasSecundarias(totalAuditadas, totalRechazadas) {
-                const porcentajeAQL = totalAuditadas > 0 
-                    ? ((totalRechazadas / totalAuditadas) * 100).toFixed(2) 
-                    : 0;
+            // Eliminar registro (para ambas tablas, diferenciado por clase)
+            $(document).on('click', '.btn-eliminar-normal, .btn-eliminar-te', function () {
+                const registroId = $(this).data('id');
+                // const esTiempoExtra = $(this).hasClass('btn-eliminar-te'); // Para saber de qué tabla viene
 
-                // Encuentra las filas donde actualizar los valores
-                const tabla = document.getElementById("tabla-piezas-dia");
-                const filas = tabla.querySelectorAll("tbody tr");
-
-                // Asegurarse de que exista al menos una fila para editar (o agregarla si no existe)
-                if (filas.length === 0) {
-                    const nuevaFila = `
-                        <tr>
-                            <td><input type="text" class="form-control texto-blanco" readonly></td>
-                            <td><input type="text" class="form-control texto-blanco" readonly></td>
-                            <td><input type="text" class="form-control texto-blanco" readonly></td>
-                        </tr>
-                    `;
-                    tabla.querySelector("tbody").insertAdjacentHTML("beforeend", nuevaFila);
-                }
-
-                // Actualiza los inputs con los valores calculados
-                const inputs = tabla.querySelectorAll("tbody tr:first-child input");
-                inputs[0].value = totalAuditadas || 0;
-                inputs[1].value = totalRechazadas || 0;
-                inputs[2].value = `${porcentajeAQL}%`;
-            }
-
-            function actualizarBultosTotales(totalBultosAuditados, totalBultosRechazados) {
-                // Calcular el porcentaje
-                const porcentajeTotal = totalBultosAuditados > 0 
-                    ? ((totalBultosRechazados / totalBultosAuditados) * 100).toFixed(2) 
-                    : 0;
-
-                const tablaBultos = document.getElementById("tabla-bultos-totales");
-                const filasBultos = tablaBultos.querySelectorAll("tbody tr");
-
-                // Asegurar que la tabla tenga al menos una fila
-                if (filasBultos.length === 0) {
-                    const nuevaFilaBultos = `
-                        <tr>
-                            <td><input type="text" class="form-control texto-blanco" readonly></td>
-                            <td><input type="text" class="form-control texto-blanco" readonly></td>
-                            <td><input type="text" class="form-control texto-blanco" readonly></td>
-                        </tr>
-                    `;
-                    tablaBultos.querySelector("tbody").insertAdjacentHTML("beforeend", nuevaFilaBultos);
-                }
-
-                const inputsBultos = tablaBultos.querySelectorAll("tbody tr:first-child input");
-                inputsBultos[0].value = totalBultosAuditados || 0;
-                inputsBultos[1].value = totalBultosRechazados || 0;
-                inputsBultos[2].value = `${porcentajeTotal}%`;
-            }
-
-            // NUEVA FUNCIÓN para actualizar "Total de piezas en bultos Auditados"
-            function actualizarTablaPiezasEnBultos(totalPiezasEnBultos) {
-                // Seleccionamos la tabla (usa el ID o clase que le asignaste)
-                const tablaPiezasBultos = document.getElementById("tabla-piezas-bultos");
-                const filas = tablaPiezasBultos.querySelectorAll("tbody tr");
-
-                // Si no hay filas, creamos una fila con un solo campo
-                if (filas.length === 0) {
-                    const nuevaFila = `
-                        <tr>
-                            <td>
-                                <input type="text" class="form-control texto-blanco" readonly>
-                            </td>
-                        </tr>
-                    `;
-                    tablaPiezasBultos.querySelector("tbody").insertAdjacentHTML("beforeend", nuevaFila);
-                }
-
-                // Asignamos el valor (o 0 si no hay nada)
-                const input = tablaPiezasBultos.querySelector("tbody tr:first-child input");
-                input.value = totalPiezasEnBultos || 0;
-            }
-
-            function asignarEventosEliminar() {
-                const botonesEliminar = document.querySelectorAll('.btn-eliminar');
-                botonesEliminar.forEach(boton => {
-                    boton.removeEventListener('click', manejarEliminar);
-                    boton.addEventListener('click', manejarEliminar);
-                });
-            }
-
-            function manejarEliminar() {
-                const id = this.getAttribute('data-id');
-
-                if (!confirm("¿Estás seguro de que deseas eliminar este registro?")) {
-                    return; // Si cancela, no hace nada
-                }
-
-                eliminarRegistro(id);
-            }
-
-            function eliminarRegistro(id) {
-                if (!confirm('¿Estás seguro de eliminar este registro?')) return;
-                
-                $.ajax({
-                    url: "{{ route('eliminar.registro.aql') }}",
-                    type: "POST",
-                    data: {
-                        id: id,
-                        _token: "{{ csrf_token() }}"
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            alert("✅ Registro eliminado exitosamente.");
-                            cargarRegistros();
-                        } else {
-                            // Manejar específicamente el error de auditoría finalizada
-                            if (response.message.includes('finalizada')) {
-                                alert('⚠ Advertencia: ' + response.message);
-                            } else {
-                                alert("❌ Error: " + response.message);
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "¡No podrás revertir la eliminación de este registro!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, ¡eliminar!',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({ title: 'Eliminando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                        $.ajax({
+                            url: "{{ route('eliminar.registro.aql') }}", // Ruta única para eliminar
+                            type: "POST",
+                            data: { id: registroId, _token: "{{ csrf_token() }}" },
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire('¡Eliminado!', response.message || 'El registro ha sido eliminado.', 'success');
+                                    cargarRegistrosUnificado(); // Recargar ambas tablas
+                                } else {
+                                    Swal.fire('Error', response.message || 'No se pudo eliminar el registro.', 'error');
+                                }
+                            },
+                            error: function (xhr) {
+                                Swal.fire('Error de Comunicación', 'Hubo un error al intentar eliminar el registro.', 'error');
+                                console.error("Error al eliminar:", xhr.responseText);
                             }
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("❌ Error al eliminar el registro:", xhr, status, error);
-                        alert("❌ Hubo un error al intentar eliminar el registro.");
+                        });
                     }
                 });
-            }
-            function asignarEventosFinalizarParo() {
-                const botonesFinalizarParo = document.querySelectorAll('.btn-finalizar-paro');
-                botonesFinalizarParo.forEach(boton => {
-                    // Primero removemos cualquier listener previo para evitar duplicados
-                    boton.removeEventListener('click', manejarFinalizarParo);
-                    boton.addEventListener('click', manejarFinalizarParo);
-                });
-            }
-
-            function manejarFinalizarParo() {
-                const id = this.getAttribute('data-id');
-
-                // Pedimos la cantidad de piezas reparadas
-                const piezasReparadas = prompt("Ingrese la cantidad de piezas reparadas:");
-                
-                // Si el usuario cancela o no ingresa nada, no hacemos nada
-                if (piezasReparadas === null || piezasReparadas === "") {
-                    return;
-                }
-
-                // Hacemos la llamada AJAX para finalizar el paro
-                $.ajax({
-                    url: "{{ route('finalizar.paro.aql') }}",
-                    type: "POST",
-                    data: {
-                        id: id,
-                        piezasReparadas: piezasReparadas,
-                        _token: "{{ csrf_token() }}"
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            alert("✅ Paro finalizado correctamente.\nMinutos de paro: " + response.minutos_paro + "\nPiezas reparadas: " + response.reparacion_rechazo);
-                            // Recargar la tabla y así desaparece el botón
-                            cargarRegistros();
-                        } else {
-                            console.error("❌ Error en la respuesta del servidor:", response);
-                            alert("❌ No se pudo finalizar el paro. Intente nuevamente.");
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error al finalizar el paro:", xhr, status, error);
-                        alert("❌ Hubo un error al intentar finalizar el paro.");
-                    }
-                });
-            }
-
-            // Inicialización
-            cargarRegistros();
-        });
-    </script>
-
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            window.addEventListener('registroGuardado', function () {
-                cargarRegistros();
             });
-            function cargarRegistros() {
-                const fechaActual = new Date().toISOString().slice(0, 10);
-                const modulo = document.getElementById('modulo').value;
-        
-                if (!modulo) {
-                    console.error("El módulo no está definido.");
-                    return;
-                }
 
-                $.ajax({
-                    url: "{{ route('mostrar.registros.aql.dia.TE') }}",
-                    type: "GET",
-                    data: {
-                        fechaActual: fechaActual,
-                        modulo: modulo
-                    },
-                    success: function (response) {
-                        // Limpia la tabla principal de tiempo extra
-                        const tbody = document.querySelector("#tabla_registros_tiempo_extra tbody");
-                        tbody.innerHTML = "";
+            // Finalizar paro (para ambas tablas, diferenciado por clase)
+            $(document).on('click', '.btn-finalizar-paro-normal, .btn-finalizar-paro-te', function () {
+                const registroId = $(this).data('id');
+                // const esTiempoExtra = $(this).hasClass('btn-finalizar-paro-te');
 
-                        // Definimos contadores
-                        let totalPiezasAuditadasTE = 0;
-                        let totalPiezasRechazadasTE = 0;
-                        let totalBultosAuditadosTE = 0;
-                        let totalBultosRechazadosTE = 0;
-                        let totalPiezasEnBultosTE = 0;
-
-                        // Recorremos los registros y construimos las filas
-                        response.forEach(function (registro) {
-                            const fila = `
-                                <tr class="${registro.tiempo_extra ? 'tiempo-extra' : ''}">
-                                    <td>
-                                        ${
-                                            registro.inicio_paro === null 
-                                                ? '-' 
-                                                : registro.fin_paro 
-                                                    ? registro.minutos_paro 
-                                                    : `<button class="btn btn-primary btn-finalizar-paro" data-id="${registro.id}">Fin Paro AQL</button>`
+                Swal.fire({
+                    title: 'Piezas Reparadas',
+                    input: 'number',
+                    inputLabel: 'Ingresa el número de piezas reparadas para este paro:',
+                    inputValue: 0, // Valor inicial
+                    showCancelButton: true,
+                    confirmButtonText: 'Finalizar Paro',
+                    cancelButtonText: 'Cancelar',
+                    inputValidator: (value) => {
+                        const num = parseInt(value);
+                        if (isNaN(num) || num < 0) {
+                            return 'Por favor, ingresa un número válido (0 o mayor).';
+                        }
+                    }
+                }).then((resultPiezas) => {
+                    if (resultPiezas.isConfirmed) {
+                        const piezasReparadas = resultPiezas.value;
+                        // Confirmación adicional antes de enviar
+                        Swal.fire({
+                            title: 'Confirmar Finalización',
+                            text: `Se finalizará el paro con ${piezasReparadas} piezas reparadas. ¿Continuar?`,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Sí, continuar',
+                            cancelButtonText: 'No'
+                        }).then((resultConfirm) => {
+                            if (resultConfirm.isConfirmed) {
+                                Swal.fire({ title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                                $.ajax({
+                                    url: "{{ route('finalizar.paro.aql') }}", // Ruta única para finalizar paro
+                                    type: "POST",
+                                    data: {
+                                        id: registroId,
+                                        piezasReparadas: piezasReparadas,
+                                        _token: "{{ csrf_token() }}"
+                                    },
+                                    success: function (response) {
+                                        if (response.success) {
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: '¡Paro Finalizado!',
+                                                html: `Minutos de paro: ${response.minutos_paro || '-'}<br>Piezas reparadas: ${response.reparacion_rechazo || '-'}`
+                                            });
+                                            cargarRegistrosUnificado(); // Recargar ambas tablas
+                                        } else {
+                                            Swal.fire('Error', response.message || 'No se pudo finalizar el paro.', 'error');
                                         }
-                                    </td>
-                                    <td><input type="text" class="form-control texto-blanco" value="${registro.bulto}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" value="${registro.pieza}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" value="${registro.talla}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" value="${registro.color}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" value="${registro.estilo}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_auditada}" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_rechazada}" readonly></td>
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" 
-                                            readonly 
-                                            value="${
-                                                registro.tp_auditoria_a_q_l 
-                                                    ? registro.tp_auditoria_a_q_l.map(tp => tp.tp).join(', ') 
-                                                    : ''
-                                            }">
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-danger btn-eliminar-te" data-id="${registro.id}">
-                                            Eliminar
-                                        </button>
-                                    </td>
-                                    <td>${registro.created_at ? new Date(registro.created_at).toLocaleTimeString() : ''}</td>
-                                    <td>
-                                        ${
-                                            registro.reparacion_rechazo !== null && registro.reparacion_rechazo !== '' 
-                                            ? `<input type="text" class="form-control texto-blanco" value="${registro.reparacion_rechazo}" readonly>` 
-                                            : `<input type="text" class="form-control texto-blanco" value="-" readonly>`
-                                        }
-                                    </td>
-                                </tr>
-                            `;
-                            tbody.insertAdjacentHTML('beforeend', fila);
-
-                            // Acumulamos valores para las tablas secundarias
-                            totalPiezasAuditadasTE += registro.cantidad_auditada || 0;
-                            totalPiezasRechazadasTE += registro.cantidad_rechazada || 0;
-
-                            totalBultosAuditadosTE += 1;
-                            if ((registro.cantidad_rechazada || 0) > 0) {
-                                totalBultosRechazadosTE += 1;
+                                    },
+                                    error: function (xhr) {
+                                        Swal.fire('Error de Comunicación', 'Hubo un error al intentar finalizar el paro.', 'error');
+                                        console.error("Error al finalizar paro:", xhr.responseText);
+                                    }
+                                });
                             }
-
-                            // Asumiendo que 'registro.pieza' es numérico
-                            totalPiezasEnBultosTE += parseInt(registro.pieza) || 0;
                         });
-
-                        // Actualizamos tablas secundarias
-                        actualizarTablasSecundariasTE(totalPiezasAuditadasTE, totalPiezasRechazadasTE);
-                        actualizarBultosTotalesTE(totalBultosAuditadosTE, totalBultosRechazadosTE);
-                        actualizarTablaPiezasEnBultosTE(totalPiezasEnBultosTE);
-
-                        // Asignamos los eventos a los nuevos botones
-                        asignarEventosEliminarTE();
-                        asignarEventosFinalizarParoTE();
-                    },
-                    error: function (error) {
-                        console.error("Error al cargar los registros TE:", error);
                     }
                 });
-            }
+            });
 
-            function actualizarTablasSecundariasTE(totalAuditadasTE, totalRechazadasTE) {
-                const porcentajeAQLTE = totalAuditadasTE > 0 
-                    ? ((totalRechazadasTE / totalAuditadasTE) * 100).toFixed(2)
-                    : 0;
-                
-                const tablaTE = document.getElementById("tabla-piezas-dia-TE");
-                const filasTE = tablaTE.querySelectorAll("tbody tr");
 
-                // Si no hay fila, creamos una nueva
-                if (filasTE.length === 0) {
-                    const nuevaFilaTE = `
-                        <tr>
-                            <td><input type="text" class="form-control texto-blanco" readonly></td>
-                            <td><input type="text" class="form-control texto-blanco" readonly></td>
-                            <td><input type="text" class="form-control texto-blanco" readonly></td>
-                        </tr>
-                    `;
-                    tablaTE.querySelector("tbody").insertAdjacentHTML("beforeend", nuevaFilaTE);
-                }
+            // --- Eventos para los botones "Finalizar" de cada Card de Auditoría ---
+            $('#btn-finalizar').on('click', function() {
+                finalizarAuditoriaModulo('normal', '#observacion');
+            });
 
-                const inputsTE = tablaTE.querySelectorAll("tbody tr:first-child input");
-                inputsTE[0].value = totalAuditadasTE || 0;
-                inputsTE[1].value = totalRechazadasTE || 0;
-                inputsTE[2].value = `${porcentajeAQLTE}%`;
-            }
+            $('#btn-finalizar-TE').on('click', function() {
+                finalizarAuditoriaModulo('tiempo_extra', '#observacion-TE');
+            });
 
-            function actualizarBultosTotalesTE(totalBultosAuditadosTE, totalBultosRechazadosTE) {
-                const porcentajeTotalTE = totalBultosAuditadosTE > 0
-                    ? ((totalBultosRechazadosTE / totalBultosAuditadosTE) * 100).toFixed(2)
-                    : 0;
-
-                const tablaBultosTE = document.getElementById("tabla-bultos-totales-TE");
-                const filasBultosTE = tablaBultosTE.querySelectorAll("tbody tr");
-
-                if (filasBultosTE.length === 0) {
-                    const nuevaFila = `
-                        <tr>
-                            <td><input type="text" class="form-control texto-blanco" readonly></td>
-                            <td><input type="text" class="form-control texto-blanco" readonly></td>
-                            <td><input type="text" class="form-control texto-blanco" readonly></td>
-                        </tr>
-                    `;
-                    tablaBultosTE.querySelector("tbody").insertAdjacentHTML("beforeend", nuevaFila);
-                }
-
-                const inputs = tablaBultosTE.querySelectorAll("tbody tr:first-child input");
-                inputs[0].value = totalBultosAuditadosTE || 0;
-                inputs[1].value = totalBultosRechazadosTE || 0;
-                inputs[2].value = `${porcentajeTotalTE}%`;
-            }
-
-            function actualizarTablaPiezasEnBultosTE(totalPiezasEnBultosTE) {
-                const tablaPiezasBultosTE = document.getElementById("tabla-piezas-bultos-TE");
-                const filasTE = tablaPiezasBultosTE.querySelectorAll("tbody tr");
-
-                if (filasTE.length === 0) {
-                    const nuevaFila = `
-                        <tr>
-                            <td><input type="text" class="form-control texto-blanco" readonly></td>
-                        </tr>
-                    `;
-                    tablaPiezasBultosTE.querySelector("tbody").insertAdjacentHTML("beforeend", nuevaFila);
-                }
-
-                const inputTE = tablaPiezasBultosTE.querySelector("tbody tr:first-child input");
-                inputTE.value = totalPiezasEnBultosTE || 0;
-            }
-
-            // -------------------------------
-            //   EVENTOS PARA ELIMINAR
-            // -------------------------------
-            function asignarEventosEliminarTE() {
-                const tablaTE = document.getElementById('tabla_registros_tiempo_extra');
-                const botonesEliminarTE = tablaTE.querySelectorAll('.btn-eliminar-te');
-
-                // Importante: remover antes de asignar para evitar duplicados
-                botonesEliminarTE.forEach((boton) => {
-                    boton.removeEventListener('click', manejarEliminarTE);
-                    boton.addEventListener('click', manejarEliminarTE);
-                });
-            }
-
-            function manejarEliminarTE() {
-                const id = this.getAttribute('data-id');
-                
-                if (!confirm("¿Estás seguro de que deseas eliminar este registro?")) {
-                    return; // Si cancela, no hace nada
-                }
-
-                eliminarRegistroTE(id);
-            }
-
-            function eliminarRegistroTE(id) {
-                $.ajax({
-                    url: "{{ route('eliminar.registro.aql') }}",
-                    type: "POST",
-                    data: {
-                        id: id,
-                        _token: "{{ csrf_token() }}"
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            alert("✅ Registro eliminado exitosamente.");
-                            cargarRegistros(); // Recarga para actualizar la tabla
-                        } else {
-                            console.error("❌ Error en la respuesta del servidor:", response);
-                            alert("No se pudo eliminar el registro. Intente nuevamente.");
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("❌ Error al eliminar el registro TE:", xhr, status, error);
-                        alert("❌ Hubo un error al eliminar el registro.");
-                    }
-                });
-            }
-
-            // -------------------------------
-            //   EVENTOS PARA FINALIZAR PARO
-            // -------------------------------
-            function asignarEventosFinalizarParoTE() {
-                const tablaTE = document.getElementById('tabla_registros_tiempo_extra');
-                const botonesFinalizarParo = tablaTE.querySelectorAll('.btn-finalizar-paro');
-
-                // Removemos listener previo antes de asignar
-                botonesFinalizarParo.forEach(boton => {
-                    boton.removeEventListener('click', manejarFinalizarParoTE);
-                    boton.addEventListener('click', manejarFinalizarParoTE);
-                });
-            }
-
-            function manejarFinalizarParoTE() {
-                const id = this.getAttribute('data-id');
-
-                // Pedimos la cantidad de piezas reparadas
-                const piezasReparadas = prompt("Ingrese la cantidad de piezas reparadas:");
-
-                // Si el usuario cancela o no ingresa nada, no hacemos nada
-                if (piezasReparadas === null || piezasReparadas === "") {
+            function finalizarAuditoriaModulo(tipoTurno, selectorTextareaObservaciones) {
+                const moduloInput = document.getElementById('modulo');
+                if (!moduloInput || !moduloInput.value) {
+                    Swal.fire('Error', 'No se ha definido el módulo.', 'error');
                     return;
                 }
+                const modulo = moduloInput.value;
+                const observaciones = $(selectorTextareaObservaciones).val().trim();
 
-                // Llamada AJAX para finalizar el paro
-                $.ajax({
-                    url: "{{ route('finalizar.paro.aql') }}",
-                    type: "POST",
-                    data: {
-                        id: id,
-                        piezasReparadas: piezasReparadas,
-                        _token: "{{ csrf_token() }}"
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            alert(
-                                "✅ Paro finalizado correctamente.\n" +
-                                "Minutos de paro: " + response.minutos_paro + "\n" +
-                                "Piezas reparadas: " + response.reparacion_rechazo
-                            );
-                            // Recargar la tabla para que desaparezca el botón
-                            cargarRegistros();
-                        } else {
-                            console.error("Error en la respuesta del servidor:", response);
-                            alert("❌ No se pudo finalizar el paro. Intente nuevamente.");
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error al finalizar el paro TE:", xhr, status, error);
-                        alert("❌ Hubo un error al intentar finalizar el paro.");
-                    }
-                });
-            }
+                // Opcional: Validar que haya observaciones si son requeridas
+                // if (!observaciones) {
+                //     Swal.fire('Atención', 'Por favor, ingresa las observaciones antes de finalizar.', 'warning');
+                //     return;
+                // }
 
-            // Inicialización
-            cargarRegistros();
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const openModalBtn = document.getElementById('openModalAQL');
-            const closeModalBtn = document.getElementById('closeModalAQL');
-            const modal = document.getElementById('customModalAQL');
-            const tbody = document.getElementById('tablaProcesosAQL');
-
-            // Abrir el modal y cargar los datos con AJAX
-            openModalBtn.addEventListener('click', function () {
-                modal.style.display = 'block';
-
-                // Hacer la petición AJAX
-                fetch('{{ route('auditoriaAQL.obtenerAQLenProceso') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({})
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Limpiar la tabla
-                        tbody.innerHTML = '';
-
-                        // Insertar las filas dinámicamente
-                        data.forEach(proceso => {
-                            const row = `
-                                <tr>
-                                    <td>
-                                        <form method="POST" action="{{ route('auditoriaAQL.formAltaProcesoAQL_v2') }}">
-                                            @csrf
-                                            <input type="hidden" name="modulo" value="${proceso.modulo}">
-                                            <input type="hidden" name="op" value="${proceso.op}">
-                                            <input type="hidden" name="estilo" value="${proceso.estilo}">
-                                            <input type="hidden" name="cliente" value="${proceso.cliente}">
-                                            <input type="hidden" name="team_leader" value="${proceso.team_leader}">
-                                            <input type="hidden" name="gerente_produccion" value="${proceso.gerente_produccion}">
-                                            <input type="hidden" name="auditor" value="${proceso.auditor}">
-                                            <input type="hidden" name="turno" value="${proceso.turno}">
-                                            <button type="submit" class="btn btn-primary">Acceder</button>
-                                        </form>
-                                    </td>
-                                    <td>${proceso.modulo}</td>
-                                    <td>${proceso.op}</td>
-                                </tr>
-                            `;
-                            tbody.innerHTML += row;
+                Swal.fire({
+                    title: `¿Finalizar auditoría de ${tipoTurno === 'normal' ? 'Turno Normal' : 'Tiempo Extra'}?`,
+                    text: "Esta acción marcará la auditoría como completada para este módulo y turno. No podrás agregar más registros a este turno después de finalizar.",
+                    icon: 'warning', // Usar warning para una acción importante
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, finalizar',
+                    confirmButtonColor: '#d33', // Color rojo para acción de "finalizar"
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({ title: 'Finalizando Auditoría...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                        $.ajax({
+                            url: "{{ route('AQLV3.finalizar.auditoria.modulo') }}", // Ruta para finalizar auditoría de módulo
+                            type: "POST",
+                            data: {
+                                modulo: modulo,
+                                observaciones: observaciones,
+                                tipo_turno: tipoTurno,
+                                _token: "{{ csrf_token() }}"
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire('¡Auditoría Finalizada!', response.message, 'success');
+                                    // Deshabilitar el botón correspondiente y el textarea
+                                    $(selectorTextareaObservaciones).prop('disabled', true);
+                                    if (tipoTurno === 'normal') {
+                                        $('#btn-finalizar').prop('disabled', true);
+                                    } else {
+                                        $('#btn-finalizar-TE').prop('disabled', true);
+                                    }
+                                    // Aquí podrías querer deshabilitar también el formulario de nuevos registros para ese turno.
+                                } else {
+                                    Swal.fire('Error', response.message || 'No se pudo finalizar la auditoría.', 'error');
+                                }
+                            },
+                            error: function (xhr) {
+                                Swal.fire('Error de Comunicación', 'Hubo un error al conectar con el servidor.', 'error');
+                                console.error("Error al finalizar auditoría de módulo:", xhr.responseText);
+                            }
                         });
-                    })
-                    .catch(error => console.error('Error al cargar los procesos:', error));
-            });
-
-            // Cerrar el modal con el botón
-            closeModalBtn.addEventListener('click', function () {
-                modal.style.display = 'none';
-            });
-
-            // Cerrar el modal con la tecla "ESC"
-            document.addEventListener('keydown', function (event) {
-                if (event.key === 'Escape') {
-                    modal.style.display = 'none';
-                }
-            });
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const container = document.getElementById('observacion-container');
-            const modulo = container.getAttribute('data-modulo');
-
-            const btnFinalizar = document.getElementById('btn-finalizar');
-            const textarea = document.getElementById('observacion');
-
-            // Cargar el estado de finalización de forma asíncrona
-            function cargarEstado() {
-                $.ajax({
-                    url: "{{ route('auditoriaAQL.verificarFinalizacion') }}",
-                    type: "GET",
-                    data: { modulo: modulo },
-                    success: function (response) {
-                        if (response.finalizado) {
-                            textarea.value = response.observacion;
-                            textarea.setAttribute('readonly', true);
-                            btnFinalizar.disabled = true;
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error al verificar el estado:", error);
                     }
                 });
             }
 
-            // Llamar a la función al cargar la página
-            cargarEstado();
-
-            // Evento de finalizar
-            btnFinalizar.addEventListener('click', function (e) {
-                e.preventDefault();
-
-                const observacion = textarea.value.trim();
-                if (observacion === '') {
-                    alert("Por favor, ingrese una observación.");
-                    return;
-                }
-
-                $.ajax({
-                    url: "{{ route('auditoriaAQL.formFinalizarProceso_v2') }}",
-                    type: "POST",
-                    data: {
-                        modulo: modulo,
-                        observacion: observacion,
-                        _token: "{{ csrf_token() }}"
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            alert(response.message || "✅ Finalización aplicada correctamente.");
-                            cargarEstado(); // Volver a cargar el estado para actualizar UI
-                        } else {
-                            alert(response.message || "No se pudo aplicar la finalización.");
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error en la solicitud AJAX:", error);
-                        alert("❌ Hubo un error al procesar la solicitud.");
-                    }
-                });
-
-            });
+            // Carga inicial de registros al cargar la página
+            cargarRegistrosUnificado();
         });
     </script>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

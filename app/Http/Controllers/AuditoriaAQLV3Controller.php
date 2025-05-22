@@ -667,19 +667,49 @@ class AuditoriaAQLV3Controller extends Controller
         }
     }
     
-    public function mostrarRegistrosAqlDia(Request $request)
+    public function mostrarRegistrosAqlUnificado(Request $request)
     {
-        $fechaActual = Carbon::now()->toDateString(); // Recibir la fecha actual desde la petición AJAX
-        $modulo = $request->input('modulo'); // Recibir el módulo desde la petición AJAX
+        try {
+            // Validar que el módulo venga en la petición (opcional pero recomendado)
+            $request->validate([
+                'modulo' => 'required|string',
+                // 'fechaActual' podría ser opcional si siempre usas Carbon::now()
+                // Si la envías desde el frontend, también la puedes validar:
+                // 'fechaActual' => 'sometimes|date_format:Y-m-d',
+            ]);
 
-        // Cargar registros junto con los datos relacionados
-        $mostrarRegistro = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $modulo)
-            ->whereNull('tiempo_extra') 
-            ->with('tpAuditoriaAQL') // Cargar relación
-            ->get();
+            // Usar la fecha de la petición si se envía, sino la fecha actual del servidor
+            $fecha = Carbon::now()->toDateString(); 
+            $modulo = $request->input('modulo');
 
-        return response()->json($mostrarRegistro);
+            // 1. Realizar UNA SOLA consulta para obtener todos los registros del día y módulo
+            $todosLosRegistros = AuditoriaAQL::whereDate('created_at', $fecha)
+                ->where('modulo', $modulo)
+                ->with('tpAuditoriaAQL') // Cargar la relación con los tipos de problema/defecto
+                ->orderBy('created_at', 'asc') // Opcional: ordenar por hora de creación
+                ->get();
+
+            // 2. Separar los registros usando el método `partition` de las colecciones de Laravel
+            // `partition` divide la colección en dos: una donde la condición es true, y otra donde es false.
+            // Asumimos que `tiempo_extra == 1` significa tiempo extra, y cualquier otra cosa (null, 0) es turno normal.
+            list($registrosTiempoExtra, $registrosTurnoNormal) = $todosLosRegistros->partition(function ($registro) {
+                return $registro->tiempo_extra == 1; // O === true si es booleano en DB
+            });
+
+            // 3. Devolver la respuesta JSON con ambos conjuntos de datos
+            return response()->json([
+                'turno_normal' => $registrosTurnoNormal->values(), // ->values() para reindexar el array
+                'tiempo_extra' => $registrosTiempoExtra->values(), // ->values() para reindexar el array
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Error de validación en mostrarRegistrosAqlUnificado: ' . $e->getMessage(), $e->errors());
+            return response()->json(['error' => 'Datos de entrada inválidos.', 'details' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            // Loguear el error para depuración
+            Log::error('Error en mostrarRegistrosAqlUnificado: ' . $e->getMessage());
+            return response()->json(['error' => 'Ocurrió un error al procesar la solicitud.'], 500);
+        }
     }
 
 
@@ -707,20 +737,6 @@ class AuditoriaAQLV3Controller extends Controller
         return response()->json(['success' => true, 'message' => 'Registro eliminado exitosamente.']);
     }
 
-    public function mostrarRegistrosAqlDiaTE(Request $request)
-    {
-        $fechaActual = Carbon::now()->toDateString(); // Recibir la fecha actual desde la petición AJAX
-        $modulo = $request->input('modulo'); // Recibir el módulo desde la petición AJAX
-
-        // Cargar registros junto con los datos relacionados
-        $mostrarRegistro = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $modulo)
-            ->where('tiempo_extra', 1) 
-            ->with('tpAuditoriaAQL') // Cargar relación
-            ->get();
-
-        return response()->json($mostrarRegistro);
-    }
 
     public function buscarUltimoRegistro(Request $request)
     {
@@ -829,20 +845,49 @@ class AuditoriaAQLV3Controller extends Controller
 
     public function verificarFinalizacion(Request $request)
     {
-        $modulo = $request->input('modulo'); 
-        $fechaActual = Carbon::now()->toDateString();
+        try {
+            $request->validate([
+                'modulo' => 'required|string',
+            ]);
 
-        // Buscar si ya se finalizó el módulo para la fecha actual
-        $registro = AuditoriaAQL::whereDate('created_at', $fechaActual)
-                    ->where('modulo', $modulo)
-                    ->where('tiempo_extra', null)
-                    ->where('estatus', 1)
-                    ->first();
+            $modulo = $request->input('modulo');
+            $fechaActual = Carbon::now()->toDateString();
 
-        return response()->json([
-            'finalizado'  => $registro ? true : false,
-            'observacion' => $registro ? $registro->observacion : '',
-        ]);
+            // Verificar finalización para Turno Normal
+            // Buscamos el primer registro que cumpla las condiciones para considerarlo "finalizado"
+            $registroNormal = AuditoriaAQL::whereDate('created_at', $fechaActual)
+                ->where('modulo', $modulo)
+                ->whereNull('tiempo_extra') // Turno Normal
+                ->where('estatus', 1)       // Asumiendo estatus=1 significa finalizado
+                ->orderBy('updated_at', 'desc') // Opcional: tomar el más reciente si hay varios
+                ->first();
+
+            // Verificar finalización para Tiempo Extra
+            $registroTE = AuditoriaAQL::whereDate('created_at', $fechaActual)
+                ->where('modulo', $modulo)
+                ->where('tiempo_extra', 1)  // Tiempo Extra
+                ->where('estatus', 1)       // Asumiendo estatus=1 significa finalizado
+                ->orderBy('updated_at', 'desc') // Opcional
+                ->first();
+
+            return response()->json([
+                'normal' => [
+                    'finalizado'  => $registroNormal ? true : false,
+                    'observacion' => $registroNormal ? $registroNormal->observacion : '',
+                ],
+                'tiempo_extra' => [
+                    'finalizado'  => $registroTE ? true : false,
+                    'observacion' => $registroTE ? $registroTE->observacion : '',
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Error de validación en verificarEstadoFinalizacionUnificado: ' . $e->getMessage(), $e->errors());
+            return response()->json(['error' => 'Datos de entrada inválidos.', 'details' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('Error en verificarEstadoFinalizacionUnificado: ' . $e->getMessage());
+            return response()->json(['error' => 'Ocurrió un error al verificar el estado de finalización.'], 500);
+        }
     }
 
     public function formFinalizarProceso_v2TE(Request $request)
@@ -883,23 +928,6 @@ class AuditoriaAQLV3Controller extends Controller
         ]);
     }
 
-    public function verificarFinalizacionTE(Request $request)
-    {
-        $modulo = $request->input('modulo'); 
-        $fechaActual = Carbon::now()->toDateString();
-
-        // Buscar si ya se finalizó el módulo para la fecha actual en tiempo extra
-        $registro = AuditoriaAQL::whereDate('created_at', $fechaActual)
-                    ->where('modulo', $modulo)
-                    ->where('tiempo_extra', 1) // Filtra solo tiempo extra
-                    ->where('estatus', 1)
-                    ->first();
-
-        return response()->json([
-            'finalizado'  => $registro ? true : false,
-            'observacion' => $registro ? $registro->observacion : '',
-        ]);
-    }
 
 
     public function bultosNoFinalizados(Request $request)
