@@ -514,25 +514,57 @@ class AuditoriaAQLV3Controller extends Controller
     {
         try {
             $modulo = $request->input('modulo');
-            $search = $request->input('search');
 
-            $query = AuditoriaProceso::query()
-                ->select('name', 'personnelnumber')
-                ->distinct()
-                ->orderByRaw("CASE WHEN moduleid = ? THEN 0 ELSE 1 END", [$modulo]);
-
-            if ($search) {
-                $query->where(function($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('personnelnumber', 'like', "%{$search}%");
-                });
+            // Es crucial que $modulo tenga un valor si tu orderByRaw depende de él.
+            // Si $modulo puede no venir, debes decidir cómo manejar el orderByRaw o la clave de caché.
+            if (!$modulo) {
+                // Podrías asignar un valor por defecto o manejar el error si es indispensable.
+                // Log::warning('Se accedió a obtenerNombresProceso sin un parámetro de módulo.');
+                // Para este ejemplo, asumiremos que el query maneja un $modulo nulo o vacío si es posible,
+                // o que siempre se envía. Si $modulo es estrictamente necesario:
+                // return response()->json(['error' => 'El parámetro módulo es requerido.'], 400);
             }
 
-            $nombres = $query->get();
+            // La clave de caché debe considerar el $modulo ya que el ordenamiento depende de él.
+            // Si $modulo es null o una cadena vacía, asegúrate que esto genere una clave válida y consistente.
+            $cacheKey = "lista_completa_nombres_proceso_mod_priorizado_" . strval($modulo);
+            $cacheDuration = 180; // 3 minutos en segundos (3 * 60)
+
+            $nombres = Cache::remember($cacheKey, $cacheDuration, function () use ($modulo) {
+
+                $query = AuditoriaProceso::query()
+                    ->select('name', 'personnelnumber')
+                    ->distinct();
+
+                // Aplicamos el ordenamiento que prioriza el módulo actual.
+                // Asegúrate que 'moduleid' sea el nombre correcto de la columna en tu tabla.
+                // Si $modulo es null, la comparación `moduleid = NULL` en SQL es especial (debería ser `moduleid IS NULL`).
+                // Si $modulo siempre va a tener un valor, esto está bien.
+                // Si $modulo puede ser nulo y quieres manejarlo, podrías hacer:
+                if (!empty($modulo)) {
+                    $query->orderByRaw("CASE WHEN moduleid = ? THEN 0 ELSE 1 END", [$modulo])
+                          ->orderBy('name'); // Orden secundario para consistencia dentro de los grupos
+                } else {
+                    // Si no hay módulo, un ordenamiento general
+                    $query->orderBy('name');
+                }
+                
+                // IMPORTANTE: No se incluye la lógica `if ($search)` aquí.
+                // Esta función ahora devuelve el conjunto completo de datos para la búsqueda del lado del cliente.
+
+                return $query->get();
+            });
 
             return response()->json($nombres);
+
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            // Loguear el error detallado en el servidor
+            Log::error('Error en obtenerNombresProceso: ' . $e->getMessage(), [
+                'modulo' => $request->input('modulo'),
+                'exception_trace' => $e->getTraceAsString() // Para depuración más profunda si es necesario
+            ]);
+            // Devolver un mensaje de error genérico al cliente
+            return response()->json(['error' => 'Ocurrió un error al procesar la solicitud.'], 500);
         }
     }
 

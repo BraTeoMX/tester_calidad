@@ -226,7 +226,7 @@
                     <!-- Aquí ya NO necesitamos la tabla, pero sí necesitamos mantener los valores -->
                     <input type="hidden" name="modulo" id="modulo" value="{{ $data['modulo'] }}">
                     <!-- Formulario que envía la solicitud al controlador -->
-                    <form action="{{ route('buscarUltimoRegistro') }}" method="POST">
+                    <form action="{{ route('AQLV3.buscarUltimoRegistro') }}" method="POST">
                         @csrf
                         <input type="hidden" name="modulo" value="{{ $data['modulo'] }}">
                         <button type="submit" class="btn btn-primary">Fin Paro Modular</button>
@@ -427,7 +427,7 @@
                                 <button id="btn-finalizar-TE" class="btn btn-danger">Finalizar Tiempo Extra</button>
                             </div>
                         </div>
-                    </div>                                
+                    </div>
                 </div>
             </div>
         </div>
@@ -745,7 +745,7 @@
             const bultoSelect = $('#bulto_seleccion');
 
             $.ajax({
-                url: "{{ route('obtener.opciones.op') }}", // Ruta para obtener todas las OPs
+                url: "{{ route('AQLV3.obtener.op') }}", // Ruta para obtener todas las OPs 
                 type: 'GET',
                 dataType: 'json',
                 success: function (dataOpsServer) {
@@ -1071,7 +1071,7 @@
                 placeholder: 'Selecciona una opción',
                 allowClear: true,
                 ajax: {
-                    url: "{{ route('obtener.nombres.proceso') }}",
+                    url: "{{ route('AQLV3.obtener.nombres') }}",
                     type: 'GET',
                     dataType: 'json',
                     delay: 250,
@@ -1126,8 +1126,7 @@
                 selectedOptionsContainerNombre.append(optionElement);
             }
         });
-
-    </script>    
+    </script>
 
     <script>
         $(document).ready(function () {
@@ -1465,13 +1464,13 @@
 
                         // Construir la fila de la tabla principal
                         const filaHtml = `
-                            <tr class="${registro.tiempo_extra ? 'bg-light-blue' : ''}"> {/* Ejemplo de clase condicional */}
+                            <tr class="${registro.tiempo_extra ? 'bg-light-blue' : ''}">
                                 <td>
                                     ${registro.inicio_paro === null
                                         ? '-'
                                         : registro.fin_paro
                                             ? (registro.minutos_paro !== null ? registro.minutos_paro : '-')
-                                            : `<button class="btn btn-primary btn-sm ${claseBotonFinalizarParo}" data-id="${registro.id}">Fin Paro</button>`
+                                            : `<button class="btn btn-primary btn-sm ${claseBotonFinalizarParo}" data-id="${registro.id}">Fin Paro AQL</button>`
                                     }
                                 </td>
                                 <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.bulto || ''}" readonly></td>
@@ -1709,7 +1708,7 @@
                             if (resultConfirm.isConfirmed) {
                                 Swal.fire({ title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                                 $.ajax({
-                                    url: "{{ route('finalizar.paro.aql') }}", // Ruta única para finalizar paro
+                                    url: "{{ route('AQLV3.finalizar.paro') }}", // Ruta única para finalizar paro
                                     type: "POST",
                                     data: {
                                         id: registroId,
