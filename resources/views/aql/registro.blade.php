@@ -897,120 +897,96 @@
         $(document).ready(function() {
             const tpSelect = $('#tpSelectAQL');
             const selectedOptionsContainer = $('#selectedOptionsContainerAQL');
-            let allDefectsData = []; // Variable para almacenar todos los defectos cargados
-            let defectsDataLoaded = false; // Bandera para controlar si los datos ya se cargaron
-            let isLoadingDefects = false; // Bandera para evitar múltiples cargas simultáneas
+            
+            // Variable para cachear los resultados y evitar múltiples llamadas
+            let cachedDefectsData = null;
 
-            // Función para procesar y preparar los datos para Select2
-            function processDataForSelect2(data) {
-                const options = data.map(item => ({
-                    id: item.nombre, // O item.id si 'id' es el identificador único
-                    text: item.nombre,
-                }));
-                // Añadir la opción de crear defecto al principio
-                options.unshift({
-                    id: 'CREAR_DEFECTO',
-                    text: 'CREAR DEFECTO',
-                    action: true
-                });
-                return options;
-            }
-
-            // Función para inicializar o actualizar Select2
-            function initializeOrUpdateTpSelect(processedData) {
-                if (tpSelect.hasClass("select2-hidden-accessible")) {
-                    tpSelect.select2('destroy').empty();
-                }
-
-                tpSelect.select2({
-                    placeholder: 'Selecciona una o más opciones',
-                    allowClear: true,
-                    data: processedData,
-                    templateResult: function(data) {
-                        if (data.action) {
-                            return $('<span style="color: #007bff; font-weight: bold;">' + data.text +
-                                '</span>');
+            // ---- INICIO DE LA NUEVA LÓGICA DE SELECT2 ----
+            tpSelect.select2({
+                placeholder: 'Selecciona una o más opciones',
+                allowClear: true,
+                language: { // Definimos los textos aquí
+                    noResults: function() { return "No se encontraron resultados"; },
+                    searching: function() { return "Buscando..."; }
+                },
+                // Usamos la funcionalidad AJAX incorporada de Select2
+                ajax: {
+                    // Usamos 'transport' para controlar CÓMO se hace la petición.
+                    // Esto nos permite interceptarla y usar la caché si ya tenemos los datos.
+                    transport: function(params, success, failure) {
+                        // Si ya hemos cargado los datos, los devolvemos inmediatamente sin hacer otra llamada AJAX.
+                        if (cachedDefectsData) {
+                            success(cachedDefectsData);
+                            return;
                         }
-                        return data.text;
-                    },
-                    language: {
-                        noResults: function() {
-                            return "No se encontraron resultados";
-                        },
-                        searching: function() {
-                            return "Buscando...";
-                        }
-                    },
-                });
-                tpSelect.val(null).trigger('change');
-            }
 
-            // Función para cargar los defectos
-            function loadInitialDefects() {
-                // Si ya están cargados y no forzamos recarga, no hacer nada (útil si se llama desde varios sitios)
-                // Para el caso de "cargar al abrir", el 'defectsDataLoaded' ya controla esto afuera.
-                // Esta función ahora se enfoca solo en cargar.
-                if (isLoadingDefects) {
-                    return; // Ya hay una carga en curso
-                }
-                isLoadingDefects = true;
-
-                // Mostrar algún indicador de carga si se desea, p.ej., dentro del select
-                // tpSelect.prop('disabled', true); // Deshabilitar mientras carga
-
-                $.ajax({
-                    url: "{{ route('AQLV3.defectos.aql') }}",
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(data) {
-                        allDefectsData = data;
-                        const processedData = processDataForSelect2(data);
-                        initializeOrUpdateTpSelect(processedData);
-                        defectsDataLoaded = true; // Marcar que los datos se cargaron exitosamente
+                        // Si no, hacemos la llamada AJAX por primera y única vez.
+                        return $.ajax({
+                            url: "{{ route('AQLV3.defectos.aql') }}",
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function(data) {
+                                // Guardamos los datos en nuestra caché para futuros usos
+                                cachedDefectsData = data;
+                                // Devolvemos los datos a Select2
+                                success(data);
+                            },
+                            error: function() {
+                                // Notificamos a Select2 del fallo
+                                failure();
+                            }
+                        });
                     },
-                    error: function(xhr) {
-                        console.error('Error al cargar defectos:', xhr);
-                        alert('Error al cargar los defectos.');
-                        // Dejar defectsDataLoaded como false para permitir un nuevo intento al abrir
-                        defectsDataLoaded = false;
-                        // Opcionalmente, reinicializar con solo la opción de crear si falla la carga
-                        initializeOrUpdateTpSelect(processDataForSelect2([]));
-                    },
-                    complete: function() {
-                        isLoadingDefects = false; // Termina la carga (exitosa o no)
-                        // tpSelect.prop('disabled', false); // Habilitar de nuevo
+                    // 'processResults' se ejecuta después de que 'transport' tiene éxito.
+                    // Su trabajo es transformar los datos del servidor al formato que Select2 espera.
+                    processResults: function(data) {
+                        // Mapeamos los datos recibidos al formato {id, text}
+                        let options = data.map(item => ({
+                            id: item.nombre,
+                            text: item.nombre
+                        }));
+
+                        // Añadimos nuestra opción especial "CREAR DEFECTO" al inicio de la lista de resultados.
+                        options.unshift({
+                            id: 'CREAR_DEFECTO',
+                            text: 'CREAR DEFECTO',
+                            action: true // Propiedad personalizada para el formateo
+                        });
+
+                        // Devolvemos los datos en el formato que Select2 requiere: { results: [...] }
+                        return {
+                            results: options
+                        };
                     }
-                });
-            }
-
-            // Inicializar Select2 con la opción "CREAR DEFECTO" únicamente al cargar la página.
-            // Los datos completos se cargarán al abrir el select.
-            const initialMinimalData = processDataForSelect2([]); // Solo contendrá "CREAR DEFECTO"
-            initializeOrUpdateTpSelect(initialMinimalData);
-
-
-            // Evento para cargar los datos cuando se abre el Select2 por primera vez
-            tpSelect.on('select2:open', function() {
-                if (!defectsDataLoaded && !
-                    isLoadingDefects) { // Solo cargar si no se han cargado y no hay una carga en curso
-                    loadInitialDefects();
+                },
+                // 'templateResult' se mantiene para dar formato a nuestra opción especial
+                templateResult: function(data) {
+                    if (data.action) {
+                        return $('<span style="color: #007bff; font-weight: bold;">' + data.text + '</span>');
+                    }
+                    return data.text;
                 }
             });
+            // ---- FIN DE LA NUEVA LÓGICA DE SELECT2 ----
 
-            // Evento al seleccionar una opción
+
+            // El resto de tu lógica para manejar la selección, creación y eliminación
+            // permanece exactamente igual y funcionará sin problemas.
+
             tpSelect.on('select2:select', function(e) {
-                const selected = e.params.data;
+                const selectedData = e.params.data;
 
-                if (selected.id === 'CREAR_DEFECTO') {
+                if (selectedData.id === 'CREAR_DEFECTO') {
+                    // Deseleccionamos la opción "CREAR" para que no quede en el campo y abrimos el modal
+                    tpSelect.val(null).trigger('change');
                     $('#nuevoConceptoModal').modal('show');
                     return;
                 }
 
-                addOptionToContainer(selected.id, selected.text);
+                addOptionToContainer(selectedData.id, selectedData.text);
                 tpSelect.val(null).trigger('change');
             });
 
-            // Agregar la opción seleccionada al contenedor
             function addOptionToContainer(id, text) {
                 const optionElement = $(`
                     <div class="selected-option d-flex align-items-center justify-content-between border p-2 mb-1" data-id="${id}">
@@ -1019,27 +995,21 @@
                         <button class="btn btn-danger btn-sm remove-option" title="Eliminar defecto">Eliminar</button>
                     </div>
                 `);
-
                 optionElement.find('.duplicate-option').on('click', function() {
                     addOptionToContainer(id, text);
                 });
-
                 optionElement.find('.remove-option').on('click', function() {
                     optionElement.remove();
                 });
-
                 selectedOptionsContainer.append(optionElement);
             }
 
-            // Evento para guardar un nuevo defecto
             $('#guardarNuevoConcepto').on('click', function() {
                 const nuevoDefectoNombre = $('#nuevoConceptoInput').val().trim();
-
                 if (!nuevoDefectoNombre) {
                     alert('Por favor, ingresa un defecto válido.');
                     return;
                 }
-
                 $.ajax({
                     url: "{{ route('AQLV3.crear.defecto.aql') }}",
                     type: 'POST',
@@ -1050,17 +1020,8 @@
                     },
                     success: function(newDefect) {
                         addOptionToContainer(newDefect.nombre, newDefect.nombre);
-
-                        // Forzar la recarga de defectos para incluir el nuevo.
-                        // Esto invalidará la bandera `defectsDataLoaded` temporalmente si es necesario
-                        // o simplemente llamará a loadInitialDefects que actualizará todo.
-                        defectsDataLoaded =
-                        false; // Para asegurar que se recarguen al abrir si se quiere la lista más fresca
-                        // o podrías simplemente llamar a loadInitialDefects() directamente.
-                        // Llamar a loadInitialDefects() es más directo aquí.
-                        loadInitialDefects
-                    (); // Esto recargará y actualizará la bandera 'defectsDataLoaded' a true.
-
+                        // Invalidamos la caché para que la próxima vez que se abra, se vuelva a consultar la lista actualizada.
+                        cachedDefectsData = null;
                         $('#nuevoConceptoModal').modal('hide');
                         $('#nuevoConceptoInput').val('');
                     },
@@ -1072,11 +1033,6 @@
                         alert(errorMessage);
                     },
                 });
-            });
-
-            // Cuando el modal de nuevo concepto se cierre
-            $('#nuevoConceptoModal').on('hidden.bs.modal', function() {
-                tpSelect.val(null).trigger('change');
             });
         });
     </script>
@@ -1554,14 +1510,14 @@
                                             : `<button class="btn btn-primary btn-sm ${claseBotonFinalizarParo}" data-id="${registro.id}">Fin Paro AQL</button>`
                                     }
                                 </td>
-                                <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.bulto || ''}" readonly></td>
-                                <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.pieza || ''}" readonly></td>
-                                <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.talla || ''}" readonly></td>
-                                <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.color || ''}" readonly></td>
-                                <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.estilo || ''}" readonly></td>
-                                <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.cantidad_auditada || 0}" readonly></td>
-                                <td><input type="text" class="form-control form-control-sm texto-blanco" value="${registro.cantidad_rechazada || 0}" readonly></td>
-                                <td><input type="text" class="form-control form-control-sm texto-blanco" readonly value="${
+                                <td><input type="text" class="form-control texto-blanco" value="${registro.bulto || ''}" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" value="${registro.pieza || ''}" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" value="${registro.talla || ''}" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" value="${registro.color || ''}" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" value="${registro.estilo || ''}" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_auditada || 0}" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" value="${registro.cantidad_rechazada || 0}" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" readonly value="${
                                     registro.tp_auditoria_a_q_l && registro.tp_auditoria_a_q_l.length > 0
                                         ? registro.tp_auditoria_a_q_l.map(tp => tp.tp).join(', ')
                                         : '-'
@@ -1573,7 +1529,7 @@
                                 </td>
                                 <td>${registro.created_at ? new Date(registro.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '-'}</td>
                                 <td>
-                                    <input type="text" class="form-control form-control-sm texto-blanco" value="${(registro.reparacion_rechazo !== null && registro.reparacion_rechazo !== '') ? registro.reparacion_rechazo : '-'}" readonly>
+                                    <input type="text" class="form-control texto-blanco" value="${(registro.reparacion_rechazo !== null && registro.reparacion_rechazo !== '') ? registro.reparacion_rechazo : '-'}" readonly>
                                 </td>
                             </tr>
                         `;
@@ -1627,7 +1583,7 @@
                     let tdsHtml = '';
                     for (let i = 0; i < numInputsEsperados; i++) {
                         tdsHtml +=
-                            `<td><input type="text" class="form-control form-control-sm texto-blanco" readonly></td>`;
+                            `<td><input type="text" class="form-control texto-blanco" readonly></td>`;
                     }
                     fila = document.createElement('tr');
                     fila.innerHTML = tdsHtml;
