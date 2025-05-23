@@ -162,14 +162,14 @@
                                 </a>
                             </li>
                             <li class="nav-item{{ $pageSlug == 'proceso' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('altaProcesoV2') }}">
+                                <a class="nav-link" href="{{ route('procesoV3.inicio') }}">
                                     <i class="material-icons">edit_document</i>
                                     <p>{{ __('FCC-001') }}</p>
                                     <p style="text-align: center;">{{ __('AUDITORIA DE PROCESOS') }}</p>
                                 </a>
                             </li>
                             <li class="nav-item{{ $pageSlug == 'AQL' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('auditoriaAQL.altaAQL_v2') }}">
+                                <a class="nav-link" href="{{ route('AQLV3.inicio') }}">
                                     <i class="material-icons">edit_document</i>
                                     <p>{{ __('FCC-009-B') }}</p>
                                     <p style="text-align: center;">{{ __('AUDITORIA FINAL A.Q.L') }}</p>
@@ -212,14 +212,14 @@
                                 </a>
                             </li>
                             <li class="nav-item{{ $pageSlug == 'proceso' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('altaProcesoV2') }}">
+                                <a class="nav-link" href="{{ route('procesoV3.inicio') }}">
                                     <i class="material-icons">edit_document</i>
                                     <p>{{ __('FCC-001') }}</p>
                                     <p style="text-align: center;">{{ __('AUDITORIA DE PROCESOS') }}</p>
                                 </a>
                             </li>
                             <li class="nav-item{{ $pageSlug == 'AQL' ? ' active' : '' }}">
-                                <a class="nav-link" href="{{ route('auditoriaAQL.altaAQL_v2') }}">
+                                <a class="nav-link" href="{{ route('AQLV3.inicio') }}">
                                     <i class="material-icons">edit_document</i>
                                     <p>{{ __('FCC-009-B') }}</p>
                                     <p style="text-align: center;">{{ __('AUDITORIA FINAL A.Q.L') }}</p>

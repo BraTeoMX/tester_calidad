@@ -35,7 +35,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Seleccionamos todos los elementos de alerta
             const alerts = document.querySelectorAll('.alert');
-    
+
             // Iteramos por cada alerta para aplicar el desvanecido
             alerts.forEach(alert => {
                 // Esperamos 6 segundos antes de iniciar el desvanecido
@@ -43,14 +43,13 @@
                     // Cambiamos la opacidad para el efecto de desvanecido
                     alert.style.transition = 'opacity 1s ease';
                     alert.style.opacity = '0';
-    
+
                     // Eliminamos el elemento del DOM después de 1 segundo (duración del desvanecido)
                     setTimeout(() => alert.remove(), 1000);
                 }, 5000); // Tiempo de espera antes de desvanecer (6 segundos)
             });
         });
     </script>
-    
     <style>
         .alerta-exito {
             background-color: #32CD32;
@@ -140,7 +139,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.9);
+            background-color: rgba(0, 0, 0, 0.9);
             overflow-y: auto;
         }
 
@@ -167,361 +166,384 @@
         }
 
         #closeModalAQL {
-            z-index: 1000; /* Asegúrate de que sea mayor que cualquier elemento que pueda superponer */
-            position: relative; /* Esto ayuda a que el z-index funcione */
-            display: inline-block; /* Asegura que el área sea del tamaño del contenido */
-            width: auto; /* Ajusta el tamaño al contenido */
+            z-index: 1000;
+            /* Asegúrate de que sea mayor que cualquier elemento que pueda superponer */
+            position: relative;
+            /* Esto ayuda a que el z-index funcione */
+            display: inline-block;
+            /* Asegura que el área sea del tamaño del contenido */
+            width: auto;
+            /* Ajusta el tamaño al contenido */
         }
-
     </style>
-    {{-- ... el resto de tu vista ... --}}
-    <div class="content">
-        <div class="container-fluid">
-            <div class="card">
-                <!-- Encabezado del card -->
-                <div class="card-header card-header-primary">
-                    <div class="row align-items-center justify-content-between">
-                        <div class="col">
-                            <h3 class="card-title">AUDITORIA AQL</h3>
-                        </div>
-                        <div class="col-auto">
-                            <!-- Botón para abrir el modal -->
-                            <button type="button" class="btn btn-link" id="openModalAQL">
-                                <h4>Fecha: {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}</h4>
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Modal -->
-                    <div id="customModalAQL" class="custom-modal">
-                        <div class="custom-modal-content">
-                            <div class="custom-modal-header">
-                                <h5 class="modal-title texto-blanco">Detalles del Proceso</h5>
-                                <button id="closeModalAQL" class="btn btn-danger">CERRAR</button>
-                            </div>
-                            <div class="custom-modal-body">
-                                <!-- Contenido de la tabla -->
-                                <div class="table-responsive">
-                                    <input type="text" id="searchInputAQL" class="form-control mb-3" placeholder="Buscar Módulo u OP">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Accion</th>
-                                                <th>Módulo</th>
-                                                <th>OP</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="tablaProcesosAQL">
-                                            <!-- Aquí se insertarán dinámicamente las filas -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <div class="card">
+        <!-- Encabezado del card -->
+        <div class="card-header card-header-primary">
+            <div class="row align-items-center justify-content-between">
+                <div class="col">
+                    <h3 class="card-title">AUDITORIA AQL</h3>
                 </div>
-                <hr>
-                <!-- Contenido del card -->
-                @if($resultadoFinal == true)
-                <div class="card-body">
-                    <!-- Aquí ya NO necesitamos la tabla, pero sí necesitamos mantener los valores -->
-                    <input type="hidden" name="modulo" id="modulo" value="{{ $data['modulo'] }}">
-                    <!-- Formulario que envía la solicitud al controlador -->
-                    <form action="{{ route('AQLV3.buscarUltimoRegistro') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="modulo" value="{{ $data['modulo'] }}">
-                        <button type="submit" class="btn btn-primary">Fin Paro Modular</button>
-                    </form>
-                </div>
-                @else
-                <div class="card-body">
-                    <!-- Tabla responsiva -->
-                    <div class="table-responsive">
-                        <table class="table" id="tabla-datos-principales">
-                            <thead class="thead-primary table-100">
-                                <tr>
-                                    <th>MODULO</th>
-                                    <th>OP</th>
-                                    <th>SUPERVISOR</th>
-                                    <th>GERENTE PRODUCCION</th>
-                                    <th>AUDITOR</th>
-                                    <th>TURNO</th>
-                                    <th>CLIENTE</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" name="modulo" id="modulo" value="{{ $data['modulo'] }}" readonly>
-                                    </td>
-                                    <td>
-                                        <select class="form-control texto-blanco" name="op_seleccion" id="op_seleccion" required title="Selecciona una OP">
-                                            <option value="">Cargando opciones...</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader" value="{{ $data['team_leader'] }}" readonly>
-                                    </td>
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" name="gerente_produccion" value="{{ $data['gerente_produccion'] }}" readonly>
-                                    </td>
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" name="auditor" id="auditor" value="{{ $data['auditor'] }}" readonly>
-                                    </td>
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" name="turno" id="turno" value="{{ $data['turno'] }}" readonly>
-                                    </td>
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" name="customername" id="customername_hidden" readonly>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <table class="table table32" id="tabla-datos-secundarios">
-                            <thead class="thead-primary">
-                                <tr>
-                                    <th># BULTO</th>
-                                    <th>PIEZAS</th>
-                                    <th>ESTILO</th>
-                                    <th>COLOR</th>
-                                    <th>TALLA</th>
-                                    <th>PIEZAS INSPECCIONADAS</th>
-                                    <th>PIEZAS RECHAZADAS</th>
-                                    <th>TIPO DE DEFECTO</th>
-                                    <th>ACCION CORRECTIVA</th>
-                                    <th>NOMBRE</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <select name="bulto_seleccion" id="bulto_seleccion" class="form-control" required title="Por favor, selecciona una opción">
-                                            <option value="">Cargando bultos...</option>
-                                        </select>
-                                    </td>
-                                    <td><input type="text" class="form-control texto-blanco" name="pieza" id="pieza-seleccion" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="estilo" id="estilo-seleccion" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="color" id="color-seleccion" readonly></td>
-                                    <td><input type="text" class="form-control texto-blanco" name="talla" id="talla-seleccion" readonly></td>
-                                    <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada" id="cantidad_auditada" required></td>
-                                    <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada" id="cantidad_rechazada" required></td>
-                                    <td> 
-                                        <select id="tpSelectAQL" class="form-control w-100" title="Por favor, selecciona una opción"></select>
-                                        <div id="selectedOptionsContainerAQL" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
-                                    </td>
-                                    <td><input type="text" class="form-control" name="accion_correctiva" id="accion_correctiva" required></td>
-                                    <td>
-                                        <select name="nombre-none" id="nombre_select" class="form-control"></select> 
-                                        <div id="selectedOptionsContainerNombre" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <button type="submit" class="btn-verde-xd">Guardar</button>
-                </div>
-                @endif
-            </div>
-
-            <div class="card card-body">
-                <div class="accordion" id="accordionBultos">
-                    <div class="card">
-                        <div class="card-header p-0" id="headingBultos">
-                            <h2 class="mb-0">
-                                <button class="btn btn-link text-light text-decoration-none w-100 text-left" type="button" data-toggle="collapse" data-target="#collapseBultos" aria-expanded="false" aria-controls="collapseBultos">
-                                    <i class="fa fa-box mr-2"></i> Mostrar Bultos No Finalizados
-                                </button>
-                            </h2>
-                        </div>
-                        <div id="collapseBultos" class="collapse" aria-labelledby="headingBultos" data-parent="#accordionBultos">
-                            <div class="card-body" id="bultos-container" data-modulo="{{ $data['modulo'] }}">
-                                <p class="text-muted">Abre el acordeón para cargar los datos.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>                
-            </div>            
-            <div class="card">
-                <div class="card-header card-header-primary">
-                    <h3>Registros - Turno normal</h3>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table56" id="tabla_registros_dia">
-                            <thead class="thead-primary">
-                                <tr>
-                                    <th>PARO</th>
-                                    <th># BULTO</th>
-                                    <th>PIEZAS</th>
-                                    <th>TALLA</th>
-                                    <th>COLOR</th>
-                                    <th>ESTILO</th>
-                                    <th>PIEZAS INSPECCIONADAS</th>
-                                    <th>PIEZAS RECHAZADAS</th>
-                                    <th>DEFECTO(S)</th>
-                                    <th>Eliminar </th>
-                                    <th>Hora</th>
-                                    <th>Reparación Piezas</th> <!-- Nueva columna --> 
-                                </tr>
-                            </thead>
-                            <tbody>
-
-                            </tbody>
-                        </table>
-                        <div id="observacion-container" data-modulo="{{ $data['modulo'] }}">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="observacion" class="col-sm-6 col-form-label">Observaciones:</label>
-                                    <div class="col-sm-12">
-                                        <textarea class="form-control texto-blanco" id="observacion" rows="3" placeholder="comentarios" required></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <button id="btn-finalizar" class="btn btn-danger">Finalizar</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-auto">
+                    <!-- Botón para abrir el modal -->
+                    <button type="button" class="btn btn-link" id="openModalAQL">
+                        <h4>Fecha: {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
+                        </h4>
+                    </button>
                 </div>
             </div>
-        </div>
-        <div class="card">
-            <div class="card-header card-header-primary">
-                <h3>Registros - Tiempo extra</h3>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table56" id="tabla_registros_tiempo_extra">
-                        <thead class="thead-primary">
-                            <tr>
-                                <th>PARO</th>
-                                <th># BULTO</th>
-                                <th>PIEZAS</th>
-                                <th>TALLA</th>
-                                <th>COLOR</th>
-                                <th>ESTILO</th>
-                                <th>PIEZAS INSPECCIONADAS</th>
-                                <th>PIEZAS RECHAZADAS</th>
-                                <th>DEFECTO(S)</th>
-                                <th>Eliminar </th>
-                                <th>Hora</th>
-                                <th>Reparación Piezas</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Registros dinámicos para Tiempo Extra -->
-                        </tbody>
-                    </table>
-                    <div id="observacion-container-TE" data-modulo="{{ $data['modulo'] }}">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="observacion-TE" class="col-sm-6 col-form-label">Observaciones Tiempo Extra:</label>
-                                <div class="col-sm-12">
-                                    <textarea class="form-control texto-blanco" id="observacion-TE" rows="3" placeholder="comentarios" required></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <button id="btn-finalizar-TE" class="btn btn-danger">Finalizar Tiempo Extra</button>
-                            </div>
+            <!-- Modal -->
+            <div id="customModalAQL" class="custom-modal">
+                <div class="custom-modal-content">
+                    <div class="custom-modal-header">
+                        <h5 class="modal-title texto-blanco">Detalles del Proceso</h5>
+                        <button id="closeModalAQL" class="btn btn-danger">CERRAR</button>
+                    </div>
+                    <div class="custom-modal-body">
+                        <!-- Contenido de la tabla -->
+                        <div class="table-responsive">
+                            <input type="text" id="searchInputAQL" class="form-control mb-3"
+                                placeholder="Buscar Módulo u OP">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Accion</th>
+                                        <th>Módulo</th>
+                                        <th>OP</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaProcesosAQL">
+                                    <!-- Aquí se insertarán dinámicamente las filas -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <h2>Piezas auditadas por dia - TURNO NORMAL</h2> 
-                    <table class="table" id="tabla-piezas-dia">
-                        <thead class="thead-primary">
-                            <tr>
-                                <th>Total de piezas Muestra Auditadas </th>
-                                <th>Total de piezas Muestra Rechazadas</th>
-                                <th>Porcentaje AQL</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-                <hr>
-                <table class="table contenedor-tabla" id="tabla-piezas-bultos">
-                    <thead class="thead-primary">
-                        <tr>
-                            <th>Total de piezas en bultos Auditados</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-                <hr>
-                <div class="table-responsive">
-                    <h2>Total por Bultos </h2>
-                    <table class="table" id="tabla-bultos-totales">
-                        <thead class="thead-primary">
-                            <tr>
-                                <th>total de Bultos Auditados</th>
-                                <th>total de Bultos Rechazados</th>
-                                <th>Porcentaje Total</th>
-                            </tr>
-                        </thead>
-                        <tbody> 
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
         <hr>
-        <!-- Apartado para mostrar turno extra"-->
-        <div class="card">
+        <!-- Contenido del card -->
+        @if ($resultadoFinal == true)
             <div class="card-body">
+                <!-- Aquí ya NO necesitamos la tabla, pero sí necesitamos mantener los valores -->
+                <input type="hidden" name="modulo" id="modulo" value="{{ $data['modulo'] }}">
+                <!-- Formulario que envía la solicitud al controlador -->
+                <form action="{{ route('AQLV3.buscarUltimoRegistro') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="modulo" value="{{ $data['modulo'] }}">
+                    <button type="submit" class="btn btn-primary">Fin Paro Modular</button>
+                </form>
+            </div>
+        @else
+            <div class="card-body">
+                <!-- Tabla responsiva -->
                 <div class="table-responsive">
-                    <h2>Piezas auditadas por dia - TIEMPO EXTRA</h2> 
-                    <table class="table" id="tabla-piezas-dia-TE">
-                        <thead class="thead-primary">
+                    <table class="table" id="tabla-datos-principales">
+                        <thead class="thead-primary table-100">
                             <tr>
-                                <th>Total de piezas Muestra Auditadas </th>
-                                <th>Total de piezas Muestra Rechazadas</th>
-                                <th>Porcentaje AQL</th>
+                                <th>MODULO</th>
+                                <th>OP</th>
+                                <th>SUPERVISOR</th>
+                                <th>GERENTE PRODUCCION</th>
+                                <th>AUDITOR</th>
+                                <th>TURNO</th>
+                                <th>CLIENTE</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <tr>
+                                <td>
+                                    <input type="text" class="form-control texto-blanco" name="modulo" id="modulo"
+                                        value="{{ $data['modulo'] }}" readonly>
+                                </td>
+                                <td>
+                                    <select class="form-control texto-blanco" name="op_seleccion" id="op_seleccion" required
+                                        title="Selecciona una OP">
+                                        <option value="">Cargando opciones...</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control texto-blanco" name="team_leader"
+                                        id="team_leader" value="{{ $data['team_leader'] }}" readonly>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control texto-blanco" name="gerente_produccion"
+                                        value="{{ $data['gerente_produccion'] }}" readonly>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control texto-blanco" name="auditor" id="auditor"
+                                        value="{{ $data['auditor'] }}" readonly>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control texto-blanco" name="turno" id="turno"
+                                        value="{{ $data['turno'] }}" readonly>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control texto-blanco" name="customername"
+                                        id="customername_hidden" readonly>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table32" id="tabla-datos-secundarios">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th># BULTO</th>
+                                <th>PIEZAS</th>
+                                <th>ESTILO</th>
+                                <th>COLOR</th>
+                                <th>TALLA</th>
+                                <th>PIEZAS INSPECCIONADAS</th>
+                                <th>PIEZAS RECHAZADAS</th>
+                                <th>TIPO DE DEFECTO</th>
+                                <th>ACCION CORRECTIVA</th>
+                                <th>NOMBRE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <select name="bulto_seleccion" id="bulto_seleccion" class="form-control" required
+                                        title="Por favor, selecciona una opción">
+                                        <option value="">Cargando bultos...</option>
+                                    </select>
+                                </td>
+                                <td><input type="text" class="form-control texto-blanco" name="pieza"
+                                        id="pieza-seleccion" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" name="estilo"
+                                        id="estilo-seleccion" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" name="color"
+                                        id="color-seleccion" readonly></td>
+                                <td><input type="text" class="form-control texto-blanco" name="talla"
+                                        id="talla-seleccion" readonly></td>
+                                <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada"
+                                        id="cantidad_auditada" required></td>
+                                <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada"
+                                        id="cantidad_rechazada" required></td>
+                                <td>
+                                    <select id="tpSelectAQL" class="form-control w-100"
+                                        title="Por favor, selecciona una opción"></select>
+                                    <div id="selectedOptionsContainerAQL" class="w-100 mb-2" required
+                                        title="Por favor, selecciona una opción"></div>
+                                </td>
+                                <td><input type="text" class="form-control" name="accion_correctiva"
+                                        id="accion_correctiva" required></td>
+                                <td>
+                                    <select name="nombre-none" id="nombre_select" class="form-control"></select>
+                                    <div id="selectedOptionsContainerNombre" class="w-100 mb-2" required
+                                        title="Por favor, selecciona una opción"></div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
-                <hr>
-                <table class="table contenedor-tabla" id="tabla-piezas-bultos-TE">
+                <button type="submit" class="btn-verde-xd">Guardar</button>
+            </div>
+        @endif
+    </div>
+
+    <div class="card card-body">
+        <div class="accordion" id="accordionBultos">
+            <div class="card">
+                <div class="card-header p-0" id="headingBultos">
+                    <h2 class="mb-0">
+                        <button class="btn btn-link text-light text-decoration-none w-100 text-left" type="button"
+                            data-toggle="collapse" data-target="#collapseBultos" aria-expanded="false"
+                            aria-controls="collapseBultos">
+                            <i class="fa fa-box mr-2"></i> Mostrar Bultos No Finalizados
+                        </button>
+                    </h2>
+                </div>
+                <div id="collapseBultos" class="collapse" aria-labelledby="headingBultos"
+                    data-parent="#accordionBultos">
+                    <div class="card-body" id="bultos-container" data-modulo="{{ $data['modulo'] }}">
+                        <p class="text-muted">Abre el acordeón para cargar los datos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header card-header-primary">
+            <h3>Registros - Turno normal</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table56" id="tabla_registros_dia">
                     <thead class="thead-primary">
                         <tr>
-                            <th>Total de piezas en bultos Auditados</th>
+                            <th>PARO</th>
+                            <th># BULTO</th>
+                            <th>PIEZAS</th>
+                            <th>TALLA</th>
+                            <th>COLOR</th>
+                            <th>ESTILO</th>
+                            <th>PIEZAS INSPECCIONADAS</th>
+                            <th>PIEZAS RECHAZADAS</th>
+                            <th>DEFECTO(S)</th>
+                            <th>Eliminar </th>
+                            <th>Hora</th>
+                            <th>Reparación Piezas</th> <!-- Nueva columna -->
                         </tr>
                     </thead>
                     <tbody>
                     </tbody>
                 </table>
-                <hr>
-                <div class="table-responsive">
-                    <h2>Total por Bultos </h2>
-                    <table class="table" id="tabla-bultos-totales-TE">
-                        <thead class="thead-primary">
-                            <tr>
-                                <th>total de Bultos Auditados</th>
-                                <th>total de Bultos Rechazados</th>
-                                <th>Porcentaje Total</th>
-                            </tr>
-                        </thead>
-                        <tbody> 
-                        </tbody>
-                    </table>
+                <div id="observacion-container" data-modulo="{{ $data['modulo'] }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="observacion" class="col-sm-6 col-form-label">Observaciones:</label>
+                            <div class="col-sm-12">
+                                <textarea class="form-control texto-blanco" id="observacion" rows="3" placeholder="comentarios" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <button id="btn-finalizar" class="btn btn-danger">Finalizar</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    <div class="card">
+        <div class="card-header card-header-primary">
+            <h3>Registros - Tiempo extra</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table56" id="tabla_registros_tiempo_extra">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>PARO</th>
+                            <th># BULTO</th>
+                            <th>PIEZAS</th>
+                            <th>TALLA</th>
+                            <th>COLOR</th>
+                            <th>ESTILO</th>
+                            <th>PIEZAS INSPECCIONADAS</th>
+                            <th>PIEZAS RECHAZADAS</th>
+                            <th>DEFECTO(S)</th>
+                            <th>Eliminar </th>
+                            <th>Hora</th>
+                            <th>Reparación Piezas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Registros dinámicos para Tiempo Extra -->
+                    </tbody>
+                </table>
+                <div id="observacion-container-TE" data-modulo="{{ $data['modulo'] }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="observacion-TE" class="col-sm-6 col-form-label">Observaciones Tiempo
+                                Extra:</label>
+                            <div class="col-sm-12">
+                                <textarea class="form-control texto-blanco" id="observacion-TE" rows="3" placeholder="comentarios" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <button id="btn-finalizar-TE" class="btn btn-danger">Finalizar Tiempo Extra</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <h2>Piezas auditadas por dia - TURNO NORMAL</h2>
+                <table class="table" id="tabla-piezas-dia">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Total de piezas Muestra Auditadas </th>
+                            <th>Total de piezas Muestra Rechazadas</th>
+                            <th>Porcentaje AQL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <hr>
+            <table class="table contenedor-tabla" id="tabla-piezas-bultos">
+                <thead class="thead-primary">
+                    <tr>
+                        <th>Total de piezas en bultos Auditados</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <hr>
+            <div class="table-responsive">
+                <h2>Total por Bultos </h2>
+                <table class="table" id="tabla-bultos-totales">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>total de Bultos Auditados</th>
+                            <th>total de Bultos Rechazados</th>
+                            <th>Porcentaje Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <!-- Apartado para mostrar turno extra"-->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <h2>Piezas auditadas por dia - TIEMPO EXTRA</h2>
+                <table class="table" id="tabla-piezas-dia-TE">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Total de piezas Muestra Auditadas </th>
+                            <th>Total de piezas Muestra Rechazadas</th>
+                            <th>Porcentaje AQL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <hr>
+            <table class="table contenedor-tabla" id="tabla-piezas-bultos-TE">
+                <thead class="thead-primary">
+                    <tr>
+                        <th>Total de piezas en bultos Auditados</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <hr>
+            <div class="table-responsive">
+                <h2>Total por Bultos </h2>
+                <table class="table" id="tabla-bultos-totales-TE">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>total de Bultos Auditados</th>
+                            <th>total de Bultos Rechazados</th>
+                            <th>Porcentaje Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
     <!-- Modal para crear un nuevo defecto -->
-    <div class="modal fade" id="nuevoConceptoModal" tabindex="-1" role="dialog" aria-labelledby="nuevoConceptoModalLabel" aria-hidden="true">
+    <div class="modal fade" id="nuevoConceptoModal" tabindex="-1" role="dialog"
+        aria-labelledby="nuevoConceptoModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content bg-dark text-white">
                 <div class="modal-header">
@@ -531,7 +553,8 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <input type="text" class="form-control bg-dark text-white" id="nuevoConceptoInput" placeholder="Nuevo defecto">
+                    <input type="text" class="form-control bg-dark text-white" id="nuevoConceptoInput"
+                        placeholder="Nuevo defecto">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
@@ -553,22 +576,27 @@
             min-width: 80px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table-100 th:nth-child(2) {
             min-width: 180px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table-100 th:nth-child(3) {
             min-width: 200px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table-100 th:nth-child(4) {
             min-width: 130px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table-100 th:nth-child(5) {
             min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table32 th:nth-child(1) {
             min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
@@ -588,10 +616,12 @@
             min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table32 th:nth-child(9) {
             min-width: 200px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table32 th:nth-child(10) {
             min-width: 200px;
             /* Ajusta el ancho mínimo según tu necesidad */
@@ -607,18 +637,22 @@
             min-width: 50px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table56 th:nth-child(2) {
             min-width: 100px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table56 th:nth-child(5) {
             min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table56 th:nth-child(6) {
             min-width: 150px;
             /* Ajusta el ancho mínimo según tu necesidad */
         }
+
         .table56 th:nth-child(9) {
             min-width: 200px;
             /* Ajusta el ancho mínimo según tu necesidad */
@@ -645,22 +679,24 @@
     </style>
     <style>
         .tiempo-extra {
-            background-color: #1d0f2c; /* Color gris claro */
+            background-color: #1d0f2c;
+            /* Color gris claro */
         }
-        
+
         /* Asegúrate de que los textos permanezcan visibles */
-        .tiempo-extra input, 
-        .tiempo-extra .form-control, 
+        .tiempo-extra input,
+        .tiempo-extra .form-control,
         .tiempo-extra button {
-            color: #1d0f2c; 
+            color: #1d0f2c;
         }
     </style>
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             // Selectores principales
             const opSelect = $('#op_seleccion');
-            const bultoSelect = $('#bulto_seleccion'); // Asegúrate de tener este select en tu HTML: <select id="bulto_seleccion" ...></select>
+            const bultoSelect = $(
+            '#bulto_seleccion'); // Asegúrate de tener este select en tu HTML: <select id="bulto_seleccion" ...></select>
 
             // --- FUNCIÓN UTILITARIA PARA OBTENER PARÁMETROS DE LA URL ---
             function getParameterByName(name) {
@@ -695,14 +731,18 @@
                 }
 
                 bultoSelect.empty().append('<option value="">Cargando bultos...</option>').prop('disabled', true);
-                bultoSelect.select2({ placeholder: 'Cargando bultos...' }); // Actualizar placeholder visualmente
+                bultoSelect.select2({
+                    placeholder: 'Cargando bultos...'
+                }); // Actualizar placeholder visualmente
 
                 $.ajax({
                     url: "{{ route('AQLV3.obtener.bulto') }}",
                     type: 'GET',
                     dataType: 'json',
-                    data: { op: selectedOp },
-                    success: function (dataBultosServer) {
+                    data: {
+                        op: selectedOp
+                    },
+                    success: function(dataBultosServer) {
                         const select2BultoData = dataBultosServer.map(item => ({
                             id: item.prodpackticketid,
                             text: item.prodpackticketid,
@@ -712,7 +752,11 @@
                         bultoSelect.empty().select2({
                             placeholder: 'Selecciona un bulto',
                             allowClear: true,
-                            language: { noResults: function () { return "No se encontraron resultados"; } },
+                            language: {
+                                noResults: function() {
+                                    return "No se encontraron resultados";
+                                }
+                            },
                             data: select2BultoData
                         });
                         bultoSelect.prop('disabled', false);
@@ -723,13 +767,17 @@
                         // } else {
                         //     bultoSelect.val(null).trigger('change');
                         // }
-                        bultoSelect.val(null).trigger('change'); // Asegurar que el placeholder se muestre
+                        bultoSelect.val(null).trigger(
+                        'change'); // Asegurar que el placeholder se muestre
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         console.error("Error al cargar bultos para OP " + selectedOp + ":", error);
                         bultoSelect.empty().append('<option value="">Error al cargar bultos</option>');
-                        bultoSelect.select2({ placeholder: 'Error al cargar bultos' });
-                        bultoSelect.prop('disabled', false); // Habilitar para que se pueda reintentar si es necesario
+                        bultoSelect.select2({
+                            placeholder: 'Error al cargar bultos'
+                        });
+                        bultoSelect.prop('disabled',
+                        false); // Habilitar para que se pueda reintentar si es necesario
                     }
                 });
             }
@@ -739,7 +787,7 @@
                 url: "{{ route('AQLV3.obtener.op') }}",
                 type: 'GET',
                 dataType: 'json',
-                success: function (dataOpsServer) {
+                success: function(dataOpsServer) {
                     let select2OpData = dataOpsServer.map(item => ({
                         id: item.prodid,
                         text: item.prodid
@@ -749,11 +797,17 @@
 
                     // Lógica para preseleccionar si viene un valor en la URL
                     if (selectedValueOpFromUrl) {
-                        const valueExistsInLoadedData = select2OpData.some(item => item.id === selectedValueOpFromUrl);
+                        const valueExistsInLoadedData = select2OpData.some(item => item.id ===
+                            selectedValueOpFromUrl);
                         if (!valueExistsInLoadedData) {
                             // Si el valor de la URL no está en los datos masivos, lo añadimos.
-                            console.warn(`El valor OP '${selectedValueOpFromUrl}' de la URL no estaba en la lista inicial. Añadiéndolo para selección.`);
-                            select2OpData.unshift({ id: selectedValueOpFromUrl, text: selectedValueOpFromUrl });
+                            console.warn(
+                                `El valor OP '${selectedValueOpFromUrl}' de la URL no estaba en la lista inicial. Añadiéndolo para selección.`
+                                );
+                            select2OpData.unshift({
+                                id: selectedValueOpFromUrl,
+                                text: selectedValueOpFromUrl
+                            });
                             // Opcional: re-ordenar `select2OpData` si el orden es crítico
                             // select2OpData.sort((a, b) => a.text.localeCompare(b.text));
                         }
@@ -762,28 +816,35 @@
                     opSelect.empty().select2({
                         placeholder: 'Selecciona una OP',
                         allowClear: true,
-                        language: { noResults: function () { return "No se encontraron resultados"; } },
+                        language: {
+                            noResults: function() {
+                                return "No se encontraron resultados";
+                            }
+                        },
                         data: select2OpData // Proporcionar los datos locales
                     });
 
                     // Intentar preseleccionar el valor DESPUÉS de que Select2 esté inicializado con datos
                     if (selectedValueOpFromUrl) {
-                        opSelect.val(selectedValueOpFromUrl).trigger('change'); // Esto disparará el evento 'change' de opSelect
+                        opSelect.val(selectedValueOpFromUrl).trigger(
+                        'change'); // Esto disparará el evento 'change' de opSelect
                     } else {
                         // Si no hay OP en la URL, inicializar el select de bultos en su estado "Selecciona una OP primero"
                         cargarBultosParaOP(null);
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     console.error("Error al cargar opciones OP:", error);
                     opSelect.empty().append('<option value="">Error al cargar OPs</option>');
-                    opSelect.select2({ placeholder: 'Error al cargar OPs' });
+                    opSelect.select2({
+                        placeholder: 'Error al cargar OPs'
+                    });
                     cargarBultosParaOP(null); // También inicializar bultos en estado de error/vacío
                 }
             });
 
             // --- 2. MANEJADOR DE EVENTO 'CHANGE' PARA OP_SELECCION ---
-            opSelect.on('change', function () {
+            opSelect.on('change', function() {
                 const selectedOp = $(this).val();
                 console.log('OP Seleccionada:', selectedOp);
                 // Limpiar campos dependientes del bulto y resetear el select de bultos antes de cargar nuevos.
@@ -793,7 +854,7 @@
 
             // --- 3. MANEJADOR DE EVENTO 'SELECT2:SELECT' PARA BULTO_SELECCION ---
             // (Cuando el usuario efectivamente selecciona un bulto de la lista)
-            bultoSelect.on('select2:select', function (e) {
+            bultoSelect.on('select2:select', function(e) {
                 const data = e.params.data.extra; // Obtener los datos adicionales del bulto seleccionado
 
                 if (data) {
@@ -833,7 +894,7 @@
     </script>
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             const tpSelect = $('#tpSelectAQL');
             const selectedOptionsContainer = $('#selectedOptionsContainerAQL');
             let allDefectsData = []; // Variable para almacenar todos los defectos cargados
@@ -847,7 +908,11 @@
                     text: item.nombre,
                 }));
                 // Añadir la opción de crear defecto al principio
-                options.unshift({ id: 'CREAR_DEFECTO', text: 'CREAR DEFECTO', action: true });
+                options.unshift({
+                    id: 'CREAR_DEFECTO',
+                    text: 'CREAR DEFECTO',
+                    action: true
+                });
                 return options;
             }
 
@@ -861,17 +926,18 @@
                     placeholder: 'Selecciona una o más opciones',
                     allowClear: true,
                     data: processedData,
-                    templateResult: function (data) {
+                    templateResult: function(data) {
                         if (data.action) {
-                            return $('<span style="color: #007bff; font-weight: bold;">' + data.text + '</span>');
+                            return $('<span style="color: #007bff; font-weight: bold;">' + data.text +
+                                '</span>');
                         }
                         return data.text;
                     },
                     language: {
-                        noResults: function () {
+                        noResults: function() {
                             return "No se encontraron resultados";
                         },
-                        searching: function () {
+                        searching: function() {
                             return "Buscando...";
                         }
                     },
@@ -896,13 +962,13 @@
                     url: "{{ route('AQLV3.defectos.aql') }}",
                     type: 'GET',
                     dataType: 'json',
-                    success: function (data) {
+                    success: function(data) {
                         allDefectsData = data;
                         const processedData = processDataForSelect2(data);
                         initializeOrUpdateTpSelect(processedData);
                         defectsDataLoaded = true; // Marcar que los datos se cargaron exitosamente
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         console.error('Error al cargar defectos:', xhr);
                         alert('Error al cargar los defectos.');
                         // Dejar defectsDataLoaded como false para permitir un nuevo intento al abrir
@@ -924,14 +990,15 @@
 
 
             // Evento para cargar los datos cuando se abre el Select2 por primera vez
-            tpSelect.on('select2:open', function () {
-                if (!defectsDataLoaded && !isLoadingDefects) { // Solo cargar si no se han cargado y no hay una carga en curso
+            tpSelect.on('select2:open', function() {
+                if (!defectsDataLoaded && !
+                    isLoadingDefects) { // Solo cargar si no se han cargado y no hay una carga en curso
                     loadInitialDefects();
                 }
             });
 
             // Evento al seleccionar una opción
-            tpSelect.on('select2:select', function (e) {
+            tpSelect.on('select2:select', function(e) {
                 const selected = e.params.data;
 
                 if (selected.id === 'CREAR_DEFECTO') {
@@ -953,11 +1020,11 @@
                     </div>
                 `);
 
-                optionElement.find('.duplicate-option').on('click', function () {
+                optionElement.find('.duplicate-option').on('click', function() {
                     addOptionToContainer(id, text);
                 });
 
-                optionElement.find('.remove-option').on('click', function () {
+                optionElement.find('.remove-option').on('click', function() {
                     optionElement.remove();
                 });
 
@@ -965,7 +1032,7 @@
             }
 
             // Evento para guardar un nuevo defecto
-            $('#guardarNuevoConcepto').on('click', function () {
+            $('#guardarNuevoConcepto').on('click', function() {
                 const nuevoDefectoNombre = $('#nuevoConceptoInput').val().trim();
 
                 if (!nuevoDefectoNombre) {
@@ -981,21 +1048,23 @@
                         nombre: nuevoDefectoNombre,
                         _token: '{{ csrf_token() }}',
                     },
-                    success: function (newDefect) {
+                    success: function(newDefect) {
                         addOptionToContainer(newDefect.nombre, newDefect.nombre);
-                        
+
                         // Forzar la recarga de defectos para incluir el nuevo.
                         // Esto invalidará la bandera `defectsDataLoaded` temporalmente si es necesario
                         // o simplemente llamará a loadInitialDefects que actualizará todo.
-                        defectsDataLoaded = false; // Para asegurar que se recarguen al abrir si se quiere la lista más fresca
-                                                // o podrías simplemente llamar a loadInitialDefects() directamente.
-                                                // Llamar a loadInitialDefects() es más directo aquí.
-                        loadInitialDefects(); // Esto recargará y actualizará la bandera 'defectsDataLoaded' a true.
+                        defectsDataLoaded =
+                        false; // Para asegurar que se recarguen al abrir si se quiere la lista más fresca
+                        // o podrías simplemente llamar a loadInitialDefects() directamente.
+                        // Llamar a loadInitialDefects() es más directo aquí.
+                        loadInitialDefects
+                    (); // Esto recargará y actualizará la bandera 'defectsDataLoaded' a true.
 
                         $('#nuevoConceptoModal').modal('hide');
                         $('#nuevoConceptoInput').val('');
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         let errorMessage = 'Ocurrió un error al guardar el defecto.';
                         if (xhr.responseJSON && xhr.responseJSON.error) {
                             errorMessage += ' ' + xhr.responseJSON.error;
@@ -1006,14 +1075,14 @@
             });
 
             // Cuando el modal de nuevo concepto se cierre
-            $('#nuevoConceptoModal').on('hidden.bs.modal', function () {
+            $('#nuevoConceptoModal').on('hidden.bs.modal', function() {
                 tpSelect.val(null).trigger('change');
             });
         });
     </script>
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             const nombreSelect = $('#nombre_select');
             const selectedOptionsContainerNombre = $('#selectedOptionsContainerNombre');
             const selectedIds = new Set();
@@ -1030,7 +1099,7 @@
                     placeholder: 'Selecciona una opción',
                     allowClear: true,
                     data: localData,
-                    matcher: function (params, data) {
+                    matcher: function(params, data) {
                         if ($.trim(params.term) === '') return data;
                         if (typeof data.text === 'undefined') return null;
 
@@ -1040,7 +1109,7 @@
                         return text.includes(term) ? data : null;
                     },
                     language: {
-                        noResults: function () {
+                        noResults: function() {
                             return "No se encontraron resultados";
                         }
                     }
@@ -1054,13 +1123,13 @@
                 placeholder: 'Haz clic para cargar opciones...',
                 allowClear: true,
                 language: {
-                    noResults: function () {
+                    noResults: function() {
                         return "Haz clic para cargar opciones.";
                     }
                 }
             });
 
-            nombreSelect.one('select2:open', function () {
+            nombreSelect.one('select2:open', function() {
                 if (dataLoaded) {
                     initializeSelect2WithLocalData();
                     return;
@@ -1082,7 +1151,7 @@
                     data: {
                         modulo: $('#modulo').val()
                     },
-                    success: function (data) {
+                    success: function(data) {
                         localData = data.map(item => ({
                             id: item.name,
                             text: `${item.personnelnumber} - ${item.name}`
@@ -1093,14 +1162,14 @@
 
                         setTimeout(() => nombreSelect.select2('open'), 50);
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         console.error("Error al cargar los datos:", error);
                         alert('Ocurrió un error al cargar las opciones.');
                     }
                 });
             });
 
-            nombreSelect.on('select2:select', function (e) {
+            nombreSelect.on('select2:select', function(e) {
                 const selected = e.params.data;
                 if (selectedIds.has(selected.id)) {
                     alert('Esta opción ya ha sido seleccionada.');
@@ -1120,7 +1189,7 @@
                         <button class="btn btn-danger btn-sm remove-option">Eliminar</button>
                     </div>
                 `);
-                optionElement.find('.remove-option').on('click', function () {
+                optionElement.find('.remove-option').on('click', function() {
                     optionElement.remove();
                     selectedIds.delete(id);
                 });
@@ -1130,17 +1199,18 @@
     </script>
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             // Identificadores de las tablas específicas
             const tablasObjetivo = ['#tabla-datos-principales', '#tabla-datos-secundarios'];
 
             // Inicializa las columnas ocultas
-            const columnasPosteriores = $('th:contains("TIPO DE DEFECTO"), th:contains("ACCION CORRECTIVA"), th:contains("NOMBRE")')
+            const columnasPosteriores = $(
+                    'th:contains("TIPO DE DEFECTO"), th:contains("ACCION CORRECTIVA"), th:contains("NOMBRE")')
                 .add('td:nth-child(8), td:nth-child(9), td:nth-child(10)');
             columnasPosteriores.hide(); // Ocultar al inicio
 
             // Detectar cambios en el campo cantidad_rechazada
-            $('#cantidad_rechazada').on('input', function () {
+            $('#cantidad_rechazada').on('input', function() {
                 const valor = $(this).val();
 
                 if (valor > 0) {
@@ -1148,12 +1218,13 @@
                     columnasPosteriores.find('input, select').prop('required', true); // Hacer obligatorios
                 } else {
                     columnasPosteriores.hide(); // Ocultar columnas
-                    columnasPosteriores.find('input, select').prop('required', false); // Quitar obligatoriedad
+                    columnasPosteriores.find('input, select').prop('required',
+                    false); // Quitar obligatoriedad
                 }
             });
 
             // Evento del botón "Guardar"
-            $('.btn-verde-xd').on('click', function (e) {
+            $('.btn-verde-xd').on('click', function(e) {
                 e.preventDefault(); // Prevenir el envío estándar
 
                 let esValido = true;
@@ -1163,15 +1234,17 @@
                 const valorCantidadRechazada = parseInt($('#cantidad_rechazada').val(), 10) || 0;
 
                 if (typeof tablasObjetivo !== 'undefined' && tablasObjetivo.length > 0) {
-                    selectorValidacion = `${tablasObjetivo.join(', ')} input:visible, ${tablasObjetivo.join(', ')} select:visible`;
+                    selectorValidacion =
+                        `${tablasObjetivo.join(', ')} input:visible, ${tablasObjetivo.join(', ')} select:visible`;
                 }
 
 
-                $(selectorValidacion).not('#tpSelectAQL, #nombre_select').each(function () {
+                $(selectorValidacion).not('#tpSelectAQL, #nombre_select').each(function() {
                     const name = $(this).attr('name');
                     const value = $(this).val();
 
-                    if ($(this).prop('required') && (!value || (Array.isArray(value) && value.length === 0))) {
+                    if ($(this).prop('required') && (!value || (Array.isArray(value) && value
+                            .length === 0))) {
                         esValido = false;
                         $(this).addClass('is-invalid');
                         if (!primerCampoInvalido) {
@@ -1234,7 +1307,7 @@
                 // Serializar las opciones seleccionadas
                 const selectedAQL = [];
                 if (valorCantidadRechazada > 0) {
-                    $('#selectedOptionsContainerAQL .selected-option').each(function () {
+                    $('#selectedOptionsContainerAQL .selected-option').each(function() {
                         // Extraer el texto del span, que es más confiable que .text() del div completo
                         let text = $(this).find('.option-text').text().trim();
                         selectedAQL.push(text);
@@ -1245,11 +1318,13 @@
 
                 const selectedNombre = [];
                 if (valorCantidadRechazada > 0) { // Asumo que esto también depende de cantidad_rechazada
-                    $('#selectedOptionsContainerNombre .selected-option').each(function () {
+                    $('#selectedOptionsContainerNombre .selected-option').each(function() {
                         // Similarmente, si tienes una estructura específica para el texto
-                        let text = $(this).find('.option-text').text().trim(); // Ajusta si la clase es otra
-                        if(!text) { // Fallback si no hay .option-text
-                            text = $(this).text().trim().replace(/\bEliminar\b/g, '').replace(/^\+/, '').trim();
+                        let text = $(this).find('.option-text').text()
+                    .trim(); // Ajusta si la clase es otra
+                        if (!text) { // Fallback si no hay .option-text
+                            text = $(this).text().trim().replace(/\bEliminar\b/g, '').replace(/^\+/,
+                                '').trim();
                         }
                         selectedNombre.push(text);
                     });
@@ -1261,7 +1336,7 @@
                 // Si `tablasObjetivo` o el selector general ya cubren `#tabla-datos-principales`, este bloque puede no ser necesario
                 // o puede simplificarse para solo añadir campos que no se hayan capturado (inputs hidden, por ejemplo)
                 // Reevalúa si este bloque es estrictamente necesario o si el primer bucle de validación ya recolecta todo.
-                $('#tabla-datos-principales input, #tabla-datos-principales select').each(function () {
+                $('#tabla-datos-principales input, #tabla-datos-principales select').each(function() {
                     const name = $(this).attr('name');
                     const value = $(this).val();
                     // Añadir solo si el nombre existe y no fue capturado previamente,
@@ -1279,7 +1354,8 @@
                 $('form input[type="hidden"]').each(function() {
                     const name = $(this).attr('name');
                     const value = $(this).val();
-                    if (name && typeof formData[name] === 'undefined') { // Solo añadir si no está ya
+                    if (name && typeof formData[name] ===
+                        'undefined') { // Solo añadir si no está ya
                         formData[name] = value;
                     }
                 });
@@ -1302,7 +1378,7 @@
                         ...formData, // Desestructura formData aquí
                         _token: '{{ csrf_token() }}',
                     },
-                    success: function (response) {
+                    success: function(response) {
                         Swal.fire({
                             icon: 'success',
                             title: '¡Guardado!',
@@ -1312,13 +1388,15 @@
                                 location.reload(); // Recargar la página
                             } else {
                                 // Limpiar los campos
-                                $('#bulto_seleccion').val(null).trigger('change'); // Usa null para Select2
+                                $('#bulto_seleccion').val(null).trigger(
+                                'change'); // Usa null para Select2
                                 $('#pieza-seleccion').val('');
                                 $('#estilo-seleccion').val('');
                                 $('#color-seleccion').val('');
                                 $('#talla-seleccion').val('');
                                 $('#cantidad_auditada').val('');
-                                $('#cantidad_rechazada').val(''); // Debería ser 0 o null
+                                $('#cantidad_rechazada').val(
+                                ''); // Debería ser 0 o null
                                 $('#selectedOptionsContainerAQL').empty();
                                 $('#accion_correctiva').val('');
                                 $('#selectedOptionsContainerNombre').empty();
@@ -1333,7 +1411,7 @@
                             }
                         });
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
@@ -1346,9 +1424,9 @@
     </script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             // Listener para el evento personalizado 'registroGuardado'
-            window.addEventListener('registroGuardado', function () {
+            window.addEventListener('registroGuardado', function() {
                 cargarRegistrosUnificado();
             });
 
@@ -1389,15 +1467,14 @@
                         fechaActual: fechaActual, // El controlador tomará Carbon::now() si este no se envía
                         modulo: modulo
                     },
-                    success: function (response) {
+                    success: function(response) {
                         Swal.close(); // Cerrar el loader
 
                         // Procesar y mostrar registros para Turno Normal
                         procesarYMostrarRegistros(
                             response.turno_normal || [],
                             '#tabla_registros_dia',
-                            'normal',
-                            { // IDs de las tablas de totales para Turno Normal
+                            'normal', { // IDs de las tablas de totales para Turno Normal
                                 piezasDia: 'tabla-piezas-dia',
                                 bultosTotales: 'tabla-bultos-totales',
                                 piezasEnBultos: 'tabla-piezas-bultos'
@@ -1408,8 +1485,7 @@
                         procesarYMostrarRegistros(
                             response.tiempo_extra || [],
                             '#tabla_registros_tiempo_extra',
-                            'te',
-                            { // IDs de las tablas de totales para Tiempo Extra
+                            'te', { // IDs de las tablas de totales para Tiempo Extra
                                 piezasDia: 'tabla-piezas-dia-TE', // Asegúrate que estos IDs existan en tu HTML
                                 bultosTotales: 'tabla-bultos-totales-TE',
                                 piezasEnBultos: 'tabla-piezas-bultos-TE'
@@ -1419,7 +1495,7 @@
                         // (Re)iniciar la monitorización de tiempos de paro para ambas tablas
                         iniciarOReiniciarMonitorizacionParos();
                     },
-                    error: function (xhr, status, error) {
+                    error: function(xhr, status, error) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Error de Carga',
@@ -1455,13 +1531,17 @@
                 };
 
                 if (registros.length === 0) {
-                    const numColumnas = $(`${tablaSelector} thead th`).length || 12; // Default a 12 si no se encuentra
-                    tbody.innerHTML = `<tr><td colspan="${numColumnas}" class="text-center">No hay registros para mostrar.</td></tr>`;
+                    const numColumnas = $(`${tablaSelector} thead th`).length ||
+                    12; // Default a 12 si no se encuentra
+                    tbody.innerHTML =
+                        `<tr><td colspan="${numColumnas}" class="text-center">No hay registros para mostrar.</td></tr>`;
                 } else {
-                    registros.forEach(function (registro) {
+                    registros.forEach(function(registro) {
                         // Clases específicas para botones si es necesario, o usar data-attributes
-                        const claseBotonEliminar = `btn-eliminar-${tipoTurno}`; // ej. btn-eliminar-normal, btn-eliminar-te
-                        const claseBotonFinalizarParo = `btn-finalizar-paro-${tipoTurno}`; // ej. btn-finalizar-paro-normal
+                        const claseBotonEliminar =
+                        `btn-eliminar-${tipoTurno}`; // ej. btn-eliminar-normal, btn-eliminar-te
+                        const claseBotonFinalizarParo =
+                        `btn-finalizar-paro-${tipoTurno}`; // ej. btn-finalizar-paro-normal
 
                         // Construir la fila de la tabla principal
                         const filaHtml = `
@@ -1506,22 +1586,28 @@
                         if ((parseInt(registro.cantidad_rechazada) || 0) > 0) {
                             totales.bultosRechazados += 1;
                         }
-                        totales.piezasEnBultos += parseInt(registro.pieza) || 0; // Asegúrate que 'pieza' sea la cantidad de piezas en el bulto
+                        totales.piezasEnBultos += parseInt(registro.pieza) ||
+                        0; // Asegúrate que 'pieza' sea la cantidad de piezas en el bulto
                     });
                 }
 
                 // Actualizar las tablas de totales correspondientes
-                actualizarTablaDeTotales(idsTablasTotales.piezasDia, [totales.piezasAuditadas, totales.piezasRechazadas], true);
-                actualizarTablaDeTotales(idsTablasTotales.bultosTotales, [totales.bultosAuditados, totales.bultosRechazados], true);
-                actualizarTablaDeTotales(idsTablasTotales.piezasEnBultos, [totales.piezasEnBultos], false); // Solo un valor, sin porcentaje
+                actualizarTablaDeTotales(idsTablasTotales.piezasDia, [totales.piezasAuditadas, totales
+                    .piezasRechazadas
+                ], true);
+                actualizarTablaDeTotales(idsTablasTotales.bultosTotales, [totales.bultosAuditados, totales
+                    .bultosRechazados
+                ], true);
+                actualizarTablaDeTotales(idsTablasTotales.piezasEnBultos, [totales.piezasEnBultos],
+                false); // Solo un valor, sin porcentaje
             }
 
             /**
-            * Función genérica para actualizar una tabla de totales (piezas, bultos, etc.).
-            * @param {string} tablaId - El ID de la tabla de totales (ej: 'tabla-piezas-dia').
-            * @param {Array<number>} valores - Array de valores a mostrar en los inputs.
-            * @param {boolean} calcularPorcentaje - Si se debe calcular y mostrar un porcentaje.
-            */
+             * Función genérica para actualizar una tabla de totales (piezas, bultos, etc.).
+             * @param {string} tablaId - El ID de la tabla de totales (ej: 'tabla-piezas-dia').
+             * @param {Array<number>} valores - Array de valores a mostrar en los inputs.
+             * @param {boolean} calcularPorcentaje - Si se debe calcular y mostrar un porcentaje.
+             */
             function actualizarTablaDeTotales(tablaId, valores, calcularPorcentaje = false) {
                 const tabla = document.getElementById(tablaId);
                 if (!tabla) {
@@ -1540,7 +1626,8 @@
                     const numInputsEsperados = valores.length + (calcularPorcentaje ? 1 : 0);
                     let tdsHtml = '';
                     for (let i = 0; i < numInputsEsperados; i++) {
-                        tdsHtml += `<td><input type="text" class="form-control form-control-sm texto-blanco" readonly></td>`;
+                        tdsHtml +=
+                            `<td><input type="text" class="form-control form-control-sm texto-blanco" readonly></td>`;
                     }
                     fila = document.createElement('tr');
                     fila.innerHTML = tdsHtml;
@@ -1555,8 +1642,8 @@
                 });
 
                 if (calcularPorcentaje && inputs.length > valores.length) { // Hay un input extra para el porcentaje
-                    const total = parseFloat(valores[0]) || 0;       // ej. piezas auditadas, bultos auditados
-                    const parcial = parseFloat(valores[1]) || 0;     // ej. piezas rechazadas, bultos rechazados
+                    const total = parseFloat(valores[0]) || 0; // ej. piezas auditadas, bultos auditados
+                    const parcial = parseFloat(valores[1]) || 0; // ej. piezas rechazadas, bultos rechazados
                     const porcentaje = total > 0 ? ((parcial / total) * 100).toFixed(2) : "0.00";
                     inputs[valores.length].value = `${porcentaje}%`;
                 }
@@ -1564,8 +1651,8 @@
 
 
             /**
-            * Inicia o reinicia el intervalo para verificar tiempos de paro en ambas tablas.
-            */
+             * Inicia o reinicia el intervalo para verificar tiempos de paro en ambas tablas.
+             */
             function iniciarOReiniciarMonitorizacionParos() {
                 if (intervaloVerificarTiempos) {
                     clearInterval(intervaloVerificarTiempos);
@@ -1574,7 +1661,7 @@
                 verificarTiemposParoTabla('#tabla_registros_dia');
                 verificarTiemposParoTabla('#tabla_registros_tiempo_extra');
 
-                intervaloVerificarTiempos = setInterval(function () {
+                intervaloVerificarTiempos = setInterval(function() {
                     verificarTiemposParoTabla('#tabla_registros_dia');
                     verificarTiemposParoTabla('#tabla_registros_tiempo_extra');
                 }, 60000); // Cada minuto
@@ -1582,9 +1669,9 @@
 
 
             /**
-            * Verifica los tiempos de paro para una tabla específica y aplica estilos.
-            * @param {string} tablaSelector - Selector CSS de la tabla principal.
-            */
+             * Verifica los tiempos de paro para una tabla específica y aplica estilos.
+             * @param {string} tablaSelector - Selector CSS de la tabla principal.
+             */
             function verificarTiemposParoTabla(tablaSelector) {
                 const ahora = new Date();
                 document.querySelectorAll(`${tablaSelector} tbody tr`).forEach(fila => {
@@ -1618,7 +1705,8 @@
 
                         if (isNaN(hora) || isNaN(minuto) || isNaN(segundo)) return; // Partes no numéricas
 
-                        const horaRegistro = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), hora, minuto, segundo);
+                        const horaRegistro = new Date(ahora.getFullYear(), ahora.getMonth(), ahora
+                        .getDate(), hora, minuto, segundo);
 
                         const diferenciaMinutos = Math.floor((ahora - horaRegistro) / 60000);
 
@@ -1630,7 +1718,8 @@
                             fila.style.color = "#fff";
                         }
                     } catch (e) {
-                        console.error("Error parseando hora para verificarTiemposParo:", horaRegistroTexto, e);
+                        console.error("Error parseando hora para verificarTiemposParo:", horaRegistroTexto,
+                            e);
                     }
                 });
             }
@@ -1638,7 +1727,7 @@
             // --- MANEJO DE EVENTOS CON DELEGACIÓN ---
 
             // Eliminar registro (para ambas tablas, diferenciado por clase)
-            $(document).on('click', '.btn-eliminar-normal, .btn-eliminar-te', function () {
+            $(document).on('click', '.btn-eliminar-normal, .btn-eliminar-te', function() {
                 const registroId = $(this).data('id');
                 // const esTiempoExtra = $(this).hasClass('btn-eliminar-te'); // Para saber de qué tabla viene
 
@@ -1653,21 +1742,32 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        Swal.fire({ title: 'Eliminando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                        Swal.fire({
+                            title: 'Eliminando...',
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
+                        });
                         $.ajax({
                             url: "{{ route('eliminar.registro.aql') }}", // Ruta única para eliminar
                             type: "POST",
-                            data: { id: registroId, _token: "{{ csrf_token() }}" },
-                            success: function (response) {
+                            data: {
+                                id: registroId,
+                                _token: "{{ csrf_token() }}"
+                            },
+                            success: function(response) {
                                 if (response.success) {
-                                    Swal.fire('¡Eliminado!', response.message || 'El registro ha sido eliminado.', 'success');
+                                    Swal.fire('¡Eliminado!', response.message ||
+                                        'El registro ha sido eliminado.', 'success');
                                     cargarRegistrosUnificado(); // Recargar ambas tablas
                                 } else {
-                                    Swal.fire('Error', response.message || 'No se pudo eliminar el registro.', 'error');
+                                    Swal.fire('Error', response.message ||
+                                        'No se pudo eliminar el registro.', 'error');
                                 }
                             },
-                            error: function (xhr) {
-                                Swal.fire('Error de Comunicación', 'Hubo un error al intentar eliminar el registro.', 'error');
+                            error: function(xhr) {
+                                Swal.fire('Error de Comunicación',
+                                    'Hubo un error al intentar eliminar el registro.',
+                                    'error');
                                 console.error("Error al eliminar:", xhr.responseText);
                             }
                         });
@@ -1676,7 +1776,7 @@
             });
 
             // Finalizar paro (para ambas tablas, diferenciado por clase)
-            $(document).on('click', '.btn-finalizar-paro-normal, .btn-finalizar-paro-te', function () {
+            $(document).on('click', '.btn-finalizar-paro-normal, .btn-finalizar-paro-te', function() {
                 const registroId = $(this).data('id');
                 // const esTiempoExtra = $(this).hasClass('btn-finalizar-paro-te');
 
@@ -1706,7 +1806,11 @@
                             cancelButtonText: 'No'
                         }).then((resultConfirm) => {
                             if (resultConfirm.isConfirmed) {
-                                Swal.fire({ title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                                Swal.fire({
+                                    title: 'Procesando...',
+                                    allowOutsideClick: false,
+                                    didOpen: () => Swal.showLoading()
+                                });
                                 $.ajax({
                                     url: "{{ route('AQLV3.finalizar.paro') }}", // Ruta única para finalizar paro
                                     type: "POST",
@@ -1715,21 +1819,29 @@
                                         piezasReparadas: piezasReparadas,
                                         _token: "{{ csrf_token() }}"
                                     },
-                                    success: function (response) {
+                                    success: function(response) {
                                         if (response.success) {
                                             Swal.fire({
                                                 icon: 'success',
                                                 title: '¡Paro Finalizado!',
                                                 html: `Minutos de paro: ${response.minutos_paro || '-'}<br>Piezas reparadas: ${response.reparacion_rechazo || '-'}`
                                             });
-                                            cargarRegistrosUnificado(); // Recargar ambas tablas
+                                            cargarRegistrosUnificado
+                                        (); // Recargar ambas tablas
                                         } else {
-                                            Swal.fire('Error', response.message || 'No se pudo finalizar el paro.', 'error');
+                                            Swal.fire('Error', response
+                                                .message ||
+                                                'No se pudo finalizar el paro.',
+                                                'error');
                                         }
                                     },
-                                    error: function (xhr) {
-                                        Swal.fire('Error de Comunicación', 'Hubo un error al intentar finalizar el paro.', 'error');
-                                        console.error("Error al finalizar paro:", xhr.responseText);
+                                    error: function(xhr) {
+                                        Swal.fire('Error de Comunicación',
+                                            'Hubo un error al intentar finalizar el paro.',
+                                            'error');
+                                        console.error(
+                                            "Error al finalizar paro:", xhr
+                                            .responseText);
                                     }
                                 });
                             }
@@ -1745,7 +1857,8 @@
             });
 
             $('#btn-finalizar-TE').on('click', function() {
-                finalizarAuditoriaModulo('tiempo_extra', '#observacion-TE', this); // 'this' es el botón clickeado
+                finalizarAuditoriaModulo('tiempo_extra', '#observacion-TE',
+                this); // 'this' es el botón clickeado
             });
 
             /**
@@ -1757,10 +1870,12 @@
             function finalizarAuditoriaModulo(tipoTurno, selectorTextareaObservaciones, botonPresionado) {
                 // Es más robusto obtener el input del módulo cada vez, por si su valor pudiera cambiar
                 // o si el elemento no está presente al inicio.
-                const moduloInput = document.getElementById('modulo'); // Asumes que hay un input con id="modulo" general
-                
+                const moduloInput = document.getElementById(
+                'modulo'); // Asumes que hay un input con id="modulo" general
+
                 if (!moduloInput || !moduloInput.value) {
-                    Swal.fire('Error', 'No se ha definido el valor del módulo. Por favor, verifica la página.', 'error');
+                    Swal.fire('Error', 'No se ha definido el valor del módulo. Por favor, verifica la página.',
+                        'error');
                     return;
                 }
                 const modulo = moduloInput.value;
@@ -1809,16 +1924,18 @@
                                 tipo_turno: tipoTurno, // Asegúrate que el backend espera 'tipo_turno'
                                 _token: "{{ csrf_token() }}" // Token CSRF de Laravel
                             },
-                            success: function (response) {
+                            success: function(response) {
                                 if (response.success) {
                                     Swal.fire({
                                         icon: 'success',
                                         title: '¡Auditoría Finalizada!',
-                                        text: response.message || 'La auditoría se ha finalizado correctamente.'
+                                        text: response.message ||
+                                            'La auditoría se ha finalizado correctamente.'
                                     });
                                     // Deshabilitar el botón correspondiente y el textarea
                                     $(selectorTextareaObservaciones).prop('disabled', true);
-                                    $(botonPresionado).prop('disabled', true); // Deshabilita el botón que fue presionado
+                                    $(botonPresionado).prop('disabled',
+                                    true); // Deshabilita el botón que fue presionado
 
                                     // Aquí podrías querer deshabilitar también el formulario de nuevos registros
                                     // para ese turno específico, si tienes uno. Por ejemplo:
@@ -1832,12 +1949,14 @@
                                     Swal.fire({
                                         icon: 'error',
                                         title: 'Error',
-                                        text: response.message || 'No se pudo finalizar la auditoría. Intenta de nuevo.'
+                                        text: response.message ||
+                                            'No se pudo finalizar la auditoría. Intenta de nuevo.'
                                     });
                                 }
                             },
-                            error: function (xhr, status, error) {
-                                console.error("Error al finalizar auditoría de módulo:", xhr.responseText);
+                            error: function(xhr, status, error) {
+                                console.error("Error al finalizar auditoría de módulo:", xhr
+                                    .responseText);
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Error de Comunicación',
@@ -1855,21 +1974,25 @@
     </script>
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             let datosCargados = false;
 
-            $('#collapseBultos').on('show.bs.collapse', function () {
+            $('#collapseBultos').on('show.bs.collapse', function() {
                 if (!datosCargados) {
                     const modulo = $('#bultos-container').data('modulo');
 
                     $.ajax({
                         url: '/auditoriaAQLV3/registro/bultos-no-finalizados', // Asegúrate que esta ruta sea correcta
                         method: 'GET',
-                        data: { modulo: modulo },
-                        beforeSend: function () {
-                            $('#bultos-container').html('<div class="text-center mt-3 mb-3"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Cargando datos...</p></div>');
+                        data: {
+                            modulo: modulo
                         },
-                        success: function (response) {
+                        beforeSend: function() {
+                            $('#bultos-container').html(
+                                '<div class="text-center mt-3 mb-3"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Cargando datos...</p></div>'
+                                );
+                        },
+                        success: function(response) {
                             if (response.length > 0) {
                                 let contenido = `
                                     <div class="table-responsive">
@@ -1901,12 +2024,16 @@
                                 contenido += '</tbody></table></div>';
                                 $('#bultos-container').html(contenido);
                             } else {
-                                $('#bultos-container').html('<p class="text-warning text-center mt-3 mb-3">No se encontraron bultos no finalizados.</p>');
+                                $('#bultos-container').html(
+                                    '<p class="text-warning text-center mt-3 mb-3">No se encontraron bultos no finalizados.</p>'
+                                    );
                             }
                             datosCargados = true;
                         },
-                        error: function () {
-                            $('#bultos-container').html('<p class="text-danger text-center mt-3 mb-3">Error al cargar los datos.</p>');
+                        error: function() {
+                            $('#bultos-container').html(
+                                '<p class="text-danger text-center mt-3 mb-3">Error al cargar los datos.</p>'
+                                );
                             // datosCargados podría quedar en false para permitir un reintento, o true para no reintentar.
                             // Si se quiere reintentar, se deja en false.
                             datosCargados = false;
@@ -1916,7 +2043,7 @@
             });
 
             // Delegamos el evento click para los botones "Finalizar Paro Pendiente"
-            $(document).on('click', '.finalizar-paro', function () {
+            $(document).on('click', '.finalizar-paro', function() {
                 let paroId = $(this).data('id'); // Renombrado de 'id' a 'paroId' para claridad
 
                 Swal.fire({
@@ -1959,12 +2086,15 @@
                                 $.ajax({
                                     url: '/api/finalizar-paro-aql-despues', // Asegúrate que esta ruta sea correcta
                                     method: 'POST',
-                                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                                    headers: {
+                                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]')
+                                            .attr('content')
+                                    },
                                     data: {
                                         id: paroId, // Nombre del parámetro que espera tu backend
                                         piezasReparadas: piezasReparadas
                                     },
-                                    success: function (response) {
+                                    success: function(response) {
                                         if (response.success) {
                                             Swal.fire({
                                                 icon: 'success',
@@ -1973,18 +2103,22 @@
                                                     <b>Minutos de Paro:</b> ${response.minutos_paro || 'N/A'}<br>
                                                     <b>Piezas Reparadas Registradas:</b> ${response.reparacion_rechazo || 'N/A'}`
                                             }).then(() => {
-                                                $('#collapseBultos').collapse('hide');
-                                                datosCargados = false; // Para que se recarguen los datos la próxima vez
+                                                $('#collapseBultos')
+                                                    .collapse('hide');
+                                                datosCargados =
+                                                false; // Para que se recarguen los datos la próxima vez
                                             });
                                         } else {
                                             Swal.fire({
                                                 icon: 'error',
                                                 title: 'Error al Finalizar',
-                                                text: response.message || 'No se pudo finalizar el paro.'
+                                                text: response
+                                                    .message ||
+                                                    'No se pudo finalizar el paro.'
                                             });
                                         }
                                     },
-                                    error: function (xhr, status, error) {
+                                    error: function(xhr, status, error) {
                                         Swal.fire({
                                             icon: 'error',
                                             title: 'Error de Comunicación',
@@ -1999,27 +2133,27 @@
             });
         });
     </script>
-        
+
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const openModalBtn = document.getElementById('openModalAQL');
             const closeModalBtn = document.getElementById('closeModalAQL');
             const modal = document.getElementById('customModalAQL');
             const tbody = document.getElementById('tablaProcesosAQL');
 
             // Abrir el modal y cargar los datos con AJAX
-            openModalBtn.addEventListener('click', function () {
+            openModalBtn.addEventListener('click', function() {
                 modal.style.display = 'block';
 
                 // Hacer la petición AJAX
                 fetch('{{ route('AQLV3.proceso_actual') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({})
-                })
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({})
+                    })
                     .then(response => response.json())
                     .then(data => {
                         // Limpiar la tabla
@@ -2054,17 +2188,17 @@
             });
 
             // Cerrar el modal con el botón
-            closeModalBtn.addEventListener('click', function () {
+            closeModalBtn.addEventListener('click', function() {
                 modal.style.display = 'none';
             });
 
             // Cerrar el modal con la tecla "ESC"
-            document.addEventListener('keydown', function (event) {
+            document.addEventListener('keydown', function(event) {
                 if (event.key === 'Escape') {
                     modal.style.display = 'none';
                 }
             });
         });
     </script>
-    
+
 @endsection
