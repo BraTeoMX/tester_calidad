@@ -7,6 +7,8 @@ use App\Models\JobAQLTemporal;
 use App\Models\JobAQLHistorial;
 use App\Models\ModuloEstiloTemporal;
 use Illuminate\Http\Request; 
+use Illuminate\Support\Facades\DB; 
+use Illuminate\Validation\ValidationException;
 
 class GestionController extends Controller
 {
@@ -24,23 +26,61 @@ class GestionController extends Controller
 
     public function buscarAql(Request $request)
     {
-        $searchTerm = $request->input('searchTerm');
+        try {
+            $validatedData = $request->validate([
+                'searchTerm' => 'required|string|size:9'
+            ]);
+            $searchTerm = $validatedData['searchTerm'];
 
-        // Valida el término de búsqueda
-        if (!$searchTerm) {
+            // 🚀 Lógica de búsqueda en cascada
+            
+            // 💡 Paso 1: Intentar la búsqueda en la fuente principal (Modelo Eloquent)
+            Log::info("Paso 1: Buscando '$searchTerm' en el modelo principal 'JobAQLHistorial'.");
+            $results = JobAQLHistorial::where('prodid', $searchTerm)->get();
+
+            // 💡 Paso 2: Verificar si se encontraron resultados en la fuente principal
+            if ($results->isNotEmpty()) { // isNotEmpty() es lo opuesto a isEmpty()
+                Log::info("¡Éxito! Se encontraron " . $results->count() . " registros en 'JobAQLHistorial'. Devolviendo resultados.");
+                
+                // Si encontramos resultados, los devolvemos y la función termina aquí.
+                return response()->json([
+                    'status' => 'success',
+                    'source' => 'JobAQLHistorial', // Opcional: para saber de dónde vinieron los datos
+                    'data' => $results,
+                ]);
+            }
+
+            // 💡 Paso 3: Si no hubo resultados, proceder con la fuente secundaria (Fallback)
+            Log::info("Paso 2 (Fallback): No se encontró en el modelo. Buscando '$searchTerm' en la vista 'OpBusqueda_View2'.");
+            $results = DB::connection('sqlsrv')
+                        ->table('OpBusqueda_View2')
+                        ->where('prodid', '=', $searchTerm) // Usando '=' por claridad
+                        ->get();
+            
+            if ($results->isNotEmpty()) {
+                Log::info("¡Éxito! Se encontraron " . $results->count() . " registros en 'OpBusqueda_View2'.");
+            } else {
+                Log::info("Búsqueda finalizada. No se encontraron registros en ninguna fuente para '$searchTerm'.");
+            }
+
+            // 💡 Paso 4: Devolver el resultado de la segunda búsqueda (que puede tener datos o estar vacío)
+            return response()->json([
+                'status' => 'success',
+                'source' => 'OpBusqueda_View2', // Opcional
+                'data' => $results,
+            ]);
+
+        } catch (ValidationException $e) {
+            Log::warning('Intento de búsqueda con datos inválidos: ' . json_encode($e->errors()));
+            throw $e;
+
+        } catch (\Exception $e) {
+            Log::error('Error crítico en la búsqueda de AQL: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'El término de búsqueda es obligatorio.',
-            ], 400);
+                'message' => 'Ocurrió un error inesperado en el servidor.',
+            ], 500);
         }
-
-        // Busca en el modelo JobAQLHistorial
-        $results = JobAQLHistorial::where('prodid', 'LIKE', "%$searchTerm%")->get();
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $results,
-        ]);
     }
 
     public function guardarAql(Request $request)
