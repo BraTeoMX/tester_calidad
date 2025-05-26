@@ -393,18 +393,9 @@ class AuditoriaAQLV3Controller extends Controller
                 ->select($columnsToSelect)
                 // Unir con la subconsulta (latest_aql_records es un alias para la subconsulta)
                 ->joinSub($subQuery, 'latest_aql_records', function ($join) {
-                    // La unión se hace sobre el 'id' de la tabla principal
-                    // y el 'max_id' obtenido de la subconsulta.
-                    $join->on('auditoria_aqls.id', '=', 'latest_aql_records.max_id');
-                    // Opcionalmente, si quisieras ser extra explícito (aunque redundante si id es PK):
-                    // $join->on('auditoria_aqls.modulo', '=', 'latest_aql_records.modulo');
-                    // $join->on('auditoria_aqls.op', '=', 'latest_aql_records.op');
+                    $join->on('auditoria_aql.id', '=', 'latest_aql_records.max_id');
                 })
-                // Los filtros de 'estatus', 'created_at' y 'auditor' ya están implícitos
-                // en la subconsulta que determinó los 'max_id'.
-                // Unir por 'auditoria_aqls.id' = 'latest_aql_records.max_id' asegura que
-                // los registros recuperados ya cumplen esas condiciones.
-                ->orderBy('auditoria_aqls.modulo', 'asc'); // Ordenar el resultado final
+                ->orderBy('auditoria_aql.modulo', 'asc'); // Ordenar el resultado final
 
             return $query->get();
         });
