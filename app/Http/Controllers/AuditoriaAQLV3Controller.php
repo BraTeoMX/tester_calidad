@@ -358,15 +358,15 @@ class AuditoriaAQLV3Controller extends Controller
 
         // Columnas finales a seleccionar de la tabla principal
         $columnsToSelect = [
-            'auditoria_aqls.id as registro_id', // Opcional: para ver el ID del registro seleccionado
-            'auditoria_aqls.modulo',
-            'auditoria_aqls.op',
-            'auditoria_aqls.team_leader',
-            'auditoria_aqls.turno',
-            'auditoria_aqls.auditor',
-            'auditoria_aqls.estilo',
-            'auditoria_aqls.cliente',
-            'auditoria_aqls.gerente_produccion',
+            'auditoria_aql.id as registro_id', // Opcional: para ver el ID del registro seleccionado
+            'auditoria_aql.modulo',
+            'auditoria_aql.op',
+            'auditoria_aql.team_leader',
+            'auditoria_aql.turno',
+            'auditoria_aql.auditor',
+            'auditoria_aql.estilo',
+            'auditoria_aql.cliente',
+            'auditoria_aql.gerente_produccion',
             // No incluyas 'estatus' aquí si siempre va a ser nulo por la condición de la subconsulta
             // No incluyas 'created_at' si siempre va a ser $fechaActual por la condición
         ];
