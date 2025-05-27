@@ -289,7 +289,7 @@ class AuditoriaKanBanController extends Controller
                     if ($nuevoEstatus === '1' && $kanban->fecha_liberacion !== null) {
                         $omitirEsteRegistro = true;
                     } elseif ($nuevoEstatus === '2' && $kanban->fecha_parcial !== null) {
-                        $omitirEsteRegistro = true;
+                        $omitirEsteRegistro = false;
                     } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo !== null) {
                         $omitirEsteRegistro = true;
                     } elseif ($nuevoEstatus === '' && // Si el nuevo estado es "sin seleccionar" (string vacío)
