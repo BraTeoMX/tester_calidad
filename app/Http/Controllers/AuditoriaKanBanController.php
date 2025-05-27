@@ -68,7 +68,7 @@ class AuditoriaKanBanController extends Controller
                 ]);
             }
             if ($request->filled('op'))      $query->where('op', $request->op);
-            if ($request->filled('planta'))  $query->where('planta', $request->planta);
+            //if ($request->filled('planta'))  $query->where('planta', $request->planta);
             if ($request->filled('estatus')) $query->where('estatus', $request->estatus);
 
             $registros = $query->get();
@@ -249,16 +249,17 @@ class AuditoriaKanBanController extends Controller
 
     public function actualizarMasivo(Request $request)
     {
+        $tipoAcceso = Auth::user()->no_empleado;
+
         $registrosInput = $request->input('registros', []);
         $errores = [];
         $registrosActualizados = 0;
-        $registrosOmitidos = 0; // Nuevo contador para registros que no necesitaron actualización
+        $registrosOmitidos = 0;
 
         if (empty($registrosInput)) {
             return response()->json(['mensaje' => 'No se proporcionaron registros para actualizar.'], 400);
         }
 
-        // Recomendado: Usar una transacción para asegurar la atomicidad de las operaciones
         DB::beginTransaction();
         try {
             foreach ($registrosInput as $registroData) {
@@ -303,93 +304,69 @@ class AuditoriaKanBanController extends Controller
                 }
                 // ---- FIN DE LA LÓGICA DE OMISIÓN ----
 
-                // Si no se omite, se procede con la actualización
-                $kanban->estatus = $nuevoEstatus;
+                    // 2. Actualizar estatus y fechas GENERALES
+                    $kanban->estatus = $nuevoEstatus;
 
-                // Reiniciar fechas antes de asignar la nueva basada en el estatus
-                // Esta parte es crucial: si el estatus cambia, la fecha anterior se borra
-                // y se establece la nueva. Si el estatus es el mismo pero la fecha estaba null, se establece.
-                $kanban->fecha_liberacion = null;
-                $kanban->fecha_parcial    = null;
-                $kanban->fecha_rechazo    = null;
+                    $kanban->fecha_liberacion = null;
+                    $kanban->fecha_parcial    = null;
+                    $kanban->fecha_rechazo    = null;
 
-                if ($nuevoEstatus === '1') { // Aceptado
-                    $kanban->fecha_liberacion = Carbon::now();
-                } elseif ($nuevoEstatus === '2') { // Parcial
-                    $kanban->fecha_parcial = Carbon::now();
-                } elseif ($nuevoEstatus === '3') { // Rechazado
-                    $kanban->fecha_rechazo = Carbon::now();
-                }
-                // Si $nuevoEstatus es '', todas las fechas quedan null, lo cual es correcto.
-
-                $kanban->save(); // Guardar cambios en el registro principal
-
-                // Manejo de comentarios (solo si el registro principal fue procesado)
-                // Convertimos $registroData['comentarios'] a array si es string separado por comas,
-                // o lo tomamos como array si ya lo es. Ajustar según cómo llegue del frontend.
-                $comentariosNuevosInput = $registroData['comentarios'] ?? ''; // Puede ser un string o array
-                Log::info("Comentarios nuevos: " . json_encode($comentariosNuevosInput));
-                // Si los comentarios vienen como un string separado por comas y pueden tener espacios
-                if (is_string($comentariosNuevosInput)) {
-                    $comentariosNuevos = !empty($comentariosNuevosInput) ? array_map('trim', explode(',', $comentariosNuevosInput)) : [];
-                } elseif (is_array($comentariosNuevosInput)) {
-                    $comentariosNuevos = $comentariosNuevosInput;
-                } else {
-                    $comentariosNuevos = [];
-                }
-                // Filtrar elementos vacíos que puedan resultar del explode si hay comas consecutivas o al final
-                $comentariosNuevos = array_filter($comentariosNuevos, function($value) { return !empty($value); });
-
-
-                $comentariosExistentes = ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)
-                    ->pluck('nombre')
-                    ->toArray();
-                //Log::info("datos: ", json_encode($comentariosExistentes));
-                // Comentarios para eliminar
-                $paraEliminar = array_diff($comentariosExistentes, $comentariosNuevos);
-                if (!empty($paraEliminar)) {
-                    ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)
-                        ->whereIn('nombre', $paraEliminar)
-                        ->delete();
-                }
-
-                // Comentarios para agregar
-                $paraAgregar = array_diff($comentariosNuevos, $comentariosExistentes);
-                foreach ($paraAgregar as $comentarioNombre) {
-                    // Asegurarse de no guardar comentarios vacíos (ya filtrado arriba, pero doble check no daña)
-                    if (!empty($comentarioNombre)) {
-                        ReporteKanbanComentario::create([
-                            'reporte_kanban_id' => $kanban->id,
-                            'nombre' => $comentarioNombre,
-                        ]);
+                    if ($nuevoEstatus === '1') {
+                        $kanban->fecha_liberacion = Carbon::now();
+                    } elseif ($nuevoEstatus === '2') {
+                        $kanban->fecha_parcial = Carbon::now();
+                    } elseif ($nuevoEstatus === '3') {
+                        $kanban->fecha_rechazo = Carbon::now();
                     }
+
+                    $kanban->save();
+
+                    // 3. Manejar sincronización de comentarios (solo para usuarios generales)
+                    $comentariosNuevosInput = $registroData['comentarios'] ?? [];
+                    if (is_array($comentariosNuevosInput)) {
+                        $comentariosNuevos = array_filter($comentariosNuevosInput, fn($v) => !empty($v));
+
+                        // Sincronizar comentarios (lógica de agregar/eliminar)
+                        $comentariosExistentes = ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)->pluck('nombre')->toArray();
+
+                        $paraEliminar = array_diff($comentariosExistentes, $comentariosNuevos);
+                        if (!empty($paraEliminar)) {
+                            ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)->whereIn('nombre', $paraEliminar)->delete();
+                        }
+
+                        $paraAgregar = array_diff($comentariosNuevos, $comentariosExistentes);
+                        foreach ($paraAgregar as $comentarioNombre) {
+                            ReporteKanbanComentario::create([
+                                'reporte_kanban_id' => $kanban->id,
+                                'nombre' => $comentarioNombre,
+                            ]);
+                        }
+                    }
+
+                    $registrosActualizados++;
                 }
-                //Log::info("Comentarios nuevos guardados: " . json_encode($paraAgregar));
-                $registrosActualizados++;
             }
 
-            DB::commit(); // Confirmar todos los cambios si no hubo excepciones
+            DB::commit();
 
-            $mensaje = "Actualización masiva completada. {$registrosActualizados} registros actualizados.";
+            $mensaje = "Actualización completada. {$registrosActualizados} registros procesados.";
             if ($registrosOmitidos > 0) {
                 $mensaje .= " {$registrosOmitidos} registros fueron omitidos por no requerir cambios.";
             }
-            if (!empty($errores)) {
-                $mensaje .= " Se encontraron algunos problemas.";
-            }
+            // ... (resto de la lógica de respuesta no cambia)
 
             return response()->json([
                 'mensaje' => $mensaje,
-                'errores' => $errores // Enviar lista de errores si los hubo
-            ], empty($errores) ? 200 : 207); // 200 OK o 207 Multi-Status si hubo errores parciales
+                'errores' => $errores
+            ], empty($errores) ? 200 : 207);
 
         } catch (\Exception $e) {
             DB::rollBack(); // Revertir cambios en caso de error
             // Agregar el error a la lista de errores para el usuario, si es apropiado
             $errores[] = "Error interno del servidor durante la actualización masiva. {$e->getMessage()}";
             return response()->json([
-                'mensaje' => 'Ocurrió un error crítico durante la actualización masiva. No se procesaron todos los registros.',
-                'errores' => $errores // Incluir el error de la excepción
+                'mensaje' => 'Ocurrió un error crítico durante la actualización.',
+                'errores' => [$e->getMessage()]
             ], 500);
         }
     }
@@ -420,20 +397,17 @@ class AuditoriaKanBanController extends Controller
         return response()->json(['mensaje' => 'Registro liberado correctamente.']);
     }
 
-    public function obtenerRegistrosHoy() // Mantengo el nombre original por ahora
+    public function obtenerRegistrosHoy()
     {
+        // Lógica para determinar el rango de fechas (sin cambios)
         $hoyCarbon = Carbon::today();
-        $diasARestar = 2; // Valor por defecto (ej. para Jueves, Viernes)
+        $diasARestar = 2; // Valor por defecto
 
-        // Lógica para determinar cuántos días restar basado en el día de la semana
         if ($hoyCarbon->isMonday()) {
-            // Lunes: subDays(4) para incluir desde el Jueves anterior (Jue, Vie, Sab, Dom)
             $diasARestar = 4;
         } elseif ($hoyCarbon->isTuesday()) {
-            // Martes: subDays(3) para incluir desde el Sábado anterior (Sab, Dom, Lun)
             $diasARestar = 3;
         } elseif ($hoyCarbon->isSunday()) {
-            // Domingo: subDays(3) para incluir desde el Viernes (Vie, Sab)
             $diasARestar = 3;
         }
 
@@ -444,51 +418,56 @@ class AuditoriaKanBanController extends Controller
         // Fecha de fin del rango: Hoy a las 23:59:59
         $finRango = Carbon::today()->endOfDay();
 
+        // Consulta a la base de datos (sin cambios)
         $registros = ReporteKanban::with('comentarios')
-            // 1. Filtro principal: registros dentro del rango dinámico de fechas
             ->whereBetween('created_at', [$inicioRango, $finRango])
-            // 2. Filtro adicional para la lógica de omisión selectiva:
             ->where(function ($query) use ($inicioRango) {
-                // Mantenemos un registro si CUMPLE ALGUNA de estas condiciones:
-                // a) El registro NO fue creado el día exacto de $inicioRango (es decir, es más reciente)
                 $query->whereDate('created_at', '!=', $inicioRango->toDateString())
-                      // b) O SI fue creado el día exacto de $inicioRango, PERO todas sus fechas de estado son NULL
-                      //    (es decir, aún no ha sido procesado/completado)
-                      ->orWhere(function ($subQuery) use ($inicioRango) {
-                          $subQuery->whereDate('created_at', $inicioRango->toDateString())
-                                   ->whereNull('fecha_liberacion')
-                                   ->whereNull('fecha_parcial')
-                                   ->whereNull('fecha_rechazo');
-                      });
+                    ->orWhere(function ($subQuery) use ($inicioRango) {
+                        $subQuery->whereDate('created_at', $inicioRango->toDateString())
+                                ->whereNull('fecha_liberacion')
+                                ->whereNull('fecha_parcial')
+                                ->whereNull('fecha_rechazo');
+                    });
             })
             ->orderBy('created_at', 'asc')
             ->get();
 
-        $data = $registros->map(function ($registro) {
-            return [
-                'fecha_corte'    => $registro->fecha_corte
-                    ? Carbon::parse($registro->fecha_corte)->format('Y-m-d H:i')
-                    : 'N/A',
-                'fecha_almacen'  => $registro->fecha_almacen
-                    ? Carbon::parse($registro->fecha_almacen)->format('Y-m-d H:i')
-                    : 'N/A',
-                'op'             => $registro->op ?? 'N/A',
-                'cliente'        => $registro->cliente ?? 'N/A',
-                'estilo'         => $registro->estilo ?? 'N/A',
-                'estatus'        => $registro->estatus ?? '',
-                'comentarios'    => $registro->comentarios->pluck('nombre')->implode(','),
-                'fecha_parcial'  => $registro->fecha_parcial
-                    ? Carbon::parse($registro->fecha_parcial)->format('Y-m-d H:i')
-                    : 'N/A',
-                'fecha_liberacion' => $registro->fecha_liberacion
-                    ? Carbon::parse($registro->fecha_liberacion)->format('Y-m-d H:i')
-                    : 'N/A',
-                'fecha_rechazo' => $registro->fecha_rechazo
-                    ? Carbon::parse($registro->fecha_rechazo)->format('Y-m-d H:i')
-                    : 'N/A',
-                'id'             => $registro->id,
-                'created_at_debug' => $registro->created_at->format('Y-m-d H:i:s') // Para depuración
+        // Obtén el número de empleado del usuario autenticado
+        $noEmpleado = Auth::user()->no_empleado;
+
+        // Mapeo de datos con lógica condicional
+        $data = $registros->map(function ($registro) use ($noEmpleado) {
+            // 1. Definir el arreglo base con datos comunes
+            $datosRegistro = [
+                'fecha_corte'     => $registro->fecha_corte ? Carbon::parse($registro->fecha_corte)->format('Y-m-d H:i') : 'N/A',
+                'fecha_almacen'   => $registro->fecha_almacen ? Carbon::parse($registro->fecha_almacen)->format('Y-m-d H:i') : 'N/A',
+                'op'              => $registro->op ?? 'N/A',
+                'cliente'         => $registro->cliente ?? 'N/A',
+                'estilo'          => $registro->estilo ?? 'N/A',
+                'id'              => $registro->id,
+                'created_at_debug'=> $registro->created_at->format('Y-m-d H:i:s')
             ];
+
+            // 2. Aplicar la lógica según el número de empleado
+            if ($noEmpleado == "4") {
+                // Lógica para el usuario de Calidad (no_empleado = "4")
+                $datosRegistro['estatus'] = $registro->estatus_calidad ?? '';
+                // No se añade la clave 'comentarios'
+                // Se usan las fechas de calidad y se renombran a las claves originales para simplificar la vista
+                $datosRegistro['fecha_liberacion']      = $registro->fecha_liberacion_calidad ? Carbon::parse($registro->fecha_liberacion_calidad)->format('Y-m-d H:i') : 'N/A';
+                $datosRegistro['fecha_parcial']   = 'N/A'; // Este usuario no ve liberación general
+                $datosRegistro['fecha_rechazo']      = $registro->fecha_rechazo_calidad ? Carbon::parse($registro->fecha_rechazo_calidad)->format('Y-m-d H:i') : 'N/A';
+            } else {
+                // Lógica para el resto de los usuarios (la general)
+                $datosRegistro['estatus']          = $registro->estatus ?? '';
+                $datosRegistro['comentarios']      = $registro->comentarios->pluck('nombre')->implode(',');
+                $datosRegistro['fecha_parcial']    = $registro->fecha_parcial ? Carbon::parse($registro->fecha_parcial)->format('Y-m-d H:i') : 'N/A';
+                $datosRegistro['fecha_liberacion'] = $registro->fecha_liberacion ? Carbon::parse($registro->fecha_liberacion)->format('Y-m-d H:i') : 'N/A';
+                $datosRegistro['fecha_rechazo']    = $registro->fecha_rechazo ? Carbon::parse($registro->fecha_rechazo)->format('Y-m-d H:i') : 'N/A';
+            }
+
+            return $datosRegistro;
         });
 
         return response()->json($data);

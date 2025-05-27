@@ -8,14 +8,13 @@
                 <li class="nav-item{{ $pageSlug == 'kanban' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('kanban.index') }}">
                         <i class="material-icons">edit_document</i>
-                        <p>{{ __(' ') }}</p>
-                        <p style="text-align: center;">{{ __('AUDITORIA KANBAN') }}</p>
+                        <p>{{ __('AUDITORIA KANBAN') }}</p>
                     </a>
                 </li>
                 <li class="nav-item{{ $pageSlug == 'reporte_kanban' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('kanban.reporte') }}">
                         <i class="tim-icons icon-molecule-40"></i>
-                        <p>{{ __('CONSULTA KANBAN') }}</p>
+                        <p>{{ __('REPORTE KANBAN') }}</p>
                     </a>
                 </li>
             @endif
