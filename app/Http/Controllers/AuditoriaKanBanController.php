@@ -280,7 +280,7 @@ class AuditoriaKanBanController extends Controller
                 $omitirEsteRegistro = false;
 
                 // Cambiar de === a == para la comparación principal entre el nuevo estado (string) y el actual (int/DB type)
-                if ($nuevoEstatus == $kanban->estatus) { 
+                if ($nuevoEstatus == $kanban->estatus) {
                     // Si entramos aquí, significa que '1' == 1 (true), o '2' == 2 (true), o '' == 0 (true, si así se guarda '' en DB) etc.
                     // Ahora, la lógica interna sigue usando $nuevoEstatus (string) contra strings literales, lo cual está bien.
                     if ($nuevoEstatus === '1' && $kanban->fecha_liberacion !== null) {
@@ -288,8 +288,8 @@ class AuditoriaKanBanController extends Controller
                     } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo !== null) {
                         $omitirEsteRegistro = true;
                     } elseif ($nuevoEstatus === '' && // Si el nuevo estado es "sin seleccionar" (string vacío)
-                            $kanban->fecha_liberacion === null && 
-                            $kanban->fecha_parcial === null && 
+                            $kanban->fecha_liberacion === null &&
+                            $kanban->fecha_parcial === null &&
                             $kanban->fecha_rechazo === null) {
                         // Y si kanban->estatus también representa un estado "vacío" (ej. 0, que es == a '')
                         // y no hay fechas establecidas.
@@ -299,7 +299,7 @@ class AuditoriaKanBanController extends Controller
 
                 if ($omitirEsteRegistro) {
                     $registrosOmitidos++;
-                    continue; 
+                    continue;
                 }
                 // ---- FIN DE LA LÓGICA DE OMISIÓN ----
 
@@ -386,7 +386,7 @@ class AuditoriaKanBanController extends Controller
         } catch (\Exception $e) {
             DB::rollBack(); // Revertir cambios en caso de error
             // Agregar el error a la lista de errores para el usuario, si es apropiado
-            $errores[] = "Error interno del servidor durante la actualización masiva. {$e->getMessage()}"; 
+            $errores[] = "Error interno del servidor durante la actualización masiva. {$e->getMessage()}";
             return response()->json([
                 'mensaje' => 'Ocurrió un error crítico durante la actualización masiva. No se procesaron todos los registros.',
                 'errores' => $errores // Incluir el error de la excepción
@@ -439,7 +439,7 @@ class AuditoriaKanBanController extends Controller
 
         $inicioRango = Carbon::today()->subDays($diasARestar)->startOfDay();
         // Fecha de inicio del rango: Hace 4 días a las 00:00:00
-        $inicioRango = Carbon::today()->subDays(4)->startOfDay(); 
+        $inicioRango = Carbon::today()->subDays(4)->startOfDay();
 
         // Fecha de fin del rango: Hoy a las 23:59:59
         $finRango = Carbon::today()->endOfDay();
