@@ -80,14 +80,6 @@
                     <input type="text" id="op" name="op" class="form-control" placeholder="OP">
                 </div> --}}
                 <div class="col-md-2">
-                    <label for="planta" class="form-label">Planta</label>
-                    <select id="planta" name="planta" class="form-control">
-                        <option value="">Todas</option>
-                        <option value="1">Planta 1</option>
-                        <option value="2">Planta 2</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
                     <label for="estatus" class="form-label">Estatus</label>
                     <select id="estatus" name="estatus" class="form-control">
                         <option value="">Todos</option>

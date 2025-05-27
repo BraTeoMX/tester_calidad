@@ -68,7 +68,7 @@ class AuditoriaKanBanController extends Controller
                 ]);
             }
             if ($request->filled('op'))      $query->where('op', $request->op);
-            if ($request->filled('planta'))  $query->where('planta', $request->planta);
+            //if ($request->filled('planta'))  $query->where('planta', $request->planta);
             if ($request->filled('estatus')) $query->where('estatus', $request->estatus);
 
             $registros = $query->get();
