@@ -275,34 +275,66 @@ class AuditoriaKanBanController extends Controller
                     continue;
                 }
 
-                $nuevoEstatus = (string) ($registroData['accion'] ?? ''); // Aseguramos que sea string, default a vacío
+                $nuevoEstatus = (string) ($registroData['accion'] ?? '');
 
-                // ---- INICIO DE LA LÓGICA DE OMISIÓN ----
-                $omitirEsteRegistro = false;
+                // ==================================================================
+                // INICIO DE LA LÓGICA CONDICIONAL BASADA EN EL TIPO DE ACCESO
+                // ==================================================================
 
-                // Cambiar de === a == para la comparación principal entre el nuevo estado (string) y el actual (int/DB type)
-                if ($nuevoEstatus == $kanban->estatus) {
-                    // Si entramos aquí, significa que '1' == 1 (true), o '2' == 2 (true), o '' == 0 (true, si así se guarda '' en DB) etc.
-                    // Ahora, la lógica interna sigue usando $nuevoEstatus (string) contra strings literales, lo cual está bien.
-                    if ($nuevoEstatus === '1' && $kanban->fecha_liberacion !== null) {
-                        $omitirEsteRegistro = true;
-                    } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo !== null) {
-                        $omitirEsteRegistro = true;
-                    } elseif ($nuevoEstatus === '' && // Si el nuevo estado es "sin seleccionar" (string vacío)
-                            $kanban->fecha_liberacion === null &&
-                            $kanban->fecha_parcial === null &&
-                            $kanban->fecha_rechazo === null) {
-                        // Y si kanban->estatus también representa un estado "vacío" (ej. 0, que es == a '')
-                        // y no hay fechas establecidas.
-                        $omitirEsteRegistro = true;
+                if ($tipoAcceso === '4') {
+                    // --- LÓGICA PARA USUARIO DE CALIDAD (4) ---
+
+                    // 1. Omitir si no hay cambios en el estatus de calidad
+                    $omitir = false;
+                    if ($nuevoEstatus == $kanban->estatus_calidad) {
+                        if ($nuevoEstatus === '1' && $kanban->fecha_liberacion_calidad !== null) {
+                            $omitir = true;
+                        } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo_calidad !== null) {
+                            $omitir = true;
+                        }
                     }
-                }
 
-                if ($omitirEsteRegistro) {
-                    $registrosOmitidos++;
-                    continue;
-                }
-                // ---- FIN DE LA LÓGICA DE OMISIÓN ----
+                    if ($omitir) {
+                        $registrosOmitidos++;
+                        continue;
+                    }
+
+                    // 2. Actualizar estatus y fechas de CALIDAD
+                    $kanban->estatus_calidad = $nuevoEstatus;
+
+                    // Reiniciar solo las fechas de calidad
+                    $kanban->fecha_liberacion_calidad = null;
+                    $kanban->fecha_rechazo_calidad    = null;
+
+                    if ($nuevoEstatus === '1') { // Aceptado por Calidad
+                        $kanban->fecha_liberacion_calidad = Carbon::now();
+                    } elseif ($nuevoEstatus === '3') { // Rechazado por Calidad
+                        $kanban->fecha_rechazo_calidad = Carbon::now();
+                    }
+
+                    // 3. Guardar y omitir el manejo de comentarios
+                    $kanban->save();
+                    $registrosActualizados++;
+
+                } else {
+                    // --- LÓGICA PARA USUARIO GENERAL (LA QUE YA TENÍAS) ---
+
+                    // 1. Omitir si no hay cambios en el estatus general
+                    $omitir = false;
+                    if ($nuevoEstatus == $kanban->estatus) {
+                        if ($nuevoEstatus === '1' && $kanban->fecha_liberacion !== null) {
+                            $omitir = true;
+                        } elseif ($nuevoEstatus === '2' && $kanban->fecha_parcial !== null) {
+                            $omitir = true;
+                        } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo !== null) {
+                            $omitir = true;
+                        }
+                    }
+
+                    if ($omitir) {
+                        $registrosOmitidos++;
+                        continue;
+                    }
 
                     // 2. Actualizar estatus y fechas GENERALES
                     $kanban->estatus = $nuevoEstatus;
@@ -361,9 +393,8 @@ class AuditoriaKanBanController extends Controller
             ], empty($errores) ? 200 : 207);
 
         } catch (\Exception $e) {
-            DB::rollBack(); // Revertir cambios en caso de error
-            // Agregar el error a la lista de errores para el usuario, si es apropiado
-            $errores[] = "Error interno del servidor durante la actualización masiva. {$e->getMessage()}";
+            DB::rollBack();
+            // ... (tu bloque catch no cambia)
             return response()->json([
                 'mensaje' => 'Ocurrió un error crítico durante la actualización.',
                 'errores' => [$e->getMessage()]
@@ -412,10 +443,6 @@ class AuditoriaKanBanController extends Controller
         }
 
         $inicioRango = Carbon::today()->subDays($diasARestar)->startOfDay();
-        // Fecha de inicio del rango: Hace 4 días a las 00:00:00
-        $inicioRango = Carbon::today()->subDays(4)->startOfDay();
-
-        // Fecha de fin del rango: Hoy a las 23:59:59
         $finRango = Carbon::today()->endOfDay();
 
         // Consulta a la base de datos (sin cambios)
