@@ -512,21 +512,6 @@
 
                     if (accion) {
                         hayRegistrosConAccion = true; 
-
-                        if (accion === '1' && comentariosArray.length > 0) {
-                            validacionesPasadas = false;
-                            mensajesErrorValidacion.push(`- OP ${op} (ID: ${id}): Con estatus "Aceptado", los comentarios deben estar vacíos.`);
-                        }
-
-                        if (accion === '2' && comentariosArray.length === 0) {
-                            validacionesPasadas = false;
-                            mensajesErrorValidacion.push(`- OP ${op} (ID: ${id}): Con estatus "Parcial", se requiere al menos un comentario.`);
-                        }
-
-                        if (accion === '3' && comentariosArray.length > 0) {
-                            validacionesPasadas = false;
-                            mensajesErrorValidacion.push(`- OP ${op} (ID: ${id}): Con estatus "Rechazado", los comentarios deben estar vacíos.`);
-                        }
                         
                         registrosParaActualizar.push({
                             id: id,

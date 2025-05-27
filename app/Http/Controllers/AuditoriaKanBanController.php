@@ -249,6 +249,9 @@ class AuditoriaKanBanController extends Controller
 
     public function actualizarMasivo(Request $request)
     {
+        // Identificar el tipo de usuario que realiza la acción
+        $tipoAcceso = Auth::user()->no_empleado;
+
         $registrosInput = $request->input('registros', []);
         $errores = [];
         $registrosActualizados = 0;
@@ -303,10 +306,6 @@ class AuditoriaKanBanController extends Controller
                     $registrosOmitidos++;
                     continue; 
                 }
-                // ---- FIN DE LA LÓGICA DE OMISIÓN ----
-
-                // Si no se omite, se procede con la actualización
-                $kanban->estatus = $nuevoEstatus;
 
                 // Reiniciar fechas antes de asignar la nueva basada en el estatus
                 // Esta parte es crucial: si el estatus cambia, la fecha anterior se borra
@@ -315,13 +314,28 @@ class AuditoriaKanBanController extends Controller
                 $kanban->fecha_parcial    = null;
                 $kanban->fecha_rechazo    = null;
 
-                if ($nuevoEstatus === '1') { // Aceptado
-                    $kanban->fecha_liberacion = Carbon::now();
-                } elseif ($nuevoEstatus === '2') { // Parcial
-                    $kanban->fecha_parcial = Carbon::now();
-                } elseif ($nuevoEstatus === '3') { // Rechazado
-                    $kanban->fecha_rechazo = Carbon::now();
+                if ($tipoAcceso === '4') {
+                    if ($nuevoEstatus === '1') { // Aceptado
+                        $kanban->fecha_liberacion_calidad = Carbon::now();
+                    } elseif ($nuevoEstatus === '2') { // Parcial
+                        $kanban->fecha_parcial_calidad = Carbon::now();
+                    } elseif ($nuevoEstatus === '3') { // Rechazado
+                        $kanban->fecha_rechazo_calidad = Carbon::now();
+                    }
+                    $kanban->estatus_calidad = $nuevoEstatus;
+                } else {
+                    $kanban->estatus = $nuevoEstatus;
+                    if ($nuevoEstatus === '1') { // Aceptado
+                        $kanban->fecha_liberacion = Carbon::now();
+                    } elseif ($nuevoEstatus === '2') { // Parcial
+                        $kanban->fecha_parcial = Carbon::now();
+                        $kanban->estatus_calidad = $nuevoEstatus;
+                        $kanban->fecha_parcial_calidad = Carbon::now();
+                    } elseif ($nuevoEstatus === '3') { // Rechazado
+                        $kanban->fecha_rechazo = Carbon::now();
+                    }
                 }
+
                 // Si $nuevoEstatus es '', todas las fechas quedan null, lo cual es correcto.
 
                 $kanban->save(); // Guardar cambios en el registro principal
@@ -466,31 +480,44 @@ class AuditoriaKanBanController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
-        $data = $registros->map(function ($registro) {
-            return [
-                'fecha_corte'    => $registro->fecha_corte
-                    ? Carbon::parse($registro->fecha_corte)->format('Y-m-d H:i')
-                    : 'N/A',
-                'fecha_almacen'  => $registro->fecha_almacen
-                    ? Carbon::parse($registro->fecha_almacen)->format('Y-m-d H:i')
-                    : 'N/A',
-                'op'             => $registro->op ?? 'N/A',
-                'cliente'        => $registro->cliente ?? 'N/A',
-                'estilo'         => $registro->estilo ?? 'N/A',
-                'estatus'        => $registro->estatus ?? '',
-                'comentarios'    => $registro->comentarios->pluck('nombre')->implode(','),
-                'fecha_parcial'  => $registro->fecha_parcial
-                    ? Carbon::parse($registro->fecha_parcial)->format('Y-m-d H:i')
-                    : 'N/A',
-                'fecha_liberacion' => $registro->fecha_liberacion
-                    ? Carbon::parse($registro->fecha_liberacion)->format('Y-m-d H:i')
-                    : 'N/A',
-                'fecha_rechazo' => $registro->fecha_rechazo
-                    ? Carbon::parse($registro->fecha_rechazo)->format('Y-m-d H:i')
-                    : 'N/A',
-                'id'             => $registro->id,
-                'created_at_debug' => $registro->created_at->format('Y-m-d H:i:s') // Para depuración
+        // Obtén el número de empleado del usuario autenticado
+        $noEmpleado = Auth::user()->no_empleado;
+
+        // Obtén el número de empleado del usuario autenticado
+        $noEmpleado = Auth::user()->no_empleado;
+
+        // Mapeo de datos con lógica condicional
+        $data = $registros->map(function ($registro) use ($noEmpleado) {
+            // 1. Definir el arreglo base con datos comunes
+            $datosRegistro = [
+                'fecha_corte'     => $registro->fecha_corte ? Carbon::parse($registro->fecha_corte)->format('Y-m-d H:i') : 'N/A',
+                'fecha_almacen'   => $registro->fecha_almacen ? Carbon::parse($registro->fecha_almacen)->format('Y-m-d H:i') : 'N/A',
+                'op'              => $registro->op ?? 'N/A',
+                'cliente'         => $registro->cliente ?? 'N/A',
+                'estilo'          => $registro->estilo ?? 'N/A',
+                'comentarios'     => $registro->comentarios->pluck('nombre')->implode(','),
+                'id'              => $registro->id,
+                'created_at_debug'=> $registro->created_at->format('Y-m-d H:i:s')
             ];
+
+            // 2. Aplicar la lógica según el número de empleado
+            if ($noEmpleado == "4") {
+                // Lógica para el usuario de Calidad (no_empleado = "4")
+                $datosRegistro['estatus'] = $registro->estatus_calidad ?? '';
+                // No se añade la clave 'comentarios'
+                // Se usan las fechas de calidad y se renombran a las claves originales para simplificar la vista
+                $datosRegistro['fecha_parcial']      = $registro->fecha_parcial_calidad ? Carbon::parse($registro->fecha_parcial_calidad)->format('Y-m-d H:i') : 'N/A';
+                $datosRegistro['fecha_liberacion']   = $registro->fecha_liberacion_calidad ? Carbon::parse($registro->fecha_liberacion_calidad)->format('Y-m-d H:i') : 'N/A';
+                $datosRegistro['fecha_rechazo']      = $registro->fecha_rechazo_calidad ? Carbon::parse($registro->fecha_rechazo_calidad)->format('Y-m-d H:i') : 'N/A';
+            } else {
+                // Lógica para el resto de los usuarios (la general)
+                $datosRegistro['estatus']          = $registro->estatus ?? '';
+                $datosRegistro['fecha_parcial']    = $registro->fecha_parcial ? Carbon::parse($registro->fecha_parcial)->format('Y-m-d H:i') : 'N/A';
+                $datosRegistro['fecha_liberacion'] = $registro->fecha_liberacion ? Carbon::parse($registro->fecha_liberacion)->format('Y-m-d H:i') : 'N/A';
+                $datosRegistro['fecha_rechazo']    = $registro->fecha_rechazo ? Carbon::parse($registro->fecha_rechazo)->format('Y-m-d H:i') : 'N/A';
+            }
+
+            return $datosRegistro;
         });
 
         return response()->json($data);
