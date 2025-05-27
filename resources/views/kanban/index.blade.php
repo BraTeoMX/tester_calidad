@@ -54,7 +54,7 @@
                                     <th>CLIENTE</th>
                                     <th>ESTILO</th>
                                     <th>ESTATUS</th>
-                                    <th>COMENTARIOS</th>
+                                    <th class="col-comentarios">COMENTARIOS</th>
                                     <th>FECHA DE LIBERACION</th>
                                     <th>FECHA DE PARCIAL</th>
                                     <th>FECHA DE RECHAZADO</th>
@@ -294,6 +294,9 @@
     </script>
 
     <script>
+        // Variable global inyectada desde Blade
+        const currentUserNoEmpleado = '{{ Auth::user()->no_empleado }}';
+
         const comentariosSeleccionadosPorFila = {};
 
         function cargarRegistrosHoy() {
@@ -319,9 +322,26 @@
 
                     data.forEach(function (item) {
                         const id = item.id;
-                        // Si existen comentarios se crea un array a partir de la cadena,
-                        // de lo contrario se usa un array vacío
-                        // const comentarios = item.comentarios ? item.comentarios.split(',') : []; // Ya no es necesario aquí directamente
+                        
+                        // --- INICIO: LÓGICA CONDICIONAL PARA ESTATUS ---
+                        let estatusOptions = '';
+                        if (currentUserNoEmpleado === "4") {
+                            // Opciones para el usuario de Calidad
+                            estatusOptions = `
+                                <option value="">Selecciona</option>
+                                <option value="1" ${item.estatus == '1' ? 'selected' : ''}>Aceptado</option>
+                                <option value="3" ${item.estatus == '3' ? 'selected' : ''}>Rechazado</option>
+                            `;
+                        } else {
+                            // Opciones para el usuario General
+                            estatusOptions = `
+                                <option value="">Selecciona</option>
+                                <option value="1" ${item.estatus == '1' ? 'selected' : ''}>Aceptado</option>
+                                <option value="2" ${item.estatus == '2' ? 'selected' : ''}>Parcial</option>
+                                <option value="3" ${item.estatus == '3' ? 'selected' : ''}>Rechazado</option>
+                            `;
+                        }
+                        // --- FIN: LÓGICA CONDICIONAL PARA ESTATUS ---
 
                         tbody += `
                             <tr data-id="${id}">
@@ -332,13 +352,10 @@
                                 <td>${item.estilo}</td>
                                 <td>
                                     <select class="form-control select-accion">
-                                        <option value="">Selecciona</option>
-                                        <option value="1" ${item.estatus == '1' ? 'selected' : ''}>Aceptado</option>
-                                        <option value="2" ${item.estatus == '2' ? 'selected' : ''}>Parcial</option>
-                                        <option value="3" ${item.estatus == '3' ? 'selected' : ''}>Rechazado</option>
+                                        ${estatusOptions}
                                     </select>
                                 </td>
-                                <td>
+                                <td class="col-comentarios">
                                     <select class="form-control select-comentario" id="selectComentario-${id}"></select>
                                     <div class="selected-options-container mt-2" id="selectedContainer-${id}"></div>
                                 </td>
@@ -351,22 +368,31 @@
 
                     $('#tabla-registros-hoy tbody').html(tbody);
 
-                    // Inicializar select2 y cargar los comentarios existentes por cada fila
-                    data.forEach(item => {
-                        inicializarSelect2Comentarios(item.id);
-
-                        // Si existen comentarios, se separan y se agregan al contenedor de la fila
-                        if (item.comentarios) {
-                            const lista = typeof item.comentarios === 'string' ? item.comentarios.split(',') : item.comentarios; // Asegurar que sea iterable
-                            if (Array.isArray(lista)) {
-                                lista.forEach(comentario => {
-                                    if (comentario && comentario.trim() !== '') { // Verificar que comentario no sea null o undefined
-                                        agregarComentarioFila(item.id, comentario.trim());
+                    // --- INICIO: LÓGICA CONDICIONAL PARA COMENTARIOS ---
+                    if (currentUserNoEmpleado === "4") {
+                        // Si es el usuario de Calidad, oculta toda la columna de comentarios
+                        $('.col-comentarios').hide();
+                    } else {
+                        // Si es usuario general, inicializa los selectores de comentarios
+                        data.forEach(item => {
+                            // Solo inicializar si la propiedad 'comentarios' existe (el backend no la envía para el user "4")
+                            if (item.hasOwnProperty('comentarios')) {
+                                inicializarSelect2Comentarios(item.id);
+                                if (item.comentarios) {
+                                    const lista = typeof item.comentarios === 'string' ? item.comentarios.split(',') : item.comentarios;
+                                    if (Array.isArray(lista)) {
+                                        lista.forEach(comentario => {
+                                            if (comentario && comentario.trim() !== '') {
+                                                agregarComentarioFila(item.id, comentario.trim());
+                                            }
+                                        });
                                     }
-                                });
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
+                    // --- FIN: LÓGICA CONDICIONAL PARA COMENTARIOS ---
+
                 },
                 error: function (xhr) {
                     console.error(xhr.responseText);
@@ -704,6 +730,10 @@
             // Lógica oculta que lanza la actualización si es necesario
             $.get("{{ route('kanban.check-actualizacion') }}");
         });
+    </script>
+    <script>
+        // Variable global para identificar al usuario actual
+        const currentUserNoEmpleado = '{{ Auth::user()->no_empleado }}';
     </script>
         
 @endsection
