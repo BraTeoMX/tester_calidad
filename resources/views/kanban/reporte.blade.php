@@ -194,6 +194,7 @@
                         <thead class="thead-primary">
                             <tr>
                                 <th>OP</th>
+                                <th>Planta</th>
                                 <th>Cliente</th>
                                 <th>Estilo</th>
                                 <th>Piezas</th>
@@ -203,7 +204,8 @@
                                 <th>Fecha Aceptado</th>
                                 <th>Fecha Parcial</th>
                                 <th>Fecha Rechazo</th>
-                                <th>Fecha Oth>Fecha Offline</th>
+                                <th>Fecha Online</th>
+                                <th>Fecha Offline</th>
                                 <th>Fecha Approved</th>
                                 <th>Tiempo Corte - Almacén</th>
                                 <th>Tiempo Almacén - Calidad</th>
@@ -495,6 +497,10 @@
                         render: function (data, type, row) {
                             return `<button class="btn btn-sm btn-outline-info" onclick="mostrarDetalleOPDesdeTabla('${data}')">${data}</button>`;
                         }
+                    },
+                    {
+                        data: 'planta',
+                        render: p => p == 1 ? 'Ixtlahuaca' : p == 2 ? 'San Bartolo' : ''
                     },
                     {
                         data: 'cliente'

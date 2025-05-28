@@ -172,6 +172,12 @@
                         <p>{{ __('Buscar Por OP') }}</p>
                     </a>
                 </li>
+                <li class="nav-item{{ $pageSlug == 'kanban' ? ' active' : '' }}">
+                    <a class="nav-link" href="{{ route('kanban.index') }}">
+                        <i class="material-icons">edit_document</i>
+                        <p>{{ __('AUDITORIA KANBAN') }}</p>
+                    </a>
+                </li>
                 <li class="nav-item{{ $pageSlug == 'reporte_kanban' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('kanban.reporte') }}">
                         <i class="tim-icons icon-molecule-40"></i>
@@ -286,6 +292,12 @@
                     <a class="nav-link" href="{{ route('busqueda_OP.index') }}">
                         <i class="material-symbols-outlined">action_key</i>
                         <p>{{ __('Buscar Por OP') }}</p>
+                    </a>
+                </li>
+                <li class="nav-item{{ $pageSlug == 'kanban' ? ' active' : '' }}">
+                    <a class="nav-link" href="{{ route('kanban.index') }}">
+                        <i class="material-icons">edit_document</i>
+                        <p>{{ __('AUDITORIA KANBAN') }}</p>
                     </a>
                 </li>
                 <li class="nav-item{{ $pageSlug == 'reporte_kanban' ? ' active' : '' }}">
