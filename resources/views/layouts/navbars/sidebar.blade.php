@@ -225,7 +225,7 @@
                 <li class="nav-item{{ $pageSlug == 'dashboard' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('home') }}">
                         <i class="tim-icons icon-chart-pie-36"></i>
-                        <p>{{ __('Dashboard para calidad') }}</p>
+                        <p>{{ __('Dashboard') }}</p>
                     </a>
                 </li>
                 <li class="nav-item">
