@@ -221,7 +221,7 @@
                     </div>
                 </li>
             @endif
-            @if (auth()->user()->hasRole('Gerente de  Calidad') || auth()->user()->hasRole('Gerente de Calidad'))
+            @if (auth()->user()->hasRole('Gerente de Calidad'))
                 <li class="nav-item{{ $pageSlug == 'dashboard' ? ' active' : '' }}">
                     <a class="nav-link" href="{{ route('home') }}">
                         <i class="tim-icons icon-chart-pie-36"></i>
@@ -346,7 +346,7 @@
             @if (auth()->check() &&
                 (auth()->user()->hasRole('Auditor') ||
                 auth()->user()->hasRole('Administrador') ||
-                auth()->user()->hasRole('Gerente de Calidad') || auth()->user()->hasRole('Gerente de  Calidad')))
+                auth()->user()->hasRole('Gerente de Calidad')))
                 <li class="nav-item {{ $pageSlug == 'profile' || $pageSlug == 'user-management' ? ' active' : '' }}">
                     <a class="nav-link" data-toggle="collapse" href="#laravelExamples" aria-expanded="true">
                         <i class="material-icons">note_alt</i>
@@ -438,15 +438,16 @@
                                     </a>
                                 </li>
                             @endif
-                            <li class="nav-item{{ $pageSlug == 'nulo' ? ' active' : '' }}">
-                                <p>&nbsp;</p>
-                                <p>&nbsp;</p>
-                                <p>&nbsp;</p>
-                            </li>
                         </ul>
                     </div>
                 </li>
             @endif
+            <li class="nav-item{{ $pageSlug == 'nulo' ? ' active' : '' }}">
+                <h1></h1>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+            </li>
         </ul>
     </div>
 </div>
