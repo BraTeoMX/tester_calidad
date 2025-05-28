@@ -64,7 +64,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="mt-3"> <button id="btn-actualizar-todo" class="btn btn-success">Guardar Cambios Masivos</button>
+                    <div class="mt-3"> <button id="btn-actualizar-todo" class="btn-verde-xd">Guardar Cambios Masivos</button>
                     </div>
                 </div>
             </div>
@@ -197,6 +197,14 @@
         }
     </style>
 
+    <!-- DataTables CSS desde carpeta local -->
+    <link rel="stylesheet" href="{{ asset('dataTable/css/dataTables.bootstrap5.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dataTable/css/buttons.bootstrap5.min.css') }}">
+
+    <!-- jQuery y DataTables desde local -->
+    <script src="{{ asset('dataTable/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('dataTable/js/dataTables.bootstrap5.min.js') }}"></script>
+
     <script>
         $(document).ready(function () {
             let cargado = false;
@@ -240,7 +248,7 @@
                                     </td>
                                 </tr>
                             `;
-                        });
+                        }); 
 
                         tabla += `
                                     </tbody>
@@ -311,6 +319,14 @@
                 }
             }
             // ---- FIN DE LA MODIFICACIÓN ----
+
+            // Destruir DataTable existente antes de recargar, si ya fue inicializada
+            if ($.fn.DataTable.isDataTable('#tabla-registros-hoy')) {
+                $('#tabla-registros-hoy').DataTable().destroy();
+            }
+            // Limpiar el tbody visualmente también es buena idea si la carga falla o tarda
+            $('#tabla-registros-hoy tbody').empty();
+
             $.ajax({
                 url: '{{ route("kanban.registrosHoy") }}',
                 method: 'GET',
@@ -319,10 +335,6 @@
 
                     data.forEach(function (item) {
                         const id = item.id;
-                        // Si existen comentarios se crea un array a partir de la cadena,
-                        // de lo contrario se usa un array vacío
-                        // const comentarios = item.comentarios ? item.comentarios.split(',') : []; // Ya no es necesario aquí directamente
-
                         tbody += `
                             <tr data-id="${id}">
                                 <td>${item.fecha_corte || ''}</td>
@@ -367,6 +379,39 @@
                             }
                         }
                     });
+                    // ---- INICIO DE LA INTEGRACIÓN CON DATATABLES ----
+                    // Verificar que la tabla tenga un thead, ya que DataTables lo requiere. Tu HTML ya lo tiene.
+                    if (data.length > 0) { // Solo inicializar si hay datos
+                        dataTableInstance = $('#tabla-registros-hoy').DataTable({
+                            // Opciones básicas de DataTables
+                            // language: { url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json" }, // Para español
+                            paging: false,        // Habilitar paginación (puedes quitarla si no la necesitas)
+                            searching: true,     // Habilitar búsqueda (esto es lo que quieres)
+                            info: true,          // Mostrar información de registros (puedes quitarla)
+                            //ordering: true,      // Habilitar ordenamiento por columnas (puedes deshabilitarlo si interfiere con Select2 visualmente al ordenar)
+                            language: {
+                                    "sProcessing": "Procesando...",
+                                    "sLengthMenu": "Mostrar _MENU_ registros",
+                                    "sZeroRecords": "No se encontraron resultados",
+                                    "sEmptyTable": "Ningún dato disponible en esta tabla",
+                                    "sInfo": "Registros _START_ - _END_ de _TOTAL_ mostrados",
+                                    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                                    "sSearch": "Buscar:",
+                                    "oPaginate": {
+                                        "sFirst": "Primero",
+                                        "sLast": "Último",
+                                        "sNext": "Siguiente",
+                                        "sPrevious": "Anterior"
+                                    }
+                                }
+                        });
+                    } else {
+                        // Si no hay datos, DataTables podría mostrar un mensaje de "No data available"
+                        // o podrías manejarlo como prefieras.
+                        // $('#tabla-registros-hoy tbody').html('<tr><td colspan="10" class="text-center">No hay registros para mostrar.</td></tr>');
+                    }
+                    // ---- FIN DE LA INTEGRACIÓN CON DATATABLES ----
                 },
                 error: function (xhr) {
                     console.error(xhr.responseText);
