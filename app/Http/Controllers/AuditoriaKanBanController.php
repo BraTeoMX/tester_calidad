@@ -283,38 +283,57 @@ class AuditoriaKanBanController extends Controller
                 $omitirEsteRegistro = false;
 
                 // Cambiar de === a == para la comparación principal entre el nuevo estado (string) y el actual (int/DB type)
-                if ($nuevoEstatus == $kanban->estatus) { 
-                    // Si entramos aquí, significa que '1' == 1 (true), o '2' == 2 (true), o '' == 0 (true, si así se guarda '' en DB) etc.
-                    // Ahora, la lógica interna sigue usando $nuevoEstatus (string) contra strings literales, lo cual está bien.
-                    if ($nuevoEstatus === '1' && $kanban->fecha_liberacion !== null) {
+                if ($tipoAcceso === '4') {
+                // Lógica de omisión específica para el usuario tipo '4' (usando campos _calidad)
+                if ($nuevoEstatus == $kanban->estatus_calidad) { // Compara con estatus_calidad
+                    if ($nuevoEstatus === '1' && $kanban->fecha_liberacion_calidad !== null) {
                         $omitirEsteRegistro = true;
-                    } elseif ($nuevoEstatus === '2' && $kanban->fecha_parcial !== null) {
-                        $omitirEsteRegistro = false;
-                    } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo !== null) {
+                    } elseif ($nuevoEstatus === '2' && $kanban->fecha_parcial_calidad !== null) {
+                        $omitirEsteRegistro = false; // Para 'parcial calidad', se actualiza la fecha
+                    } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo_calidad !== null) {
                         $omitirEsteRegistro = true;
-                    } elseif ($nuevoEstatus === '' && // Si el nuevo estado es "sin seleccionar" (string vacío)
-                            $kanban->fecha_liberacion === null && 
-                            $kanban->fecha_parcial === null && 
-                            $kanban->fecha_rechazo === null) {
-                        // Y si kanban->estatus también representa un estado "vacío" (ej. 0, que es == a '')
-                        // y no hay fechas establecidas.
+                    } elseif (
+                        $nuevoEstatus === '' &&
+                        $kanban->fecha_liberacion_calidad === null &&
+                        $kanban->fecha_parcial_calidad === null &&
+                        $kanban->fecha_rechazo_calidad === null
+                    ) {
                         $omitirEsteRegistro = true;
                     }
                 }
+            } else {
+                // Lógica de omisión para otros usuarios (la que tenías, usando campos generales)
+                if ($nuevoEstatus == $kanban->estatus) { // Compara con estatus general
+                    if ($nuevoEstatus === '1' && $kanban->fecha_liberacion !== null) {
+                        $omitirEsteRegistro = true;
+                    } elseif ($nuevoEstatus === '2' && $kanban->fecha_parcial !== null) {
+                        $omitirEsteRegistro = false; // Para 'parcial general', se actualiza la fecha
+                    } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo !== null) {
+                        $omitirEsteRegistro = true;
+                    } elseif (
+                        $nuevoEstatus === '' &&
+                        $kanban->fecha_liberacion === null &&
+                        $kanban->fecha_parcial === null &&
+                        $kanban->fecha_rechazo === null
+                    ) {
+                        $omitirEsteRegistro = true;
+                    }
+                }
+            }
 
                 if ($omitirEsteRegistro) {
                     $registrosOmitidos++;
                     continue; 
                 }
 
-                // Reiniciar fechas antes de asignar la nueva basada en el estatus
-                // Esta parte es crucial: si el estatus cambia, la fecha anterior se borra
-                // y se establece la nueva. Si el estatus es el mismo pero la fecha estaba null, se establece.
-                $kanban->fecha_liberacion = null;
-                $kanban->fecha_parcial    = null;
-                $kanban->fecha_rechazo    = null;
 
                 if ($tipoAcceso === '4') {
+
+                    // Reiniciar solo las fechas de calidad relevantes ANTES de asignar la nueva
+                    $kanban->fecha_liberacion_calidad = null;
+                    $kanban->fecha_parcial_calidad    = null;
+                    $kanban->fecha_rechazo_calidad    = null;
+
                     if ($nuevoEstatus === '1') { // Aceptado
                         $kanban->fecha_liberacion_calidad = Carbon::now();
                     } elseif ($nuevoEstatus === '2') { // Parcial
@@ -324,13 +343,22 @@ class AuditoriaKanBanController extends Controller
                     }
                     $kanban->estatus_calidad = $nuevoEstatus;
                 } else {
+                    // Reiniciar fechas antes de asignar la nueva basada en el estatus
+                    // Esta parte es crucial: si el estatus cambia, la fecha anterior se borra
+                    // y se establece la nueva. Si el estatus es el mismo pero la fecha estaba null, se establece.
+                    $kanban->fecha_liberacion = null;
+                    $kanban->fecha_parcial    = null;
+                    $kanban->fecha_rechazo    = null;
+
                     $kanban->estatus = $nuevoEstatus;
                     if ($nuevoEstatus === '1') { // Aceptado
                         $kanban->fecha_liberacion = Carbon::now();
                     } elseif ($nuevoEstatus === '2') { // Parcial
                         $kanban->fecha_parcial = Carbon::now();
-                        $kanban->estatus_calidad = $nuevoEstatus;
-                        $kanban->fecha_parcial_calidad = Carbon::now();
+                        if($kanban->fecha_liberacion_calidad == null && $kanban->fecha_parcial_calidad == null && $kanban->fecha_rechazo_calidad == null) {
+                            $kanban->estatus_calidad = $nuevoEstatus;
+                            $kanban->fecha_parcial_calidad = Carbon::now();
+                        }
                     } elseif ($nuevoEstatus === '3') { // Rechazado
                         $kanban->fecha_rechazo = Carbon::now();
                     }
