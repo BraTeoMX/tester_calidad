@@ -67,6 +67,7 @@
                         <thead class="thead-primary">
                             <tr>
                                 <th>OP</th>
+                                <th>Auditor</th>
                                 <th>Panel</th>
                                 <th>Máquina</th>
                                 <th>Técnicas</th> <!-- Nueva columna -->
@@ -292,6 +293,7 @@
                         data.forEach(registro => {
                             tablaContenido += `<tr>
                                 <td>${registro.op}</td>
+                                <td>${registro.auditor}</td>
                                 <td>${registro.panel}</td>
                                 <td>${registro.maquina}</td>
                                 <td>${registro.tecnicas}</td>

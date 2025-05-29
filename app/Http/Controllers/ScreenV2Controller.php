@@ -575,6 +575,7 @@ class ScreenV2Controller extends Controller
             };
 
 
+            $auditorTexto = $generateHtmlList($group->pluck('auditor'));
             $panelesTexto = $generateHtmlList($group->pluck('panel'));
             $maquinasTexto = $generateHtmlList($group->pluck('maquina'));
             $graficasTexto = $generateHtmlList($group->pluck('grafica'));
@@ -611,6 +612,7 @@ class ScreenV2Controller extends Controller
 
             return [
                 'op'                => $op,
+                'auditor'           => $auditorTexto,
                 'panel'             => $panelesTexto,
                 'maquina'           => $maquinasTexto,
                 'tecnicas'          => $tecnicasTexto, // Mostrará lista de nombres únicos
@@ -754,6 +756,7 @@ class ScreenV2Controller extends Controller
                 return '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", $filteredItems)) . '</ul>';
             };
             
+            $auditorTexto = $generateHtmlListOrNA($group, 'auditor');
             $panelesTexto = $generateHtmlListOrNA($group, 'panel');
             $maquinasTexto = $generateHtmlListOrNA($group, 'maquina');
             $graficasTexto = $generateHtmlListOrNA($group, 'grafica');
@@ -818,6 +821,7 @@ class ScreenV2Controller extends Controller
 
             return [
                 'op'                => !empty(trim((string)($first->op ?? ''))) ? $first->op : 'N/A',
+                'auditor'           => $auditorTexto,
                 'panel'             => $panelesTexto,
                 'maquina'           => $maquinasTexto,
                 'tecnicas'          => $tecnicasTexto, // MODIFICADO: Mostrará lista de nombres únicos sin conteo
@@ -1012,7 +1016,8 @@ class ScreenV2Controller extends Controller
             }; // <--- PUNTO Y COMA AÑADIDO
 
             $op_excel = $first->op ?? 'N/A';
-            $panel_excel = $stripHtmlAndJoin($originalGenerateHtmlList($group->pluck('panel')));
+            $auditor_excel = $stripHtmlAndJoin($originalGenerateHtmlList($group->pluck('auditor'))); 
+            $panel_excel = $stripHtmlAndJoin($originalGenerateHtmlList($group->pluck('panel'))); 
             $maquina_excel = $stripHtmlAndJoin($originalGenerateHtmlList($group->pluck('maquina')));
             $tecnicas_excel = $stripHtmlAndJoin($originalGenerateHtmlList($group->pluck('tecnicas')->flatten()->pluck('nombre'), 'Sin técnicas'));
             $fibras_excel = $stripHtmlAndJoin($originalGenerateHtmlList($group->pluck('fibras')->flatten()->pluck('nombre'), 'Sin fibras'));
@@ -1029,6 +1034,7 @@ class ScreenV2Controller extends Controller
             
             return (object) [
                 'op'                => $op_excel,
+                'auditor'           => $auditor_excel,
                 'panel'             => $panel_excel,
                 'maquina'           => $maquina_excel,
                 'tecnicas'          => $tecnicas_excel,
@@ -1104,10 +1110,10 @@ class ScreenV2Controller extends Controller
         $sheetRegistros->setTitle('Registros Screen');
 
         $columnasRegistros = [
-            'A' => 'OP', 'B' => 'Panel', 'C' => 'Máquina', 'D' => 'Técnicas',
-            'E' => 'Fibras', 'F' => 'Gráfica', 'G' => 'Cliente', 'H' => 'Estilo',
-            'I' => 'Color', 'J' => 'Cantidad', 'K' => 'Técnico Screen',
-            'L' => 'Defectos', 'M' => 'Acción Correctiva'
+            'A' => 'OP', 'B' => 'Auditor', 'C' => 'Panel', 'D' => 'Máquina', 'E' => 'Técnicas',
+            'F' => 'Fibras', 'G' => 'Gráfica', 'H' => 'Cliente', 'I' => 'Estilo',
+            'J' => 'Color', 'K' => 'Cantidad', 'L' => 'Técnico Screen',
+            'M' => 'Defectos', 'N' => 'Acción Correctiva'
         ];
         $rowNum = 1;
         foreach ($columnasRegistros as $colLetra => $titulo) {
@@ -1122,18 +1128,19 @@ class ScreenV2Controller extends Controller
         if ($registrosData->isNotEmpty()) {
             foreach ($registrosData as $registro) { // $registro es un objeto stdClass
                 $sheetRegistros->setCellValue('A' . $rowNum, $registro->op);
-                $sheetRegistros->setCellValue('B' . $rowNum, $registro->panel);
-                $sheetRegistros->setCellValue('C' . $rowNum, $registro->maquina);
-                $sheetRegistros->setCellValue('D' . $rowNum, $registro->tecnicas);
-                $sheetRegistros->setCellValue('E' . $rowNum, $registro->fibras);
-                $sheetRegistros->setCellValue('F' . $rowNum, $registro->grafica);
-                $sheetRegistros->setCellValue('G' . $rowNum, $registro->cliente);
-                $sheetRegistros->setCellValue('H' . $rowNum, $registro->estilo);
-                $sheetRegistros->setCellValue('I' . $rowNum, $registro->color);
-                $sheetRegistros->setCellValueExplicit('J' . $rowNum, $registro->cantidad, DataType::TYPE_NUMERIC);
-                $sheetRegistros->setCellValue('K' . $rowNum, $registro->tecnico_screen);
-                $sheetRegistros->setCellValue('L' . $rowNum, $registro->defectos);
-                $sheetRegistros->setCellValue('M' . $rowNum, $registro->accion_correctiva);
+                $sheetRegistros->setCellValue('B' . $rowNum, $registro->auditor);
+                $sheetRegistros->setCellValue('C' . $rowNum, $registro->panel);
+                $sheetRegistros->setCellValue('D' . $rowNum, $registro->maquina);
+                $sheetRegistros->setCellValue('E' . $rowNum, $registro->tecnicas);
+                $sheetRegistros->setCellValue('F' . $rowNum, $registro->fibras);
+                $sheetRegistros->setCellValue('G' . $rowNum, $registro->grafica);
+                $sheetRegistros->setCellValue('H' . $rowNum, $registro->cliente);
+                $sheetRegistros->setCellValue('I' . $rowNum, $registro->estilo);
+                $sheetRegistros->setCellValue('J' . $rowNum, $registro->color);
+                $sheetRegistros->setCellValueExplicit('K' . $rowNum, $registro->cantidad, DataType::TYPE_NUMERIC);
+                $sheetRegistros->setCellValue('L' . $rowNum, $registro->tecnico_screen);
+                $sheetRegistros->setCellValue('M' . $rowNum, $registro->defectos);
+                $sheetRegistros->setCellValue('N' . $rowNum, $registro->accion_correctiva);
                 $rowNum++;
             }
         } else {
@@ -1273,6 +1280,7 @@ class ScreenV2Controller extends Controller
             };
             
             // Generar HTML con helpers originales
+            $htmlAuditores = $_generateHtmlListOrNA($group, 'auditor');
             $htmlPaneles = $_generateHtmlListOrNA($group, 'panel');
             $htmlMaquinas = $_generateHtmlListOrNA($group, 'maquina');
             $htmlGraficas = $_generateHtmlListOrNA($group, 'grafica');
@@ -1302,6 +1310,7 @@ class ScreenV2Controller extends Controller
 
             return (object) [ // Devolver objeto stdClass como en tu ejemplo de Screen
                 'op' => !empty(trim((string)($first->op ?? ''))) ? $first->op : 'N/A',
+                'auditor' => $formatListForExcel($htmlAuditores),
                 'panel' => $formatListForExcel($htmlPaneles),
                 'maquina' => $formatListForExcel($htmlMaquinas),
                 'tecnicas' => $formatListForExcel($htmlNombresTecnicas),
@@ -1384,10 +1393,10 @@ class ScreenV2Controller extends Controller
         $sheetRegistros->setTitle('Registros Plancha');
 
         $columnasRegistros = [
-            'A' => 'OP', 'B' => 'Panel', 'C' => 'Máquina', 'D' => 'Técnicas',
-            'E' => 'Fibras', 'F' => 'Gráfica', 'G' => 'Cliente', 'H' => 'Estilo',
-            'I' => 'Color', 'J' => 'Cantidad', 'K' => 'Técnico Screen', // O Técnico Plancha, ajusta el header
-            'L' => 'Defectos', 'M' => 'Acción Correctiva'
+            'A' => 'OP', 'B' => 'Auditor', 'C' => 'Panel', 'D' => 'Máquina', 'E' => 'Técnicas',
+            'F' => 'Fibras', 'G' => 'Gráfica', 'H' => 'Cliente', 'I' => 'Estilo',
+            'J' => 'Color', 'K' => 'Cantidad', 'L' => 'Técnico Screen', // O Técnico Plancha, ajusta el header
+            'M' => 'Defectos', 'N' => 'Acción Correctiva'
         ];
         $rowNum = 1;
         foreach ($columnasRegistros as $colLetra => $titulo) {
@@ -1402,22 +1411,23 @@ class ScreenV2Controller extends Controller
         if ($registrosData->isNotEmpty()) {
             foreach ($registrosData as $registro) { // $registro es un objeto stdClass
                 $sheetRegistros->setCellValue('A' . $rowNum, $registro->op);
-                $sheetRegistros->setCellValue('B' . $rowNum, $registro->panel);
-                $sheetRegistros->setCellValue('C' . $rowNum, $registro->maquina);
-                $sheetRegistros->setCellValue('D' . $rowNum, $registro->tecnicas);
-                $sheetRegistros->setCellValue('E' . $rowNum, $registro->fibras);
-                $sheetRegistros->setCellValue('F' . $rowNum, $registro->grafica);
-                $sheetRegistros->setCellValue('G' . $rowNum, $registro->cliente);
-                $sheetRegistros->setCellValue('H' . $rowNum, $registro->estilo);
-                $sheetRegistros->setCellValue('I' . $rowNum, $registro->color);
-                $sheetRegistros->setCellValueExplicit('J' . $rowNum, $registro->cantidad, DataType::TYPE_NUMERIC);
-                $sheetRegistros->setCellValue('K' . $rowNum, $registro->tecnico_screen); // Usa la clave del objeto
-                $sheetRegistros->setCellValue('L' . $rowNum, $registro->defectos);
-                $sheetRegistros->setCellValue('M' . $rowNum, $registro->accion_correctiva);
+                $sheetRegistros->setCellValue('B' . $rowNum, $registro->auditor);
+                $sheetRegistros->setCellValue('C' . $rowNum, $registro->panel);
+                $sheetRegistros->setCellValue('D' . $rowNum, $registro->maquina);
+                $sheetRegistros->setCellValue('E' . $rowNum, $registro->tecnicas);
+                $sheetRegistros->setCellValue('F' . $rowNum, $registro->fibras);
+                $sheetRegistros->setCellValue('G' . $rowNum, $registro->grafica);
+                $sheetRegistros->setCellValue('H' . $rowNum, $registro->cliente);
+                $sheetRegistros->setCellValue('I' . $rowNum, $registro->estilo);
+                $sheetRegistros->setCellValue('J' . $rowNum, $registro->color);
+                $sheetRegistros->setCellValueExplicit('K' . $rowNum, $registro->cantidad, DataType::TYPE_NUMERIC);
+                $sheetRegistros->setCellValue('L' . $rowNum, $registro->tecnico_screen); // Usa la clave del objeto
+                $sheetRegistros->setCellValue('M' . $rowNum, $registro->defectos);
+                $sheetRegistros->setCellValue('N' . $rowNum, $registro->accion_correctiva);
                 
                 // Ajustar texto en celdas
-                foreach (range('B', 'M') as $col) { // Columnas que pueden tener listas
-                    if($col !== 'J'){ // Excluir columna de cantidad numérica
+                foreach (range('B', 'N') as $col) { // Columnas que pueden tener listas
+                    if($col !== 'K'){ // Excluir columna de cantidad numérica
                          $sheetRegistros->getStyle($col . $rowNum)->getAlignment()->setWrapText(true);
                          $sheetRegistros->getStyle($col . $rowNum)->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
                     }
