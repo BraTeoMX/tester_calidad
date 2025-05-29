@@ -578,14 +578,17 @@ class AuditoriaKanBanController extends Controller
             $respuestaGlobal['message'] = 'Procesos de actualización iniciados.';
 
             // --- 1. Proceso para fecha_online ---
-            $registrosOnline = ReporteKanban::whereNull('fecha_online')->get();
+            $registrosOnline = ReporteKanban::select('id', 'fecha_online', 'fecha_offline', 'fecha_approved', 'op', 'fecha_corte')
+                                ->orderBy('fecha_corte', 'desc') // Ordenar por fecha_corte de más reciente a más antiguo
+                                ->limit(1000) // Establecer un límite de 500 registros
+                                ->get();
             if ($registrosOnline->count() > 0 && class_exists(JobAQL::class)) {
                 Log::info("Procesando 'fecha_online' para " . $registrosOnline->count() . " registros.");
                 $updatesOnlineCount = 0;
                 foreach ($registrosOnline as $registro) {
                     $jobOnline = JobAQL::where('prodid', $registro->op)
                                       ->where('oprname', 'ON LINE')
-                                      ->orderBy('payrolldate', 'asc')
+                                      ->orderBy('payrolldate', 'desc')
                                       ->first();
 
                     if ($jobOnline && $jobOnline->payrolldate) {
@@ -602,13 +605,13 @@ class AuditoriaKanBanController extends Controller
             }
 
             // --- 2. Proceso para fecha_offline ---
-            $registrosOffline = ReporteKanban::whereNull('fecha_offline')->get();
+            $registrosOffline = $registrosOnline;
             if ($registrosOffline->count() > 0 && class_exists(TicketOffline::class)) {
                 Log::info("Procesando 'fecha_offline' para " . $registrosOffline->count() . " registros.");
                 $updatesOfflineCount = 0;
                 foreach ($registrosOffline as $registro) {
                     $ticketOffline = TicketOffline::where('op', $registro->op)
-                                                // ->orderBy('fecha', 'desc') // Ajusta si necesitas un orden específico
+                                                //->orderBy('fecha', 'desc') // Ajusta si necesitas un orden específico
                                                 ->first();
 
                     // CAMBIA 'fecha_generacion' por el nombre real de tu campo de fecha en TicketOffline
@@ -626,13 +629,13 @@ class AuditoriaKanBanController extends Controller
             }
 
             // --- 3. Proceso para fecha_approved ---
-            $registrosApproved = ReporteKanban::whereNull('fecha_approved')->get();
+            $registrosApproved = $registrosOnline;
             if ($registrosApproved->count() > 0 && class_exists(TicketApproved::class)) {
                 Log::info("Procesando 'fecha_approved' para " . $registrosApproved->count() . " registros.");
                 $updatesApprovedCount = 0;
                 foreach ($registrosApproved as $registro) {
                     $ticketApproved = TicketApproved::where('op', $registro->op)
-                                                  // ->orderBy('fecha', 'desc') // Ajusta si necesitas un orden específico
+                                                  //->orderBy('fecha', 'desc') // Ajusta si necesitas un orden específico
                                                   ->first();
 
                     // CAMBIA 'fecha_aprobacion' por el nombre real de tu campo de fecha en TicketApproved
