@@ -5,14 +5,14 @@ use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\AuditoriaProceso;  
-use App\Models\AseguramientoCalidad;  
-use App\Models\CategoriaTeamLeader;  
-use App\Models\CategoriaTipoProblema; 
+use App\Models\AuditoriaProceso;
+use App\Models\AseguramientoCalidad;
+use App\Models\CategoriaTeamLeader;
+use App\Models\CategoriaTipoProblema;
 use App\Models\CategoriaAccionCorrectiva;
 use App\Models\JobOperacion;
-use App\Models\TpAseguramientoCalidad; 
-use App\Models\CategoriaSupervisor; 
+use App\Models\TpAseguramientoCalidad;
+use App\Models\CategoriaSupervisor;
 use App\Mail\NotificacionParo;
 use App\Models\ModuloEstilo;
 use App\Models\ModuloEstiloTemporal;
@@ -52,7 +52,7 @@ class AuditoriaProcesoV3Controller extends Controller
         ));
     }
 
-    
+
 
     public function obtenerModulos()
     {
@@ -70,7 +70,7 @@ class AuditoriaProcesoV3Controller extends Controller
         // Clave de caché única para la planta especificada.
         // He añadido _v2 por si existiera una caché antigua con una clave similar.
         $claveCache = "modulos_planta_{$datoPlanta}_v2";
-        
+
         // Tiempo de caché en segundos (60 segundos = 1 minuto)
         $tiempoCache = 60;
         // Alternativamente, usando Carbon para una definición más explícita del tiempo:
@@ -318,7 +318,7 @@ class AuditoriaProcesoV3Controller extends Controller
     }
 
 
-    public function formAltaProceso(Request $request) 
+    public function formAltaProceso(Request $request)
     {
         $pageSlug ='';
 
@@ -332,7 +332,7 @@ class AuditoriaProcesoV3Controller extends Controller
         ];
         //dd($data);
 
-        return redirect()->route('procesoV3.registro', 
+        return redirect()->route('procesoV3.registro',
             array_merge($data))->with('cambio-estatus', 'Iniciando en modulo: '. $data['modulo'])->with('pageSlug', $pageSlug);
     }
 
@@ -348,7 +348,7 @@ class AuditoriaProcesoV3Controller extends Controller
         $data = $request->all();
         // Asegurarse de que la variable $data esté definida
         $data = $data ?? [];
-        
+
         $auditorPlanta = Auth::user()->Planta;
         $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
 
@@ -444,7 +444,7 @@ class AuditoriaProcesoV3Controller extends Controller
 
         // --- Lógica de Caché y Consulta ---
         $procesos = Cache::remember($cacheKey, now()->addMinutes($minutesToCache), function () use ($datoPlanta, $fechaActual, $tipoUsuario, $auditorDato) {
-            
+
             $query = AseguramientoCalidad::whereNull('estatus')
                 ->where('planta', $datoPlanta)
                 // Optimización para whereDate:
@@ -595,7 +595,7 @@ class AuditoriaProcesoV3Controller extends Controller
         // --- Lógica de Caché y Consulta ---
         $defectos = Cache::remember($cacheKey, $minutesToCache * 60, function () use ($search) {
             // El segundo argumento de remember es en segundos, o puedes usar now()->addMinutes()
-            
+
             $query = CategoriaTipoProblema::whereIn('area', ['proceso', 'playera']);
 
             // Aplicar filtro de búsqueda si el usuario escribe algo
@@ -690,7 +690,7 @@ class AuditoriaProcesoV3Controller extends Controller
             // Procesar el nombre final
             $nombreFinalValidado = $datosFormulario['auditoria'][0]['nombre_final'] ? trim($datosFormulario['auditoria'][0]['nombre_final']) : null;
 
-            // Obtener número de empleado desde AuditoriaProceso 
+            // Obtener número de empleado desde AuditoriaProceso
             $numeroEmpleado = $datosFormulario['auditoria'][0]['numero_empleado'];
 
             // Obtener módulo adicional
@@ -749,7 +749,7 @@ class AuditoriaProcesoV3Controller extends Controller
 
             // ✅ Solo guardar en TpAseguramientoCalidad si existe 'tipo_problema' y tiene datos
             if (isset($datosFormulario['auditoria'][0]['tipo_problema']) && !empty($datosFormulario['auditoria'][0]['tipo_problema'])) {
-                
+
                 $tpSeleccionados = $datosFormulario['auditoria'][0]['tipo_problema'];
 
                 // Si tipo_problema no es un array, convertirlo en uno
@@ -849,7 +849,7 @@ class AuditoriaProcesoV3Controller extends Controller
             return response()->json(['error' => 'Ocurrió un error interno al obtener los registros.'], 500);
         }
     }
-    
+
     public function finalizarParoGeneral(Request $request)
     {
         try {
@@ -1074,7 +1074,7 @@ class AuditoriaProcesoV3Controller extends Controller
             ], 500);
         }
     }
-    
+
     public function guardarObservacionProcesoTE(Request $request)
     {
         try {
@@ -1154,7 +1154,7 @@ class AuditoriaProcesoV3Controller extends Controller
                       ->orWhereNull('tiempo_extra');
             });
         }
-        
+
         // Clonar para contar y luego para actualizar
         $queryParaContar = clone $queryBaseRegistros;
         $queryParaActualizar = clone $queryBaseRegistros;
@@ -1167,9 +1167,9 @@ class AuditoriaProcesoV3Controller extends Controller
                 'message' => 'No hay registros para finalizar en el turno de ' . ($tipoTurno === 'extra' ? 'tiempo extra' : 'normal') . '.'
             ]);
         }
-        
+
         // Actualizar los registros del turno específico.
-        // Aquí es donde decides si guardas la observación 
+        // Aquí es donde decides si guardas la observación
         // o en cada registro. Si es en cada registro, se replicará.
         // Para este ejemplo, asumiré un campo 'observacion' y 'estatus'
         $datosActualizar = [
