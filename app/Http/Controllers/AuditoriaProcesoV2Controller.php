@@ -441,7 +441,14 @@ class AuditoriaProcesoV2Controller extends Controller
             // Obtener el cliente desde la base de datos
             $obtenerEstilo = $datosFormulario['estilo']; 
             $obtenerCliente = $datosFormulario['cliente']; 
-            $obtenerCliente = $obtenerCliente ?: ModuloEstiloTemporal::where('itemid', $datosFormulario['estilo'])->value('custname');
+            Log::info("V2 cliente inicial", ['cliente' => $obtenerCliente]);
+            if (empty($obtenerCliente)) {
+                $obtenerCliente = ModuloEstiloTemporal::where('itemid', $datosFormulario['estilo'])->value('custname');
+                if (empty($obtenerCliente)) {
+                    $obtenerCliente = ModuloEstilo::where('itemid', $datosFormulario['estilo'])->value('custname');
+                }
+            }
+            Log::info("V2 cliente despues", ['cliente' => $obtenerCliente]);
 
 
             // Procesar el nombre final
