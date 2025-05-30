@@ -681,6 +681,9 @@ class AuditoriaProcesoV3Controller extends Controller
             $obtenerCliente = $datosFormulario['cliente']; 
             if (empty($obtenerCliente)) {
                 $obtenerCliente = ModuloEstiloTemporal::where('itemid', $datosFormulario['estilo'])->value('custname');
+                if (empty($obtenerCliente)) {
+                    $obtenerCliente = ModuloEstilo::where('itemid', $datosFormulario['estilo'])->value('custname');
+                }
             }
 
 
