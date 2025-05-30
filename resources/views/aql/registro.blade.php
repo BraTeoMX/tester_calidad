@@ -898,68 +898,66 @@
             const tpSelect = $('#tpSelectAQL');
             const selectedOptionsContainer = $('#selectedOptionsContainerAQL');
             
-            // Variable para cachear los resultados y evitar múltiples llamadas
             let cachedDefectsData = null;
 
-            // ---- INICIO DE LA NUEVA LÓGICA DE SELECT2 ----
             tpSelect.select2({
                 placeholder: 'Selecciona una o más opciones',
                 allowClear: true,
-                language: { // Definimos los textos aquí
+                language: { 
                     noResults: function() { return "No se encontraron resultados"; },
                     searching: function() { return "Buscando..."; }
                 },
-                // Usamos la funcionalidad AJAX incorporada de Select2
                 ajax: {
-                    // Usamos 'transport' para controlar CÓMO se hace la petición.
-                    // Esto nos permite interceptarla y usar la caché si ya tenemos los datos.
                     transport: function(params, success, failure) {
-                        // Si ya hemos cargado los datos, los devolvemos inmediatamente sin hacer otra llamada AJAX.
                         if (cachedDefectsData) {
                             success(cachedDefectsData);
                             return;
                         }
-
-                        // Si no, hacemos la llamada AJAX por primera y única vez.
                         return $.ajax({
                             url: "{{ route('AQLV3.defectos.aql') }}",
                             type: 'GET',
                             dataType: 'json',
                             success: function(data) {
-                                // Guardamos los datos en nuestra caché para futuros usos
                                 cachedDefectsData = data;
-                                // Devolvemos los datos a Select2
                                 success(data);
                             },
                             error: function() {
-                                // Notificamos a Select2 del fallo
                                 failure();
                             }
                         });
                     },
-                    // 'processResults' se ejecuta después de que 'transport' tiene éxito.
-                    // Su trabajo es transformar los datos del servidor al formato que Select2 espera.
-                    processResults: function(data) {
-                        // Mapeamos los datos recibidos al formato {id, text}
-                        let options = data.map(item => ({
+                    // ---- INICIO DE LA MODIFICACIÓN ----
+                    processResults: function(data, params) { // Añadimos 'params' como argumento
+                        let filteredData = data;
+
+                        // Filtramos los datos si hay un término de búsqueda
+                        if (params.term && params.term.trim() !== '') {
+                            const searchTerm = params.term.toLowerCase();
+                            filteredData = data.filter(item => 
+                                item.nombre.toLowerCase().includes(searchTerm)
+                            );
+                        }
+
+                        // Mapeamos los datos (filtrados o todos) al formato {id, text}
+                        let options = filteredData.map(item => ({
                             id: item.nombre,
                             text: item.nombre
                         }));
 
-                        // Añadimos nuestra opción especial "CREAR DEFECTO" al inicio de la lista de resultados.
+                        // Añadimos nuestra opción especial "CREAR DEFECTO" al inicio de la lista
                         options.unshift({
                             id: 'CREAR_DEFECTO',
                             text: 'CREAR DEFECTO',
-                            action: true // Propiedad personalizada para el formateo
+                            action: true 
                         });
 
-                        // Devolvemos los datos en el formato que Select2 requiere: { results: [...] }
+                        // Devolvemos los datos en el formato que Select2 requiere
                         return {
                             results: options
                         };
                     }
+                    // ---- FIN DE LA MODIFICACIÓN ----
                 },
-                // 'templateResult' se mantiene para dar formato a nuestra opción especial
                 templateResult: function(data) {
                     if (data.action) {
                         return $('<span style="color: #007bff; font-weight: bold;">' + data.text + '</span>');
@@ -967,24 +965,19 @@
                     return data.text;
                 }
             });
-            // ---- FIN DE LA NUEVA LÓGICA DE SELECT2 ----
 
-
-            // El resto de tu lógica para manejar la selección, creación y eliminación
-            // permanece exactamente igual y funcionará sin problemas.
-
+            // El resto de tu lógica permanece igual
             tpSelect.on('select2:select', function(e) {
                 const selectedData = e.params.data;
 
                 if (selectedData.id === 'CREAR_DEFECTO') {
-                    // Deseleccionamos la opción "CREAR" para que no quede en el campo y abrimos el modal
                     tpSelect.val(null).trigger('change');
                     $('#nuevoConceptoModal').modal('show');
                     return;
                 }
 
                 addOptionToContainer(selectedData.id, selectedData.text);
-                tpSelect.val(null).trigger('change');
+                tpSelect.val(null).trigger('change'); 
             });
 
             function addOptionToContainer(id, text) {
@@ -1020,8 +1013,7 @@
                     },
                     success: function(newDefect) {
                         addOptionToContainer(newDefect.nombre, newDefect.nombre);
-                        // Invalidamos la caché para que la próxima vez que se abra, se vuelva a consultar la lista actualizada.
-                        cachedDefectsData = null;
+                        cachedDefectsData = null; // Invalidamos caché para recargar con el nuevo defecto
                         $('#nuevoConceptoModal').modal('hide');
                         $('#nuevoConceptoInput').val('');
                     },
