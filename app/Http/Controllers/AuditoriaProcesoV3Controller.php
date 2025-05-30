@@ -674,12 +674,14 @@ class AuditoriaProcesoV3Controller extends Controller
                 '2' => 'Intimark2',
                 default => null, // O el valor por defecto que necesites
             };
-
+ 
 
             // Obtener el cliente desde la base de datos
             $obtenerEstilo = $datosFormulario['estilo']; 
             $obtenerCliente = $datosFormulario['cliente']; 
-            $obtenerCliente = $obtenerCliente ?: ModuloEstiloTemporal::where('itemid', $datosFormulario['estilo'])->value('custname');
+            if (empty($obtenerCliente)) {
+                $obtenerCliente = ModuloEstiloTemporal::where('itemid', $datosFormulario['estilo'])->value('custname');
+            }
 
 
             // Procesar el nombre final
