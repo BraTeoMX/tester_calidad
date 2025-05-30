@@ -677,16 +677,16 @@ class AuditoriaProcesoV3Controller extends Controller
  
 
             // Obtener el cliente desde la base de datos
-            $obtenerEstilo = $datosFormulario['estilo']; 
-            $obtenerCliente = $datosFormulario['cliente']; 
-            Log::info("Datos del cliente inicial: ", $obtenerCliente);
+            $obtenerEstilo = $datosFormulario['estilo'];
+            $obtenerCliente = $datosFormulario['cliente'];
+            Log::info("V3 cliente inicial", ['cliente' => $obtenerCliente]);
             if (empty($obtenerCliente)) {
                 $obtenerCliente = ModuloEstiloTemporal::where('itemid', $datosFormulario['estilo'])->value('custname');
                 if (empty($obtenerCliente)) {
                     $obtenerCliente = ModuloEstilo::where('itemid', $datosFormulario['estilo'])->value('custname');
                 }
             }
-            Log::info("Datos del cliente despues: ", $obtenerCliente);
+            Log::info("V3 cliente despues", ['cliente' => $obtenerCliente]);
 
 
             // Procesar el nombre final
