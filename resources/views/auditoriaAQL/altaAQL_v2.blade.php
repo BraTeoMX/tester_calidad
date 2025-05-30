@@ -81,7 +81,7 @@
                 </div>
                 <hr>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('auditoriaAQL.formAltaProcesoAQL_v2') }}"> 
+                    <form method="POST" action="{{ route('AQLV3.formAltaAQLV3') }}"> 
                         @csrf
                         <div class="table-responsive">
                             <table class="table table-200">

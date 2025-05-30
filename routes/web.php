@@ -197,6 +197,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/observacion-proceso-v2', [AuditoriaProcesoV2Controller::class, 'guardarObservacionProceso'])->name('guardarObservacionProceso');
     Route::post('/observacion-proceso-te-v2', [AuditoriaProcesoV2Controller::class, 'guardarObservacionProcesoTE'])->name('guardarObservacionProcesoTE');
     //secion de la tercera version de Auditoria Proceso reutilizando mucho del codigo de la segunda version
+    Route::redirect('/altaProceso-v2', '/auditoriaProcesoV3/inicio');
+    Route::redirect('/auditoriaProceso-v2', '/auditoriaProcesoV3/registro');
     Route::get('/auditoriaProcesoV3/inicio', [AuditoriaProcesoV3Controller::class, 'altaProcesoV3'])->name('procesoV3.inicio');
     Route::get('/auditoriaProcesoV3/ajax/gerentes-produccion', [AuditoriaProcesoV3Controller::class, 'obtenerGerentesProduccionAjax'])->name('procesoV3.ajax.gerentesProduccion');
     Route::get('/auditoriaProcesoV3/ajax/procesos', [AuditoriaProcesoV3Controller::class, 'obtenerProcesosAjax'])->name('procesoV3.ajax.procesos');
@@ -423,6 +425,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/auditoriaAQLverificarFinalizacion', [AuditoriaAQL_v2Controller::class, 'verificarFinalizacion'])->name('auditoriaAQL.verificarFinalizacion');
     Route::get('/verificarAQLFinalizacionTE', [AuditoriaAQL_v2Controller::class, 'verificarFinalizacionTE'])->name('auditoriaAQL.verificarFinalizacionTE');
     //Tercera version para la auditoria AQL
+    Route::redirect('/altaAQL_v2', '/auditoriaAQLV3/inicio');
+    Route::redirect('/auditoriaAQL_v2', '/auditoriaAQLV3/registro');
     Route::get('/auditoriaAQLV3/inicio', [AuditoriaAQLV3Controller::class, 'index'])->name('AQLV3.inicio');
     Route::get('/auditoriaAQLV3/initial-data', [AuditoriaAQLV3Controller::class, 'initialData'])->name('AQLV3.initialData');
     Route::get('/auditoriaAQLV3/lista-modulos', [AuditoriaAQLV3Controller::class, 'listaModulos'])->name('AQLV3.listaModulos');

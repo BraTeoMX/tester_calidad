@@ -81,7 +81,7 @@
                 </div>
                 <hr>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('formAltaProcesoV2') }}"> 
+                    <form method="POST" action="{{ route('procesoV3.formAltaProceso') }}"> 
                         @csrf
                         <div class="table-responsive">
                             <table class="table table10">
