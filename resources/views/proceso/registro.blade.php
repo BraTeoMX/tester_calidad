@@ -703,7 +703,7 @@
                                 var row = `
                                     <tr>
                                         <td>
-                                            <form method="POST" action="{{ route('formAltaProcesoV2') }}">
+                                            <form method="POST" action="{{ route('procesoV3.formAltaProceso') }}">
                                                 @csrf
                                                 <input type="hidden" name="modulo" value="${proceso.modulo}">
                                                 <input type="hidden" name="estilo" value="${proceso.estilo}">
