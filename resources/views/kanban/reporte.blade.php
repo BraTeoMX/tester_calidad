@@ -131,7 +131,6 @@
                 <!-- Gráfico de línea de tiempo por rango -->
                 <h5 style="color:#fff;">Línea de Tiempo Promedio General por Rango</h5>
                 <div id="controlesFasesRango" class="mb-3"></div>
-                <div id="tiempoTotalRango" class="mb-2"></div>
                 <div id="graficoLineaRango" style="height: 300px;"></div>
                 <div id="cantidadRegistrosRango" class="mb-2"></div>
             </div>

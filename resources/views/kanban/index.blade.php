@@ -49,7 +49,6 @@
                             <thead class="thead-primary">
                                 <tr>
                                     <th>FECHA DE CORTE</th>
-                                    <th>FECHA DE ALMACEN</th>
                                     <th>OP</th>
                                     <th>CLIENTE</th>
                                     <th>ESTILO</th>
@@ -338,7 +337,6 @@
                         tbody += `
                             <tr data-id="${id}">
                                 <td>${item.fecha_corte || ''}</td>
-                                <td>${item.fecha_almacen || ''}</td>
                                 <td>${item.op}</td>
                                 <td>${item.cliente}</td>
                                 <td>${item.estilo}</td>
