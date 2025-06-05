@@ -54,6 +54,37 @@ class AuditoriaKanBanController extends Controller
         return view('kanban.index', compact('mesesEnEspanol', 'pageSlug'));
     }
 
+    public function indexCalidad(Request $request)
+    {
+        $pageSlug = '';
+        $fechaActual = Carbon::now()->toDateString();
+        $auditorDato = Auth::user()->name;
+        $auditorPlanta = Auth::user()->Planta;
+        $tipoUsuario = Auth::user()->puesto;
+        $mesesEnEspanol = [
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
+        ];
+
+        if ($auditorPlanta == "Planta1") {
+            $datoPlanta = "1";
+        } else {
+            $datoPlanta = "2";
+        }
+
+        return view('kanban.indexCalidad', compact('mesesEnEspanol', 'pageSlug'));
+    }
+
     public function reporte(Request $request)
     {
         $mesesEnEspanol = [/* ... */];
