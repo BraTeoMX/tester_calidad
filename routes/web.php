@@ -572,7 +572,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/kanban/actualizar', [AuditoriaKanBanController::class, 'actualizar'])->name('kanban.actualizar');
     Route::get('/kanban/parciales', [AuditoriaKanBanController::class, 'obtenerParciales'])->name('kanban.parciales');
     Route::get('/kanban/buscar-op-calidad', [AuditoriaKanBanController::class, 'buscarPorOpCalidad'])->name('kanban.buscarPorOpCalidad');
-    Route::post('/kanban/actualizar-calidad-masivo', [AuditoriaKanBanController::class, 'actualizarCalidadMasivo'])->name('kanban.actualizarCalidadMasivo');
     Route::post('/kanban/parcial/liberar', [AuditoriaKanBanController::class, 'liberarParcial'])->name('kanban.parcial.liberar');
     Route::get('/kanban/registros-hoy', [AuditoriaKanBanController::class, 'obtenerRegistrosHoy'])->name('kanban.registrosHoy');
     Route::post('/kanban/eliminar', [AuditoriaKanBanController::class, 'eliminar'])->name('kanban.eliminar');

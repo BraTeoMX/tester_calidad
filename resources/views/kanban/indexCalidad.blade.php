@@ -762,13 +762,12 @@
                     placeholder: 'Selecciona o escribe un comentario',
                     templateResult: function (data) {
                         if (data.id === 'crear_comentario') {
-                            // Estilo para la opción de crear nuevo comentario
                             return $('<span style="color: blue; font-weight: bold;">' + data.text + '</span>');
                         }
                         return data.text;
                     },
                     ajax: {
-                        url: '{{ route("kanban.comentarios") }}', // Ruta para obtener comentarios existentes
+                        url: '{{ route("kanban.comentarios") }}',
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
@@ -776,20 +775,19 @@
                         },
                         processResults: function (data) {
                             const results = data.map(c => ({ id: c.nombre, text: c.nombre }));
-                            // Añadir la opción "Crear comentario" al principio
                             results.unshift({ id: 'crear_comentario', text: 'Crear nuevo comentario...' });
                             return { results };
                         },
                         cache: true
                     },
-                    minimumInputLength: 0 // Permite mostrar todos los comentarios al hacer clic sin escribir
+                    minimumInputLength: 0
                 });
 
                 select.on('select2:select', function (e) {
                     const data = e.params.data;
 
                     if (data.id === 'crear_comentario') {
-                        select.val(null).trigger('change'); // Limpiar la selección del select2
+                        select.val(null).trigger('change');
 
                         const nuevoComentario = prompt('Escribe el nuevo comentario:');
                         if (!nuevoComentario || nuevoComentario.trim() === '') {
@@ -797,22 +795,19 @@
                             return;
                         }
 
-                        // AJAX para guardar el nuevo comentario en la base de datos
                         $.ajax({
-                            url: '{{ route("kanban.comentario.crear") }}', // Ruta para crear comentario
+                            url: '{{ route("kanban.comentario.crear") }}',
                             method: 'POST',
                             data: { nombre: nuevoComentario },
                             headers: {
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
                             },
                             success: function (res) {
-                                const nombre = res.comentario.nombre; // Asegúrate de que el controlador devuelva el nombre del comentario creado
+                                const nombre = res.comentario.nombre;
                                 if (!comentariosSeleccionadosPorFilaBusqueda[idFila].has(nombre)) {
                                     agregarComentarioFilaBusqueda(idFila, nombre);
                                 }
                                 alert('Comentario creado y agregado.');
-                                // Aquí podrías querer recargar las opciones del select2 si el nuevo comentario debe aparecer en la lista
-                                // select.data('select2').trigger('query', { term: select.val() });
                             },
                             error: function (xhr) {
                                 console.error("Error al crear comentario:", xhr.responseText);
@@ -822,11 +817,10 @@
                         return;
                     }
 
-                    // Si no es la opción de "crear" y el comentario no está ya seleccionado
                     if (data.id && !comentariosSeleccionadosPorFilaBusqueda[idFila].has(data.id)) {
                         agregarComentarioFilaBusqueda(idFila, data.id);
                     }
-                    select.val(null).trigger('change'); // Limpiar la selección después de agregar
+                    select.val(null).trigger('change');
                 });
             }
 
@@ -836,10 +830,10 @@
                 }
 
                 if (comentariosSeleccionadosPorFilaBusqueda[idFila].has(texto)) {
-                    return; // Evitar duplicados
+                    return;
                 }
 
-                const container = $(`#selectedContainerBusqueda-${idFila}`); // Contenedor específico para la tabla de búsqueda
+                const container = $(`#selectedContainerBusqueda-${idFila}`);
                 const div = $(`
                     <div class="selected-option d-flex align-items-center justify-content-between border rounded p-2 mb-1" data-texto="${texto}">
                         <span class="option-text flex-grow-1 mx-2">${texto}</span>
@@ -865,6 +859,7 @@
 
                 if (opBusqueda.length !== 9) {
                     $('#resultados-op-container').html('<p class="text-warning">El número de OP debe contener exactamente 9 caracteres (ej. OP0012345).</p>');
+                    $('#btn-actualizar-calidad-container').hide(); // Ocultar el botón si hay error
                     return;
                 }
 
@@ -875,11 +870,13 @@
                     success: function (data) {
                         if (data.mensaje) {
                             $('#resultados-op-container').html(`<p class="text-info">${data.mensaje}</p>`);
+                            $('#btn-actualizar-calidad-container').hide(); // Ocultar el botón si no hay resultados
                             return;
                         }
 
                         if (data.length === 0) {
                             $('#resultados-op-container').html('<p class="text-info">No se encontraron registros para el OP ingresado.</p>');
+                            $('#btn-actualizar-calidad-container').hide(); // Ocultar el botón si no hay resultados
                             return;
                         }
 
@@ -896,7 +893,8 @@
                                             <th>Estilo</th>
                                             <th>Piezas</th>
                                             <th>Estatus Calidad</th>
-                                            <th>Comentarios</th> <th>Fecha Liberación Calidad</th>
+                                            <th>Comentarios</th>
+                                            <th>Fecha Liberación Calidad</th>
                                             <th>Fecha Parcial Calidad</th>
                                             <th>Fecha Rechazo Calidad</th>
                                         </tr>
@@ -905,7 +903,8 @@
                         `;
 
                         data.forEach(function (item) {
-                            const idFila = item.id; // Usar el ID del item para los IDs del HTML
+                            const idFila = item.id;
+
                             tablaResultados += `
                                         <tr data-id="${idFila}">
                                             <td>${item.op}</td>
@@ -913,7 +912,7 @@
                                             <td>${item.estilo}</td>
                                             <td>${item.piezas}</td>
                                             <td>
-                                                <select class="form-control select-accion">
+                                                <select class="form-control select-accion-calidad">
                                                     <option value="">Selecciona</option>
                                                     <option value="1" ${item.estatus == '1' ? 'selected' : ''}>Aceptado</option>
                                                     <option value="2" ${item.estatus == '2' ? 'selected' : ''}>Parcial</option>
@@ -938,13 +937,13 @@
                         `;
 
                         $('#resultados-op-container').html(tablaResultados);
+                        $('#btn-actualizar-calidad-container').show(); // Mostrar el botón
 
                         // Inicializar Select2 y cargar comentarios existentes para cada fila
                         data.forEach(item => {
                             inicializarSelect2ComentariosBusqueda(item.id);
                             if (item.comentarios && Array.isArray(item.comentarios)) {
                                 item.comentarios.forEach(comentario => {
-                                    // Asumiendo que el comentario tiene una propiedad 'nombre'
                                     if (comentario.nombre && comentario.nombre.trim() !== '') {
                                         agregarComentarioFilaBusqueda(item.id, comentario.nombre.trim());
                                     }
@@ -962,6 +961,146 @@
                         }
                         console.error("Error en búsqueda por OP:", xhr.responseText);
                         $('#resultados-op-container').html(`<p class="text-danger">${mensajeError}</p>`);
+                        $('#btn-actualizar-calidad-container').hide(); // Ocultar el botón si hay error
+                    }
+                });
+            });
+
+            // --- Evento para el botón de actualización masiva de CALIDAD ---
+            $('#btn-actualizar-calidad').on('click', function () {
+                const botonActualizar = $(this);
+                const registrosParaActualizarCalidad = [];
+
+                let validacionesPasadas = true;
+                    const mensajesErrorValidacion = [];
+                    let hayRegistrosConAccion = false;
+
+                    $('#tabla-resultados-busqueda tbody tr').each(function () {
+                        const fila = $(this);
+                        const id = fila.data('id');
+
+                        if (id === undefined || id === null) {
+                            return;
+                        }
+
+                    const estatusCalidad = fila.find('.select-accion-calidad').val();
+                    const comentariosArray = comentariosSeleccionadosPorFilaBusqueda[id] ? Array.from(comentariosSeleccionadosPorFilaBusqueda[id]) : [];
+
+                    // Solo si se seleccionó un estatus, consideramos el registro para actualización
+                    if (estatusCalidad !== "" && !isNaN(parseInt(estatusCalidad))) {
+                        hayRegistrosConAccion = true;
+
+                        registrosParaActualizarCalidad.push({
+                            id: id,
+                            accion: estatusCalidad, // This will now be a valid integer string
+                            comentarios: comentariosArray
+                        });
+                    } else if (estatusCalidad === "" && comentariosArray.length > 0) {
+                        // Optional: If comments are added but no status, you might want to alert the user
+                        // or handle this specific case based on your business logic.
+                        mensajesErrorValidacion.push(`Fila con ID ${id}: Selecciona un estatus para los comentarios.`);
+                        validacionesPasadas = false;
+                    }
+                });
+
+                if (!hayRegistrosConAccion) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Atención',
+                        text: 'No hay cambios para actualizar. Selecciona un estatus en al menos un registro.'
+                    });
+                    return;
+                }
+
+                if (!validacionesPasadas) { // Esta validación ahora es manejada por el backend si no hay errores en el frontend
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Errores de Validación',
+                        text: "Por favor, corrige los siguientes errores antes de guardar:\n\n" +
+                            mensajesErrorValidacion.join("\n"),
+                        confirmButtonText: 'Entendido'
+                    });
+                    return;
+                }
+
+                if (registrosParaActualizarCalidad.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sin Registros Válidos',
+                        text: 'No hay registros válidos para actualizar después de las validaciones.'
+                    });
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Confirmar Actualización',
+                    text: '¿Estás seguro de que deseas actualizar los registros de calidad seleccionados masivamente?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, actualizar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        botonActualizar.prop('disabled', true).text('Procesando...');
+
+                        $.ajax({
+                            url: '{{ route("kanban.actualizarMasivo") }}', // Nueva ruta de actualización masiva de calidad
+                            method: 'POST',
+                            data: {
+                                registros: registrosParaActualizarCalidad
+                            },
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            success: function (response) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Éxito!',
+                                    text: response.mensaje
+                                });
+                                // Recargar solo la tabla de búsqueda para reflejar los cambios
+                                // Disparar el click en el botón de búsqueda para recargar con el mismo OP
+                                $('#btnBuscarOp').trigger('click');
+                            },
+                            error: function (xhr) {
+                                console.error(xhr.responseText);
+                                let errorMsg = 'Error al actualizar los registros de calidad.';
+                                if (xhr.responseJSON) {
+                                    if (xhr.responseJSON.mensaje) {
+                                        errorMsg = xhr.responseJSON.mensaje;
+                                    }
+                                    if (xhr.responseJSON.errores && Array.isArray(xhr.responseJSON.errores) && xhr.responseJSON.errores.length > 0) {
+                                        const backendErrors = xhr.responseJSON.errores.filter(e => e).join("\n");
+                                        if (backendErrors) {
+                                            errorMsg += "\n\nErrores del servidor:\n" + backendErrors;
+                                        }
+                                    } else if (xhr.responseJSON.errors && typeof xhr.responseJSON.errors === 'object') {
+                                        try {
+                                            const errors = xhr.responseJSON.errors;
+                                            let messages = [];
+                                            for (const key in errors) {
+                                                if (errors[key] && Array.isArray(errors[key])) {
+                                                    messages.push(errors[key].join("\n"));
+                                                }
+                                            }
+                                            if (messages.length > 0) {
+                                                errorMsg += "\n\nErrores de validación:\n" + messages.join("\n");
+                                            }
+                                        } catch (e) { /* silent fail */ }
+                                    }
+                                }
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error -',
+                                    text: errorMsg
+                                });
+                            },
+                            complete: function() {
+                                botonActualizar.prop('disabled', false).text('Guardar Cambios Calidad');
+                            }
+                        });
                     }
                 });
             });
