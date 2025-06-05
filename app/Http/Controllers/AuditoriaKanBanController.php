@@ -469,6 +469,64 @@ class AuditoriaKanBanController extends Controller
         }
     }
 
+    public function buscarPorOpCalidad(Request $request)
+    {
+        $op = $request->query('op');
+
+        if (empty($op)) {
+            return response()->json(['mensaje' => 'Por favor, ingrese un número de OP para buscar.'], 400);
+        }
+
+        $resultados = ReporteKanban::where('op', $op)
+                                    ->get([
+                                        'id',
+                                        'op',
+                                        'cliente',
+                                        'estilo',
+                                        'piezas',
+                                        'estatus_calidad',
+                                        'fecha_liberacion_calidad',
+                                        'fecha_parcial_calidad',
+                                        'fecha_rechazo_calidad'
+                                    ]);
+
+        if ($resultados->isEmpty()) {
+            return response()->json(['mensaje' => 'No se encontraron resultados para el OP: ' . $op], 404);
+        }
+
+        $resultadosMapeados = $resultados->map(function ($item) {
+            $estatusTexto = '';
+            switch ($item->estatus_calidad) {
+                case 1:
+                    $estatusTexto = 'Liberado';
+                    break;
+                case 2:
+                    $estatusTexto = 'Parcial';
+                    break;
+                case 3:
+                    $estatusTexto = 'Rechazado';
+                    break;
+                default:
+                    $estatusTexto = 'Desconocido';
+                    break;
+            }
+
+            return [
+                'id' => $item->id,
+                'op' => $item->op,
+                'cliente' => $item->cliente ?? 'N/A', // Si es nulo, devuelve 'N/A'
+                'estilo' => $item->estilo ?? 'N/A',   // Si es nulo, devuelve 'N/A'
+                'piezas' => $item->piezas ?? 'N/A',   // Si es nulo, devuelve 'N/A'
+                'estatus_calidad_texto' => $estatusTexto,
+                'fecha_liberacion_calidad' => $item->fecha_liberacion_calidad ?? 'N/A',
+                'fecha_parcial_calidad' => $item->fecha_parcial_calidad ?? 'N/A',
+                'fecha_rechazo_calidad' => $item->fecha_rechazo_calidad ?? 'N/A',
+            ];
+        });
+
+        return response()->json($resultadosMapeados);
+    }
+
     public function obtenerParciales(Request $request)
     {
         $parciales = ReporteKanban::where('estatus', 2)

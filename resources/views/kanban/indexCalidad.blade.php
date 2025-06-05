@@ -9,7 +9,7 @@
                 <div class="card-header card-header-primary">
                     <div class="row align-items-center justify-content-between">
                         <div class="col">
-                            <h3 class="card-title">AUDITORIA KANBAN</h3>
+                            <h3 class="card-title">AUDITORIA KANBAN - Calidad</h3>
                         </div>
                         <div class="col-auto">
                             <h4>Fecha:
@@ -36,6 +36,22 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="card card-body">
+                <h4>Búsqueda por OP</h4>
+                <div class="form-group">
+                    <label for="inputOpBusqueda">Número de OP:</label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="inputOpBusqueda" placeholder="Ingrese el número de OP">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="button" id="btnBuscarOp">Buscar</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="resultados-op-container">
+                    <p class="text-muted">Ingresa un OP y haz clic en buscar para ver los resultados.</p>
                 </div>
             </div>
 
@@ -726,7 +742,98 @@
             });
         });
     </script>
-        
+    
+    <script>
+        $(document).ready(function () {
+            // 1. Establecer el valor inicial "OP00"
+            const inputOpBusqueda = $('#inputOpBusqueda');
+            inputOpBusqueda.val('OP00');
+
+            $('#btnBuscarOp').on('click', function () {
+                const opBusqueda = inputOpBusqueda.val().trim(); // Obtener el valor del input
+
+                // 2. Validación de 9 caracteres
+                if (opBusqueda.length !== 9) {
+                    $('#resultados-op-container').html('<p class="text-warning">El número de OP debe contener exactamente 9 caracteres (ej. OP0012345).</p>');
+                    return;
+                }
+
+                // Realizar la petición AJAX
+                $.ajax({
+                    url: '{{ route('kanban.buscarPorOpCalidad') }}', // Usar la nueva ruta de calidad
+                    method: 'GET',
+                    data: { op: opBusqueda }, // Enviar el OP como parámetro de consulta
+                    success: function (data) {
+                        // Si data es un objeto con un mensaje (ej: 'No se encontraron resultados' o 'Ingrese OP')
+                        if (data.mensaje) {
+                            $('#resultados-op-container').html(`<p class="text-info">${data.mensaje}</p>`);
+                            return;
+                        }
+
+                        // Si data es un array de resultados, construir la tabla
+                        if (data.length === 0) {
+                            // Esta condición podría ser redundante si el controlador ya maneja el 404
+                            $('#resultados-op-container').html('<p class="text-info">No se encontraron registros para el OP ingresado.</p>');
+                            return;
+                        }
+
+                        let tablaResultados = `
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover table-sm">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>OP</th>
+                                            <th>Cliente</th>
+                                            <th>Estilo</th>
+                                            <th>Piezas</th>
+                                            <th>Estatus Calidad</th>
+                                            <th>Fecha Liberación Calidad</th>
+                                            <th>Fecha Parcial Calidad</th>
+                                            <th>Fecha Rechazo Calidad</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                        `;
+
+                        data.forEach(function (item) {
+                            // Todos estos campos ya vienen como 'N/A' o con el valor real gracias al controlador
+                            tablaResultados += `
+                                        <tr>
+                                            <td>${item.op}</td>
+                                            <td>${item.cliente}</td>
+                                            <td>${item.estilo}</td>
+                                            <td>${item.piezas}</td>
+                                            <td>${item.estatus_calidad_texto}</td>
+                                            <td>${item.fecha_liberacion_calidad}</td>
+                                            <td>${item.fecha_parcial_calidad}</td>
+                                            <td>${item.fecha_rechazo_calidad}</td>
+                                        </tr>
+                            `;
+                        });
+
+                        tablaResultados += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+
+                        $('#resultados-op-container').html(tablaResultados);
+                    },
+                    error: function (xhr) {
+                        let mensajeError = 'Error al realizar la búsqueda.';
+                        if (xhr.responseJSON && xhr.responseJSON.mensaje) {
+                            mensajeError = xhr.responseJSON.mensaje;
+                        } else if (xhr.status === 404) {
+                            mensajeError = `No se encontraron resultados para el OP: ${opBusqueda}`;
+                        }
+                        console.error("Error en búsqueda por OP:", xhr.responseText);
+                        $('#resultados-op-container').html(`<p class="text-danger">${mensajeError}</p>`);
+                    }
+                });
+            });
+        });
+    </script>
+
     <script>
         $(document).ready(function () {
             // Lógica oculta que lanza la actualización si es necesario
