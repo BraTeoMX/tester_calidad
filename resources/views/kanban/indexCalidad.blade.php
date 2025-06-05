@@ -53,6 +53,9 @@
                 <div id="resultados-op-container">
                     <p class="text-muted">Ingresa un OP y haz clic en buscar para ver los resultados.</p>
                 </div>
+                <div class="mt-3" id="btn-actualizar-calidad-container" style="display: none;">
+                    <button id="btn-actualizar-calidad" class="btn btn-success">Guardar Cambios Calidad</button>
+                </div>
             </div>
 
             <div class="card">
@@ -745,41 +748,147 @@
     
     <script>
         $(document).ready(function () {
-            // 1. Establecer el valor inicial "OP00"
+            let comentariosSeleccionadosPorFilaBusqueda = {}; // Un nuevo objeto para la búsqueda
+
+            function inicializarSelect2ComentariosBusqueda(idFila) {
+                const select = $(`#selectComentarioBusqueda-${idFila}`);
+
+                if (!comentariosSeleccionadosPorFilaBusqueda[idFila]) {
+                    comentariosSeleccionadosPorFilaBusqueda[idFila] = new Set();
+                }
+
+                select.select2({
+                    width: '100%',
+                    placeholder: 'Selecciona o escribe un comentario',
+                    templateResult: function (data) {
+                        if (data.id === 'crear_comentario') {
+                            // Estilo para la opción de crear nuevo comentario
+                            return $('<span style="color: blue; font-weight: bold;">' + data.text + '</span>');
+                        }
+                        return data.text;
+                    },
+                    ajax: {
+                        url: '{{ route("kanban.comentarios") }}', // Ruta para obtener comentarios existentes
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return { q: params.term || '' };
+                        },
+                        processResults: function (data) {
+                            const results = data.map(c => ({ id: c.nombre, text: c.nombre }));
+                            // Añadir la opción "Crear comentario" al principio
+                            results.unshift({ id: 'crear_comentario', text: 'Crear nuevo comentario...' });
+                            return { results };
+                        },
+                        cache: true
+                    },
+                    minimumInputLength: 0 // Permite mostrar todos los comentarios al hacer clic sin escribir
+                });
+
+                select.on('select2:select', function (e) {
+                    const data = e.params.data;
+
+                    if (data.id === 'crear_comentario') {
+                        select.val(null).trigger('change'); // Limpiar la selección del select2
+
+                        const nuevoComentario = prompt('Escribe el nuevo comentario:');
+                        if (!nuevoComentario || nuevoComentario.trim() === '') {
+                            alert('Comentario no válido.');
+                            return;
+                        }
+
+                        // AJAX para guardar el nuevo comentario en la base de datos
+                        $.ajax({
+                            url: '{{ route("kanban.comentario.crear") }}', // Ruta para crear comentario
+                            method: 'POST',
+                            data: { nombre: nuevoComentario },
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            success: function (res) {
+                                const nombre = res.comentario.nombre; // Asegúrate de que el controlador devuelva el nombre del comentario creado
+                                if (!comentariosSeleccionadosPorFilaBusqueda[idFila].has(nombre)) {
+                                    agregarComentarioFilaBusqueda(idFila, nombre);
+                                }
+                                alert('Comentario creado y agregado.');
+                                // Aquí podrías querer recargar las opciones del select2 si el nuevo comentario debe aparecer en la lista
+                                // select.data('select2').trigger('query', { term: select.val() });
+                            },
+                            error: function (xhr) {
+                                console.error("Error al crear comentario:", xhr.responseText);
+                                alert('Error al crear el comentario.');
+                            }
+                        });
+                        return;
+                    }
+
+                    // Si no es la opción de "crear" y el comentario no está ya seleccionado
+                    if (data.id && !comentariosSeleccionadosPorFilaBusqueda[idFila].has(data.id)) {
+                        agregarComentarioFilaBusqueda(idFila, data.id);
+                    }
+                    select.val(null).trigger('change'); // Limpiar la selección después de agregar
+                });
+            }
+
+            function agregarComentarioFilaBusqueda(idFila, texto) {
+                if (!comentariosSeleccionadosPorFilaBusqueda[idFila]) {
+                    comentariosSeleccionadosPorFilaBusqueda[idFila] = new Set();
+                }
+
+                if (comentariosSeleccionadosPorFilaBusqueda[idFila].has(texto)) {
+                    return; // Evitar duplicados
+                }
+
+                const container = $(`#selectedContainerBusqueda-${idFila}`); // Contenedor específico para la tabla de búsqueda
+                const div = $(`
+                    <div class="selected-option d-flex align-items-center justify-content-between border rounded p-2 mb-1" data-texto="${texto}">
+                        <span class="option-text flex-grow-1 mx-2">${texto}</span>
+                        <button type="button" class="btn btn-danger btn-sm remove-option-busqueda">Eliminar</button>
+                    </div>
+                `);
+
+                div.find('.remove-option-busqueda').on('click', function () {
+                    div.remove();
+                    comentariosSeleccionadosPorFilaBusqueda[idFila].delete(texto);
+                });
+
+                container.append(div);
+                comentariosSeleccionadosPorFilaBusqueda[idFila].add(texto);
+            }
+
+            // --- Lógica de búsqueda por OP de Calidad ---
             const inputOpBusqueda = $('#inputOpBusqueda');
             inputOpBusqueda.val('OP00');
 
             $('#btnBuscarOp').on('click', function () {
-                const opBusqueda = inputOpBusqueda.val().trim(); // Obtener el valor del input
+                const opBusqueda = inputOpBusqueda.val().trim();
 
-                // 2. Validación de 9 caracteres
                 if (opBusqueda.length !== 9) {
                     $('#resultados-op-container').html('<p class="text-warning">El número de OP debe contener exactamente 9 caracteres (ej. OP0012345).</p>');
                     return;
                 }
 
-                // Realizar la petición AJAX
                 $.ajax({
-                    url: '{{ route('kanban.buscarPorOpCalidad') }}', // Usar la nueva ruta de calidad
+                    url: '{{ route('kanban.buscarPorOpCalidad') }}',
                     method: 'GET',
-                    data: { op: opBusqueda }, // Enviar el OP como parámetro de consulta
+                    data: { op: opBusqueda },
                     success: function (data) {
-                        // Si data es un objeto con un mensaje (ej: 'No se encontraron resultados' o 'Ingrese OP')
                         if (data.mensaje) {
                             $('#resultados-op-container').html(`<p class="text-info">${data.mensaje}</p>`);
                             return;
                         }
 
-                        // Si data es un array de resultados, construir la tabla
                         if (data.length === 0) {
-                            // Esta condición podría ser redundante si el controlador ya maneja el 404
                             $('#resultados-op-container').html('<p class="text-info">No se encontraron registros para el OP ingresado.</p>');
                             return;
                         }
 
+                        // Resetear los comentarios seleccionados para la tabla de búsqueda al cargar nuevos resultados
+                        comentariosSeleccionadosPorFilaBusqueda = {};
+
                         let tablaResultados = `
                             <div class="table-responsive">
-                                <table class="table table-bordered table-hover table-sm">
+                                <table id="tabla-resultados-busqueda" class="table table-bordered table-hover table-sm">
                                     <thead class="thead-light">
                                         <tr>
                                             <th>OP</th>
@@ -787,7 +896,7 @@
                                             <th>Estilo</th>
                                             <th>Piezas</th>
                                             <th>Estatus Calidad</th>
-                                            <th>Fecha Liberación Calidad</th>
+                                            <th>Comentarios</th> <th>Fecha Liberación Calidad</th>
                                             <th>Fecha Parcial Calidad</th>
                                             <th>Fecha Rechazo Calidad</th>
                                         </tr>
@@ -796,14 +905,25 @@
                         `;
 
                         data.forEach(function (item) {
-                            // Todos estos campos ya vienen como 'N/A' o con el valor real gracias al controlador
+                            const idFila = item.id; // Usar el ID del item para los IDs del HTML
                             tablaResultados += `
-                                        <tr>
+                                        <tr data-id="${idFila}">
                                             <td>${item.op}</td>
                                             <td>${item.cliente}</td>
                                             <td>${item.estilo}</td>
                                             <td>${item.piezas}</td>
-                                            <td>${item.estatus_calidad_texto}</td>
+                                            <td>
+                                                <select class="form-control select-accion">
+                                                    <option value="">Selecciona</option>
+                                                    <option value="1" ${item.estatus == '1' ? 'selected' : ''}>Aceptado</option>
+                                                    <option value="2" ${item.estatus == '2' ? 'selected' : ''}>Parcial</option>
+                                                    <option value="3" ${item.estatus == '3' ? 'selected' : ''}>Rechazado</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select class="form-control select-comentario-busqueda" id="selectComentarioBusqueda-${idFila}"></select>
+                                                <div class="selected-options-container mt-2" id="selectedContainerBusqueda-${idFila}"></div>
+                                            </td>
                                             <td>${item.fecha_liberacion_calidad}</td>
                                             <td>${item.fecha_parcial_calidad}</td>
                                             <td>${item.fecha_rechazo_calidad}</td>
@@ -818,6 +938,20 @@
                         `;
 
                         $('#resultados-op-container').html(tablaResultados);
+
+                        // Inicializar Select2 y cargar comentarios existentes para cada fila
+                        data.forEach(item => {
+                            inicializarSelect2ComentariosBusqueda(item.id);
+                            if (item.comentarios && Array.isArray(item.comentarios)) {
+                                item.comentarios.forEach(comentario => {
+                                    // Asumiendo que el comentario tiene una propiedad 'nombre'
+                                    if (comentario.nombre && comentario.nombre.trim() !== '') {
+                                        agregarComentarioFilaBusqueda(item.id, comentario.nombre.trim());
+                                    }
+                                });
+                            }
+                        });
+
                     },
                     error: function (xhr) {
                         let mensajeError = 'Error al realizar la búsqueda.';

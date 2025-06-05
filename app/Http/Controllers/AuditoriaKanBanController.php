@@ -478,6 +478,7 @@ class AuditoriaKanBanController extends Controller
         }
 
         $resultados = ReporteKanban::where('op', $op)
+                                    ->with('comentarios') // Sigue cargando la relación
                                     ->get([
                                         'id',
                                         'op',
@@ -495,32 +496,25 @@ class AuditoriaKanBanController extends Controller
         }
 
         $resultadosMapeados = $resultados->map(function ($item) {
-            $estatusTexto = '';
-            switch ($item->estatus_calidad) {
-                case 1:
-                    $estatusTexto = 'Liberado';
-                    break;
-                case 2:
-                    $estatusTexto = 'Parcial';
-                    break;
-                case 3:
-                    $estatusTexto = 'Rechazado';
-                    break;
-                default:
-                    $estatusTexto = 'Desconocido';
-                    break;
-            }
+
+            $comentariosData = $item->comentarios->map(function ($comentario) {
+                return [
+                    'id' => $comentario->id, // Asumiendo que los comentarios tienen un ID propio
+                    'nombre' => $comentario->nombre // Asumiendo que el campo de texto se llama 'nombre'
+                ];
+            })->all(); // Convertir la colección mapeada a un array puro
 
             return [
                 'id' => $item->id,
                 'op' => $item->op,
-                'cliente' => $item->cliente ?? 'N/A', // Si es nulo, devuelve 'N/A'
-                'estilo' => $item->estilo ?? 'N/A',   // Si es nulo, devuelve 'N/A'
-                'piezas' => $item->piezas ?? 'N/A',   // Si es nulo, devuelve 'N/A'
-                'estatus_calidad_texto' => $estatusTexto,
+                'cliente' => $item->cliente ?? 'N/A',
+                'estilo' => $item->estilo ?? 'N/A',
+                'piezas' => $item->piezas ?? 'N/A',
+                'estatus' => $item->estatus_calidad ?? 'N/A',
                 'fecha_liberacion_calidad' => $item->fecha_liberacion_calidad ?? 'N/A',
                 'fecha_parcial_calidad' => $item->fecha_parcial_calidad ?? 'N/A',
                 'fecha_rechazo_calidad' => $item->fecha_rechazo_calidad ?? 'N/A',
+                'comentarios' => $comentariosData, // Ahora es un arreglo de objetos de comentario
             ];
         });
 
