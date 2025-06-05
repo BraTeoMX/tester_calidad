@@ -43,10 +43,10 @@
                 <h4>Búsqueda por OP</h4>
                 <div class="form-group">
                     <label for="inputOpBusqueda">Número de OP:</label>
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="inputOpBusqueda" placeholder="Ingrese el número de OP">
-                        <div class="input-group-append">
-                            <button class="btn btn-primary" type="button" id="btnBuscarOp">Buscar</button>
+                    <div class="row"> 
+                        <div class="col-md-4"> <input type="text" class="form-control" id="inputOpBusqueda" placeholder="Ingrese el número de OP">
+                        </div>
+                        <div class="col-md-auto"> <button class="btn btn-primary" type="button" id="btnBuscarOp">Buscar</button>
                         </div>
                     </div>
                 </div>

@@ -6,7 +6,11 @@
         <ul class="nav">
             @if (auth()->check() && (auth()->user()->hasRole('kanban')))
                 <li class="nav-item{{ $pageSlug == 'kanban' ? ' active' : '' }}">
-                    <a class="nav-link" href="{{ route('kanban.index') }}">
+                    @if(auth()->user()->no_empleado == '4')
+                        <a class="nav-link" href="{{ route('kanban.indexCalidad') }}">
+                    @else
+                        <a class="nav-link" href="{{ route('kanban.index') }}">
+                    @endif
                         <i class="material-icons">edit_document</i>
                         <p>{{ __('AUDITORIA KANBAN') }}</p>
                     </a>
