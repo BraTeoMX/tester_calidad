@@ -104,7 +104,9 @@ class AuditoriaKanBanController extends Controller
 
             $registros = $query->get();
 
-            $produccion = $registros->whereNotNull('fecha_online')->count();
+            $online = $registros->whereNotNull('fecha_online')->count();
+            $offline = $registros->whereNotNull('fecha_offline')->count();
+            $approved = $registros->whereNotNull('fecha_approved')->count();
 
             // KPIs después de procesar
             $kpis = [
@@ -118,7 +120,9 @@ class AuditoriaKanBanController extends Controller
             return response()->json([
                 'kpis'      => $kpis,
                 'registros' => $registros, // Aquí ya se incluye fecha_online
-                'produccion' => $produccion,
+                'produccion' => $online,
+                'offline' => $offline,
+                'approved' => $approved,
             ]);
         }
 

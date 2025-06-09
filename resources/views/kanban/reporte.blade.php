@@ -423,7 +423,7 @@
                     }
                 },
                 xAxis: {
-                    categories: ['Sellado', 'Almacén', 'Resultado', 'Producción'],
+                    categories: ['Sellado', 'Resultado', 'On-Line', 'Off-Line', 'Approved'],
                     labels: {
                         style: {
                             color: '#fff'
@@ -460,27 +460,37 @@
                 },
                 series: [{
                         name: 'OP',
-                        data: [0, 0, null, null],
+                        data: [0, null, null, null, null],
                         color: '#3498db' // Azul claro
                     },
                     {
                         name: 'Aceptado',
-                        data: [null, null, 0, null],
+                        data: [null, 0, null, null, null],
                         color: '#27ae60' // ✅ Verde
                     },
                     {
                         name: 'Parcial',
-                        data: [null, null, 0, null],
+                        data: [null, 0, null, null, null],
                         color: '#e67e22' // ✅ Naranja
                     },
                     {
                         name: 'Rechazo',
-                        data: [null, null, 0, null],
+                        data: [null,  0, null, null, null],
                         color: '#c0392b' // ✅ Rojo
                     },
                     {
-                        name: 'Producción',
-                        data: [null, null, null, 0],
+                        name: 'On-Line',
+                        data: [null, null, 0, null, null, ],
+                        color: '#007bff' // Azul oscuro
+                    },
+                    {
+                        name: 'Off-Line',
+                        data: [null, null, null, 0, null],
+                        color: '#007bff' // Azul oscuro
+                    },
+                    {
+                        name: 'Approved',
+                        data: [null, null, null, null, 0],
                         color: '#007bff' // Azul oscuro
                     }
                 ]
@@ -630,18 +640,21 @@
 
                         // 3. Calcular datos para el stacked column (“flowChart”)
                         const total = json.kpis.total_op; // Corte Sellado
-                        const almacen = json.registros.filter(r => r.fecha_almacen).length;
                         const liberacion = json.kpis.aceptados; // estatus 1
                         const parciales = json.kpis.parciales; // estatus 2
                         const rechazados = json.kpis.rechazados; // estatus 3
                         const produccion = json.produccion || 0;
+                        const offline = json.offline || 0;
+                        const approved = json.approved || 0;
 
                         // 4. Actualizar stacked column chart
-                        flowChart.series[0].setData([total, almacen, null]); // OP
-                        flowChart.series[1].setData([null, null, liberacion]); // Aceptado
-                        flowChart.series[2].setData([null, null, parciales]); // Parcial
-                        flowChart.series[3].setData([null, null, rechazados]); // Rechazo
-                        flowChart.series[4].setData([null, null, null, produccion]);
+                        flowChart.series[0].setData([total, null, null, null, null]); // OP
+                        flowChart.series[1].setData([null, liberacion, null, null, null]); // Aceptado
+                        flowChart.series[2].setData([null, parciales, null, null, null]); // Parcial
+                        flowChart.series[3].setData([null, rechazados, null, null, null]); // Rechazo
+                        flowChart.series[4].setData([null, null, produccion, null, null]);
+                        flowChart.series[5].setData([null, null, null, offline, null]);
+                        flowChart.series[6].setData([null, null, null, null, approved]);
 
                         // 5. Refrescar DataTable
                         table.clear()
