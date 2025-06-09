@@ -68,11 +68,11 @@
             <!-- 1. FILTROS -->
             <form id="filtrosForm" class="row g-3 mb-4">
                 <div class="col-md-3">
-                    <label for="desde" class="form-label">Fecha Corte Desde</label>
+                    <label for="desde" class="form-label">Fecha Corte Sellado Desde</label>
                     <input type="date" id="desde" name="desde" class="form-control">
                 </div>
                 <div class="col-md-3">
-                    <label for="hasta" class="form-label">Fecha Corte Hasta</label>
+                    <label for="hasta" class="form-label">Fecha Corte Sellado Hasta</label>
                     <input type="date" id="hasta" name="hasta" class="form-control">
                 </div>
                 {{-- <div class="col-md-2">
@@ -193,26 +193,23 @@
                         <thead class="thead-primary">
                             <tr>
                                 <th>OP</th>
-                                <th>Planta</th>
                                 <th>Cliente</th>
                                 <th>Estilo</th>
                                 <th>Piezas</th>
                                 <th>Estatus</th>
-                                <th>Fecha Corte</th>
-                                <th>Fecha Almacen</th>
+                                <th>Fecha Sellado</th>
                                 <th>Fecha Aceptado</th>
                                 <th>Fecha Parcial</th>
                                 <th>Fecha Rechazo</th>
                                 <th>Fecha Online</th>
                                 <th>Fecha Offline</th>
                                 <th>Fecha Approved</th>
-                                <th>Tiempo Corte - Almacén</th>
                                 <th>Tiempo Almacén - Calidad</th>
                                 <th>Tiempo Calidad - Producción</th>
-                                <th>Tiempo Corte - Producción</th>
+                                <th>Tiempo Sellado - Producción</th>
                                 <th>Tiempo Producción - Offline</th>
                                 <th>Tiempo Offline - Approved</th>
-                                <th>Tiempo Corte - Approved</th>
+                                <th>Tiempo Sellado - Approved</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -426,7 +423,7 @@
                     }
                 },
                 xAxis: {
-                    categories: ['Corte', 'Almacén', 'Resultado', 'Producción'],
+                    categories: ['Sellado', 'Almacén', 'Resultado', 'Producción'],
                     labels: {
                         style: {
                             color: '#fff'
@@ -498,10 +495,6 @@
                         }
                     },
                     {
-                        data: 'planta',
-                        render: p => p == 1 ? 'Ixtlahuaca' : p == 2 ? 'San Bartolo' : ''
-                    },
-                    {
                         data: 'cliente'
                     },
                     {
@@ -516,10 +509,6 @@
                     },
                     {
                         data: 'fecha_corte',
-                        render: d => moment(d).format('DD/MM/YYYY HH:mm')
-                    },
-                    {
-                        data: 'fecha_almacen',
                         render: d => moment(d).format('DD/MM/YYYY HH:mm')
                     },
                     {
@@ -545,14 +534,6 @@
                     {
                         data: 'fecha_approved',
                         render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
-                    },
-                    {
-                        data: null,
-                        render: row => {
-                            if (!row.fecha_corte || !row.fecha_almacen) return 'N/A';
-                            const diff = moment.duration(moment(row.fecha_almacen).diff(moment(row.fecha_corte)));
-                            return `${diff.days()}d ${diff.hours()}h ${diff.minutes()}m ${diff.seconds()}s`;
-                        }
                     },
                     {
                         data: null,
@@ -648,7 +629,7 @@
                         ]);
 
                         // 3. Calcular datos para el stacked column (“flowChart”)
-                        const total = json.kpis.total_op; // Corte
+                        const total = json.kpis.total_op; // Corte Sellado
                         const almacen = json.registros.filter(r => r.fecha_almacen).length;
                         const liberacion = json.kpis.aceptados; // estatus 1
                         const parciales = json.kpis.parciales; // estatus 2
@@ -684,8 +665,7 @@
     <script>
         function obtenerEtiqueta(campo) {
             const etiquetas = {
-                'fecha_corte': 'Corte',
-                'fecha_almacen': 'Almacén',
+                'fecha_corte': 'Sellado',
                 'fecha_liberacion': 'Aceptado',
                 'fecha_parcial': 'Parcial',
                 'fecha_rechazo': 'Rechazo',
@@ -698,8 +678,7 @@
 
         function construirTablaFechas(data) {
             const filas = [
-                ['Corte', data.fecha_corte],
-                ['Almacén', data.fecha_almacen],
+                ['Sellado', data.fecha_corte],
                 ['Aceptado', data.fecha_liberacion],
                 ['Parcial', data.fecha_parcial],
                 ['Rechazo', data.fecha_rechazo],
@@ -721,7 +700,7 @@
                 // Solo mostrar filas si la etapa tiene un valor o es una de las etapas principales (opcional)
                 // Si quieres que siempre aparezcan aunque no tengan fecha, elimina la condición `|| valor`
                 // o ajusta qué etapas siempre deben mostrarse. Para este ejemplo, se mostrarán si hay valor.
-                if (valor || ['Corte', 'Almacén', 'Aceptado', 'Producción', 'Offline', 'Approved'].includes(etapa)) {
+                if (valor || ['Sellado', 'Aceptado', 'Producción', 'Offline', 'Approved'].includes(etapa)) {
                     html += `
                     <tr>
                         <td>${etapa}</td>
@@ -775,7 +754,7 @@
 
             // ✅ NUEVO: Incluir los nuevos indicadores en el orden deseado
             // Ajusta este orden según la secuencia lógica de tu proceso
-            const orden = ['fecha_corte', 'fecha_almacen', 'fecha_liberacion', 'fecha_parcial', 'fecha_rechazo', 'fecha_online', 'fecha_offline', 'fecha_approved'];
+            const orden = ['fecha_corte', 'fecha_liberacion', 'fecha_parcial', 'fecha_rechazo', 'fecha_online', 'fecha_offline', 'fecha_approved'];
             puntos.sort((a, b) => {
                 // Si alguna fase no está en 'orden', se puede poner al final o manejar como error
                 const indexA = orden.indexOf(a.campo);
@@ -898,7 +877,7 @@
                     }
 
                     // ✅ NUEVO: Incluir los nuevos indicadores en la lista para los checkboxes
-                    const todasLasFases = ['corte', 'almacen', 'liberacion', 'parcial', 'rechazo', 'online', 'offline', 'approved'];
+                    const todasLasFases = ['corte', 'liberacion', 'parcial', 'rechazo', 'online', 'offline', 'approved'];
 
                     const controles = `
                         <div id="controlesFases" class="mb-3">
@@ -980,7 +959,7 @@
                         <div id="controlesFases" class="mb-3">
                             <label><strong style="color: #eee;">Mostrar fases:</strong></label>
                             <div class="d-flex flex-wrap mt-2">
-                                ${['corte', 'almacen', 'liberacion', 'parcial', 'rechazo', 'online', 'offline', 'approved'].map(key => {
+                                ${['corte', 'liberacion', 'parcial', 'rechazo', 'online', 'offline', 'approved'].map(key => {
                                     const campo = 'fecha_' + key;
                                     const label = obtenerEtiqueta(campo);
                                     return `
@@ -1016,10 +995,9 @@
     <script>
         function dibujarGraficoLineaRango(json) {
             const registros = json.registros;
-            const fases = ['fecha_corte', 'fecha_almacen', 'fecha_liberacion', 'fecha_parcial', 'fecha_rechazo', 'fecha_online', 'fecha_offline', 'fecha_approved'];
+            const fases = ['fecha_corte', 'fecha_liberacion', 'fecha_parcial', 'fecha_rechazo', 'fecha_online', 'fecha_offline', 'fecha_approved'];
             const etiquetas = {
-                'fecha_corte': 'Corte',
-                'fecha_almacen': 'Almacén',
+                'fecha_corte': 'Sellado',
                 'fecha_liberacion': 'Aceptado',
                 'fecha_parcial': 'Parcial',
                 'fecha_rechazo': 'Rechazo',

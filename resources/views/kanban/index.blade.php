@@ -48,7 +48,7 @@
                         <table id="tabla-registros-hoy" class="table tabla-amp">
                             <thead class="thead-primary">
                                 <tr>
-                                    <th>FECHA DE CORTE</th>
+                                    <th>FECHA SELLADO</th>
                                     <th>OP</th>
                                     <th>CLIENTE</th>
                                     <th>ESTILO</th>
