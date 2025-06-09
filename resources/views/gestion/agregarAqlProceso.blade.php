@@ -13,7 +13,7 @@
                     <form id="search-form">
                         <div class="form-group">
                             <label for="search-input">Buscar por OP:</label>
-                            <input type="text" id="search-input" class="form-control" placeholder="Escribe un ID" value="OP00" maxlength="9">
+                            <input type="text" id="search-input" class="form-control" placeholder="Escribe un ID">
                         </div>
                         <button type="button" id="search-button" class="btn btn-primary">Buscar</button>
                     </form>
@@ -23,6 +23,7 @@
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
+                                    <th>ID</th>
                                     <th>Bulto</th>
                                     <th>OP</th>
                                     <th>Estilo</th>
@@ -90,132 +91,116 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // --- Definición de elementos ---
+            const searchForm = document.getElementById('search-form');
             const searchInput = document.getElementById('search-input');
-            const searchButton = document.getElementById('search-button');
-            const saveButton = document.getElementById('save-button');
-            const searchResultsBody = document.querySelector('#search-results tbody');
+            const searchResults = document.querySelector('#search-results tbody');
 
-            // --- Lógica de Búsqueda ---
-            const realizarBusqueda = () => {
-                const searchTerm = searchInput.value.trim();
-
-                // ✅ 1. MEJORA: Validación con SweetAlert en lugar de alert()
-                if (searchTerm.length !== 9) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Entrada Inválida',
-                        text: 'El término de búsqueda debe tener exactamente 9 caracteres.',
-                    });
-                    return;
-                }
-
-                // ✅ 2. MEJORA: Bloqueo del botón para evitar múltiples clics
-                searchButton.disabled = true;
-                // Opcional: Añadir un indicador visual de carga (requiere Bootstrap CSS)
-                searchButton.innerHTML = `
-                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    Buscando...
-                `;
-
-                fetch(`/buscarAql?searchTerm=${searchTerm}`)
-                    .then(response => {
-                        // ✅ 3. MEJORA: Manejo de errores más inteligente
-                        if (!response.ok) {
-                            // Si el error es de validación (422), Laravel envía los detalles.
-                            if (response.status === 422) {
-                                return response.json().then(errorData => {
-                                    // Extraemos el primer mensaje de error que envía Laravel.
-                                    const firstError = Object.values(errorData.errors)[0][0];
-                                    throw new Error(firstError);
-                                });
-                            }
-                            // Para otros errores del servidor.
-                            throw new Error('Error en la comunicación con el servidor.');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.status === 'success') {
-                            renderizarResultados(data.data);
-                        } else {
-                            // Para errores lógicos que el backend maneje con status 'error'.
-                            throw new Error(data.message || 'Ocurrió un error inesperado.');
-                        }
-                    })
-                    .catch(error => {
-                        // Mostramos cualquier error capturado con SweetAlert.
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: error.message,
-                        });
-                        // Limpiamos la tabla en caso de error.
-                        renderizarResultados([]);
-                    })
-                    .finally(() => {
-                        // ✅ 4. MEJORA: Reactivación del botón SIEMPRE al finalizar.
-                        // El bloque .finally() se ejecuta tanto si la petición fue exitosa como si falló.
-                        searchButton.disabled = false;
-                        searchButton.innerHTML = 'Buscar';
-                    });
-            };
-
-            const renderizarResultados = (items) => {
-                searchResultsBody.innerHTML = ''; // Limpia resultados previos
-
-                if (items.length === 0) {
-                    searchResultsBody.innerHTML = '<tr><td colspan="4">No se encontraron resultados.</td></tr>';
-                    return;
-                }
-
-                items.forEach(item => {
-                    const row = `
-                        <tr>
-                            <td>${item.prodpackticketid || 'N/A'}</td>
-                            <td>${item.prodid || 'N/A'}</td>
-                            <td>${item.itemid || 'N/A'}</td>
-                            <td>${item.payrolldate || 'N/A'}</td>
-                        </tr>
-                    `;
-                    searchResultsBody.insertAdjacentHTML('beforeend', row);
-                });
-            };
-
-            // --- Asignación de Eventos ---
-            document.getElementById('search-form').addEventListener('submit', (event) => {
-                event.preventDefault();
+            searchForm.addEventListener('submit', function (event) {
+                event.preventDefault(); // Evita que el formulario recargue la página
                 realizarBusqueda();
             });
 
-            searchButton.addEventListener('click', realizarBusqueda);
+            document.getElementById('search-button').addEventListener('click', function () {
+                realizarBusqueda();
+            });
 
-            // --- Lógica para Guardar (también mejorada con SweetAlert) ---
-            saveButton.addEventListener('click', function () {
-                const ids = Array.from(searchResultsBody.querySelectorAll('tr'))
-                    .map(row => row.cells[0]?.textContent)
-                    .filter(id => id && id !== 'N/A'); // Filtra filas vacías o sin ID
+            function realizarBusqueda() {
+                const searchTerm = searchInput.value.trim(); // Elimina espacios en blanco
 
-                if (ids.length === 0) {
-                    Swal.fire('Atención', 'No hay registros válidos en la tabla para guardar.', 'warning');
+                if (!searchTerm) {
+                    alert('Por favor, escribe un término de búsqueda.');
                     return;
                 }
 
-                Swal.fire({
-                    title: 'Confirmar',
-                    text: `¿Estás seguro de que deseas guardar ${ids.length} registro(s)?`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, guardar',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Lógica de guardado con Fetch...
-                        // (Aquí iría tu fetch a '/guardarAql' con método POST)
-                        console.log('Guardando los siguientes IDs:', ids);
-                        // Ejemplo de cómo se vería la alerta de éxito:
-                        Swal.fire('¡Guardado!', 'Los registros han sido guardados correctamente.', 'success');
+                // Realiza la petición AJAX
+                fetch(`/buscarAql?searchTerm=${searchTerm}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la solicitud al servidor');
                     }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Limpia los resultados previos
+                        searchResults.innerHTML = '';
+
+                        if (data.data.length === 0) {
+                            // Si no hay resultados
+                            searchResults.innerHTML = '<tr><td colspan="5">No se encontraron resultados.</td></tr>';
+                            return;
+                        }
+
+                        // Genera el HTML para los nuevos resultados
+                        data.data.forEach(item => {
+                            const row = `
+                                <tr>
+                                    <td>${item.id}</td>
+                                    <td>${item.prodpackticketid}</td>
+                                    <td>${item.prodid}</td>
+                                    <td>${item.itemid}</td>
+                                    <td>${item.payrolldate}</td>
+                                </tr>
+                            `;
+                            searchResults.insertAdjacentHTML('beforeend', row);
+                        });
+                    } else {
+                        alert(data.message); // Muestra el mensaje de error desde el backend
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Hubo un problema al realizar la búsqueda. Verifica la consola para más detalles.');
+                });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const saveButton = document.getElementById('save-button');
+            const searchResults = document.querySelector('#search-results tbody');
+
+            // Limpia cualquier registro previo del evento click para evitar duplicados
+            saveButton.replaceWith(saveButton.cloneNode(true));
+            const newSaveButton = document.getElementById('save-button');
+
+            newSaveButton.addEventListener('click', function () {
+                // Obtiene todos los IDs de los registros mostrados en la tabla
+                const ids = [];
+                searchResults.querySelectorAll('tr').forEach(row => {
+                    const id = row.cells[0].textContent; // Toma el ID de la primera celda
+                    ids.push(id);
+                });
+
+                if (ids.length === 0) {
+                    alert('No hay registros para guardar.');
+                    return;
+                }
+
+                // Realiza la petición AJAX para guardar los registros
+                fetch('/guardarAql', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ ids }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(data.message); // Muestra el mensaje recibido del servidor
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Hubo un problema al guardar los registros.');
                 });
             });
         });
@@ -334,6 +319,7 @@
                 });
             });
         });
+
 
     </script>
     
