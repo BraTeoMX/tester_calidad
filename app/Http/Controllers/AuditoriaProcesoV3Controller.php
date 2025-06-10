@@ -676,18 +676,40 @@ class AuditoriaProcesoV3Controller extends Controller
             };
  
 
-            // Obtener el cliente desde la base de datos
             $obtenerEstilo = $datosFormulario['estilo'];
-            $obtenerCliente = $datosFormulario['cliente'];
-            Log::info("V3 cliente inicial", ['cliente' => $obtenerCliente]);
-            if (empty($obtenerCliente)) {
-                $obtenerCliente = ModuloEstiloTemporal::where('itemid', $datosFormulario['estilo'])->value('custname');
-                if (empty($obtenerCliente)) {
-                    $obtenerCliente = ModuloEstilo::where('itemid', $datosFormulario['estilo'])->value('custname');
-                }
-            }
-            Log::info("V3 cliente despues", ['cliente' => $obtenerCliente]);
+            $obtenerClienteInicial = $datosFormulario['cliente'];
 
+            // Definimos una clave única para el cache basada en el estilo
+            $cacheKey = 'cliente_por_estilo_' . $obtenerEstilo;
+
+            // Usamos Cache::remember para obtener o almacenar el cliente
+            $obtenerCliente = Cache::remember($cacheKey, now()->addHours(15), function () use ($obtenerEstilo, $obtenerClienteInicial) {
+                
+                Log::info("V3 Buscando cliente en DB (no en cache)", ['estilo' => $obtenerEstilo]);
+
+                // 1. Priorizamos el cliente que ya viene en el formulario
+                if (!empty($obtenerClienteInicial)) {
+                    return $obtenerClienteInicial;
+                }
+
+                // 2. Si no viene, buscamos en la tabla temporal
+                $cliente = ModuloEstiloTemporal::where('itemid', $obtenerEstilo)->value('custname');
+                if (!empty($cliente)) {
+                    return $cliente;
+                }
+
+                // 3. Si tampoco está ahí, buscamos en la tabla principal
+                $cliente = ModuloEstilo::where('itemid', $obtenerEstilo)->value('custname');
+                if (!empty($cliente)) {
+                    return $cliente;
+                }
+
+                // Si después de todas las búsquedas no se encontró un cliente,
+                // devolvemos null. Laravel Cache::remember NO almacenará en caché un valor nulo.
+                return null;
+            });
+
+            Log::info("V3 cliente final", ['cliente' => $obtenerCliente]);
 
             // Procesar el nombre final
             $nombreFinalValidado = $datosFormulario['auditoria'][0]['nombre_final'] ? trim($datosFormulario['auditoria'][0]['nombre_final']) : null;
