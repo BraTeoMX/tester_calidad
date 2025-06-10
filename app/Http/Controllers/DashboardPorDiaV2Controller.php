@@ -65,7 +65,7 @@ class DashboardPorDiaV2Controller extends Controller
         Log::info("🔎 Iniciando consulta AQL para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
+        $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, null);
         });
         Log::info("⏳ Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
@@ -88,7 +88,7 @@ class DashboardPorDiaV2Controller extends Controller
         Log::info("🔎 Iniciando consulta AQL TE para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
+        $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, 1);
         });
         Log::info("⏳ Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
@@ -111,7 +111,7 @@ class DashboardPorDiaV2Controller extends Controller
         Log::info("🔎 Iniciando consulta Proceso para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
+        $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, null);
         });
         Log::info("⏳ Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
@@ -134,7 +134,7 @@ class DashboardPorDiaV2Controller extends Controller
         Log::info("🔎 Iniciando consulta Proceso TE para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
+        $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, 1);
         });
         Log::info("⏳ Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
@@ -157,7 +157,7 @@ class DashboardPorDiaV2Controller extends Controller
         Log::info("🔎 P2 Iniciando consulta AQL para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
+        $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, null);
         });
         Log::info("⏳ P2 Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
@@ -180,7 +180,7 @@ class DashboardPorDiaV2Controller extends Controller
         Log::info("🔎 P2 Iniciando consulta AQL TE para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
+        $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, 1);
         });
         Log::info("⏳P2 Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
@@ -203,7 +203,7 @@ class DashboardPorDiaV2Controller extends Controller
         Log::info("🔎 P2 Iniciando consulta Proceso para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
+        $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, null);
         });
         Log::info("⏳ P2 Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
@@ -226,7 +226,7 @@ class DashboardPorDiaV2Controller extends Controller
         Log::info("🔎 P2 Iniciando consulta Proceso TE para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaActual, $plantaConsulta) {
+        $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, 1);
         });
         Log::info("⏳ P2 Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
@@ -524,7 +524,7 @@ class DashboardPorDiaV2Controller extends Controller
     {
         $cacheKey = "aql_detalles_{$planta}_{$modulo}_{$estilo}_{$fecha}_" . ($tiempoExtra ? 'te' : 'tn');
 
-        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fecha, $planta, $modulo, $estilo, $tiempoExtra) {
+        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fecha, $planta, $modulo, $estilo, $tiempoExtra) {
             $query = AuditoriaAQL::where('modulo', $modulo)
                 ->where('estilo', $estilo)
                 ->where('planta', $planta)
@@ -609,7 +609,7 @@ class DashboardPorDiaV2Controller extends Controller
         $cacheKey = "proceso_detalles_{$planta}_{$modulo}_{$estilo}_{$fecha}_" . ($tiempoExtra ? 'te' : 'tn');
 
         // Tiempo de vida del caché: 10 minutos (ajustable)
-        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($modulo, $estilo, $planta, $fecha, $tiempoExtra) {
+        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($modulo, $estilo, $planta, $fecha, $tiempoExtra) {
             $query = AseguramientoCalidad::where('modulo', $modulo)
                 ->where('estilo', $estilo)
                 ->where('planta', $planta)

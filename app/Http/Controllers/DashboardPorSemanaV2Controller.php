@@ -68,7 +68,7 @@ class DashboardPorSemanaV2Controller extends Controller
         Log::info("🔎 Iniciando consulta AQL para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+        $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteAQL($fechaInicio, $plantaConsulta, null, $fechaFin);
         });
         Log::info("⏳ Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
@@ -94,7 +94,7 @@ class DashboardPorSemanaV2Controller extends Controller
         Log::info("🔎 Iniciando consulta AQL TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+        $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteAQL($fechaInicio, $plantaConsulta, 1, $fechaFin);
         });
         Log::info("⏳ Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
@@ -120,7 +120,7 @@ class DashboardPorSemanaV2Controller extends Controller
         Log::info("🔎 Iniciando consulta Proceso para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+        $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteProceso($fechaInicio, $plantaConsulta, null, $fechaFin);
         });
         Log::info("⏳ Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
@@ -146,7 +146,7 @@ class DashboardPorSemanaV2Controller extends Controller
         Log::info("🔎 Iniciando consulta Proceso TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+        $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteProceso($fechaInicio, $plantaConsulta, 1, $fechaFin);
         });
         Log::info("⏳ Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
@@ -172,7 +172,7 @@ class DashboardPorSemanaV2Controller extends Controller
         Log::info("🔎 P2 Iniciando consulta AQL para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+        $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteAQL($fechaInicio, $plantaConsulta, null, $fechaFin);
         });
         Log::info("⏳ P2 Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
@@ -198,7 +198,7 @@ class DashboardPorSemanaV2Controller extends Controller
         Log::info("🔎 P2 Iniciando consulta AQL TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+        $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteAQL($fechaInicio, $plantaConsulta, 1, $fechaFin);
         });
         Log::info("⏳P2 Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
@@ -224,7 +224,7 @@ class DashboardPorSemanaV2Controller extends Controller
         Log::info("🔎 P2 Iniciando consulta Proceso para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+        $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteProceso($fechaInicio, $plantaConsulta, null, $fechaFin);
         });
         Log::info("⏳ P2 Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
@@ -250,7 +250,7 @@ class DashboardPorSemanaV2Controller extends Controller
         Log::info("🔎 P2 Iniciando consulta Proceso TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
-        $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
+        $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteProceso($fechaInicio, $plantaConsulta, 1, $fechaFin);
         });
         Log::info("⏳ P2 Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
@@ -468,7 +468,7 @@ class DashboardPorSemanaV2Controller extends Controller
     {
         $cacheKey = "semana_aql_detalles_{$planta}_{$modulo}_{$cliente}_{$fechaInicio->format('Ymd')}_{$fechaFin->format('Ymd')}_" . ($tiempoExtra ? 'te' : 'tn');
 
-        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra) {
+        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra) {
             $query = AuditoriaAQL::where('modulo', $modulo)
                 ->where('cliente', $cliente)
                 ->where('planta', $planta)
@@ -558,7 +558,7 @@ class DashboardPorSemanaV2Controller extends Controller
     {
         $cacheKey = "semana_proceso_detalles_{$planta}_{$modulo}_{$cliente}_{$fechaInicio->format('Ymd')}_{$fechaFin->format('Ymd')}_" . ($tiempoExtra ? 'te' : 'tn');
 
-        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($fechaInicio, $fechaFin, $modulo, $cliente, $planta, $tiempoExtra) {
+        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $modulo, $cliente, $planta, $tiempoExtra) {
             $query = AseguramientoCalidad::where('modulo', $modulo)
                 ->where('cliente', $cliente)
                 ->where('planta', $planta)
