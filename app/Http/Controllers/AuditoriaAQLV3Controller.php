@@ -446,7 +446,7 @@ class AuditoriaAQLV3Controller extends Controller
 
         // La clave de caché ahora incluye la OP específica
         $cacheKey = 'bultos_para_op_' . $opSeleccionada;
-        $duracionCacheEnSegundos = 5 * 60; // 5 minutos
+        $duracionCacheEnSegundos = 60; // 1 minuto
 
         // Intentar obtener de la caché
         if (Cache::has($cacheKey)) {
