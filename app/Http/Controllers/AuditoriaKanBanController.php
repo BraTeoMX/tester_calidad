@@ -12,6 +12,7 @@ use App\Models\JobAQLHistorial;
 use App\Models\CatalogoComentarioKanban;
 use App\Models\ReporteKanban;
 use App\Models\ReporteKanbanComentario;
+use App\Models\ReporteKanbanCantidadParcial;
 use App\Models\TicketCorte;
 use App\Models\TicketOffline;
 use App\Models\TicketApproved;
@@ -90,7 +91,7 @@ class AuditoriaKanBanController extends Controller
         $mesesEnEspanol = [/* ... */];
 
         if ($request->ajax()) {
-            $query = ReporteKanban::query();
+            $query = ReporteKanban::with(['comentarios', 'cantidades_parciales']);
 
             if ($request->filled('desde') && $request->filled('hasta')) {
                 $query->whereBetween('fecha_corte', [
@@ -102,7 +103,27 @@ class AuditoriaKanBanController extends Controller
             //if ($request->filled('planta'))  $query->where('planta', $request->planta);
             if ($request->filled('estatus')) $query->where('estatus', $request->estatus);
 
-            $registros = $query->get();
+            $registros = $query->get()->map(function ($registro) {
+                // Procesar comentarios
+                $comentarios = $registro->comentarios->isEmpty() 
+                ? 'N/A' 
+                : '<ul class="comentarios-lista">' . 
+                  $registro->comentarios->map(function($comentario) {
+                      return '<li>' . e($comentario->nombre) . '</li>';
+                  })->implode('') . 
+                  '</ul>';
+                
+                // Procesar cantidades parciales
+                $cantidades_parciales = $registro->cantidades_parciales->isEmpty()
+                    ? 'N/A'
+                    : $registro->cantidades_parciales->pluck('cantidad')->implode(', ');
+
+                // Agregar estos datos al registro
+                $registro->comentarios_lista = $comentarios;
+                $registro->cantidades_parciales_lista = $cantidades_parciales;
+
+                return $registro;
+            });
 
             $online = $registros->whereNotNull('fecha_online')->count();
             $offline = $registros->whereNotNull('fecha_offline')->count();
@@ -113,16 +134,16 @@ class AuditoriaKanBanController extends Controller
                 'total_op'     => $registros->count(),
                 'total_piezas' => $registros->sum('piezas'),
                 'aceptados'    => $registros->where('estatus', 1)->count(),
-                'parciales'    => $registros->where('estatus', 2)->count(),
-                'rechazados'   => $registros->where('estatus', 3)->count(),
+                'parciales'   => $registros->where('estatus', 2)->count(),
+                'rechazados'  => $registros->where('estatus', 3)->count(),
             ];
 
             return response()->json([
-                'kpis'      => $kpis,
-                'registros' => $registros, // Aquí ya se incluye fecha_online
+                'kpis'       => $kpis,
+                'registros'  => $registros,
                 'produccion' => $online,
-                'offline' => $offline,
-                'approved' => $approved,
+                'offline'    => $offline,
+                'approved'   => $approved,
             ]);
         }
 
@@ -284,6 +305,7 @@ class AuditoriaKanBanController extends Controller
 
     public function actualizarMasivo(Request $request)
     {
+        Log::info('Datos recibidos para actualización masiva: ' . json_encode($request->all()));
         // Identificar el tipo de usuario que realiza la acción
         $tipoAcceso = Auth::user()->no_empleado;
 
@@ -316,6 +338,7 @@ class AuditoriaKanBanController extends Controller
 
                 // ---- INICIO DE LA LÓGICA DE OMISIÓN ----
                 $omitirEsteRegistro = false;
+                $cantidadParcial = !empty($registroData['cantidad_parcial']) ? (int)$registroData['cantidad_parcial'] : null;
 
                 // Cambiar de === a == para la comparación principal entre el nuevo estado (string) y el actual (int/DB type)
                 if ($tipoAcceso === '4') {
@@ -403,9 +426,43 @@ class AuditoriaKanBanController extends Controller
 
                 $kanban->save(); // Guardar cambios en el registro principal
 
-                // Manejo de comentarios (solo si el registro principal fue procesado)
-                // Convertimos $registroData['comentarios'] a array si es string separado por comas,
-                // o lo tomamos como array si ya lo es. Ajustar según cómo llegue del frontend.
+                if ($nuevoEstatus === '2' && $cantidadParcial > 0) {
+                    // Si el estatus es 'Parcial' y se recibió una cantidad válida, la guardamos.
+                    
+                    // Preparamos los datos a actualizar dependiendo del tipo de usuario
+                    $dataToUpdate = ($tipoAcceso === '4')
+                        ? ['cantidad' => $cantidadParcial]
+                        : ['cantidad' => $cantidadParcial];
+
+                    // Usamos updateOrCreate para insertar o actualizar el registro de cantidad.
+                    // Busca un registro con el 'reporte_kanban_id' y si no lo encuentra, lo crea.
+                    // Luego, aplica los valores de $dataToUpdate.
+                    ReporteKanbanCantidadParcial::updateOrCreate(
+                        ['reporte_kanban_id' => $kanban->id], // Criterio de búsqueda
+                        $dataToUpdate                       // Valores a establecer/actualizar
+                    );
+
+                } /* else {
+                    // Si el estatus ya NO es 'Parcial' o no hay cantidad, limpiamos el campo correspondiente.
+                    $parcialRecord = ReporteKanbanCantidadParcial::where('reporte_kanban_id', $kanban->id)->first();
+                    
+                    if ($parcialRecord) {
+                        if ($tipoAcceso === '4') {
+                            $parcialRecord->cantidad_calidad = null;
+                        } else {
+                            $parcialRecord->cantidad = null;
+                        }
+                        
+                        // Si después de limpiar, ambos campos de cantidad son nulos, eliminamos la fila
+                        // para mantener la tabla limpia.
+                        //if (is_null($parcialRecord->cantidad) && is_null($parcialRecord->cantidad_calidad)) {
+                        //    $parcialRecord->delete();
+                        //} else {
+                        //    $parcialRecord->save();
+                        //}
+                    }
+                } */
+                
                 $comentariosNuevosInput = $registroData['comentarios'] ?? ''; // Puede ser un string o array
                 Log::info("Comentarios nuevos: " . json_encode($comentariosNuevosInput));
                 // Si los comentarios vienen como un string separado por comas y pueden tener espacios

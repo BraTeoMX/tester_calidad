@@ -196,7 +196,9 @@
                                 <th>Cliente</th>
                                 <th>Estilo</th>
                                 <th>Piezas</th>
+                                <th>Piezas Parcial</th>
                                 <th>Estatus</th>
+                                <th>Motivo</th>
                                 <th>Fecha Sellado</th>
                                 <th>Fecha Aceptado</th>
                                 <th>Fecha Parcial</th>
@@ -514,8 +516,14 @@
                         data: 'piezas'
                     },
                     {
+                        data: 'cantidades_parciales_lista'
+                    },
+                    {
                         data: 'estatus',
                         render: e => e == 1 ? 'Aceptado' : e == 2 ? 'Parcial' : 'Rechazado'
+                    },
+                    {
+                        data: 'comentarios_lista'
                     },
                     {
                         data: 'fecha_corte',

@@ -321,6 +321,7 @@
 
     <script>
         const comentariosSeleccionadosPorFila = {};
+        const cantidadesParcialesPorFila = {};
 
         function cargarRegistrosHoy() {
             // ---- INICIO DE LA MODIFICACIÓN ----
@@ -551,6 +552,49 @@
         $(document).ready(function () {
             cargarRegistrosHoy();
 
+            $('#tabla-registros-hoy').on('change', '.select-accion', function() {
+                const selectAccion = $(this);
+                const idFila = selectAccion.closest('tr').data('id');
+                const accion = selectAccion.val();
+                const badge = $(`#badge-cantidad-${idFila}`);
+
+                if (accion === '2') { // Si se selecciona "Parcial"
+                    Swal.fire({
+                        title: 'Ingrese la cantidad parcial',
+                        input: 'number',
+                        inputAttributes: {
+                            min: 1,
+                            step: 1
+                        },
+                        inputLabel: 'La cantidad debe ser mayor a 0',
+                        showCancelButton: true,
+                        confirmButtonText: 'Guardar',
+                        cancelButtonText: 'Cancelar',
+                        inputValidator: (value) => {
+                            if (!value || parseInt(value) <= 0) {
+                                return '¡Necesitas escribir una cantidad numérica mayor a 0!'
+                            }
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const cantidad = parseInt(result.value);
+                            cantidadesParcialesPorFila[idFila] = cantidad; // Guardar cantidad
+                            // Mostrar feedback visual
+                            badge.text(`Cantidad: ${cantidad}`).addClass('badge bg-primary').show();
+                        } else {
+                            // Si el usuario cancela, revertir la selección
+                            selectAccion.val(''); 
+                            delete cantidadesParcialesPorFila[idFila]; // Eliminar si existía
+                            badge.hide();
+                        }
+                    });
+                } else {
+                    // Si se selecciona otra cosa, eliminar la cantidad guardada y el feedback
+                    delete cantidadesParcialesPorFila[idFila];
+                    badge.hide().text('');
+                }
+            });
+
             // Evento para el botón de actualización masiva
             $('#btn-actualizar-todo').on('click', function () {
                 const botonActualizar = $(this); // Guardar referencia al botón
@@ -563,22 +607,23 @@
                 $('#tabla-registros-hoy tbody tr').each(function () {
                     const fila = $(this);
                     const id = fila.data('id');
-
-                    if (id === undefined || id === null) {
-                        return; 
-                    }
+                    if (id === undefined || id === null) return;
 
                     const accion = fila.find('.select-accion').val();
                     const comentariosArray = comentariosSeleccionadosPorFila[id] ? Array.from(comentariosSeleccionadosPorFila[id]) : [];
-                    const op = fila.find('td').eq(2).text(); 
+                    const op = fila.find('td').eq(1).text(); // Corregido el índice de OP
+                    
+                    // Obtener la cantidad parcial si existe para esta fila
+                    const cantidadParcial = cantidadesParcialesPorFila[id] || null;
 
                     if (accion) {
-                        hayRegistrosConAccion = true; 
+                        hayRegistrosConAccion = true;
                         
                         registrosParaActualizar.push({
                             id: id,
                             accion: accion,
-                            comentarios: comentariosArray
+                            comentarios: comentariosArray,
+                            cantidad_parcial: cantidadParcial
                         });
                     }
                 });
