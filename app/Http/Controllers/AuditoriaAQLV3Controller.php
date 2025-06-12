@@ -414,7 +414,7 @@ class AuditoriaAQLV3Controller extends Controller
     public function obtenerOpcionesOP(Request $request)
     {
         $cacheKey = 'opciones_op_todas_lista';
-        $duracionCacheEnSegundos = 5 * 60; // 5 minutos
+        $duracionCacheEnSegundos = 30; // 30 segundos
 
         // Intentar obtener de la caché primero
         if (Cache::has($cacheKey)) {
@@ -454,7 +454,7 @@ class AuditoriaAQLV3Controller extends Controller
 
         // La clave de caché ahora incluye la OP específica
         $cacheKey = 'bultos_para_op_' . $opSeleccionada;
-        $duracionCacheEnSegundos = 60; // 1 minuto
+        $duracionCacheEnSegundos = 30; // 30 segundos
 
         // Intentar obtener de la caché
         if (Cache::has($cacheKey)) {

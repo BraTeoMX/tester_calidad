@@ -72,7 +72,7 @@ class AuditoriaProcesoV3Controller extends Controller
         $claveCache = "modulos_planta_{$datoPlanta}_v2";
 
         // Tiempo de caché en segundos (60 segundos = 1 minuto)
-        $tiempoCache = 60;
+        $tiempoCache = 30;
         // Alternativamente, usando Carbon para una definición más explícita del tiempo:
         // $tiempoCache = Carbon::now()->addMinutes(1);
 
@@ -440,7 +440,7 @@ class AuditoriaProcesoV3Controller extends Controller
         $cacheKey = implode('_', $cacheKeyParts);
 
         // --- Tiempo de Caché ---
-        $minutesToCache = 1; // 1 minuto de caché
+        $minutesToCache = 30; // 30 minutos
 
         // --- Lógica de Caché y Consulta ---
         $procesos = Cache::remember($cacheKey, now()->addMinutes($minutesToCache), function () use ($datoPlanta, $fechaActual, $tipoUsuario, $auditorDato) {
