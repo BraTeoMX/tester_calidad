@@ -241,26 +241,35 @@ class AuditoriaAQLV3Controller extends Controller
 
     public function formAltaAQLV3(Request $request)
     {
+        Log::info('Iniciando el proceso de alta AQL V3 con los siguientes datos:', $request->all());
         $pageSlug = '';
 
-        // Optimización: Seleccionar solo la columna 'customername'
+        // Paso 1: Intentar encontrar la OP en el modelo principal (JobAQL)
         $datoUnicoOP = JobAQL::where('prodid', $request->op)
-            ->select('customername') // Aquí se especifica la columna deseada
+            ->select('customername')
             ->first();
 
+        // Paso 2: Si no se encontró en el principal, buscar en el modelo temporal
         if (!$datoUnicoOP) {
-            return redirect()->back()->with('error', 'La OP proporcionada no fue encontrada.');
-            // O si prefieres que 'cliente' sea nulo o un string vacío:
-            // $customerName = null; // o $customerName = '';
-        } else {
-            // $customerName = $datoUnicoOP->customername; // No es necesario si se maneja en el array $data
+            Log::info('OP no encontrada en JobAQL. Buscando en JobAQLTemporal...');
+            
+            $datoUnicoOP = JobAQLTemporal::where('prodid', $request->op)
+                ->select('customername')
+                ->first();
         }
 
+        // Paso 3: Verificar si, después de ambas búsquedas, la OP sigue sin encontrarse
+        if (!$datoUnicoOP) {
+            // Si llegamos aquí, es que no existe en ninguna de las dos tablas.
+            return redirect()->back()->with('error', 'La OP proporcionada no fue encontrada en ninguna fuente de datos.');
+        }
+
+        // Si se encontró en cualquiera de las dos tablas, el código continúa igual
         $data = [
             'modulo' => $request->modulo,
             'estilo' => $request->estilo,
             'op' => $request->op,
-            'cliente' => $datoUnicoOP ? $datoUnicoOP->customername : null, // O un valor por defecto si prefieres
+            'cliente' => $datoUnicoOP->customername, // Se obtiene el cliente del resultado encontrado
             'auditor' => $request->auditor,
             'turno' => $request->turno,
             'team_leader' => $request->team_leader,
@@ -268,8 +277,8 @@ class AuditoriaAQLV3Controller extends Controller
         ];
 
         return redirect()->route('AQLV3.registro', $data)
-                         ->with('cambio-estatus', 'Iniciando en modulo: ' . $data['modulo'])
-                         ->with('pageSlug', $pageSlug);
+            ->with('cambio-estatus', 'Iniciando en modulo: ' . $data['modulo'])
+            ->with('pageSlug', $pageSlug);
     }
 
     public function registro(Request $request)
