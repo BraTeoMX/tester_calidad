@@ -241,7 +241,6 @@ class AuditoriaAQLV3Controller extends Controller
 
     public function formAltaAQLV3(Request $request)
     {
-        Log::info('Iniciando el proceso de alta AQL V3 con los siguientes datos:', $request->all());
         $pageSlug = '';
 
         // Paso 1: Intentar encontrar la OP en el modelo principal (JobAQL)
@@ -251,7 +250,6 @@ class AuditoriaAQLV3Controller extends Controller
 
         // Paso 2: Si no se encontró en el principal, buscar en el modelo temporal
         if (!$datoUnicoOP) {
-            Log::info('OP no encontrada en JobAQL. Buscando en JobAQLTemporal...');
             
             $datoUnicoOP = JobAQLTemporal::where('prodid', $request->op)
                 ->select('customername')
