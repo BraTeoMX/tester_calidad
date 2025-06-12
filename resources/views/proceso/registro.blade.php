@@ -242,7 +242,7 @@
                         <!-- Aquí ya NO necesitamos la tabla, pero sí necesitamos mantener los valores -->
                         <input type="hidden" name="modulo" id="modulo" value="{{ $data['modulo'] }}">
                         <!-- Formulario que envía la solicitud al controlador -->
-                        <form action="{{ route('buscarUltimoRegistroProceso') }}" method="POST">
+                        <form action="{{ route('procesoV3.buscarUltimoRegistroProceso') }}" method="POST">
                             @csrf
                             <input type="hidden" name="modulo" value="{{ $data['modulo'] }}">
                             <button type="submit" class="btn btn-primary">Fin Paro Modular</button>

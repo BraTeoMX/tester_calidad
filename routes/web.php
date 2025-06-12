@@ -207,6 +207,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/auditoriaProcesoV3/obtenerSupervisores', [AuditoriaProcesoV3Controller::class, 'obtenerSupervisor'])->name('procesoV3.obtenerSupervisores');
     Route::post('/auditoriaProcesoV3/formAltaProceso', [AuditoriaProcesoV3Controller::class, 'formAltaProceso'])->name('procesoV3.formAltaProceso');
     Route::get('/auditoriaProcesoV3/registro', [AuditoriaProcesoV3Controller::class, 'auditoriaProceso'])->name('procesoV3.registro');
+    Route::post('/auditoriaProcesoV3/registro/buscarUltimoRegistroProceso', [AuditoriaProcesoV3Controller::class, 'buscarUltimoRegistroProceso'])->name('procesoV3.buscarUltimoRegistroProceso');
     Route::get('/auditoriaProcesoV3/registro/lista', [AuditoriaProcesoV3Controller::class, 'obtenerListaProcesos'])->name('procesoV3.registro.lista');
     Route::get('/auditoriaProcesoV3/registro/nombres', [AuditoriaProcesoV3Controller::class, 'obtenerNombresGenerales'])->name('procesoV3.registro.obtenerNombresGenerales');
     Route::get('/auditoriaProcesoV3/registro/operaciones', [AuditoriaProcesoV3Controller::class, 'obtenerOperaciones'])->name('procesoV3.registro.obtenerOperaciones');

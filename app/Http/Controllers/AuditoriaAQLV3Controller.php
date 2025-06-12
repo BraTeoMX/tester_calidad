@@ -19,6 +19,7 @@ use App\Models\ModuloEstilo;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Collection;
 
 class AuditoriaAQLV3Controller extends Controller
 {
@@ -813,41 +814,86 @@ class AuditoriaAQLV3Controller extends Controller
 
     public function buscarUltimoRegistro(Request $request)
     {
-        // Obtener el módulo enviado desde el formulario
+        // 1. OBTENCIÓN DE DATOS INICIALES
         $modulo = $request->input('modulo');
         $fechaActual = now()->toDateString();
 
-        // Buscar el último registro que coincida con las condiciones
-        $registro = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('cantidad_rechazada', '>', 0)
+        // 2. CONSULTA ÚNICA Y OPTIMIZADA
+        // Traemos todos los registros del día para el módulo que podrían ser un paro,
+        // ordenados cronológicamente de más antiguo a más nuevo.
+        $posiblesParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
             ->where('modulo', $modulo)
-            ->latest('created_at') // Trae el último registro por fecha
-            ->first();
+            ->where('cantidad_rechazada', '>', 0)
+            ->select('id', 'created_at', 'inicio_paro', 'fin_paro_modular', 'minutos_paro_modular', 'tiempo_extra')
+            ->orderBy('created_at', 'asc') // crucial para la lógica secuencial
+            ->get();
 
-        // Si se encuentra un registro, actualizar las columnas
-        if ($registro) {
-            // Obtener la hora actual para fin_paro_modular
-            $horaActual = now();
+        // 3. SEPARACIÓN DE REGISTROS (Tiempo Normal vs. Tiempo Extra)
+        // Usamos 'partition' para dividir la colección en dos grupos.
+        list($registrosExtra, $registrosNormales) = $posiblesParos->partition(function ($registro) {
+            return $registro->tiempo_extra === '1';
+        });
 
-            // Actualizar la columna "fin_paro_modular" con la hora actual
-            $registro->fin_paro_modular = $horaActual;
+        // 4. APLICAR LÓGICA DE BÚSQUEDA
+        $registroAActualizar = null;
 
-            // Calcular la diferencia en minutos entre "inicio_paro" y "fin_paro_modular"
-            $inicioParo = Carbon::parse($registro->inicio_paro);
-            $diferenciaEnMinutos = $inicioParo->diffInMinutes($horaActual);
+        // Escenario 1: Buscar en registros de tiempo normal.
+        $registroAActualizar = $this->encontrarParoParaActualizar($registrosNormales);
 
-            // Actualizar la columna "minutos_paro_modular" con la diferencia
-            $registro->minutos_paro_modular = $diferenciaEnMinutos;
-
-            // Guardar los cambios en la base de datos
-            $registro->save();
-
-            // Redirigir con mensaje de éxito
-            return redirect()->back()->with('success', 'Paro modular finalizado correctamente. Tiempo acumulado: ' . $diferenciaEnMinutos . ' minutos.');
+        // Escenario 2: Si no se encontró en tiempo normal, buscar en tiempo extra.
+        if (!$registroAActualizar) {
+            $registroAActualizar = $this->encontrarParoParaActualizar($registrosExtra);
         }
 
-        // Si no se encuentra ningún registro
-        return redirect()->back()->with('error', 'No se encontró ningún registro para finalizar el paro modular.');
+        // 5. ACTUALIZACIÓN DEL REGISTRO (SI SE ENCONTRÓ)
+        if ($registroAActualizar) {
+            $horaActual = now();
+            $inicioParo = Carbon::parse($registroAActualizar->inicio_paro);
+            $diferenciaEnMinutos = $inicioParo->diffInMinutes($horaActual);
+
+            $registroAActualizar->update([
+                'fin_paro_modular' => $horaActual,
+                'minutos_paro_modular' => $diferenciaEnMinutos,
+            ]);
+
+            return redirect()->back()->with('success', 'Paro modular finalizado. Tiempo acumulado: ' . $diferenciaEnMinutos . ' min.');
+        }
+
+        // 6. SI NO SE ENCONTRÓ NINGÚN REGISTRO APTO
+        return redirect()->back()->with('error', 'No se encontró ningún paro modular pendiente para finalizar.');
+    }
+
+    /**
+     * Itera sobre una colección de registros para encontrar el correcto a actualizar.
+     * La lógica es: buscar el registro más reciente en una posición par (2, 4, 6...)
+     * que todavía no haya sido finalizado.
+     *
+     * @param  \Illuminate\Support\Collection  $registros
+     * @return \App\Models\AuditoriaAQL|null
+     */
+    private function encontrarParoParaActualizar(Collection $registros)
+    {
+        // La colección viene ordenada por fecha de creación ASC.
+        // La invertimos para empezar a buscar desde el registro más RECIENTE.
+        // El método 'values()' reinicia las claves para tener una secuencia 0, 1, 2...
+        $registrosOrdenados = $registros->values();
+
+        // Iteramos de forma inversa, desde el final hacia el principio.
+        for ($i = $registrosOrdenados->count() - 1; $i >= 0; $i--) {
+            $registro = $registrosOrdenados[$i];
+
+            // La posición real es el índice + 1 (ej: índice 1 es la 2da posición)
+            $posicion = $i + 1;
+
+            // Verificamos si la posición es PAR y si el paro está PENDIENTE.
+            if ($posicion % 2 === 0 && is_null($registro->minutos_paro_modular)) {
+                // ¡Encontrado! Es el paro más reciente que cumple las condiciones.
+                return $registro;
+            }
+        }
+
+        // Si el bucle termina, no se encontró ningún registro que cumpla los criterios.
+        return null;
     }
 
     public function finalizarParoAQL(Request $request)

@@ -19,7 +19,7 @@ use App\Models\ModuloEstiloTemporal;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
-
+use Illuminate\Support\Collection;
 
 use App\Models\EvaluacionCorte;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
@@ -943,44 +943,85 @@ class AuditoriaProcesoV3Controller extends Controller
 
     public function buscarUltimoRegistroProceso(Request $request)
     {
-        // Obtener el módulo enviado desde el formulario
+        // 1. DATOS INICIALES
         $modulo = $request->input('modulo');
         $fechaActual = now()->toDateString();
-        //dd($request->all());
 
-        // Buscar el último registro que coincida con las condiciones
-        $registro = AseguramientoCalidad::whereDate('created_at', $fechaActual)
-            ->where('cantidad_rechazada', '>', 0)
+        // 2. CONSULTA ÚNICA Y OPTIMIZADA
+        $posiblesParos = AseguramientoCalidad::whereDate('created_at', $fechaActual)
             ->where('modulo', $modulo)
-            ->latest('created_at') // Trae el último registro por fecha
-            ->first();
+            ->where('cantidad_rechazada', '>', 0)
+            ->select('id', 'created_at', 'inicio_paro', 'fin_paro_modular', 'minutos_paro_modular', 'tiempo_extra')
+            ->orderBy('created_at', 'asc') // Orden cronológico es esencial
+            ->get();
 
-        // Si se encuentra un registro, actualizar las columnas
-        if ($registro) {
-            // Obtener la hora actual para fin_paro_modular
-            $horaActual = now();
+        // 3. SEPARACIÓN DE REGISTROS (Tiempo Normal vs. Tiempo Extra)
+        list($registrosExtra, $registrosNormales) = $posiblesParos->partition(function ($registro) {
+            return $registro->tiempo_extra === '1';
+        });
 
-            // Actualizar la columna "fin_paro_modular" con la hora actual
-            $registro->fin_paro_modular = $horaActual;
+        // 4. APLICAR LÓGICA DE BÚSQUEDA CON PRIORIDAD
+        $registroAActualizar = null;
 
-            // Calcular la diferencia en minutos entre "inicio_paro" y "fin_paro_modular"
-            $inicioParo = Carbon::parse($registro->inicio_paro);
-            $diferenciaEnMinutos = $inicioParo->diffInMinutes($horaActual);
+        // Escenario 1: Buscar en registros de Tiempo Normal (tiempo_extra es NULL).
+        $registroAActualizar = $this->encontrarParoParaActualizarDeTres($registrosNormales);
 
-            // Actualizar la columna "minutos_paro_modular" con la diferencia
-            $registro->minutos_paro_modular = $diferenciaEnMinutos;
-
-            // Guardar los cambios en la base de datos
-            $registro->save();
-
-            //dd($registro);
-
-            // Redirigir con mensaje de éxito
-            return redirect()->back()->with('success', 'Paro modular finalizado correctamente. Tiempo acumulado: ' . $diferenciaEnMinutos . ' minutos.');
+        // Escenario 2: Si no se encontró nada, buscar en registros de Tiempo Extra.
+        if (!$registroAActualizar) {
+            $registroAActualizar = $this->encontrarParoParaActualizarDeTres($registrosExtra);
         }
 
-        // Si no se encuentra ningún registro
-        return redirect()->back()->with('error', 'No se encontró ningún registro para finalizar el paro modular.');
+        // 5. ACTUALIZACIÓN (SI SE ENCONTRÓ UN REGISTRO)
+        if ($registroAActualizar) {
+            $horaActual = now();
+            $inicioParo = Carbon::parse($registroAActualizar->inicio_paro);
+            $diferenciaEnMinutos = $inicioParo->diffInMinutes($horaActual);
+
+            $registroAActualizar->update([
+                'fin_paro_modular' => $horaActual,
+                'minutos_paro_modular' => $diferenciaEnMinutos,
+            ]);
+
+            return redirect()->back()->with('success', 'Paro de proceso finalizado. Tiempo: ' . $diferenciaEnMinutos . ' min.');
+        }
+
+        // 6. RESPUESTA SI NO SE ENCONTRÓ NADA
+        return redirect()->back()->with('error', 'No se encontró ningún paro de proceso pendiente para finalizar.');
+    }
+
+    /**
+     * Itera sobre una colección para encontrar el registro correcto a actualizar.
+     * La lógica es: buscar el registro más reciente en una posición divisible por 3
+     * (3, 6, 9...) que todavía no haya sido finalizado.
+     *
+     * @param  \Illuminate\Support\Collection  $registros
+     * @return \App\Models\AseguramientoCalidad|null
+     */
+    private function encontrarParoParaActualizarDeTres(Collection $registros)
+    {
+        // Se usa values() para re-indexar la colección y asegurar que las claves son 0, 1, 2...
+        // Este es el paso clave para que los índices coincidan con las posiciones.
+        $registrosOrdenados = $registros->values();
+
+        // Se itera de forma inversa, desde el final hacia el principio.
+        for ($i = $registrosOrdenados->count() - 1; $i >= 0; $i--) {
+            $registro = $registrosOrdenados[$i];
+            
+            // La posición real es el índice + 1.
+            $posicion = $i + 1;
+
+            // Se verifica si la posición es divisible por 3.
+            if ($posicion % 3 === 0) {
+                // Si la posición es correcta, AHORA verificamos si el paro está pendiente.
+                if (is_null($registro->minutos_paro_modular)) {
+                    // ¡Encontrado! Es el paro más reciente que cumple las condiciones.
+                    return $registro;
+                }
+            }
+        }
+
+        // Si el bucle termina, no se encontró ningún registro apto.
+        return null;
     }
 
     public function parosNoFinalizados(Request $request)

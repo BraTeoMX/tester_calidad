@@ -10,6 +10,11 @@ class AuditoriaAQL extends Model
     use HasFactory;
     protected $table = 'auditoria_aql';
 
+    protected $fillable = [
+        'fin_paro_modular',
+        'minutos_paro_modular',
+    ];
+
     public function tpAuditoriaAQL()
     {
         return $this->hasMany(TpAuditoriaAQL::class, 'auditoria_aql_id');

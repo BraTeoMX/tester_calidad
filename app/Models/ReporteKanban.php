@@ -42,4 +42,9 @@ class ReporteKanban extends Model
         return $this->hasMany(ReporteKanbanComentario::class);
     }
 
+    public function cantidades_parciales()
+    {
+        return $this->hasMany(ReporteKanbanCantidadParcial::class);
+    }
+
 }
