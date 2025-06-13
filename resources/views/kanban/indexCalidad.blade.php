@@ -71,6 +71,7 @@
                                     <th>OP</th>
                                     <th>CLIENTE</th>
                                     <th>ESTILO</th>
+                                    <th>PIEZAS</th>
                                     <th>ESTATUS</th>
                                     <th>COMENTARIOS</th>
                                     <th>FECHA DE LIBERACION</th>
@@ -360,6 +361,7 @@
                                 <td>${item.op}</td>
                                 <td>${item.cliente}</td>
                                 <td>${item.estilo}</td>
+                                <td>${item.piezas}</td>
                                 <td>
                                     <select class="form-control select-accion">
                                         <option value="">Selecciona</option>

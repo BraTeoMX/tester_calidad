@@ -667,6 +667,7 @@ class AuditoriaKanBanController extends Controller
                 'op'              => $registro->op ?? 'N/A',
                 'cliente'         => $registro->cliente ?? 'N/A',
                 'estilo'          => $registro->estilo ?? 'N/A',
+                'piezas'          => $registro->piezas ?? 'N/A',
                 'comentarios'     => $registro->comentarios->pluck('nombre')->implode(','),
                 'id'              => $registro->id,
                 'created_at_debug'=> $registro->created_at->format('Y-m-d H:i:s')

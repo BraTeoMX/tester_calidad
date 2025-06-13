@@ -52,6 +52,7 @@
                                     <th>OP</th>
                                     <th>CLIENTE</th>
                                     <th>ESTILO</th>
+                                    <th>PIEZAS</th>
                                     <th>ESTATUS</th>
                                     <th>COMENTARIOS</th>
                                     <th>FECHA DE LIBERACION</th>
@@ -341,6 +342,7 @@
                                 <td>${item.op}</td>
                                 <td>${item.cliente}</td>
                                 <td>${item.estilo}</td>
+                                <td>${item.piezas}</td>
                                 <td>
                                     <select class="form-control select-accion">
                                         <option value="">Selecciona</option>
@@ -541,7 +543,7 @@
 
                 if (accion === '2') { // Si se selecciona "Parcial"
                     Swal.fire({
-                        title: 'Ingrese la cantidad parcial',
+                        title: 'Ingrese la cantidad pendiente a producir:',
                         input: 'number',
                         inputAttributes: {
                             min: 1,
