@@ -92,13 +92,6 @@
                             <tbody>
 
                             </tbody>
-                            <tfoot>
-                                <tr style="background: #1d1c1c;">
-                                <td>GENERAL</td>
-                                <td id="tablaGeneralScreen">Cargando... </td>
-                                <td id="tablaGeneralProcesoPlancha">Cargando...</td>
-                                </tr>
-                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -447,6 +440,27 @@
                 });
             };
 
+            // --- NUEVA FUNCIÓN DE AYUDA PARA GRÁFICOS DE ÁREA ---
+            const createAreaSplineChart = (containerId, title, categories, seriesData) => {
+                const nombreMes = new Date().toLocaleString('es-ES', { month: 'long' });
+                Highcharts.chart(containerId, {
+                    chart: { type: 'areaspline', height: 500, backgroundColor: 'transparent', style: { fontFamily: 'inherit', color: '#ffffff' } },
+                    title: { text: title, align: 'center', style: { color: '#ffffff', fontWeight: 'bold', fontSize: '20px' } },
+                    xAxis: {
+                        categories: categories,
+                        crosshair: true,
+                        title: { text: `Días del Mes - ${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)}`, style: { color: '#ffffff' } },
+                        lineColor: '#ffffff', tickColor: '#ffffff', labels: { style: { color: '#ffffff' } }
+                    },
+                    yAxis: { title: { text: 'Porcentaje (%)', style: { color: '#ffffff' } }, min: 0, labels: { style: { color: '#ffffff' } }, gridLineColor: 'rgba(255, 255, 255, 0.2)' },
+                    tooltip: { shared: true, backgroundColor: 'rgba(0, 0, 0, 0.85)', style: { color: '#ffffff' }, formatter: function () { let tooltip = `<b>Día ${this.x}</b><br/>`; this.points.forEach(point => { tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`; }); return tooltip; } },
+                    plotOptions: { areaspline: { fillOpacity: 0.5, lineWidth: 2, marker: { enabled: false } } },
+                    legend: { itemStyle: { color: '#ffffff' } },
+                    credits: { enabled: false },
+                    series: seriesData
+                });
+            };
+
             /**
              * Función que observa un contenedor y llama a una función de renderizado
              * solo cuando el contenedor se vuelve visible en la pantalla (Lazy Loading).
@@ -592,6 +606,32 @@
                     } else { tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay datos semanales de máquinas.</td></tr>'; }
                 })
                 .catch(err => console.error('Error en stats semanales de máquinas:', err));
+
+            // --- DATOS MENSUALES ---
+            // --- NUEVO FETCH PARA GRÁFICO DE TENDENCIA MENSUAL ---
+            fetch("{{ route('screen.dashboard.stats-month') }}")
+                .then(res => res.ok ? res.json() : Promise.reject(res))
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const renderMonthlyChart = () => {
+                            const dias = data.map(item => item.dia);
+                            const series = [
+                                { name: '% SCREEN', data: data.map(item => item.porcentajeScreen), color: '#2bffc6', zIndex: 1 },
+                                { name: '% Proceso Plancha', data: data.map(item => item.porcentajePlancha), color: '#e14eca', zIndex: 0 }
+                            ];
+                            createAreaSplineChart('graficaMensualGeneral', 'Tendencia Mensual: SCREEN vs. Proceso Plancha', dias, series);
+                        };
+                        observeChart('graficaMensualGeneral', renderMonthlyChart);
+                    } else {
+                        // Opcional: Mostrar un mensaje si no hay datos en el mes
+                        document.getElementById('graficaMensualGeneral').innerHTML = '<div class="loading-container"><div class="loading-text">No hay datos para el mes actual.</div></div>';
+                    }
+                })
+                .catch(err => {
+                    console.error('Error en stats mensuales:', err);
+                    document.getElementById('graficaMensualGeneral').innerHTML = '<div class="loading-container"><div class="loading-text">Error al cargar el gráfico.</div></div>';
+                });
+
 
         });
     </script>

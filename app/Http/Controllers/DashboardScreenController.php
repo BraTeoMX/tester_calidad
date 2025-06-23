@@ -484,4 +484,74 @@ class DashboardScreenController extends Controller
         return response()->json($data);
     }
 
+    public function getDashboardStatsMonth()
+    {
+        // Usamos una clave de caché que represente el mes actual para que se actualice cada día.
+        $cacheKey = 'dashboard_stats_month_' . Carbon::today()->format('Y-m');
+        $ttl = 300; // 5 minutos de caché
+
+        $monthlyData = Cache::remember($cacheKey, $ttl, function () {
+            
+            $startOfMonth = Carbon::now()->startOfMonth();
+            $today = Carbon::today();
+            $results = [];
+            $currentDay = $startOfMonth->clone();
+
+            // 1. Iteramos día por día desde el inicio del mes hasta hoy.
+            while ($currentDay->lte($today)) {
+                
+                // Para cada día en el bucle, aplicamos la misma lógica de getDashboardStats
+                $fecha = $currentDay->toDateString();
+
+                // --- CÁLCULO PARA AUDITORIA SCREEN (PARA ESTE DÍA ESPECÍFICO) ---
+                $inspeccionesScreen = InspeccionHorno::with('screen.defectos')
+                    ->whereHas('screen')
+                    ->whereDate('created_at', $fecha)
+                    ->get();
+
+                $cantidadTotalRevisadaScreen = (float) $inspeccionesScreen->sum('cantidad');
+                $cantidadDefectosScreen = $inspeccionesScreen->sum(function ($inspeccion) {
+                    return $inspeccion->screen ? $inspeccion->screen->defectos->sum('cantidad') : 0;
+                });
+
+                $porcentajeScreen = ($cantidadTotalRevisadaScreen > 0) 
+                    ? ($cantidadDefectosScreen / $cantidadTotalRevisadaScreen) * 100 
+                    : 0;
+
+                // --- CÁLCULO PARA AUDITORIA PLANCHA (PARA ESTE DÍA ESPECÍFICO) ---
+                $inspeccionesPlancha = InspeccionHorno::with('plancha.defectos')
+                    ->whereHas('plancha')
+                    ->whereDate('created_at', $fecha)
+                    ->get();
+                
+                $cantidadTotalRevisadaPlancha = $inspeccionesPlancha->sum(function ($inspeccion) {
+                    return ($inspeccion->plancha && is_numeric($inspeccion->plancha->piezas_auditadas))
+                        ? (float) $inspeccion->plancha->piezas_auditadas
+                        : 0.0;
+                });
+                $cantidadDefectosPlancha = $inspeccionesPlancha->sum(function ($inspeccion) {
+                    return $inspeccion->plancha ? $inspeccion->plancha->defectos->sum('cantidad') : 0;
+                });
+
+                $porcentajePlancha = ($cantidadTotalRevisadaPlancha > 0) 
+                    ? ($cantidadDefectosPlancha / $cantidadTotalRevisadaPlancha) * 100 
+                    : 0;
+
+                // 2. Añadimos los resultados del día a nuestro array final
+                $results[] = [
+                    'dia'               => $currentDay->day, // El número del día (1, 2, ..., 23)
+                    'porcentajeScreen'  => round($porcentajeScreen, 2),
+                    'porcentajePlancha' => round($porcentajePlancha, 2)
+                ];
+
+                // 3. Avanzamos al siguiente día para la próxima iteración
+                $currentDay->addDay();
+            }
+
+            return $results;
+        });
+
+        return response()->json($monthlyData);
+    }
+
 }
