@@ -325,11 +325,11 @@ class DashboardScreenController extends Controller
 
     public function getClientStatsWeekly()
     {
-        $cacheKey = 'dashboard_client_stats_weekly_' . Carbon::today()->toDateString();
+        // La clave del caché debe ser única para esta función
+        $cacheKey = 'dashboard_client_stats_weekly_' . Carbon::now()->startOfWeek()->toDateString();
         $ttl = 60; // 1 minuto de caché
 
         $data = Cache::remember($cacheKey, $ttl, function () {
-
             $startOfWeek = Carbon::now()->startOfWeek();
             $endOfWeek = Carbon::now()->endOfWeek();
             
@@ -340,69 +340,7 @@ class DashboardScreenController extends Controller
                 })
                 ->get();
 
-            // 1. Agrupamos la colección por el campo 'maquina'. ¡Este es el único cambio clave!
-            $groupedByMachine = $inspecciones->groupBy('maquina');
-
-            $machineData = [];
-
-            // 2. Iteramos sobre cada grupo de máquina para calcular sus estadísticas.
-            foreach ($groupedByMachine as $maquina => $machineInspections) {
-                
-                // --- Cálculo para Screen por máquina ---
-                $cantidadRevisadaScreen = (float) $machineInspections->sum('cantidad');
-                $cantidadDefectosScreen = $machineInspections->sum(function ($insp) {
-                    return $insp->screen ? $insp->screen->defectos->sum('cantidad') : 0;
-                });
-                $porcentajeScreen = ($cantidadRevisadaScreen > 0)
-                    ? ($cantidadDefectosScreen / $cantidadRevisadaScreen) * 100
-                    : 0;
-
-                // --- Cálculo para Plancha por máquina ---
-                $cantidadRevisadaPlancha = $machineInspections->sum(function ($insp) {
-                    return ($insp->plancha && is_numeric($insp->plancha->piezas_auditadas))
-                           ? (float) $insp->plancha->piezas_auditadas : 0.0;
-                });
-                $cantidadDefectosPlancha = $machineInspections->sum(function ($insp) {
-                    return $insp->plancha ? $insp->plancha->defectos->sum('cantidad') : 0;
-                });
-                $porcentajePlancha = ($cantidadRevisadaPlancha > 0)
-                    ? ($cantidadDefectosPlancha / $cantidadRevisadaPlancha) * 100
-                    : 0;
-
-                // Añadimos los datos de la máquina al array de resultados.
-                $machineData[] = [
-                    'maquina' => $maquina,
-                    'porcentajeScreen' => round($porcentajeScreen, 2),
-                    'porcentajePlancha' => round($porcentajePlancha, 2),
-                ];
-            }
-
-            // Devolvemos el array de datos de máquinas.
-            return $machineData;
-        });
-
-        return response()->json($data);
-    }
-
-    public function getResponsibleStatsWeekly()
-    {
-        $cacheKey = 'dashboard_responsible_stats_weekly_' . Carbon::today()->toDateString();
-        $ttl = 60; // 1 minuto de caché
-
-        $data = Cache::remember($cacheKey, $ttl, function () {
-            $startOfWeek = Carbon::now()->startOfWeek();
-            $endOfWeek = Carbon::now()->endOfWeek();
-
-            // 1. Obtenemos TODAS las inspecciones del día que tengan relación con 'screen' o 'plancha'.
-            // Hacemos eager loading de las relaciones para optimizar.
-            $inspecciones = InspeccionHorno::with(['screen.defectos', 'plancha.defectos'])
-                ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
-                ->where(function ($query) {
-                    $query->whereHas('screen')->orWhereHas('plancha');
-                })
-                ->get();
-
-            // 2. Agrupamos la colección completa de inspecciones por el campo 'cliente'.
+            // --- LÓGICA CORRECTA: Agrupar por CLIENTE ---
             $groupedByClient = $inspecciones->groupBy('cliente');
 
             $clientData = [];
@@ -411,41 +349,21 @@ class DashboardScreenController extends Controller
             $totalGeneralRevisadaPlancha = 0;
             $totalGeneralDefectosPlancha = 0;
 
-            // 3. Iteramos sobre cada grupo de cliente para calcular sus estadísticas.
             foreach ($groupedByClient as $cliente => $clientInspections) {
-                // --- Cálculo para Screen por cliente ---
+                // Cálculos para Screen
                 $cantidadRevisadaScreen = (float) $clientInspections->sum('cantidad');
-                $cantidadDefectosScreen = $clientInspections->sum(function ($insp) {
-                    return $insp->screen ? $insp->screen->defectos->sum('cantidad') : 0;
-                });
-
-                $porcentajeScreen = ($cantidadRevisadaScreen > 0)
-                    ? ($cantidadDefectosScreen / $cantidadRevisadaScreen) * 100
-                    : 0;
-                
-                // Acumulamos para el total general
+                $cantidadDefectosScreen = $clientInspections->sum(fn($insp) => $insp->screen ? $insp->screen->defectos->sum('cantidad') : 0);
+                $porcentajeScreen = ($cantidadRevisadaScreen > 0) ? ($cantidadDefectosScreen / $cantidadRevisadaScreen) * 100 : 0;
                 $totalGeneralRevisadaScreen += $cantidadRevisadaScreen;
                 $totalGeneralDefectosScreen += $cantidadDefectosScreen;
 
-
-                // --- Cálculo para Plancha por cliente ---
-                $cantidadRevisadaPlancha = $clientInspections->sum(function ($insp) {
-                    return ($insp->plancha && is_numeric($insp->plancha->piezas_auditadas))
-                           ? (float) $insp->plancha->piezas_auditadas : 0.0;
-                });
-                $cantidadDefectosPlancha = $clientInspections->sum(function ($insp) {
-                    return $insp->plancha ? $insp->plancha->defectos->sum('cantidad') : 0;
-                });
-
-                $porcentajePlancha = ($cantidadRevisadaPlancha > 0)
-                    ? ($cantidadDefectosPlancha / $cantidadRevisadaPlancha) * 100
-                    : 0;
-
-                // Acumulamos para el total general
+                // Cálculos para Plancha
+                $cantidadRevisadaPlancha = $clientInspections->sum(fn($insp) => ($insp->plancha && is_numeric($insp->plancha->piezas_auditadas)) ? (float) $insp->plancha->piezas_auditadas : 0.0);
+                $cantidadDefectosPlancha = $clientInspections->sum(fn($insp) => $insp->plancha ? $insp->plancha->defectos->sum('cantidad') : 0);
+                $porcentajePlancha = ($cantidadRevisadaPlancha > 0) ? ($cantidadDefectosPlancha / $cantidadRevisadaPlancha) * 100 : 0;
                 $totalGeneralRevisadaPlancha += $cantidadRevisadaPlancha;
                 $totalGeneralDefectosPlancha += $cantidadDefectosPlancha;
                 
-                // Añadimos los datos del cliente al array de resultados.
                 $clientData[] = [
                     'cliente' => $cliente,
                     'porcentajeScreen' => round($porcentajeScreen, 2),
@@ -453,16 +371,10 @@ class DashboardScreenController extends Controller
                 ];
             }
 
-            // 4. Calculamos los porcentajes generales finales
-            $porcentajeGeneralScreen = ($totalGeneralRevisadaScreen > 0)
-                ? ($totalGeneralDefectosScreen / $totalGeneralRevisadaScreen) * 100
-                : 0;
+            $porcentajeGeneralScreen = ($totalGeneralRevisadaScreen > 0) ? ($totalGeneralDefectosScreen / $totalGeneralRevisadaScreen) * 100 : 0;
+            $porcentajeGeneralPlancha = ($totalGeneralRevisadaPlancha > 0) ? ($totalGeneralDefectosPlancha / $totalGeneralRevisadaPlancha) * 100 : 0;
 
-            $porcentajeGeneralPlancha = ($totalGeneralRevisadaPlancha > 0)
-                ? ($totalGeneralDefectosPlancha / $totalGeneralRevisadaPlancha) * 100
-                : 0;
-
-            // 5. Devolvemos una estructura que contiene la lista de clientes y los totales.
+            // Devolvemos la estructura que el JS espera para los clientes
             return [
                 'clientes' => $clientData,
                 'generales' => [
@@ -475,10 +387,64 @@ class DashboardScreenController extends Controller
         return response()->json($data);
     }
 
+    public function getResponsibleStatsWeekly()
+    {
+        // Clave de caché única
+        $cacheKey = 'dashboard_responsible_stats_weekly_' . Carbon::now()->startOfWeek()->toDateString();
+        $ttl = 60;
+
+        $data = Cache::remember($cacheKey, $ttl, function () {
+            $startOfWeek = Carbon::now()->startOfWeek();
+            $endOfWeek = Carbon::now()->endOfWeek();
+
+            $inspecciones = InspeccionHorno::with(['screen.defectos', 'plancha.defectos'])
+                ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                ->where(function ($query) {
+                    $query->whereHas('screen')->orWhereHas('plancha');
+                })
+                ->get();
+
+            // --- LÓGICA CORRECTA: Agrupación manual por TÉCNICO ---
+            $inspeccionesPorTecnico = [];
+            foreach ($inspecciones as $inspeccion) {
+                if ($inspeccion->screen && !empty($inspeccion->screen->nombre_tecnico)) {
+                    $inspeccionesPorTecnico[$inspeccion->screen->nombre_tecnico][] = $inspeccion;
+                }
+                if ($inspeccion->plancha && !empty($inspeccion->plancha->nombre_tecnico)) {
+                    $inspeccionesPorTecnico[$inspeccion->plancha->nombre_tecnico][] = $inspeccion;
+                }
+            }
+
+            $responsibleData = [];
+            foreach ($inspeccionesPorTecnico as $tecnico => $inspections) {
+                $coleccionDelTecnico = new Collection($inspections);
+
+                $cantidadRevisadaScreen = (float) $coleccionDelTecnico->sum('cantidad');
+                $cantidadDefectosScreen = $coleccionDelTecnico->sum(fn($insp) => $insp->screen ? $insp->screen->defectos->sum('cantidad') : 0);
+                $porcentajeScreen = ($cantidadRevisadaScreen > 0) ? ($cantidadDefectosScreen / $cantidadRevisadaScreen) * 100 : 0;
+
+                $cantidadRevisadaPlancha = $coleccionDelTecnico->sum(fn($insp) => ($insp->plancha && is_numeric($insp->plancha->piezas_auditadas)) ? (float) $insp->plancha->piezas_auditadas : 0.0);
+                $cantidadDefectosPlancha = $coleccionDelTecnico->sum(fn($insp) => $insp->plancha ? $insp->plancha->defectos->sum('cantidad') : 0);
+                $porcentajePlancha = ($cantidadRevisadaPlancha > 0) ? ($cantidadDefectosPlancha / $cantidadRevisadaPlancha) * 100 : 0;
+
+                $responsibleData[] = [
+                    'responsable' => $tecnico,
+                    'porcentajeScreen' => round($porcentajeScreen, 2),
+                    'porcentajePlancha' => round($porcentajePlancha, 2),
+                ];
+            }
+            
+            return $responsibleData;
+        });
+
+        return response()->json($data);
+    }
+
     public function getMachineStatsWeekly()
     {
-        $cacheKey = 'dashboard_machine_stats_weekly_' . Carbon::today()->toDateString();
-        $ttl = 60; // 1 minuto de caché
+        // Clave de caché única
+        $cacheKey = 'dashboard_machine_stats_weekly_' . Carbon::now()->startOfWeek()->toDateString();
+        $ttl = 60;
 
         $data = Cache::remember($cacheKey, $ttl, function () {
             $startOfWeek = Carbon::now()->startOfWeek();
@@ -491,64 +457,28 @@ class DashboardScreenController extends Controller
                 })
                 ->get();
 
-            // 1. Creamos un array para agrupar manualmente las inspecciones por técnico.
-            $inspeccionesPorTecnico = [];
+            // --- LÓGICA CORRECTA: Agrupar por MÁQUINA ---
+            $groupedByMachine = $inspecciones->groupBy('maquina');
 
-            foreach ($inspecciones as $inspeccion) {
-                // Si la inspección tiene un registro de 'screen' con un técnico
-                if ($inspeccion->screen && !empty($inspeccion->screen->nombre_tecnico)) {
-                    $nombreTecnico = $inspeccion->screen->nombre_tecnico;
-                    // Añadimos la inspección al grupo de ese técnico
-                    $inspeccionesPorTecnico[$nombreTecnico][] = $inspeccion;
-                }
-                // Si la inspección tiene un registro de 'plancha' con un técnico
-                if ($inspeccion->plancha && !empty($inspeccion->plancha->nombre_tecnico)) {
-                    $nombreTecnico = $inspeccion->plancha->nombre_tecnico;
-                    // Añadimos la inspección al grupo de ese técnico
-                    $inspeccionesPorTecnico[$nombreTecnico][] = $inspeccion;
-                }
-            }
+            $machineData = [];
 
-            $responsibleData = [];
+            foreach ($groupedByMachine as $maquina => $machineInspections) {
+                $cantidadRevisadaScreen = (float) $machineInspections->sum('cantidad');
+                $cantidadDefectosScreen = $machineInspections->sum(fn($insp) => $insp->screen ? $insp->screen->defectos->sum('cantidad') : 0);
+                $porcentajeScreen = ($cantidadRevisadaScreen > 0) ? ($cantidadDefectosScreen / $cantidadRevisadaScreen) * 100 : 0;
 
-            // 2. Iteramos sobre nuestro array agrupado manualmente.
-            foreach ($inspeccionesPorTecnico as $tecnico => $inspections) {
-                // Convertimos el array de inspecciones de vuelta a una colección para usar sus métodos.
-                $coleccionDelTecnico = new Collection($inspections);
+                $cantidadRevisadaPlancha = $machineInspections->sum(fn($insp) => ($insp->plancha && is_numeric($insp->plancha->piezas_auditadas)) ? (float) $insp->plancha->piezas_auditadas : 0.0);
+                $cantidadDefectosPlancha = $machineInspections->sum(fn($insp) => $insp->plancha ? $insp->plancha->defectos->sum('cantidad') : 0);
+                $porcentajePlancha = ($cantidadRevisadaPlancha > 0) ? ($cantidadDefectosPlancha / $cantidadRevisadaPlancha) * 100 : 0;
 
-                // --- Cálculo para Screen por técnico ---
-                $cantidadRevisadaScreen = (float) $coleccionDelTecnico->sum('cantidad');
-                $cantidadDefectosScreen = $coleccionDelTecnico->sum(function ($insp) {
-                    return $insp->screen ? $insp->screen->defectos->sum('cantidad') : 0;
-                });
-
-                $porcentajeScreen = ($cantidadRevisadaScreen > 0)
-                    ? ($cantidadDefectosScreen / $cantidadRevisadaScreen) * 100
-                    : 0;
-
-                // --- Cálculo para Plancha por técnico ---
-                $cantidadRevisadaPlancha = $coleccionDelTecnico->sum(function ($insp) {
-                    return ($insp->plancha && is_numeric($insp->plancha->piezas_auditadas))
-                           ? (float) $insp->plancha->piezas_auditadas : 0.0;
-                });
-                $cantidadDefectosPlancha = $coleccionDelTecnico->sum(function ($insp) {
-                    return $insp->plancha ? $insp->plancha->defectos->sum('cantidad') : 0;
-                });
-
-                $porcentajePlancha = ($cantidadRevisadaPlancha > 0)
-                    ? ($cantidadDefectosPlancha / $cantidadRevisadaPlancha) * 100
-                    : 0;
-
-                // Añadimos los datos del responsable al array de resultados.
-                $responsibleData[] = [
-                    'responsable' => $tecnico,
+                $machineData[] = [
+                    'maquina' => $maquina,
                     'porcentajeScreen' => round($porcentajeScreen, 2),
                     'porcentajePlancha' => round($porcentajePlancha, 2),
                 ];
             }
 
-            // Devolvemos el array de datos de responsables.
-            return $responsibleData;
+            return $machineData;
         });
 
         return response()->json($data);
