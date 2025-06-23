@@ -436,8 +436,6 @@
              * @param {object[]} seriesData - Un array de objetos, cada uno representando una serie de datos.
              */
             const createBarChart = (containerId, title, categories, seriesData) => {
-                // Al ejecutar Highcharts.chart, el contenido del div (incluido tu "Cargando...")
-                // se limpia automáticamente antes de dibujar el gráfico.
                 Highcharts.chart(containerId, {
                     chart: {
                         type: 'column',
@@ -467,8 +465,11 @@
                         backgroundColor: 'rgba(0, 0, 0, 0.85)',
                         style: { color: '#ffffff' },
                         formatter: function () {
-                            // this.x ahora es el nombre de la categoría directamente, es más fiable.
-                            let tooltip = `<b>${this.x}</b><br/>`;
+                            // ----- INICIO DE LA CORRECCIÓN -----
+                            // En lugar de 'this.x' (que es el índice), usamos 'this.key' para obtener el nombre de la categoría.
+                            let tooltip = `<b>${this.key}</b><br/>`;
+                            // ----- FIN DE LA CORRECCIÓN -----
+
                             this.points.forEach(point => {
                                 tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
                             });
@@ -478,7 +479,7 @@
                     plotOptions: {
                         column: { borderWidth: 0, pointPadding: 0.2 },
                         series: {
-                            dataLabels: { // Etiquetas de datos sobre las barras
+                            dataLabels: {
                                 enabled: true,
                                 rotation: -90,
                                 color: '#FFFFFF',
@@ -497,7 +498,7 @@
                         itemStyle: { color: '#ffffff' },
                         itemHoverStyle: { color: '#cccccc' }
                     },
-                    credits: { enabled: false }, // Oculta el crédito a Highcharts.com
+                    credits: { enabled: false },
                     series: seriesData
                 });
             };
