@@ -5,7 +5,7 @@
         <div class="col-lg-6 col-md-12">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
-                    <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Auditoria AQL por día</h3>
+                    <h3 class="card-title"><i class="tim-icons icon-palette text-success"></i> Auditoria Screen por día</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -13,15 +13,7 @@
                             <tbody>
                                 <tr>
                                     <td>Porcentaje General :</td>
-                                    <td id="generalAQL">Cargando...</td>
-                                </tr>
-                                <tr>
-                                    <td>Planta I :</a></td>
-                                    <td id="generalAQLPlanta1">Cargando...</td>
-                                </tr>
-                                <tr>
-                                    <td>Planta II :</a></td>
-                                    <td id="generalAQLPlanta2">Cargando...</td>
+                                    <td id="generalScreen">Cargando...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -32,7 +24,7 @@
         <div class="col-lg-6 col-md-12">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
-                    <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Auditoria de Proceso por dia</h3>
+                    <h3 class="card-title"><i class="tim-icons icon-volume-98 text-primary"></i> Auditoria de Proceso Plancha por dia</h3>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -40,15 +32,7 @@
                             <tbody>
                                 <tr>
                                     <td>Porcentaje General :</td>
-                                    <td id="generalProceso">Cargando...</td>
-                                </tr>
-                                <tr>
-                                    <td>Planta I :</a></td>
-                                    <td id="generalProcesoPlanta1">Cargando...</td>
-                                </tr>
-                                <tr>
-                                    <td>Planta II :</a></td>
-                                    <td id="generalProcesoPlanta2">Cargando...</td>
+                                    <td id="generalProcesoPlancha">Cargando...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -123,7 +107,7 @@
         <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title">Responsables AQL <i class="tim-icons icon-app text-success"></i> y PROCESO <i class="tim-icons icon-vector text-primary"></i></h4>
+                    <h4 class="card-title">Responsables AQL <i class="tim-icons icon-palette text-success"></i> y PROCESO <i class="tim-icons icon-volume-98 text-primary"></i></h4>
                     <p class="card-category d-inline"> Dia actual</p>
                 </div>
                 <div class="card-body">
@@ -146,7 +130,7 @@
         <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title">Modulos AQL <i class="tim-icons icon-app text-success"></i> y PROCESO <i class="tim-icons icon-vector text-primary"></i></h4>
+                    <h4 class="card-title">Modulos AQL <i class="tim-icons icon-palette text-success"></i> y PROCESO <i class="tim-icons icon-volume-98 text-primary"></i></h4>
                     <p class="card-category d-inline"> Dia actual</p>
                 </div>
                 <div class="card-body">
@@ -225,7 +209,7 @@
         <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title">Supervisores AQL <i class="tim-icons icon-app text-success"></i> y PROCESO <i class="tim-icons icon-vector text-primary"></i></h4>
+                    <h4 class="card-title">Supervisores AQL <i class="tim-icons icon-palette text-success"></i> y PROCESO <i class="tim-icons icon-volume-98 text-primary"></i></h4>
                     <p class="card-category d-inline"> Semana actual</p>
                 </div>
                 <div class="card-body">
@@ -248,7 +232,7 @@
         <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title">Modulos AQL <i class="tim-icons icon-app text-success"></i> y PROCESO <i class="tim-icons icon-vector text-primary"></i></h4>
+                    <h4 class="card-title">Modulos AQL <i class="tim-icons icon-palette text-success"></i> y PROCESO <i class="tim-icons icon-volume-98 text-primary"></i></h4>
                     <p class="card-category d-inline"> Semana actual</p>
                 </div>
                 <div class="card-body">
@@ -434,5 +418,38 @@
     <script src="{{ asset('js/highcharts/12/modules/no-data-to-display.js') }}"></script>
     <script src="{{ asset('js/highcharts/12/modules/accessibility.js') }}"></script>
   
+    <script>
+        // Espera a que todo el contenido del DOM esté cargado antes de ejecutar el script.
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            // Elementos del DOM donde mostraremos los resultados.
+            const generalScreenTd = document.getElementById('generalScreen');
+            const generalProcesoPlanchaTd = document.getElementById('generalProcesoPlancha');
+
+            // Usamos la API Fetch para hacer la petición AJAX a nuestra nueva ruta.
+            // La función route() de Laravel genera la URL correcta.
+            fetch("{{ route('screen.dashboard.stats') }}")
+                .then(response => {
+                    // Verificamos si la respuesta del servidor es exitosa.
+                    if (!response.ok) {
+                        throw new Error('La respuesta del servidor no fue exitosa.');
+                    }
+                    return response.json(); // Convertimos la respuesta a JSON.
+                })
+                .then(data => {
+                    // Una vez que tenemos los datos, actualizamos el HTML.
+                    // Añadimos el símbolo de '%' para mayor claridad.
+                    generalScreenTd.textContent = data.porcentajeScreen + ' %';
+                    generalProcesoPlanchaTd.textContent = data.porcentajePlancha + ' %';
+                })
+                .catch(error => {
+                    // Si ocurre un error en cualquier punto, lo mostramos en la consola
+                    // y actualizamos el texto para informar al usuario.
+                    console.error('Error al cargar las estadísticas:', error);
+                    generalScreenTd.textContent = 'Error al cargar';
+                    generalProcesoPlanchaTd.textContent = 'Error al cargar';
+                });
+        });
+    </script>
 @endsection
 
