@@ -85,8 +85,8 @@
                             <thead class=" text-primary">
                                 <tr>
                                     <th>Cliente</th>
-                                    <th>% AQL</th>
-                                    <th>% Proceso</th>
+                                    <th>% SCREEN</th>
+                                    <th>% Proceso Plancha</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -95,8 +95,8 @@
                             <tfoot>
                                 <tr style="background: #1d1c1c;">
                                 <td>GENERAL</td>
-                                <td id="tablaGeneralAQL">Cargando... </td>
-                                <td id="tablaGeneralProceso">Cargando...</td>
+                                <td id="tablaGeneralScreen">Cargando... </td>
+                                <td id="tablaGeneralProcesoPlancha">Cargando...</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -116,8 +116,8 @@
                             <thead class="text-primary">
                                 <tr>
                                     <th>Supervisor</th>
-                                    <th>% AQL</th>
-                                    <th>% Proceso</th>
+                                    <th>% SCREEN</th>
+                                    <th>% Proceso Plancha</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -139,8 +139,8 @@
                             <thead class="text-primary">
                                 <tr>
                                     <th>Modulo</th>
-                                    <th>% AQL</th>
-                                    <th>% Proceso</th>
+                                    <th>% SCREEN</th>
+                                    <th>% Proceso Plancha</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -195,8 +195,8 @@
                             <thead class="text-primary">
                                 <tr>
                                     <th>Cliente</th>
-                                    <th>% AQL</th>
-                                    <th>% Proceso</th>
+                                    <th>% SCREEN</th>
+                                    <th>% Proceso Plancha</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -218,8 +218,8 @@
                             <thead class="text-primary">
                                 <tr>
                                     <th>Supervisor</th>
-                                    <th>% AQL</th>
-                                    <th>% Proceso</th>
+                                    <th>% SCREEN</th>
+                                    <th>% Proceso Plancha</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -241,8 +241,8 @@
                             <thead class="text-primary">
                                 <tr>
                                     <th>Módulo</th>
-                                    <th>% AQL</th>
-                                    <th>% Proceso</th>
+                                    <th>% SCREEN</th>
+                                    <th>% Proceso Plancha</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -448,6 +448,52 @@
                     console.error('Error al cargar las estadísticas:', error);
                     generalScreenTd.textContent = 'Error al cargar';
                     generalProcesoPlanchaTd.textContent = 'Error al cargar';
+                });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const tablaBody = document.querySelector('#tablaClientes tbody');
+            const footerScreen = document.getElementById('tablaGeneralScreen'); // ID ajustado para claridad
+            const footerPlancha = document.getElementById('tablaGeneralProcesoPlancha'); // ID ajustado para claridad
+
+            fetch("{{ route('screen.dashboard.client-stats') }}")
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('La respuesta del servidor no fue exitosa.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Limpiamos el cuerpo de la tabla antes de insertar nuevos datos.
+                    tablaBody.innerHTML = '';
+
+                    if (data.clientes && data.clientes.length > 0) {
+                        // Iteramos sobre la lista de clientes y creamos una fila por cada uno.
+                        data.clientes.forEach(cliente => {
+                            const row = `
+                                <tr>
+                                    <td>${cliente.cliente}</td>
+                                    <td>${cliente.porcentajeScreen} %</td>
+                                    <td>${cliente.porcentajePlancha} %</td>
+                                </tr>
+                            `;
+                            tablaBody.insertAdjacentHTML('beforeend', row);
+                        });
+                    } else {
+                        // Mensaje si no se encontraron auditorías para el día.
+                        tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay datos para mostrar.</td></tr>';
+                    }
+
+                    // Actualizamos el pie de tabla con los totales generales.
+                    footerScreen.textContent = data.generales.porcentajeScreen + ' %';
+                    footerPlancha.textContent = data.generales.porcentajePlancha + ' %';
+                })
+                .catch(error => {
+                    console.error('Error al cargar las estadísticas por cliente:', error);
+                    tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Error al cargar los datos.</td></tr>';
+                    footerScreen.textContent = 'Error';
+                    footerPlancha.textContent = 'Error';
                 });
         });
     </script>

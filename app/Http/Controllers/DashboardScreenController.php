@@ -47,11 +47,6 @@ class DashboardScreenController extends Controller
         $cacheKey = 'dashboard_stats_' . Carbon::today()->toDateString();
 
         $stats = Cache::remember($cacheKey, 60, function () {
-            
-            // --- TODA TU LÓGICA DE CÁLCULO VA AQUÍ DENTRO ---
-            // Este bloque solo se ejecutará si han pasado más de 60 segundos
-            // desde la última vez que se guardó el caché.
-
             $fechaActual = Carbon::today()->toDateString();
 
             // --- CÁLCULO PARA AUDITORIA SCREEN ---
@@ -100,8 +95,96 @@ class DashboardScreenController extends Controller
             ];
         });
 
-        // 3. Devolvemos la respuesta JSON.
-        // La variable $stats contendrá los datos del caché o los recién calculados.
         return response()->json($stats);
+    }
+
+    public function getClientStats()
+    {
+        $cacheKey = 'dashboard_client_stats_' . Carbon::today()->toDateString();
+        $ttl = 60; // 1 minuto de caché
+
+        $data = Cache::remember($cacheKey, $ttl, function () {
+            $fechaActual = Carbon::today()->toDateString();
+
+            // 1. Obtenemos TODAS las inspecciones del día que tengan relación con 'screen' o 'plancha'.
+            // Hacemos eager loading de las relaciones para optimizar.
+            $inspecciones = InspeccionHorno::with(['screen.defectos', 'plancha.defectos'])
+                ->whereDate('created_at', $fechaActual)
+                ->where(function ($query) {
+                    $query->whereHas('screen')->orWhereHas('plancha');
+                })
+                ->get();
+
+            // 2. Agrupamos la colección completa de inspecciones por el campo 'cliente'.
+            $groupedByClient = $inspecciones->groupBy('cliente');
+
+            $clientData = [];
+            $totalGeneralRevisadaScreen = 0;
+            $totalGeneralDefectosScreen = 0;
+            $totalGeneralRevisadaPlancha = 0;
+            $totalGeneralDefectosPlancha = 0;
+
+            // 3. Iteramos sobre cada grupo de cliente para calcular sus estadísticas.
+            foreach ($groupedByClient as $cliente => $clientInspections) {
+                // --- Cálculo para Screen por cliente ---
+                $cantidadRevisadaScreen = (float) $clientInspections->sum('cantidad');
+                $cantidadDefectosScreen = $clientInspections->sum(function ($insp) {
+                    return $insp->screen ? $insp->screen->defectos->sum('cantidad') : 0;
+                });
+
+                $porcentajeScreen = ($cantidadRevisadaScreen > 0)
+                    ? ($cantidadDefectosScreen / $cantidadRevisadaScreen) * 100
+                    : 0;
+                
+                // Acumulamos para el total general
+                $totalGeneralRevisadaScreen += $cantidadRevisadaScreen;
+                $totalGeneralDefectosScreen += $cantidadDefectosScreen;
+
+
+                // --- Cálculo para Plancha por cliente ---
+                $cantidadRevisadaPlancha = $clientInspections->sum(function ($insp) {
+                    return ($insp->plancha && is_numeric($insp->plancha->piezas_auditadas))
+                           ? (float) $insp->plancha->piezas_auditadas : 0.0;
+                });
+                $cantidadDefectosPlancha = $clientInspections->sum(function ($insp) {
+                    return $insp->plancha ? $insp->plancha->defectos->sum('cantidad') : 0;
+                });
+
+                $porcentajePlancha = ($cantidadRevisadaPlancha > 0)
+                    ? ($cantidadDefectosPlancha / $cantidadRevisadaPlancha) * 100
+                    : 0;
+
+                // Acumulamos para el total general
+                $totalGeneralRevisadaPlancha += $cantidadRevisadaPlancha;
+                $totalGeneralDefectosPlancha += $cantidadDefectosPlancha;
+                
+                // Añadimos los datos del cliente al array de resultados.
+                $clientData[] = [
+                    'cliente' => $cliente,
+                    'porcentajeScreen' => round($porcentajeScreen, 2),
+                    'porcentajePlancha' => round($porcentajePlancha, 2),
+                ];
+            }
+
+            // 4. Calculamos los porcentajes generales finales
+            $porcentajeGeneralScreen = ($totalGeneralRevisadaScreen > 0)
+                ? ($totalGeneralDefectosScreen / $totalGeneralRevisadaScreen) * 100
+                : 0;
+
+            $porcentajeGeneralPlancha = ($totalGeneralRevisadaPlancha > 0)
+                ? ($totalGeneralDefectosPlancha / $totalGeneralRevisadaPlancha) * 100
+                : 0;
+
+            // 5. Devolvemos una estructura que contiene la lista de clientes y los totales.
+            return [
+                'clientes' => $clientData,
+                'generales' => [
+                    'porcentajeScreen' => round($porcentajeGeneralScreen, 2),
+                    'porcentajePlancha' => round($porcentajeGeneralPlancha, 2),
+                ]
+            ];
+        });
+
+        return response()->json($data);
     }
 }
