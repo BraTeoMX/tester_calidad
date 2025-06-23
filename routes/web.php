@@ -19,6 +19,7 @@ use App\Http\Controllers\Maquila;
 use App\Http\Controllers\viewlistaFormularios;
 use App\Http\Controllers\CorteFinalController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardScreenController;
 
 use App\Http\Controllers\DashboardPlanta1Controller;
 use App\Http\Controllers\DashboardPlanta1PorDiaController;
@@ -520,6 +521,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('/inspeccion/{id}', [ScreenV2Controller::class, 'eliminarBulto'])->name('eliminarBulto');
     Route::get('/screenV2/exportar', [ScreenV2Controller::class, 'exportarExcelScreenV2'])->name('screenV2.exportarExcel');
     Route::get('/planchaV2/exportar', [ScreenV2Controller::class, 'exportarExcelPlanchaV2'])->name('planchaV2.exportarExcel');
+
+    //seccion para dashboard por dia screen
+    Route::get('/dashboardScreen', [DashboardScreenController::class, 'dashboard'])->name('screen.dashboard');
 
 
     //apartado para dashboard con la segunda version por dia
