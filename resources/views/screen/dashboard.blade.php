@@ -130,7 +130,7 @@
         <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title">Modulos AQL <i class="tim-icons icon-palette text-success"></i> y PROCESO <i class="tim-icons icon-volume-98 text-primary"></i></h4>
+                    <h4 class="card-title">Maquina SCREEN <i class="tim-icons icon-palette text-success"></i> y Proceso Plancha <i class="tim-icons icon-volume-98 text-primary"></i></h4>
                     <p class="card-category d-inline"> Dia actual</p>
                 </div>
                 <div class="card-body">
@@ -138,7 +138,7 @@
                         <table class="table tablesorter" id="tablaModulos">
                             <thead class="text-primary">
                                 <tr>
-                                    <th>Modulo</th>
+                                    <th>Maquina</th>
                                     <th>% SCREEN</th>
                                     <th>% Proceso Plancha</th>
                                 </tr>
@@ -528,6 +528,41 @@
                 })
                 .catch(error => {
                     console.error('Error al cargar las estadísticas por responsable:', error);
+                    tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Error al cargar los datos.</td></tr>';
+                });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const tablaBody = document.querySelector('#tablaModulos tbody');
+
+            fetch("{{ route('screen.dashboard.machine-stats') }}")
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('La respuesta del servidor no fue exitosa.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    tablaBody.innerHTML = ''; // Limpiamos la tabla.
+
+                    if (data && data.length > 0) {
+                        data.forEach(maquina => {
+                            const row = `
+                                <tr>
+                                    <td>${maquina.maquina}</td>
+                                    <td>${maquina.porcentajeScreen} %</td>
+                                    <td>${maquina.porcentajePlancha} %</td>
+                                </tr>
+                            `;
+                            tablaBody.insertAdjacentHTML('beforeend', row);
+                        });
+                    } else {
+                        tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay datos para mostrar.</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar las estadísticas por máquina:', error);
                     tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Error al cargar los datos.</td></tr>';
                 });
         });
