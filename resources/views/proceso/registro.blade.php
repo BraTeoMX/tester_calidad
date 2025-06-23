@@ -268,7 +268,7 @@
                                         <input type="text" class="form-control texto-blanco" name="moduleid" id="modulo" value="{{ $data['modulo'] }}" readonly>
                                     </td>
                                     <td>
-                                        <select class="form-control select2 texto-blanco" name="estilo" id="estilo_proceso">
+                                        <select class="form-control select2 texto-blanco" name="estilo" id="estilo_proceso" required>
                                             <option value="">Seleccione un estilo</option>
                                         </select>
                                     </td>
@@ -1449,7 +1449,8 @@
                     "operacion": "operación",
                     "cantidad_auditada": "cantidad auditada",
                     "cantidad_rechazada": "cantidad rechazada",
-                    "ac": "acción correctiva"
+                    "ac": "acción correctiva",
+                    "estilo": "Estilo"
                 };
                 // 1. Validar que todos los campos visibles obligatorios estén llenos.
                 // Se recorren todos los inputs y selects visibles que tengan "required",
@@ -1464,7 +1465,12 @@
                     }
                 });
                 if (camposVacios.length > 0) {
-                    alert("Los siguientes campos obligatorios están vacíos: " + camposVacios.join(", "));
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Campos Incompletos',
+                        text: 'Por favor, completa los siguientes campos obligatorios: ' + camposVacios.join(", "),
+                        confirmButtonText: 'Entendido'
+                    });
                     return; // Detener el envío si hay campos vacíos
                 }
 
@@ -1474,8 +1480,12 @@
                                     ? selectedOptionsContainer.children().length 
                                     : 0;
                 if (cantidadRechazada > 0 && defectCount !== cantidadRechazada) {
-                    alert("La cantidad de defectos seleccionados (" + defectCount + 
-                        ") debe ser igual a la cantidad de piezas rechazadas (" + cantidadRechazada + ").");
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Datos Inconsistentes',
+                        text: `La cantidad de defectos seleccionados (${defectCount}) debe ser igual a la cantidad de piezas rechazadas (${cantidadRechazada}).`,
+                        confirmButtonText: 'Corregir'
+                    });
                     return;
                 }
 
