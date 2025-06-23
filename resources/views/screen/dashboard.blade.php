@@ -54,7 +54,7 @@
         </div>
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaSupervisorPorDia" style="width:100%; height:400px;">
+                <div id="graficaResponsablePorDia" style="width:100%; height:400px;">
                     <div class="loading-container">
                         <div class="loading-text">Cargando...</div>
                     </div>
@@ -63,7 +63,7 @@
         </div>
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaModuloPorDia" style="width:100%; height:400px;">
+                <div id="graficaMaquinaPorDia" style="width:100%; height:400px;">
                     <div class="loading-container">
                         <div class="loading-text">Cargando...</div>
                     </div>
@@ -419,152 +419,235 @@
     <script src="{{ asset('js/highcharts/12/modules/accessibility.js') }}"></script>
   
     <script>
-        // Espera a que todo el contenido del DOM esté cargado antes de ejecutar el script.
+    // Usamos un solo listener para todo el código, es más eficiente.
         document.addEventListener('DOMContentLoaded', function () {
-            
-            // Elementos del DOM donde mostraremos los resultados.
+
+            /************************************************************************
+             * *
+             * SECCIÓN 1: FUNCIONES REUTILIZABLES                  *
+             * *
+             ************************************************************************/
+
+            /**
+             * Función genérica para crear un gráfico de barras/columnas con tu estilo.
+             * @param {string} containerId - El ID del div donde se renderizará el gráfico.
+             * @param {string} title - El título del gráfico.
+             * @param {string[]} categories - Un array con los nombres para el eje X.
+             * @param {object[]} seriesData - Un array de objetos, cada uno representando una serie de datos.
+             */
+            const createBarChart = (containerId, title, categories, seriesData) => {
+                // Al ejecutar Highcharts.chart, el contenido del div (incluido tu "Cargando...")
+                // se limpia automáticamente antes de dibujar el gráfico.
+                Highcharts.chart(containerId, {
+                    chart: {
+                        type: 'column',
+                        backgroundColor: 'transparent',
+                        style: { fontFamily: 'inherit', color: '#ffffff' }
+                    },
+                    title: {
+                        text: title,
+                        align: 'center',
+                        style: { color: '#ffffff', fontWeight: 'bold' }
+                    },
+                    xAxis: {
+                        categories: categories,
+                        crosshair: true,
+                        lineColor: '#ffffff',
+                        tickColor: '#ffffff',
+                        labels: { style: { color: '#ffffff' } }
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: { text: 'Porcentaje (%)', style: { color: '#ffffff' } },
+                        labels: { style: { color: '#ffffff' } },
+                        gridLineColor: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    tooltip: {
+                        shared: true,
+                        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                        style: { color: '#ffffff' },
+                        formatter: function () {
+                            // this.x ahora es el nombre de la categoría directamente, es más fiable.
+                            let tooltip = `<b>${this.x}</b><br/>`;
+                            this.points.forEach(point => {
+                                tooltip += `<span style="color:${point.color}">\u25CF</span> ${point.series.name}: <b>${point.y.toFixed(2)}%</b><br/>`;
+                            });
+                            return tooltip;
+                        }
+                    },
+                    plotOptions: {
+                        column: { borderWidth: 0, pointPadding: 0.2 },
+                        series: {
+                            dataLabels: { // Etiquetas de datos sobre las barras
+                                enabled: true,
+                                rotation: -90,
+                                color: '#FFFFFF',
+                                align: 'right',
+                                format: '{point.y:.2f}%',
+                                y: 10,
+                                style: {
+                                    fontSize: '10px',
+                                    fontWeight: 'normal',
+                                    textOutline: 'none'
+                                }
+                            }
+                        }
+                    },
+                    legend: {
+                        itemStyle: { color: '#ffffff' },
+                        itemHoverStyle: { color: '#cccccc' }
+                    },
+                    credits: { enabled: false }, // Oculta el crédito a Highcharts.com
+                    series: seriesData
+                });
+            };
+
+            /**
+             * Función que observa un contenedor y llama a una función de renderizado
+             * solo cuando el contenedor se vuelve visible en la pantalla (Lazy Loading).
+             * @param {string} containerId - El ID del div del gráfico a observar.
+             * @param {function} renderCallback - La función que se ejecutará para dibujar el gráfico.
+             */
+            const observeChart = (containerId, renderCallback) => {
+                const container = document.getElementById(containerId);
+                if (!container) {
+                    console.error(`Error: No se encontró el contenedor del gráfico con id #${containerId}`);
+                    return;
+                }
+
+                const observer = new IntersectionObserver((entries, obs) => {
+                    if (entries[0].isIntersecting) {
+                        renderCallback(); // Llama a la función que crea el gráfico
+                        obs.unobserve(container); // Deja de observar, ya no es necesario
+                    }
+                }, { threshold: 0.1 }); // Se activa cuando el 10% del div es visible
+
+                observer.observe(container);
+            };
+
+
+            /************************************************************************
+             * *
+             * SECCIÓN 2: LLAMADAS AJAX Y RENDERIZADO DE CONTENIDO         *
+             * *
+             ************************************************************************/
+
+            // --- 1. Fetch para las tarjetas de totales generales ---
+            // (Esta sección no la tenías, la agrego para que todo esté completo y funcional)
             const generalScreenTd = document.getElementById('generalScreen');
             const generalProcesoPlanchaTd = document.getElementById('generalProcesoPlancha');
+            if (generalScreenTd && generalProcesoPlanchaTd) {
+                fetch("{{ route('screen.dashboard.stats') }}")
+                    .then(res => res.ok ? res.json() : Promise.reject(res))
+                    .then(data => {
+                        generalScreenTd.textContent = data.porcentajeScreen + ' %';
+                        generalProcesoPlanchaTd.textContent = data.porcentajePlancha + ' %';
+                    })
+                    .catch(err => console.error('Error en stats generales:', err));
+            }
 
-            // Usamos la API Fetch para hacer la petición AJAX a nuestra nueva ruta.
-            // La función route() de Laravel genera la URL correcta.
-            fetch("{{ route('screen.dashboard.stats') }}")
-                .then(response => {
-                    // Verificamos si la respuesta del servidor es exitosa.
-                    if (!response.ok) {
-                        throw new Error('La respuesta del servidor no fue exitosa.');
-                    }
-                    return response.json(); // Convertimos la respuesta a JSON.
-                })
-                .then(data => {
-                    // Una vez que tenemos los datos, actualizamos el HTML.
-                    // Añadimos el símbolo de '%' para mayor claridad.
-                    generalScreenTd.textContent = data.porcentajeScreen + ' %';
-                    generalProcesoPlanchaTd.textContent = data.porcentajePlancha + ' %';
-                })
-                .catch(error => {
-                    // Si ocurre un error en cualquier punto, lo mostramos en la consola
-                    // y actualizamos el texto para informar al usuario.
-                    console.error('Error al cargar las estadísticas:', error);
-                    generalScreenTd.textContent = 'Error al cargar';
-                    generalProcesoPlanchaTd.textContent = 'Error al cargar';
-                });
-        });
 
-        document.addEventListener('DOMContentLoaded', function () {
-
-            const tablaBody = document.querySelector('#tablaClientes tbody');
-            const footerScreen = document.getElementById('tablaGeneralScreen'); // ID ajustado para claridad
-            const footerPlancha = document.getElementById('tablaGeneralProcesoPlancha'); // ID ajustado para claridad
-
+            // --- 2. Fetch para Tabla y Gráfico de CLIENTES ---
             fetch("{{ route('screen.dashboard.client-stats') }}")
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('La respuesta del servidor no fue exitosa.');
-                    }
-                    return response.json();
-                })
+                .then(res => res.ok ? res.json() : Promise.reject(res))
                 .then(data => {
-                    // Limpiamos el cuerpo de la tabla antes de insertar nuevos datos.
-                    tablaBody.innerHTML = '';
+                    // A. Llenar la tabla de clientes
+                    const tablaBody = document.querySelector('#tablaClientes tbody');
+                    const footerScreen = document.getElementById('tablaGeneralScreen');
+                    const footerPlancha = document.getElementById('tablaGeneralProcesoPlancha');
+                    tablaBody.innerHTML = ''; 
 
                     if (data.clientes && data.clientes.length > 0) {
-                        // Iteramos sobre la lista de clientes y creamos una fila por cada uno.
                         data.clientes.forEach(cliente => {
-                            const row = `
-                                <tr>
-                                    <td>${cliente.cliente}</td>
-                                    <td>${cliente.porcentajeScreen} %</td>
-                                    <td>${cliente.porcentajePlancha} %</td>
-                                </tr>
-                            `;
-                            tablaBody.insertAdjacentHTML('beforeend', row);
+                            tablaBody.innerHTML += `<tr><td>${cliente.cliente}</td><td>${cliente.porcentajeScreen} %</td><td>${cliente.porcentajePlancha} %</td></tr>`;
                         });
+                        footerScreen.textContent = data.generales.porcentajeScreen + ' %';
+                        footerPlancha.textContent = data.generales.porcentajePlancha + ' %';
+
+                        // B. Preparar la función que renderizará el gráfico (sin ejecutarla aún)
+                        const renderClientChart = () => {
+                            const categories = data.clientes.map(c => c.cliente);
+                            const series = [
+                                { name: '% SCREEN', data: data.clientes.map(c => c.porcentajeScreen), color: '#2bffc6' },
+                                { name: '% Proceso Plancha', data: data.clientes.map(c => c.porcentajePlancha), color: '#e14eca' }
+                            ];
+                            createBarChart('graficaClientePorDia', 'Defectos por Cliente', categories, series);
+                        };
+                        
+                        // C. Poner el gráfico en espera hasta que sea visible
+                        observeChart('graficaClientePorDia', renderClientChart);
+
                     } else {
-                        // Mensaje si no se encontraron auditorías para el día.
-                        tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay datos para mostrar.</td></tr>';
+                        tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay datos de clientes para mostrar.</td></tr>';
                     }
-
-                    // Actualizamos el pie de tabla con los totales generales.
-                    footerScreen.textContent = data.generales.porcentajeScreen + ' %';
-                    footerPlancha.textContent = data.generales.porcentajePlancha + ' %';
                 })
-                .catch(error => {
-                    console.error('Error al cargar las estadísticas por cliente:', error);
-                    tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Error al cargar los datos.</td></tr>';
-                    footerScreen.textContent = 'Error';
-                    footerPlancha.textContent = 'Error';
-                });
-        });
+                .catch(err => console.error('Error en stats de clientes:', err));
 
-        document.addEventListener('DOMContentLoaded', function () {
 
-            const tablaBody = document.querySelector('#tablaResponsables tbody');
-
+            // --- 3. Fetch para Tabla y Gráfico de RESPONSABLES ---
             fetch("{{ route('screen.dashboard.responsible-stats') }}")
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('La respuesta del servidor no fue exitosa.');
-                    }
-                    return response.json();
-                })
+                .then(res => res.ok ? res.json() : Promise.reject(res))
                 .then(data => {
-                    tablaBody.innerHTML = ''; // Limpiamos la tabla.
+                    // A. Llenar la tabla de responsables
+                    const tablaBody = document.querySelector('#tablaResponsables tbody');
+                    tablaBody.innerHTML = '';
 
                     if (data && data.length > 0) {
-                        data.forEach(responsable => {
-                            const row = `
-                                <tr>
-                                    <td>${responsable.responsable}</td>
-                                    <td>${responsable.porcentajeScreen} %</td>
-                                    <td>${responsable.porcentajePlancha} %</td>
-                                </tr>
-                            `;
-                            tablaBody.insertAdjacentHTML('beforeend', row);
+                        data.forEach(item => {
+                            tablaBody.innerHTML += `<tr><td>${item.responsable}</td><td>${item.porcentajeScreen} %</td><td>${item.porcentajePlancha} %</td></tr>`;
                         });
+
+                        // B. Preparar la función que renderizará el gráfico
+                        const renderResponsibleChart = () => {
+                            const categories = data.map(item => item.responsable);
+                            const series = [
+                                { name: '% SCREEN', data: data.map(item => item.porcentajeScreen), color: '#2bffc6' },
+                                { name: '% Proceso Plancha', data: data.map(item => item.porcentajePlancha), color: '#e14eca' }
+                            ];
+                            createBarChart('graficaResponsablePorDia', 'Defectos por Responsable', categories, series);
+                        };
+                        
+                        // C. Poner el gráfico en espera
+                        observeChart('graficaResponsablePorDia', renderResponsibleChart);
+
                     } else {
-                        tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay datos para mostrar.</td></tr>';
+                        tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay datos de responsables para mostrar.</td></tr>';
                     }
                 })
-                .catch(error => {
-                    console.error('Error al cargar las estadísticas por responsable:', error);
-                    tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Error al cargar los datos.</td></tr>';
-                });
-        });
+                .catch(err => console.error('Error en stats de responsables:', err));
 
-        document.addEventListener('DOMContentLoaded', function () {
 
-            const tablaBody = document.querySelector('#tablaModulos tbody');
-
+            // --- 4. Fetch para Tabla y Gráfico de MÁQUINAS ---
             fetch("{{ route('screen.dashboard.machine-stats') }}")
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('La respuesta del servidor no fue exitosa.');
-                    }
-                    return response.json();
-                })
+                .then(res => res.ok ? res.json() : Promise.reject(res))
                 .then(data => {
-                    tablaBody.innerHTML = ''; // Limpiamos la tabla.
-
+                    // A. Llenar la tabla de máquinas
+                    const tablaBody = document.querySelector('#tablaModulos tbody');
+                    tablaBody.innerHTML = '';
+                    
                     if (data && data.length > 0) {
-                        data.forEach(maquina => {
-                            const row = `
-                                <tr>
-                                    <td>${maquina.maquina}</td>
-                                    <td>${maquina.porcentajeScreen} %</td>
-                                    <td>${maquina.porcentajePlancha} %</td>
-                                </tr>
-                            `;
-                            tablaBody.insertAdjacentHTML('beforeend', row);
+                        data.forEach(item => {
+                            tablaBody.innerHTML += `<tr><td>${item.maquina}</td><td>${item.porcentajeScreen} %</td><td>${item.porcentajePlancha} %</td></tr>`;
                         });
+
+                        // B. Preparar la función que renderizará el gráfico
+                        const renderMachineChart = () => {
+                            const categories = data.map(item => item.maquina);
+                            const series = [
+                                { name: '% SCREEN', data: data.map(item => item.porcentajeScreen), color: '#2bffc6' },
+                                { name: '% Proceso Plancha', data: data.map(item => item.porcentajePlancha), color: '#e14eca' }
+                            ];
+                            createBarChart('graficaMaquinaPorDia', 'Defectos por Máquina', categories, series);
+                        };
+
+                        // C. Poner el gráfico en espera
+                        observeChart('graficaMaquinaPorDia', renderMachineChart);
                     } else {
-                        tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay datos para mostrar.</td></tr>';
+                        tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay datos de máquinas para mostrar.</td></tr>';
                     }
                 })
-                .catch(error => {
-                    console.error('Error al cargar las estadísticas por máquina:', error);
-                    tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Error al cargar los datos.</td></tr>';
-                });
+                .catch(err => console.error('Error en stats de máquinas:', err));
+
         });
     </script>
 @endsection
