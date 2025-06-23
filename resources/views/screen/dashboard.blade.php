@@ -107,7 +107,7 @@
         <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title">Responsables AQL <i class="tim-icons icon-palette text-success"></i> y PROCESO <i class="tim-icons icon-volume-98 text-primary"></i></h4>
+                    <h4 class="card-title">Responsables SCREEN <i class="tim-icons icon-palette text-success"></i> y Proceso Plancha <i class="tim-icons icon-volume-98 text-primary"></i></h4>
                     <p class="card-category d-inline"> Dia actual</p>
                 </div>
                 <div class="card-body">
@@ -115,7 +115,7 @@
                         <table class="table tablesorter" id="tablaResponsables">
                             <thead class="text-primary">
                                 <tr>
-                                    <th>Supervisor</th>
+                                    <th>Responsable</th>
                                     <th>% SCREEN</th>
                                     <th>% Proceso Plancha</th>
                                 </tr>
@@ -494,6 +494,41 @@
                     tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Error al cargar los datos.</td></tr>';
                     footerScreen.textContent = 'Error';
                     footerPlancha.textContent = 'Error';
+                });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const tablaBody = document.querySelector('#tablaResponsables tbody');
+
+            fetch("{{ route('screen.dashboard.responsible-stats') }}")
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('La respuesta del servidor no fue exitosa.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    tablaBody.innerHTML = ''; // Limpiamos la tabla.
+
+                    if (data && data.length > 0) {
+                        data.forEach(responsable => {
+                            const row = `
+                                <tr>
+                                    <td>${responsable.responsable}</td>
+                                    <td>${responsable.porcentajeScreen} %</td>
+                                    <td>${responsable.porcentajePlancha} %</td>
+                                </tr>
+                            `;
+                            tablaBody.insertAdjacentHTML('beforeend', row);
+                        });
+                    } else {
+                        tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay datos para mostrar.</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar las estadísticas por responsable:', error);
+                    tablaBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Error al cargar los datos.</td></tr>';
                 });
         });
     </script>

@@ -187,4 +187,81 @@ class DashboardScreenController extends Controller
 
         return response()->json($data);
     }
+
+    public function getResponsibleStats()
+    {
+        $cacheKey = 'dashboard_responsible_stats_' . Carbon::today()->toDateString();
+        $ttl = 60; // 1 minuto de caché
+
+        $data = Cache::remember($cacheKey, $ttl, function () {
+            
+            $inspecciones = InspeccionHorno::with(['screen.defectos', 'plancha.defectos'])
+                ->whereDate('created_at', Carbon::today()->toDateString())
+                ->where(function ($query) {
+                    $query->whereHas('screen')->orWhereHas('plancha');
+                })
+                ->get();
+
+            // 1. Creamos un array para agrupar manualmente las inspecciones por técnico.
+            $inspeccionesPorTecnico = [];
+
+            foreach ($inspecciones as $inspeccion) {
+                // Si la inspección tiene un registro de 'screen' con un técnico
+                if ($inspeccion->screen && !empty($inspeccion->screen->nombre_tecnico)) {
+                    $nombreTecnico = $inspeccion->screen->nombre_tecnico;
+                    // Añadimos la inspección al grupo de ese técnico
+                    $inspeccionesPorTecnico[$nombreTecnico][] = $inspeccion;
+                }
+                // Si la inspección tiene un registro de 'plancha' con un técnico
+                if ($inspeccion->plancha && !empty($inspeccion->plancha->nombre_tecnico)) {
+                    $nombreTecnico = $inspeccion->plancha->nombre_tecnico;
+                    // Añadimos la inspección al grupo de ese técnico
+                    $inspeccionesPorTecnico[$nombreTecnico][] = $inspeccion;
+                }
+            }
+
+            $responsibleData = [];
+
+            // 2. Iteramos sobre nuestro array agrupado manualmente.
+            foreach ($inspeccionesPorTecnico as $tecnico => $inspections) {
+                // Convertimos el array de inspecciones de vuelta a una colección para usar sus métodos.
+                $coleccionDelTecnico = new Collection($inspections);
+
+                // --- Cálculo para Screen por técnico ---
+                $cantidadRevisadaScreen = (float) $coleccionDelTecnico->sum('cantidad');
+                $cantidadDefectosScreen = $coleccionDelTecnico->sum(function ($insp) {
+                    return $insp->screen ? $insp->screen->defectos->sum('cantidad') : 0;
+                });
+
+                $porcentajeScreen = ($cantidadRevisadaScreen > 0)
+                    ? ($cantidadDefectosScreen / $cantidadRevisadaScreen) * 100
+                    : 0;
+
+                // --- Cálculo para Plancha por técnico ---
+                $cantidadRevisadaPlancha = $coleccionDelTecnico->sum(function ($insp) {
+                    return ($insp->plancha && is_numeric($insp->plancha->piezas_auditadas))
+                           ? (float) $insp->plancha->piezas_auditadas : 0.0;
+                });
+                $cantidadDefectosPlancha = $coleccionDelTecnico->sum(function ($insp) {
+                    return $insp->plancha ? $insp->plancha->defectos->sum('cantidad') : 0;
+                });
+
+                $porcentajePlancha = ($cantidadRevisadaPlancha > 0)
+                    ? ($cantidadDefectosPlancha / $cantidadRevisadaPlancha) * 100
+                    : 0;
+
+                // Añadimos los datos del responsable al array de resultados.
+                $responsibleData[] = [
+                    'responsable' => $tecnico,
+                    'porcentajeScreen' => round($porcentajeScreen, 2),
+                    'porcentajePlancha' => round($porcentajePlancha, 2),
+                ];
+            }
+
+            // Devolvemos el array de datos de responsables.
+            return $responsibleData;
+        });
+
+        return response()->json($data);
+    }
 }
