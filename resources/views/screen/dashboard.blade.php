@@ -135,7 +135,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table tablesorter" id="tablaModulos">
+                        <table class="table tablesorter" id="tablaMaquinas">
                             <thead class="text-primary">
                                 <tr>
                                     <th>Maquina</th>
@@ -155,7 +155,7 @@
     <div class="row">
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaClientesSemanal" style="width:100%; height:400px;">
+                <div id="graficaClientePorSemana" style="width:100%; height:400px;">
                     <div class="loading-container">
                         <div class="loading-text">Cargando...</div>
                     </div>
@@ -164,7 +164,7 @@
         </div>
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaSupervisoresSemanal" style="width:100%; height:400px;">
+                <div id="graficaResponsablePorSemana" style="width:100%; height:400px;">
                     <div class="loading-container">
                         <div class="loading-text">Cargando...</div>
                     </div>
@@ -173,7 +173,7 @@
         </div>
         <div class="col-lg-4">
             <div class="card card-body">
-                <div id="graficaModulosSemanal" style="width:100%; height:400px;">
+                <div id="graficaMaquinaPorSemana" style="width:100%; height:400px;">
                     <div class="loading-container">
                         <div class="loading-text">Cargando...</div>
                     </div>
@@ -209,7 +209,7 @@
         <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title">Supervisores AQL <i class="tim-icons icon-palette text-success"></i> y PROCESO <i class="tim-icons icon-volume-98 text-primary"></i></h4>
+                    <h4 class="card-title">Responsables SCREEN <i class="tim-icons icon-palette text-success"></i> y Proceso Plancha <i class="tim-icons icon-volume-98 text-primary"></i></h4>
                     <p class="card-category d-inline"> Semana actual</p>
                 </div>
                 <div class="card-body">
@@ -232,15 +232,15 @@
         <div class="col-lg-4">
             <div class="card ">
                 <div class="card-header">
-                    <h4 class="card-title">Modulos AQL <i class="tim-icons icon-palette text-success"></i> y PROCESO <i class="tim-icons icon-volume-98 text-primary"></i></h4>
+                    <h4 class="card-title">Maquina SCREEN <i class="tim-icons icon-palette text-success"></i> y Proceso Plancha <i class="tim-icons icon-volume-98 text-primary"></i></h4>
                     <p class="card-category d-inline"> Semana actual</p>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table id="tablaModulosSemanal" class="table tablesorter">
+                        <table id="tablaMaquinasSemanal" class="table tablesorter">
                             <thead class="text-primary">
                                 <tr>
-                                    <th>Módulo</th>
+                                    <th>Máquina</th>
                                     <th>% SCREEN</th>
                                     <th>% Proceso Plancha</th>
                                 </tr>
@@ -279,7 +279,7 @@
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
                                 <label class="btn btn-sm btn-primary btn-simple active" id="cliente0">
                                     <input type="radio" name="clienteOptions" checked>
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
+                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">SCREEN</span>
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="cliente1">
                                     <input type="radio" name="clienteOptions">
@@ -315,7 +315,7 @@
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
                                 <label class="btn btn-sm btn-primary btn-simple active" id="modulo0">
                                     <input type="radio" name="moduloOptions" checked>
-                                    <span class="d-none d-sm-block">AQL</span>
+                                    <span class="d-none d-sm-block">SCREEN</span>
                                 </label>
                                 <label class="btn btn-sm btn-primary btn-simple" id="modulo1">
                                     <input type="radio" name="moduloOptions">
@@ -347,9 +347,9 @@
                     </h3>
                     <div class="col-sm-15">
                         <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-                            <label class="btn btn-sm btn-primary btn-simple active" id="top3-AQL">
+                            <label class="btn btn-sm btn-primary btn-simple active" id="top3-SCREEN">
                                 <input type="radio" name="top3Options" checked>
-                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">AQL</span>
+                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">SCREEN</span>
                             </label>
                             <label class="btn btn-sm btn-primary btn-simple" id="top3-Proceso">
                                 <input type="radio" name="top3Options">
@@ -623,7 +623,7 @@
                 .then(res => res.ok ? res.json() : Promise.reject(res))
                 .then(data => {
                     // A. Llenar la tabla de máquinas
-                    const tablaBody = document.querySelector('#tablaModulos tbody');
+                    const tablaBody = document.querySelector('#tablaMaquinas tbody');
                     tablaBody.innerHTML = '';
                     
                     if (data && data.length > 0) {
