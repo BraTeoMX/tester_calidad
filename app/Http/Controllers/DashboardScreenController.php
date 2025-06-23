@@ -265,6 +265,64 @@ class DashboardScreenController extends Controller
         return response()->json($data);
     }
 
+    public function getMachineStats()
+    {
+        $cacheKey = 'dashboard_machine_stats_' . Carbon::today()->toDateString();
+        $ttl = 60; // 1 minuto de caché
+
+        $data = Cache::remember($cacheKey, $ttl, function () {
+            
+            $inspecciones = InspeccionHorno::with(['screen.defectos', 'plancha.defectos'])
+                ->whereDate('created_at', Carbon::today()->toDateString())
+                ->where(function ($query) {
+                    $query->whereHas('screen')->orWhereHas('plancha');
+                })
+                ->get();
+
+            // 1. Agrupamos la colección por el campo 'maquina'. ¡Este es el único cambio clave!
+            $groupedByMachine = $inspecciones->groupBy('maquina');
+
+            $machineData = [];
+
+            // 2. Iteramos sobre cada grupo de máquina para calcular sus estadísticas.
+            foreach ($groupedByMachine as $maquina => $machineInspections) {
+                
+                // --- Cálculo para Screen por máquina ---
+                $cantidadRevisadaScreen = (float) $machineInspections->sum('cantidad');
+                $cantidadDefectosScreen = $machineInspections->sum(function ($insp) {
+                    return $insp->screen ? $insp->screen->defectos->sum('cantidad') : 0;
+                });
+                $porcentajeScreen = ($cantidadRevisadaScreen > 0)
+                    ? ($cantidadDefectosScreen / $cantidadRevisadaScreen) * 100
+                    : 0;
+
+                // --- Cálculo para Plancha por máquina ---
+                $cantidadRevisadaPlancha = $machineInspections->sum(function ($insp) {
+                    return ($insp->plancha && is_numeric($insp->plancha->piezas_auditadas))
+                           ? (float) $insp->plancha->piezas_auditadas : 0.0;
+                });
+                $cantidadDefectosPlancha = $machineInspections->sum(function ($insp) {
+                    return $insp->plancha ? $insp->plancha->defectos->sum('cantidad') : 0;
+                });
+                $porcentajePlancha = ($cantidadRevisadaPlancha > 0)
+                    ? ($cantidadDefectosPlancha / $cantidadRevisadaPlancha) * 100
+                    : 0;
+
+                // Añadimos los datos de la máquina al array de resultados.
+                $machineData[] = [
+                    'maquina' => $maquina,
+                    'porcentajeScreen' => round($porcentajeScreen, 2),
+                    'porcentajePlancha' => round($porcentajePlancha, 2),
+                ];
+            }
+
+            // Devolvemos el array de datos de máquinas.
+            return $machineData;
+        });
+
+        return response()->json($data);
+    }
+
     public function getClientStatsWeekly()
     {
         $cacheKey = 'dashboard_client_stats_weekly_' . Carbon::today()->toDateString();
@@ -496,61 +554,4 @@ class DashboardScreenController extends Controller
         return response()->json($data);
     }
 
-    public function getMachineStats()
-    {
-        $cacheKey = 'dashboard_machine_stats_' . Carbon::today()->toDateString();
-        $ttl = 60; // 1 minuto de caché
-
-        $data = Cache::remember($cacheKey, $ttl, function () {
-            
-            $inspecciones = InspeccionHorno::with(['screen.defectos', 'plancha.defectos'])
-                ->whereDate('created_at', Carbon::today()->toDateString())
-                ->where(function ($query) {
-                    $query->whereHas('screen')->orWhereHas('plancha');
-                })
-                ->get();
-
-            // 1. Agrupamos la colección por el campo 'maquina'. ¡Este es el único cambio clave!
-            $groupedByMachine = $inspecciones->groupBy('maquina');
-
-            $machineData = [];
-
-            // 2. Iteramos sobre cada grupo de máquina para calcular sus estadísticas.
-            foreach ($groupedByMachine as $maquina => $machineInspections) {
-                
-                // --- Cálculo para Screen por máquina ---
-                $cantidadRevisadaScreen = (float) $machineInspections->sum('cantidad');
-                $cantidadDefectosScreen = $machineInspections->sum(function ($insp) {
-                    return $insp->screen ? $insp->screen->defectos->sum('cantidad') : 0;
-                });
-                $porcentajeScreen = ($cantidadRevisadaScreen > 0)
-                    ? ($cantidadDefectosScreen / $cantidadRevisadaScreen) * 100
-                    : 0;
-
-                // --- Cálculo para Plancha por máquina ---
-                $cantidadRevisadaPlancha = $machineInspections->sum(function ($insp) {
-                    return ($insp->plancha && is_numeric($insp->plancha->piezas_auditadas))
-                           ? (float) $insp->plancha->piezas_auditadas : 0.0;
-                });
-                $cantidadDefectosPlancha = $machineInspections->sum(function ($insp) {
-                    return $insp->plancha ? $insp->plancha->defectos->sum('cantidad') : 0;
-                });
-                $porcentajePlancha = ($cantidadRevisadaPlancha > 0)
-                    ? ($cantidadDefectosPlancha / $cantidadRevisadaPlancha) * 100
-                    : 0;
-
-                // Añadimos los datos de la máquina al array de resultados.
-                $machineData[] = [
-                    'maquina' => $maquina,
-                    'porcentajeScreen' => round($porcentajeScreen, 2),
-                    'porcentajePlancha' => round($porcentajePlancha, 2),
-                ];
-            }
-
-            // Devolvemos el array de datos de máquinas.
-            return $machineData;
-        });
-
-        return response()->json($data);
-    }
 }

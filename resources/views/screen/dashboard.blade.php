@@ -651,5 +651,6 @@
 
         });
     </script>
+
 @endsection
 
