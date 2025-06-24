@@ -535,6 +535,7 @@ Route::group(['middleware' => 'auth'], function () {
     //seccion para dashboard por mes screen
     Route::get('/dashboardScreen/stats-month', [DashboardScreenController::class, 'getDashboardStatsMonth'])->name('screen.dashboard.stats-month');
     Route::get('/dashboardScreen/client-stats-month', [DashboardScreenController::class, 'getClientStatsMonth'])->name('screen.dashboard.client-stats-month');
+    Route::get('/dashboardScreen/machine-stats-month', [DashboardScreenController::class, 'getMachineStatsMonth'])->name('screen.dashboard.machine-stats-month');
 
 
     //apartado para dashboard con la segunda version por dia

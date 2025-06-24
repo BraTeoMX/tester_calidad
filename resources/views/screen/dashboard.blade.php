@@ -295,36 +295,36 @@
         </div>
     </div>
 
-    <!-- Gráficas mensual por Módulo -->
+    <!-- Gráficas mensual por Maquina -->
     <div class="row">
         <div class="col-12">
             <div class="card card-chart">
                 <div class="card-header">
                     <div class="row">
                         <div class="col-sm-6 text-left">
-                            <h2 class="card-title">Indicador Mensual por Módulo</h2>
+                            <h2 class="card-title">Indicador Mensual por Maquina</h2>
                         </div>
                         <div class="col-sm-6">
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-                                <label class="btn btn-sm btn-primary btn-simple active" id="modulo0">
-                                    <input type="radio" name="moduloOptions" checked>
+                                <label class="btn btn-sm btn-primary btn-simple active" id="btnMaquinaScreen">
+                                    <input type="radio" name="maquinaOptions" checked>
                                     <span class="d-none d-sm-block">SCREEN</span>
                                 </label>
-                                <label class="btn btn-sm btn-primary btn-simple" id="modulo1">
-                                    <input type="radio" name="moduloOptions">
-                                    <span class="d-none d-sm-block">Proceso</span>
+                                <label class="btn btn-sm btn-primary btn-simple" id="btnMaquinaProcesoPlancha">
+                                    <input type="radio" name="maquinaOptions">
+                                    <span class="d-none d-sm-block">PROCESO PLANCHA</span>
                                 </label>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="chart-area" style="height: 500px;">
-                        <div id="moduloChartAQL"></div>
-                        <div id="moduloChartProcesos" style="display: none;"></div>
-                        <div class="loading-container">
+                    <div class="chart-area" style="height: 500px; position: relative;">
+                        <div id="loadingContainerMaquina" class="loading-container" style="display: flex;">
                             <div class="loading-text">Cargando...</div>
                         </div>
+                        <div id="maquinaChartSCREEN" style="display: none;"></div>
+                        <div id="maquinaChartProcesoPlancha" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -663,76 +663,126 @@
                 });
             }
 
-            // --- LÓGICA PRINCIPAL ---
-            const loadingContainer = document.getElementById('loadingContainerCliente');
-            const containerScreen = document.getElementById('clienteChartSCREEN');
-            const containerPlancha = document.getElementById('clienteChartProcesoPlancha');
-            const btnScreen = document.getElementById('btnClienteScreen');
-            const btnPlancha = document.getElementById('btnClientePlancha');
-
-            // Función para obtener y procesar los datos
-            function fetchDataAndRenderCharts() {
-                fetch("{{ route('screen.dashboard.client-stats-month') }}")
-                    .then(res => res.ok ? res.json() : Promise.reject(res))
-                    .then(data => {
-                        // Ocultar el loader
-                        loadingContainer.style.display = 'none';
-
-                        if (Object.keys(data).length === 0) {
-                            containerScreen.innerHTML = '<div class="loading-text">No hay datos de clientes para mostrar.</div>';
-                            containerScreen.style.display = 'block';
-                            return;
-                        }
-
-                        const clientes = Object.keys(data);
-                        const diasDelMes = data[clientes[0]].map(d => d.dia);
-
-                        // Preparamos los datos para cada gráfico
-                        const seriesScreen = clientes.map(cliente => ({
-                            name: cliente,
-                            data: data[cliente].map(d => d.porcentajeScreen)
-                        }));
-                        
-                        const seriesPlancha = clientes.map(cliente => ({
-                            name: cliente,
-                            data: data[cliente].map(d => d.porcentajePlancha)
-                        }));
-
-                        // Renderizamos ambos gráficos pero mantenemos uno oculto
-                        const chartScreen = createMultiLineChart('clienteChartSCREEN', 'Indicador Mensual por Cliente - SCREEN', diasDelMes, seriesScreen);
-                        const chartPlancha = createMultiLineChart('clienteChartProcesoPlancha', 'Indicador Mensual por Cliente - PROCESO PLANCHA', diasDelMes, seriesPlancha);
-                        
-                        // Mostramos el gráfico inicial
-                        containerScreen.style.display = 'block';
-
-                        // Lógica de los botones para cambiar de vista
-                        btnScreen.addEventListener('click', () => {
-                            containerPlancha.style.display = 'none';
-                            containerScreen.style.display = 'block';
-                            chartScreen.reflow(); // Reajusta el tamaño del gráfico
-                        });
-
-                        btnPlancha.addEventListener('click', () => {
-                            containerScreen.style.display = 'none';
-                            containerPlancha.style.display = 'block';
-                            chartPlancha.reflow(); // Reajusta el tamaño del gráfico
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error al cargar los datos por cliente:', error);
-                        loadingContainer.innerHTML = '<div class="loading-text">Error al cargar los datos.</div>';
-                    });
-            }
-
-            // Usamos IntersectionObserver para cargar los datos solo cuando el contenedor sea visible
-            const observer = new IntersectionObserver((entries, obs) => {
-                if (entries[0].isIntersecting) {
-                    fetchDataAndRenderCharts();
-                    obs.unobserve(entries[0].target);
+            function observeChart(containerId, fetchFunction) {
+                const container = document.getElementById(containerId);
+                if (!container) {
+                    console.error(`Error: No se encontró el contenedor del gráfico con id #${containerId}`);
+                    return;
                 }
-            }, { threshold: 0.1 });
 
-            observer.observe(loadingContainer);
+                const observer = new IntersectionObserver((entries, obs) => {
+                    if (entries[0].isIntersecting) {
+                        fetchFunction(); // Llama a la función que busca los datos
+                        obs.unobserve(container);
+                    }
+                }, { threshold: 0.1 });
+
+                observer.observe(container);
+            }
+            // --- LÓGICA PARA GRÁFICO MENSUAL POR CLIENTE ---
+                function fetchDataAndRenderClientCharts() {
+                    const loadingContainer = document.getElementById('loadingContainerCliente');
+                    const containerScreen = document.getElementById('clienteChartSCREEN');
+                    const containerPlancha = document.getElementById('clienteChartProcesoPlancha');
+                    const btnScreen = document.getElementById('btnClienteScreen');
+                    const btnPlancha = document.getElementById('btnClientePlancha');
+
+                    fetch("{{ route('screen.dashboard.client-stats-month') }}")
+                        .then(res => res.ok ? res.json() : Promise.reject(res))
+                        .then(data => {
+                            loadingContainer.style.display = 'none';
+
+                            if (Object.keys(data).length === 0) {
+                                containerScreen.innerHTML = '<div class="loading-text">No hay datos de clientes para mostrar.</div>';
+                                containerScreen.style.display = 'block';
+                                return;
+                            }
+
+                            const clientes = Object.keys(data);
+                            const diasDelMes = data[clientes[0]].map(d => d.dia);
+
+                            const seriesScreen = clientes.map(cliente => ({ name: cliente, data: data[cliente].map(d => d.porcentajeScreen) }));
+                            const seriesPlancha = clientes.map(cliente => ({ name: cliente, data: data[cliente].map(d => d.porcentajePlancha) }));
+
+                            const chartScreen = createMultiLineChart('clienteChartSCREEN', 'Indicador Mensual por Cliente - SCREEN', diasDelMes, seriesScreen);
+                            const chartPlancha = createMultiLineChart('clienteChartProcesoPlancha', 'Indicador Mensual por Cliente - PROCESO PLANCHA', diasDelMes, seriesPlancha);
+                            
+                            containerScreen.style.display = 'block';
+
+                            btnScreen.addEventListener('click', () => {
+                                containerPlancha.style.display = 'none';
+                                containerScreen.style.display = 'block';
+                                chartScreen.reflow();
+                            });
+
+                            btnPlancha.addEventListener('click', () => {
+                                containerScreen.style.display = 'none';
+                                containerPlancha.style.display = 'block';
+                                chartPlancha.reflow();
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error al cargar los datos por cliente:', error);
+                            loadingContainer.innerHTML = '<div class="loading-text">Error al cargar los datos.</div>';
+                        });
+                }
+
+                // --- LÓGICA PARA GRÁFICO MENSUAL POR MÁQUINA ---
+                function fetchDataAndRenderMachineCharts() {
+                    const loadingContainerMaquina = document.getElementById('loadingContainerMaquina');
+                    const containerMaquinaScreen = document.getElementById('maquinaChartSCREEN');
+                    const containerMaquinaPlancha = document.getElementById('maquinaChartProcesoPlancha');
+                    const btnMaquinaScreen = document.getElementById('btnMaquinaScreen');
+                    const btnMaquinaPlancha = document.getElementById('btnMaquinaProcesoPlancha');
+
+                    fetch("{{ route('screen.dashboard.machine-stats-month') }}")
+                        .then(res => res.ok ? res.json() : Promise.reject(res))
+                        .then(data => {
+                            loadingContainerMaquina.style.display = 'none';
+
+                            if (Object.keys(data).length === 0) {
+                                containerMaquinaScreen.innerHTML = '<div class="loading-text">No hay datos de máquinas para mostrar.</div>';
+                                containerMaquinaScreen.style.display = 'block';
+                                return;
+                            }
+
+                            const maquinas = Object.keys(data);
+                            const diasDelMes = data[maquinas[0]].map(d => d.dia);
+
+                            const seriesScreen = maquinas.map(maquina => ({ name: maquina, data: data[maquina].map(d => d.porcentajeScreen) }));
+                            const seriesPlancha = maquinas.map(maquina => ({ name: maquina, data: data[maquina].map(d => d.porcentajePlancha) }));
+
+                            const chartScreen = createMultiLineChart('maquinaChartSCREEN', 'Indicador Mensual por Máquina - SCREEN', diasDelMes, seriesScreen);
+                            const chartPlancha = createMultiLineChart('maquinaChartProcesoPlancha', 'Indicador Mensual por Máquina - PROCESO PLANCHA', diasDelMes, seriesPlancha);
+                            
+                            containerMaquinaScreen.style.display = 'block';
+
+                            btnMaquinaScreen.addEventListener('click', () => {
+                                containerMaquinaPlancha.style.display = 'none';
+                                containerMaquinaScreen.style.display = 'block';
+                                chartScreen.reflow();
+                            });
+
+                            btnMaquinaPlancha.addEventListener('click', () => {
+                                containerMaquinaScreen.style.display = 'none';
+                                containerMaquinaPlancha.style.display = 'block';
+                                chartPlancha.reflow();
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error al cargar los datos por máquina:', error);
+                            loadingContainerMaquina.innerHTML = '<div class="loading-text">Error al cargar los datos.</div>';
+                        });
+                }
+
+                /************************************************************************
+                 * SECCIÓN 3: INICIALIZACIÓN DE LOS OBSERVADORES
+                 ************************************************************************/
+                
+                // Se le dice al navegador que observe ambos contenedores de carga.
+                // Cuando uno sea visible, se ejecutará su función de carga de datos correspondiente.
+                observeChart('loadingContainerCliente', fetchDataAndRenderClientCharts);
+                observeChart('loadingContainerMaquina', fetchDataAndRenderMachineCharts);
         });
     </script>
 

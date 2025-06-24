@@ -636,4 +636,81 @@ class DashboardScreenController extends Controller
         return response()->json($monthlyDataByClient);
     }
 
+    public function getMachineStatsMonth()
+    {
+        $cacheKey = 'machine_stats_month_' . Carbon::today()->format('Y-m');
+        $ttl = 300; // 5 minutos de caché
+
+        $monthlyDataByMachine = Cache::remember($cacheKey, $ttl, function () {
+            $startOfMonth = Carbon::now()->startOfMonth();
+            $today = Carbon::today()->endOfDay();
+
+            // --- 1. DATOS DE SCREEN: Agrupados por MÁQUINA y FECHA en la BD ---
+            $screenData = DB::table('inspeccion_horno as ih')
+                ->leftJoin('inspeccion_horno_screen as ihs', 'ih.id', '=', 'ihs.inspeccion_horno_id')
+                ->leftJoin('inspeccion_horno_screen_defecto as ihsd', 'ihs.id', '=', 'ihsd.inspeccion_horno_screen_id')
+                ->selectRaw("
+                    ih.maquina,
+                    DATE(ih.created_at) as fecha,
+                    SUM(ih.cantidad) as total_auditado,
+                    SUM(ihsd.cantidad) as total_defectos
+                ")
+                ->whereNotNull('ihs.id')->whereNotNull('ih.maquina') // <-- Agrupamos por maquina
+                ->whereBetween('ih.created_at', [$startOfMonth, $today])
+                ->groupBy('ih.maquina', 'fecha') // <-- Agrupamos por maquina
+                ->get()
+                ->keyBy(fn($item) => $item->maquina . '|' . $item->fecha);
+
+            // --- 2. DATOS DE PLANCHA: Agrupados por MÁQUINA y FECHA en la BD ---
+            $planchaData = DB::table('inspeccion_horno as ih')
+                ->leftJoin('inspeccion_horno_plancha as ihp', 'ih.id', '=', 'ihp.inspeccion_horno_id')
+                ->leftJoin('inspeccion_horno_plancha_defecto as ihpd', 'ihp.id', '=', 'ihpd.inspeccion_horno_plancha_id')
+                ->selectRaw("
+                    ih.maquina,
+                    DATE(ih.created_at) as fecha,
+                    SUM(ihp.piezas_auditadas) as total_auditado,
+                    SUM(ihpd.cantidad) as total_defectos
+                ")
+                ->whereNotNull('ihp.id')->whereNotNull('ih.maquina') // <-- Agrupamos por maquina
+                ->whereBetween('ih.created_at', [$startOfMonth, $today])
+                ->groupBy('ih.maquina', 'fecha') // <-- Agrupamos por maquina
+                ->get()
+                ->keyBy(fn($item) => $item->maquina . '|' . $item->fecha);
+
+            // --- 3. PROCESAR Y COMBINAR EN PHP ---
+            $todasLasMaquinas = $screenData->pluck('maquina')->merge($planchaData->pluck('maquina'))->unique()->sort();
+            $periodoFechas = CarbonPeriod::create($startOfMonth, $today);
+            $resultadoFinal = [];
+
+            foreach ($todasLasMaquinas as $maquina) {
+                $datosPorMaquina = [];
+                foreach ($periodoFechas as $fecha) {
+                    $fechaStr = $fecha->toDateString();
+                    $clave = $maquina . '|' . $fechaStr;
+
+                    $screenDia = $screenData->get($clave);
+                    $auditadaScreen = $screenDia->total_auditado ?? 0;
+                    $defectosScreen = $screenDia->total_defectos ?? 0;
+                    $porcentajeScreen = $auditadaScreen > 0 ? round(($defectosScreen / $auditadaScreen) * 100, 2) : 0;
+                    
+                    $planchaDia = $planchaData->get($clave);
+                    $auditadaPlancha = $planchaDia->total_auditado ?? 0;
+                    $defectosPlancha = $planchaDia->total_defectos ?? 0;
+                    $porcentajePlancha = $auditadaPlancha > 0 ? round(($defectosPlancha / $auditadaPlancha) * 100, 2) : 0;
+                    
+                    $datosPorMaquina[] = [
+                        'dia'                 => $fecha->day,
+                        'porcentajeScreen'    => $porcentajeScreen,
+                        'porcentajePlancha'   => $porcentajePlancha,
+                    ];
+                }
+                $resultadoFinal[$maquina] = $datosPorMaquina;
+            }
+
+            return $resultadoFinal;
+        });
+
+        return response()->json($monthlyDataByMachine);
+    }
+
 }
