@@ -110,6 +110,12 @@
                         <p>{{ __('Dashboard') }}</p>
                     </a>
                 </li>
+                <li class="nav-item{{ $pageSlug == 'dashboardScreen' ? ' active' : '' }}">
+                    <a class="nav-link" href="{{ route('screen.dashboard') }}">
+                        <i class="tim-icons icon-chart-bar-32"></i>
+                        <p>{{ __('Dashboard Screen') }}</p>
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link" data-toggle="collapse" href="#consultaPorDiaMenu" aria-expanded="false">
                         <i class="tim-icons icon-tap-02"></i>

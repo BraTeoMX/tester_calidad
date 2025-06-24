@@ -335,44 +335,32 @@
         <div class="col-12 col-md-6">
             <div class="card card-chart">
                 <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="tim-icons icon-bell-55 text-primary"></i> Top 3 Defectos mensuales
-                    </h3>
-                    <div class="col-sm-15">
-                        <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-                            <label class="btn btn-sm btn-primary btn-simple active" id="top3-SCREEN">
-                                <input type="radio" name="top3Options" checked>
-                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">SCREEN</span>
-                            </label>
-                            <label class="btn btn-sm btn-primary btn-simple" id="top3-Proceso">
-                                <input type="radio" name="top3Options">
-                                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Proceso</span>
-                            </label>
-                        </div>
-                    </div>
+                    <h3 class="card-title"><i class="tim-icons icon-chart-bar-32 text-primary"></i> Top 3 - SCREEN</h3>
                 </div>
-                <div class="card-body" style="height: 400px;">
-                    <div class="chart-area">
-                        <div id="chartAQL"></div>
-                        <div id="chartProceso" style="display: none;"></div>
-                        <div class="loading-container">
-                            <div class="loading-text">Cargando...</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>             
-        <div class="col-12 col-md-6">
-            <div class="card card-chart">
-                <div class="card-body" style="height: 500px;">
-                    <div id="SegundasTercerasChart"></div>
-                    <div class="loading-container">
-                        <div class="loading-text">Cargando...</div>
-                        <div id="spinner" class="spinner"></div>
+                <div class="card-body">
+                    <div class="chart-area" style="height: 400px; position: relative;">
+                        <div id="chartTopDefectosScreen" style="height: 100%;"></div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="col-12 col-md-6">
+            <div class="card card-chart">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="tim-icons icon-chart-bar-32 text-primary"></i> Top 3 - PROCESO PLANCHA</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="height: 400px; position: relative;">
+                        <div id="chartTopDefectosPlancha" style="height: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingContainerTopDefects" class="loading-container" style="display: flex; width: 100%; justify-content: center;">
+        <div class="loading-text">Cargando Datos de Defectos...</div>
     </div>
 
     <style>
@@ -775,6 +763,109 @@
                         });
                 }
 
+            function createTopDefectsChart(containerId, title, data) {
+                // 1. Obtenemos los nombres para las categorías del eje X.
+                // Resultado: ["mancha", "mancha 3", "mancha 2"]
+                const categories = data.map(d => d.defecto);
+
+                // 2. Obtenemos los valores para la ÚNICA serie de datos.
+                // Resultado: [220, 70, 60]
+                const totals = data.map(d => parseFloat(d.total));
+
+                // Paleta de colores que se aplicará a cada barra.
+                const colores = ['#f44336', '#ff9800', '#ffc107', '#4caf50', '#00bcd4'];
+
+                return Highcharts.chart(containerId, {
+                    chart: { type: 'column', height: 400, backgroundColor: 'transparent' },
+                    title: { text: title, style: { color: '#ffffff' } },
+                    
+                    // EJE X MEJORADO: Ahora muestra el nombre de cada defecto.
+                    xAxis: {
+                        categories: categories,
+                        labels: { style: { color: '#ffffff' } },
+                        lineColor: '#ffffff'
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: { text: 'Cantidad de Defectos', style: { color: '#ffffff' } },
+                        labels: { style: { color: '#ffffff' } },
+                        gridLineColor: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    // La leyenda ya no es necesaria, porque los nombres están en el eje X.
+                    legend: { enabled: false },
+
+                    // TOOLTIP MEJORADO: Ahora puede acceder a TODOS los datos.
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.85)',
+                        style: { color: '#ffffff' },
+                        formatter: function () {
+                            // 'this.point.index' nos permite encontrar el objeto de datos original.
+                            const pointData = data[this.point.index];
+                            return `<b>Defecto: ${pointData.defecto}</b><br/>` +
+                                `Suma total: <b>${pointData.total}</b><br/>`;
+                        }
+                    },
+                    plotOptions: {
+                        series: {
+                            // Le decimos a Highcharts que coloree cada barra de forma distinta.
+                            colorByPoint: true,
+                            colors: colores,
+                            borderWidth: 0,
+                            dataLabels: {
+                                enabled: true,
+                                color: '#FFFFFF',
+                                style: { textOutline: 'none' },
+                                // La etiqueta sobre la barra muestra el valor total (el eje Y).
+                                format: '{point.y}'
+                            }
+                        }
+                    },
+                    credits: { enabled: false },
+
+                    // ESTRUCTURA DE SERIES MEJORADA: Solo una serie con múltiples puntos.
+                    series: [{
+                        name: 'Total de Defectos', // Nombre general de la serie
+                        data: totals // Los datos con las alturas de las barras
+                    }]
+                });
+            }
+
+            function fetchDataAndRenderDefectsCharts() {
+                // Obtenemos los contenedores necesarios
+                const loadingContainer = document.getElementById('loadingContainerTopDefects');
+                const containerScreen = document.getElementById('chartTopDefectosScreen');
+                const containerPlancha = document.getElementById('chartTopDefectosPlancha');
+
+                // Ocultamos los contenedores de los gráficos mientras se cargan los datos
+                containerScreen.style.display = 'none';
+                containerPlancha.style.display = 'none';
+
+                fetch("{{ route('screen.dashboard.defecto-stats-month') }}")
+                    .then(res => res.ok ? res.json() : Promise.reject(res))
+                    .then(data => {
+                        // Ocultamos el mensaje "Cargando..."
+                        if(loadingContainer) loadingContainer.style.display = 'none';
+
+                        // Hacemos visibles los contenedores de los gráficos
+                        containerScreen.style.display = 'block';
+                        containerPlancha.style.display = 'block';
+
+                        // Renderizamos ambos gráficos, cada uno en su contenedor
+                        const chartScreen = createTopDefectsChart('chartTopDefectosScreen', 'Top 3 Defectos Mensuales - SCREEN', data.topDefectosScreen);
+                        const chartPlancha = createTopDefectsChart('chartTopDefectosPlancha', 'Top 3 Defectos Mensuales - PROCESO PLANCHA', data.topDefectosPlancha);
+
+                        // Forzamos un 'reflow' por si los contenedores estaban ocultos o cambiaron de tamaño.
+                        // Esto asegura que los gráficos se dibujen correctamente.
+                        chartScreen.reflow();
+                        chartPlancha.reflow();
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar top defectos:', error);
+                        if(loadingContainer) loadingContainer.innerHTML = '<div class="loading-text">Error al cargar datos.</div>';
+                    });
+            }
+
+
                 /************************************************************************
                  * SECCIÓN 3: INICIALIZACIÓN DE LOS OBSERVADORES
                  ************************************************************************/
@@ -783,6 +874,7 @@
                 // Cuando uno sea visible, se ejecutará su función de carga de datos correspondiente.
                 observeChart('loadingContainerCliente', fetchDataAndRenderClientCharts);
                 observeChart('loadingContainerMaquina', fetchDataAndRenderMachineCharts);
+                observeChart('loadingContainerTopDefects', fetchDataAndRenderDefectsCharts);
         });
     </script>
 

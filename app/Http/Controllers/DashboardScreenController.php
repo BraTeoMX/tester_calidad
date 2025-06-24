@@ -35,6 +35,7 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Cell\DataType; // Para especificar tipos de datos
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use Illuminate\Http\JsonResponse;
 
 class DashboardScreenController extends Controller
 {
@@ -711,6 +712,56 @@ class DashboardScreenController extends Controller
         });
 
         return response()->json($monthlyDataByMachine);
+    }
+
+    public function getDefectoStatsMonth(): JsonResponse
+    {
+        $cacheKey = 'top_defects_month_' . Carbon::today()->format('Y-m');
+        $ttl = 300; // 5 minutos de caché
+
+        $data = Cache::remember($cacheKey, $ttl, function () {
+            $startOfMonth = Carbon::now()->startOfMonth();
+            $endOfMonth = Carbon::now()->endOfMonth();
+
+            // Llamamos a la nueva función auxiliar simplificada
+            $topDefectosScreen = $this->getTopDefectsFromTable(
+                'inspeccion_horno_screen_defecto',
+                $startOfMonth,
+                $endOfMonth
+            );
+
+            $topDefectosPlancha = $this->getTopDefectsFromTable(
+                'inspeccion_horno_plancha_defecto',
+                $startOfMonth,
+                $endOfMonth
+            );
+
+            return [
+                'topDefectosScreen' => $topDefectosScreen,
+                'topDefectosPlancha' => $topDefectosPlancha,
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+    /**
+     * Función auxiliar simplificada que consulta directamente la tabla de defectos.
+     *
+     * @param string $tableName La tabla de defectos a consultar.
+     * @param Carbon $startDate
+     * @param Carbon $endDate
+     * @return \Illuminate\Support\Collection
+     */
+    private function getTopDefectsFromTable(string $tableName, Carbon $startDate, Carbon $endDate)
+    {
+        return DB::table($tableName)
+            ->selectRaw('nombre as defecto, SUM(cantidad) as total')
+            ->whereBetween('created_at', [$startDate, $endDate]) // La clave: usamos el created_at local
+            ->groupBy('nombre')
+            ->orderBy('total', 'desc')
+            ->limit(3)
+            ->get();
     }
 
 }
