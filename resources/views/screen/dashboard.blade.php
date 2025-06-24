@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="row">
-        <div class="col-lg-6 col-md-12">
+        <div class="col-12 col-md-6">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
                     <h3 class="card-title"><i class="tim-icons icon-palette text-success"></i> Auditoria Screen por día</h3>
@@ -21,7 +21,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-6 col-md-12">
+        <div class="col-12 col-md-6">
             <div class="card">
                 <div class="card-header card-header-success card-header-icon">
                     <h3 class="card-title"><i class="tim-icons icon-volume-98 text-primary"></i> Auditoria de Proceso Plancha por dia</h3>
