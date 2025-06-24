@@ -64,7 +64,7 @@ class AuditoriaAQLV3Controller extends Controller
                 ->get(['moduleid']);
 
             $datosModuloEstiloTemporal = ModuloEstiloTemporal::where('prodpoolid', $datoPlanta)
-                ->whereBetween('moduleid', ['100A', '299A'])
+                ->whereBetween('moduleid', ['100A', '999A'])
                 ->distinct('moduleid')
                 ->get(['moduleid']);
 
@@ -152,7 +152,7 @@ class AuditoriaAQLV3Controller extends Controller
             ->where(function($query) {
                 $query->where('moduleid', 'like', '1%')   // Filtra los que inician con "1"
                       ->orWhere('moduleid', 'like', '2%') // Filtra los que inician con "2"
-                      ->orWhereIn('moduleid', ['830A', '831A']); // Incluye específicamente "830A" y "831A"
+                      ->orWhereIn('moduleid', ['830A', '831A', '833A']); // Incluye específicamente "830A" y "831A"
             })
             ->where('moduleid', '!=', '198A') // Excluye el valor específico "198A"
             ->select('name')                // Selecciona solo el campo 'name' o los que desees
@@ -640,7 +640,7 @@ class AuditoriaAQLV3Controller extends Controller
             $plantaBusqueda = match ($primerCaracter) {
                 '1' => 'Intimark1',
                 '2' => 'Intimark2',
-                default => null, // O el valor por defecto que necesites
+                default => 'Intimark1',
             };
 
             $nombreFinal = $request->selectedNombre;

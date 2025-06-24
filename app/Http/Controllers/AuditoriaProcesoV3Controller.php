@@ -86,7 +86,7 @@ class AuditoriaProcesoV3Controller extends Controller
             // Consulta para ModuloEstiloTemporal
             // Seleccionamos solo 'moduleid' para la operación UNION
             $queryModuloEstiloTemporal = ModuloEstiloTemporal::where('prodpoolid', $datoPlanta)
-                ->whereBetween('moduleid', ['100A', '299A'])
+                ->whereBetween('moduleid', ['100A', '999A'])
                 ->select('moduleid');
 
             // Usamos UNION para combinar los resultados.
@@ -304,7 +304,7 @@ class AuditoriaProcesoV3Controller extends Controller
             ->where(function($query) {
                 $query->where('moduleid', 'like', '1%')
                     ->orWhere('moduleid', 'like', '2%')
-                    ->orWhereIn('moduleid', ['830A', '831A']);
+                    ->orWhereIn('moduleid', ['830A', '831A', '833A']);
             })
             ->where('moduleid', '!=', '198A')
             ->select('name')
@@ -672,7 +672,7 @@ class AuditoriaProcesoV3Controller extends Controller
             $plantaBusqueda = match ($primerCaracter) {
                 '1' => 'Intimark1',
                 '2' => 'Intimark2',
-                default => null, // O el valor por defecto que necesites
+                default => 'Intimark1', // O el valor por defecto que necesites
             };
  
 
