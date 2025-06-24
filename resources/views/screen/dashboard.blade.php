@@ -270,25 +270,25 @@
                         </div>
                         <div class="col-sm-6">
                             <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-                                <label class="btn btn-sm btn-primary btn-simple active" id="cliente0">
+                                <label class="btn btn-sm btn-primary btn-simple active" id="btnClienteScreen">
                                     <input type="radio" name="clienteOptions" checked>
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">SCREEN</span>
+                                    <span class="d-none d-sm-block">SCREEN</span>
                                 </label>
-                                <label class="btn btn-sm btn-primary btn-simple" id="cliente1">
+                                <label class="btn btn-sm btn-primary btn-simple" id="btnClientePlancha">
                                     <input type="radio" name="clienteOptions">
-                                    <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Proceso</span>
+                                    <span class="d-none d-sm-block">PROCESO PLANCHA</span>
                                 </label>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
-                    <div style="width:100%; height: 500px;">
-                        <div id="clienteChartAQL"></div>
-                        <div id="clienteChartProcesos" style="display: none;"></div>
-                        <div class="loading-container">
+                    <div style="width:100%; height: 500px; position: relative;">
+                        <div id="loadingContainerCliente" class="loading-container" style="display: flex;">
                             <div class="loading-text">Cargando...</div>
                         </div>
+                        <div id="clienteChartSCREEN" style="display: none;"></div>
+                        <div id="clienteChartProcesoPlancha" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -633,6 +633,106 @@
                 });
 
 
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // --- FUNCIÓN DE AYUDA PARA CREAR GRÁFICOS DE LÍNEAS MÚLTIPLES ---
+            function createMultiLineChart(containerId, title, categories, seriesData) {
+                return Highcharts.chart(containerId, {
+                    chart: { type: 'spline', height: 500, backgroundColor: 'transparent' },
+                    title: { text: title, style: { color: '#ffffff', fontWeight: 'bold' } },
+                    xAxis: {
+                        categories: categories,
+                        title: { text: 'Días del Mes', style: { color: '#ffffff' } },
+                        labels: { style: { color: '#ffffff' } },
+                        lineColor: '#ffffff', tickColor: '#ffffff'
+                    },
+                    yAxis: {
+                        title: { text: 'Porcentaje (%)', style: { color: '#ffffff' } },
+                        labels: { style: { color: '#ffffff' } },
+                        gridLineColor: 'rgba(255, 255, 255, 0.2)',
+                        min: 0
+                    },
+                    tooltip: { shared: true, backgroundColor: 'rgba(0,0,0,0.8)', style: { color: '#ffffff' } },
+                    legend: { itemStyle: { color: '#ffffff' } },
+                    credits: { enabled: false },
+                    series: seriesData
+                });
+            }
+
+            // --- LÓGICA PRINCIPAL ---
+            const loadingContainer = document.getElementById('loadingContainerCliente');
+            const containerScreen = document.getElementById('clienteChartSCREEN');
+            const containerPlancha = document.getElementById('clienteChartProcesoPlancha');
+            const btnScreen = document.getElementById('btnClienteScreen');
+            const btnPlancha = document.getElementById('btnClientePlancha');
+
+            // Función para obtener y procesar los datos
+            function fetchDataAndRenderCharts() {
+                fetch("{{ route('screen.dashboard.client-stats-month') }}")
+                    .then(res => res.ok ? res.json() : Promise.reject(res))
+                    .then(data => {
+                        // Ocultar el loader
+                        loadingContainer.style.display = 'none';
+
+                        if (Object.keys(data).length === 0) {
+                            containerScreen.innerHTML = '<div class="loading-text">No hay datos de clientes para mostrar.</div>';
+                            containerScreen.style.display = 'block';
+                            return;
+                        }
+
+                        const clientes = Object.keys(data);
+                        const diasDelMes = data[clientes[0]].map(d => d.dia);
+
+                        // Preparamos los datos para cada gráfico
+                        const seriesScreen = clientes.map(cliente => ({
+                            name: cliente,
+                            data: data[cliente].map(d => d.porcentajeScreen)
+                        }));
+                        
+                        const seriesPlancha = clientes.map(cliente => ({
+                            name: cliente,
+                            data: data[cliente].map(d => d.porcentajePlancha)
+                        }));
+
+                        // Renderizamos ambos gráficos pero mantenemos uno oculto
+                        const chartScreen = createMultiLineChart('clienteChartSCREEN', 'Indicador Mensual por Cliente - SCREEN', diasDelMes, seriesScreen);
+                        const chartPlancha = createMultiLineChart('clienteChartProcesoPlancha', 'Indicador Mensual por Cliente - PROCESO PLANCHA', diasDelMes, seriesPlancha);
+                        
+                        // Mostramos el gráfico inicial
+                        containerScreen.style.display = 'block';
+
+                        // Lógica de los botones para cambiar de vista
+                        btnScreen.addEventListener('click', () => {
+                            containerPlancha.style.display = 'none';
+                            containerScreen.style.display = 'block';
+                            chartScreen.reflow(); // Reajusta el tamaño del gráfico
+                        });
+
+                        btnPlancha.addEventListener('click', () => {
+                            containerScreen.style.display = 'none';
+                            containerPlancha.style.display = 'block';
+                            chartPlancha.reflow(); // Reajusta el tamaño del gráfico
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar los datos por cliente:', error);
+                        loadingContainer.innerHTML = '<div class="loading-text">Error al cargar los datos.</div>';
+                    });
+            }
+
+            // Usamos IntersectionObserver para cargar los datos solo cuando el contenedor sea visible
+            const observer = new IntersectionObserver((entries, obs) => {
+                if (entries[0].isIntersecting) {
+                    fetchDataAndRenderCharts();
+                    obs.unobserve(entries[0].target);
+                }
+            }, { threshold: 0.1 });
+
+            observer.observe(loadingContainer);
         });
     </script>
 

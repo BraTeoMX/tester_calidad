@@ -559,4 +559,81 @@ class DashboardScreenController extends Controller
         return response()->json($monthlyData);
     }
 
+    public function getClientStatsMonth()
+    {
+        $cacheKey = 'client_stats_month_' . Carbon::today()->format('Y-m');
+        $ttl = 300; // 5 minutos de caché
+
+        $monthlyDataByClient = Cache::remember($cacheKey, $ttl, function () {
+            $startOfMonth = Carbon::now()->startOfMonth();
+            $today = Carbon::today()->endOfDay();
+
+            // --- 1. DATOS DE SCREEN: Agrupados por CLIENTE y FECHA en la BD ---
+            $screenData = DB::table('inspeccion_horno as ih')
+                ->leftJoin('inspeccion_horno_screen as ihs', 'ih.id', '=', 'ihs.inspeccion_horno_id')
+                ->leftJoin('inspeccion_horno_screen_defecto as ihsd', 'ihs.id', '=', 'ihsd.inspeccion_horno_screen_id')
+                ->selectRaw("
+                    ih.cliente,
+                    DATE(ih.created_at) as fecha,
+                    SUM(ih.cantidad) as total_auditado,
+                    SUM(ihsd.cantidad) as total_defectos
+                ")
+                ->whereNotNull('ihs.id')->whereNotNull('ih.cliente')
+                ->whereBetween('ih.created_at', [$startOfMonth, $today])
+                ->groupBy('ih.cliente', 'fecha')
+                ->get()
+                ->keyBy(fn($item) => $item->cliente . '|' . $item->fecha); // Clave combinada
+
+            // --- 2. DATOS DE PLANCHA: Agrupados por CLIENTE y FECHA en la BD ---
+            $planchaData = DB::table('inspeccion_horno as ih')
+                ->leftJoin('inspeccion_horno_plancha as ihp', 'ih.id', '=', 'ihp.inspeccion_horno_id')
+                ->leftJoin('inspeccion_horno_plancha_defecto as ihpd', 'ihp.id', '=', 'ihpd.inspeccion_horno_plancha_id')
+                ->selectRaw("
+                    ih.cliente,
+                    DATE(ih.created_at) as fecha,
+                    SUM(ihp.piezas_auditadas) as total_auditado,
+                    SUM(ihpd.cantidad) as total_defectos
+                ")
+                ->whereNotNull('ihp.id')->whereNotNull('ih.cliente')
+                ->whereBetween('ih.created_at', [$startOfMonth, $today])
+                ->groupBy('ih.cliente', 'fecha')
+                ->get()
+                ->keyBy(fn($item) => $item->cliente . '|' . $item->fecha);
+
+            // --- 3. PROCESAR Y COMBINAR EN PHP ---
+            $todosLosClientes = $screenData->pluck('cliente')->merge($planchaData->pluck('cliente'))->unique()->sort();
+            $periodoFechas = CarbonPeriod::create($startOfMonth, $today);
+            $resultadoFinal = [];
+
+            foreach ($todosLosClientes as $cliente) {
+                $datosPorCliente = [];
+                foreach ($periodoFechas as $fecha) {
+                    $fechaStr = $fecha->toDateString();
+                    $clave = $cliente . '|' . $fechaStr;
+
+                    $screenDia = $screenData->get($clave);
+                    $auditadaScreen = $screenDia->total_auditado ?? 0;
+                    $defectosScreen = $screenDia->total_defectos ?? 0;
+                    $porcentajeScreen = $auditadaScreen > 0 ? round(($defectosScreen / $auditadaScreen) * 100, 2) : 0;
+                    
+                    $planchaDia = $planchaData->get($clave);
+                    $auditadaPlancha = $planchaDia->total_auditado ?? 0;
+                    $defectosPlancha = $planchaDia->total_defectos ?? 0;
+                    $porcentajePlancha = $auditadaPlancha > 0 ? round(($defectosPlancha / $auditadaPlancha) * 100, 2) : 0;
+                    
+                    $datosPorCliente[] = [
+                        'dia'                 => $fecha->day,
+                        'porcentajeScreen'    => $porcentajeScreen,
+                        'porcentajePlancha'   => $porcentajePlancha,
+                    ];
+                }
+                $resultadoFinal[$cliente] = $datosPorCliente;
+            }
+
+            return $resultadoFinal;
+        });
+
+        return response()->json($monthlyDataByClient);
+    }
+
 }
