@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CatalogoDefectosScreen;
 use App\Models\CategoriaAccionCorrectScreen;
@@ -486,66 +487,70 @@ class DashboardScreenController extends Controller
 
     public function getDashboardStatsMonth()
     {
-        // Usamos una clave de caché que represente el mes actual para que se actualice cada día.
-        $cacheKey = 'dashboard_stats_month_' . Carbon::today()->format('Y-m');
+        // Usamos v5 en la clave para una nueva versión de caché
+        $cacheKey = 'dashboard_stats_month_v5_' . Carbon::today()->format('Y-m');
         $ttl = 300; // 5 minutos de caché
 
         $monthlyData = Cache::remember($cacheKey, $ttl, function () {
             
             $startOfMonth = Carbon::now()->startOfMonth();
-            $today = Carbon::today();
+            $today = Carbon::today()->endOfDay(); // Usamos endOfDay para incluir todo el día de hoy
+
+            // --- 1. DATOS DE SCREEN: Consulta única que agrupa y suma en la BD ---
+            // Se le pide a la base de datos que haga todo el trabajo pesado.
+            $screenData = DB::table('inspeccion_horno as ih')
+                ->leftJoin('inspeccion_horno_screen as ihs', 'ih.id', '=', 'ihs.inspeccion_horno_id')
+                ->leftJoin('inspeccion_horno_screen_defecto as ihsd', 'ihs.id', '=', 'ihsd.inspeccion_horno_screen_id')
+                ->selectRaw("
+                    DATE(ih.created_at) as fecha,
+                    SUM(ih.cantidad) as total_auditado,
+                    SUM(ihsd.cantidad) as total_defectos
+                ")
+                ->whereNotNull('ihs.id') // Esto asegura que solo contamos inspecciones de Screen.
+                ->whereBetween('ih.created_at', [$startOfMonth, $today])
+                ->groupBy('fecha')
+                ->get()
+                ->keyBy('fecha'); // La clave del array será la fecha ('YYYY-MM-DD') para una búsqueda instantánea.
+
+            // --- 2. DATOS DE PLANCHA: Consulta única que agrupa y suma en la BD ---
+            $planchaData = DB::table('inspeccion_horno as ih')
+                ->leftJoin('inspeccion_horno_plancha as ihp', 'ih.id', '=', 'ihp.inspeccion_horno_id')
+                ->leftJoin('inspeccion_horno_plancha_defecto as ihpd', 'ihp.id', '=', 'ihpd.inspeccion_horno_plancha_id')
+                ->selectRaw("
+                    DATE(ih.created_at) as fecha,
+                    SUM(ihp.piezas_auditadas) as total_auditado,
+                    SUM(ihpd.cantidad) as total_defectos
+                ")
+                ->whereNotNull('ihp.id') // Esto asegura que solo contamos inspecciones de Plancha.
+                ->whereBetween('ih.created_at', [$startOfMonth, $today])
+                ->groupBy('fecha')
+                ->get()
+                ->keyBy('fecha');
+
+            // --- 3. PROCESAR Y COMBINAR EN PHP (Esto ya es muy rápido) ---
+            $periodoFechas = CarbonPeriod::create($startOfMonth, $today);
             $results = [];
-            $currentDay = $startOfMonth->clone();
 
-            // 1. Iteramos día por día desde el inicio del mes hasta hoy.
-            while ($currentDay->lte($today)) {
-                
-                // Para cada día en el bucle, aplicamos la misma lógica de getDashboardStats
-                $fecha = $currentDay->toDateString();
+            foreach ($periodoFechas as $fecha) {
+                $fechaActualStr = $fecha->toDateString();
 
-                // --- CÁLCULO PARA AUDITORIA SCREEN (PARA ESTE DÍA ESPECÍFICO) ---
-                $inspeccionesScreen = InspeccionHorno::with('screen.defectos')
-                    ->whereHas('screen')
-                    ->whereDate('created_at', $fecha)
-                    ->get();
+                // Buscar datos de Screen para el día actual (ya pre-calculados por la BD)
+                $screenDia = $screenData->get($fechaActualStr);
+                $auditadaScreen = $screenDia->total_auditado ?? 0;
+                $defectosScreen = $screenDia->total_defectos ?? 0;
+                $porcentajeScreen = $auditadaScreen > 0 ? round(($defectosScreen / $auditadaScreen) * 100, 2) : 0;
 
-                $cantidadTotalRevisadaScreen = (float) $inspeccionesScreen->sum('cantidad');
-                $cantidadDefectosScreen = $inspeccionesScreen->sum(function ($inspeccion) {
-                    return $inspeccion->screen ? $inspeccion->screen->defectos->sum('cantidad') : 0;
-                });
+                // Buscar datos de Plancha para el día actual (ya pre-calculados por la BD)
+                $planchaDia = $planchaData->get($fechaActualStr);
+                $auditadaPlancha = $planchaDia->total_auditado ?? 0;
+                $defectosPlancha = $planchaDia->total_defectos ?? 0;
+                $porcentajePlancha = $auditadaPlancha > 0 ? round(($defectosPlancha / $auditadaPlancha) * 100, 2) : 0;
 
-                $porcentajeScreen = ($cantidadTotalRevisadaScreen > 0) 
-                    ? ($cantidadDefectosScreen / $cantidadTotalRevisadaScreen) * 100 
-                    : 0;
-
-                // --- CÁLCULO PARA AUDITORIA PLANCHA (PARA ESTE DÍA ESPECÍFICO) ---
-                $inspeccionesPlancha = InspeccionHorno::with('plancha.defectos')
-                    ->whereHas('plancha')
-                    ->whereDate('created_at', $fecha)
-                    ->get();
-                
-                $cantidadTotalRevisadaPlancha = $inspeccionesPlancha->sum(function ($inspeccion) {
-                    return ($inspeccion->plancha && is_numeric($inspeccion->plancha->piezas_auditadas))
-                        ? (float) $inspeccion->plancha->piezas_auditadas
-                        : 0.0;
-                });
-                $cantidadDefectosPlancha = $inspeccionesPlancha->sum(function ($inspeccion) {
-                    return $inspeccion->plancha ? $inspeccion->plancha->defectos->sum('cantidad') : 0;
-                });
-
-                $porcentajePlancha = ($cantidadTotalRevisadaPlancha > 0) 
-                    ? ($cantidadDefectosPlancha / $cantidadTotalRevisadaPlancha) * 100 
-                    : 0;
-
-                // 2. Añadimos los resultados del día a nuestro array final
                 $results[] = [
-                    'dia'               => $currentDay->day, // El número del día (1, 2, ..., 23)
-                    'porcentajeScreen'  => round($porcentajeScreen, 2),
-                    'porcentajePlancha' => round($porcentajePlancha, 2)
+                    'dia'               => $fecha->day,
+                    'porcentajeScreen'  => $porcentajeScreen,
+                    'porcentajePlancha' => $porcentajePlancha,
                 ];
-
-                // 3. Avanzamos al siguiente día para la próxima iteración
-                $currentDay->addDay();
             }
 
             return $results;
