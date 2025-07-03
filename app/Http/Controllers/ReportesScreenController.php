@@ -43,11 +43,11 @@ class ReportesScreenController extends Controller
     {
         $request->validate([
             'fecha_inicio' => 'required|date_format:Y-m-d',
+            'fecha_fin'    => 'required|date_format:Y-m-d|after_or_equal:fecha_inicio',
         ]);
 
-        $fechaSeleccionada = Carbon::parse($request->input('fecha_inicio'));
-        $inicioDia = $fechaSeleccionada->copy()->startOfDay();
-        $finDia    = $fechaSeleccionada->copy()->endOfDay();
+        $inicioDia = Carbon::parse($request->input('fecha_inicio'))->startOfDay();
+        $finDia    = Carbon::parse($request->input('fecha_fin'))->endOfDay();
 
         $inspecciones = InspeccionHorno::with([
             'tecnicas',

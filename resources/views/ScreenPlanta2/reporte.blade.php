@@ -14,15 +14,22 @@
         </div>
 
         <div class="row">
-            <div class="col-md-6 d-flex align-items-center"> {{-- Ajustado para dar más espacio al input y menos al botón --}}
-                <div class="form-group w-100">
-                    <label for="fecha_reporte" class="form-label">Seleccionar Fecha del Reporte</label>
-                    <input type="date" class="form-control" id="fecha_reporte" name="fecha_reporte" value="{{ now()->format('Y-m-d') }}" required> {{-- Valor por defecto: hoy --}}
+            <div class="col-md-5">
+                <div class="form-group">
+                    <label for="fecha_inicio" class="form-label">Fecha de Inicio</label>
+                    {{-- Cambiamos el id de fecha_reporte a fecha_inicio para mayor claridad --}}
+                    <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ now()->format('Y-m-d') }}" required>
                 </div>
             </div>
-            <div class="col-md-6 d-flex align-items-end"> {{-- Alineado al final para el botón --}}
+            <div class="col-md-5">
                 <div class="form-group">
-                    <label class="d-block">&nbsp;</label> <button type="button" class="btn btn-secondary w-100" id="btnMostrarDatos">Mostrar Datos</button>
+                    <label for="fecha_fin" class="form-label">Fecha de Fin</label>
+                    <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ now()->format('Y-m-d') }}" required>
+                </div>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <div class="form-group w-100">
+                    <button type="button" class="btn btn-secondary w-100" id="btnMostrarDatos">Mostrar Datos</button>
                 </div>
             </div>
         </div>
@@ -82,30 +89,33 @@
             }
         
             function cargarReportePorDia(fechaSeleccionada) {
-                if (!fechaSeleccionada) {
-                    alert("Por favor, seleccione una fecha.");
-                    destruirDataTablesExistentes(); // Destruir tablas antes de mostrar error
-                    $("#contenedor-tablas-maquinas").html(`<div class="card card-body"><p class="text-center text-danger">Error: Fecha no proporcionada.</p></div>`);
+                if (!fechaInicio || !fechaFin) {
+                    alert("Por favor, seleccione una fecha de inicio y de fin.");
+                    destruirDataTablesExistentes();
+                    $("#contenedor-tablas-maquinas").html(`<div class="card card-body"><p class="text-center text-danger">Error: Fechas no proporcionadas.</p></div>`);
                     $("#contenedor-resumen-general").empty();
                     return;
                 }
         
                 // Destruir DataTables existentes antes de una nueva carga
                 destruirDataTablesExistentes();
-        
                 $("#contenedor-tablas-maquinas").html(`<div class="card card-body"><p class="text-center">Cargando datos... <i class="fas fa-spinner fa-spin"></i></p></div>`);
                 $("#contenedor-resumen-general").empty();
+
+                const rangoFechasTexto = fechaInicio === fechaFin ? fechaInicio : `${fechaInicio} al ${fechaFin}`;
         
                 $.ajax({
                     url: '{{ route("reportesScreen.datosPorDia") }}',
                     method: 'GET',
-                    data: { fecha_inicio: fechaSeleccionada, _token: '{{ csrf_token() }}' },
+                    data: { 
+                        fecha_inicio: fechaInicio, 
+                        fecha_fin: fechaFin, // <-- Nuevo parámetro
+                        _token: '{{ csrf_token() }}' 
+                    },
                     dataType: 'json',
                     success: function(response) {
                         var contenedorMaquinas = $("#contenedor-tablas-maquinas");
                         var contenedorResumenGeneral = $("#contenedor-resumen-general");
-                        
-                        // Destruir DataTables ANTES de vaciar los contenedores por si acaso
                         destruirDataTablesExistentes();
                         contenedorMaquinas.empty();
                         contenedorResumenGeneral.empty();
@@ -201,7 +211,7 @@
                                             {
                                                 extend: 'excelHtml5',
                                                 text: 'Exportar a Excel',
-                                                title: `Reporte Máquina - ${nombreMaquina} - ${fechaSeleccionada}`,
+                                                title: `Reporte Máquina - ${nombreMaquina} - ${rangoFechasTexto}`, 
                                                 footer: true, // Esto asegura que el tfoot se incluya en la exportación
                                                 exportOptions: {
                                                     // Aquí podrías especificar columnas si fuera necesario, pero con footer:true es usualmente suficiente.
@@ -232,7 +242,7 @@
                             let resumenGeneralHtml = `
                                 <div class="card">
                                     <div class="card-header card-header-success">
-                                        <h4 class="card-title mb-0">Resumen General del Día (${fechaSeleccionada})</h4>
+                                        <h4 class="card-title mb-0">Resumen General del Día (${rangoFechasTexto})</h4>
                                     </div>
                                     <div class="card-body">
                                         <div class="table-responsive">
@@ -282,7 +292,7 @@
                                     {
                                         extend: 'excelHtml5',
                                         text: 'Exportar Resumen a Excel',
-                                        title: `Resumen General - ${fechaSeleccionada}`,
+                                        title: `Resumen General - ${rangoFechasTexto}`,
                                         footer: true // Incluir tfoot
                                     }
                                 ],
@@ -311,8 +321,9 @@
             }
         
             $("#btnMostrarDatos").click(function() {
-                var fechaSeleccionada = $("#fecha_reporte").val();
-                cargarReportePorDia(fechaSeleccionada);
+                var fechaInicio = $("#fecha_inicio").val();
+                var fechaFin = $("#fecha_fin").val(); // <-- Obtener la fecha de fin
+                cargarReportePorDia(fechaInicio, fechaFin); // <-- Pasar ambos valores
             });
         });
         </script>
