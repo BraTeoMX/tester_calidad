@@ -238,6 +238,12 @@
                         <p>{{ __('Dashboard') }}</p>
                     </a>
                 </li>
+                <li class="nav-item{{ $pageSlug == 'dashboardScreen' ? ' active' : '' }}">
+                    <a class="nav-link" href="{{ route('screen.dashboard') }}">
+                        <i class="tim-icons icon-chart-bar-32"></i>
+                        <p>{{ __('Dashboard Screen') }}</p>
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link" data-toggle="collapse" href="#consultaPorDiaMenu" aria-expanded="false">
                         <i class="tim-icons icon-tap-02"></i>
@@ -353,9 +359,48 @@
                     </div>
                 </li>
             @endif
+            @if (auth()->check() && (auth()->user()->hasRole('Coordinador')))
+                <li class="nav-item">
+                    <a class="nav-link" data-toggle="collapse" href="#laravelExample" aria-expanded="true">
+                        <i class="material-icons">admin_panel_settings</i>
+                        <p>{{ __('Administrador') }}
+                            <b class="caret"></b>
+                        </p>
+                    </a>
+                    <div class="collapse" id="laravelExample">
+                        <ul class="nav">
+                            <li class="nav-item{{ $pageSlug == 'Gestion' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('altaYbaja') }}">
+                                    <i class="tim-icons icon-support-17"></i>
+                                    <p>{{ __('Gestión de Categorías') }}</p>
+                                </a>
+                            </li>
+                            <li class="nav-item{{ $pageSlug == 'GestionBusqueda' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('gestion.agregarAqlProceso') }}">
+                                    <i class="tim-icons icon-zoom-split"></i>
+                                    <p>{{ __('Busqueda Bulto/Estilo') }}</p>
+                                </a>
+                            </li>
+                            <li class="nav-item{{ $pageSlug == 'bnf' ? ' active' : '' }}">
+                                <a class="nav-link" href="{{ route('bnf.index') }}">
+                                    <i class="material-symbols-outlined">delete_history</i>
+                                    <p>{{ __('Paros No Finalizados') }}</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('gestionUsuario') }}">
+                                    <i class="tim-icons icon-single-02"></i>
+                                    <span class="sidebar-normal"> {{ __('Administrador de Usuarios') }} </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+            @endif
             @if (auth()->check() &&
                 (auth()->user()->hasRole('Auditor') ||
                 auth()->user()->hasRole('Administrador') ||
+                auth()->user()->hasRole('Coordinador') ||
                 auth()->user()->hasRole('Gerente de Calidad')))
                 <li class="nav-item {{ $pageSlug == 'profile' || $pageSlug == 'user-management' ? ' active' : '' }}">
                     <a class="nav-link" data-toggle="collapse" href="#laravelExamples" aria-expanded="true">
