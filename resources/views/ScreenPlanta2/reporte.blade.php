@@ -88,7 +88,7 @@
                 dataTableInstances = []; // Resetear el array
             }
         
-            function cargarReportePorDia(fechaSeleccionada) {
+            function cargarReportePorDia(fechaInicio, fechaFin) {
                 if (!fechaInicio || !fechaFin) {
                     alert("Por favor, seleccione una fecha de inicio y de fin.");
                     destruirDataTablesExistentes();
@@ -242,7 +242,7 @@
                             let resumenGeneralHtml = `
                                 <div class="card">
                                     <div class="card-header card-header-success">
-                                        <h4 class="card-title mb-0">Resumen General del Día (${rangoFechasTexto})</h4>
+                                        <h4 class="card-title mb-0">Resumen General del Periodo (${rangoFechasTexto})</h4>
                                     </div>
                                     <div class="card-body">
                                         <div class="table-responsive">
@@ -326,5 +326,5 @@
                 cargarReportePorDia(fechaInicio, fechaFin); // <-- Pasar ambos valores
             });
         });
-        </script>
+    </script>
 @endsection

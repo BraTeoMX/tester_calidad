@@ -139,7 +139,7 @@ class ReportesScreenController extends Controller
                 'cantidadNumericaPlanchaDefectos' => $cantidadNumericaPlanchaDefectos,
                 'tecnico_screen'    => $tecnicoScreen,
                 'tecnico_plancha'   => $tecnicoPlancha,
-                'fecha'             => $inspeccion->created_at ? $inspeccion->created_at->format('H:i:s') : 'N/A'
+                'fecha' => $inspeccion->created_at ? $inspeccion->created_at->format('d/m/Y - H:i:s') : 'N/A'
             ];
         });
 
