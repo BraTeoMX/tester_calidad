@@ -39,7 +39,7 @@ class DashboardBusquedaOPController extends Controller
     {
         $title = "";
 
-        return view('dashboard.busquedaOP', compact('title' ));
+        return view('dashboard.busquedaOP', compact('title'));
     }
 
     public function buscar(Request $request)
@@ -62,16 +62,16 @@ class DashboardBusquedaOPController extends Controller
 
             case 'estilo':
                 $ops = AuditoriaAQL::where('estilo', 'LIKE', "%{$termino}%")
-                        ->distinct()
-                        ->pluck('op');
+                    ->distinct()
+                    ->pluck('op');
 
                 return response()->json(['ops' => $ops]);
                 break;
 
             case 'color':
                 $ops = AuditoriaAQL::where('color', 'LIKE', "%{$termino}%")
-                        ->distinct()
-                        ->pluck('op');
+                    ->distinct()
+                    ->pluck('op');
 
                 return response()->json(['ops' => $ops]);
                 break;
@@ -82,34 +82,44 @@ class DashboardBusquedaOPController extends Controller
 
         $resultados = $query->with('tpAuditoriaAQL')->get([
             'id',
-            'op', 'bulto', 'auditor', 'modulo', 'cliente',
-            'estilo', 'color', 'planta', 'pieza',
-            'cantidad_auditada', 'cantidad_rechazada','nombre', 'created_at'
+            'op',
+            'bulto',
+            'auditor',
+            'modulo',
+            'cliente',
+            'estilo',
+            'color',
+            'planta',
+            'pieza',
+            'cantidad_auditada',
+            'cantidad_rechazada',
+            'nombre',
+            'created_at'
         ]);
-        
+
         $resultados->transform(function ($item) {
             $item->fecha_creacion = \Carbon\Carbon::parse($item->created_at)->format('d/m/Y - H:i:s');
             $item->operario = $item->nombre;
-        
+
             // Calcular porcentaje AQL
             $pieza = $item->pieza ?? 0;
             $rechazada = $item->cantidad_rechazada ?? 0;
             $item->porcentaje_aql = $pieza > 0 ? round(($rechazada / $pieza) * 100, 2) : 0;
-        
+
             // Obtener defectos
             $defectos = $item->tpAuditoriaAQL->pluck('tp')->filter();
-        
+
             // Detectar si alguno dice "NINGUNO"
-            $contieneNinguno = $defectos->contains(function($valor) {
+            $contieneNinguno = $defectos->contains(function ($valor) {
                 return strtolower(trim($valor)) === 'ninguno';
             });
-        
+
             if ($contieneNinguno || $defectos->isEmpty()) {
                 $htmlDefectos = '<span>N/A</span>';
             } else {
                 $conteoDefectos = $defectos->countBy();
                 $htmlDefectos = '<ul class="mb-0">';
-                
+
                 foreach ($conteoDefectos as $nombre => $cantidad) {
                     if ($cantidad > 1) {
                         $htmlDefectos .= "<li>{$nombre} ({$cantidad})</li>";
@@ -117,19 +127,28 @@ class DashboardBusquedaOPController extends Controller
                         $htmlDefectos .= "<li>{$nombre}</li>";
                     }
                 }
-        
+
                 $htmlDefectos .= '</ul>';
             }
-        
+
             $item->defectos_html = $htmlDefectos;
-        
+
             // Campos vacíos como "N/A"
             $campos = [
-                'op', 'bulto', 'auditor', 'modulo', 'cliente',
-                'estilo', 'color', 'planta', 'pieza',
-                'cantidad_auditada', 'cantidad_rechazada','nombre'
+                'op',
+                'bulto',
+                'auditor',
+                'modulo',
+                'cliente',
+                'estilo',
+                'color',
+                'planta',
+                'pieza',
+                'cantidad_auditada',
+                'cantidad_rechazada',
+                'nombre'
             ];
-        
+
             foreach ($campos as $campo) {
                 if (is_null($item->$campo) || $item->$campo === '') {
                     $item->$campo = 'N/A';
@@ -154,7 +173,7 @@ class DashboardBusquedaOPController extends Controller
             unset($item->nombre);
 
             return $item;
-        });        
+        });
 
         return response()->json(['resultados' => $resultados]);
     }
@@ -167,16 +186,22 @@ class DashboardBusquedaOPController extends Controller
 
         // Rango de ±2 días
         $inicio = $fechaCreacion->copy()->subDays(2)->startOfDay();
-        $fin = $fechaCreacion->copy()->addDays(2)->endOfDay();
-
+        $fin = $fechaCreacion->copy()->addDays(4)->endOfDay();
+        Log::info("Buscando procesos relacionados para estilo del dia {$fechaCreacion}: {$estilo}, modulo: {$modulo}, rango: {$inicio} a {$fin}");
         $resultados = AseguramientoCalidad::with('tpAseguramientoCalidad')
             ->where('estilo', $estilo)
-            ->where('modulo', $modulo)
+            //->where('modulo', $modulo)
             ->whereBetween('created_at', [$inicio, $fin])
             ->get([
                 'id',
-                'modulo', 'cliente', 'estilo', 'planta',
-                'auditor', 'nombre', 'cantidad_auditada', 'cantidad_rechazada',
+                'modulo',
+                'cliente',
+                'estilo',
+                'planta',
+                'auditor',
+                'nombre',
+                'cantidad_auditada',
+                'cantidad_rechazada',
                 'created_at'
             ])
             ->transform(function ($item) {
@@ -213,8 +238,13 @@ class DashboardBusquedaOPController extends Controller
 
                 // Campos vacíos como "N/A" y planta legible
                 $campos = [
-                    'modulo', 'cliente', 'estilo', 'planta',
-                    'auditor', 'cantidad_auditada', 'cantidad_rechazada'
+                    'modulo',
+                    'cliente',
+                    'estilo',
+                    'planta',
+                    'auditor',
+                    'cantidad_auditada',
+                    'cantidad_rechazada'
                 ];
 
                 foreach ($campos as $campo) {
@@ -237,5 +267,4 @@ class DashboardBusquedaOPController extends Controller
 
         return response()->json(['resultados' => $resultados]);
     }
-    
 }

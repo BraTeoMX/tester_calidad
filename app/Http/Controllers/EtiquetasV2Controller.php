@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 use Carbon\Carbon;
@@ -11,6 +12,7 @@ use App\Models\Cat_DefEtiquetas;
 use App\Models\ReporteAuditoriaEtiqueta;
 use App\Models\TpReporteAuditoriaEtiqueta;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class EtiquetasV2Controller extends Controller
 {
@@ -97,60 +99,43 @@ class EtiquetasV2Controller extends Controller
 
     private function obtenerEstilos($tipoBusqueda, $orden)
     {
-        // Definir la conexión y el campo de búsqueda según el tipo de búsqueda
-        if ($tipoBusqueda === 'OC') {
-            $campoBusqueda1 = 'ordenCompra';
-            $campoBusqueda2 = 'OrdenCompra';
+        // 1. Creamos una clave única para el caché
+        $cacheKey = 'estilos.' . $tipoBusqueda . '.' . $orden;
 
-            $conexion1 = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View');
-            $conexion2 = DB::connection('sqlsrv_ax')->table('EtiquetasOC2_View');
-
-            // Unificar los resultados de ambas vistas usando union
-            $estilos = $conexion1
-                ->where($campoBusqueda1, $orden)
-                ->select('Estilos')
-                ->union(
-                    $conexion2
-                        ->where($campoBusqueda2, $orden)
-                        ->select('Estilos')
-                )
-                ->distinct()
-                ->get();
-        } elseif ($tipoBusqueda === 'OP') {
-            $campoBusqueda = 'OP';
-            $conexion = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
-            $estilos = $conexion
-                ->where($campoBusqueda, $orden)
-                ->select('Estilos')
-                ->distinct()
-                ->get();
-        } elseif ($tipoBusqueda === 'PO') {
-            $campoBusqueda1 = 'CPO';
-            $campoBusqueda2 = 'CPO'; // Suponiendo que el campo se llama igual en ambas vistas
-        
-            $conexion1 = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
-            $conexion2 = DB::connection('sqlsrv')->table('MaterializedBacklogTable2_View');
-        
-            // Unificar los resultados de ambas vistas usando union
-            $estilos = $conexion1
-                ->where($campoBusqueda1, $orden)
-                ->select('Estilos')
-                ->union(
-                    $conexion2
-                        ->where($campoBusqueda2, $orden)
-                        ->select('Estilos')
-                )
-                ->distinct()
-                ->get();
-        } elseif ($tipoBusqueda === 'OV') {
-            $campoBusqueda = 'SALESID';
-            $conexion = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
-            $estilos = $conexion
-                ->where($campoBusqueda, $orden)
-                ->select('Estilos')
-                ->distinct()
-                ->get();
-        }
+        // 2. Usamos Cache::remember. El '10' es el número de minutos.
+        $estilos = Cache::remember($cacheKey, 10, function () use ($tipoBusqueda, $orden) {
+            // Toda tu lógica de consulta original va aquí dentro.
+            // Solo se ejecutará si los datos no están en el caché.
+            if ($tipoBusqueda === 'OC') {
+                $campoBusqueda1 = 'ordenCompra';
+                $campoBusqueda2 = 'OrdenCompra';
+                $conexion1 = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View');
+                $conexion2 = DB::connection('sqlsrv_ax')->table('EtiquetasOC2_View');
+                return $conexion1
+                    ->where($campoBusqueda1, $orden)->select('Estilos')
+                    ->union($conexion2->where($campoBusqueda2, $orden)->select('Estilos'))
+                    ->distinct()->get();
+            } elseif ($tipoBusqueda === 'OP') {
+                $campoBusqueda = 'OP';
+                $conexion = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+                return $conexion->where($campoBusqueda, $orden)->select('Estilos')->distinct()->get();
+            } elseif ($tipoBusqueda === 'PO') {
+                $campoBusqueda1 = 'CPO';
+                $campoBusqueda2 = 'CPO';
+                $conexion1 = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+                $conexion2 = DB::connection('sqlsrv')->table('MaterializedBacklogTable2_View');
+                return $conexion1
+                    ->where($campoBusqueda1, $orden)->select('Estilos')
+                    ->union($conexion2->where($campoBusqueda2, $orden)->select('Estilos'))
+                    ->distinct()->get();
+            } elseif ($tipoBusqueda === 'OV') {
+                $campoBusqueda = 'SALESID';
+                $conexion = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+                return $conexion->where($campoBusqueda, $orden)->select('Estilos')->distinct()->get();
+            }
+            // En caso de que no entre en ningún if, devolvemos una colección vacía
+            return collect();
+        });
 
         return $estilos;
     }
@@ -166,116 +151,47 @@ class EtiquetasV2Controller extends Controller
         $orden = $request->input('orden');
         $estilo = $request->input('estilo');
 
-        // Según tipo de búsqueda, definimos el modelo y campos
-        if ($tipoBusqueda === 'OC') { 
-            $campoBusqueda2 = 'OrdenCompra';
-            $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View');
-            $selectCampos = ['OrdenCompra', 'Estilos', 'Cantidad', 'Talla', 'Color'];
+        // 1. Clave única para las tallas
+        $cacheKey = 'tallas.' . $tipoBusqueda . '.' . $orden . '.' . $estilo;
 
-            // Buscar datos para ese estilo+orden
-            $datos = $modelo->where('Estilos', $estilo)
-                ->where($campoBusqueda2, $orden)
-                ->select($selectCampos)
-                ->get();
+        // 2. Obtenemos las tallas desde el caché o ejecutando la consulta
+        $tallas = Cache::remember($cacheKey, 10, function () use ($tipoBusqueda, $orden, $estilo) {
+            if ($tipoBusqueda === 'OC') {
+                // ... (lógica para OC sin cambios)
+                $campoBusqueda2 = 'OrdenCompra';
+                $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View');
+                $selectCampos = ['OrdenCompra', 'Estilos', 'Cantidad', 'Talla', 'Color'];
+                $datos = $modelo->where('Estilos', $estilo)->where($campoBusqueda2, $orden)->select($selectCampos)->get();
+                if ($datos->isEmpty()) {
+                    $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC2_View');
+                    $datos = $modelo->where('Estilos', $estilo)->where($campoBusqueda2, $orden)->select($selectCampos)->get();
+                }
+                return $datos->pluck('Talla')->unique()->values(); // Devolvemos el dato a cachear
 
-            // Búsqueda secundaria en EtiquetasOC2_View si no hay resultados
-            if ($datos->isEmpty()) {
-                $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC2_View');
-                $datos = $modelo->where('Estilos', $estilo)
-                    ->where($campoBusqueda2, $orden)
-                    ->select($selectCampos)
-                    ->get();
+            } elseif (in_array($tipoBusqueda, ['PO', 'OV'])) {
+                // ... (lógica para PO y OV sin cambios)
+                $campoBusqueda2 = ['PO' => 'CPO', 'OV' => 'SALESID'][$tipoBusqueda];
+                $modelo1 = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+                $modelo2 = DB::connection('sqlsrv')->table('MaterializedBacklogTable2_View');
+                $selectCampos = [$campoBusqueda2, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
+                $datosTabla1 = $modelo1->where('Estilos', $estilo)->where($campoBusqueda2, $orden)->select($selectCampos)->get();
+                $datosTabla2 = collect();
+                if ($tipoBusqueda === 'PO' && $datosTabla1->isEmpty()) {
+                    $datosTabla2 = $modelo2->where('Estilos', $estilo)->where($campoBusqueda2, $orden)->select($selectCampos)->get();
+                }
+                $datos = $datosTabla1->merge($datosTabla2);
+                return $datos->pluck('sizename')->map(fn($size) => (string) $size)->filter()->unique()->values(); // Devolvemos el dato a cachear
+
+            } else { // Caso 'OP'
+                $campoBusqueda2 = 'OP';
+                $modelo = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+                $selectCampos = [$campoBusqueda2, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
+                $datos = $modelo->where('Estilos', $estilo)->where($campoBusqueda2, $orden)->select($selectCampos)->get();
+                return $datos->pluck('sizename')->unique()->values(); // Devolvemos el dato a cachear
             }
+        });
 
-            // Extraemos la lista única de tallas
-            $tallas = $datos->pluck('Talla')->unique()->values();
-
-        } elseif (in_array($tipoBusqueda, ['PO', 'OV'])) { 
-            $campoBusqueda2 = [
-                'PO' => 'CPO',
-                'OV' => 'SALESID',
-            ][$tipoBusqueda];
-        
-            $modelo1 = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
-            $modelo2 = DB::connection('sqlsrv')->table('MaterializedBacklogTable2_View'); // Segunda tabla solo para 'PO'
-            $selectCampos = [$campoBusqueda2, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
-        
-            // Log de entrada
-            /* Log::info('Inicio búsqueda para tipoBusqueda', [
-                'TipoBusqueda' => $tipoBusqueda,
-                'Estilo' => $estilo,
-                'Orden' => $orden,
-                'CampoBusqueda' => $campoBusqueda2,
-            ]); */
-        
-            // Buscar en la tabla principal
-            $datosTabla1 = $modelo1
-                ->where('Estilos', $estilo)
-                ->where($campoBusqueda2, $orden)
-                ->select($selectCampos)
-                ->get();
-        
-            // Log resultados de la primera búsqueda
-            /* Log::info('Resultados de la búsqueda en MaterializedBacklogTable_View', [
-                'Resultados' => $datosTabla1->toArray(),
-            ]); */
-        
-            // Si el tipo es 'PO' y no hay resultados, buscar en la segunda tabla
-            $datosTabla2 = collect();
-            if ($tipoBusqueda === 'PO' && $datosTabla1->isEmpty()) {
-                //Log::info('No se encontraron resultados en MaterializedBacklogTable_View. Buscando en MaterializedBacklogTable2_View');
-        
-                $datosTabla2 = $modelo2
-                    ->where('Estilos', $estilo)
-                    ->where($campoBusqueda2, $orden)
-                    ->select($selectCampos)
-                    ->get();
-        
-                // Log resultados de la segunda búsqueda
-                /* Log::info('Resultados de la búsqueda en MaterializedBacklogTable2_View', [
-                    'Resultados' => $datosTabla2->toArray(),
-                ]); */
-            }
-        
-            // Combina los datos de ambas tablas (si es necesario)
-            $datos = $datosTabla1->merge($datosTabla2);
-        
-            // Extraemos las tallas únicas como cadenas
-            $tallas = $datos->pluck('sizename')
-                ->map(fn($size) => (string) $size) // Convierte a cadena
-                ->filter(fn($size) => !is_null($size) && trim($size) !== '') // Filtra valores nulos o vacíos
-                ->groupBy(fn($size) => $size) // Agrupa por cadena exacta
-                ->keys(); // Obtiene las claves únicas exactas como tallas
-        
-            // Log de las tallas obtenidas
-            /*Log::info('Lista de tallas obtenidas', [
-                'Tallas' => $tallas->toArray(),
-            ]); */
-        
-            // Retornar las tallas como JSON
-            return response()->json([
-                'success' => true,
-                'tallas'  => $tallas
-            ]);
-        } else {
-            // Para OP, PO, OV
-            $campoBusqueda2 = [
-                'OP' => 'OP',
-            ][$tipoBusqueda];
-
-            $modelo = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
-            $selectCampos = [$campoBusqueda2, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
-
-            $datos = $modelo->where('Estilos', $estilo)
-                ->where($campoBusqueda2, $orden)
-                ->select($selectCampos)
-                ->get();
-
-            // Extraemos la lista única de tallas (en este caso, sizename)
-            $tallas = $datos->pluck('sizename')->unique()->values();
-        }
-
-        // Retornamos la lista de tallas como JSON para que el front-end llene el segundo select
+        // 3. La respuesta JSON se construye siempre, usando los datos del caché o los recién consultados
         return response()->json([
             'success' => true,
             'tallas'  => $tallas
@@ -291,139 +207,74 @@ class EtiquetasV2Controller extends Controller
         $tipoBusqueda = $request->input('tipoBusqueda');
         $orden = $request->input('orden');
         $estilo = $request->input('estilo');
-        $talla = $request->input('talla');  // o sizename, dependiendo del tipo
+        $talla = $request->input('talla');
 
-        if ($tipoBusqueda === 'OC') {
-            $campoBusqueda2 = 'OrdenCompra';
-            $modelo         = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View');
-            $selectCampos   = ['OrdenCompra', 'Estilos', 'Cantidad', 'Talla', 'Color'];
-            $campoCantidad  = 'Cantidad';
+        // 1. Clave única para los datos crudos de la BD externa
+        $cacheKey = 'data_externa.' . $tipoBusqueda . '.' . $orden . '.' . $estilo . '.' . $talla;
 
-            // Buscar datos
-            $datos = $modelo->where('Estilos', $estilo)
-                            ->where($campoBusqueda2, $orden)
-                            ->where('Talla', $talla)
-                            ->select($selectCampos)
-                            ->get();
-
-            // Búsqueda secundaria si no encuentra en EtiquetasOC_View
-            if ($datos->isEmpty()) {
-                $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC2_View');
-                $datos  = $modelo->where('Estilos', $estilo)
-                                 ->where($campoBusqueda2, $orden)
-                                 ->where('Talla', $talla)
-                                 ->select($selectCampos)
-                                 ->get();
-            }
-        } else {
-            // OP, PO, OV
-            $campoBusqueda2 = [
-                'OP' => 'OP',
-                'PO' => 'CPO',
-                'OV' => 'SALESID',
-            ][$tipoBusqueda];
-        
-            $modelo1 = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
-            $modelo2 = DB::connection('sqlsrv')->table('MaterializedBacklogTable2_View');
-            $selectCampos = [$campoBusqueda2, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
-            $campoCantidad = 'qty';
-        
-            // Buscar en la primera tabla
-            $datosTabla1 = $modelo1
-                ->where('Estilos', $estilo)
-                ->where($campoBusqueda2, $orden)
-                ->where('sizename', $talla)
-                ->select($selectCampos)
-                ->get();
-        
-            // Log resultados de la primera búsqueda
-            /* Log::info('Resultados de la búsqueda en MaterializedBacklogTable_View', [
-                'Resultados' => $datosTabla1->toArray(),
-            ]); */
-        
-            // Buscar en la segunda tabla para los casos 'PO' y 'OV'
-            $datosTabla2 = collect();
-            if (in_array($tipoBusqueda, ['PO', 'OV'])) {
-                $datosTabla2 = $modelo2
-                    ->where('Estilos', $estilo)
-                    ->where($campoBusqueda2, $orden)
-                    ->where('sizename', $talla)
-                    ->select($selectCampos)
-                    ->get();
-        
-                // Log resultados de la segunda búsqueda
-                /* Log::info('Resultados de la búsqueda en MaterializedBacklogTable2_View', [
-                    'Resultados' => $datosTabla2->toArray(),
-                ]); */
-            }
-        
-            // Combina los resultados de ambas tablas
-            $datos = $datosTabla1->merge($datosTabla2);
-        
-            // Log resultados combinados
-            /* Log::info('Resultados combinados de ambas tablas', [
-                'Resultados' => $datos->toArray(),
-            ]); */
-        
-            // Filtrar duplicados comparando con registros existentes
-            $registrosExistentes = ReporteAuditoriaEtiqueta::all();
-            $registrosExistentesArray = $registrosExistentes->map(function ($item) {
-                return [
-                    'Orden'   => $item->Orden,
-                    'Estilos' => $item->Estilos,
-                    'Color'   => $item->Color,
-                    'Talla'   => $item->Talla,
-                ];
-            })->toArray();
-        
-            $datosFiltrados = $datos->filter(function ($dato) use ($registrosExistentesArray, $tipoBusqueda, $campoBusqueda2) {
-                $color = $dato->inventcolorid; // Usar inventcolorid para casos no 'OC'
-                $tallaReal = $dato->sizename; // Usar sizename para casos no 'OC'
-                $ordenValor = $dato->$campoBusqueda2;
-        
-                $combinacion = [
-                    'Orden'   => $ordenValor,
-                    'Estilos' => $dato->Estilos,
-                    'Color'   => $color,
-                    'Talla'   => $tallaReal,
-                ];
-        
-                return !in_array($combinacion, $registrosExistentesArray);
-            });
-        
-            // Calcular el tamaño de muestra para cada registro filtrado
-            foreach ($datosFiltrados as $dato) {
-                $cantidad = $dato->$campoCantidad;
-                $tamaño_muestra = $this->calcularTamanoMuestra($cantidad);
-                $dato->tamaño_muestra = $tamaño_muestra;
-            }
-        
-            // Si hubiera varios registros y quisieras solo el primero
-            $respuesta = null;
-            if ($datosFiltrados->count() > 0) {
-                $primer = $datosFiltrados->first();
-        
-                // Usamos el operador ?? para poner "N/A" si no viene color
-                $respuesta = [
-                    'cantidad'       => $primer->$campoCantidad,
-                    'tamaño_muestra' => $primer->tamaño_muestra,
-                    'color'          => $primer->inventcolorid ?? 'N/A',
-                ];
+        // 2. Obtenemos los datos de la BD externa (desde caché o consulta real)
+        $datos = Cache::remember($cacheKey, 10, function () use ($tipoBusqueda, $orden, $estilo, $talla) {
+            if ($tipoBusqueda === 'OC') {
+                // ... (lógica de consulta para OC)
+                $campoBusqueda2 = 'OrdenCompra';
+                $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC_View');
+                $selectCampos = ['OrdenCompra', 'Estilos', 'Cantidad', 'Talla', 'Color'];
+                $datosQuery = $modelo->where('Estilos', $estilo)->where($campoBusqueda2, $orden)->where('Talla', $talla)->select($selectCampos)->get();
+                if ($datosQuery->isEmpty()) {
+                    $modelo = DB::connection('sqlsrv_ax')->table('EtiquetasOC2_View');
+                    $datosQuery = $modelo->where('Estilos', $estilo)->where($campoBusqueda2, $orden)->where('Talla', $talla)->select($selectCampos)->get();
+                }
+                return $datosQuery;
             } else {
-                // Si no hay nada filtrado
-                $respuesta = [
-                    'cantidad'       => 0,
-                    'tamaño_muestra' => '',
-                    'color'          => 'N/A',
-                ];
+                // ... (lógica de consulta para OP, PO, OV)
+                $campoBusqueda2 = ['OP' => 'OP', 'PO' => 'CPO', 'OV' => 'SALESID'][$tipoBusqueda];
+                $modelo1 = DB::connection('sqlsrv')->table('MaterializedBacklogTable_View');
+                $modelo2 = DB::connection('sqlsrv')->table('MaterializedBacklogTable2_View');
+                $selectCampos = [$campoBusqueda2, 'Estilos', 'qty', 'sizename', 'inventcolorid'];
+                $datosTabla1 = $modelo1->where('Estilos', $estilo)->where($campoBusqueda2, $orden)->where('sizename', $talla)->select($selectCampos)->get();
+                $datosTabla2 = collect();
+                if (in_array($tipoBusqueda, ['PO', 'OV'])) {
+                    $datosTabla2 = $modelo2->where('Estilos', $estilo)->where($campoBusqueda2, $orden)->where('sizename', $talla)->select($selectCampos)->get();
+                }
+                return $datosTabla1->merge($datosTabla2);
             }
-        
-            return response()->json([
-                'success' => true,
-                'data'    => $respuesta,
-            ]);
-        }       
-    } 
+        });
+
+        // --- ESTA PARTE SE EJECUTA SIEMPRE, CON DATOS FRESCOS O DE CACHÉ ---
+        // 3. Filtrar duplicados contra registros locales (esto NO se cachea)
+        $registrosExistentes = ReporteAuditoriaEtiqueta::where('orden', $orden)
+            ->where('estilo', $estilo)
+            ->where('talla', $talla)
+            ->get(['orden', 'estilo', 'color', 'talla']) // Más eficiente
+            ->map(fn($item) => implode('-', [$item->orden, $item->estilo, $item->talla, $item->color]))
+            ->flip(); // Usar un mapa para búsquedas O(1)
+
+        $datosFiltrados = $datos->filter(function ($dato) use ($registrosExistentes) {
+            $color = $dato->Color ?? $dato->inventcolorid ?? 'N/A';
+            $tallaReal = $dato->Talla ?? $dato->sizename ?? '';
+            $ordenValor = $dato->OrdenCompra ?? $dato->CPO ?? $dato->SALESID ?? $dato->OP ?? '';
+
+            $combinacion = implode('-', [$ordenValor, $dato->Estilos, $tallaReal, $color]);
+            return !isset($registrosExistentes[$combinacion]);
+        });
+
+        // 4. Procesar el primer resultado disponible
+        $respuesta = null;
+        if ($datosFiltrados->isNotEmpty()) {
+            $primer = $datosFiltrados->first();
+            $campoCantidad = isset($primer->Cantidad) ? 'Cantidad' : 'qty';
+            $cantidad = $primer->$campoCantidad;
+            $respuesta = [
+                'cantidad'       => $cantidad,
+                'tamaño_muestra' => $this->calcularTamanoMuestra($cantidad),
+                'color'          => $primer->Color ?? $primer->inventcolorid ?? 'N/A',
+            ];
+        } else {
+            $respuesta = ['cantidad' => 0, 'tamaño_muestra' => '', 'color' => 'N/A'];
+        }
+
+        return response()->json(['success' => true, 'data' => $respuesta]);
+    }
 
     /**
      * Función helper para calcular el tamaño de muestra con base en la cantidad.
@@ -528,7 +379,7 @@ class EtiquetasV2Controller extends Controller
                 TpReporteAuditoriaEtiqueta::create([
                     'id_reporte_auditoria_etiquetas' => $reporte->id,
                     'nombre'  => $defecto['nombre'],
-                    'cantidad'=> $defecto['cantidad'],
+                    'cantidad' => $defecto['cantidad'],
                 ]);
             }
         }
@@ -543,7 +394,6 @@ class EtiquetasV2Controller extends Controller
             'success' => true,
             'message' => 'Auditoría guardada correctamente.',
         ]);
-        
     }
 
 
@@ -556,11 +406,9 @@ class EtiquetasV2Controller extends Controller
         // Registramos la fecha/hora del cambio
         // (Suponiendo que agregaste la columna `fecha_cambio_estatus` en tu tabla)
         $registro->fecha_cambio_estatus = \Carbon\Carbon::now();
-    
+
         $registro->save();
-    
+
         return response()->json(['success' => true]);
     }
-    
-
 }
