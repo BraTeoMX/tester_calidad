@@ -187,4 +187,23 @@ class EtiquetasV3Controller extends Controller
             'message' => 'Auditoría guardada correctamente.',
         ]);
     }
+
+    public function obtenerDefectos()
+    {
+        // Usamos tu lógica original, es perfecta.
+        $tiposDefectos = Cat_DefEtiquetas::where('estatus', 1)->get(); // Asegúrate que el namespace del modelo sea correcto
+        return response()->json($tiposDefectos);
+    }
+
+    public function guardarNuevoDefecto(Request $request)
+    {
+        $request->validate(['Defectos' => 'required|string|unique:cat_def_etiquetas,Defectos']);
+
+        $nuevoDefecto = Cat_DefEtiquetas::create([
+            'Defectos' => $request->Defectos,
+            'estatus' => 1
+        ]);
+
+        return response()->json(['success' => true, 'defecto' => $nuevoDefecto]);
+    }
 }

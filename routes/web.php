@@ -490,10 +490,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::put('/reporte-etiquetas/{id}/update-status', [EtiquetasV2Controller::class, 'updateStatus'])->name('reporte-etiquetas.updateStatus');
     Route::get('/registros-del-dia-etiqueta', [EtiquetasV2Controller::class, 'getRegistrosDelDiaEtiqueta'])->name('registros.del.dia.ajax.etiqueta');
     Route::delete('/reporte-etiquetas/{id}', [EtiquetasV2Controller::class, 'eliminarRegistro'])->name('etiquetas.eliminar');
-    //tercerda version de etiquetas
+    //tercera version de etiquetas
     Route::get('/etiquetasV3/inicio', [EtiquetasV3Controller::class, 'index'])->name('etiquetasV3.inicio');
     Route::post('/etiquetasV3/buscar', [EtiquetasV3Controller::class, 'buscarDatosCompletos'])->name('etiquetasV3.buscar');
     Route::post('/etiquetasV3/guardar', [EtiquetasV3Controller::class, 'guardarAuditoria'])->name('etiquetasV3.guardar');
+    Route::get('/etiquetasV3/obtener-defectos', [EtiquetasV3Controller::class, 'obtenerDefectos'])->name('etiquetasV3.obtenerDefectos');
+    Route::post('/etiquetasV3/guardar-defecto', [EtiquetasV3Controller::class, 'guardarNuevoDefecto'])->name('etiquetasV3.guardarDefecto');
 
     //nuevo apartado para el desarrollo de inspeccion depues de horno
     Route::get('/inspeccionEstampadoHorno', [ScreenV2Controller::class, 'inspeccionEstampadoHorno'])->name('inspeccionEstampadoHorno');
