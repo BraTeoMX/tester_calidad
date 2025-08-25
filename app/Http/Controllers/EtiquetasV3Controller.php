@@ -48,7 +48,11 @@ class EtiquetasV3Controller extends Controller
 
         // 2. Filtrar para excluir registros que ya existen en nuestra BD local
         // (Esta lógica no se cachea para reflejar siempre el estado actual)
+        $nombreAuditor = Auth::user()->name;
+        $fechaHaceSieteDias = Carbon::now()->subDays(7);
         $registrosExistentes = ReporteAuditoriaEtiqueta::where('orden', $orden)
+            ->where('nombre_auditor', $nombreAuditor)
+            ->where('created_at', '>=', $fechaHaceSieteDias)
             ->get(['estilo', 'talla', 'color'])
             ->map(fn($item) => $item->estilo . '-' . $item->talla . '-' . $item->color)
             ->flip();
