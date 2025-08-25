@@ -254,7 +254,6 @@ class EtiquetasV3Controller extends Controller
      */
     public function updateStatus(Request $request, $id)
     {
-        Log::info("Request data: " . json_encode($request->all()));
         $registro = ReporteAuditoriaEtiqueta::find($id);
         if (!$registro) {
             return response()->json(['success' => false, 'message' => 'Registro no encontrado.'], 404);

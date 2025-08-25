@@ -360,9 +360,10 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // --- REFERENCIAS A ELEMENTOS DEL DOM ---
+        // ==========================================================
+        // === REFERENCIAS A ELEMENTOS Y ESTADO - FORMULARIO PRINCIPAL
+        // ==========================================================
         const btnBuscar = document.getElementById('btnBuscar');
-        const resultadoDiv = document.getElementById('resultadoBusqueda');
         const formularioResultados = document.getElementById('contenedorFormularioResultados');
         const estilosSelect = document.getElementById('estilosSelect');
         const tallaSelect = document.getElementById('tallaSelect');
@@ -370,54 +371,28 @@
         const cantidadInput = document.getElementById('cantidadInput');
         const tamanoMuestraInput = document.getElementById('tamanoMuestraInput');
         const guardarForm = document.getElementById('guardarFormulario');
+        const tablaRegistrosContainer = document.getElementById('tablaRegistrosDelDia');
         const accionesSelect = document.getElementById('accionesSelect');
         const comentariosCell = document.getElementById('comentariosCell');
         const comentariosHeader = document.getElementById('comentariosHeader');
         const comentariosInput = document.getElementById('comentariosInput');
         const defectosCell = document.getElementById('defectosCell');
         const defectosHeader = document.getElementById('defectosHeader');
-
-        // --- VARIABLES DE ESTADO (EXISTENTES) ---
+        
         let auditoriaData = [];
-        let defectosSeleccionados = []; 
+        let defectosSeleccionados = []; // Estado para el formulario principal
 
-        // --- MANEJO DE EVENTOS ---
-        // Llamamos a nuestra nueva función aquí, al cargar la página.
-        inicializarSelect2Defectos();
+        // ==========================================================
+        // === LÓGICA DEL SISTEMA DE DEFECTOS - FORMULARIO PRINCIPAL
+        // ==========================================================
 
-        // Evento para mostrar/ocultar secciones de Comentarios y Defectos
-        accionesSelect.addEventListener('change', function() {
-            const accionSeleccionada = this.value;
-            const mostrarComentarios = (accionSeleccionada === 'Aprobado con condicion');
-            
-            comentariosHeader.classList.toggle('d-none', !mostrarComentarios);
-            comentariosCell.classList.toggle('d-none', !mostrarComentarios);
-            comentariosInput.required = mostrarComentarios;
-            if (!mostrarComentarios) comentariosInput.value = '';
-
-            const mostrarDefectos = (accionSeleccionada === 'Rechazado');
-            defectosHeader.classList.toggle('d-none', !mostrarDefectos);
-            defectosCell.classList.toggle('d-none', !mostrarDefectos);
-
-            // Si se oculta, limpiamos los defectos para evitar enviar datos incorrectos
-            if (!mostrarDefectos && defectosSeleccionados.length > 0) {
-                devolverTodosLosDefectosAlSelect();
-                defectosSeleccionados = [];
-                renderizarListaDefectos();
-            }
-        });
-
-        /**
-         * Dibuja la lista de defectos en el contenedor basado en el arreglo 'defectosSeleccionados'.
-         */
+        // Dibuja la lista de defectos seleccionados en el formulario principal
         function renderizarListaDefectos() {
             const container = document.getElementById('listaDefectosContainer');
-            container.innerHTML = ''; // Limpia el contenido anterior
-
-            defectosSeleccionados.forEach((defecto) => { // quitamos el 'index' de aquí
+            container.innerHTML = '';
+            defectosSeleccionados.forEach((defecto) => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'd-flex align-items-center mb-1';
-                // Añadimos data-id al div principal para identificarlo
                 itemDiv.innerHTML = `
                     <span class="mr-2 text-white">${defecto.nombre}:</span>
                     <input type="number" class="form-control form-control-sm defecto-cantidad" style="width: 70px;" value="${defecto.cantidad}" min="1" data-id="${defecto.id}">
@@ -426,83 +401,52 @@
                 container.appendChild(itemDiv);
             });
         }
-        // NECESITAMOS USAR DELEGACIÓN DE EVENTOS CON JQUERY PARA LOS ELEMENTOS DINÁMICOS
-        // Añade este bloque nuevo en tu script, donde están los otros listeners.
-        $('#listaDefectosContainer').on('change', '.defecto-cantidad', function() {
-            const defectoId = $(this).data('id');
-            const nuevaCantidad = parseInt($(this).val());
-            
-            // Encuentra el defecto en el arreglo por su ID
-            const defecto = defectosSeleccionados.find(d => d.id == defectoId);
-            if (defecto) {
-                if (nuevaCantidad > 0) {
-                    defecto.cantidad = nuevaCantidad;
+
+        // Inicializa el Select2 y toda la lógica de defectos para el formulario principal
+        function inicializarSelect2Defectos() {
+            const $defectosSelect = $('#defectosSelect');
+            $defectosSelect.select2({ placeholder: 'Cargando defectos...', width: '100%' });
+
+            fetch("{{ route('etiquetasV3.obtenerDefectos') }}")
+                .then(res => res.json())
+                .then(defectos => {
+                    const opciones = defectos.map(defecto => ({ id: defecto.id, text: defecto.Defectos }));
+                    $defectosSelect.empty().select2({
+                        placeholder: '-- Seleccionar Defectos --', width: '100%',
+                        data: [{ id: '', text: '' }, { id: 'crear_nuevo', text: '--- Crear Nuevo Defecto ---' }, ...opciones]
+                    });
+                });
+
+            $defectosSelect.on('change', function() {
+                const id = $(this).val();
+                if (!id) return;
+                if (id === 'crear_nuevo') {
+                    handleCrearNuevoDefecto();
                 } else {
-                    $(this).val(1); // Resetea a 1 si el valor es inválido
-                    defecto.cantidad = 1;
+                    const nombre = $(this).find('option:selected').text();
+                    defectosSeleccionados.push({ id: id, nombre: nombre, cantidad: 1 });
+                    $(this).find('option:selected').remove();
+                    renderizarListaDefectos();
                 }
-            }
-        });
-
-        $('#listaDefectosContainer').on('click', '.eliminar-defecto', function() {
-            const defectoId = $(this).data('id');
-            
-            // Encuentra el índice del defecto a eliminar
-            const index = defectosSeleccionados.findIndex(d => d.id == defectoId);
-            
-            if (index > -1) {
-                const defectoEliminado = defectosSeleccionados.splice(index, 1)[0];
-                // Devuelve la opción al Select2 para que pueda ser seleccionada de nuevo
-                $('#defectosSelect').append(new Option(defectoEliminado.nombre, defectoEliminado.id));
-                renderizarListaDefectos(); // Vuelve a dibujar la lista actualizada
-            }
-        });
-
-        /**
-         * Devuelve todas las opciones seleccionadas al Select2. Útil para resetear.
-         */
-        function devolverTodosLosDefectosAlSelect() {
-            defectosSeleccionados.forEach(defecto => {
-                // Previene añadir duplicados si la opción ya existe en el select
-                if ($('#defectosSelect').find(`option[value="${defecto.id}"]`).length === 0) {
-                    $('#defectosSelect').append(new Option(defecto.nombre, defecto.id));
-                }
+                $(this).val(null).trigger('change.select2');
             });
         }
 
-        /**
-         * Maneja la creación de un nuevo defecto a través de un prompt.
-         */
+        // Maneja la creación de un nuevo defecto desde el formulario principal
         async function handleCrearNuevoDefecto() {
             const { value: nuevoDefectoNombre } = await Swal.fire({
-                title: 'Crear Nuevo Defecto',
-                input: 'text',
-                inputLabel: 'Nombre del nuevo defecto',
-                inputPlaceholder: 'Escribe el nombre aquí...',
-                showCancelButton: true,
-                inputValidator: (value) => {
-                    if (!value) {
-                        return '¡Necesitas escribir algo!'
-                    }
-                }
+                title: 'Crear Nuevo Defecto', input: 'text', inputLabel: 'Nombre del nuevo defecto',
+                inputPlaceholder: 'Escribe el nombre aquí...', showCancelButton: true,
+                inputValidator: (v) => !v && '¡Necesitas escribir algo!'
             });
-
             if (nuevoDefectoNombre) {
-                // Guardar el nuevo defecto en la BD
                 fetch("{{ route('etiquetasV3.guardarDefecto') }}", {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}' 
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ Defectos: nuevoDefectoNombre })
-                })
-                .then(res => res.json())
-                .then(response => {
+                }).then(res => res.json()).then(response => {
                     if (response.success) {
-                        const nuevoDefecto = response.defecto;
-                        // Agregarlo directamente a nuestra lista y renderizar
-                        defectosSeleccionados.push({ id: nuevoDefecto.id, nombre: nuevoDefecto.Defectos, cantidad: 1 });
+                        defectosSeleccionados.push({ id: response.defecto.id, nombre: response.defecto.Defectos, cantidad: 1 });
                         renderizarListaDefectos();
                         Swal.fire('Éxito', 'Defecto creado y agregado.', 'success');
                     } else {
@@ -512,294 +456,437 @@
             }
         }
 
-        /**
-         * Se encarga de inicializar el Select2 y llenarlo con los datos del servidor.
-         * Esta función se ejecuta una sola vez al cargar la página.
-         */
-        function inicializarSelect2Defectos() {
-            const $defectosSelect = $('#defectosSelect');
-            $defectosSelect.select2({ placeholder: 'Cargando defectos...', width: '100%' });
+        // Eventos para actualizar cantidad y eliminar defectos del formulario principal
+        $('#listaDefectosContainer').on('change', '.defecto-cantidad', function() {
+            const defectoId = $(this).data('id');
+            const nuevaCantidad = parseInt($(this).val());
+            const defecto = defectosSeleccionados.find(d => d.id == defectoId);
+            if (defecto) {
+                defecto.cantidad = nuevaCantidad > 0 ? nuevaCantidad : 1;
+                if(nuevaCantidad <= 0) $(this).val(1);
+            }
+        });
 
-            fetch("{{ route('etiquetasV3.obtenerDefectos') }}")
-                .then(res => res.json())
-                .then(defectos => {
-                    const opciones = defectos.map(defecto => ({
-                        id: defecto.id,
-                        text: defecto.Defectos
-                    }));
-                    $defectosSelect.empty().select2({
-                        placeholder: '-- Seleccionar Defectos --',
-                        width: '100%',
-                        data: [
-                            { id: '', text: '' },
-                            { id: 'crear_nuevo', text: '--- Crear Nuevo Defecto ---' },
-                            ...opciones
-                        ]
-                    });
-                })
-                .catch(error => {
-                    console.error("Error al cargar los defectos:", error);
-                    $defectosSelect.select2({ placeholder: 'Error al cargar defectos', width: '100%' });
+        $('#listaDefectosContainer').on('click', '.eliminar-defecto', function() {
+            const defectoId = $(this).data('id');
+            const index = defectosSeleccionados.findIndex(d => d.id == defectoId);
+            if (index > -1) {
+                const defectoEliminado = defectosSeleccionados.splice(index, 1)[0];
+                $('#defectosSelect').append(new Option(defectoEliminado.nombre, defectoEliminado.id));
+                renderizarListaDefectos();
+            }
+        });
+
+        // Lógica de visibilidad para el formulario principal
+        accionesSelect.addEventListener('change', function() {
+            const accion = this.value;
+            const mostrarComentarios = (accion === 'Aprobado con condicion');
+            comentariosHeader.classList.toggle('d-none', !mostrarComentarios);
+            comentariosCell.classList.toggle('d-none', !mostrarComentarios);
+            comentariosInput.required = mostrarComentarios;
+            if (!mostrarComentarios) comentariosInput.value = '';
+
+            const mostrarDefectos = (accion === 'Rechazado');
+            defectosHeader.classList.toggle('d-none', !mostrarDefectos);
+            defectosCell.classList.toggle('d-none', !mostrarDefectos);
+            if (!mostrarDefectos) {
+                defectosSeleccionados.forEach(defecto => {
+                    if ($('#defectosSelect').find(`option[value="${defecto.id}"]`).length === 0) {
+                        $('#defectosSelect').append(new Option(defecto.nombre, defecto.id));
+                    }
                 });
-            
-            // REEMPLAZA el bloque $defectosSelect.on('change', ...) con este:
-            $defectosSelect.on('change', function() {
-                const id = $(this).val();
-                const nombre = $(this).find('option:selected').text();
-                
-                if (!id) return; // No hacer nada si se deselecciona
+                defectosSeleccionados = [];
+                renderizarListaDefectos();
+            }
+        });
 
-                if (id === 'crear_nuevo') {
-                    handleCrearNuevoDefecto(); 
-                } else {
-                    // 1. Añade el defecto al arreglo de estado
-                    defectosSeleccionados.push({ id: id, nombre: nombre, cantidad: 1 });
-                    // 2. Elimina la opción del select para no repetirla
-                    $(this).find('option:selected').remove();
-                    // 3. Actualiza la vista para que muestre el nuevo item
-                    renderizarListaDefectos();
-                }
-                // Resetea el select para que muestre el placeholder
-                $(this).val(null).trigger('change.select2');
-            });
-        }
+        // ==========================================================
+        // === LÓGICA DE BÚSQUEDA Y FORMULARIO PRINCIPAL
+        // ==========================================================
 
-        // 1. AL HACER CLIC EN "BUSCAR"
         btnBuscar.addEventListener('click', function () {
             const tipo = document.getElementById('tipoEtiqueta').value;
             const orden = document.getElementById('valorEtiqueta').value;
-
             if (!tipo || !orden) {
                 Swal.fire('Atención', 'Por favor, completa todos los campos de búsqueda.', 'warning');
                 return;
             }
-            
-            // Muestra un indicador de carga
             btnBuscar.disabled = true;
             btnBuscar.innerText = 'Buscando...';
-
             fetch("{{ route('etiquetasV3.buscar') }}", {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    tipoEtiqueta: tipo,
-                    valorEtiqueta: orden
-                })
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                body: JSON.stringify({ tipoEtiqueta: tipo, valorEtiqueta: orden })
             })
             .then(res => res.json())
             .then(response => {
                 if (response.success) {
-                    // Guardamos todos los datos en nuestra variable
                     auditoriaData = response.data;
-                    // Procesamos los datos para llenar los selects
                     procesarResultados();
                 } else {
                     Swal.fire('Información', response.message, 'info');
-                    // Ocultamos el formulario si ya estaba visible
                     formularioResultados.classList.add('d-none');
                 }
             })
-            .catch(err => {
-                console.error('Error en la petición:', err);
-                Swal.fire('Error', 'Ocurrió un error inesperado al buscar.', 'error');
-            })
+            .catch(err => Swal.fire('Error', 'Ocurrió un error inesperado al buscar.', 'error'))
             .finally(() => {
-                // Restaura el botón de búsqueda
                 btnBuscar.disabled = false;
                 btnBuscar.innerText = 'Buscar';
             });
         });
 
-        // 2. AL CAMBIAR LA SELECCIÓN DE "ESTILO"
         estilosSelect.addEventListener('change', function () {
-            const estiloSeleccionado = this.value;
-            resetearCamposDesde('talla'); // Limpia los campos dependientes
-
-            if (!estiloSeleccionado) return;
-
-            // Filtramos las tallas ÚNICAS para el estilo seleccionado (todo en memoria, ¡súper rápido!)
-            const tallasParaEstilo = [...new Set(
-                auditoriaData
-                    .filter(item => item.estilo === estiloSeleccionado)
-                    .map(item => item.talla)
-            )];
-            
-            // Llenamos el select de tallas
+            resetearCamposDesde('talla');
+            if (!this.value) return;
+            const tallasParaEstilo = [...new Set(auditoriaData.filter(item => item.estilo === this.value).map(item => item.talla))];
             poblarSelect(tallaSelect, tallasParaEstilo, '-- Seleccionar Talla --');
             tallaSelect.disabled = false;
         });
 
-        // 3. AL CAMBIAR LA SELECCIÓN DE "TALLA"
         tallaSelect.addEventListener('change', function () {
-            const estiloSeleccionado = estilosSelect.value;
-            const tallaSeleccionada = this.value;
-            resetearCamposDesde('inputs'); // Limpia los inputs
-
-            if (!tallaSeleccionada) return;
-
-            // Buscamos el registro exacto que coincide (de nuevo, en memoria)
-            const registroEncontrado = auditoriaData.find(item => 
-                item.estilo === estiloSeleccionado && item.talla.toString() === tallaSeleccionada
-            );
-
-            if (registroEncontrado) {
-                colorInput.value = registroEncontrado.color;
-                cantidadInput.value = registroEncontrado.cantidad;
-                tamanoMuestraInput.value = registroEncontrado.muestreo;
+            resetearCamposDesde('inputs');
+            if (!this.value) return;
+            const registro = auditoriaData.find(item => item.estilo === estilosSelect.value && item.talla.toString() === this.value);
+            if (registro) {
+                colorInput.value = registro.color;
+                cantidadInput.value = registro.cantidad;
+                tamanoMuestraInput.value = registro.muestreo;
             }
         });
 
-
-        // --- FUNCIONES AUXILIARES ---
-
-        function procesarResultados() {
-            resetearFormularioResultados();
-            
-            // Obtenemos todos los estilos ÚNICOS del set de datos
-            const estilosUnicos = [...new Set(auditoriaData.map(item => item.estilo))];
-            
-            if (estilosUnicos.length > 0) {
-                poblarSelect(estilosSelect, estilosUnicos, '-- Seleccionar Estilo --');
-                // Mostramos el formulario de resultados
-                formularioResultados.classList.remove('d-none');
-            } else {
-                formularioResultados.classList.add('d-none');
-                Swal.fire('Información', 'No se encontraron estilos disponibles para auditar.', 'info');
-            }
-        }
-
-        function poblarSelect(selectElement, opciones, placeholder) {
-            selectElement.innerHTML = `<option value="">${placeholder}</option>`; // Limpiar y poner placeholder
-            opciones.forEach(opcion => {
-                const optionElement = document.createElement('option');
-                optionElement.value = opcion;
-                optionElement.textContent = opcion;
-                selectElement.appendChild(optionElement);
-            });
-        }
-
-        function resetearFormularioResultados() {
-            document.getElementById('guardarFormulario').reset(); // Resetea todo el form
-            resetearCamposDesde('estilo');
-        }
-
-        function resetearCamposDesde(nivel) {
-            if (nivel === 'estilo') {
-                estilosSelect.innerHTML = '<option value="">-- Seleccionar Estilo --</option>';
-            }
-            if (nivel === 'estilo' || nivel === 'talla') {
-                tallaSelect.innerHTML = '<option value="">-- Seleccionar Talla --</option>';
-                tallaSelect.disabled = true;
-            }
-            if (nivel === 'estilo' || nivel === 'talla' || nivel === 'inputs') {
-                colorInput.value = '';
-                cantidadInput.value = '';
-                tamanoMuestraInput.value = '';
-            }
-        }
-
-        // 4. AL ENVIAR EL FORMULARIO PARA GUARDAR
         guardarForm.addEventListener('submit', function (e) {
             e.preventDefault();
-            
             const accionCorrectiva = accionesSelect.value;
-            
-            // --- Validaciones del lado del cliente ---
+
             if (!estilosSelect.value || !tallaSelect.value || !accionCorrectiva) {
-                Swal.fire('Atención', 'Debes seleccionar Estilo, Talla y Acción Correctiva.', 'warning');
-                return;
+                return Swal.fire('Atención', 'Debes seleccionar Estilo, Talla y Acción Correctiva.', 'warning');
             }
             if (accionCorrectiva === 'Aprobado con condicion' && comentariosInput.value.trim() === '') {
-                Swal.fire('Atención', 'Debes agregar un comentario para "Aprobado con condición".', 'warning');
-                return;
+                return Swal.fire('Atención', 'Debes agregar un comentario.', 'warning');
             }
             if (accionCorrectiva === 'Rechazado' && defectosSeleccionados.length === 0) {
-                Swal.fire('Atención', 'Debes agregar al menos un defecto para "Rechazado".', 'warning');
-                return;
+                return Swal.fire('Atención', 'Debes agregar al menos un defecto.', 'warning');
             }
 
-            // --- CONSTRUCCIÓN DEL OBJETO DE DATOS (AQUÍ ESTÁ LA CORRECCIÓN) ---
             const datosFormulario = {
-                estilo: estilosSelect.value,
-                talla: tallaSelect.value,
-                color: colorInput.value,
-                cantidad: cantidadInput.value,
-                muestreo: tamanoMuestraInput.value,
-                accion_correctiva: accionCorrectiva,
-                comentarios: comentariosInput.value,
+                estilo: estilosSelect.value, talla: tallaSelect.value, color: colorInput.value,
+                cantidad: cantidadInput.value, muestreo: tamanoMuestraInput.value,
+                accion_correctiva: accionCorrectiva, comentarios: comentariosInput.value,
                 tipoEtiqueta: document.getElementById('tipoEtiqueta').value,
                 valorEtiqueta: document.getElementById('valorEtiqueta').value,
             };
             
-            // ▼▼▼ LÓGICA CONDICIONAL CLAVE ▼▼▼
-            // Solo añadimos el arreglo de defectos al objeto SI la acción es 'Rechazado'
             if (accionCorrectiva === 'Rechazado') {
                 datosFormulario.defectos = defectosSeleccionados;
             }
             
-            const submitButton = this.querySelector('button[type="submit"]');
+            enviarFormularioAuditoria(datosFormulario, this.querySelector('button[type="submit"]'), () => {
+                auditoriaData = auditoriaData.filter(item => !(item.estilo === datosFormulario.estilo && item.talla.toString() === datosFormulario.talla));
+                procesarResultados();
+                cargarRegistrosDelDia();
+            });
+        });
+
+        
+        // ==========================================================
+        // === SECCIÓN DEL MODAL PARA INGRESO MANUAL
+        // ==========================================================
+
+        // --- REFERENCIAS A ELEMENTOS Y ESTADO - MODAL ---
+        const guardarFormularioModal = document.getElementById('guardarFormularioModal');
+        const estilosSelectModal = document.getElementById('estilosSelectModal');
+        const tallaInputModal = document.getElementById('tallaInputModal');
+        const colorInputModal = document.getElementById('colorInputModal');
+        const tallaCheckbox = document.getElementById('tallaCheckbox');
+        const colorCheckbox = document.getElementById('colorCheckbox');
+        const accionesSelectModal = document.getElementById('accionesSelectModal');
+        const comentariosHeaderModal = document.getElementById('comentariosHeaderModal');
+        const comentariosCellModal = document.getElementById('comentariosCellModal');
+        const comentariosInputModal = document.getElementById('comentariosInputModal');
+        const defectosHeaderModal = document.getElementById('defectosHeaderModal');
+        const defectosCellModal = document.getElementById('defectosCellModal');
+        
+        let defectosSeleccionadosModal = []; // Estado INDEPENDIENTE para el modal
+
+        // --- LÓGICA DEL SISTEMA DE DEFECTOS - MODAL ---
+        
+        function renderizarListaDefectosModal() {
+            const container = document.getElementById('listaDefectosContainerModal');
+            container.innerHTML = '';
+            defectosSeleccionadosModal.forEach((defecto) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'd-flex align-items-center mb-1';
+                itemDiv.innerHTML = `
+                    <span class="mr-2 text-white">${defecto.nombre}:</span>
+                    <input type="number" class="form-control form-control-sm defecto-cantidad-modal" style="width: 70px;" value="${defecto.cantidad}" min="1" data-id="${defecto.id}">
+                    <button type="button" class="btn btn-danger btn-sm ml-2 eliminar-defecto-modal" data-id="${defecto.id}">Eliminar</button>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        function inicializarSelect2DefectosModal() {
+            const $defectosSelectModal = $('#defectosSelectModal');
+            $defectosSelectModal.select2({ placeholder: 'Cargando defectos...', width: '100%' });
+
+            fetch("{{ route('etiquetasV3.obtenerDefectos') }}")
+                .then(res => res.json())
+                .then(defectos => {
+                    const opciones = defectos.map(defecto => ({ id: defecto.id, text: defecto.Defectos }));
+                    $defectosSelectModal.empty().select2({
+                        placeholder: '-- Seleccionar Defectos --', width: '100%',
+                        data: [{ id: '', text: '' }, { id: 'crear_nuevo', text: '--- Crear Nuevo Defecto ---' }, ...opciones]
+                    });
+                });
+
+            $defectosSelectModal.on('change', function() {
+                const id = $(this).val();
+                if (!id) return;
+                if (id === 'crear_nuevo') {
+                    handleCrearNuevoDefectoModal();
+                } else {
+                    const nombre = $(this).find('option:selected').text();
+                    defectosSeleccionadosModal.push({ id: id, nombre: nombre, cantidad: 1 });
+                    $(this).find('option:selected').remove();
+                    renderizarListaDefectosModal();
+                }
+                $(this).val(null).trigger('change.select2');
+            });
+        }
+
+        async function handleCrearNuevoDefectoModal() {
+            // ... (Exactamente la misma lógica que handleCrearNuevoDefecto, pero opera sobre el estado del modal)
+            const { value: nuevoDefectoNombre } = await Swal.fire({
+                title: 'Crear Nuevo Defecto', input: 'text', inputLabel: 'Nombre del nuevo defecto',
+                inputPlaceholder: 'Escribe el nombre aquí...', showCancelButton: true,
+                inputValidator: (v) => !v && '¡Necesitas escribir algo!'
+            });
+            if (nuevoDefectoNombre) {
+                fetch("{{ route('etiquetasV3.guardarDefecto') }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    body: JSON.stringify({ Defectos: nuevoDefectoNombre })
+                }).then(res => res.json()).then(response => {
+                    if (response.success) {
+                        defectosSeleccionadosModal.push({ id: response.defecto.id, nombre: response.defecto.Defectos, cantidad: 1 });
+                        renderizarListaDefectosModal();
+                        Swal.fire('Éxito', 'Defecto creado y agregado.', 'success');
+                    } else {
+                        Swal.fire('Error', 'No se pudo guardar el defecto.', 'error');
+                    }
+                });
+            }
+        }
+
+        $('#listaDefectosContainerModal').on('change', '.defecto-cantidad-modal', function() {
+            const defectoId = $(this).data('id');
+            const nuevaCantidad = parseInt($(this).val());
+            const defecto = defectosSeleccionadosModal.find(d => d.id == defectoId);
+            if (defecto) {
+                defecto.cantidad = nuevaCantidad > 0 ? nuevaCantidad : 1;
+                if(nuevaCantidad <= 0) $(this).val(1);
+            }
+        });
+
+        $('#listaDefectosContainerModal').on('click', '.eliminar-defecto-modal', function() {
+            const defectoId = $(this).data('id');
+            const index = defectosSeleccionadosModal.findIndex(d => d.id == defectoId);
+            if (index > -1) {
+                const defectoEliminado = defectosSeleccionadosModal.splice(index, 1)[0];
+                $('#defectosSelectModal').append(new Option(defectoEliminado.nombre, defectoEliminado.id));
+                renderizarListaDefectosModal();
+            }
+        });
+
+        accionesSelectModal.addEventListener('change', function() {
+            const accion = this.value;
+            const mostrarComentarios = (accion === 'Aprobado con condicion');
+            comentariosHeaderModal.classList.toggle('d-none', !mostrarComentarios);
+            comentariosCellModal.classList.toggle('d-none', !mostrarComentarios);
+            comentariosInputModal.required = mostrarComentarios;
+            if (!mostrarComentarios) comentariosInputModal.value = '';
+
+            const mostrarDefectos = (accion === 'Rechazado');
+            defectosHeaderModal.classList.toggle('d-none', !mostrarDefectos);
+            defectosCellModal.classList.toggle('d-none', !mostrarDefectos);
+            if (!mostrarDefectos) {
+                defectosSeleccionadosModal.forEach(defecto => {
+                    if ($('#defectosSelectModal').find(`option[value="${defecto.id}"]`).length === 0) {
+                        $('#defectosSelectModal').append(new Option(defecto.nombre, defecto.id));
+                    }
+                });
+                defectosSeleccionadosModal = [];
+                renderizarListaDefectosModal();
+            }
+        });
+
+        // --- LÓGICA DE APERTURA Y ENVÍO DEL MODAL ---
+        function initModalManual() {
+            let modal = document.getElementById("customModal");
+            let openModalBtn = document.getElementById("openModalBtn");
+            let closeModalBtn = document.getElementById("closeModalBtn");
+            let closeModalBtnFooter = document.getElementById("closeModalBtnFooter");
+            function cerrarModal() { modal.style.display = "none"; }
+            
+            openModalBtn.addEventListener("click", function () {
+                // ¡AQUÍ ESTÁ LA CLAVE! Usamos los datos de la búsqueda actual.
+                if (auditoriaData.length === 0) {
+                    Swal.fire('Atención', 'Primero debes realizar una búsqueda para obtener la lista de estilos.', 'warning');
+                    return;
+                }
+                const estilosUnicos = [...new Set(auditoriaData.map(item => item.estilo))];
+                poblarSelect(estilosSelectModal, estilosUnicos, '-- Seleccionar Estilo --');
+                modal.style.display = "flex";
+            });
+            
+            closeModalBtn.addEventListener("click", cerrarModal);
+            closeModalBtnFooter.addEventListener("click", cerrarModal);
+            window.addEventListener("click", (event) => { if (event.target === modal) cerrarModal(); });
+            document.addEventListener("keydown", (event) => { if (event.key === "Escape") cerrarModal(); });
+        }
+
+        tallaCheckbox.addEventListener('change', function() { tallaInputModal.required = !this.checked; });
+        colorCheckbox.addEventListener('change', function() { colorInputModal.required = !this.checked; });
+
+        guardarFormularioModal.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const form = this;
+            const accionCorrectiva = accionesSelectModal.value;
+
+            // Validaciones específicas del modal
+            if (!estilosSelectModal.value || !accionCorrectiva) {
+                return Swal.fire('Atención', 'Debes seleccionar Estilo y Acción Correctiva.', 'warning');
+            }
+            if (!tallaCheckbox.checked && !tallaInputModal.value.trim()){
+                return Swal.fire('Atención', 'El campo Talla es obligatorio.', 'warning');
+            }
+            if (!colorCheckbox.checked && !colorInputModal.value.trim()){
+                return Swal.fire('Atención', 'El campo Color es obligatorio.', 'warning');
+            }
+            if (accionCorrectiva === 'Aprobado con condicion' && comentariosInputModal.value.trim() === '') {
+                return Swal.fire('Atención', 'Debes agregar un comentario.', 'warning');
+            }
+            if (accionCorrectiva === 'Rechazado' && defectosSeleccionadosModal.length === 0) {
+                return Swal.fire('Atención', 'Debes agregar al menos un defecto.', 'warning');
+            }
+
+            const datosFormulario = {
+                tipoEtiqueta: document.getElementById('tipoEtiqueta').value,
+                valorEtiqueta: document.getElementById('valorEtiqueta').value,
+                estilo: form.estilo.value, talla: form.talla.value, color: form.color.value,
+                cantidad: form.cantidad.value, muestreo: form.muestreo.value,
+                accion_correctiva: accionCorrectiva, comentarios: form.comentarios.value,
+                registro_manual: 1, // ¡Importante!
+            };
+            
+            if (accionCorrectiva === 'Rechazado') {
+                datosFormulario.defectos = defectosSeleccionadosModal;
+            }
+
+            enviarFormularioAuditoria(datosFormulario, this.querySelector('button[type="submit"]'), () => {
+                // Callback de éxito para el modal
+                form.reset();
+                tallaInputModal.required = true;
+                colorInputModal.required = true;
+                // Limpiar y resetear defectos del modal
+                defectosSeleccionadosModal.forEach(defecto => {
+                    if ($('#defectosSelectModal').find(`option[value="${defecto.id}"]`).length === 0) {
+                        $('#defectosSelectModal').append(new Option(defecto.nombre, defecto.id));
+                    }
+                });
+                defectosSeleccionadosModal = [];
+                renderizarListaDefectosModal();
+                // Cerrar modal y recargar tabla
+                document.getElementById('customModal').style.display = 'none';
+                cargarRegistrosDelDia();
+            });
+        });
+
+
+        // ==========================================================
+        // === FUNCIONES AUXILIARES Y DE LA TABLA DE REGISTROS
+        // ==========================================================
+
+        function enviarFormularioAuditoria(datos, submitButton, onSuccessCallback) {
             submitButton.disabled = true;
             submitButton.innerText = 'Guardando...';
 
             fetch("{{ route('etiquetasV3.guardar') }}", {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(datosFormulario)
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                body: JSON.stringify(datos)
             })
             .then(async res => {
-                // Mejoramos el manejo de errores para distinguir 422 de 500
                 if (!res.ok) {
-                    if (res.status === 422) {
-                        const errorData = await res.json();
-                        const errorMessages = Object.values(errorData.errors).flat().join('<br>');
-                        throw new Error(errorMessages);
-                    }
-                    // Para errores 500 u otros, lanzamos un error genérico
-                    throw new Error('Ocurrió un error en el servidor (Error ' + res.status + ')');
+                    const errorData = await res.json().catch(() => ({}));
+                    const msj = errorData.errors ? Object.values(errorData.errors).flat().join('<br>') : `Error en el servidor (${res.status})`;
+                    throw new Error(msj);
                 }
                 return res.json();
             })
             .then(response => {
                 if (response.success) {
                     Swal.fire('¡Éxito!', response.message, 'success');
-                    auditoriaData = auditoriaData.filter(item => 
-                        !(item.estilo === datosFormulario.estilo && 
-                        item.talla.toString() === datosFormulario.talla &&
-                        item.color === datosFormulario.color)
-                    );
-                    procesarResultados();
-                    cargarRegistrosDelDia();
+                    onSuccessCallback();
                 }
             })
-            .catch(err => {
-                console.error('Error al guardar:', err);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error al Guardar',
-                    html: err.message
-                });
-            })
+            .catch(err => Swal.fire({ icon: 'error', title: 'Error al Guardar', html: err.message }))
             .finally(() => {
                 submitButton.disabled = false;
                 submitButton.innerText = 'Guardar Auditoría';
             });
-        });
+        }
 
-        // --- CÓDIGO NUEVO PARA LA TABLA DE REGISTROS DEL DÍA ---
+        function procesarResultados() {
+            resetearFormularioResultados();
+            const estilosUnicos = [...new Set(auditoriaData.map(item => item.estilo))];
+            if (estilosUnicos.length > 0) {
+                poblarSelect(estilosSelect, estilosUnicos, '-- Seleccionar Estilo --');
+                formularioResultados.classList.remove('d-none');
+            } else {
+                formularioResultados.classList.add('d-none');
+                Swal.fire('Información', 'No se encontraron estilos pendientes para esta orden.', 'info');
+            }
+        }
 
-        const tablaRegistrosContainer = document.getElementById('tablaRegistrosDelDia');
+        function poblarSelect(selectElement, opciones, placeholder) {
+            selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+            opciones.forEach(opcion => {
+                const el = document.createElement('option');
+                el.value = opcion;
+                el.textContent = opcion;
+                selectElement.appendChild(el);
+            });
+        }
 
-        /**
-         * Carga y renderiza la tabla de registros del día.
-         */
+        function resetearFormularioResultados() {
+            guardarForm.reset();
+            resetearCamposDesde('estilo');
+            // Resetear defectos del formulario principal
+            defectosSeleccionados.forEach(defecto => {
+                if ($('#defectosSelect').find(`option[value="${defecto.id}"]`).length === 0) {
+                $('#defectosSelect').append(new Option(defecto.nombre, defecto.id));
+                }
+            });
+            defectosSeleccionados = [];
+            renderizarListaDefectos();
+        }
+
+        function resetearCamposDesde(nivel) {
+            if (['estilo', 'talla', 'inputs'].includes(nivel)) {
+                colorInput.value = '';
+                cantidadInput.value = '';
+                tamanoMuestraInput.value = '';
+            }
+            if (['estilo', 'talla'].includes(nivel)) {
+                tallaSelect.innerHTML = '<option value="">-- Seleccionar Talla --</option>';
+                tallaSelect.disabled = true;
+            }
+            if (nivel === 'estilo') {
+                estilosSelect.innerHTML = '<option value="">-- Seleccionar Estilo --</option>';
+            }
+        }
+
         function cargarRegistrosDelDia() {
             tablaRegistrosContainer.innerHTML = 'Cargando registros...'; // Muestra un mensaje de carga
 
@@ -954,10 +1041,14 @@
                  }
             }
         });
-
-        // --- LLAMADA INICIAL ---
-        // Carga los registros del día cuando la página esté lista.
+        
+        // ==========================================================
+        // === LLAMADAS INICIALES AL CARGAR LA PÁGINA
+        // ==========================================================
+        inicializarSelect2Defectos(); // Para el form principal
+        inicializarSelect2DefectosModal(); // Para el modal
         cargarRegistrosDelDia();
+        initModalManual();
     });
 </script>
 @endsection
