@@ -149,16 +149,24 @@ class EtiquetasV3Controller extends Controller
 
     public function guardarAuditoria(Request $request)
     {
-        // La validación de datos es una buena práctica aquí
+        // Validación más específica y robusta
         $request->validate([
-            'tipoEtiqueta' => 'required|string',
-            'valorEtiqueta' => 'required|string',
-            'estilo' => 'required|string',
-            'talla' => 'required|string',
-            // ... otras reglas de validación
+            'tipoEtiqueta'      => 'required|string',
+            'valorEtiqueta'     => 'required|string',
+            'estilo'            => 'required|string',
+            'talla'             => 'required|string',
+            'accion_correctiva' => 'required|string',
+            'comentarios'       => 'required_if:accion_correctiva,Aprobado con condicion|nullable|string',
+            // Reglas para el arreglo de defectos
+            'defectos'          => 'required_if:accion_correctiva,Rechazado|array|min:1',
+            // Reglas para CADA ITEM dentro del arreglo de defectos
+            'defectos.*.id'     => 'required|integer|exists:cat_def_etiquetas,id', // El ID debe existir en tu tabla de catálogo
+            'defectos.*.nombre' => 'required|string',
+            'defectos.*.cantidad' => 'required|integer|min:1', // La cantidad debe ser un entero y al menos 1
         ]);
 
         $reporte = new ReporteAuditoriaEtiqueta();
+        // ... Asignación de campos ...
         $reporte->nombre_auditor = Auth::user()->name;
         $reporte->tipo = $request->tipoEtiqueta;
         $reporte->orden = $request->valorEtiqueta;
@@ -169,18 +177,20 @@ class EtiquetasV3Controller extends Controller
         $reporte->muestreo = $request->muestreo;
         $reporte->estatus = $request->accion_correctiva;
         $reporte->comentario = $request->comentarios;
-        $reporte->registro_manual = $request->input('registro_manual', 0); // Asigna 0 por defecto
-
-        // Decidir el valor de 'rechazo'
+        $reporte->registro_manual = $request->input('registro_manual', 0);
         $reporte->rechazo = ($request->accion_correctiva === 'Rechazado') ? 1 : null;
-
         $reporte->save();
 
-        // La lógica para guardar defectos sigue siendo válida aquí (la implementaremos después)
-        // if ($request->has('defectos')) { ... }
-
-        // ¡IMPORTANTE! Ya no necesitamos volver a consultar los estilos.
-        // El frontend se encargará de actualizar su propia vista.
+        // Ahora sí, guardamos los defectos si la acción fue 'Rechazado'
+        if ($request->accion_correctiva === 'Rechazado' && $request->has('defectos')) {
+            foreach ($request->defectos as $defecto) {
+                TpReporteAuditoriaEtiqueta::create([ // Asegúrate que el namespace sea correcto
+                    'id_reporte_auditoria_etiquetas' => $reporte->id,
+                    'nombre'   => $defecto['nombre'],
+                    'cantidad' => $defecto['cantidad'],
+                ]);
+            }
+        }
 
         return response()->json([
             'success' => true,

@@ -81,6 +81,10 @@
                                             </select>
                                         </td>
                                         <td id="defectosCell" class="d-none">
+                                            <select id="defectosSelect" class="form-control" style="width: 100%;">
+                                            </select>
+                                            <div id="listaDefectosContainer" class="mt-2">
+                                            </div>
                                         </td>
                                         <td id="comentariosCell" class="d-none">
                                             <input type="text" name="comentarios" id="comentariosInput"
@@ -369,11 +373,100 @@
         const tamanoMuestraInput = document.getElementById('tamanoMuestraInput');
 
         const guardarForm = document.getElementById('guardarFormulario');
+        const accionesSelect = document.getElementById('accionesSelect');
+        const comentariosCell = document.getElementById('comentariosCell');
+        const comentariosHeader = document.getElementById('comentariosHeader');
+        const comentariosInput = document.getElementById('comentariosInput');
+        const defectosCell = document.getElementById('defectosCell');
+        const defectosHeader = document.getElementById('defectosHeader');
 
         // Variable para almacenar todos los datos de la búsqueda actual
         let auditoriaData = [];
+        let defectosSeleccionados = []; 
 
         // --- MANEJO DE EVENTOS ---
+        // Llamamos a nuestra nueva función aquí, al cargar la página.
+        inicializarSelect2Defectos();
+
+        accionesSelect.addEventListener('change', function() {
+            const accionSeleccionada = this.value;
+
+            // --- Lógica para Comentarios ---
+            const mostrarComentarios = (accionSeleccionada === 'Aprobado con condicion');
+            
+            comentariosHeader.classList.toggle('d-none', !mostrarComentarios);
+            comentariosCell.classList.toggle('d-none', !mostrarComentarios);
+            comentariosInput.required = mostrarComentarios;
+            
+            // Limpia el input si se oculta
+            if (!mostrarComentarios) {
+                comentariosInput.value = '';
+            }
+
+            // --- Lógica para Defectos ---
+            const mostrarDefectos = (accionSeleccionada === 'Rechazado');
+
+            defectosHeader.classList.toggle('d-none', !mostrarDefectos);
+            defectosCell.classList.toggle('d-none', !mostrarDefectos);
+
+            // Si se oculta, también podrías resetear la selección de defectos
+            if (!mostrarDefectos) {
+                // Aquí irá la lógica para limpiar los defectos seleccionados
+                // por ejemplo: defectosSeleccionados = []; renderizarListaDefectos();
+            }
+        });
+
+        /**
+         * Se encarga de inicializar el Select2 y llenarlo con los datos del servidor.
+         * Esta función se ejecuta una sola vez al cargar la página.
+         */
+        function inicializarSelect2Defectos() {
+            const $defectosSelect = $('#defectosSelect'); // Usamos jQuery para Select2
+
+            // 1. Inicializa Select2 INMEDIATAMENTE con un mensaje de carga.
+            // Esto nos confirma que la librería Select2 está funcionando.
+            $defectosSelect.select2({
+                placeholder: 'Cargando defectos...',
+                width: '100%' // Asegura que se ajuste al tamaño de la celda
+            });
+
+            // 2. Haz la llamada a tu API para obtener la lista de defectos.
+            fetch("{{ route('etiquetasV3.obtenerDefectos') }}")
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('La respuesta de la red no fue correcta');
+                    }
+                    return res.json();
+                })
+                .then(defectos => {
+                    // 3. Transforma los datos recibidos al formato que Select2 necesita: {id, text}
+                    const opciones = defectos.map(defecto => {
+                        return {
+                            id: defecto.id,
+                            text: defecto.Defectos // La columna se llama 'Defectos' en tu tabla
+                        };
+                    });
+
+                    // 4. Re-inicializa el Select2 con los datos ya cargados.
+                    $defectosSelect.empty().select2({
+                        placeholder: '-- Seleccionar Defectos --',
+                        width: '100%',
+                        data: [
+                            { id: '', text: '' }, // Opción vacía para el placeholder
+                            { id: 'crear_nuevo', text: '--- Crear Nuevo Defecto ---' },
+                            ...opciones // Añade todas las opciones de la base de datos
+                        ]
+                    });
+                })
+                .catch(error => {
+                    console.error("Error grave al cargar los defectos:", error);
+                    // Si falla, muestra un mensaje de error en el select.
+                    $defectosSelect.select2({
+                        placeholder: 'Error al cargar defectos',
+                        width: '100%'
+                    });
+                });
+        }
 
         // 1. AL HACER CLIC EN "BUSCAR"
         btnBuscar.addEventListener('click', function () {
