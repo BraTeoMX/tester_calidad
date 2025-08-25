@@ -160,7 +160,7 @@ class EtiquetasV3Controller extends Controller
             // Reglas para el arreglo de defectos
             'defectos'          => 'required_if:accion_correctiva,Rechazado|array|min:1',
             // Reglas para CADA ITEM dentro del arreglo de defectos
-            'defectos.*.id'     => 'required|integer|exists:cat_def_etiquetas,id', // El ID debe existir en tu tabla de catálogo
+            'defectos.*.id'     => 'required|integer|exists:catalogo_defectosetiqueas,id', // El ID debe existir en tu tabla de catálogo
             'defectos.*.nombre' => 'required|string',
             'defectos.*.cantidad' => 'required|integer|min:1', // La cantidad debe ser un entero y al menos 1
         ]);
