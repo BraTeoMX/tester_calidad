@@ -364,14 +364,11 @@
         const btnBuscar = document.getElementById('btnBuscar');
         const resultadoDiv = document.getElementById('resultadoBusqueda');
         const formularioResultados = document.getElementById('contenedorFormularioResultados');
-        
-        // Selects e inputs del formulario de resultados
         const estilosSelect = document.getElementById('estilosSelect');
         const tallaSelect = document.getElementById('tallaSelect');
         const colorInput = document.getElementById('colorInput');
         const cantidadInput = document.getElementById('cantidadInput');
         const tamanoMuestraInput = document.getElementById('tamanoMuestraInput');
-
         const guardarForm = document.getElementById('guardarFormulario');
         const accionesSelect = document.getElementById('accionesSelect');
         const comentariosCell = document.getElementById('comentariosCell');
@@ -380,7 +377,7 @@
         const defectosCell = document.getElementById('defectosCell');
         const defectosHeader = document.getElementById('defectosHeader');
 
-        // Variable para almacenar todos los datos de la búsqueda actual
+        // --- VARIABLES DE ESTADO (EXISTENTES) ---
         let auditoriaData = [];
         let defectosSeleccionados = []; 
 
@@ -388,84 +385,183 @@
         // Llamamos a nuestra nueva función aquí, al cargar la página.
         inicializarSelect2Defectos();
 
+        // Evento para mostrar/ocultar secciones de Comentarios y Defectos
         accionesSelect.addEventListener('change', function() {
             const accionSeleccionada = this.value;
-
-            // --- Lógica para Comentarios ---
             const mostrarComentarios = (accionSeleccionada === 'Aprobado con condicion');
             
             comentariosHeader.classList.toggle('d-none', !mostrarComentarios);
             comentariosCell.classList.toggle('d-none', !mostrarComentarios);
             comentariosInput.required = mostrarComentarios;
-            
-            // Limpia el input si se oculta
-            if (!mostrarComentarios) {
-                comentariosInput.value = '';
-            }
+            if (!mostrarComentarios) comentariosInput.value = '';
 
-            // --- Lógica para Defectos ---
             const mostrarDefectos = (accionSeleccionada === 'Rechazado');
-
             defectosHeader.classList.toggle('d-none', !mostrarDefectos);
             defectosCell.classList.toggle('d-none', !mostrarDefectos);
 
-            // Si se oculta, también podrías resetear la selección de defectos
-            if (!mostrarDefectos) {
-                // Aquí irá la lógica para limpiar los defectos seleccionados
-                // por ejemplo: defectosSeleccionados = []; renderizarListaDefectos();
+            // Si se oculta, limpiamos los defectos para evitar enviar datos incorrectos
+            if (!mostrarDefectos && defectosSeleccionados.length > 0) {
+                devolverTodosLosDefectosAlSelect();
+                defectosSeleccionados = [];
+                renderizarListaDefectos();
             }
         });
+
+        /**
+         * Dibuja la lista de defectos en el contenedor basado en el arreglo 'defectosSeleccionados'.
+         */
+        function renderizarListaDefectos() {
+            const container = document.getElementById('listaDefectosContainer');
+            container.innerHTML = ''; // Limpia el contenido anterior
+
+            defectosSeleccionados.forEach((defecto) => { // quitamos el 'index' de aquí
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'd-flex align-items-center mb-1';
+                // Añadimos data-id al div principal para identificarlo
+                itemDiv.innerHTML = `
+                    <span class="mr-2 text-white">${defecto.nombre}:</span>
+                    <input type="number" class="form-control form-control-sm defecto-cantidad" style="width: 70px;" value="${defecto.cantidad}" min="1" data-id="${defecto.id}">
+                    <button type="button" class="btn btn-danger btn-sm ml-2 eliminar-defecto" data-id="${defecto.id}">Eliminar</button>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+        // NECESITAMOS USAR DELEGACIÓN DE EVENTOS CON JQUERY PARA LOS ELEMENTOS DINÁMICOS
+        // Añade este bloque nuevo en tu script, donde están los otros listeners.
+        $('#listaDefectosContainer').on('change', '.defecto-cantidad', function() {
+            const defectoId = $(this).data('id');
+            const nuevaCantidad = parseInt($(this).val());
+            
+            // Encuentra el defecto en el arreglo por su ID
+            const defecto = defectosSeleccionados.find(d => d.id == defectoId);
+            if (defecto) {
+                if (nuevaCantidad > 0) {
+                    defecto.cantidad = nuevaCantidad;
+                } else {
+                    $(this).val(1); // Resetea a 1 si el valor es inválido
+                    defecto.cantidad = 1;
+                }
+            }
+        });
+
+        $('#listaDefectosContainer').on('click', '.eliminar-defecto', function() {
+            const defectoId = $(this).data('id');
+            
+            // Encuentra el índice del defecto a eliminar
+            const index = defectosSeleccionados.findIndex(d => d.id == defectoId);
+            
+            if (index > -1) {
+                const defectoEliminado = defectosSeleccionados.splice(index, 1)[0];
+                // Devuelve la opción al Select2 para que pueda ser seleccionada de nuevo
+                $('#defectosSelect').append(new Option(defectoEliminado.nombre, defectoEliminado.id));
+                renderizarListaDefectos(); // Vuelve a dibujar la lista actualizada
+            }
+        });
+
+        /**
+         * Devuelve todas las opciones seleccionadas al Select2. Útil para resetear.
+         */
+        function devolverTodosLosDefectosAlSelect() {
+            defectosSeleccionados.forEach(defecto => {
+                // Previene añadir duplicados si la opción ya existe en el select
+                if ($('#defectosSelect').find(`option[value="${defecto.id}"]`).length === 0) {
+                    $('#defectosSelect').append(new Option(defecto.nombre, defecto.id));
+                }
+            });
+        }
+
+        /**
+         * Maneja la creación de un nuevo defecto a través de un prompt.
+         */
+        async function handleCrearNuevoDefecto() {
+            const { value: nuevoDefectoNombre } = await Swal.fire({
+                title: 'Crear Nuevo Defecto',
+                input: 'text',
+                inputLabel: 'Nombre del nuevo defecto',
+                inputPlaceholder: 'Escribe el nombre aquí...',
+                showCancelButton: true,
+                inputValidator: (value) => {
+                    if (!value) {
+                        return '¡Necesitas escribir algo!'
+                    }
+                }
+            });
+
+            if (nuevoDefectoNombre) {
+                // Guardar el nuevo defecto en la BD
+                fetch("{{ route('etiquetasV3.guardarDefecto') }}", {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}' 
+                    },
+                    body: JSON.stringify({ Defectos: nuevoDefectoNombre })
+                })
+                .then(res => res.json())
+                .then(response => {
+                    if (response.success) {
+                        const nuevoDefecto = response.defecto;
+                        // Agregarlo directamente a nuestra lista y renderizar
+                        defectosSeleccionados.push({ id: nuevoDefecto.id, nombre: nuevoDefecto.Defectos, cantidad: 1 });
+                        renderizarListaDefectos();
+                        Swal.fire('Éxito', 'Defecto creado y agregado.', 'success');
+                    } else {
+                        Swal.fire('Error', 'No se pudo guardar el defecto (posiblemente ya existe).', 'error');
+                    }
+                });
+            }
+        }
 
         /**
          * Se encarga de inicializar el Select2 y llenarlo con los datos del servidor.
          * Esta función se ejecuta una sola vez al cargar la página.
          */
         function inicializarSelect2Defectos() {
-            const $defectosSelect = $('#defectosSelect'); // Usamos jQuery para Select2
+            const $defectosSelect = $('#defectosSelect');
+            $defectosSelect.select2({ placeholder: 'Cargando defectos...', width: '100%' });
 
-            // 1. Inicializa Select2 INMEDIATAMENTE con un mensaje de carga.
-            // Esto nos confirma que la librería Select2 está funcionando.
-            $defectosSelect.select2({
-                placeholder: 'Cargando defectos...',
-                width: '100%' // Asegura que se ajuste al tamaño de la celda
-            });
-
-            // 2. Haz la llamada a tu API para obtener la lista de defectos.
             fetch("{{ route('etiquetasV3.obtenerDefectos') }}")
-                .then(res => {
-                    if (!res.ok) {
-                        throw new Error('La respuesta de la red no fue correcta');
-                    }
-                    return res.json();
-                })
+                .then(res => res.json())
                 .then(defectos => {
-                    // 3. Transforma los datos recibidos al formato que Select2 necesita: {id, text}
-                    const opciones = defectos.map(defecto => {
-                        return {
-                            id: defecto.id,
-                            text: defecto.Defectos // La columna se llama 'Defectos' en tu tabla
-                        };
-                    });
-
-                    // 4. Re-inicializa el Select2 con los datos ya cargados.
+                    const opciones = defectos.map(defecto => ({
+                        id: defecto.id,
+                        text: defecto.Defectos
+                    }));
                     $defectosSelect.empty().select2({
                         placeholder: '-- Seleccionar Defectos --',
                         width: '100%',
                         data: [
-                            { id: '', text: '' }, // Opción vacía para el placeholder
+                            { id: '', text: '' },
                             { id: 'crear_nuevo', text: '--- Crear Nuevo Defecto ---' },
-                            ...opciones // Añade todas las opciones de la base de datos
+                            ...opciones
                         ]
                     });
                 })
                 .catch(error => {
-                    console.error("Error grave al cargar los defectos:", error);
-                    // Si falla, muestra un mensaje de error en el select.
-                    $defectosSelect.select2({
-                        placeholder: 'Error al cargar defectos',
-                        width: '100%'
-                    });
+                    console.error("Error al cargar los defectos:", error);
+                    $defectosSelect.select2({ placeholder: 'Error al cargar defectos', width: '100%' });
                 });
+            
+            // REEMPLAZA el bloque $defectosSelect.on('change', ...) con este:
+            $defectosSelect.on('change', function() {
+                const id = $(this).val();
+                const nombre = $(this).find('option:selected').text();
+                
+                if (!id) return; // No hacer nada si se deselecciona
+
+                if (id === 'crear_nuevo') {
+                    handleCrearNuevoDefecto(); 
+                } else {
+                    // 1. Añade el defecto al arreglo de estado
+                    defectosSeleccionados.push({ id: id, nombre: nombre, cantidad: 1 });
+                    // 2. Elimina la opción del select para no repetirla
+                    $(this).find('option:selected').remove();
+                    // 3. Actualiza la vista para que muestre el nuevo item
+                    renderizarListaDefectos();
+                }
+                // Resetea el select para que muestre el placeholder
+                $(this).val(null).trigger('change.select2');
+            });
         }
 
         // 1. AL HACER CLIC EN "BUSCAR"
@@ -608,30 +704,43 @@
 
         // 4. AL ENVIAR EL FORMULARIO PARA GUARDAR
         guardarForm.addEventListener('submit', function (e) {
-            e.preventDefault(); // ¡Muy importante! Evita que la página se recargue
+            e.preventDefault();
+            
+            const accionCorrectiva = accionesSelect.value;
+            
+            // --- Validaciones del lado del cliente ---
+            if (!estilosSelect.value || !tallaSelect.value || !accionCorrectiva) {
+                Swal.fire('Atención', 'Debes seleccionar Estilo, Talla y Acción Correctiva.', 'warning');
+                return;
+            }
+            if (accionCorrectiva === 'Aprobado con condicion' && comentariosInput.value.trim() === '') {
+                Swal.fire('Atención', 'Debes agregar un comentario para "Aprobado con condición".', 'warning');
+                return;
+            }
+            if (accionCorrectiva === 'Rechazado' && defectosSeleccionados.length === 0) {
+                Swal.fire('Atención', 'Debes agregar al menos un defecto para "Rechazado".', 'warning');
+                return;
+            }
 
-            // Recolectar los datos del formulario de resultados
+            // --- CONSTRUCCIÓN DEL OBJETO DE DATOS (AQUÍ ESTÁ LA CORRECCIÓN) ---
             const datosFormulario = {
                 estilo: estilosSelect.value,
                 talla: tallaSelect.value,
                 color: colorInput.value,
                 cantidad: cantidadInput.value,
                 muestreo: tamanoMuestraInput.value,
-                accion_correctiva: document.getElementById('accionesSelect').value,
-                comentarios: document.getElementById('comentariosInput').value,
-                // Datos del formulario de búsqueda original
+                accion_correctiva: accionCorrectiva,
+                comentarios: comentariosInput.value,
                 tipoEtiqueta: document.getElementById('tipoEtiqueta').value,
                 valorEtiqueta: document.getElementById('valorEtiqueta').value,
-                // Lógica de defectos (por ahora vacía, se implementará después)
-                defectos: []
             };
             
-            // Validar que los campos clave no estén vacíos
-            if (!datosFormulario.estilo || !datosFormulario.talla || !datosFormulario.accion_correctiva) {
-                Swal.fire('Atención', 'Debes seleccionar un Estilo, Talla y Acción Correctiva.', 'warning');
-                return;
+            // ▼▼▼ LÓGICA CONDICIONAL CLAVE ▼▼▼
+            // Solo añadimos el arreglo de defectos al objeto SI la acción es 'Rechazado'
+            if (accionCorrectiva === 'Rechazado') {
+                datosFormulario.defectos = defectosSeleccionados;
             }
-
+            
             const submitButton = this.querySelector('button[type="submit"]');
             submitButton.disabled = true;
             submitButton.innerText = 'Guardando...';
@@ -645,32 +754,37 @@
                 },
                 body: JSON.stringify(datosFormulario)
             })
-            .then(res => res.json())
+            .then(async res => {
+                // Mejoramos el manejo de errores para distinguir 422 de 500
+                if (!res.ok) {
+                    if (res.status === 422) {
+                        const errorData = await res.json();
+                        const errorMessages = Object.values(errorData.errors).flat().join('<br>');
+                        throw new Error(errorMessages);
+                    }
+                    // Para errores 500 u otros, lanzamos un error genérico
+                    throw new Error('Ocurrió un error en el servidor (Error ' + res.status + ')');
+                }
+                return res.json();
+            })
             .then(response => {
                 if (response.success) {
                     Swal.fire('¡Éxito!', response.message, 'success');
-
-                    // --- ACTUALIZACIÓN DE ESTADO EN EL FRONTEND ---
-                    // 1. Quitar el item recién guardado de nuestros datos en memoria
                     auditoriaData = auditoriaData.filter(item => 
                         !(item.estilo === datosFormulario.estilo && 
                         item.talla.toString() === datosFormulario.talla &&
                         item.color === datosFormulario.color)
                     );
-                    
-                    // 2. Volver a procesar los datos para refrescar los selects
                     procesarResultados();
-                    
-                    // 3. TODO: Actualizar la tabla de "Registros del día"
-                    // cargarRegistrosDelDia(); 
-                    
-                } else {
-                    Swal.fire('Error', response.message || 'No se pudo guardar la auditoría.', 'error');
                 }
             })
             .catch(err => {
                 console.error('Error al guardar:', err);
-                Swal.fire('Error', 'Ocurrió un error inesperado al guardar.', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al Guardar',
+                    html: err.message
+                });
             })
             .finally(() => {
                 submitButton.disabled = false;
