@@ -207,7 +207,7 @@ class EtiquetasV3Controller extends Controller
 
     public function guardarNuevoDefecto(Request $request)
     {
-        $request->validate(['Defectos' => 'required|string|unique:cat_def_etiquetas,Defectos']);
+        $request->validate(['Defectos' => 'required|string|unique:catalogo_defectosetiqueas,Defectos']);
 
         $nuevoDefecto = Cat_DefEtiquetas::create([
             'Defectos' => $request->Defectos,
