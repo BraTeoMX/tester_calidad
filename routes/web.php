@@ -493,6 +493,7 @@ Route::group(['middleware' => 'auth'], function () {
     //tercerda version de etiquetas
     Route::get('/etiquetasV3/inicio', [EtiquetasV3Controller::class, 'index'])->name('etiquetasV3.inicio');
     Route::post('/etiquetasV3/buscar', [EtiquetasV3Controller::class, 'buscarDatosCompletos'])->name('etiquetasV3.buscar');
+    Route::post('/etiquetasV3/guardar', [EtiquetasV3Controller::class, 'guardarAuditoria'])->name('etiquetasV3.guardar');
 
     //nuevo apartado para el desarrollo de inspeccion depues de horno
     Route::get('/inspeccionEstampadoHorno', [ScreenV2Controller::class, 'inspeccionEstampadoHorno'])->name('inspeccionEstampadoHorno');

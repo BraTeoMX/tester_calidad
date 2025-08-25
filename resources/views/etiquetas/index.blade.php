@@ -368,6 +368,8 @@
         const cantidadInput = document.getElementById('cantidadInput');
         const tamanoMuestraInput = document.getElementById('tamanoMuestraInput');
 
+        const guardarForm = document.getElementById('guardarFormulario');
+
         // Variable para almacenar todos los datos de la búsqueda actual
         let auditoriaData = [];
 
@@ -511,8 +513,77 @@
             }
         }
 
-        // Aquí iría la lógica para enviar el formulario #guardarFormulario,
-        // para el modal #openModalBtn, y para cargar los registros del día.
+        // 4. AL ENVIAR EL FORMULARIO PARA GUARDAR
+        guardarForm.addEventListener('submit', function (e) {
+            e.preventDefault(); // ¡Muy importante! Evita que la página se recargue
+
+            // Recolectar los datos del formulario de resultados
+            const datosFormulario = {
+                estilo: estilosSelect.value,
+                talla: tallaSelect.value,
+                color: colorInput.value,
+                cantidad: cantidadInput.value,
+                muestreo: tamanoMuestraInput.value,
+                accion_correctiva: document.getElementById('accionesSelect').value,
+                comentarios: document.getElementById('comentariosInput').value,
+                // Datos del formulario de búsqueda original
+                tipoEtiqueta: document.getElementById('tipoEtiqueta').value,
+                valorEtiqueta: document.getElementById('valorEtiqueta').value,
+                // Lógica de defectos (por ahora vacía, se implementará después)
+                defectos: []
+            };
+            
+            // Validar que los campos clave no estén vacíos
+            if (!datosFormulario.estilo || !datosFormulario.talla || !datosFormulario.accion_correctiva) {
+                Swal.fire('Atención', 'Debes seleccionar un Estilo, Talla y Acción Correctiva.', 'warning');
+                return;
+            }
+
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.innerText = 'Guardando...';
+
+            fetch("{{ route('etiquetasV3.guardar') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(datosFormulario)
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.success) {
+                    Swal.fire('¡Éxito!', response.message, 'success');
+
+                    // --- ACTUALIZACIÓN DE ESTADO EN EL FRONTEND ---
+                    // 1. Quitar el item recién guardado de nuestros datos en memoria
+                    auditoriaData = auditoriaData.filter(item => 
+                        !(item.estilo === datosFormulario.estilo && 
+                        item.talla.toString() === datosFormulario.talla &&
+                        item.color === datosFormulario.color)
+                    );
+                    
+                    // 2. Volver a procesar los datos para refrescar los selects
+                    procesarResultados();
+                    
+                    // 3. TODO: Actualizar la tabla de "Registros del día"
+                    // cargarRegistrosDelDia(); 
+                    
+                } else {
+                    Swal.fire('Error', response.message || 'No se pudo guardar la auditoría.', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Error al guardar:', err);
+                Swal.fire('Error', 'Ocurrió un error inesperado al guardar.', 'error');
+            })
+            .finally(() => {
+                submitButton.disabled = false;
+                submitButton.innerText = 'Guardar Auditoría';
+            });
+        });
 
     });
 </script>

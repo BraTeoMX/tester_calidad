@@ -146,4 +146,45 @@ class EtiquetasV3Controller extends Controller
         if ($cantidad > 5000000) return '2000';
         return '';
     }
+
+    public function guardarAuditoria(Request $request)
+    {
+        // La validación de datos es una buena práctica aquí
+        $request->validate([
+            'tipoEtiqueta' => 'required|string',
+            'valorEtiqueta' => 'required|string',
+            'estilo' => 'required|string',
+            'talla' => 'required|string',
+            // ... otras reglas de validación
+        ]);
+
+        $reporte = new ReporteAuditoriaEtiqueta();
+        $reporte->nombre_auditor = Auth::user()->name;
+        $reporte->tipo = $request->tipoEtiqueta;
+        $reporte->orden = $request->valorEtiqueta;
+        $reporte->estilo = $request->estilo;
+        $reporte->color = $request->color;
+        $reporte->talla = $request->talla;
+        $reporte->cantidad = $request->cantidad;
+        $reporte->muestreo = $request->muestreo;
+        $reporte->estatus = $request->accion_correctiva;
+        $reporte->comentario = $request->comentarios;
+        $reporte->registro_manual = $request->input('registro_manual', 0); // Asigna 0 por defecto
+
+        // Decidir el valor de 'rechazo'
+        $reporte->rechazo = ($request->accion_correctiva === 'Rechazado') ? 1 : null;
+
+        $reporte->save();
+
+        // La lógica para guardar defectos sigue siendo válida aquí (la implementaremos después)
+        // if ($request->has('defectos')) { ... }
+
+        // ¡IMPORTANTE! Ya no necesitamos volver a consultar los estilos.
+        // El frontend se encargará de actualizar su propia vista.
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Auditoría guardada correctamente.',
+        ]);
+    }
 }
