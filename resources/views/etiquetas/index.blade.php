@@ -776,6 +776,7 @@
                         item.color === datosFormulario.color)
                     );
                     procesarResultados();
+                    cargarRegistrosDelDia();
                 }
             })
             .catch(err => {
@@ -792,6 +793,171 @@
             });
         });
 
+        // --- CÓDIGO NUEVO PARA LA TABLA DE REGISTROS DEL DÍA ---
+
+        const tablaRegistrosContainer = document.getElementById('tablaRegistrosDelDia');
+
+        /**
+         * Carga y renderiza la tabla de registros del día.
+         */
+        function cargarRegistrosDelDia() {
+            tablaRegistrosContainer.innerHTML = 'Cargando registros...'; // Muestra un mensaje de carga
+
+            fetch("{{ route('etiquetasV3.registrosDelDia') }}")
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success || data.registros.length === 0) {
+                        tablaRegistrosContainer.innerHTML = `<p>No se encontraron registros para el día de hoy.</p>`;
+                        return;
+                    }
+                    
+                    const rows = data.registros.map(registro => {
+                        const defectosHtml = registro.defectos.length > 0
+                            ? `<ul>${registro.defectos.map(d => `<li>${d}</li>`).join('')}</ul>`
+                            : 'N/A';
+                        
+                        // Si el estatus es 'Rechazado', creamos un <select>. De lo contrario, solo texto.
+                        const estatusHtml = registro.isRechazado
+                            ? `<select class="form-control select-estatus" data-id="${registro.id}">
+                                   <option value="Rechazado" selected>Rechazado</option>
+                                   <option value="Aprobado">Aprobar</option>
+                               </select>`
+                            : registro.estatus;
+
+                        return `
+                            <tr class="${registro.isRechazado ? 'table-danger1' : ''}" id="registro-${registro.id}">
+                                <td>${registro.tipo}</td>
+                                <td>${registro.orden}</td>
+                                <td>${registro.estilo}</td>
+                                <td>${registro.color}</td>
+                                <td>${registro.cantidad}</td>
+                                <td>${registro.muestreo}</td>
+                                <td>${estatusHtml}</td>
+                                <td>${defectosHtml}</td>
+                                <td>${registro.comentario}</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm btn-eliminar" data-id="${registro.id}">
+                                        Eliminar
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    tablaRegistrosContainer.innerHTML = `
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead class="thead-primary">
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Orden</th>
+                                        <th>Estilo</th>
+                                        <th>Color</th>
+                                        <th>Cantidad</th>
+                                        <th>Muestreo</th>
+                                        <th>Estatus</th>
+                                        <th>Defectos</th>
+                                        <th>Comentarios</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rows}</tbody>
+                            </table>
+                        </div>
+                    `;
+                })
+                .catch(err => {
+                    console.error(err);
+                    tablaRegistrosContainer.innerHTML = `<p class="text-danger">Ocurrió un error al cargar los registros.</p>`;
+                });
+        }
+
+        /**
+         * Manejo de eventos para la tabla de registros (actualizar y eliminar) usando delegación.
+         */
+        tablaRegistrosContainer.addEventListener('click', async function (e) {
+            // --- Lógica para Eliminar ---
+            if (e.target.classList.contains('btn-eliminar')) {
+                const registroId = e.target.dataset.id;
+                
+                const result = await Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "No podrás revertir esta acción.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, ¡eliminar!',
+                    cancelButtonText: 'Cancelar'
+                });
+
+                if (result.isConfirmed) {
+                    fetch(`/etiquetasV3/${registroId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire('Eliminado', 'El registro ha sido eliminado.', 'success');
+                            document.getElementById(`registro-${registroId}`).remove();
+                        } else {
+                            Swal.fire('Error', 'No se pudo eliminar el registro.', 'error');
+                        }
+                    });
+                }
+            }
+        });
+
+        tablaRegistrosContainer.addEventListener('change', async function(e) {
+            // --- Lógica para Actualizar Estatus ---
+            if (e.target.classList.contains('select-estatus')) {
+                 const registroId = e.target.dataset.id;
+                 const nuevoEstatus = e.target.value;
+
+                 if (nuevoEstatus === 'Aprobado') {
+                     const result = await Swal.fire({
+                         title: 'Confirmar Cambio',
+                         text: '¿Deseas cambiar el estatus a "Aprobado"? Los defectos asociados serán eliminados.',
+                         icon: 'question',
+                         showCancelButton: true,
+                         confirmButtonText: 'Sí, cambiar',
+                         cancelButtonText: 'Cancelar'
+                     });
+
+                     if (result.isConfirmed) {
+                         fetch(`/etiquetasV3/${registroId}/update-status`, {
+                             method: 'PUT',
+                             headers: {
+                                 'Content-Type': 'application/json',
+                                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                 'Accept': 'application/json'
+                             },
+                             body: JSON.stringify({ estatus: nuevoEstatus })
+                         })
+                         .then(res => res.json())
+                         .then(data => {
+                            if (data.success) {
+                                Swal.fire('Actualizado', 'El estatus se cambió a Aprobado.', 'success');
+                                cargarRegistrosDelDia(); // Recargamos toda la tabla para reflejar el cambio
+                            } else {
+                                Swal.fire('Error', 'No se pudo actualizar el estatus.', 'error');
+                                e.target.value = 'Rechazado'; // Revertir el cambio en el select
+                            }
+                         });
+                     } else {
+                         e.target.value = 'Rechazado'; // Si cancelan, regresa el select a su estado original
+                     }
+                 }
+            }
+        });
+
+        // --- LLAMADA INICIAL ---
+        // Carga los registros del día cuando la página esté lista.
+        cargarRegistrosDelDia();
     });
 </script>
 @endsection

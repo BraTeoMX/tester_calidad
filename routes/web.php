@@ -496,6 +496,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/etiquetasV3/guardar', [EtiquetasV3Controller::class, 'guardarAuditoria'])->name('etiquetasV3.guardar');
     Route::get('/etiquetasV3/obtener-defectos', [EtiquetasV3Controller::class, 'obtenerDefectos'])->name('etiquetasV3.obtenerDefectos');
     Route::post('/etiquetasV3/guardar-defecto', [EtiquetasV3Controller::class, 'guardarNuevoDefecto'])->name('etiquetasV3.guardarDefecto');
+    Route::get('/etiquetasV3/registros-del-dia', [EtiquetasV3Controller::class, 'getRegistrosDelDia'])->name('etiquetasV3.registrosDelDia');
+    Route::put('/etiquetasV3/{id}/update-status', [EtiquetasV3Controller::class, 'updateStatus'])->name('etiquetasV3.updateStatus');
+    Route::delete('/etiquetasV3/{id}', [EtiquetasV3Controller::class, 'destroy'])->name('etiquetasV3.destroy');
 
     //nuevo apartado para el desarrollo de inspeccion depues de horno
     Route::get('/inspeccionEstampadoHorno', [ScreenV2Controller::class, 'inspeccionEstampadoHorno'])->name('inspeccionEstampadoHorno');

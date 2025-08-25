@@ -220,4 +220,70 @@ class EtiquetasV3Controller extends Controller
 
         return response()->json(['success' => true, 'defecto' => $nuevoDefecto]);
     }
+
+    public function getRegistrosDelDia()
+    {
+        $registros = ReporteAuditoriaEtiqueta::whereDate('created_at', Carbon::today())
+            ->with('defectos') // Carga la relación con los defectos
+            ->orderBy('id', 'desc') // Muestra los más recientes primero
+            ->get()
+            ->map(function ($registro) {
+                return [
+                    'id' => $registro->id,
+                    'tipo' => $registro->tipo,
+                    'orden' => $registro->orden,
+                    'estilo' => $registro->estilo,
+                    'color' => $registro->color,
+                    'cantidad' => $registro->cantidad,
+                    'muestreo' => $registro->muestreo,
+                    'estatus' => $registro->estatus,
+                    'isRechazado' => $registro->estatus === 'Rechazado',
+                    'comentario' => $registro->comentario ?? 'N/A',
+                    // Mapea los defectos para mostrarlos en la tabla
+                    'defectos' => $registro->defectos->isNotEmpty()
+                        ? $registro->defectos->map(fn($d) => "{$d->nombre} ({$d->cantidad})")->toArray()
+                        : ['Sin defectos']
+                ];
+            });
+
+        return response()->json(['success' => true, 'registros' => $registros]);
+    }
+
+    /**
+     * 🔄 Actualiza el estatus de un registro a 'Aprobado'.
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        Log::info("Request data: " . json_encode($request->all()));
+        $registro = ReporteAuditoriaEtiqueta::find($id);
+        if (!$registro) {
+            return response()->json(['success' => false, 'message' => 'Registro no encontrado.'], 404);
+        }
+        // Buscar registro
+        $registro = ReporteAuditoriaEtiqueta::findOrFail($id);
+        // Actualizar estatus
+        $registro->estatus = $request->estatus;
+        // Registramos la fecha/hora del cambio
+        // (Suponiendo que agregaste la columna `fecha_cambio_estatus` en tu tabla)
+        $registro->fecha_cambio_estatus = \Carbon\Carbon::now();
+
+        $registro->save();
+
+        return response()->json(['success' => true, 'message' => 'Estatus actualizado.']);
+    }
+
+    /**
+     * 🗑️ Elimina un registro de auditoría.
+     */
+    public function destroy($id)
+    {
+        $registro = ReporteAuditoriaEtiqueta::find($id);
+        if (!$registro) {
+            return response()->json(['success' => false, 'message' => 'Registro no encontrado.'], 404);
+        }
+
+        $registro->delete(); // Esto eliminará en cascada los defectos si la BD está configurada así
+
+        return response()->json(['success' => true, 'message' => 'Registro eliminado.']);
+    }
 }
