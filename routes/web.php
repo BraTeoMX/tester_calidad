@@ -40,6 +40,7 @@ use App\Http\Controllers\GestionController;
 use App\Http\Controllers\AuditoriaAQL_v2Controller;
 use App\Http\Controllers\ConsutlaEstatusController;
 use App\Http\Controllers\EtiquetasV2Controller;
+use App\Http\Controllers\EtiquetasV3Controller;
 use App\Http\Controllers\GestionUsuarioController;
 use App\Http\Controllers\ScreenV2Controller;
 use App\Http\Controllers\ReportesScreenController;
@@ -258,9 +259,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/viewTabl', [CalidadScreenPrintController::class, 'viewTabl']);
     Route::post('/SendScreenPrint', [CalidadScreenPrintController::class, 'SendScreenPrint']);
     Route::put('/UpdateScreenPrint/{idValue}', [CalidadScreenPrintController::class, 'UpdateScreenPrint']);
-    Route::get('/obtenerOpcionesACCorrectiva',[CalidadScreenPrintController::class, 'obtenerOpcionesACCorrectiva']);
+    Route::get('/obtenerOpcionesACCorrectiva', [CalidadScreenPrintController::class, 'obtenerOpcionesACCorrectiva']);
     Route::get('/obtenerOpcionesTipoProblema', [CalidadScreenPrintController::class, 'obtenerOpcionesTipoProblema']);
-    Route::get('/OpcionesACCorrectiva',[CalidadScreenPrintController::class, 'OpcionesACCorrectiva']);
+    Route::get('/OpcionesACCorrectiva', [CalidadScreenPrintController::class, 'OpcionesACCorrectiva']);
     Route::get('/OpcionesTipoProblema', [CalidadScreenPrintController::class, 'OpcionesTipoProblema']);
     Route::post('/actualizarStatScrin/{id}', [CalidadScreenPrintController::class, 'actualizarStatScrin']);
     Route::get('/horno_banda', [CalidadScreenPrintController::class, 'horno_banda']);
@@ -280,9 +281,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/viewTableIns', [InspeccionEstampadoHorno::class, 'viewTableIns']);
     Route::post('/SendInspeccionEstampadoHornot', [InspeccionEstampadoHorno::class, 'SendInspeccionEstampadoHornot']);
     Route::put('/UpdateIsnpec/{idValue}', [InspeccionEstampadoHorno::class, 'UpdateIsnpec']);
-    Route::get('/obtenerOpcionesACCorrectiva',[InspeccionEstampadoHorno::class, 'obtenerOpcionesACCorrectiva']);
+    Route::get('/obtenerOpcionesACCorrectiva', [InspeccionEstampadoHorno::class, 'obtenerOpcionesACCorrectiva']);
     Route::get('/obtenerOpcionesTipoProblema', [InspeccionEstampadoHorno::class, 'obtenerOpcionesTipoProblema']);
-    Route::get('/OpcionesACCorrectiva',[InspeccionEstampadoHorno::class, 'OpcionesACCorrectiva']);
+    Route::get('/OpcionesACCorrectiva', [InspeccionEstampadoHorno::class, 'OpcionesACCorrectiva']);
     Route::get('/OpcionesTipoProblema', [InspeccionEstampadoHorno::class, 'OpcionesTipoProblema']);
     Route::post('/actualizarEstado/{id}', [InspeccionEstampadoHorno::class, 'actualizarEstado']);
     Route::get('/PorcenTotalDefec', [InspeccionEstampadoHorno::class, 'PorcenTotalDefec']);
@@ -296,9 +297,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/viewTablePlancha', [CalidadProcesoPlancha::class, 'viewTablePlancha']);
     Route::post('/SendPlancha', [CalidadProcesoPlancha::class, 'SendPlancha']);
     Route::put('/UpdatePlancha/{idValue}', [CalidadProcesoPlancha::class, 'UpdatePlancha']);
-    Route::get('/obtenerOpcionesACCorrectiva',[CalidadProcesoPlancha::class, 'obtenerOpcionesACCorrectiva']);
+    Route::get('/obtenerOpcionesACCorrectiva', [CalidadProcesoPlancha::class, 'obtenerOpcionesACCorrectiva']);
     Route::get('/obtenerOpcionesTipoProblema', [CalidadProcesoPlancha::class, 'obtenerOpcionesTipoProblema']);
-    Route::get('/OpcionesACCorrectiva',[CalidadProcesoPlancha::class, 'OpcionesACCorrectiva']);
+    Route::get('/OpcionesACCorrectiva', [CalidadProcesoPlancha::class, 'OpcionesACCorrectiva']);
     Route::get('/OpcionesTipoProblema', [CalidadProcesoPlancha::class, 'OpcionesTipoProblema']);
     Route::post('/actualizarEstado/{id}', [CalidadProcesoPlancha::class, 'actualizarEstado']);
     Route::get('/PorcenTotalDefecPlancha', [CalidadProcesoPlancha::class, 'PorcenTotalDefecPlancha']);
@@ -309,9 +310,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/viewTableMaquila', [Maquila::class, 'viewTableMaquila']);
     Route::post('/SendMaquila', [Maquila::class, 'SendMaquila']);
     Route::put('/UpdateMaquila/{idValue}', [Maquila::class, 'UpdateMaquila']);
-    Route::get('/obtenerOpcionesACCorrectiva',[Maquila::class, 'obtenerOpcionesACCorrectiva']);
+    Route::get('/obtenerOpcionesACCorrectiva', [Maquila::class, 'obtenerOpcionesACCorrectiva']);
     Route::get('/obtenerOpcionesTipoProblema', [Maquila::class, 'obtenerOpcionesTipoProblema']);
-    Route::get('/OpcionesACCorrectiva',[Maquila::class, 'OpcionesACCorrectiva']);
+    Route::get('/OpcionesACCorrectiva', [Maquila::class, 'OpcionesACCorrectiva']);
     Route::get('/OpcionesTipoProblema', [Maquila::class, 'OpcionesTipoProblema']);
     Route::post('/actualizarEstado/{id}', [Maquila::class, 'actualizarEstado']);
     Route::get('/PorcenTotalDefecMaquila', [Maquila::class, 'PorcenTotalDefecMaquila']);
@@ -367,7 +368,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/dashboardPlanta2Detalle', [DashboardPlanta2DetalleController::class, 'dashboardPlanta2Detalle'])->name('dashboar.dashboardPlanta2Detalle');
     Route::get('/detalleXModuloPlanta2', [DashboardPlanta2DetalleController::class, 'detalleXModuloPlanta2'])->name('dashboar.detalleXModuloPlanta2');
 
-    Route::get('/reporteriaInterna',[reporteriaInternaController::class, 'reporteriaInterna'])->name('reporteriaInterna.reporteriaInterna')->middleware('checkrole');
+    Route::get('/reporteriaInterna', [reporteriaInternaController::class, 'reporteriaInterna'])->name('reporteriaInterna.reporteriaInterna')->middleware('checkrole');
     Route::get('/obtener_top_defectos', [DashboardController::class, 'Top3Defectos']);
 
     Route::get('/altaYbaja', [AltaYBajaController::class, 'altaYbaja'])->name('altaYbaja');
@@ -388,7 +389,7 @@ Route::group(['middleware' => 'auth'], function () {
 
 
     //Segundas
-    Route::get('/SegundasTerceras',[HomeController::class, 'SegundasTerceras']);
+    Route::get('/SegundasTerceras', [HomeController::class, 'SegundasTerceras']);
     Route::get('/Segundas', [Segundas::class, 'Segundas']);
     Route::get('/ObtenerSegundas', [Segundas::class, 'ObtenerSegundas']);
     Route::get('/ObtenerPlantas', [Segundas::class, 'ObtenerPlantas']);
@@ -489,7 +490,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::put('/reporte-etiquetas/{id}/update-status', [EtiquetasV2Controller::class, 'updateStatus'])->name('reporte-etiquetas.updateStatus');
     Route::get('/registros-del-dia-etiqueta', [EtiquetasV2Controller::class, 'getRegistrosDelDiaEtiqueta'])->name('registros.del.dia.ajax.etiqueta');
     Route::delete('/reporte-etiquetas/{id}', [EtiquetasV2Controller::class, 'eliminarRegistro'])->name('etiquetas.eliminar');
-
+    //tercerda version de etiquetas
+    Route::get('/etiquetasV3/inicio', [EtiquetasV3Controller::class, 'index'])->name('etiquetasV3.inicio');
 
     //nuevo apartado para el desarrollo de inspeccion depues de horno
     Route::get('/inspeccionEstampadoHorno', [ScreenV2Controller::class, 'inspeccionEstampadoHorno'])->name('inspeccionEstampadoHorno');
@@ -547,7 +549,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/dashboardPlanta1V2/buscarProcesoTE', [DashboardPorDiaV2Controller::class, 'buscarProcesoTE'])->name('dashboardPlanta1V2.buscarProcesoTE');
     Route::get('dashboardPlanta1V2P2/buscarAQL/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesAQLP1']);
     Route::get('dashboardPlanta1V2P2/buscarProceso/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesProcesoP1']);
-    Route::get('dashboardPlanta1V2/buscarAQL/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesAQLP1']); 
+    Route::get('dashboardPlanta1V2/buscarAQL/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesAQLP1']);
     Route::get('dashboardPlanta1V2/buscarProceso/detalles', [DashboardPorDiaV2Controller::class, 'obtenerDetallesProcesoP1']);
     Route::get('/dashboardPlanta2V2', [DashboardPorDiaV2Controller::class, 'dashboardPlanta2V2'])->name('dashboardPlanta2V2');
     Route::get('/dashboardPlanta1V2P2/buscarAQL', [DashboardPorDiaV2Controller::class, 'buscarAQLP2'])->name('dashboardPlanta2V2.buscarAQLP2');
@@ -613,5 +615,4 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/reportesScreen', [ReportesScreenController::class, 'index'])->name('reportesScreen.index');
     Route::get('/reportesScreen/datosPorDia', [ReportesScreenController::class, 'bultosPorDia'])->name('reportesScreen.datosPorDia');
     Route::get('/reportesScreen/obtenerDatos', [ReportesScreenController::class, 'obtenerDatos'])->name('reportesScreen.obtenerDatos');
-
 });
