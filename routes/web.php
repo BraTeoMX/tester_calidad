@@ -492,6 +492,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('/reporte-etiquetas/{id}', [EtiquetasV2Controller::class, 'eliminarRegistro'])->name('etiquetas.eliminar');
     //tercerda version de etiquetas
     Route::get('/etiquetasV3/inicio', [EtiquetasV3Controller::class, 'index'])->name('etiquetasV3.inicio');
+    Route::post('/etiquetasV3/buscar', [EtiquetasV3Controller::class, 'buscarDatosCompletos'])->name('etiquetasV3.buscar');
 
     //nuevo apartado para el desarrollo de inspeccion depues de horno
     Route::get('/inspeccionEstampadoHorno', [ScreenV2Controller::class, 'inspeccionEstampadoHorno'])->name('inspeccionEstampadoHorno');

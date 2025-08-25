@@ -33,7 +33,71 @@
             </div>
 
             <!-- Resultado -->
-            <div id="resultadoBusqueda" class="mt-4"></div>
+            <div id="resultadoBusqueda" class="mt-4">
+
+                <div id="contenedorFormularioResultados" class="d-none">
+                    <h4 class="mt-4">Registrar Auditoría:</h4>
+                    <form id="guardarFormulario">
+                        <div class="table-responsive">
+                            <table class="table align-items-center table-flush">
+                                <thead class="thead-primary">
+                                    <tr>
+                                        <th>Estilo</th>
+                                        <th>Talla</th>
+                                        <th>Color</th>
+                                        <th>Cantidad</th>
+                                        <th>Muestreo</th>
+                                        <th>Acciones Correctivas</th>
+                                        <th id="defectosHeader" class="d-none">Defectos</th>
+                                        <th id="comentariosHeader" class="d-none">Comentarios</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <select name="estilo" id="estilosSelect" class="form-control" required>
+                                                <option value="">-- Seleccionar Estilo --</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select name="talla" id="tallaSelect" class="form-control" required
+                                                disabled>
+                                                <option value="">-- Seleccionar Talla --</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" name="color" class="form-control texto-blanco"
+                                                id="colorInput" readonly></td>
+                                        <td><input type="text" name="cantidad" class="form-control texto-blanco"
+                                                id="cantidadInput" readonly></td>
+                                        <td><input type="text" name="muestreo" class="form-control texto-blanco"
+                                                id="tamanoMuestraInput" readonly></td>
+                                        <td>
+                                            <select name="accion_correctiva" id="accionesSelect" class="form-control"
+                                                required>
+                                                <option value="">-- Seleccionar --</option>
+                                                <option value="Aprobado">Aprobado</option>
+                                                <option value="Aprobado con condicion">Aprobado con condicion</option>
+                                                <option value="Rechazado">Rechazado</option>
+                                            </select>
+                                        </td>
+                                        <td id="defectosCell" class="d-none">
+                                        </td>
+                                        <td id="comentariosCell" class="d-none">
+                                            <input type="text" name="comentarios" id="comentariosInput"
+                                                class="form-control" placeholder="Escribe un comentario">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="mt-3 d-flex justify-content-between">
+                                <button type="submit" class="btn-custom">Guardar Auditoría</button>
+                                <button type="button" id="openModalBtn" class="btn btn-secondary">Ingresar datos no
+                                    encontrados</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
             <!-- Modal Personalizado -->
             <div id="customModal" class="modal-custom">
@@ -290,4 +354,166 @@
     }
 </style>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- REFERENCIAS A ELEMENTOS DEL DOM ---
+        const btnBuscar = document.getElementById('btnBuscar');
+        const resultadoDiv = document.getElementById('resultadoBusqueda');
+        const formularioResultados = document.getElementById('contenedorFormularioResultados');
+        
+        // Selects e inputs del formulario de resultados
+        const estilosSelect = document.getElementById('estilosSelect');
+        const tallaSelect = document.getElementById('tallaSelect');
+        const colorInput = document.getElementById('colorInput');
+        const cantidadInput = document.getElementById('cantidadInput');
+        const tamanoMuestraInput = document.getElementById('tamanoMuestraInput');
+
+        // Variable para almacenar todos los datos de la búsqueda actual
+        let auditoriaData = [];
+
+        // --- MANEJO DE EVENTOS ---
+
+        // 1. AL HACER CLIC EN "BUSCAR"
+        btnBuscar.addEventListener('click', function () {
+            const tipo = document.getElementById('tipoEtiqueta').value;
+            const orden = document.getElementById('valorEtiqueta').value;
+
+            if (!tipo || !orden) {
+                Swal.fire('Atención', 'Por favor, completa todos los campos de búsqueda.', 'warning');
+                return;
+            }
+            
+            // Muestra un indicador de carga
+            btnBuscar.disabled = true;
+            btnBuscar.innerText = 'Buscando...';
+
+            fetch("{{ route('etiquetasV3.buscar') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    tipoEtiqueta: tipo,
+                    valorEtiqueta: orden
+                })
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.success) {
+                    // Guardamos todos los datos en nuestra variable
+                    auditoriaData = response.data;
+                    // Procesamos los datos para llenar los selects
+                    procesarResultados();
+                } else {
+                    Swal.fire('Información', response.message, 'info');
+                    // Ocultamos el formulario si ya estaba visible
+                    formularioResultados.classList.add('d-none');
+                }
+            })
+            .catch(err => {
+                console.error('Error en la petición:', err);
+                Swal.fire('Error', 'Ocurrió un error inesperado al buscar.', 'error');
+            })
+            .finally(() => {
+                // Restaura el botón de búsqueda
+                btnBuscar.disabled = false;
+                btnBuscar.innerText = 'Buscar';
+            });
+        });
+
+        // 2. AL CAMBIAR LA SELECCIÓN DE "ESTILO"
+        estilosSelect.addEventListener('change', function () {
+            const estiloSeleccionado = this.value;
+            resetearCamposDesde('talla'); // Limpia los campos dependientes
+
+            if (!estiloSeleccionado) return;
+
+            // Filtramos las tallas ÚNICAS para el estilo seleccionado (todo en memoria, ¡súper rápido!)
+            const tallasParaEstilo = [...new Set(
+                auditoriaData
+                    .filter(item => item.estilo === estiloSeleccionado)
+                    .map(item => item.talla)
+            )];
+            
+            // Llenamos el select de tallas
+            poblarSelect(tallaSelect, tallasParaEstilo, '-- Seleccionar Talla --');
+            tallaSelect.disabled = false;
+        });
+
+        // 3. AL CAMBIAR LA SELECCIÓN DE "TALLA"
+        tallaSelect.addEventListener('change', function () {
+            const estiloSeleccionado = estilosSelect.value;
+            const tallaSeleccionada = this.value;
+            resetearCamposDesde('inputs'); // Limpia los inputs
+
+            if (!tallaSeleccionada) return;
+
+            // Buscamos el registro exacto que coincide (de nuevo, en memoria)
+            const registroEncontrado = auditoriaData.find(item => 
+                item.estilo === estiloSeleccionado && item.talla.toString() === tallaSeleccionada
+            );
+
+            if (registroEncontrado) {
+                colorInput.value = registroEncontrado.color;
+                cantidadInput.value = registroEncontrado.cantidad;
+                tamanoMuestraInput.value = registroEncontrado.muestreo;
+            }
+        });
+
+
+        // --- FUNCIONES AUXILIARES ---
+
+        function procesarResultados() {
+            resetearFormularioResultados();
+            
+            // Obtenemos todos los estilos ÚNICOS del set de datos
+            const estilosUnicos = [...new Set(auditoriaData.map(item => item.estilo))];
+            
+            if (estilosUnicos.length > 0) {
+                poblarSelect(estilosSelect, estilosUnicos, '-- Seleccionar Estilo --');
+                // Mostramos el formulario de resultados
+                formularioResultados.classList.remove('d-none');
+            } else {
+                formularioResultados.classList.add('d-none');
+                Swal.fire('Información', 'No se encontraron estilos disponibles para auditar.', 'info');
+            }
+        }
+
+        function poblarSelect(selectElement, opciones, placeholder) {
+            selectElement.innerHTML = `<option value="">${placeholder}</option>`; // Limpiar y poner placeholder
+            opciones.forEach(opcion => {
+                const optionElement = document.createElement('option');
+                optionElement.value = opcion;
+                optionElement.textContent = opcion;
+                selectElement.appendChild(optionElement);
+            });
+        }
+
+        function resetearFormularioResultados() {
+            document.getElementById('guardarFormulario').reset(); // Resetea todo el form
+            resetearCamposDesde('estilo');
+        }
+
+        function resetearCamposDesde(nivel) {
+            if (nivel === 'estilo') {
+                estilosSelect.innerHTML = '<option value="">-- Seleccionar Estilo --</option>';
+            }
+            if (nivel === 'estilo' || nivel === 'talla') {
+                tallaSelect.innerHTML = '<option value="">-- Seleccionar Talla --</option>';
+                tallaSelect.disabled = true;
+            }
+            if (nivel === 'estilo' || nivel === 'talla' || nivel === 'inputs') {
+                colorInput.value = '';
+                cantidadInput.value = '';
+                tamanoMuestraInput.value = '';
+            }
+        }
+
+        // Aquí iría la lógica para enviar el formulario #guardarFormulario,
+        // para el modal #openModalBtn, y para cargar los registros del día.
+
+    });
+</script>
 @endsection
