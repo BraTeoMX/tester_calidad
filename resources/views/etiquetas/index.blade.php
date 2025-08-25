@@ -745,8 +745,18 @@
             document.addEventListener("keydown", (event) => { if (event.key === "Escape") cerrarModal(); });
         }
 
-        tallaCheckbox.addEventListener('change', function() { tallaInputModal.required = !this.checked; });
-        colorCheckbox.addEventListener('change', function() { colorInputModal.required = !this.checked; });
+        // --- Lógica mejorada para los checkboxes del modal ---
+        tallaCheckbox.addEventListener('change', function() {
+            tallaInputModal.disabled = this.checked;
+            tallaInputModal.required = !this.checked;
+            if (this.checked) tallaInputModal.value = '';
+        });
+
+        colorCheckbox.addEventListener('change', function() {
+            colorInputModal.disabled = this.checked;
+            colorInputModal.required = !this.checked;
+            if (this.checked) colorInputModal.value = '';
+        });
 
         guardarFormularioModal.addEventListener('submit', function (e) {
             e.preventDefault();

@@ -49,7 +49,7 @@ class EtiquetasV3Controller extends Controller
         // 2. Filtrar para excluir registros que ya existen en nuestra BD local
         // (Esta lógica no se cachea para reflejar siempre el estado actual)
         $nombreAuditor = Auth::user()->name;
-        $fechaHaceSieteDias = Carbon::now()->subDays(7);
+        $fechaHaceSieteDias = Carbon::now()->subDays(1);
         $registrosExistentes = ReporteAuditoriaEtiqueta::where('orden', $orden)
             ->where('nombre_auditor', $nombreAuditor)
             ->where('created_at', '>=', $fechaHaceSieteDias)
@@ -88,7 +88,7 @@ class EtiquetasV3Controller extends Controller
     {
         $cacheKey = 'datos_completos.' . $tipoBusqueda . '.' . $orden;
 
-        return Cache::remember($cacheKey, 10, function () use ($tipoBusqueda, $orden) {
+        return Cache::remember($cacheKey, 900, function () use ($tipoBusqueda, $orden) {
             $query = null;
 
             if ($tipoBusqueda === 'OC') {
