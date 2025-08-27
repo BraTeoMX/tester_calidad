@@ -158,7 +158,7 @@ class EtiquetasV3Controller extends Controller
             'tipoEtiqueta'      => 'required|string',
             'valorEtiqueta'     => 'required|string',
             'estilo'            => 'required|string',
-            'talla'             => 'required|string',
+            //'talla'             => 'required|string',
             'accion_correctiva' => 'required|string',
             'comentarios'       => 'required_if:accion_correctiva,Aprobado con condicion|nullable|string',
             // Reglas para el arreglo de defectos
