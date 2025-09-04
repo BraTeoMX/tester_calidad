@@ -1,38 +1,38 @@
 @extends('layouts.app', ['pageSlug' => 'proceso', 'titlePage' => __('proceso')])
 
 @section('content')
-    {{-- ... dentro de tu vista ... --}}
-    @if (session('error'))
-        <div class="alert alert-danger">
-            {{ session('error') }}
-        </div>
+{{-- ... dentro de tu vista ... --}}
+@if (session('error'))
+<div class="alert alert-danger">
+    {{ session('error') }}
+</div>
+@endif
+@if (session('success'))
+<div class="alert alerta-exito">
+    {{ session('success') }}
+    @if (session('sorteo'))
+    <br>{{ session('sorteo') }}
     @endif
-    @if (session('success'))
-        <div class="alert alerta-exito">
-            {{ session('success') }}
-            @if (session('sorteo'))
-                <br>{{ session('sorteo') }}
-            @endif
-        </div>
-    @endif
-    @if (session('sobre-escribir'))
-        <div class="alert sobre-escribir">
-            {{ session('sobre-escribir') }}
-        </div>
-    @endif
-    @if (session('status'))
-        {{-- A menudo utilizado para mensajes de estado genéricos --}}
-        <div class="alert alert-secondary">
-            {{ session('status') }}
-        </div>
-    @endif
-    @if (session('cambio-estatus'))
-        <div class="alert cambio-estatus">
-            {{ session('cambio-estatus') }}
-        </div>
-    @endif
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
+</div>
+@endif
+@if (session('sobre-escribir'))
+<div class="alert sobre-escribir">
+    {{ session('sobre-escribir') }}
+</div>
+@endif
+@if (session('status'))
+{{-- A menudo utilizado para mensajes de estado genéricos --}}
+<div class="alert alert-secondary">
+    {{ session('status') }}
+</div>
+@endif
+@if (session('cambio-estatus'))
+<div class="alert cambio-estatus">
+    {{ session('cambio-estatus') }}
+</div>
+@endif
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
             // Seleccionamos todos los elementos de alerta
             const alerts = document.querySelectorAll('.alert');
 
@@ -49,631 +49,667 @@
                 }, 5000); // Tiempo de espera antes de desvanecer (6 segundos)
             });
         });
-    </script>
-    <style>
-        .alerta-exito {
-            background-color: #32CD32;
-            /* Color de fondo verde */
-            color: white;
-            /* Color de texto blanco */
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 20px;
-        }
+</script>
+<style>
+    .alerta-exito {
+        background-color: #32CD32;
+        /* Color de fondo verde */
+        color: white;
+        /* Color de texto blanco */
+        padding: 20px;
+        border-radius: 15px;
+        font-size: 20px;
+    }
 
-        .sobre-escribir {
-            background-color: #FF8C00;
-            /* Color de fondo verde */
-            color: white;
-            /* Color de texto blanco */
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 20px;
-        }
+    .sobre-escribir {
+        background-color: #FF8C00;
+        /* Color de fondo verde */
+        color: white;
+        /* Color de texto blanco */
+        padding: 20px;
+        border-radius: 15px;
+        font-size: 20px;
+    }
 
-        .cambio-estatus {
-            background-color: #800080;
-            /* Color de fondo verde */
-            color: white;
-            /* Color de texto blanco */
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 20px;
-        }
+    .cambio-estatus {
+        background-color: #800080;
+        /* Color de fondo verde */
+        color: white;
+        /* Color de texto blanco */
+        padding: 20px;
+        border-radius: 15px;
+        font-size: 20px;
+    }
 
-        .btn-verde-xd {
-            color: #fff !important;
-            background-color: #28a745 !important;
-            border-color: #28a745 !important;
-            box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08) !important;
-            padding: 0.5rem 2rem;
-            /* Aumenta el tamaño del botón */
-            font-size: 1.2rem;
-            /* Aumenta el tamaño de la fuente */
-            font-weight: bold;
-            /* Texto en negritas */
-            border-radius: 10px;
-            /* Ajusta las esquinas redondeadas */
-            transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
-            cursor: pointer;
-            /* Cambia el cursor a una mano */
-        }
+    .btn-verde-xd {
+        color: #fff !important;
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+        box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08) !important;
+        padding: 0.5rem 2rem;
+        /* Aumenta el tamaño del botón */
+        font-size: 1.2rem;
+        /* Aumenta el tamaño de la fuente */
+        font-weight: bold;
+        /* Texto en negritas */
+        border-radius: 10px;
+        /* Ajusta las esquinas redondeadas */
+        transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+        cursor: pointer;
+        /* Cambia el cursor a una mano */
+    }
 
-        .btn-verde-xd:hover {
-            color: #fff !important;
-            background-color: #218838 !important;
-            border-color: #1e7e34 !important;
-        }
+    .btn-verde-xd:hover {
+        color: #fff !important;
+        background-color: #218838 !important;
+        border-color: #1e7e34 !important;
+    }
 
-        .btn-verde-xd:focus,
-        .btn-verde-xd.focus {
-            box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08), 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
-        }
+    .btn-verde-xd:focus,
+    .btn-verde-xd.focus {
+        box-shadow: 0 4px 6px rgba(50, 50, 93, .11), 0 1px 3px rgba(0, 0, 0, .08), 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
+    }
 
-        .btn-verde-xd:disabled,
-        .btn-verde-xd.disabled {
-            color: #fff !important;
-            background-color: #28a745 !important;
-            border-color: #28a745 !important;
-        }
+    .btn-verde-xd:disabled,
+    .btn-verde-xd.disabled {
+        color: #fff !important;
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+    }
 
-        .btn-verde-xd:not(:disabled):not(.disabled).active,
-        .btn-verde-xd:not(:disabled):not(.disabled):active,
-        .show>.btn-verde-xd.dropdown-toggle {
-            color: #fff !important;
-            background-color: #1e7e34 !important;
-            border-color: #1c7430 !important;
-        }
+    .btn-verde-xd:not(:disabled):not(.disabled).active,
+    .btn-verde-xd:not(:disabled):not(.disabled):active,
+    .show>.btn-verde-xd.dropdown-toggle {
+        color: #fff !important;
+        background-color: #1e7e34 !important;
+        border-color: #1c7430 !important;
+    }
 
-        .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
-        .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
-        .show>.btn-verde-xd.dropdown-toggle:focus {
-            box-shadow: none, 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
-        }
+    .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
+    .btn-verde-xd:not(:disabled):not(.disabled).active:focus,
+    .show>.btn-verde-xd.dropdown-toggle:focus {
+        box-shadow: none, 0 0 0 0.2rem rgba(40, 167, 69, 0.5) !important;
+    }
 
-        .custom-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            overflow-y: auto;
-        }
+    .custom-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        overflow-y: auto;
+    }
 
-        .custom-modal-content {
-            background-color: #1e1e1e;
-            margin: 50px auto;
-            padding: 20px;
-            width: 90%;
-            max-width: 1200px;
-            box-sizing: border-box;
-            position: relative;
-        }
+    .custom-modal-content {
+        background-color: #1e1e1e;
+        margin: 50px auto;
+        padding: 20px;
+        width: 90%;
+        max-width: 1200px;
+        box-sizing: border-box;
+        position: relative;
+    }
 
-        .custom-modal-header {
-            display: flex;
-            justify-content: space-between;
-            /* Alinea título a la izquierda y botón a la derecha */
-            background-color: #2e2e2e;
-            padding: 15px;
-            align-items: center;
-        }
+    .custom-modal-header {
+        display: flex;
+        justify-content: space-between;
+        /* Alinea título a la izquierda y botón a la derecha */
+        background-color: #2e2e2e;
+        padding: 15px;
+        align-items: center;
+    }
 
-        .custom-modal-body {
-            padding: 15px;
-        }
+    .custom-modal-body {
+        padding: 15px;
+    }
 
-        /* Estilo para el botón "CERRAR" en la esquina superior derecha */
-        .custom-modal-footer {
-            margin-right: 10px;
-            /* Ajusta el margen derecho si deseas */
-        }
+    /* Estilo para el botón "CERRAR" en la esquina superior derecha */
+    .custom-modal-footer {
+        margin-right: 10px;
+        /* Ajusta el margen derecho si deseas */
+    }
 
-        #closeModal {
-            font-size: 14px;
-            padding: 8px 16px;
-        }
+    #closeModal {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
 
-        .special-option {
-            font-weight: bold;
-            /* Negrita */
-            font-style: italic;
-            /* Cursiva */
-            transform: skew(-10deg);
-            /* Inclinación */
-        }
-    </style>
-    {{-- ... el resto de tu vista ... --}}
-    <div class="content">
-        <div class="container-fluid">
-            <div class="card">
-                <!--Aqui se edita el encabezado que es el que se muestra -->
-                <div class="card-header card-header-primary">
-                    <div class="row align-items-center justify-content-between">
-                        <div class="col">
-                            <h3 class="card-title">AUDITORIA EN PROCESO</h3>
+    .special-option {
+        font-weight: bold;
+        /* Negrita */
+        font-style: italic;
+        /* Cursiva */
+        transform: skew(-10deg);
+        /* Inclinación */
+    }
+</style>
+{{-- ... el resto de tu vista ... --}}
+<div class="content">
+    <div class="container-fluid">
+        <div class="card">
+            <!--Aqui se edita el encabezado que es el que se muestra -->
+            <div class="card-header card-header-primary">
+                <div class="row align-items-center justify-content-between">
+                    <div class="col">
+                        <h3 class="card-title">AUDITORIA EN PROCESO</h3>
+                    </div>
+                    <div class="col-auto">
+                        <!-- Botón para abrir el modal -->
+                        <button type="button" class="btn btn-link" id="openModal">
+                            <h4>Fecha:
+                                {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y')
+                                }}
+                            </h4>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal personalizado -->
+            <div id="customModal" class="custom-modal">
+                <div class="custom-modal-content">
+                    <div class="custom-modal-header">
+                        <h5 class="modal-title texto-blanco">Detalles del Proceso</h5>
+                        <!-- Botón "CERRAR" en la esquina superior derecha -->
+                        <button id="closeModal" class="btn btn-danger">CERRAR</button>
+                    </div>
+                    <div class="custom-modal-body">
+                        <!-- Aquí va el contenido de la tabla -->
+                        <div class="table-responsive">
+                            <input type="text" id="searchInput1" class="form-control mb-3"
+                                placeholder="Buscar Módulo o Estilo">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Acción</th>
+                                        <th>Módulo</th>
+                                        <th>Estilo</th>
+                                        <th>Supervisor</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaProcesos1">
+                                    <!-- Aquí se insertarán los datos dinámicamente -->
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="col-auto">
-                            <!-- Botón para abrir el modal -->
-                            <button type="button" class="btn btn-link" id="openModal">
-                                <h4>Fecha:
-                                    {{ now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y') }}
-                                </h4>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="card-body">
+                @if($resultadoFinal == true)
+                <div class="card-body">
+                    <!-- Aquí ya NO necesitamos la tabla, pero sí necesitamos mantener los valores -->
+                    <input type="hidden" name="modulo" id="modulo" value="{{ $data['modulo'] }}">
+                    <!-- Formulario que envía la solicitud al controlador -->
+                    <form action="{{ route('procesoV3.buscarUltimoRegistroProceso') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="modulo" value="{{ $data['modulo'] }}">
+                        <button type="submit" class="btn btn-primary">Fin Paro Modular</button>
+                    </form>
+                </div>
+                @else
+                <div class="table-responsive">
+                    <table id="table-200" class="table table-200">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>MODULO</th>
+                                <th>ESTILO</th>
+                                <th>SUPERVISOR</th>
+                                <th>GERENTE PRODUCCION</th>
+                                <th>AUDITOR</th>
+                                <th>TURNO</th>
+                                <th>CLIENTE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <input type="text" class="form-control texto-blanco" name="moduleid" id="modulo"
+                                        value="{{ $data['modulo'] }}" readonly>
+                                </td>
+                                <td>
+                                    <select class="form-control select2 texto-blanco" name="estilo" id="estilo_proceso"
+                                        required>
+                                        <option value="">Seleccione un estilo</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control texto-blanco" name="team_leader"
+                                        id="team_leader" value="{{ $data['team_leader'] }}" readonly>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control texto-blanco" name="gerente_produccion"
+                                        value="{{ $data['gerente_produccion'] }}" readonly>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control texto-blanco" name="auditor" id="auditor"
+                                        value="{{ $data['auditor'] }}" readonly>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control texto-blanco" name="turno" id="turno"
+                                        value="{{ $data['turno'] }}" readonly>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control texto-blanco" name="cliente" id="cliente"
+                                        readonly>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-responsive">
+                    <table id="auditoriaTabla" class="table flex-container table932">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>NOMBRE</th>
+                                <th>OPERACION</th>
+                                <th>PIEZAS AUDITADAS</th>
+                                <th>PIEZAS RECHAZADAS</th>
+                                <th>TIPO DE PROBLEMA</th>
+                                <th>ACCION CORRECTIVA</th>
+                                <th>P x P</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <select name="nombre_final" id="lista_nombre" class="form-control select2" required>
+                                        <option value="">Selecciona una opción</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="operacion-select-container">
+                                        <select name="operacion" class="form-control operacion-select" required>
+                                            <option value="">Selecciona una opción</option>
+                                            <option value="otra">[OTRA OPERACIÓN]</option>
+                                        </select>
+                                    </div>
+                                    <input type="text" name="operacion" class="form-control otra-operacion-input mt-2"
+                                        placeholder="Ingresa la operación" style="display: none;" required>
+                                </td>
+                                <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada"
+                                        required></td>
+                                <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada"
+                                        required></td>
+                                <td>
+                                    <select id="tpSelect" class="form-control w-100 select2"
+                                        title="Por favor, selecciona una opción">
+                                        <option value="" selected disabled>Selecciona una opción</option>
+                                        <!-- Opción inicial vacía -->
+                                    </select>
+                                    <div id="selectedOptionsContainer" class="w-100 mb-2" required
+                                        title="Por favor, selecciona una opción"></div>
+                                </td>
+                                <td>
+                                    <select name="ac" id="ac" class="form-control"
+                                        title="Por favor, selecciona una opción">
+                                        <option value="">Selecciona una opción</option>
+                                    </select>
+                                </td>
+                                <td><input type="text" class="form-control" name="pxp" id="pxp"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button type="submit" class="btn-verde-xd">GUARDAR</button>
+                @endif
+            </div>
+            <!-- Modal para crear un nuevo defecto -->
+            <div class="modal fade" id="nuevoConceptoModal" tabindex="-1" role="dialog"
+                aria-labelledby="nuevoConceptoModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content bg-dark text-white">
+                        <div class="modal-header">
+                            <h5 id="nuevoConceptoModalLabel">Introduce el nuevo defecto</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true" class="text-white">&times;</span>
                             </button>
                         </div>
-                    </div>
-                </div>
-                <!-- Modal personalizado -->
-                <div id="customModal" class="custom-modal">
-                    <div class="custom-modal-content">
-                        <div class="custom-modal-header">
-                            <h5 class="modal-title texto-blanco">Detalles del Proceso</h5>
-                            <!-- Botón "CERRAR" en la esquina superior derecha -->
-                            <button id="closeModal" class="btn btn-danger">CERRAR</button>
+                        <div class="modal-body">
+                            <input type="text" class="form-control bg-dark text-white" id="nuevoConceptoInput"
+                                placeholder="Nuevo defecto">
                         </div>
-                        <div class="custom-modal-body">
-                            <!-- Aquí va el contenido de la tabla -->
-                            <div class="table-responsive">
-                                <input type="text" id="searchInput1" class="form-control mb-3" placeholder="Buscar Módulo o Estilo">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Acción</th>
-                                            <th>Módulo</th>
-                                            <th>Estilo</th>
-                                            <th>Supervisor</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tablaProcesos1">
-                                        <!-- Aquí se insertarán los datos dinámicamente -->
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary" id="guardarNuevoConcepto">Guardar</button>
                         </div>
                     </div>
-                </div>
-                <hr>
-                <div class="card-body">
-                    @if($resultadoFinal == true)
-                    <div class="card-body">
-                        <!-- Aquí ya NO necesitamos la tabla, pero sí necesitamos mantener los valores -->
-                        <input type="hidden" name="modulo" id="modulo" value="{{ $data['modulo'] }}">
-                        <!-- Formulario que envía la solicitud al controlador -->
-                        <form action="{{ route('procesoV3.buscarUltimoRegistroProceso') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="modulo" value="{{ $data['modulo'] }}">
-                            <button type="submit" class="btn btn-primary">Fin Paro Modular</button>
-                        </form>
-                    </div>
-                    @else
-                    <div class="table-responsive">
-                        <table id="table-200" class="table table-200">
-                            <thead class="thead-primary">
-                                <tr>
-                                    <th>MODULO</th>
-                                    <th>ESTILO</th>
-                                    <th>SUPERVISOR</th>
-                                    <th>GERENTE PRODUCCION</th>
-                                    <th>AUDITOR</th>
-                                    <th>TURNO</th>
-                                    <th>CLIENTE</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" name="moduleid" id="modulo" value="{{ $data['modulo'] }}" readonly>
-                                    </td>
-                                    <td>
-                                        <select class="form-control select2 texto-blanco" name="estilo" id="estilo_proceso" required>
-                                            <option value="">Seleccione un estilo</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" name="team_leader" id="team_leader" value="{{ $data['team_leader'] }}" readonly>
-                                    </td>
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" name="gerente_produccion" value="{{ $data['gerente_produccion'] }}" readonly>
-                                    </td>
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" name="auditor" id="auditor" value="{{ $data['auditor'] }}" readonly>
-                                    </td>
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" name="turno" id="turno" value="{{ $data['turno'] }}" readonly>
-                                    </td>
-                                    <td>
-                                        <input type="text" class="form-control texto-blanco" name="cliente" id="cliente" readonly>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="table-responsive">
-                        <table id="auditoriaTabla" class="table flex-container table932">
-                            <thead class="thead-primary">
-                                <tr>
-                                    <th>NOMBRE</th>
-                                    <th>OPERACION</th>
-                                    <th>PIEZAS AUDITADAS</th>
-                                    <th>PIEZAS RECHAZADAS</th>
-                                    <th >TIPO DE PROBLEMA</th>
-                                    <th >ACCION CORRECTIVA</th>
-                                    <th>P x P</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <select name="nombre_final" id="lista_nombre" class="form-control select2" required>
-                                            <option value="">Selecciona una opción</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <div class="operacion-select-container">
-                                            <select name="operacion" class="form-control operacion-select" required>
-                                                <option value="">Selecciona una opción</option>
-                                                <option value="otra">[OTRA OPERACIÓN]</option>
-                                            </select>
-                                        </div>
-                                        <input type="text" name="operacion" class="form-control otra-operacion-input mt-2" 
-                                               placeholder="Ingresa la operación" style="display: none;" required>
-                                    </td>
-                                    <td><input type="number" class="form-control texto-blanco" name="cantidad_auditada"  required></td>
-                                    <td><input type="number" class="form-control texto-blanco" name="cantidad_rechazada"  required></td>
-                                    <td>
-                                        <select id="tpSelect" class="form-control w-100 select2" title="Por favor, selecciona una opción">
-                                            <option value="" selected disabled>Selecciona una opción</option> <!-- Opción inicial vacía -->
-                                        </select>
-                                        <div id="selectedOptionsContainer" class="w-100 mb-2" required title="Por favor, selecciona una opción"></div>
-                                    </td>
-                                    <td>
-                                        <select name="ac" id="ac" class="form-control" title="Por favor, selecciona una opción">
-                                            <option value="">Selecciona una opción</option>
-                                        </select>
-                                    </td>                                    
-                                    <td><input type="text" class="form-control" name="pxp" id="pxp"></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <button type="submit" class="btn-verde-xd">GUARDAR</button> 
-                    @endif
-                </div>
-                <!-- Modal para crear un nuevo defecto -->
-                <div class="modal fade" id="nuevoConceptoModal" tabindex="-1" role="dialog" aria-labelledby="nuevoConceptoModalLabel" aria-hidden="true">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content bg-dark text-white">
-                            <div class="modal-header">
-                                <h5 id="nuevoConceptoModalLabel">Introduce el nuevo defecto</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true" class="text-white">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <input type="text" class="form-control bg-dark text-white" id="nuevoConceptoInput" placeholder="Nuevo defecto">
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                                <button type="button" class="btn btn-primary" id="guardarNuevoConcepto">Guardar</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card card-body">
-                <div class="accordion" id="accordionParos">
-                    <div class="card">
-                        <div class="card-header p-0" id="headingParos">
-                            <h2 class="mb-0">
-                                <button class="btn btn-link text-light text-decoration-none w-100 text-left" type="button" data-toggle="collapse" data-target="#collapseParos" aria-expanded="false" aria-controls="collapseParos">
-                                    Mostrar Paros No Finalizados
-                                </button>
-                            </h2>
-                        </div>
-                        <div id="collapseParos" class="collapse" aria-labelledby="headingParos" data-parent="#accordionParos">
-                            <div class="card-body" id="paros-container" data-modulo="{{ $data['modulo'] }}">
-                                <p class="text-muted">Abre el acordeón para cargar los datos.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <h2>Registro - Turno normal</h2>
-                        <table id="registros-turno-normal" class="table table1">
-                            <thead class="thead-primary">
-                                <tr>
-                                    <th>Paro</th>
-                                    <th>Nombre</th>
-                                    <th>Operacion </th>
-                                    <th>Piezas Auditadas</th>
-                                    <th>Piezas Rechazadas</th>
-                                    <th>Tipo de Problema </th>
-                                    <th>Accion Correctiva </th>
-                                    <th>PxP </th>
-                                    <th>Eliminar </th>
-                                    <th>Hora</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Panel de comentario -->
-                    <div class="row" id="panelComentarioProcesoNormal"> 
-                        <div class="col-lg-6">
-                            <p>Observaciones</p>
-                            <textarea id="observacionProcesoNormal" class="form-control texto-blanco" rows="3" placeholder="Escribe tu comentario">{{ $observacionNormal ?? '' }}</textarea>
-                            <button id="btnFinalizarProcesoNormal" class="btn btn-danger mt-2">Finalizar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <h2>Registro - Turno Extra</h2>
-                        <table id="registros-turno-extra" class="table table2">
-                            <thead class="thead-primary">
-                                <tr>
-                                    <th>Paro</th>
-                                    <th>Nombre</th>
-                                    <th>Operacion </th>
-                                    <th>Piezas Auditadas</th>
-                                    <th>Piezas Rechazadas</th>
-                                    <th>Tipo de Problema </th>
-                                    <th>Accion Correctiva </th>
-                                    <th>PxP </th>
-                                    <th>Eliminar </th>
-                                    <th>Hora</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="row" id="panelComentarioProcesoExtra">
-                        <div class="col-lg-6">
-                            <p>Observaciones</p>
-                            <textarea id="observacionProcesoExtra" class="form-control texto-blanco" rows="3" placeholder="Escribe tu comentario">{{ $observacionExtra ?? '' }}</textarea>
-                            <button id="btnFinalizarProcesoExtra" class="btn btn-danger mt-2">Finalizar Tiempo Extra</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card card-body">
-                <div class="table-responsive">
-                    <h2>Total Individual - Turno normal</h2>
-                    <table class="table table-total-individual">
-                        <thead class="thead-primary">
-                            <tr>
-                                <th>Nombre</th>
-                                <th>No. Recorridos</th>
-                                <th>Total Piezas Auditadas</th>
-                                <th>Total Piezas Rechazadas</th>
-                                <th>Porcentaje Rechazado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="5" class="text-center">No hay datos disponibles</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="card card-body">
-                <div class="table-responsive">
-                    <h2>Total Individual - Tiempo Extra</h2>
-                    <table class="table table-total-individual-tiempo-extra">
-                        <thead class="thead-primary">
-                            <tr>
-                                <th>Nombre</th>
-                                <th>No. Recorridos</th>
-                                <th>Total Piezas Auditadas</th>
-                                <th>Total Piezas Rechazadas</th>
-                                <th>Porcentaje Rechazado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="5" class="text-center">No hay datos disponibles</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card card-body">
-                <div class="table-responsive">
-                    <h2>Total General - Turno Normal</h2>
-                    <table class="table table-total-general">
-                        <thead class="thead-primary">
-                            <tr>
-                                <th>Total de Piezas Auditadas</th>
-                                <th>Total de Piezas Rechazadas</th>
-                                <th>Porcentaje Rechazo Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><input type="text" class="form-control texto-blanco" id="total_auditada_general" value="0" readonly></td>
-                                <td><input type="text" class="form-control texto-blanco" id="total_rechazada_general" value="0" readonly></td>
-                                <td><input type="text" class="form-control texto-blanco" id="total_porcentaje_general" value="0.00" readonly></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="card card-body">
-                <div class="table-responsive">
-                    <h2>Total General - Tiempo Extra</h2>
-                    <table class="table table-total-general-tiempo-extra">
-                        <thead class="thead-primary">
-                            <tr>
-                                <th>Total de Piezas Auditadas</th>
-                                <th>Total de Piezas Rechazadas</th>
-                                <th>Porcentaje Rechazo Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><input type="text" class="form-control texto-blanco" id="total_auditada_general-tiempo-extra" value="0" readonly></td>
-                                <td><input type="text" class="form-control texto-blanco" id="total_rechazada_general-tiempo-extra" value="0" readonly></td>
-                                <td><input type="text" class="form-control texto-blanco" id="total_porcentaje_general-tiempo-extra" value="0.00" readonly></td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
+
+        <div class="card card-body">
+            <div class="accordion" id="accordionParos">
+                <div class="card">
+                    <div class="card-header p-0" id="headingParos">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link text-light text-decoration-none w-100 text-left" type="button"
+                                data-toggle="collapse" data-target="#collapseParos" aria-expanded="false"
+                                aria-controls="collapseParos">
+                                Mostrar Paros No Finalizados
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapseParos" class="collapse" aria-labelledby="headingParos"
+                        data-parent="#accordionParos">
+                        <div class="card-body" id="paros-container" data-modulo="{{ $data['modulo'] }}">
+                            <p class="text-muted">Abre el acordeón para cargar los datos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <h2>Registro - Turno normal</h2>
+                    <table id="registros-turno-normal" class="table table1">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Paro</th>
+                                <th>Nombre</th>
+                                <th>Operacion </th>
+                                <th>Piezas Auditadas</th>
+                                <th>Piezas Rechazadas</th>
+                                <th>Tipo de Problema </th>
+                                <th>Accion Correctiva </th>
+                                <th>PxP </th>
+                                <th>Eliminar </th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Panel de comentario -->
+                <div class="row" id="panelComentarioProcesoNormal">
+                    <div class="col-lg-6">
+                        <p>Observaciones</p>
+                        <textarea id="observacionProcesoNormal" class="form-control texto-blanco" rows="3"
+                            placeholder="Escribe tu comentario">{{ $observacionNormal ?? '' }}</textarea>
+                        <button id="btnFinalizarProcesoNormal" class="btn btn-danger mt-2">Finalizar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <h2>Registro - Turno Extra</h2>
+                    <table id="registros-turno-extra" class="table table2">
+                        <thead class="thead-primary">
+                            <tr>
+                                <th>Paro</th>
+                                <th>Nombre</th>
+                                <th>Operacion </th>
+                                <th>Piezas Auditadas</th>
+                                <th>Piezas Rechazadas</th>
+                                <th>Tipo de Problema </th>
+                                <th>Accion Correctiva </th>
+                                <th>PxP </th>
+                                <th>Eliminar </th>
+                                <th>Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row" id="panelComentarioProcesoExtra">
+                    <div class="col-lg-6">
+                        <p>Observaciones</p>
+                        <textarea id="observacionProcesoExtra" class="form-control texto-blanco" rows="3"
+                            placeholder="Escribe tu comentario">{{ $observacionExtra ?? '' }}</textarea>
+                        <button id="btnFinalizarProcesoExtra" class="btn btn-danger mt-2">Finalizar Tiempo
+                            Extra</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-body">
+            <div class="table-responsive">
+                <h2>Total Individual - Turno normal</h2>
+                <table class="table table-total-individual">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>No. Recorridos</th>
+                            <th>Total Piezas Auditadas</th>
+                            <th>Total Piezas Rechazadas</th>
+                            <th>Porcentaje Rechazado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" class="text-center">No hay datos disponibles</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card card-body">
+            <div class="table-responsive">
+                <h2>Total Individual - Tiempo Extra</h2>
+                <table class="table table-total-individual-tiempo-extra">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>No. Recorridos</th>
+                            <th>Total Piezas Auditadas</th>
+                            <th>Total Piezas Rechazadas</th>
+                            <th>Porcentaje Rechazado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" class="text-center">No hay datos disponibles</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card card-body">
+            <div class="table-responsive">
+                <h2>Total General - Turno Normal</h2>
+                <table class="table table-total-general">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Total de Piezas Auditadas</th>
+                            <th>Total de Piezas Rechazadas</th>
+                            <th>Porcentaje Rechazo Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="text" class="form-control texto-blanco" id="total_auditada_general"
+                                    value="0" readonly></td>
+                            <td><input type="text" class="form-control texto-blanco" id="total_rechazada_general"
+                                    value="0" readonly></td>
+                            <td><input type="text" class="form-control texto-blanco" id="total_porcentaje_general"
+                                    value="0.00" readonly></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card card-body">
+            <div class="table-responsive">
+                <h2>Total General - Tiempo Extra</h2>
+                <table class="table table-total-general-tiempo-extra">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>Total de Piezas Auditadas</th>
+                            <th>Total de Piezas Rechazadas</th>
+                            <th>Porcentaje Rechazo Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="text" class="form-control texto-blanco"
+                                    id="total_auditada_general-tiempo-extra" value="0" readonly></td>
+                            <td><input type="text" class="form-control texto-blanco"
+                                    id="total_rechazada_general-tiempo-extra" value="0" readonly></td>
+                            <td><input type="text" class="form-control texto-blanco"
+                                    id="total_porcentaje_general-tiempo-extra" value="0.00" readonly></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+</div>
 
-    <style>
-        thead.thead-primary {
-            background-color: #59666e54;
-            /* Azul claro */
-            color: #333;
-            /* Color del texto */
-        }
+<style>
+    thead.thead-primary {
+        background-color: #59666e54;
+        /* Azul claro */
+        color: #333;
+        /* Color del texto */
+    }
 
+    .table1 th:nth-child(2) {
+        min-width: 180px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
+
+    .table1 th:nth-child(3) {
+        min-width: 150px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
+
+    .table1 th:nth-child(6) {
+        min-width: 250px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
+
+    .table1 th:nth-child(7) {
+        min-width: 100px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
+
+    .table1 th:nth-child(8) {
+        min-width: 100px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
+
+    @media (max-width: 768px) {
         .table1 th:nth-child(2) {
-            min-width: 180px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
-
-        .table1 th:nth-child(3) {
-            min-width: 150px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
-
-        .table1 th:nth-child(6) {
-            min-width: 250px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
-
-        .table1 th:nth-child(7) {
             min-width: 100px;
-            /* Ajusta el ancho mínimo según tu necesidad */
+            /* Ajusta el ancho mínimo para móviles */
         }
+    }
 
-        .table1 th:nth-child(8) {
-            min-width: 100px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
+    .table932 td {
+        vertical-align: top !important;
+    }
 
-        @media (max-width: 768px) {
-            .table1 th:nth-child(2) {
-                min-width: 100px;
-                /* Ajusta el ancho mínimo para móviles */
-            }
-        }
+    .table932 th:nth-child(1) {
+        min-width: 200px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
 
-        .table932 th:nth-child(1) {
-            min-width: 200px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
+    .table932 th:nth-child(2) {
+        min-width: 200px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
 
-        .table932 th:nth-child(2) {
-            min-width: 200px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
+    .table932 th:nth-child(3) {
+        min-width: 80px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
 
-        .table932 th:nth-child(3) {
-            min-width: 80px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
+    .table932 th:nth-child(4) {
+        min-width: 80px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
 
-        .table932 th:nth-child(4) {
-            min-width: 80px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
+    .table932 th:nth-child(5) {
+        min-width: 220px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
 
-        .table932 th:nth-child(5) {
-            min-width: 220px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
+    .table932 th:nth-child(6) {
+        min-width: 200px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
 
-        .table932 th:nth-child(6) {
-            min-width: 200px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
-
-        .table932 th:nth-child(7) {
-            min-width: 80px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
+    .table932 th:nth-child(7) {
+        min-width: 80px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
 
 
-        .texto-blanco {
-            color: white !important;
-        }
+    .texto-blanco {
+        color: white !important;
+    }
 
-        .table-200 th:nth-child(1) {
-            min-width: 100px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
+    .table-200 th:nth-child(1) {
+        min-width: 100px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
 
-        .table-200 th:nth-child(2) {
-            min-width: 150px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
+    .table-200 th:nth-child(2) {
+        min-width: 150px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
 
-        .table-200 th:nth-child(3) {
-            min-width: 180px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
+    .table-200 th:nth-child(3) {
+        min-width: 180px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
 
-        .table-200 th:nth-child(4) {
-            min-width: 150px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
+    .table-200 th:nth-child(4) {
+        min-width: 150px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
 
-        .table-200 th:nth-child(5) {
-            min-width: 50px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
+    .table-200 th:nth-child(5) {
+        min-width: 50px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
 
-        .table-200 th:nth-child(6) {
-            min-width: 180px;
-            /* Ajusta el ancho mínimo según tu necesidad */
-        }
+    .table-200 th:nth-child(6) {
+        min-width: 180px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
 
-        .tp-column {
-            width: 100%;
-        }
+    .tp-column {
+        width: 100%;
+    }
 
-        .select2-container {
-            width: 100% !important;
-        }
+    .select2-container {
+        width: 100% !important;
+    }
 
-        .select2-selection--multiple {
-            width: 100% !important;
-        }
-    </style>
-    <style>
+    .select2-selection--multiple {
+        width: 100% !important;
+    }
+</style>
+<style>
+    tr.paro-advertencia td {
+        background-color: #59470F !important;
+        /* Amarillo mostaza oscuro */
+        color: #F0F0F0 !important;
+        /* Texto claro para contraste */
+    }
 
-        tr.paro-advertencia td {
-            background-color: #59470F !important; /* Amarillo mostaza oscuro */
-            color: #F0F0F0 !important; /* Texto claro para contraste */
-        }
+    tr.paro-critico td {
+        background-color: #5D1A1A !important;
+        /* Rojo sangre oscuro */
+        color: #F0F0F0 !important;
+        /* Texto claro para contraste */
+    }
+</style>
 
-        tr.paro-critico td {
-            background-color: #5D1A1A !important; /* Rojo sangre oscuro */
-            color: #F0F0F0 !important; /* Texto claro para contraste */
-        }
-    </style>
-
-    <script>
-        $(document).ready(function () {
+<script>
+    $(document).ready(function () {
             // Función para abrir el modal
             function abrirModal() {
                 $('#customModal').fadeIn(); // Mostrar con efecto de desvanecimiento
@@ -757,10 +793,10 @@
                 });
             });
         });
-    </script>
+</script>
 
-    <script>
-        $(document).ready(function () {
+<script>
+    $(document).ready(function () {
             let estilosDataParaSelect2 = []; // Para almacenar los datos formateados para Select2
             const valorEstiloPreseleccionadoBlade = "{{ $data['estilo'] ?? '' }}"; // Valor inicial de Blade
 
@@ -902,10 +938,10 @@
                 window.history.replaceState({}, '', url);
             }
         });
-    </script>
+</script>
 
-    <script>
-        $(document).ready(function () {
+<script>
+    $(document).ready(function () {
             // Variable para almacenar los datos de los nombres/empleados una vez cargados
             let nombresData = [];
 
@@ -1028,10 +1064,10 @@
             });
 
         });
-    </script>
+</script>
 
-    <script> 
-        $(document).ready(function () {
+<script>
+    $(document).ready(function () {
             const $selectOperaciones = $(".operacion-select"); // Considera usar un ID si es una única instancia para más precisión
             const $inputOtraOperacion = $selectOperaciones.closest("td").find(".otra-operacion-input");
             const $selectContainer = $selectOperaciones.closest(".operacion-select-container");
@@ -1183,10 +1219,10 @@
 
 
         });
-    </script> 
+</script>
 
-    <script>
-        $(document).ready(function () {
+<script>
+    $(document).ready(function () {
             // Realizar la consulta AJAX al cargar la página
             $.ajax({
                 url: "{{ route('procesoV3.registro.accionCorrectivaProceso') }}", // Ruta en Laravel
@@ -1213,10 +1249,10 @@
                 }
             });
         });
-    </script>
+</script>
 
-    <script>
-        $(document).ready(function () {
+<script>
+    $(document).ready(function () {
             const tpSelect = $('#tpSelect');
             const selectedOptionsContainer = $('#selectedOptionsContainer');
             
@@ -1394,10 +1430,10 @@
                 });
             });
         });
-    </script>
+</script>
 
-    <script>
-        $(document).ready(function () {
+<script>
+    $(document).ready(function () {
             // Lógica de mostrar/ocultar columnas (ya existente)
             let tabla = $('#auditoriaTabla'); // Referencia específica a la tabla
             let piezasRechazadasInput = tabla.find('input[name="cantidad_rechazada"]');
@@ -1653,10 +1689,10 @@
             });
         });
 
-    </script>
+</script>
 
-    <script>
-        $(document).ready(function () {
+<script>
+    $(document).ready(function () {
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -2057,10 +2093,10 @@
             });
         });
 
-    </script>
+</script>
 
-    <script>
-        $(document).ready(function () {
+<script>
+    $(document).ready(function () {
             let datosCargados = false;
         
             // Cuando se abra el acordeón para cargar paros no finalizados
@@ -2159,6 +2195,6 @@
                 });
             });
         });
-    </script>
-    
+</script>
+
 @endsection
