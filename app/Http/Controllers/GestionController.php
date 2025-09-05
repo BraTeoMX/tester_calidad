@@ -6,15 +6,15 @@ use Illuminate\Support\Facades\Log;
 use App\Models\JobAQLTemporal;
 use App\Models\JobAQLHistorial;
 use App\Models\ModuloEstiloTemporal;
-use Illuminate\Http\Request; 
-use Illuminate\Support\Facades\DB; 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class GestionController extends Controller
 {
     public function agregarAqlProceso()
     {
-        $pageSlug ='';
+        $pageSlug = '';
         // Obtener estilos y clientes únicos
         $estilos = JobAQLHistorial::select('itemid', 'customername')
             ->distinct()
@@ -33,49 +33,47 @@ class GestionController extends Controller
             $searchTerm = $validatedData['searchTerm'];
 
             // 🚀 Lógica de búsqueda en cascada
-            
+
             // 💡 Paso 1: Intentar la búsqueda en la fuente principal (Modelo Eloquent)
-            Log::info("Paso 1: Buscando '$searchTerm' en el modelo principal 'JobAQLHistorial'.");
+            $source = 'JobAQLHistorial';
+            Log::info("Paso 1: Buscando '$searchTerm' en el modelo principal '$source'.");
             $results = JobAQLHistorial::where('prodid', $searchTerm)->get();
 
-            // 💡 Paso 2: Verificar si se encontraron resultados en la fuente principal
-            if ($results->isNotEmpty()) { // isNotEmpty() es lo opuesto a isEmpty()
-                Log::info("¡Éxito! Se encontraron " . $results->count() . " registros en 'JobAQLHistorial'. Devolviendo resultados.");
-                
-                // Si encontramos resultados, los devolvemos y la función termina aquí.
-                return response()->json([
-                    'status' => 'success',
-                    'source' => 'JobAQLHistorial', // Opcional: para saber de dónde vinieron los datos
-                    'data' => $results,
-                ]);
+            // 💡 Paso 2: Si no se encontraron resultados, usar la fuente secundaria optimizada
+            if ($results->isEmpty()) {
+                $source = 'SQLServer_Function_udf_BuscarAQLPorProdid'; // Nueva fuente para claridad
+                Log::info("Paso 2 (Fallback): No se encontró en el modelo. Buscando '$searchTerm' en la función optimizada '$source'.");
+
+                // Llamamos a la nueva función de SQL Server.
+                // Usamos DB::select para ejecutar una consulta cruda que llama a nuestra función.
+                // El '?' es un marcador de posición para el binding seguro de parámetros, previniendo inyección SQL.
+                $queryResults = DB::connection('sqlsrv_dev')
+                    ->select('SELECT * FROM dbo.udf_BuscarAQLPorProdid(?)', [$searchTerm]);
+
+                // DB::select devuelve un array estándar de PHP. Lo convertimos a una colección de Laravel
+                // para mantener la consistencia con los resultados de Eloquent (usar isNotEmpty, count, etc.).
+                $results = collect($queryResults);
             }
 
-            // 💡 Paso 3: Si no hubo resultados, proceder con la fuente secundaria (Fallback)
-            Log::info("Paso 2 (Fallback): No se encontró en el modelo. Buscando '$searchTerm' en la vista 'OpBusqueda_View2'.");
-            $results = DB::connection('sqlsrv')
-                        ->table('OpBusqueda_View2')
-                        ->where('prodid', '=', $searchTerm) // Usando '=' por claridad
-                        ->get();
-            
+            // 💡 Paso 3: Registrar el resultado final y devolver la respuesta
             if ($results->isNotEmpty()) {
-                Log::info("¡Éxito! Se encontraron " . $results->count() . " registros en 'OpBusqueda_View2'.");
+                Log::info("¡Éxito! Se encontraron " . $results->count() . " registros desde la fuente '$source' para '$searchTerm'.");
             } else {
                 Log::info("Búsqueda finalizada. No se encontraron registros en ninguna fuente para '$searchTerm'.");
             }
 
-            // 💡 Paso 4: Devolver el resultado de la segunda búsqueda (que puede tener datos o estar vacío)
+            // 💡 Paso 4: Devolver el resultado de la búsqueda (que puede tener datos o estar vacío)
             return response()->json([
                 'status' => 'success',
-                'source' => 'OpBusqueda_View2', // Opcional
+                'source' => $source,
                 'data' => $results,
             ]);
-
         } catch (ValidationException $e) {
             Log::warning('Intento de búsqueda con datos inválidos: ' . json_encode($e->errors()));
+            // Re-lanzar la excepción para que Laravel la maneje y devuelva una respuesta 422.
             throw $e;
-
         } catch (\Exception $e) {
-            Log::error('Error crítico en la búsqueda de AQL: ' . $e->getMessage());
+            Log::error('Error crítico en la búsqueda de AQL: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json([
                 'status' => 'error',
                 'message' => 'Ocurrió un error inesperado en el servidor.',
@@ -138,7 +136,7 @@ class GestionController extends Controller
     public function guardarModuloEstilo(Request $request)
     {
         $items = $request->input('items');
-        
+
         // Elimina registros con más de 15 días basándose en `created_at`
         $fechaLimite = now()->subDays(15); // Fecha límite: 15 días antes de hoy
         JobAQLTemporal::where('created_at', '<', $fechaLimite)->delete();
@@ -173,5 +171,4 @@ class GestionController extends Controller
             'message' => 'Registros guardados correctamente.',
         ]);
     }
-
 }

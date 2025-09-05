@@ -78,29 +78,40 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
         ],
-            'sqlsrv' => [
-                'driver' => 'sqlsrv',
-                'host' => env('DB_SQLSRV_HOST', 'localhost'),
-                'port' => env('DB_SQLSRV_PORT', '1433'),
-                'database' => env('DB_SQLSRV_DATABASE', 'forge'),
-                'username' => env('DB_SQLSRV_USERNAME', 'forge'),
-                'password' => env('DB_SQLSRV_PASSWORD', ''),
-                'charset' => 'utf8',
-                'prefix' => '',
-                'prefix_indexes' => true,
-            ],
+        'sqlsrv' => [
+            'driver' => 'sqlsrv',
+            'host' => env('DB_SQLSRV_HOST', 'localhost'),
+            'port' => env('DB_SQLSRV_PORT', '1433'),
+            'database' => env('DB_SQLSRV_DATABASE', 'forge'),
+            'username' => env('DB_SQLSRV_USERNAME', 'forge'),
+            'password' => env('DB_SQLSRV_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
 
-            'sqlsrv_ax' => [
-                'driver' => 'sqlsrv',
-                'host' => env('DB_SQLSRV_AX_HOST', 'localhost'),
-                'port' => env('DB_SQLSRV_AX_PORT', '1433'),
-                'database' => env('DB_SQLSRV_AX_DATABASE', 'forge'),
-                'username' => env('DB_SQLSRV_AX_USERNAME', 'forge'),
-                'password' => env('DB_SQLSRV_AX_PASSWORD', ''),
-                'charset' => 'utf8',
-                'prefix' => '',
-                'prefix_indexes' => true,
-            ],
+        'sqlsrv_ax' => [
+            'driver' => 'sqlsrv',
+            'host' => env('DB_SQLSRV_AX_HOST', 'localhost'),
+            'port' => env('DB_SQLSRV_AX_PORT', '1433'),
+            'database' => env('DB_SQLSRV_AX_DATABASE', 'forge'),
+            'username' => env('DB_SQLSRV_AX_USERNAME', 'forge'),
+            'password' => env('DB_SQLSRV_AX_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
+        'sqlsrv_dev' => [
+            'driver' => 'sqlsrv',
+            'host' => env('DB_SQLSRV_DEV_HOST', 'localhost'),
+            'port' => env('DB_SQLSRV_DEV_PORT', '1433'),
+            'database' => env('DB_SQLSRV_DEV_DATABASE', 'forge'),
+            'username' => env('DB_SQLSRV_DEV_USERNAME', 'forge'),
+            'password' => env('DB_SQLSRV_DEV_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
 
 
     ],
@@ -113,7 +124,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
         ],
 
         'default' => [
