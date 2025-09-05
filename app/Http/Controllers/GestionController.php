@@ -52,7 +52,15 @@ class GestionController extends Controller
 
                 // DB::select devuelve un array estándar de PHP. Lo convertimos a una colección de Laravel
                 // para mantener la consistencia con los resultados de Eloquent (usar isNotEmpty, count, etc.).
-                $results = collect($queryResults);
+                // Transformamos la colección para añadir un ID secuencial a cada elemento
+                $results = collect($queryResults)->map(function ($item, $key) {
+                    // A cada item ($item), le añadimos una nueva propiedad 'id'.
+                    // El valor será la posición del item ($key, que empieza en 0) más 1.
+                    $item->id = $key + 1;
+
+                    // Devolvemos el item ya modificado
+                    return $item;
+                });
             }
 
             // 💡 Paso 3: Registrar el resultado final y devolver la respuesta
