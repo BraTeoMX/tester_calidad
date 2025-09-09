@@ -854,53 +854,100 @@ class AuditoriaAQLV3Controller extends Controller
 
     public function buscarUltimoRegistro(Request $request)
     {
-        // 1. OBTENCIÓN DE DATOS INICIALES
+        // Log 1: Punto de Entrada - Sabemos que la función se inició y con qué módulo.
         $modulo = $request->input('modulo');
+        Log::info('INICIO: Búsqueda de paro modular para finalizar.', [
+            'modulo' => $modulo,
+            'usuario' => auth()->user()->name ?? 'N/A' // Opcional pero muy útil
+        ]);
+
         $fechaActual = now()->toDateString();
 
-        // 2. CONSULTA ÚNICA Y OPTIMIZADA
-        // Traemos todos los registros del día para el módulo que podrían ser un paro,
-        // ordenados cronológicamente de más antiguo a más nuevo.
-        $posiblesParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $modulo)
-            ->where('cantidad_rechazada', '>', 0)
-            ->select('id', 'created_at', 'inicio_paro', 'fin_paro_modular', 'minutos_paro_modular', 'tiempo_extra')
-            ->orderBy('created_at', 'asc') // crucial para la lógica secuencial
-            ->get();
+        try {
+            // 2. CONSULTA ÚNICA Y OPTIMIZADA
+            $posiblesParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
+                ->where('modulo', $modulo)
+                ->where('cantidad_rechazada', '>', 0)
+                ->select('id', 'created_at', 'inicio_paro', 'fin_paro_modular', 'minutos_paro_modular', 'tiempo_extra')
+                ->orderBy('created_at', 'asc')
+                ->get();
 
-        // 3. SEPARACIÓN DE REGISTROS (Tiempo Normal vs. Tiempo Extra)
-        // Usamos 'partition' para dividir la colección en dos grupos.
-        list($registrosExtra, $registrosNormales) = $posiblesParos->partition(function ($registro) {
-            return $registro->tiempo_extra === '1';
-        });
-
-        // 4. APLICAR LÓGICA DE BÚSQUEDA
-        $registroAActualizar = null;
-
-        // Escenario 1: Buscar en registros de tiempo normal.
-        $registroAActualizar = $this->encontrarParoParaActualizar($registrosNormales);
-
-        // Escenario 2: Si no se encontró en tiempo normal, buscar en tiempo extra.
-        if (!$registroAActualizar) {
-            $registroAActualizar = $this->encontrarParoParaActualizar($registrosExtra);
-        }
-
-        // 5. ACTUALIZACIÓN DEL REGISTRO (SI SE ENCONTRÓ)
-        if ($registroAActualizar) {
-            $horaActual = now();
-            $inicioParo = Carbon::parse($registroAActualizar->inicio_paro);
-            $diferenciaEnMinutos = $inicioParo->diffInMinutes($horaActual);
-
-            $registroAActualizar->update([
-                'fin_paro_modular' => $horaActual,
-                'minutos_paro_modular' => $diferenciaEnMinutos,
+            // Log 2: Resultado de la Consulta - ¿La BD nos devolvió algo?
+            Log::info('PASO 2: Consulta a BD completada.', [
+                'modulo' => $modulo,
+                'registros_encontrados' => $posiblesParos->count()
             ]);
 
-            return redirect()->back()->with('success', 'Paro modular finalizado. Tiempo acumulado: ' . $diferenciaEnMinutos . ' min.');
-        }
+            if ($posiblesParos->isEmpty()) {
+                Log::warning('FIN: No se encontraron registros de paro para el módulo hoy.', ['modulo' => $modulo]);
+                return redirect()->back()->with('error', 'No hay registros de paro para este módulo el día de hoy.');
+            }
 
-        // 6. SI NO SE ENCONTRÓ NINGÚN REGISTRO APTO
-        return redirect()->back()->with('error', 'No se encontró ningún paro modular pendiente para finalizar.');
+            // 3. SEPARACIÓN DE REGISTROS
+            list($registrosExtra, $registrosNormales) = $posiblesParos->partition(function ($registro) {
+                return $registro->tiempo_extra === '1';
+            });
+
+            // Log 3: Resultado de la Partición - ¿Cómo se distribuyeron los datos?
+            Log::info('PASO 3: Registros separados en grupos.', [
+                'modulo' => $modulo,
+                'normales_count' => $registrosNormales->count(),
+                'extra_count' => $registrosExtra->count()
+            ]);
+
+            // 4. APLICAR LÓGICA DE BÚSQUEDA
+            $registroAActualizar = null;
+
+            Log::info('PASO 4: Buscando en registros de tiempo NORMAL.', ['modulo' => $modulo]);
+            $registroAActualizar = $this->encontrarParoParaActualizar($registrosNormales);
+
+            if (!$registroAActualizar) {
+                Log::info('PASO 4: No se encontró en tiempo normal. Buscando en tiempo EXTRA.', ['modulo' => $modulo]);
+                $registroAActualizar = $this->encontrarParoParaActualizar($registrosExtra);
+            }
+
+            // 5. ACTUALIZACIÓN DEL REGISTRO (SI SE ENCONTRÓ)
+            if ($registroAActualizar) {
+                // Log 4: Candidato Encontrado - ¡Este es el registro que intentaremos actualizar!
+                Log::info('ÉXITO DE BÚSQUEDA: Se encontró un registro para actualizar.', [
+                    'modulo' => $modulo,
+                    'registro_id' => $registroAActualizar->id
+                ]);
+
+                $horaActual = now();
+                $inicioParo = Carbon::parse($registroAActualizar->inicio_paro);
+                $diferenciaEnMinutos = $inicioParo->diffInMinutes($horaActual);
+
+                $registroAActualizar->update([
+                    'fin_paro_modular' => $horaActual,
+                    'minutos_paro_modular' => $diferenciaEnMinutos,
+                ]);
+
+                // Log 5: Actualización Exitosa - Confirmación final.
+                Log::info('FIN: Registro actualizado correctamente.', [
+                    'modulo' => $modulo,
+                    'registro_id' => $registroAActualizar->id,
+                    'minutos_paro' => $diferenciaEnMinutos
+                ]);
+
+                return redirect()->back()->with('success', 'Paro modular finalizado...');
+            }
+
+            // 6. SI NO SE ENCONTRÓ NINGÚN REGISTRO APTO
+            // Log 6: Falla la Búsqueda - La causa más probable de tu problema.
+            Log::warning('FIN: La búsqueda terminó sin encontrar un registro apto para finalizar.', [
+                'modulo' => $modulo
+            ]);
+            return redirect()->back()->with('error', 'No se encontró ningún paro modular pendiente para finalizar.');
+        } catch (\Exception $e) {
+            // Log 7: Error Inesperado - Captura cualquier excepción (ej. de BD).
+            Log::error('ERROR CRÍTICO: Ocurrió una excepción durante el proceso.', [
+                'modulo' => $modulo,
+                'error_message' => $e->getMessage(),
+                'error_trace' => $e->getTraceAsString() // Muy útil para depuración avanzada
+            ]);
+            return redirect()->back()->with('error', 'Ocurrió un error inesperado en el servidor.');
+        }
     }
 
     /**
@@ -913,26 +960,23 @@ class AuditoriaAQLV3Controller extends Controller
      */
     private function encontrarParoParaActualizar(Collection $registros)
     {
-        // La colección viene ordenada por fecha de creación ASC.
-        // La invertimos para empezar a buscar desde el registro más RECIENTE.
-        // El método 'values()' reinicia las claves para tener una secuencia 0, 1, 2...
         $registrosOrdenados = $registros->values();
 
-        // Iteramos de forma inversa, desde el final hacia el principio.
         for ($i = $registrosOrdenados->count() - 1; $i >= 0; $i--) {
             $registro = $registrosOrdenados[$i];
-
-            // La posición real es el índice + 1 (ej: índice 1 es la 2da posición)
             $posicion = $i + 1;
 
-            // Verificamos si la posición es PAR y si el paro está PENDIENTE.
             if ($posicion % 2 === 0 && is_null($registro->minutos_paro_modular)) {
-                // ¡Encontrado! Es el paro más reciente que cumple las condiciones.
+                // Log Interno: Confirmación de hallazgo
+                Log::info('Candidato encontrado dentro de la colección.', [
+                    'registro_id' => $registro->id,
+                    'en_posicion' => $posicion,
+                    'total_items' => $registrosOrdenados->count()
+                ]);
                 return $registro;
             }
         }
 
-        // Si el bucle termina, no se encontró ningún registro que cumpla los criterios.
         return null;
     }
 
