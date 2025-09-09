@@ -40,7 +40,7 @@ class DashboardPorDiaV2Controller extends Controller
 
         $plantaConsulta = "Intimark1";
 
-        return view('dashboar.dashboardPlanta1PorDiaV2', compact('title' ));
+        return view('dashboar.dashboardPlanta1PorDiaV2', compact('title'));
     }
 
     public function dashboardPlanta2V2()
@@ -49,7 +49,7 @@ class DashboardPorDiaV2Controller extends Controller
 
         $plantaConsulta = "Intimark2";
 
-        return view('dashboar.dashboardPlanta2PorDiaV2', compact('title' ));
+        return view('dashboar.dashboardPlanta2PorDiaV2', compact('title'));
     }
 
     public function buscarAQL(Request $request)
@@ -371,7 +371,7 @@ class DashboardPorDiaV2Controller extends Controller
                     'promedioMinutosEntero'    => $promedioMinutosEntero,
                     'estilosUnicos'            => $estilosUnicos,
                     'defectosUnicos'           => $defectosUnicos,
-                    'accionesCorrectivasUnicos'=> $accionesCorrectivasUnicos,
+                    'accionesCorrectivasUnicos' => $accionesCorrectivasUnicos,
                     'operariosUnicos'          => $operariosUnicos,
                     'sumaParoModular'          => $sumaParoModular,
                     'conteParoModular'         => $conteParoModular,
@@ -512,7 +512,7 @@ class DashboardPorDiaV2Controller extends Controller
                     'sumaParoModular'          => $sumaParoModular,
                     'conteParoModular'         => $conteParoModular,
                     'defectosUnicos'           => $defectosUnicos,
-                    'accionesCorrectivasUnicos'=> $accionesCorrectivasUnicos,
+                    'accionesCorrectivasUnicos' => $accionesCorrectivasUnicos,
                 ];
             }
         }
@@ -541,6 +541,7 @@ class DashboardPorDiaV2Controller extends Controller
                 return [
                     'minutos_paro' => $registro->minutos_paro,
                     'cliente' => $registro->cliente,
+                    'op' => $registro->op,
                     'bulto' => $registro->bulto,
                     'pieza' => $registro->pieza,
                     'talla' => $registro->talla,
@@ -637,7 +638,7 @@ class DashboardPorDiaV2Controller extends Controller
                 ];
             });
         });
-}
+    }
 
     public function obtenerDetallesProcesoP2(Request $request)
     {
@@ -661,7 +662,7 @@ class DashboardPorDiaV2Controller extends Controller
 
     public function obtenerDetallesProcesoP1(Request $request)
     {
-        Log::info('datos de request'. "{$request}");
+        Log::info('datos de request' . "{$request}");
         $modulo = $request->input('modulo');
         $estilo = $request->input('estilo');
         $fecha = $request->input('fecha');
@@ -679,6 +680,4 @@ class DashboardPorDiaV2Controller extends Controller
 
         return response()->json($detalles);
     }
-
-
 }

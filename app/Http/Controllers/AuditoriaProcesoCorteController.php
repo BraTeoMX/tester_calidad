@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Http\Request;
@@ -21,8 +22,8 @@ use App\Models\EncabezadoAuditoriaCorte;
 use App\Models\AuditoriaMarcada;
 use App\Models\CategoriaParteCorte;
 use App\Models\CategoriaAccionCorrectiva;
-use App\Models\AuditoriaProcesoCorte; 
-use App\Models\AuditoriaAQL; 
+use App\Models\AuditoriaProcesoCorte;
+use App\Models\AuditoriaAQL;
 
 
 use App\Exports\DatosExport;
@@ -35,9 +36,10 @@ class AuditoriaProcesoCorteController extends Controller
 {
 
     // Método privado para cargar las categorías
-    private function cargarCategorias() {
+    private function cargarCategorias()
+    {
         $fechaActual = Carbon::now()->toDateString();
-        return [ 
+        return [
             'CategoriaColor' => CategoriaColor::where('estado', 1)->get(),
             'CategoriaEstilo' => CategoriaEstilo::where('estado', 1)->get(),
             'CategoriaNoRecibo' => CategoriaNoRecibo::where('estado', 1)->get(),
@@ -48,21 +50,21 @@ class AuditoriaProcesoCorteController extends Controller
             'CategoriaTecnico' => CategoriaTecnico::where('estado', 1)->get(),
             'CategoriaDefectoCorte' => CategoriaDefectoCorte::where('estado', 1)->get(),
             'CategoriaParteCorte' => CategoriaParteCorte::where('estado', 1)->get(),
-            'DatoAX' => DatoAX::where(function($query) {
+            'DatoAX' => DatoAX::where(function ($query) {
                 $query->whereNull('estatus')
-                      ->orWhere('estatus', '');
+                    ->orWhere('estatus', '');
             })->get(),
             'DatoAXNoIniciado' => DatoAX::whereNotIn('estatus', ['fin'])
-                           ->where(function ($query) {
-                               $query->whereNull('estatus')
-                                     ->orWhere('estatus', '');
-                           })
-                           ->get(),
+                ->where(function ($query) {
+                    $query->whereNull('estatus')
+                        ->orWhere('estatus', '');
+                })
+                ->get(),
             'DatoAXProceso' => DatoAX::whereNotIn('estatus', ['fin'])
-                           ->whereNotNull('estatus')
-                           ->whereNotIn('estatus', [''])
-                           ->with('auditoriasMarcadas')
-                           ->get(),
+                ->whereNotNull('estatus')
+                ->whereNotIn('estatus', [''])
+                ->with('auditoriasMarcadas')
+                ->get(),
             'DatoAXFin' => DatoAX::where('estatus', 'fin')->get(),
             'EncabezadoAuditoriaCorte' => EncabezadoAuditoriaCorte::all(),
             'auditoriasMarcadas' => AuditoriaMarcada::all(),
@@ -73,44 +75,31 @@ class AuditoriaProcesoCorteController extends Controller
                         ->orWhere('area', 'sellado');
                 })
                 ->get(),
-            'CategoriaAccionCorrectiva' => CategoriaAccionCorrectiva::where('estado', 1)->get(), 
+            'CategoriaAccionCorrectiva' => CategoriaAccionCorrectiva::where('estado', 1)->get(),
 
-            'procesoActualAQL' => AuditoriaAQL::where('estatus', NULL)
-                ->where('area', 'AUDITORIA EN PROCESO')
-                ->whereDate('created_at', $fechaActual)
-                ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor')
-                ->distinct()
-                ->get(),
-            'procesoFinalAQL' => AuditoriaAQL::where('estatus', 1)
-                ->where('area', 'AUDITORIA EN PROCESO')
-                ->whereDate('created_at', $fechaActual)
-                ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor')
-                ->distinct()
-                ->get(),
-            'playeraActualAQL' => AuditoriaAQL::where('estatus', NULL)
-                ->where('area', 'AUDITORIA EN PROCESO PLAYERA')
-                ->whereDate('created_at', $fechaActual)
-                ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor')
-                ->distinct()
-                ->get(),
-            'playeraFinalAQL' => AuditoriaAQL::where('estatus', 1)
-                ->where('area', 'AUDITORIA EN PROCESO PLAYERA')
-                ->whereDate('created_at', $fechaActual)
-                ->select('area','modulo','estilo', 'team_leader', 'turno', 'auditor')
-                ->distinct()
-                ->get(),
         ];
     }
 
 
     public function inicioAuditoriaProcesoCorte()
     {
-        $pageSlug ='';
+        $pageSlug = '';
         $categorias = $this->cargarCategorias();
 
 
         $mesesEnEspanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
         ];
 
         return view('auditoriaProcesoCorte.inicioAuditoriaProcesoCorte', array_merge($categorias, ['mesesEnEspanol' => $mesesEnEspanol, 'pageSlug' => $pageSlug]));
@@ -118,28 +107,51 @@ class AuditoriaProcesoCorteController extends Controller
 
     public function altaProcesoCorte(Request $request)
     {
-        $pageSlug ='';
+        $pageSlug = '';
         $categorias = $this->cargarCategorias();
         $auditorDato = Auth::user()->name;
         //dd($userName);
 
         //dd($registroEvaluacionCorte->all()); 
         $mesesEnEspanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
         ];
 
-        
+
         return view('auditoriaProcesoCorte.altaProcesoCorte', array_merge($categorias, [
-            'mesesEnEspanol' => $mesesEnEspanol, 
-            'pageSlug' => $pageSlug, 
-            'auditorDato' => $auditorDato]));
+            'mesesEnEspanol' => $mesesEnEspanol,
+            'pageSlug' => $pageSlug,
+            'auditorDato' => $auditorDato
+        ]));
     }
 
     public function auditoriaProcesoCorte(Request $request)
     {
-        $pageSlug ='';
+        $pageSlug = '';
         $mesesEnEspanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
         ];
         $categorias = $this->cargarCategorias();
         $auditorDato = Auth::user()->name;
@@ -147,7 +159,7 @@ class AuditoriaProcesoCorteController extends Controller
         $data = $request->all();
         // Asegurarse de que la variable $data esté definida
         $data = $data ?? [];
-        
+
         $fechaActual = Carbon::now()->toDateString();
 
         $mostrarRegistro = AuditoriaProcesoCorte::whereDate('created_at', $fechaActual)
@@ -182,25 +194,26 @@ class AuditoriaProcesoCorteController extends Controller
         // Calcula el porcentaje total
         $total_porcentajeIndividual = $total_auditadaIndividual != 0 ? ($total_rechazadaIndividual / $total_auditadaIndividual) * 100 : 0;
 
-        
 
-        
+
+
         return view('auditoriaProcesoCorte.auditoriaProcesoCorte', array_merge($categorias, [
-            'mesesEnEspanol' => $mesesEnEspanol, 
+            'mesesEnEspanol' => $mesesEnEspanol,
             'pageSlug' => $pageSlug,
-            'data' => $data, 
-            'total_auditada' => $total_auditada, 
+            'data' => $data,
+            'total_auditada' => $total_auditada,
             'total_rechazada' => $total_rechazada,
             'total_porcentaje' => $total_porcentaje,
             'registrosIndividual' => $registrosIndividual,
-            'total_auditadaIndividual' => $total_auditadaIndividual, 
+            'total_auditadaIndividual' => $total_auditadaIndividual,
             'total_rechazadaIndividual' => $total_rechazadaIndividual,
             'total_porcentajeIndividual' => $total_porcentajeIndividual,
             'mostrarRegistro' => $mostrarRegistro,
-            'auditorDato' => $auditorDato]));
+            'auditorDato' => $auditorDato
+        ]));
     }
 
-    public function obtenerEstilo(Request $request) 
+    public function obtenerEstilo(Request $request)
     {
         $orden = $request->input('orden_id');
         $encabezado = EncabezadoAuditoriaCorte::where('orden_id', $orden)->first();
@@ -216,12 +229,12 @@ class AuditoriaProcesoCorteController extends Controller
         ];
 
         return response()->json($datos);
-    } 
+    }
 
 
-    public function formAltaProcesoCorte(Request $request) 
+    public function formAltaProcesoCorte(Request $request)
     {
-        $pageSlug ='';
+        $pageSlug = '';
 
         $data = [
             'area' => $request->area,
@@ -236,7 +249,7 @@ class AuditoriaProcesoCorteController extends Controller
 
     public function formRegistroAuditoriaProcesoCorte(Request $request)
     {
-        $pageSlug ='';
+        $pageSlug = '';
         // Obtener el ID seleccionado desde el formulario
         //dd($request->all());
         $procesoCorte = new AuditoriaProcesoCorte();
@@ -262,12 +275,13 @@ class AuditoriaProcesoCorteController extends Controller
         return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
 
-    public function formActualizacionEliminacionEvaluacionCorte($id, Request $request){
-        $pageSlug ='';
+    public function formActualizacionEliminacionEvaluacionCorte($id, Request $request)
+    {
+        $pageSlug = '';
         $action = $request->input('action');
         //$id = $request->input('id');
         //dd($request->all());
-        if($action == 'update'){
+        if ($action == 'update') {
             $actualizarRegistro = EvaluacionCorte::where('id', $id)->first();
             $actualizarRegistro->descripcion_parte = $request->input('descripcion_parte');
             $actualizarRegistro->izquierda_x = $request->input('izquierda_x');
@@ -280,7 +294,7 @@ class AuditoriaProcesoCorteController extends Controller
             return back()->with('sobre-escribir', 'Registro actualizado correctamente.')->with('pageSlug', $pageSlug);
 
             // Lógica para actualizar el registro
-        } elseif ($action == 'delete'){
+        } elseif ($action == 'delete') {
             // Lógica para eliminar el registro
             EvaluacionCorte::where('id', $id)->delete();
             return back()->with('error', 'Registro eliminado.')->with('pageSlug', $pageSlug);
@@ -292,12 +306,12 @@ class AuditoriaProcesoCorteController extends Controller
 
     public function formFinalizarEventoCorte(Request $request)
     {
-        $pageSlug ='';
+        $pageSlug = '';
         // Obtener el ID seleccionado desde el formulario
         $ordenId = $request->input('orden');
         $eventoId = $request->input('evento');
         //dd($ordenId, $eventoId, $estilo, $request->all());
-        
+
         //dd($estilo, $request->all());
         $evaluacionCorte = EncabezadoAuditoriaCorte::where('orden_id', $ordenId)
             ->where('evento', $eventoId)
@@ -308,5 +322,4 @@ class AuditoriaProcesoCorteController extends Controller
 
         return back()->with('success', 'Datos guardados correctamente.')->with('pageSlug', $pageSlug);
     }
-
 }

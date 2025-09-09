@@ -1,460 +1,475 @@
 @extends('layouts.app', ['pageSlug' => 'dashboardPorDiaPlanta2', 'titlePage' => __('Dashboard')])
 
 @section('content')
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header card-header-success card-header-icon">
-                    <h2 class="card-title" style="text-align: center; font-weight: bold;">Dashboard Consulta por dia Planta 2
-                        - San Bartolo Morelos </h2>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header card-header-success card-header-icon">
+                <h2 class="card-title" style="text-align: center; font-weight: bold;">Dashboard Consulta por dia Planta
+                    2
+                    - San Bartolo Morelos </h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 d-flex align-items-center">
+        <div class="form-group w-100">
+            <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
+            <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
+        </div>
+    </div>
+    <div class="col-md-6 d-flex align-items-end">
+        <div class="form-group">
+            <label class="d-block">&nbsp;</label> <!-- Espacio para alinear con el input -->
+            <button type="button" class="btn btn-secondary" id="btnMostrar">Mostrar datos</button>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+        <label class="btn btn-sm btn-primary btn-simple active" id="showAQL">
+            <input type="radio" name="options" checked>
+            <h5><i class="tim-icons icon-app text-success"></i>&nbsp; AQL</h5>
+        </label>
+        <label class="btn btn-sm btn-primary btn-simple" id="showProceso">
+            <input type="radio" name="options">
+            <h5><i class="tim-icons icon-vector text-primary"></i>&nbsp; Proceso</h5>
+        </label>
+    </div>
+    <div id="tablaAQL" class="table-container" style="display: block;">
+        <div class="card">
+            <div class="card-header card-header-success card-header-icon">
+                <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Turno Normal
+                </h3>
+            </div>
+            <div class="card-body">
+                <div id="spinnerAQL" class="text-center my-3" style="display: none;">
+                    <div class="loading-container">
+                        <span class="loading-text">Cargando...</span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table tablesorter" id="tablaAQLGeneralNuevo">
+                        <thead class="text-primary">
+                            <tr>
+                                <th>Auditor</th>
+                                <th>Modulo (AQL)</th>
+                                <th>Supervisor</th>
+                                <th>Estilo</th>
+                                <th>Numero de Operarios</th>
+                                <th>Cantidad Paro</th>
+                                <th>Minutos Paro</th>
+                                <th>Promedio Minutos Paro</th>
+                                <th>Cantidad Paro Modular</th>
+                                <th>Minutos Paro Modular</th>
+                                <th>Total piezas por Bulto</th>
+                                <th>Total Bulto</th>
+                                <th>Total Bulto Rechazados</th>
+                                <th>Cantidad Auditados</th>
+                                <th>Cantidad Defectos</th>
+                                <th>% Error AQL</th>
+                                <th>Defectos</th>
+                                <th>Accion Correctiva</th>
+                                <th>Operario Responsable</th>
+                                <th>Reparacion Piezas</th>
+                                <th>Piezas de Bulto Rechazado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaAQLGeneralNuevoBody">
+                            <!-- Aquí se insertarán los datos dinámicamente -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="row">
-        <div class="col-md-6 d-flex align-items-center">
-            <div class="form-group w-100">
-                <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
-                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
+    <!-- Tabla de Proceso General -->
+    <div id="tablaProceso" class="table-container" style="display: none;">
+        <div class="card">
+            <div class="card-header card-header-success card-header-icon">
+                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Turno
+                    Normal</h3>
             </div>
-        </div>
-        <div class="col-md-6 d-flex align-items-end">
-            <div class="form-group">
-                <label class="d-block">&nbsp;</label> <!-- Espacio para alinear con el input -->
-                <button type="button" class="btn btn-secondary" id="btnMostrar">Mostrar datos</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-            <label class="btn btn-sm btn-primary btn-simple active" id="showAQL">
-                <input type="radio" name="options" checked>
-                <h5><i class="tim-icons icon-app text-success"></i>&nbsp; AQL</h5>
-            </label>
-            <label class="btn btn-sm btn-primary btn-simple" id="showProceso">
-                <input type="radio" name="options">
-                <h5><i class="tim-icons icon-vector text-primary"></i>&nbsp; Proceso</h5>
-            </label>
-        </div>
-        <div id="tablaAQL" class="table-container" style="display: block;">
-            <div class="card">
-                <div class="card-header card-header-success card-header-icon">
-                    <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Turno Normal
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div id="spinnerAQL" class="text-center my-3" style="display: none;">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <div id="spinnerPROCESO" class="text-center my-3" style="display: none;">
                         <div class="loading-container">
                             <span class="loading-text">Cargando...</span>
                         </div>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table tablesorter" id="tablaAQLGeneralNuevo">
-                            <thead class="text-primary">
-                                <tr>
-                                    <th>Auditor</th>
-                                    <th>Modulo (AQL)</th>
-                                    <th>Supervisor</th>
-                                    <th>Estilo</th>
-                                    <th>Numero de Operarios</th>
-                                    <th>Cantidad Paro</th>
-                                    <th>Minutos Paro</th>
-                                    <th>Promedio Minutos Paro</th>
-                                    <th>Cantidad Paro Modular</th>
-                                    <th>Minutos Paro Modular</th>
-                                    <th>Total piezas por Bulto</th>
-                                    <th>Total Bulto</th>
-                                    <th>Total Bulto Rechazados</th>
-                                    <th>Cantidad Auditados</th>
-                                    <th>Cantidad Defectos</th>
-                                    <th>% Error AQL</th>
-                                    <th>Defectos</th>
-                                    <th>Accion Correctiva</th>
-                                    <th>Operario Responsable</th>
-                                    <th>Reparacion Piezas</th>
-                                    <th>Piezas de Bulto Rechazado</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaAQLGeneralNuevoBody">
-                                <!-- Aquí se insertarán los datos dinámicamente -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Tabla de Proceso General -->
-        <div id="tablaProceso" class="table-container" style="display: none;">
-            <div class="card">
-                <div class="card-header card-header-success card-header-icon">
-                    <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Turno
-                        Normal</h3>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <div id="spinnerPROCESO" class="text-center my-3" style="display: none;">
-                            <div class="loading-container">
-                                <span class="loading-text">Cargando...</span>
-                            </div>
-                        </div>
-                        <table class="table tablesorter" id="tablaProcesoGeneralNuevo">
-                            <thead class="text-primary">
-                                <tr>
-                                    <th>Auditor</th>
-                                    <th>Modulo</th>
-                                    <th>Supervisor</th>
-                                    <th>Estilo</th>
-                                    <th>Recorridos</th>
-                                    <th>Numero de Operarios</th>
-                                    <th>Numero de Utility</th>
-                                    <th>Cantidad Paro</th>
-                                    <th>Minutos Paro</th>
-                                    <th>Promedio Minutos Paro</th>
-                                    <th>Cantidad Paro Modular</th>
-                                    <th>Minutos Paro Modular</th>
-                                    <th>Cantidad Auditados</th>
-                                    <th>Cantidad Defectos</th>
-                                    <th>% Error Proceso</th>
-                                    <th>DEFECTOS</th>
-                                    <th>ACCION CORRECTIVA</th>
-                                    <th>Operarios</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaProcesoGeneralNuevoBody">
-                                <!-- Aquí se insertarán los datos dinámicamente -->
-                            </tbody>
-                        </table>
-                    </div>
+                    <table class="table tablesorter" id="tablaProcesoGeneralNuevo">
+                        <thead class="text-primary">
+                            <tr>
+                                <th>Auditor</th>
+                                <th>Modulo</th>
+                                <th>Supervisor</th>
+                                <th>Estilo</th>
+                                <th>Recorridos</th>
+                                <th>Numero de Operarios</th>
+                                <th>Numero de Utility</th>
+                                <th>Cantidad Paro</th>
+                                <th>Minutos Paro</th>
+                                <th>Promedio Minutos Paro</th>
+                                <th>Cantidad Paro Modular</th>
+                                <th>Minutos Paro Modular</th>
+                                <th>Cantidad Auditados</th>
+                                <th>Cantidad Defectos</th>
+                                <th>% Error Proceso</th>
+                                <th>DEFECTOS</th>
+                                <th>ACCION CORRECTIVA</th>
+                                <th>Operarios</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaProcesoGeneralNuevoBody">
+                            <!-- Aquí se insertarán los datos dinámicamente -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="card">
-        <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-            <label class="btn btn-sm btn-primary btn-simple active" id="showAQLTE">
-                <input type="radio" name="optionsTE" checked>
-                <h5><i class="tim-icons icon-app text-success"></i>&nbsp; AQL TE</h5>
-            </label>
-            <label class="btn btn-sm btn-primary btn-simple" id="showProcesoTE">
-                <input type="radio" name="optionsTE">
-                <h5><i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos TE</h5>
-            </label>
-        </div>
-        <!-- Tabla de AQL TE (visible por defecto) -->
-        <div id="tablaAQLTE" class="table-container" style="display: block;">
-            <div class="card">
-                <div class="card-header card-header-success card-header-icon">
-                    <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Tiempo Extra</h3>
-                </div>
-                <div class="card-body">
-                    <div id="spinnerAQLTE" class="text-center my-3" style="display: none;">
-                        <div class="loading-container">
-                            <span class="loading-text">Cargando...</span>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table tablesorter" id="tablaAQLGeneralTENuevo">
-                            <thead class="text-primary">
-                                <tr>
-                                    <th>Auditor</th>
-                                    <th>Modulo (AQL)</th>
-                                    <th>Supervisor</th>
-                                    <th>Estilo</th>
-                                    <th>Numero de Operarios</th>
-                                    <th>Cantidad Paro</th>
-                                    <th>Minutos Paro</th>
-                                    <th>Promedio Minutos Paro</th>
-                                    <th>Cantidad Paro Modular</th>
-                                    <th>Minutos Paro Modular</th>
-                                    <th>Total piezas por Bulto</th>
-                                    <th>Total Bulto</th>
-                                    <th>Total Bulto Rechazados</th>
-                                    <th>Cantidad Auditados</th>
-                                    <th>Cantidad Defectos</th>
-                                    <th>% Error AQL</th>
-                                    <th>Defectos</th>
-                                    <th>Accion Correctiva</th>
-                                    <th>Operario Responsable</th>
-                                    <th>Reparacion Piezas</th>
-                                    <th>Piezas de Bulto Rechazado</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaAQLGeneralTENuevoBody">
-                                <!-- Aquí se insertarán los datos dinámicamente -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+<div class="card">
+    <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+        <label class="btn btn-sm btn-primary btn-simple active" id="showAQLTE">
+            <input type="radio" name="optionsTE" checked>
+            <h5><i class="tim-icons icon-app text-success"></i>&nbsp; AQL TE</h5>
+        </label>
+        <label class="btn btn-sm btn-primary btn-simple" id="showProcesoTE">
+            <input type="radio" name="optionsTE">
+            <h5><i class="tim-icons icon-vector text-primary"></i>&nbsp; Procesos TE</h5>
+        </label>
+    </div>
+    <!-- Tabla de AQL TE (visible por defecto) -->
+    <div id="tablaAQLTE" class="table-container" style="display: block;">
+        <div class="card">
+            <div class="card-header card-header-success card-header-icon">
+                <h3 class="card-title"><i class="tim-icons icon-app text-success"></i> Modulo AQL general - Tiempo Extra
+                </h3>
             </div>
-        </div>
-        <!-- Tabla de Proceso Tiempo Extra -->
-        <div id="tablaProcesoTE" class="table-container" style="display: none;">
-            <div class="card">
-                <div class="card-header card-header-success card-header-icon">
-                    <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general - Tiempo
-                        Extra</h3>
+            <div class="card-body">
+                <div id="spinnerAQLTE" class="text-center my-3" style="display: none;">
+                    <div class="loading-container">
+                        <span class="loading-text">Cargando...</span>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div id="spinnerPROCESOTE" class="text-center my-3" style="display: none;">
-                        <div class="loading-container">
-                            <span class="loading-text">Cargando...</span>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table tablesorter" id="tablaProcesoGeneralTENuevo">
-                            <thead class="text-primary">
-                                <tr>
-                                    <th>Auditor</th>
-                                    <th>Modulo</th>
-                                    <th>Supervisor</th>
-                                    <th>Estilo</th>
-                                    <th>Recorridos</th>
-                                    <th>Numero de Operarios</th>
-                                    <th>Numero de Utility</th>
-                                    <th>Cantidad Paro</th>
-                                    <th>Minutos Paro</th>
-                                    <th>Promedio Minutos Paro</th>
-                                    <th>Cantidad Paro Modular</th>
-                                    <th>Minutos Paro Modular</th>
-                                    <th>Cantidad Auditados</th>
-                                    <th>Cantidad Defectos</th>
-                                    <th>% Error Proceso</th>
-                                    <th>DEFECTOS</th>
-                                    <th>ACCION CORRECTIVA</th>
-                                    <th>Operarios</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaProcesoGeneralTENuevoBody">
-                                <!-- Aquí se insertarán los datos dinámicamente -->
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table tablesorter" id="tablaAQLGeneralTENuevo">
+                        <thead class="text-primary">
+                            <tr>
+                                <th>Auditor</th>
+                                <th>Modulo (AQL)</th>
+                                <th>Supervisor</th>
+                                <th>Estilo</th>
+                                <th>Numero de Operarios</th>
+                                <th>Cantidad Paro</th>
+                                <th>Minutos Paro</th>
+                                <th>Promedio Minutos Paro</th>
+                                <th>Cantidad Paro Modular</th>
+                                <th>Minutos Paro Modular</th>
+                                <th>Total piezas por Bulto</th>
+                                <th>Total Bulto</th>
+                                <th>Total Bulto Rechazados</th>
+                                <th>Cantidad Auditados</th>
+                                <th>Cantidad Defectos</th>
+                                <th>% Error AQL</th>
+                                <th>Defectos</th>
+                                <th>Accion Correctiva</th>
+                                <th>Operario Responsable</th>
+                                <th>Reparacion Piezas</th>
+                                <th>Piezas de Bulto Rechazado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaAQLGeneralTENuevoBody">
+                            <!-- Aquí se insertarán los datos dinámicamente -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Modal reutilizable para AQL y AQL TE -->
-    <div id="modalAQL" class="custom-modal" style="display: none;">
-        <div class="custom-modal-content">
-            <div class="custom-modal-header">
-                <span class="custom-close" onclick="cerrarModalAQL()">&times;</span>
-                <h3 id="modalAQLTitulo">Detalles de AQL</h3>
+    <!-- Tabla de Proceso Tiempo Extra -->
+    <div id="tablaProcesoTE" class="table-container" style="display: none;">
+        <div class="card">
+            <div class="card-header card-header-success card-header-icon">
+                <h3 class="card-title"><i class="tim-icons icon-vector text-primary"></i> Modulo Proceso general -
+                    Tiempo
+                    Extra</h3>
             </div>
-            <div class="custom-modal-body table-responsive">
-                <table class="table" id="tablaModalAQL">
-                    <thead>
-                        <tr>
-                            <th>PARO</th>
-                            <th>CLIENTE</th>
-                            <th># BULTO</th>
-                            <th>PIEZAS</th>
-                            <th>TALLA</th>
-                            <th>COLOR</th>
-                            <th>ESTILO</th>
-                            <th>PIEZAS INSPECCIONADAS</th>
-                            <th>PIEZAS RECHAZADAS</th>
-                            <th>TIPO DE DEFECTO</th>
-                            <th>Hora</th>
-                        </tr>
-                    </thead>
-                    <tbody id="modalAQLBody">
-                        <!-- Aquí se cargarán los registros vía JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal reutilizable para Proceso Normal y Tiempo Extra -->
-    <div id="modalProceso" class="custom-modal" style="display: none;">
-        <div class="custom-modal-content">
-            <div class="custom-modal-header">
-                <span class="custom-close" onclick="cerrarModalProceso()">&times;</span>
-                <h3 id="modalProcesoTitulo">Detalles de Proceso</h3>
-            </div>
-            <div class="custom-modal-body table-responsive">
-                <table class="table" id="tablaModalProceso">
-                    <thead>
-                        <tr>
-                            <th>PARO</th>
-                            <th>CLIENTE</th>
-                            <th>Nombre</th>
-                            <th>Operacion</th>
-                            <th>Piezas Auditadas</th>
-                            <th>Piezas Rechazadas</th>
-                            <th>Tipo de Problema</th>
-                            <th>Acción Correctiva</th>
-                            <th>pxp</th>
-                            <th>Hora</th>
-                        </tr>
-                    </thead>
-                    <tbody id="modalProcesoBody">
-                        <!-- Aquí se insertarán dinámicamente los registros vía JS -->
-                    </tbody>
-                </table>
+            <div class="card-body">
+                <div id="spinnerPROCESOTE" class="text-center my-3" style="display: none;">
+                    <div class="loading-container">
+                        <span class="loading-text">Cargando...</span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table tablesorter" id="tablaProcesoGeneralTENuevo">
+                        <thead class="text-primary">
+                            <tr>
+                                <th>Auditor</th>
+                                <th>Modulo</th>
+                                <th>Supervisor</th>
+                                <th>Estilo</th>
+                                <th>Recorridos</th>
+                                <th>Numero de Operarios</th>
+                                <th>Numero de Utility</th>
+                                <th>Cantidad Paro</th>
+                                <th>Minutos Paro</th>
+                                <th>Promedio Minutos Paro</th>
+                                <th>Cantidad Paro Modular</th>
+                                <th>Minutos Paro Modular</th>
+                                <th>Cantidad Auditados</th>
+                                <th>Cantidad Defectos</th>
+                                <th>% Error Proceso</th>
+                                <th>DEFECTOS</th>
+                                <th>ACCION CORRECTIVA</th>
+                                <th>Operarios</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaProcesoGeneralTENuevoBody">
+                            <!-- Aquí se insertarán los datos dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
+</div>
 
-    <style>
-        /* Contenedor para centrar el texto */
-        .loading-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
+<!-- Modal reutilizable para AQL y AQL TE -->
+<div id="modalAQL" class="custom-modal" style="display: none;">
+    <div class="custom-modal-content">
+        <div class="custom-modal-header">
+            <span class="custom-close" onclick="cerrarModalAQL()">&times;</span>
+            <h3 id="modalAQLTitulo">Detalles de AQL</h3>
+        </div>
+        <div class="custom-modal-body table-responsive">
+            <table class="table" id="tablaModalAQL">
+                <thead>
+                    <tr>
+                        <th>PARO</th>
+                        <th>CLIENTE</th>
+                        <th>OP</th>
+                        <th># BULTO</th>
+                        <th>PIEZAS</th>
+                        <th>TALLA</th>
+                        <th>COLOR</th>
+                        <th>ESTILO</th>
+                        <th>PIEZAS INSPECCIONADAS</th>
+                        <th>PIEZAS RECHAZADAS</th>
+                        <th>TIPO DE DEFECTO</th>
+                        <th>Hora</th>
+                    </tr>
+                </thead>
+                <tbody id="modalAQLBody">
+                    <!-- Aquí se cargarán los registros vía JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal reutilizable para Proceso Normal y Tiempo Extra -->
+<div id="modalProceso" class="custom-modal" style="display: none;">
+    <div class="custom-modal-content">
+        <div class="custom-modal-header">
+            <span class="custom-close" onclick="cerrarModalProceso()">&times;</span>
+            <h3 id="modalProcesoTitulo">Detalles de Proceso</h3>
+        </div>
+        <div class="custom-modal-body table-responsive">
+            <table class="table" id="tablaModalProceso">
+                <thead>
+                    <tr>
+                        <th>PARO</th>
+                        <th>CLIENTE</th>
+                        <th>Nombre</th>
+                        <th>Operacion</th>
+                        <th>Piezas Auditadas</th>
+                        <th>Piezas Rechazadas</th>
+                        <th>Tipo de Problema</th>
+                        <th>Acción Correctiva</th>
+                        <th>pxp</th>
+                        <th>Hora</th>
+                    </tr>
+                </thead>
+                <tbody id="modalProcesoBody">
+                    <!-- Aquí se insertarán dinámicamente los registros vía JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Contenedor para centrar el texto */
+    .loading-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Texto animado */
+    .loading-text {
+        font-size: 18px;
+        font-weight: bold;
+        color: #d1d1d1;
+        /* Color para tema oscuro */
+
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        /* Centrar exactamente */
+
+        animation: fadeInOut 1.5s infinite;
+    }
+
+    /* Animación de parpadeo */
+    @keyframes fadeInOut {
+
+        0%,
+        100% {
+            opacity: 0.3;
         }
 
-        /* Texto animado */
-        .loading-text {
-            font-size: 18px;
-            font-weight: bold;
-            color: #d1d1d1; /* Color para tema oscuro */
-            
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%); /* Centrar exactamente */
-            
-            animation: fadeInOut 1.5s infinite;
+        50% {
+            opacity: 1;
         }
+    }
+</style>
+<style>
+    .custom-body {
+        font-family: Arial, sans-serif;
+        background-color: #121212;
+        color: #ffffff;
+        margin: 0;
+        padding: 20px;
+    }
 
-        /* Animación de parpadeo */
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
+    .custom-card {
+        background-color: #1e1e1e;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
 
-    </style>
-    <style>
-        .custom-body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
-            margin: 0;
-            padding: 20px;
-        }
+    .custom-card-header {
+        background-color: #2e7d32;
+        color: white;
+        padding: 15px;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
 
-        .custom-card {
-            background-color: #1e1e1e;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
+    .custom-card-body {
+        padding: 15px;
+    }
 
-        .custom-card-header {
-            background-color: #2e7d32;
-            color: white;
-            padding: 15px;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-        }
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-        .custom-card-body {
-            padding: 15px;
-        }
+    .custom-table th,
+    .custom-table td {
+        text-align: left;
+        padding: 12px;
+        border-bottom: 1px solid #333;
+    }
 
-        .custom-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+    .custom-table th {
+        background-color: #2e2e2e;
+    }
 
-        .custom-table th,
-        .custom-table td {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid #333;
-        }
+    .custom-btn {
+        background-color: transparent;
+        border: none;
+        color: #4caf50;
+        cursor: pointer;
+        text-decoration: underline;
+    }
 
-        .custom-table th {
-            background-color: #2e2e2e;
-        }
+    .custom-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        /* Asegura que está por encima de todo */
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        padding-top: 60px;
+        /* Espacio superior */
+        background-color: rgba(0, 0, 0, 0.9);
+        overflow-y: auto;
+        pointer-events: auto;
+        /* Muy importante */
+    }
 
-        .custom-btn {
-            background-color: transparent;
-            border: none;
-            color: #4caf50;
-            cursor: pointer;
-            text-decoration: underline;
-        }
+    .custom-modal-content {
+        background-color: #1e1e1e;
+        margin: 0 auto;
+        padding: 20px;
+        width: 100%;
+        min-height: 100%;
+        box-sizing: border-box;
+    }
 
-        .custom-modal {
-            display: none;
-            position: fixed;
-            z-index: 9999; /* Asegura que está por encima de todo */
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            padding-top: 60px; /* Espacio superior */
-            background-color: rgba(0, 0, 0, 0.9);
-            overflow-y: auto;
-            pointer-events: auto; /* Muy importante */
-        }
+    .custom-close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        position: fixed;
+        right: 25px;
+        top: 15px;
+    }
 
-        .custom-modal-content {
-            background-color: #1e1e1e;
-            margin: 0 auto;
-            padding: 20px;
-            width: 100%;
-            min-height: 100%;
-            box-sizing: border-box;
-        }
+    .custom-close:hover,
+    .custom-close:focus {
+        color: #fff;
+    }
 
-        .custom-close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            position: fixed;
-            right: 25px;
-            top: 15px;
-        }
+    .custom-modal-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background-color: #2e2e2e;
+        padding: 15px;
+        z-index: 1001;
+    }
 
-        .custom-close:hover,
-        .custom-close:focus {
-            color: #fff;
-        }
+    .custom-modal-body {
+        margin-top: 70px;
+        /* Ajusta este valor según la altura de tu encabezado */
+        padding: 15px;
+    }
+</style>
 
-        .custom-modal-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background-color: #2e2e2e;
-            padding: 15px;
-            z-index: 1001;
-        }
+<!-- JavaScript -->
+<!-- DataTables CSS desde carpeta local -->
+<link rel="stylesheet" href="{{ asset('dataTable/css/dataTables.bootstrap5.min.css') }}">
+<link rel="stylesheet" href="{{ asset('dataTable/css/buttons.bootstrap5.min.css') }}">
 
-        .custom-modal-body {
-            margin-top: 70px;
-            /* Ajusta este valor según la altura de tu encabezado */
-            padding: 15px;
-        }
-    </style>
+<!-- jQuery y DataTables desde local -->
+<script src="{{ asset('dataTable/js/jquery-3.6.0.min.js') }}"></script>
+<script src="{{ asset('dataTable/js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('dataTable/js/dataTables.bootstrap5.min.js') }}"></script>
 
-    <!-- JavaScript -->
-    <!-- DataTables CSS desde carpeta local -->
-    <link rel="stylesheet" href="{{ asset('dataTable/css/dataTables.bootstrap5.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('dataTable/css/buttons.bootstrap5.min.css') }}">
+<!-- Botones para exportar -->
+<script src="{{ asset('dataTable/js/dataTables.buttons.min.js') }}"></script>
+<script src="{{ asset('dataTable/js/buttons.bootstrap5.min.js') }}"></script>
+<script src="{{ asset('dataTable/js/jszip.min.js') }}"></script>
+<script src="{{ asset('dataTable/js/buttons.html5.min.js') }}"></script>
 
-    <!-- jQuery y DataTables desde local -->
-    <script src="{{ asset('dataTable/js/jquery-3.6.0.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/dataTables.bootstrap5.min.js') }}"></script>
-
-    <!-- Botones para exportar -->
-    <script src="{{ asset('dataTable/js/dataTables.buttons.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/buttons.bootstrap5.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/jszip.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/buttons.html5.min.js') }}"></script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
             // ✅ Registrar tipo personalizado SOLO UNA VEZ al cargar la página
             $.fn.dataTable.ext.type.order['custom-num'] = function(a, b) {
                 if (a === "N/A" || a === "") return -Infinity;
@@ -901,10 +916,10 @@
                 });
             }
         });
-    </script>
+</script>
 
-    <script>
-        let activeModalId = null;
+<script>
+    let activeModalId = null;
 
         function abrirModalAQL(modulo, estilo, tablaOrigenId) {
             // Mostrar modal vacío
@@ -952,6 +967,7 @@
                         rows += `<tr>
                             <td>${registro.minutos_paro ?? 'N/A'}</td>
                             <td>${registro.cliente ?? 'N/A'}</td>
+                            <td>${registro.op ?? 'N/A'}</td>
                             <td>${registro.bulto ?? 'N/A'}</td>
                             <td>${registro.pieza ?? 'N/A'}</td>
                             <td>${registro.talla ?? 'N/A'}</td>
@@ -1024,10 +1040,10 @@
                 cerrarModalAQL();
             }
         });
-    </script>
+</script>
 
-    <script>
-        let activeModalIdProceso = null;
+<script>
+    let activeModalIdProceso = null;
 
         function abrirModalProceso(modulo, estilo, tablaOrigenId) {
             // Mostrar modal vacío con mensaje "Cargando..."
@@ -1148,7 +1164,7 @@
                 cerrarModalProceso();
             }
         });
-    </script>
+</script>
 
-    
+
 @endsection
