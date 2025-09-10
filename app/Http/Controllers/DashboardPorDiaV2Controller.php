@@ -62,13 +62,13 @@ class DashboardPorDiaV2Controller extends Controller
         $plantaConsulta = "Intimark1";
         $cacheKey = "aql_{$plantaConsulta}_{$fechaActual}";
 
-        Log::info("🔎 Iniciando consulta AQL para fecha: {$fechaActual}");
+        //Log::info("🔎 Iniciando consulta AQL para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
         $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, null);
         });
-        Log::info("⏳ Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳ Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloAQL' => count($datosModuloEstiloAQL) > 0 ? $datosModuloEstiloAQL : []
@@ -85,13 +85,13 @@ class DashboardPorDiaV2Controller extends Controller
         $plantaConsulta = "Intimark1";
         $cacheKey = "aqlte_{$plantaConsulta}_{$fechaActual}";
 
-        Log::info("🔎 Iniciando consulta AQL TE para fecha: {$fechaActual}");
+        //Log::info("🔎 Iniciando consulta AQL TE para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
         $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, 1);
         });
-        Log::info("⏳ Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳ Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloAQLTE' => count($datosModuloEstiloAQLTE) > 0 ? $datosModuloEstiloAQLTE : []
@@ -108,13 +108,13 @@ class DashboardPorDiaV2Controller extends Controller
         $plantaConsulta = "Intimark1";
         $cacheKey = "proceso_{$plantaConsulta}_{$fechaActual}";
 
-        Log::info("🔎 Iniciando consulta Proceso para fecha: {$fechaActual}");
+        //Log::info("🔎 Iniciando consulta Proceso para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
         $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, null);
         });
-        Log::info("⏳ Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳ Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloProceso' => count($datosModuloEstiloProceso) > 0 ? $datosModuloEstiloProceso : []
@@ -131,13 +131,13 @@ class DashboardPorDiaV2Controller extends Controller
         $plantaConsulta = "Intimark1";
         $cacheKey = "proceso_te_{$plantaConsulta}_{$fechaActual}";
 
-        Log::info("🔎 Iniciando consulta Proceso TE para fecha: {$fechaActual}");
+        //Log::info("🔎 Iniciando consulta Proceso TE para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
         $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, 1);
         });
-        Log::info("⏳ Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳ Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloProcesoTE' => count($datosModuloEstiloProcesoTE) > 0 ? $datosModuloEstiloProcesoTE : []
@@ -154,13 +154,13 @@ class DashboardPorDiaV2Controller extends Controller
         $plantaConsulta = "Intimark2";
         $cacheKey = "aql_{$plantaConsulta}_{$fechaActual}";
 
-        Log::info("🔎 P2 Iniciando consulta AQL para fecha: {$fechaActual}");
+        //Log::info("🔎 P2 Iniciando consulta AQL para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
         $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, null);
         });
-        Log::info("⏳ P2 Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳ P2 Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloAQL' => count($datosModuloEstiloAQL) > 0 ? $datosModuloEstiloAQL : []
@@ -177,13 +177,13 @@ class DashboardPorDiaV2Controller extends Controller
         $plantaConsulta = "Intimark2";
         $cacheKey = "aqlte_{$plantaConsulta}_{$fechaActual}";
 
-        Log::info("🔎 P2 Iniciando consulta AQL TE para fecha: {$fechaActual}");
+        //Log::info("🔎 P2 Iniciando consulta AQL TE para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
         $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloAQL($fechaActual, $plantaConsulta, 1);
         });
-        Log::info("⏳P2 Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳P2 Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloAQLTE' => count($datosModuloEstiloAQLTE) > 0 ? $datosModuloEstiloAQLTE : []
@@ -200,13 +200,13 @@ class DashboardPorDiaV2Controller extends Controller
         $plantaConsulta = "Intimark2";
         $cacheKey = "proceso_{$plantaConsulta}_{$fechaActual}";
 
-        Log::info("🔎 P2 Iniciando consulta Proceso para fecha: {$fechaActual}");
+        //Log::info("🔎 P2 Iniciando consulta Proceso para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
         $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, null);
         });
-        Log::info("⏳ P2 Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳ P2 Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloProceso' => count($datosModuloEstiloProceso) > 0 ? $datosModuloEstiloProceso : []
@@ -223,13 +223,13 @@ class DashboardPorDiaV2Controller extends Controller
         $plantaConsulta = "Intimark2";
         $cacheKey = "proceso_te_{$plantaConsulta}_{$fechaActual}";
 
-        Log::info("🔎 P2 Iniciando consulta Proceso TE para fecha: {$fechaActual}");
+        //Log::info("🔎 P2 Iniciando consulta Proceso TE para fecha: {$fechaActual}");
 
         $inicio = microtime(true);
         $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaActual, $plantaConsulta) {
             return $this->getDatosModuloEstiloProceso($fechaActual, $plantaConsulta, 1);
         });
-        Log::info("⏳ P2 Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳ P2 Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloProcesoTE' => count($datosModuloEstiloProcesoTE) > 0 ? $datosModuloEstiloProcesoTE : []
@@ -662,7 +662,7 @@ class DashboardPorDiaV2Controller extends Controller
 
     public function obtenerDetallesProcesoP1(Request $request)
     {
-        Log::info('datos de request' . "{$request}");
+        //Log::info('datos de request' . "{$request}");
         $modulo = $request->input('modulo');
         $estilo = $request->input('estilo');
         $fecha = $request->input('fecha');

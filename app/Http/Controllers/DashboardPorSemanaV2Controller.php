@@ -40,7 +40,7 @@ class DashboardPorSemanaV2Controller extends Controller
 
         $plantaConsulta = "Intimark1";
 
-        return view('dashboard.dashboardPlanta1PorSemanaV2', compact('title' ));
+        return view('dashboard.dashboardPlanta1PorSemanaV2', compact('title'));
     }
 
     public function dashboardSemanaPlanta2V2()
@@ -49,7 +49,7 @@ class DashboardPorSemanaV2Controller extends Controller
 
         $plantaConsulta = "Intimark2";
 
-        return view('dashboard.dashboardPlanta2PorSemanaV2', compact('title' ));
+        return view('dashboard.dashboardPlanta2PorSemanaV2', compact('title'));
     }
 
     public function buscarAQL(Request $request)
@@ -65,13 +65,13 @@ class DashboardPorSemanaV2Controller extends Controller
         $plantaConsulta = "Intimark1";
         $cacheKey = "semana_aql_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
-        Log::info("🔎 Iniciando consulta AQL para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
+        //Log::info("🔎 Iniciando consulta AQL para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
         $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteAQL($fechaInicio, $plantaConsulta, null, $fechaFin);
         });
-        Log::info("⏳ Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳ Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloAQL' => count($datosModuloEstiloAQL) > 0 ? $datosModuloEstiloAQL : []
@@ -91,13 +91,13 @@ class DashboardPorSemanaV2Controller extends Controller
         $plantaConsulta = "Intimark1";
         $cacheKey = "semana_aqlte_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
-        Log::info("🔎 Iniciando consulta AQL TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
+        //Log::info("🔎 Iniciando consulta AQL TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
         $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteAQL($fechaInicio, $plantaConsulta, 1, $fechaFin);
         });
-        Log::info("⏳ Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳ Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloAQLTE' => count($datosModuloEstiloAQLTE) > 0 ? $datosModuloEstiloAQLTE : []
@@ -117,13 +117,13 @@ class DashboardPorSemanaV2Controller extends Controller
         $plantaConsulta = "Intimark1";
         $cacheKey = "semana_proceso_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
-        Log::info("🔎 Iniciando consulta Proceso para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
+        //Log::info("🔎 Iniciando consulta Proceso para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
         $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteProceso($fechaInicio, $plantaConsulta, null, $fechaFin);
         });
-        Log::info("⏳ Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳ Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloProceso' => count($datosModuloEstiloProceso) > 0 ? $datosModuloEstiloProceso : []
@@ -143,13 +143,13 @@ class DashboardPorSemanaV2Controller extends Controller
         $plantaConsulta = "Intimark1";
         $cacheKey = "semana_proceso_te_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
-        Log::info("🔎 Iniciando consulta Proceso TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
+        //Log::info("🔎 Iniciando consulta Proceso TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
         $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteProceso($fechaInicio, $plantaConsulta, 1, $fechaFin);
         });
-        Log::info("⏳ Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳ Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloProcesoTE' => count($datosModuloEstiloProcesoTE) > 0 ? $datosModuloEstiloProcesoTE : []
@@ -169,13 +169,13 @@ class DashboardPorSemanaV2Controller extends Controller
         $plantaConsulta = "Intimark2";
         $cacheKey = "semana_aql_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
-        Log::info("🔎 P2 Iniciando consulta AQL para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
+        //Log::info("🔎 P2 Iniciando consulta AQL para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
         $datosModuloEstiloAQL = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteAQL($fechaInicio, $plantaConsulta, null, $fechaFin);
         });
-        Log::info("⏳ P2 Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳ P2 Tiempo ejecución AQL: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloAQL' => count($datosModuloEstiloAQL) > 0 ? $datosModuloEstiloAQL : []
@@ -195,13 +195,13 @@ class DashboardPorSemanaV2Controller extends Controller
         $plantaConsulta = "Intimark2";
         $cacheKey = "semana_aqlte_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
-        Log::info("🔎 P2 Iniciando consulta AQL TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
+        //Log::info("🔎 P2 Iniciando consulta AQL TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
         $datosModuloEstiloAQLTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteAQL($fechaInicio, $plantaConsulta, 1, $fechaFin);
         });
-        Log::info("⏳P2 Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳P2 Tiempo ejecución AQL TE: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloAQLTE' => count($datosModuloEstiloAQLTE) > 0 ? $datosModuloEstiloAQLTE : []
@@ -221,13 +221,13 @@ class DashboardPorSemanaV2Controller extends Controller
         $plantaConsulta = "Intimark2";
         $cacheKey = "semana_proceso_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
-        Log::info("🔎 P2 Iniciando consulta Proceso para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
+        //Log::info("🔎 P2 Iniciando consulta Proceso para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
         $datosModuloEstiloProceso = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteProceso($fechaInicio, $plantaConsulta, null, $fechaFin);
         });
-        Log::info("⏳ P2 Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳ P2 Tiempo ejecución Proceso: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloProceso' => count($datosModuloEstiloProceso) > 0 ? $datosModuloEstiloProceso : []
@@ -247,13 +247,13 @@ class DashboardPorSemanaV2Controller extends Controller
         $plantaConsulta = "Intimark2";
         $cacheKey = "semana_proceso_te_{$plantaConsulta}_{$fechaInicio->format('Y-m-d')}";
 
-        Log::info("🔎 P2 Iniciando consulta Proceso TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
+        //Log::info("🔎 P2 Iniciando consulta Proceso TE para semana: {$fechaInicio->toDateTimeString()} - {$fechaFin->toDateTimeString()}");
 
         $inicio = microtime(true);
         $datosModuloEstiloProcesoTE = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($fechaInicio, $fechaFin, $plantaConsulta) {
             return $this->getDatosModuloClienteProceso($fechaInicio, $plantaConsulta, 1, $fechaFin);
         });
-        Log::info("⏳ P2 Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
+        //Log::info("⏳ P2 Tiempo ejecución Proceso TE: " . round(microtime(true) - $inicio, 3) . "s");
 
         return response()->json([
             'datosModuloEstiloProcesoTE' => count($datosModuloEstiloProcesoTE) > 0 ? $datosModuloEstiloProcesoTE : []
@@ -494,7 +494,7 @@ class DashboardPorSemanaV2Controller extends Controller
                     'cantidad_rechazada' => $registro->cantidad_rechazada,
                     'defectos' => $registro->tpAuditoriaAQL->pluck('tp')->filter()->implode(', ') ?: 'N/A',
                     'accion_correctiva' => $registro->ac ?? 'N/A',
-                    'hora' => $registro->created_at ? Carbon::parse($registro->created_at)->format('d/m/Y - H:i:s'): 'N/A',
+                    'hora' => $registro->created_at ? Carbon::parse($registro->created_at)->format('d/m/Y - H:i:s') : 'N/A',
                 ];
             });
         });
@@ -503,7 +503,7 @@ class DashboardPorSemanaV2Controller extends Controller
 
     public function obtenerDetallesAQLP2(Request $request)
     {
-        Log::info('datos de request: ' . json_encode($request->all()));
+        //Log::info('datos de request: ' . json_encode($request->all()));
         $modulo = $request->input('modulo');
         $cliente = $request->input('cliente');
         $fechaSemana = $request->input('fecha');
@@ -520,8 +520,8 @@ class DashboardPorSemanaV2Controller extends Controller
         // Convertir semana a rango
         $fechaInicio = Carbon::parse($fechaSemana)->startOfWeek()->setTime(0, 0, 0);
         $fechaFin = Carbon::parse($fechaSemana)->endOfWeek()->setTime(23, 59, 59);
-        Log::info('fechaInicio: ' . $fechaInicio);
-        Log::info('fechaFin: ' . $fechaFin);
+        //Log::info('fechaInicio: ' . $fechaInicio);
+        //Log::info('fechaFin: ' . $fechaFin);
 
         $detalles = $this->getDatosModuloClienteAQLDetalles($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra);
 
@@ -530,7 +530,7 @@ class DashboardPorSemanaV2Controller extends Controller
 
     public function obtenerDetallesAQLP1(Request $request)
     {
-        Log::info('datos de request: ' . json_encode($request->all()));
+        //Log::info('datos de request: ' . json_encode($request->all()));
         $modulo = $request->input('modulo');
         $cliente = $request->input('cliente');
         $fechaSemana = $request->input('fecha');
@@ -546,9 +546,9 @@ class DashboardPorSemanaV2Controller extends Controller
         // Convertir semana a rango
         $fechaInicio = Carbon::parse($fechaSemana)->startOfWeek()->setTime(0, 0, 0);
         $fechaFin = Carbon::parse($fechaSemana)->endOfWeek()->setTime(23, 59, 59);
-        Log::info('fechaInicio: ' . $fechaInicio);
-        Log::info('fechaFin: ' . $fechaFin);
-        
+        //Log::info('fechaInicio: ' . $fechaInicio);
+        //Log::info('fechaFin: ' . $fechaFin);
+
         $detalles = $this->getDatosModuloClienteAQLDetalles($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra);
 
         return response()->json($detalles);
@@ -565,32 +565,32 @@ class DashboardPorSemanaV2Controller extends Controller
                 ->whereBetween('created_at', [$fechaInicio, $fechaFin])
                 ->with('tpAseguramientoCalidad');
 
-        if (is_null($tiempoExtra)) {
-            $query->whereNull('tiempo_extra');
-        } else {
-            $query->where('tiempo_extra', $tiempoExtra);
-        }
+            if (is_null($tiempoExtra)) {
+                $query->whereNull('tiempo_extra');
+            } else {
+                $query->where('tiempo_extra', $tiempoExtra);
+            }
 
-        return $query->get()->map(function ($registro) {
-            return [
-                'minutos_paro' => $registro->minutos_paro,
-                'estilo' => $registro->estilo,
-                'nombre' => $registro->nombre,
-                'operacion' => $registro->operacion,
-                'cantidad_auditada' => $registro->cantidad_auditada,
-                'cantidad_rechazada' => $registro->cantidad_rechazada,
-                'tipo_problema' => $registro->tpAseguramientoCalidad->pluck('tp')->filter()->implode(', ') ?: 'N/A',
-                'ac' => $registro->ac ?? 'N/A',
-                'pxp' => $registro->pxp ?? 'N/A',
-                'hora' => $registro->created_at ? Carbon::parse($registro->created_at)->format('d/m/Y - H:i:s'): 'N/A',
-            ];
+            return $query->get()->map(function ($registro) {
+                return [
+                    'minutos_paro' => $registro->minutos_paro,
+                    'estilo' => $registro->estilo,
+                    'nombre' => $registro->nombre,
+                    'operacion' => $registro->operacion,
+                    'cantidad_auditada' => $registro->cantidad_auditada,
+                    'cantidad_rechazada' => $registro->cantidad_rechazada,
+                    'tipo_problema' => $registro->tpAseguramientoCalidad->pluck('tp')->filter()->implode(', ') ?: 'N/A',
+                    'ac' => $registro->ac ?? 'N/A',
+                    'pxp' => $registro->pxp ?? 'N/A',
+                    'hora' => $registro->created_at ? Carbon::parse($registro->created_at)->format('d/m/Y - H:i:s') : 'N/A',
+                ];
+            });
         });
-    });
-}
+    }
 
     public function obtenerDetallesProcesoP2(Request $request)
     {
-        Log::info('datos de request: ' . json_encode($request->all()));
+        //Log::info('datos de request: ' . json_encode($request->all()));
         $modulo = $request->input('modulo');
         $cliente = $request->input('cliente');
         $fechaSemana = $request->input('fecha');
@@ -606,8 +606,8 @@ class DashboardPorSemanaV2Controller extends Controller
 
         $fechaInicio = Carbon::parse($fechaSemana)->startOfWeek()->setTime(0, 0, 0);
         $fechaFin = Carbon::parse($fechaSemana)->endOfWeek()->setTime(23, 59, 59);
-        Log::info('fechaInicio: ' . $fechaInicio);
-        Log::info('fechaFin: ' . $fechaFin);
+        //Log::info('fechaInicio: ' . $fechaInicio);
+        //Log::info('fechaFin: ' . $fechaFin);
 
         $detalles = $this->getDatosModuloClienteProcesoDetalles($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra);
 
@@ -616,7 +616,7 @@ class DashboardPorSemanaV2Controller extends Controller
 
     public function obtenerDetallesProcesoP1(Request $request)
     {
-        Log::info('datos de request: ' . json_encode($request->all()));
+        //Log::info('datos de request: ' . json_encode($request->all()));
         $modulo = $request->input('modulo');
         $cliente = $request->input('cliente');
         $fechaSemana = $request->input('fecha');
@@ -632,13 +632,11 @@ class DashboardPorSemanaV2Controller extends Controller
 
         $fechaInicio = Carbon::parse($fechaSemana)->startOfWeek()->setTime(0, 0, 0);
         $fechaFin = Carbon::parse($fechaSemana)->endOfWeek()->setTime(23, 59, 59);
-        Log::info('fechaInicio: ' . $fechaInicio);
-        Log::info('fechaFin: ' . $fechaFin);
+        //Log::info('fechaInicio: ' . $fechaInicio);
+        //Log::info('fechaFin: ' . $fechaFin);
 
         $detalles = $this->getDatosModuloClienteProcesoDetalles($fechaInicio, $fechaFin, $planta, $modulo, $cliente, $tiempoExtra);
 
         return response()->json($detalles);
     }
-
-
 }

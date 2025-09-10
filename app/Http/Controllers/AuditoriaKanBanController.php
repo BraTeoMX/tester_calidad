@@ -105,14 +105,14 @@ class AuditoriaKanBanController extends Controller
 
             $registros = $query->get()->map(function ($registro) {
                 // Procesar comentarios
-                $comentarios = $registro->comentarios->isEmpty() 
-                ? 'N/A' 
-                : '<ul class="comentarios-lista">' . 
-                  $registro->comentarios->map(function($comentario) {
-                      return '<li>' . e($comentario->nombre) . '</li>';
-                  })->implode('') . 
-                  '</ul>';
-                
+                $comentarios = $registro->comentarios->isEmpty()
+                    ? 'N/A'
+                    : '<ul class="comentarios-lista">' .
+                    $registro->comentarios->map(function ($comentario) {
+                        return '<li>' . e($comentario->nombre) . '</li>';
+                    })->implode('') .
+                    '</ul>';
+
                 // Procesar cantidades parciales
                 $cantidades_parciales = $registro->cantidades_parciales->isEmpty()
                     ? 'N/A'
@@ -210,7 +210,7 @@ class AuditoriaKanBanController extends Controller
 
     public function crearComentario(Request $request)
     {
-        //Log::info($request->all());
+        ////Log::info($request->all());
         $request->validate([
             'nombre' => 'required|string|max:255'
         ]);
@@ -228,7 +228,7 @@ class AuditoriaKanBanController extends Controller
 
     public function guardar(Request $request)
     {
-        //Log::info('Datos recibidos: ' . json_encode($request->all()));
+        ////Log::info('Datos recibidos: ' . json_encode($request->all()));
         $auditorDato = Auth::user()->name;
         // Crear instancia de ReporteKanban
         $kanban = new ReporteKanban();
@@ -248,7 +248,7 @@ class AuditoriaKanBanController extends Controller
 
     public function actualizar(Request $request)
     {
-        //Log::info('Datos recibidos: ' . json_encode($request->all()));
+        ////Log::info('Datos recibidos: ' . json_encode($request->all()));
 
         $kanban = ReporteKanban::find($request->input('id'));
 
@@ -305,7 +305,7 @@ class AuditoriaKanBanController extends Controller
 
     public function actualizarMasivo(Request $request)
     {
-        Log::info('Datos recibidos para actualización masiva: ' . json_encode($request->all()));
+        ////Log::info('Datos recibidos para actualización masiva: ' . json_encode($request->all()));
         // Identificar el tipo de usuario que realiza la acción
         $tipoAcceso = Auth::user()->no_empleado;
 
@@ -342,46 +342,46 @@ class AuditoriaKanBanController extends Controller
 
                 // Cambiar de === a == para la comparación principal entre el nuevo estado (string) y el actual (int/DB type)
                 if ($tipoAcceso === '4') {
-                // Lógica de omisión específica para el usuario tipo '4' (usando campos _calidad)
-                if ($nuevoEstatus == $kanban->estatus_calidad) { // Compara con estatus_calidad
-                    if ($nuevoEstatus === '1' && $kanban->fecha_liberacion_calidad !== null) {
-                        $omitirEsteRegistro = true;
-                    } elseif ($nuevoEstatus === '2' && $kanban->fecha_parcial_calidad !== null) {
-                        $omitirEsteRegistro = false; // Para 'parcial calidad', se actualiza la fecha
-                    } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo_calidad !== null) {
-                        $omitirEsteRegistro = true;
-                    } elseif (
-                        $nuevoEstatus === '' &&
-                        $kanban->fecha_liberacion_calidad === null &&
-                        $kanban->fecha_parcial_calidad === null &&
-                        $kanban->fecha_rechazo_calidad === null
-                    ) {
-                        $omitirEsteRegistro = true;
+                    // Lógica de omisión específica para el usuario tipo '4' (usando campos _calidad)
+                    if ($nuevoEstatus == $kanban->estatus_calidad) { // Compara con estatus_calidad
+                        if ($nuevoEstatus === '1' && $kanban->fecha_liberacion_calidad !== null) {
+                            $omitirEsteRegistro = true;
+                        } elseif ($nuevoEstatus === '2' && $kanban->fecha_parcial_calidad !== null) {
+                            $omitirEsteRegistro = false; // Para 'parcial calidad', se actualiza la fecha
+                        } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo_calidad !== null) {
+                            $omitirEsteRegistro = true;
+                        } elseif (
+                            $nuevoEstatus === '' &&
+                            $kanban->fecha_liberacion_calidad === null &&
+                            $kanban->fecha_parcial_calidad === null &&
+                            $kanban->fecha_rechazo_calidad === null
+                        ) {
+                            $omitirEsteRegistro = true;
+                        }
+                    }
+                } else {
+                    // Lógica de omisión para otros usuarios (la que tenías, usando campos generales)
+                    if ($nuevoEstatus == $kanban->estatus) { // Compara con estatus general
+                        if ($nuevoEstatus === '1' && $kanban->fecha_liberacion !== null) {
+                            $omitirEsteRegistro = true;
+                        } elseif ($nuevoEstatus === '2' && $kanban->fecha_parcial !== null) {
+                            $omitirEsteRegistro = false; // Para 'parcial general', se actualiza la fecha
+                        } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo !== null) {
+                            $omitirEsteRegistro = true;
+                        } elseif (
+                            $nuevoEstatus === '' &&
+                            $kanban->fecha_liberacion === null &&
+                            $kanban->fecha_parcial === null &&
+                            $kanban->fecha_rechazo === null
+                        ) {
+                            $omitirEsteRegistro = true;
+                        }
                     }
                 }
-            } else {
-                // Lógica de omisión para otros usuarios (la que tenías, usando campos generales)
-                if ($nuevoEstatus == $kanban->estatus) { // Compara con estatus general
-                    if ($nuevoEstatus === '1' && $kanban->fecha_liberacion !== null) {
-                        $omitirEsteRegistro = true;
-                    } elseif ($nuevoEstatus === '2' && $kanban->fecha_parcial !== null) {
-                        $omitirEsteRegistro = false; // Para 'parcial general', se actualiza la fecha
-                    } elseif ($nuevoEstatus === '3' && $kanban->fecha_rechazo !== null) {
-                        $omitirEsteRegistro = true;
-                    } elseif (
-                        $nuevoEstatus === '' &&
-                        $kanban->fecha_liberacion === null &&
-                        $kanban->fecha_parcial === null &&
-                        $kanban->fecha_rechazo === null
-                    ) {
-                        $omitirEsteRegistro = true;
-                    }
-                }
-            }
 
                 if ($omitirEsteRegistro) {
                     $registrosOmitidos++;
-                    continue; 
+                    continue;
                 }
 
 
@@ -413,7 +413,7 @@ class AuditoriaKanBanController extends Controller
                         $kanban->fecha_liberacion = Carbon::now();
                     } elseif ($nuevoEstatus === '2') { // Parcial
                         $kanban->fecha_parcial = Carbon::now();
-                        if($kanban->fecha_liberacion_calidad == null && $kanban->fecha_parcial_calidad == null && $kanban->fecha_rechazo_calidad == null) {
+                        if ($kanban->fecha_liberacion_calidad == null && $kanban->fecha_parcial_calidad == null && $kanban->fecha_rechazo_calidad == null) {
                             $kanban->estatus_calidad = $nuevoEstatus;
                             $kanban->fecha_parcial_calidad = Carbon::now();
                         }
@@ -428,7 +428,7 @@ class AuditoriaKanBanController extends Controller
 
                 if ($nuevoEstatus === '2' && $cantidadParcial > 0) {
                     // Si el estatus es 'Parcial' y se recibió una cantidad válida, la guardamos.
-                    
+
                     // Preparamos los datos a actualizar dependiendo del tipo de usuario
                     $dataToUpdate = ($tipoAcceso === '4')
                         ? ['cantidad' => $cantidadParcial]
@@ -441,7 +441,6 @@ class AuditoriaKanBanController extends Controller
                         ['reporte_kanban_id' => $kanban->id], // Criterio de búsqueda
                         $dataToUpdate                       // Valores a establecer/actualizar
                     );
-
                 } /* else {
                     // Si el estatus ya NO es 'Parcial' o no hay cantidad, limpiamos el campo correspondiente.
                     $parcialRecord = ReporteKanbanCantidadParcial::where('reporte_kanban_id', $kanban->id)->first();
@@ -462,9 +461,9 @@ class AuditoriaKanBanController extends Controller
                         //}
                     }
                 } */
-                
+
                 $comentariosNuevosInput = $registroData['comentarios'] ?? ''; // Puede ser un string o array
-                Log::info("Comentarios nuevos: " . json_encode($comentariosNuevosInput));
+                ////Log::info("Comentarios nuevos: " . json_encode($comentariosNuevosInput));
                 // Si los comentarios vienen como un string separado por comas y pueden tener espacios
                 if (is_string($comentariosNuevosInput)) {
                     $comentariosNuevos = !empty($comentariosNuevosInput) ? array_map('trim', explode(',', $comentariosNuevosInput)) : [];
@@ -474,13 +473,15 @@ class AuditoriaKanBanController extends Controller
                     $comentariosNuevos = [];
                 }
                 // Filtrar elementos vacíos que puedan resultar del explode si hay comas consecutivas o al final
-                $comentariosNuevos = array_filter($comentariosNuevos, function($value) { return !empty($value); });
+                $comentariosNuevos = array_filter($comentariosNuevos, function ($value) {
+                    return !empty($value);
+                });
 
 
                 $comentariosExistentes = ReporteKanbanComentario::where('reporte_kanban_id', $kanban->id)
                     ->pluck('nombre')
                     ->toArray();
-                //Log::info("datos: ", json_encode($comentariosExistentes));
+                ////Log::info("datos: ", json_encode($comentariosExistentes));
                 // Comentarios para eliminar
                 $paraEliminar = array_diff($comentariosExistentes, $comentariosNuevos);
                 if (!empty($paraEliminar)) {
@@ -500,7 +501,7 @@ class AuditoriaKanBanController extends Controller
                         ]);
                     }
                 }
-                //Log::info("Comentarios nuevos guardados: " . json_encode($paraAgregar));
+                ////Log::info("Comentarios nuevos guardados: " . json_encode($paraAgregar));
                 $registrosActualizados++;
             }
 
@@ -522,7 +523,7 @@ class AuditoriaKanBanController extends Controller
         } catch (\Exception $e) {
             DB::rollBack(); // Revertir cambios en caso de error
             // Agregar el error a la lista de errores para el usuario, si es apropiado
-            $errores[] = "Error interno del servidor durante la actualización masiva. {$e->getMessage()}"; 
+            $errores[] = "Error interno del servidor durante la actualización masiva. {$e->getMessage()}";
             return response()->json([
                 'mensaje' => 'Ocurrió un error crítico durante la actualización masiva. No se procesaron todos los registros.',
                 'errores' => $errores // Incluir el error de la excepción
@@ -539,18 +540,18 @@ class AuditoriaKanBanController extends Controller
         }
 
         $resultados = ReporteKanban::where('op', $op)
-                                    ->with('comentarios') // Sigue cargando la relación
-                                    ->get([
-                                        'id',
-                                        'op',
-                                        'cliente',
-                                        'estilo',
-                                        'piezas',
-                                        'estatus_calidad',
-                                        'fecha_liberacion_calidad',
-                                        'fecha_parcial_calidad',
-                                        'fecha_rechazo_calidad'
-                                    ]);
+            ->with('comentarios') // Sigue cargando la relación
+            ->get([
+                'id',
+                'op',
+                'cliente',
+                'estilo',
+                'piezas',
+                'estatus_calidad',
+                'fecha_liberacion_calidad',
+                'fecha_parcial_calidad',
+                'fecha_rechazo_calidad'
+            ]);
 
         if ($resultados->isEmpty()) {
             return response()->json(['mensaje' => 'No se encontraron resultados para el OP: ' . $op], 404);
@@ -627,7 +628,7 @@ class AuditoriaKanBanController extends Controller
 
         $inicioRango = Carbon::today()->subDays($diasARestar)->startOfDay();
         // Fecha de inicio del rango: Hace 4 días a las 00:00:00
-        $inicioRango = Carbon::today()->subDays(4)->startOfDay(); 
+        $inicioRango = Carbon::today()->subDays(4)->startOfDay();
 
         // Fecha de fin del rango: Hoy a las 23:59:59
         $finRango = Carbon::today()->endOfDay();
@@ -640,14 +641,14 @@ class AuditoriaKanBanController extends Controller
                 // Mantenemos un registro si CUMPLE ALGUNA de estas condiciones:
                 // a) El registro NO fue creado el día exacto de $inicioRango (es decir, es más reciente)
                 $query->whereDate('created_at', '!=', $inicioRango->toDateString())
-                      // b) O SI fue creado el día exacto de $inicioRango, PERO todas sus fechas de estado son NULL
-                      //    (es decir, aún no ha sido procesado/completado)
-                      ->orWhere(function ($subQuery) use ($inicioRango) {
-                          $subQuery->whereDate('created_at', $inicioRango->toDateString())
-                                   ->whereNull('fecha_liberacion')
-                                   ->whereNull('fecha_parcial')
-                                   ->whereNull('fecha_rechazo');
-                      });
+                    // b) O SI fue creado el día exacto de $inicioRango, PERO todas sus fechas de estado son NULL
+                    //    (es decir, aún no ha sido procesado/completado)
+                    ->orWhere(function ($subQuery) use ($inicioRango) {
+                        $subQuery->whereDate('created_at', $inicioRango->toDateString())
+                            ->whereNull('fecha_liberacion')
+                            ->whereNull('fecha_parcial')
+                            ->whereNull('fecha_rechazo');
+                    });
             })
             ->orderBy('created_at', 'asc')
             ->get();
@@ -670,7 +671,7 @@ class AuditoriaKanBanController extends Controller
                 'piezas'          => $registro->piezas ?? 'N/A',
                 'comentarios'     => $registro->comentarios->pluck('nombre')->implode(','),
                 'id'              => $registro->id,
-                'created_at_debug'=> $registro->created_at->format('Y-m-d H:i:s')
+                'created_at_debug' => $registro->created_at->format('Y-m-d H:i:s')
             ];
 
             // 2. Aplicar la lógica según el número de empleado
@@ -719,69 +720,69 @@ class AuditoriaKanBanController extends Controller
         if (!Cache::has($cacheKeyGlobal)) {
             // Si la caché no está activa, procedemos con todas las actualizaciones
             // y luego establecemos la caché.
-            Log::info("Iniciando todos los procesos de actualización de Kanban (caché no activa).");
+            ////Log::info("Iniciando todos los procesos de actualización de Kanban (caché no activa).");
             $respuestaGlobal['message'] = 'Procesos de actualización iniciados.';
 
             // --- 1. Proceso para fecha_online ---
             $registrosOnline = ReporteKanban::select('id', 'fecha_online', 'fecha_offline', 'fecha_approved', 'op', 'fecha_corte')
-                                ->orderBy('fecha_corte', 'desc') // Ordenar por fecha_corte de más reciente a más antiguo
-                                ->limit(1000) // Establecer un límite de 500 registros
-                                ->get();
+                ->orderBy('fecha_corte', 'desc') // Ordenar por fecha_corte de más reciente a más antiguo
+                ->limit(1000) // Establecer un límite de 500 registros
+                ->get();
             if ($registrosOnline->count() > 0 && class_exists(JobAQL::class)) {
-                Log::info("Procesando 'fecha_online' para " . $registrosOnline->count() . " registros.");
+                //Log::info("Procesando 'fecha_online' para " . $registrosOnline->count() . " registros.");
                 $updatesOnlineCount = 0;
                 foreach ($registrosOnline as $registro) {
                     $jobOnline = JobAQL::where('prodid', $registro->op)
-                                      ->where('oprname', 'ON LINE')
-                                      ->orderBy('payrolldate', 'desc')
-                                      ->first();
+                        ->where('oprname', 'ON LINE')
+                        ->orderBy('payrolldate', 'desc')
+                        ->first();
 
                     if ($jobOnline && $jobOnline->payrolldate) {
                         $registro->fecha_online = $jobOnline->payrolldate;
                         $registro->save();
                         $updatesOnlineCount++;
-                        Log::info("ReporteKanban ID {$registro->id} actualizado con fecha_online: {$jobOnline->payrolldate}");
+                        //Log::info("ReporteKanban ID {$registro->id} actualizado con fecha_online: {$jobOnline->payrolldate}");
                     }
                 }
                 $respuestaGlobal['updates_performed']['online'] = "{$updatesOnlineCount} registros actualizados.";
             } else {
                 $respuestaGlobal['updates_performed']['online'] = 'No se encontraron registros para actualizar o JobAQL no disponible.';
-                Log::info("'fecha_online': No hay registros para actualizar o JobAQL no está disponible.");
+                //Log::info("'fecha_online': No hay registros para actualizar o JobAQL no está disponible.");
             }
 
             // --- 2. Proceso para fecha_offline ---
             $registrosOffline = $registrosOnline;
             if ($registrosOffline->count() > 0 && class_exists(TicketOffline::class)) {
-                Log::info("Procesando 'fecha_offline' para " . $registrosOffline->count() . " registros.");
+                //Log::info("Procesando 'fecha_offline' para " . $registrosOffline->count() . " registros.");
                 $updatesOfflineCount = 0;
                 foreach ($registrosOffline as $registro) {
                     $ticketOffline = TicketOffline::where('op', $registro->op)
-                                                //->orderBy('fecha', 'desc') // Ajusta si necesitas un orden específico
-                                                ->first();
+                        //->orderBy('fecha', 'desc') // Ajusta si necesitas un orden específico
+                        ->first();
 
                     // CAMBIA 'fecha_generacion' por el nombre real de tu campo de fecha en TicketOffline
                     if ($ticketOffline && $ticketOffline->fecha) {
                         $registro->fecha_offline = $ticketOffline->fecha;
                         $registro->save();
                         $updatesOfflineCount++;
-                        Log::info("ReporteKanban ID {$registro->id} actualizado con fecha_offline: {$ticketOffline->fecha}");
+                        //Log::info("ReporteKanban ID {$registro->id} actualizado con fecha_offline: {$ticketOffline->fecha}");
                     }
                 }
                 $respuestaGlobal['updates_performed']['offline'] = "{$updatesOfflineCount} registros actualizados.";
             } else {
                 $respuestaGlobal['updates_performed']['offline'] = 'No se encontraron registros para actualizar o TicketOffline no disponible.';
-                Log::info("'fecha_offline': No hay registros para actualizar o TicketOffline no está disponible.");
+                //Log::info("'fecha_offline': No hay registros para actualizar o TicketOffline no está disponible.");
             }
 
             // --- 3. Proceso para fecha_approved ---
             $registrosApproved = $registrosOnline;
             if ($registrosApproved->count() > 0 && class_exists(TicketApproved::class)) {
-                Log::info("Procesando 'fecha_approved' para " . $registrosApproved->count() . " registros.");
+                //Log::info("Procesando 'fecha_approved' para " . $registrosApproved->count() . " registros.");
                 $updatesApprovedCount = 0;
                 foreach ($registrosApproved as $registro) {
                     $ticketApproved = TicketApproved::where('op', $registro->op)
-                                                  //->orderBy('fecha', 'desc') // Ajusta si necesitas un orden específico
-                                                  ->first();
+                        //->orderBy('fecha', 'desc') // Ajusta si necesitas un orden específico
+                        ->first();
 
                     // CAMBIA 'fecha_aprobacion' por el nombre real de tu campo de fecha en TicketApproved
                     if ($ticketApproved && $ticketApproved->fecha) {
@@ -789,24 +790,23 @@ class AuditoriaKanBanController extends Controller
                         $registro->piezas = $ticketApproved->cantidad;
                         $registro->save();
                         $updatesApprovedCount++;
-                        Log::info("ReporteKanban ID {$registro->id} actualizado con fecha_approved: {$ticketApproved->fecha}");
+                        //Log::info("ReporteKanban ID {$registro->id} actualizado con fecha_approved: {$ticketApproved->fecha}");
                     }
                 }
                 $respuestaGlobal['updates_performed']['approved'] = "{$updatesApprovedCount} registros actualizados.";
             } else {
                 $respuestaGlobal['updates_performed']['approved'] = 'No se encontraron registros para actualizar o TicketApproved no disponible.';
-                Log::info("'fecha_approved': No hay registros para actualizar o TicketApproved no está disponible.");
+                //Log::info("'fecha_approved': No hay registros para actualizar o TicketApproved no está disponible.");
             }
 
             // Establecer la caché global DESPUÉS de que todos los procesos hayan intentado ejecutarse.
             // Tiempo hasta el próximo intento: 3 horas (o lo que definas)
             Cache::put($cacheKeyGlobal, now(), now()->addHours(3));
-            Log::info("Todos los procesos de actualización de Kanban completados. Caché global establecida.");
-
+            //Log::info("Todos los procesos de actualización de Kanban completados. Caché global establecida.");
         } else {
             // La caché global está activa, no hacemos nada.
             $respuestaGlobal['message'] = 'Procesos de actualización en espera (caché global activa).';
-            Log::info("Procesos de actualización de Kanban omitidos debido a caché global activa.");
+            //Log::info("Procesos de actualización de Kanban omitidos debido a caché global activa.");
         }
 
         return response()->json($respuestaGlobal);
@@ -825,5 +825,4 @@ class AuditoriaKanBanController extends Controller
             return response()->json(['error' => 'Registro no encontrado'], 404);
         }
     }
-
 }
