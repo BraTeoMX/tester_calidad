@@ -17,7 +17,18 @@ class DatosAuditoriaEtiquetas extends Controller
     public function auditoriaEtiquetas()
     {
         $mesesEnEspanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
         ];
         return view('formulariosCalidad.auditoriaEtiquetas', compact('mesesEnEspanol'));
     }
@@ -25,7 +36,7 @@ class DatosAuditoriaEtiquetas extends Controller
     {
         $orden = $request->input('orden');
         $tipoBusqueda = $request->input('tipoBusqueda');
-        Log::info('Datos ingresados: ' . $orden . ',' . $tipoBusqueda);
+        //Log::info('Datos ingresados: ' . $orden . ',' . $tipoBusqueda);
 
         $conexion = null;
         $campoBusqueda = null;
@@ -192,7 +203,6 @@ class DatosAuditoriaEtiquetas extends Controller
                     return 'Auditoría Iniciada';
                 }
             }
-
         } catch (\Exception $e) {
             // Manejar excepciones y errores con más detalles
             Log::error('Error en la obtención del estado de la auditoría: ' . $e->getMessage() . ' en línea ' . $e->getLine());
@@ -216,9 +226,9 @@ class DatosAuditoriaEtiquetas extends Controller
 
             // Buscar datos relacionados con el estilo especificado y la orden de compra
             $datos = $modelo->where('Estilos', $estilo)
-                            ->where($campoBusqueda, $orden)
-                            ->select($selectCampos)
-                            ->get();
+                ->where($campoBusqueda, $orden)
+                ->select($selectCampos)
+                ->get();
 
             // Si no encuentra resultados en la primera tabla, buscar en EtiquetasOC2_View
             if ($datos->isEmpty()) {
@@ -228,9 +238,9 @@ class DatosAuditoriaEtiquetas extends Controller
                 $selectCampos = ['OrdenCompra', 'Estilos', 'Cantidad', 'Talla', 'Color'];
 
                 $datos = $modelo->where('Estilos', $estilo)
-                                ->where($campoBusqueda, $orden)
-                                ->select($selectCampos)
-                                ->get();
+                    ->where($campoBusqueda, $orden)
+                    ->select($selectCampos)
+                    ->get();
             }
         } else {
             // Mapeo de tipos de búsqueda a nombres de columna
@@ -246,9 +256,9 @@ class DatosAuditoriaEtiquetas extends Controller
 
             // Buscar datos relacionados con el estilo especificado y la orden de compra
             $datos = $modelo->where('Estilos', $estilo)
-                            ->where($campoBusqueda, $orden)
-                            ->select($selectCampos)
-                            ->get();
+                ->where($campoBusqueda, $orden)
+                ->select($selectCampos)
+                ->get();
         }
 
         // Log para verificar los datos obtenidos
@@ -372,7 +382,7 @@ class DatosAuditoriaEtiquetas extends Controller
                 // Convertir el array defectos en una cadena separada por comas
                 if (is_array($dato['defectos'])) {
                     // Suponiendo que cada elemento es un objeto con una clave "cantidad"
-                    $defectos = array_map(function($defecto) {
+                    $defectos = array_map(function ($defecto) {
                         return $defecto['cantidad']; // Extraer solo la cantidad
                     }, $dato['defectos']);
 
@@ -532,10 +542,4 @@ class DatosAuditoriaEtiquetas extends Controller
         // Retornamos los resultados como JSON
         return response()->json($resultados);
     }
-
-
-
-
-
 }
-

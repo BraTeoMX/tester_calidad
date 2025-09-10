@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Http\Request;
@@ -34,7 +35,18 @@ class AuditoriaProcesoV3Controller extends Controller
         $tipoUsuario = Auth::user()->puesto;
 
         $mesesEnEspanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
         ];
         // Formateamos la fecha aquí para evitar lógica en la vista
         $fechaActualCarbon = Carbon::now();
@@ -121,7 +133,7 @@ class AuditoriaProcesoV3Controller extends Controller
 
         // Clave única para el caché por planta
         $cacheKey = "gerentes_produccion_{$datoPlanta}";
-        $tiempoCache = 60 ; // Cachear por 1 minuto (en segundos)
+        $tiempoCache = 60; // Cachear por 1 minuto (en segundos)
 
         $gerenteProduccion = Cache::remember($cacheKey, $tiempoCache, function () use ($datoPlanta) {
             return CategoriaTeamLeader::orderByRaw("jefe_produccion != '' DESC")
@@ -207,7 +219,7 @@ class AuditoriaProcesoV3Controller extends Controller
         $combinedQuery = clone $baseQuery;
         $todosLosProcesosDb = $combinedQuery->where(function ($query) {
             $query->whereNull('estatus')      // Procesos actuales
-                  ->orWhere('estatus', 1); // Procesos finales
+                ->orWhere('estatus', 1); // Procesos finales
         })->get();
 
         $procesosActuales = [];
@@ -256,7 +268,7 @@ class AuditoriaProcesoV3Controller extends Controller
             if ($moduleid) {
                 // Aplicar prioridad solo si moduleid está presente
                 $queryModuloEstilo->selectRaw('CASE WHEN moduleid = ? THEN 0 ELSE 1 END AS prioridad', [$moduleid])
-                                  ->orderBy('prioridad');
+                    ->orderBy('prioridad');
             }
             $itemidsModuloEstilo = $queryModuloEstilo->orderBy('itemid')->distinct()->get();
 
@@ -301,7 +313,7 @@ class AuditoriaProcesoV3Controller extends Controller
         // Lista de supervisores de la planta con ciertas condiciones
         $supervisores = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
             ->whereNotNull('name')
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where('moduleid', 'like', '1%')
                     ->orWhere('moduleid', 'like', '2%')
                     ->orWhereIn('moduleid', ['830A', '831A', '833A']);
@@ -320,7 +332,7 @@ class AuditoriaProcesoV3Controller extends Controller
 
     public function formAltaProceso(Request $request)
     {
-        $pageSlug ='';
+        $pageSlug = '';
 
         $data = [
             'modulo' => $request->modulo,
@@ -332,17 +344,30 @@ class AuditoriaProcesoV3Controller extends Controller
         ];
         //dd($data);
 
-        return redirect()->route('procesoV3.registro',
-            array_merge($data))->with('cambio-estatus', 'Iniciando en modulo: '. $data['modulo'])->with('pageSlug', $pageSlug);
+        return redirect()->route(
+            'procesoV3.registro',
+            array_merge($data)
+        )->with('cambio-estatus', 'Iniciando en modulo: ' . $data['modulo'])->with('pageSlug', $pageSlug);
     }
 
     public function auditoriaProceso(Request $request)
     {
-        $pageSlug ='';
+        $pageSlug = '';
         $fechaActual = Carbon::now()->toDateString();
         //$fechaActual = Carbon::now()->subDay()->toDateString();
         $mesesEnEspanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
         ];
         // Obtener los datos de la solicitud
         $data = $request->all();
@@ -354,38 +379,38 @@ class AuditoriaProcesoV3Controller extends Controller
 
         // 1. Consulta general para AseguramientoCalidad
         $registros = AseguramientoCalidad::whereDate('created_at', $fechaActual)
-        ->where('cantidad_rechazada', '>', 0)
-        ->where('modulo', $data['modulo'])
-        ->orderBy('created_at', 'asc')
-        ->get();
+            ->where('cantidad_rechazada', '>', 0)
+            ->where('modulo', $data['modulo'])
+            ->orderBy('created_at', 'asc')
+            ->get();
 
         // 2. Dividir en dos subconjuntos: sin tiempo extra y con tiempo extra
         $registrosSinTE = $registros->filter(function ($r) {
-        return is_null($r->tiempo_extra);
+            return is_null($r->tiempo_extra);
         })->values();
 
         $registrosConTE = $registros->filter(function ($r) {
-        return $r->tiempo_extra == 1;
+            return $r->tiempo_extra == 1;
         })->values();
 
         // 3. Función para evaluar cada subconjunto de 3 en 3
         function evaluarSubconjunto3($registros)
         {
-        // Si hay menos de 3 registros, no se puede formar un grupo completo
-        if ($registros->count() < 3) {
-            return false;
-        }
+            // Si hay menos de 3 registros, no se puede formar un grupo completo
+            if ($registros->count() < 3) {
+                return false;
+            }
 
-        $total = $registros->count();
-        // Hallar el número del último grupo completo de 3
-        $ultimoGrupo = floor($total / 3) * 3; // Ej: si hay 5 registros => floor(5/3)=1, 1*3=3; si hay 7 => floor(7/3)=2, 2*3=6
-        $indice = $ultimoGrupo - 1; // El índice del último registro del grupo (recordar que se indexa desde 0)
+            $total = $registros->count();
+            // Hallar el número del último grupo completo de 3
+            $ultimoGrupo = floor($total / 3) * 3; // Ej: si hay 5 registros => floor(5/3)=1, 1*3=3; si hay 7 => floor(7/3)=2, 2*3=6
+            $indice = $ultimoGrupo - 1; // El índice del último registro del grupo (recordar que se indexa desde 0)
 
-        // Registro a evaluar (último del grupo completo)
-        $registroEvaluar = $registros[$indice];
+            // Registro a evaluar (último del grupo completo)
+            $registroEvaluar = $registros[$indice];
 
-        // Retorna true si fin_paro_modular es null, false en caso contrario
-        return is_null($registroEvaluar->fin_paro_modular);
+            // Retorna true si fin_paro_modular es null, false en caso contrario
+            return is_null($registroEvaluar->fin_paro_modular);
         }
 
         // 4. Evaluar cada subconjunto
@@ -503,7 +528,7 @@ class AuditoriaProcesoV3Controller extends Controller
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
                     $q->where('personnelnumber', 'like', "%$search%")
-                    ->orWhere('name', 'like', "%$search%");
+                        ->orWhere('name', 'like', "%$search%");
                 });
             }
 
@@ -541,8 +566,15 @@ class AuditoriaProcesoV3Controller extends Controller
             $operaciones = Cache::get($cacheKey);
         } else {
             $excluidos = [
-                "APP SCREEN:   /   /", "APPROVED     /    /", "APPROVED    /   /", "APPROVED / /",
-                "APPROVED //", "OFF LINE", "ON CUT", "ON LINE", "OUT CUT"
+                "APP SCREEN:   /   /",
+                "APPROVED     /    /",
+                "APPROVED    /   /",
+                "APPROVED / /",
+                "APPROVED //",
+                "OFF LINE",
+                "ON CUT",
+                "ON LINE",
+                "OUT CUT"
             ];
 
             $query = JobOperacion::whereNotIn('oprname', $excluidos);
@@ -606,9 +638,9 @@ class AuditoriaProcesoV3Controller extends Controller
 
             // Seleccionar solo la columna 'nombre', obtener valores distintos, ordenar y ejecutar
             return $query->select('nombre')
-                         ->distinct()
-                         ->orderBy('nombre', 'asc')
-                         ->get();
+                ->distinct()
+                ->orderBy('nombre', 'asc')
+                ->get();
             // El resultado será una colección de objetos, cada uno con una propiedad 'nombre', ej: [{"nombre":"Defecto A"}]
             // Si quisieras una lista plana de strings ["Defecto A", "Defecto B"], usarías:
             // ->pluck('nombre');
@@ -674,7 +706,7 @@ class AuditoriaProcesoV3Controller extends Controller
                 '2' => 'Intimark2',
                 default => 'Intimark1', // O el valor por defecto que necesites
             };
- 
+
 
             $obtenerEstilo = $datosFormulario['estilo'];
             $obtenerClienteInicial = $datosFormulario['cliente'];
@@ -684,8 +716,8 @@ class AuditoriaProcesoV3Controller extends Controller
 
             // Usamos Cache::remember para obtener o almacenar el cliente
             $obtenerCliente = Cache::remember($cacheKey, now()->addHours(15), function () use ($obtenerEstilo, $obtenerClienteInicial) {
-                
-                Log::info("V3 Buscando cliente en DB (no en cache)", ['estilo' => $obtenerEstilo]);
+
+                //Log::info("V3 Buscando cliente en DB (no en cache)", ['estilo' => $obtenerEstilo]);
 
                 // 1. Priorizamos el cliente que ya viene en el formulario
                 if (!empty($obtenerClienteInicial)) {
@@ -709,7 +741,7 @@ class AuditoriaProcesoV3Controller extends Controller
                 return null;
             });
 
-            Log::info("V3 cliente final", ['cliente' => $obtenerCliente]);
+            //Log::info("V3 cliente final", ['cliente' => $obtenerCliente]);
 
             // Procesar el nombre final
             $nombreFinalValidado = $datosFormulario['auditoria'][0]['nombre_final'] ? trim($datosFormulario['auditoria'][0]['nombre_final']) : null;
@@ -804,13 +836,13 @@ class AuditoriaProcesoV3Controller extends Controller
 
             // Validación básica del módulo
             if (empty($modulo)) {
-                 // Devuelve arrays vacíos si no hay módulo, para que el JS no falle
-                 //Log::warning('Intento de obtenerListaProcesos sin especificar módulo.');
-                 return response()->json([
+                // Devuelve arrays vacíos si no hay módulo, para que el JS no falle
+                //Log::warning('Intento de obtenerListaProcesos sin especificar módulo.');
+                return response()->json([
                     'registrosNormales' => [],
                     'registrosExtras' => [],
-                 ], 200); // Opcional: podrías devolver 400 Bad Request
-                 // return response()->json(['error' => 'El parámetro módulo es requerido.'], 400);
+                ], 200); // Opcional: podrías devolver 400 Bad Request
+                // return response()->json(['error' => 'El parámetro módulo es requerido.'], 400);
             }
 
             // 1. --- UNA SOLA CONSULTA ---
@@ -862,7 +894,6 @@ class AuditoriaProcesoV3Controller extends Controller
                 'registrosNormales' => $registrosNormalesCollection->values(),
                 'registrosExtras' => $registrosExtrasCollection->values(),
             ], 200);
-
         } catch (\Exception $e) {
             // Registrar el error real para diagnóstico interno
             Log::error("Error en obtenerListaProcesos V3: " . $e->getMessage(), [
@@ -929,7 +960,6 @@ class AuditoriaProcesoV3Controller extends Controller
             //Log::info('Registro eliminado correctamente:', ['id' => $id]);
 
             return response()->json(['message' => 'Registro eliminado correctamente.'], 200);
-
         } catch (\Exception $e) {
             Log::error('Error al eliminar el registro:', [
                 'id' => $id,
@@ -1006,7 +1036,7 @@ class AuditoriaProcesoV3Controller extends Controller
         // Se itera de forma inversa, desde el final hacia el principio.
         for ($i = $registrosOrdenados->count() - 1; $i >= 0; $i--) {
             $registro = $registrosOrdenados[$i];
-            
+
             // La posición real es el índice + 1.
             $posicion = $i + 1;
 
@@ -1191,7 +1221,7 @@ class AuditoriaProcesoV3Controller extends Controller
         } else { // 'normal'
             $queryParosPendientes->where(function ($query) {
                 $query->where('tiempo_extra', 0)
-                      ->orWhereNull('tiempo_extra');
+                    ->orWhereNull('tiempo_extra');
             });
             $mensajeErrorParo = 'Tiene paros pendientes en turno normal. Finalícelos e intente de nuevo.';
         }
@@ -1216,7 +1246,7 @@ class AuditoriaProcesoV3Controller extends Controller
         } else { // 'normal'
             $queryBaseRegistros->where(function ($query) {
                 $query->where('tiempo_extra', 0)
-                      ->orWhereNull('tiempo_extra');
+                    ->orWhereNull('tiempo_extra');
             });
         }
 
@@ -1238,7 +1268,7 @@ class AuditoriaProcesoV3Controller extends Controller
         // o en cada registro. Si es en cada registro, se replicará.
         // Para este ejemplo, asumiré un campo 'observacion' y 'estatus'
         $datosActualizar = [
-             // Si tienes un campo específico para la observación general del turno, úsalo:
+            // Si tienes un campo específico para la observación general del turno, úsalo:
             'observacion' => $observaciones,
             // Si no, y la observación de finalización va en el mismo campo 'observacion' que los registros individuales:
             // 'observacion' => $observaciones, // Descomenta y ajusta si es necesario
@@ -1263,11 +1293,11 @@ class AuditoriaProcesoV3Controller extends Controller
             $yaFinalizado = $yaFinalizadoQuery->where('estatus', $estatusFinalizado)->exists();
 
             if ($yaFinalizado) {
-                 // Si ya estaba finalizado, pero se quiere actualizar la observación
+                // Si ya estaba finalizado, pero se quiere actualizar la observación
                 $queryParaActualizarObs = clone $queryBaseRegistros;
                 $obsActualizada = $queryParaActualizarObs->where('estatus', $estatusFinalizado)
-                                                          ->update(['observacion_general' => $observaciones]);
-                if($obsActualizada > 0) {
+                    ->update(['observacion_general' => $observaciones]);
+                if ($obsActualizada > 0) {
                     return response()->json([
                         'success'   => true,
                         'message'   => 'Observación del turno ' . ($tipoTurno === 'extra' ? 'extra' : 'normal') . ' actualizada.',
@@ -1275,7 +1305,7 @@ class AuditoriaProcesoV3Controller extends Controller
                         'tipo_turno_finalizado' => $tipoTurno
                     ]);
                 }
-                 return response()->json([
+                return response()->json([
                     'success'   => true, // O false, dependiendo de cómo quieras manejar "ya estaba hecho"
                     'message'   => 'El turno ' . ($tipoTurno === 'extra' ? 'extra' : 'normal') . ' ya estaba finalizado. No se realizaron cambios.',
                     'observacion_guardada' => $observaciones, // Podrías devolver la observación existente si prefieres
