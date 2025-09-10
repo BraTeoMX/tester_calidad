@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Http\Request;
@@ -13,20 +14,21 @@ use App\Models\CategoriaTipoProblema;
 use App\Models\AuditoriaAQL;
 use App\Models\CategoriaUtility;
 use App\Models\TpAuditoriaAQL;
-use App\Models\CategoriaSupervisor; 
+use App\Models\CategoriaSupervisor;
 use App\Models\ModuloEstiloTemporal;
 use App\Models\ModuloEstilo;
 use Carbon\Carbon; // Asegúrate de importar la clase Carbon
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class AuditoriaAQLV3Controller extends Controller
 {
 
     public function index(Request $request)
     {
-        $pageSlug ='';
+        $pageSlug = '';
         $auditorDato = Auth::user()->name;
 
         return view('AQL.index', compact('pageSlug', 'auditorDato'));
@@ -36,7 +38,18 @@ class AuditoriaAQLV3Controller extends Controller
     {
         $auditorDato = Auth::user()->name;
         $mesesEnEspanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
         ];
         $fechaFormateada = now()->format('d ') . $mesesEnEspanol[now()->format('n') - 1] . now()->format(' Y');
 
@@ -133,12 +146,12 @@ class AuditoriaAQLV3Controller extends Controller
     public function obtenerSupervisor(Request $request)
     {
         $auditorPlanta = Auth::user()->Planta;
-        if($auditorPlanta == "Planta1"){
+        if ($auditorPlanta == "Planta1") {
             $datoPlanta = "Intimark1";
-        }else{
+        } else {
             $datoPlanta = "Intimark2";
         }
-        
+
         $moduleid = $request->input('moduleid');
 
         // Supervisor relacionado con el moduleid (puedes ajustar esto según la lógica que determines como "relacionada")
@@ -149,10 +162,10 @@ class AuditoriaAQLV3Controller extends Controller
         // Todos los supervisores que pertenecen a la misma planta
         $supervisores = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
             ->whereNotNull('name')          // Filtra los valores nulos de la columna 'name'
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where('moduleid', 'like', '1%')   // Filtra los que inician con "1"
-                      ->orWhere('moduleid', 'like', '2%') // Filtra los que inician con "2"
-                      ->orWhereIn('moduleid', ['830A', '831A', '833A']); // Incluye específicamente "830A" y "831A"
+                    ->orWhere('moduleid', 'like', '2%') // Filtra los que inician con "2"
+                    ->orWhereIn('moduleid', ['830A', '831A', '833A']); // Incluye específicamente "830A" y "831A"
             })
             ->where('moduleid', '!=', '198A') // Excluye el valor específico "198A"
             ->select('name')                // Selecciona solo el campo 'name' o los que desees
@@ -171,7 +184,7 @@ class AuditoriaAQLV3Controller extends Controller
         $resultadoFiltrado = [];
         foreach ($procesos as $proceso) {
             // Usamos 'default_area' si $proceso->area es null para evitar errores con la clave del array
-            $areaKey = $proceso->area ?? 'default_area_key'; 
+            $areaKey = $proceso->area ?? 'default_area_key';
             $moduloKey = $proceso->modulo ?? 'default_modulo_key';
             $opKey = $proceso->op ?? 'default_op_key';
 
@@ -200,13 +213,20 @@ class AuditoriaAQLV3Controller extends Controller
         $query = AuditoriaAQL::query()
             ->where(function ($q) {
                 $q->whereNull('estatus')
-                  ->orWhere('estatus', 1);
+                    ->orWhere('estatus', 1);
             })
             ->where('planta', $datoPlanta)
             ->whereDate('created_at', $fechaActual)
             ->select( // Asegúrate de que todos los campos necesarios estén aquí
-                'estatus', 'modulo', 'op', 'team_leader', 
-                'turno', 'auditor', 'estilo', 'cliente', 'gerente_produccion'
+                'estatus',
+                'modulo',
+                'op',
+                'team_leader',
+                'turno',
+                'auditor',
+                'estilo',
+                'cliente',
+                'gerente_produccion'
             )
             ->orderBy('modulo', 'asc'); // Ordenar para consistencia en el filtro PHP
 
@@ -232,7 +252,7 @@ class AuditoriaAQLV3Controller extends Controller
         // Aplicar el filtrado para evitar duplicados en la vista (basado en area, modulo, op)
         $procesosActualesFiltrados = $this->filtrarProcesosUnicos($procesosActualesRaw);
         $procesosFinalizadosFiltrados = $this->filtrarProcesosUnicos($procesosFinalizadosRaw);
-        
+
         return response()->json([
             'actuales' => $procesosActualesFiltrados,
             'finalizados' => $procesosFinalizadosFiltrados,
@@ -250,7 +270,7 @@ class AuditoriaAQLV3Controller extends Controller
 
         // Paso 2: Si no se encontró en el principal, buscar en el modelo temporal
         if (!$datoUnicoOP) {
-            
+
             $datoUnicoOP = JobAQLTemporal::where('prodid', $request->op)
                 ->select('customername')
                 ->first();
@@ -282,17 +302,28 @@ class AuditoriaAQLV3Controller extends Controller
     public function registro(Request $request)
     {
 
-        $pageSlug ='';
+        $pageSlug = '';
         $mesesEnEspanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
         ];
         $fechaActual = Carbon::now()->toDateString();
         $auditorDato = Auth::user()->name;
         $auditorPlanta = Auth::user()->Planta;
-        
-        if($auditorPlanta == 'Planta1'){
+
+        if ($auditorPlanta == 'Planta1') {
             $detectarPlanta = "Intimark1";
-        }elseif($auditorPlanta == 'Planta2'){
+        } elseif ($auditorPlanta == 'Planta2') {
             $detectarPlanta = "Intimark2";
         }
 
@@ -323,28 +354,32 @@ class AuditoriaAQLV3Controller extends Controller
             if ($registros->count() < 2) {
                 return false;
             }
-    
+
             $total = $registros->count();
             // Hallar el último par
             $ultimoPar = floor($total / 2) * 2;  // 3 => 2; 4 =>4; 5 =>4; 6 =>6, etc.
             $indice = $ultimoPar - 1;           // Para indexar en base 0
-    
+
             // Registro a evaluar
             $registroEvaluar = $registros[$indice];
-    
+
             // true si fin_paro_modular es null, false de lo contrario
             return is_null($registroEvaluar->fin_paro_modular);
         }
         // 3. Evaluar cada subconjunto
-        $resultadoFinalSinTE = evaluarSubconjunto($registrosSinTE); 
-        $resultadoFinalConTE = evaluarSubconjunto($registrosConTE); 
+        $resultadoFinalSinTE = evaluarSubconjunto($registrosSinTE);
+        $resultadoFinalConTE = evaluarSubconjunto($registrosConTE);
 
         // 4. El resultado final es TRUE si al menos uno de los 2 casos da true
         $resultadoFinal = $resultadoFinalSinTE || $resultadoFinalConTE;
-        
 
-        return view('aql.registro', compact('mesesEnEspanol', 'pageSlug',
-            'data', 'resultadoFinal'));
+
+        return view('aql.registro', compact(
+            'mesesEnEspanol',
+            'pageSlug',
+            'data',
+            'resultadoFinal'
+        ));
     }
 
     public function obtenerAQLenProceso(Request $request)
@@ -507,8 +542,8 @@ class AuditoriaAQLV3Controller extends Controller
             // Obtenemos todos los defectos para el área 'aql', 'proceso', 'playera'
             // Si solo necesitas 'aql' para este select en específico, ajusta el whereIn.
             return CategoriaTipoProblema::whereIn('area', ['proceso', 'playera', 'aql'])
-                                        ->orderBy('nombre', 'asc') // Opcional: ordenar los resultados
-                                        ->get(['id', 'nombre']); // Solo seleccionamos los campos necesarios
+                ->orderBy('nombre', 'asc') // Opcional: ordenar los resultados
+                ->get(['id', 'nombre']); // Solo seleccionamos los campos necesarios
         });
 
         // Si no se encuentran resultados, devolver arreglo vacío
@@ -589,12 +624,12 @@ class AuditoriaAQLV3Controller extends Controller
                 // Si $modulo puede ser nulo y quieres manejarlo, podrías hacer:
                 if (!empty($modulo)) {
                     $query->orderByRaw("CASE WHEN moduleid = ? THEN 0 ELSE 1 END", [$modulo])
-                          ->orderBy('name'); // Orden secundario para consistencia dentro de los grupos
+                        ->orderBy('name'); // Orden secundario para consistencia dentro de los grupos
                 } else {
                     // Si no hay módulo, un ordenamiento general
                     $query->orderBy('name');
                 }
-                
+
                 // IMPORTANTE: No se incluye la lógica `if ($search)` aquí.
                 // Esta función ahora devuelve el conjunto completo de datos para la búsqueda del lado del cliente.
 
@@ -602,7 +637,6 @@ class AuditoriaAQLV3Controller extends Controller
             });
 
             return response()->json($nombres);
-
         } catch (\Exception $e) {
             // Loguear el error detallado en el servidor
             Log::error('Error en obtenerNombresProceso: ' . $e->getMessage(), [
@@ -621,10 +655,10 @@ class AuditoriaAQLV3Controller extends Controller
             // Registrar los datos recibidos en el archivo de log
             //Log::info('Aqui va bien, donde rompe?:');
             //Log::info('Datos recibidos en guardarRegistrosAql:', $request->selectedNombre);
-            $fechaHoraActual= now();
+            $fechaHoraActual = now();
 
             // Verificar el día de la semana
-            $diaSemana = $fechaHoraActual ->dayOfWeek;
+            $diaSemana = $fechaHoraActual->dayOfWeek;
             $fechaActual = Carbon::now()->toDateString();
             $conteoParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
                 //->where('area', $request->area)
@@ -633,7 +667,7 @@ class AuditoriaAQLV3Controller extends Controller
                 ->where('team_leader', $request->team_leader)
                 ->where('cantidad_rechazada', '>', 0)
                 ->count();
-            
+
             // Buscar la planta asociada al módulo
             $primerCaracter = substr($request->modulo, 0, 1);
 
@@ -651,30 +685,30 @@ class AuditoriaAQLV3Controller extends Controller
                 //Log::info('Inicia procesamiento de nombres:', $nombreFinal);
                 $nombresValidados = [];
                 $numerosEmpleados = [];
-    
+
                 foreach ($nombreFinal as $nombre) {
                     //Log::info('Procesando nombre individual:', ['nombre' => $nombre]);
                     $nombreValidado = trim($nombre);
                     $nombresValidados[] = $nombreValidado;
-    
+
                     // Intentamos buscar primero en el modelo AuditoriaProceso
                     $numeroEmpleado = AuditoriaProceso::where('name', $nombreValidado)->pluck('personnelnumber')->first();
-    
+
                     // Si no lo encontramos en AuditoriaProceso, intentamos buscar en CategoriaUtility
                     if (!$numeroEmpleado) {
                         $numeroEmpleado = CategoriaUtility::where('nombre', $nombreValidado)->pluck('numero_empleado')->first();
                     }
-    
+
                     // Si tampoco se encuentra en CategoriaUtility, devolvemos un valor de 0 para que tenga almacenado algo y no marque error
                     $numerosEmpleados[] = $numeroEmpleado ? $numeroEmpleado : "0000000";
                 }
-    
+
                 // Concatenamos los nombres y números de empleados con comas
                 $nombreFinalValidado = implode(', ', $nombresValidados);
                 $numeroEmpleado = implode(', ', $numerosEmpleados);
             }
             //Log::info('despues del if y comeinza el new de nuevos registros');
-    
+
             //Log::info('Nombres validados:', $nombresValidados);
             //Log::info('Números de empleados:', $numerosEmpleados);
 
@@ -698,7 +732,7 @@ class AuditoriaAQLV3Controller extends Controller
             $nuevoRegistro->cantidad_auditada = $request->cantidad_auditada;
             $nuevoRegistro->cantidad_rechazada = $request->cantidad_rechazada;
             //Log::info('antes del if del registro');
-            if($request->cantidad_rechazada > 0){
+            if ($request->cantidad_rechazada > 0) {
                 $nuevoRegistro->inicio_paro = Carbon::now();
             }
 
@@ -747,7 +781,7 @@ class AuditoriaAQLV3Controller extends Controller
             return response()->json(['error' => 'Error al guardar los datos: ' . $e->getMessage()], 500);
         }
     }
-    
+
     public function mostrarRegistrosAqlUnificado(Request $request)
     {
         try {
@@ -760,7 +794,7 @@ class AuditoriaAQLV3Controller extends Controller
             ]);
 
             // Usar la fecha de la petición si se envía, sino la fecha actual del servidor
-            $fecha = Carbon::now()->toDateString(); 
+            $fecha = Carbon::now()->toDateString();
             $modulo = $request->input('modulo');
 
             // 1. Realizar UNA SOLA consulta para obtener todos los registros del día y módulo
@@ -782,7 +816,6 @@ class AuditoriaAQLV3Controller extends Controller
                 'turno_normal' => $registrosTurnoNormal->values(), // ->values() para reindexar el array
                 'tiempo_extra' => $registrosTiempoExtra->values(), // ->values() para reindexar el array
             ]);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Error de validación en mostrarRegistrosAqlUnificado: ' . $e->getMessage(), $e->errors());
             return response()->json(['error' => 'Datos de entrada inválidos.', 'details' => $e->errors()], 422);
@@ -821,53 +854,100 @@ class AuditoriaAQLV3Controller extends Controller
 
     public function buscarUltimoRegistro(Request $request)
     {
-        // 1. OBTENCIÓN DE DATOS INICIALES
+        // Log 1: Punto de Entrada - Sabemos que la función se inició y con qué módulo.
         $modulo = $request->input('modulo');
+        Log::info('INICIO: Búsqueda de paro modular para finalizar.', [
+            'modulo' => $modulo,
+            'usuario' => auth()->user()->name ?? 'N/A' // Opcional pero muy útil
+        ]);
+
         $fechaActual = now()->toDateString();
 
-        // 2. CONSULTA ÚNICA Y OPTIMIZADA
-        // Traemos todos los registros del día para el módulo que podrían ser un paro,
-        // ordenados cronológicamente de más antiguo a más nuevo.
-        $posiblesParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
-            ->where('modulo', $modulo)
-            ->where('cantidad_rechazada', '>', 0)
-            ->select('id', 'created_at', 'inicio_paro', 'fin_paro_modular', 'minutos_paro_modular', 'tiempo_extra')
-            ->orderBy('created_at', 'asc') // crucial para la lógica secuencial
-            ->get();
+        try {
+            // 2. CONSULTA ÚNICA Y OPTIMIZADA
+            $posiblesParos = AuditoriaAQL::whereDate('created_at', $fechaActual)
+                ->where('modulo', $modulo)
+                ->where('cantidad_rechazada', '>', 0)
+                ->select('id', 'created_at', 'inicio_paro', 'fin_paro_modular', 'minutos_paro_modular', 'tiempo_extra')
+                ->orderBy('created_at', 'asc')
+                ->get();
 
-        // 3. SEPARACIÓN DE REGISTROS (Tiempo Normal vs. Tiempo Extra)
-        // Usamos 'partition' para dividir la colección en dos grupos.
-        list($registrosExtra, $registrosNormales) = $posiblesParos->partition(function ($registro) {
-            return $registro->tiempo_extra === '1';
-        });
-
-        // 4. APLICAR LÓGICA DE BÚSQUEDA
-        $registroAActualizar = null;
-
-        // Escenario 1: Buscar en registros de tiempo normal.
-        $registroAActualizar = $this->encontrarParoParaActualizar($registrosNormales);
-
-        // Escenario 2: Si no se encontró en tiempo normal, buscar en tiempo extra.
-        if (!$registroAActualizar) {
-            $registroAActualizar = $this->encontrarParoParaActualizar($registrosExtra);
-        }
-
-        // 5. ACTUALIZACIÓN DEL REGISTRO (SI SE ENCONTRÓ)
-        if ($registroAActualizar) {
-            $horaActual = now();
-            $inicioParo = Carbon::parse($registroAActualizar->inicio_paro);
-            $diferenciaEnMinutos = $inicioParo->diffInMinutes($horaActual);
-
-            $registroAActualizar->update([
-                'fin_paro_modular' => $horaActual,
-                'minutos_paro_modular' => $diferenciaEnMinutos,
+            // Log 2: Resultado de la Consulta - ¿La BD nos devolvió algo?
+            Log::info('PASO 2: Consulta a BD completada.', [
+                'modulo' => $modulo,
+                'registros_encontrados' => $posiblesParos->count()
             ]);
 
-            return redirect()->back()->with('success', 'Paro modular finalizado. Tiempo acumulado: ' . $diferenciaEnMinutos . ' min.');
-        }
+            if ($posiblesParos->isEmpty()) {
+                Log::warning('FIN: No se encontraron registros de paro para el módulo hoy.', ['modulo' => $modulo]);
+                return redirect()->back()->with('error', 'No hay registros de paro para este módulo el día de hoy.');
+            }
 
-        // 6. SI NO SE ENCONTRÓ NINGÚN REGISTRO APTO
-        return redirect()->back()->with('error', 'No se encontró ningún paro modular pendiente para finalizar.');
+            // 3. SEPARACIÓN DE REGISTROS
+            list($registrosExtra, $registrosNormales) = $posiblesParos->partition(function ($registro) {
+                return $registro->tiempo_extra === '1';
+            });
+
+            // Log 3: Resultado de la Partición - ¿Cómo se distribuyeron los datos?
+            Log::info('PASO 3: Registros separados en grupos.', [
+                'modulo' => $modulo,
+                'normales_count' => $registrosNormales->count(),
+                'extra_count' => $registrosExtra->count()
+            ]);
+
+            // 4. APLICAR LÓGICA DE BÚSQUEDA
+            $registroAActualizar = null;
+
+            Log::info('PASO 4: Buscando en registros de tiempo NORMAL.', ['modulo' => $modulo]);
+            $registroAActualizar = $this->encontrarParoParaActualizar($registrosNormales);
+
+            if (!$registroAActualizar) {
+                Log::info('PASO 4: No se encontró en tiempo normal. Buscando en tiempo EXTRA.', ['modulo' => $modulo]);
+                $registroAActualizar = $this->encontrarParoParaActualizar($registrosExtra);
+            }
+
+            // 5. ACTUALIZACIÓN DEL REGISTRO (SI SE ENCONTRÓ)
+            if ($registroAActualizar) {
+                // Log 4: Candidato Encontrado - ¡Este es el registro que intentaremos actualizar!
+                Log::info('ÉXITO DE BÚSQUEDA: Se encontró un registro para actualizar.', [
+                    'modulo' => $modulo,
+                    'registro_id' => $registroAActualizar->id
+                ]);
+
+                $horaActual = now();
+                $inicioParo = Carbon::parse($registroAActualizar->inicio_paro);
+                $diferenciaEnMinutos = $inicioParo->diffInMinutes($horaActual);
+
+                $registroAActualizar->update([
+                    'fin_paro_modular' => $horaActual,
+                    'minutos_paro_modular' => $diferenciaEnMinutos,
+                ]);
+
+                // Log 5: Actualización Exitosa - Confirmación final.
+                Log::info('FIN: Registro actualizado correctamente.', [
+                    'modulo' => $modulo,
+                    'registro_id' => $registroAActualizar->id,
+                    'minutos_paro' => $diferenciaEnMinutos
+                ]);
+
+                return redirect()->back()->with('success', 'Paro modular finalizado...');
+            }
+
+            // 6. SI NO SE ENCONTRÓ NINGÚN REGISTRO APTO
+            // Log 6: Falla la Búsqueda - La causa más probable de tu problema.
+            Log::warning('FIN: La búsqueda terminó sin encontrar un registro apto para finalizar.', [
+                'modulo' => $modulo
+            ]);
+            return redirect()->back()->with('error', 'No se encontró ningún paro modular pendiente para finalizar.');
+        } catch (\Exception $e) {
+            // Log 7: Error Inesperado - Captura cualquier excepción (ej. de BD).
+            Log::error('ERROR CRÍTICO: Ocurrió una excepción durante el proceso.', [
+                'modulo' => $modulo,
+                'error_message' => $e->getMessage(),
+                'error_trace' => $e->getTraceAsString() // Muy útil para depuración avanzada
+            ]);
+            return redirect()->back()->with('error', 'Ocurrió un error inesperado en el servidor.');
+        }
     }
 
     /**
@@ -880,26 +960,23 @@ class AuditoriaAQLV3Controller extends Controller
      */
     private function encontrarParoParaActualizar(Collection $registros)
     {
-        // La colección viene ordenada por fecha de creación ASC.
-        // La invertimos para empezar a buscar desde el registro más RECIENTE.
-        // El método 'values()' reinicia las claves para tener una secuencia 0, 1, 2...
         $registrosOrdenados = $registros->values();
 
-        // Iteramos de forma inversa, desde el final hacia el principio.
         for ($i = $registrosOrdenados->count() - 1; $i >= 0; $i--) {
             $registro = $registrosOrdenados[$i];
-
-            // La posición real es el índice + 1 (ej: índice 1 es la 2da posición)
             $posicion = $i + 1;
 
-            // Verificamos si la posición es PAR y si el paro está PENDIENTE.
             if ($posicion % 2 === 0 && is_null($registro->minutos_paro_modular)) {
-                // ¡Encontrado! Es el paro más reciente que cumple las condiciones.
+                // Log Interno: Confirmación de hallazgo
+                Log::info('Candidato encontrado dentro de la colección.', [
+                    'registro_id' => $registro->id,
+                    'en_posicion' => $posicion,
+                    'total_items' => $registrosOrdenados->count()
+                ]);
                 return $registro;
             }
         }
 
-        // Si el bucle termina, no se encontró ningún registro que cumpla los criterios.
         return null;
     }
 
@@ -921,7 +998,6 @@ class AuditoriaAQLV3Controller extends Controller
                 'minutos_paro' => $registro->minutos_paro,
                 'reparacion_rechazo' => $registro->reparacion_rechazo
             ]);
-
         } catch (\Exception $e) {
 
             return response()->json([
@@ -953,7 +1029,7 @@ class AuditoriaAQLV3Controller extends Controller
             // Para turno normal, asumimos que 'tiempo_extra' es null o 0. Ajusta si es diferente.
             $queryParosPendientes->where(function ($query) {
                 $query->where('tiempo_extra', 0)
-                      ->orWhereNull('tiempo_extra');
+                    ->orWhereNull('tiempo_extra');
             });
             $mensajeErrorParo = 'Tiene paros pendientes en turno normal, finalícelos e intente de nuevo.';
         }
@@ -983,10 +1059,10 @@ class AuditoriaAQLV3Controller extends Controller
             $queryActualizacion->where('tiempo_extra', 1);
             $mensajeExito = 'Finalización de tiempo extra aplicada correctamente.';
         } else { // 'normal'
-             // Para turno normal, actualiza los registros donde tiempo_extra es null o 0
+            // Para turno normal, actualiza los registros donde tiempo_extra es null o 0
             $queryActualizacion->where(function ($query) {
                 $query->where('tiempo_extra', 0)
-                      ->orWhereNull('tiempo_extra');
+                    ->orWhereNull('tiempo_extra');
             });
             $mensajeExito = 'Finalización de turno normal aplicada correctamente.';
         }
@@ -1049,7 +1125,6 @@ class AuditoriaAQLV3Controller extends Controller
                     'observacion' => $registroTE ? $registroTE->observacion : '',
                 ]
             ]);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Error de validación en verificarEstadoFinalizacionUnificado: ' . $e->getMessage(), $e->errors());
             return response()->json(['error' => 'Datos de entrada inválidos.', 'details' => $e->errors()], 422);
@@ -1103,7 +1178,6 @@ class AuditoriaAQLV3Controller extends Controller
                 'minutos_paro' => $registro->minutos_paro,
                 'reparacion_rechazo' => $registro->reparacion_rechazo
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
