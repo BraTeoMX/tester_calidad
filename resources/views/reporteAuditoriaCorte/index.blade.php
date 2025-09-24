@@ -161,7 +161,6 @@
                             <th>Cliente</th>
                             <th>Color</th>
                             <th>Estatus Actual</th>
-                            <th>Estatus Avanzado</th>
                             <th>Progreso</th>
                             <th>Concentración</th>
                             <th>Defectos</th>
@@ -282,7 +281,6 @@
                     { data: 'cliente_id' },
                     { data: 'color_id' },
                     { data: 'estatus_actual' },
-                    { data: 'estatus_avanzado' },
                     {
                         data: 'progreso_etapa',
                         render: function(data) {
