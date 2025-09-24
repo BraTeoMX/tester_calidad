@@ -269,6 +269,156 @@
     // Definir variable table en scope global
     let table;
 
+    // Función para ver detalles de OP (disponible globalmente)
+    function verDetallesOP(op) {
+        console.log('verDetallesOP llamada con OP:', op);
+        console.log('mostrarModalDetalles existe:', typeof mostrarModalDetalles !== 'undefined');
+
+        $.ajax({
+            url: "{{ route('reporte.auditoria.corte.buscar.op') }}",
+            data: { op: op },
+            dataType: 'json',
+            success: function(response) {
+                console.log('Respuesta recibida:', response);
+                if (response.success) {
+                    console.log('Llamando a mostrarModalDetalles...');
+                    mostrarModalDetalles(response);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error al cargar detalles:', xhr, status, error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudieron cargar los detalles de la OP'
+                });
+            }
+        });
+    }
+
+    // Función para mostrar modal de detalles (disponible globalmente)
+    function mostrarModalDetalles(data) {
+        console.log('mostrarModalDetalles ejecutándose con data:', data);
+        console.log('generarContenidoDetalles existe:', typeof generarContenidoDetalles !== 'undefined');
+
+        const modal = document.getElementById('modalDetalleOP');
+        const titulo = document.getElementById('modalTitulo');
+        const contenido = document.getElementById('modalContenido');
+
+        titulo.textContent = `Detalles de OP: ${data.op} (${data.total_eventos} eventos)`;
+        contenido.innerHTML = generarContenidoDetalles(data);
+
+        modal.style.display = 'block';
+    }
+
+    // Función para generar contenido de detalles (disponible globalmente)
+    function generarContenidoDetalles(detalles) {
+        let html = '<div class="row">';
+
+        // Mostrar estadísticas generales
+        if (detalles.estadisticas) {
+            html += '<div class="col-12 mb-3">';
+            html += '<h4>Estadísticas Generales</h4>';
+            html += '<div class="row">';
+            html += `<div class="col-md-3"><strong>Total Eventos:</strong> ${detalles.estadisticas.total_eventos}</div>`;
+            html += `<div class="col-md-3"><strong>Completados:</strong> ${detalles.estadisticas.eventos_completados}</div>`;
+            html += `<div class="col-md-3"><strong>Progreso:</strong> ${detalles.estadisticas.progreso}%</div>`;
+            html += `<div class="col-md-3"><strong>Concentración Promedio:</strong> ${detalles.estadisticas.concentracion_promedio}%</div>`;
+            html += '</div></div>';
+        }
+
+        // Mostrar detalles de cada evento
+        detalles.detalles.forEach((detalle, index) => {
+            html += '<div class="col-12 mb-4">';
+            html += `<h5>Evento ${detalle.evento} de ${detalle.total_eventos}</h5>`;
+
+            // Información general
+            html += '<div class="row">';
+            html += '<div class="col-md-6">';
+            html += '<h6>Información General</h6>';
+            html += '<table class="table table-sm table-dark">';
+            html += '<tr><td><strong>Estilo:</strong></td><td>' + detalle.estilo_id + '</td></tr>';
+            html += '<tr><td><strong>Cliente:</strong></td><td>' + detalle.cliente_id + '</td></tr>';
+            html += '<tr><td><strong>Color:</strong></td><td>' + detalle.color_id + '</td></tr>';
+            html += '<tr><td><strong>Material:</strong></td><td>' + detalle.material + '</td></tr>';
+            html += '<tr><td><strong>Pieza:</strong></td><td>' + detalle.pieza + '</td></tr>';
+            html += '<tr><td><strong>Progreso Etapa:</strong></td><td>' + detalle.progreso_etapa + '%</td></tr>';
+            html += '</table></div>';
+
+            // Auditoría Marcada
+            html += '<div class="col-md-6">';
+            html += '<h6>Auditoría Marcada</h6>';
+            html += '<table class="table table-sm table-dark">';
+            html += '<tr><td><strong>Yarda Orden:</strong></td><td>' + detalle.yarda_orden + '</td></tr>';
+            html += '<tr><td><strong>Tallas:</strong></td><td>' + detalle.tallas + '</td></tr>';
+            html += '<tr><td><strong>Total Piezas:</strong></td><td>' + detalle.total_piezas + '</td></tr>';
+            html += '<tr><td><strong>Bultos:</strong></td><td>' + detalle.bultos + '</td></tr>';
+            html += '</table></div></div>';
+
+            // Auditoría Tendido
+            html += '<div class="row mt-2">';
+            html += '<div class="col-md-6">';
+            html += '<h6>Auditoría Tendido</h6>';
+            html += '<table class="table table-sm table-dark">';
+            html += '<tr><td><strong>Código Material:</strong></td><td>' + detalle.codigo_material + '</td></tr>';
+            html += '<tr><td><strong>Código Color:</strong></td><td>' + detalle.codigo_color + '</td></tr>';
+            html += '<tr><td><strong>Material Relajado:</strong></td><td>' + detalle.material_relajado + '</td></tr>';
+            html += '<tr><td><strong>Empalme:</strong></td><td>' + detalle.empalme + '</td></tr>';
+            html += '<tr><td><strong>Cara Material:</strong></td><td>' + detalle.cara_material + '</td></tr>';
+            html += '<tr><td><strong>Tono:</strong></td><td>' + detalle.tono + '</td></tr>';
+            html += '<tr><td><strong>Yarda Marcada:</strong></td><td>' + detalle.yarda_marcada + '</td></tr>';
+            html += '</table></div>';
+
+            // Concentración (Lectra)
+            html += '<div class="col-md-6">';
+            html += '<h6>Lectra (Concentración)</h6>';
+            html += '<table class="table table-sm table-dark">';
+            html += '<tr><td><strong>Concentración:</strong></td><td>' + detalle.concentracion + '%</td></tr>';
+            html += '<tr><td><strong>Defectos:</strong></td><td>' + detalle.defectos + '</td></tr>';
+            html += '<tr><td><strong>Pieza Inspeccionada:</strong></td><td>' + detalle.pieza_inspeccionada + '</td></tr>';
+            html += '<tr><td><strong>Defecto:</strong></td><td>' + detalle.defecto + '</td></tr>';
+            html += '</table></div></div>';
+
+            // Auditoría Bulto
+            html += '<div class="row mt-2">';
+            html += '<div class="col-md-6">';
+            html += '<h6>Auditoría Bulto</h6>';
+            html += '<table class="table table-sm table-dark">';
+            html += '<tr><td><strong>Cantidad Bulto:</strong></td><td>' + detalle.cantidad_bulto + '</td></tr>';
+            html += '<tr><td><strong>Ingreso Ticket:</strong></td><td>' + detalle.ingreso_ticket_estatus + '</td></tr>';
+            html += '<tr><td><strong>Sellado Paquete:</strong></td><td>' + detalle.sellado_paquete_estatus + '</td></tr>';
+            html += '</table></div>';
+
+            // Estado final
+            html += '<div class="col-md-6">';
+            html += '<h6>Estado Final</h6>';
+            html += '<table class="table table-sm table-dark">';
+            html += '<tr><td><strong>Estatus Actual:</strong></td><td>' + detalle.estatus_actual + '</td></tr>';
+            html += '<tr><td><strong>Estatus Avanzado:</strong></td><td>' + detalle.estatus_avanzado + '</td></tr>';
+            html += '<tr><td><strong>Aceptado/Rechazado:</strong></td><td>' + detalle.aceptado_rechazado + '</td></tr>';
+            html += '<tr><td><strong>Condición Aceptado:</strong></td><td>' + detalle.aceptado_condicion + '</td></tr>';
+            html += '<tr><td><strong>Fecha Creación:</strong></td><td>' + detalle.fecha_creacion + '</td></tr>';
+            html += '<tr><td><strong>Fecha Actualización:</strong></td><td>' + detalle.fecha_actualizacion + '</td></tr>';
+            html += '</table></div></div>';
+
+            html += '</div>';
+        });
+
+        html += '</div>';
+        return html;
+    }
+
+    // Función para cerrar modal (disponible globalmente)
+    function cerrarModal() {
+        document.getElementById('modalDetalleOP').style.display = 'none';
+    }
+
     $(document).ready(function() {
             // Inicializar DataTable
             table = $('#tabla-reporte').DataTable({
@@ -714,147 +864,7 @@
             window.location.href = "{{ route('reporte.auditoria.corte.exportar') }}?" + params;
         }
 
-        // Función para ver detalles de OP
-        function verDetallesOP(op) {
-            $.ajax({
-                url: "{{ route('reporte.auditoria.corte.buscar.op') }}",
-                data: { op: op },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        mostrarModalDetalles(response);
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: response.message
-                        });
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error al cargar detalles:', xhr, status, error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'No se pudieron cargar los detalles de la OP'
-                    });
-                }
-            });
-        }
 
-        // Función para mostrar modal de detalles
-        function mostrarModalDetalles(data) {
-            const modal = document.getElementById('modalDetalleOP');
-            const titulo = document.getElementById('modalTitulo');
-            const contenido = document.getElementById('modalContenido');
-
-            titulo.textContent = `Detalles de OP: ${data.op} (${data.total_eventos} eventos)`;
-            contenido.innerHTML = generarContenidoDetalles(data);
-
-            modal.style.display = 'block';
-        }
-
-        // Función para generar contenido de detalles
-        function generarContenidoDetalles(detalles) {
-            let html = '<div class="row">';
-
-            // Mostrar estadísticas generales
-            if (detalles.estadisticas) {
-                html += '<div class="col-12 mb-3">';
-                html += '<h4>Estadísticas Generales</h4>';
-                html += '<div class="row">';
-                html += `<div class="col-md-3"><strong>Total Eventos:</strong> ${detalles.estadisticas.total_eventos}</div>`;
-                html += `<div class="col-md-3"><strong>Completados:</strong> ${detalles.estadisticas.eventos_completados}</div>`;
-                html += `<div class="col-md-3"><strong>Progreso:</strong> ${detalles.estadisticas.progreso}%</div>`;
-                html += `<div class="col-md-3"><strong>Concentración Promedio:</strong> ${detalles.estadisticas.concentracion_promedio}%</div>`;
-                html += '</div></div>';
-            }
-
-            // Mostrar detalles de cada evento
-            detalles.detalles.forEach((detalle, index) => {
-                html += '<div class="col-12 mb-4">';
-                html += `<h5>Evento ${detalle.evento} de ${detalle.total_eventos}</h5>`;
-
-                // Información general
-                html += '<div class="row">';
-                html += '<div class="col-md-6">';
-                html += '<h6>Información General</h6>';
-                html += '<table class="table table-sm table-dark">';
-                html += '<tr><td><strong>Estilo:</strong></td><td>' + detalle.estilo_id + '</td></tr>';
-                html += '<tr><td><strong>Cliente:</strong></td><td>' + detalle.cliente_id + '</td></tr>';
-                html += '<tr><td><strong>Color:</strong></td><td>' + detalle.color_id + '</td></tr>';
-                html += '<tr><td><strong>Material:</strong></td><td>' + detalle.material + '</td></tr>';
-                html += '<tr><td><strong>Pieza:</strong></td><td>' + detalle.pieza + '</td></tr>';
-                html += '<tr><td><strong>Progreso Etapa:</strong></td><td>' + detalle.progreso_etapa + '%</td></tr>';
-                html += '</table></div>';
-
-                // Auditoría Marcada
-                html += '<div class="col-md-6">';
-                html += '<h6>Auditoría Marcada</h6>';
-                html += '<table class="table table-sm table-dark">';
-                html += '<tr><td><strong>Yarda Orden:</strong></td><td>' + detalle.yarda_orden + '</td></tr>';
-                html += '<tr><td><strong>Tallas:</strong></td><td>' + detalle.tallas + '</td></tr>';
-                html += '<tr><td><strong>Total Piezas:</strong></td><td>' + detalle.total_piezas + '</td></tr>';
-                html += '<tr><td><strong>Bultos:</strong></td><td>' + detalle.bultos + '</td></tr>';
-                html += '</table></div></div>';
-
-                // Auditoría Tendido
-                html += '<div class="row mt-2">';
-                html += '<div class="col-md-6">';
-                html += '<h6>Auditoría Tendido</h6>';
-                html += '<table class="table table-sm table-dark">';
-                html += '<tr><td><strong>Código Material:</strong></td><td>' + detalle.codigo_material + '</td></tr>';
-                html += '<tr><td><strong>Código Color:</strong></td><td>' + detalle.codigo_color + '</td></tr>';
-                html += '<tr><td><strong>Material Relajado:</strong></td><td>' + detalle.material_relajado + '</td></tr>';
-                html += '<tr><td><strong>Empalme:</strong></td><td>' + detalle.empalme + '</td></tr>';
-                html += '<tr><td><strong>Cara Material:</strong></td><td>' + detalle.cara_material + '</td></tr>';
-                html += '<tr><td><strong>Tono:</strong></td><td>' + detalle.tono + '</td></tr>';
-                html += '<tr><td><strong>Yarda Marcada:</strong></td><td>' + detalle.yarda_marcada + '</td></tr>';
-                html += '</table></div>';
-
-                // Concentración (Lectra)
-                html += '<div class="col-md-6">';
-                html += '<h6>Lectra (Concentración)</h6>';
-                html += '<table class="table table-sm table-dark">';
-                html += '<tr><td><strong>Concentración:</strong></td><td>' + detalle.concentracion + '%</td></tr>';
-                html += '<tr><td><strong>Defectos:</strong></td><td>' + detalle.defectos + '</td></tr>';
-                html += '<tr><td><strong>Pieza Inspeccionada:</strong></td><td>' + detalle.pieza_inspeccionada + '</td></tr>';
-                html += '<tr><td><strong>Defecto:</strong></td><td>' + detalle.defecto + '</td></tr>';
-                html += '</table></div></div>';
-
-                // Auditoría Bulto
-                html += '<div class="row mt-2">';
-                html += '<div class="col-md-6">';
-                html += '<h6>Auditoría Bulto</h6>';
-                html += '<table class="table table-sm table-dark">';
-                html += '<tr><td><strong>Cantidad Bulto:</strong></td><td>' + detalle.cantidad_bulto + '</td></tr>';
-                html += '<tr><td><strong>Ingreso Ticket:</strong></td><td>' + detalle.ingreso_ticket_estatus + '</td></tr>';
-                html += '<tr><td><strong>Sellado Paquete:</strong></td><td>' + detalle.sellado_paquete_estatus + '</td></tr>';
-                html += '</table></div>';
-
-                // Estado final
-                html += '<div class="col-md-6">';
-                html += '<h6>Estado Final</h6>';
-                html += '<table class="table table-sm table-dark">';
-                html += '<tr><td><strong>Estatus Actual:</strong></td><td>' + detalle.estatus_actual + '</td></tr>';
-                html += '<tr><td><strong>Estatus Avanzado:</strong></td><td>' + detalle.estatus_avanzado + '</td></tr>';
-                html += '<tr><td><strong>Aceptado/Rechazado:</strong></td><td>' + detalle.aceptado_rechazado + '</td></tr>';
-                html += '<tr><td><strong>Condición Aceptado:</strong></td><td>' + detalle.aceptado_condicion + '</td></tr>';
-                html += '<tr><td><strong>Fecha Creación:</strong></td><td>' + detalle.fecha_creacion + '</td></tr>';
-                html += '<tr><td><strong>Fecha Actualización:</strong></td><td>' + detalle.fecha_actualizacion + '</td></tr>';
-                html += '</table></div></div>';
-
-                html += '</div>';
-            });
-
-            html += '</div>';
-            return html;
-        }
-
-        // Función para cerrar modal
-        function cerrarModal() {
-            document.getElementById('modalDetalleOP').style.display = 'none';
-        }
 
         // Cerrar modal al hacer clic fuera
         window.onclick = function(event) {
@@ -890,6 +900,21 @@
                 cargarDatos();
             }
         });
+
+        // Verificación de funciones globales al cargar la página
+        console.log('=== VERIFICACIÓN DE FUNCIONES GLOBALES ===');
+        console.log('verDetallesOP existe:', typeof verDetallesOP !== 'undefined');
+        console.log('mostrarModalDetalles existe:', typeof mostrarModalDetalles !== 'undefined');
+        console.log('generarContenidoDetalles existe:', typeof generarContenidoDetalles !== 'undefined');
+        console.log('cerrarModal existe:', typeof cerrarModal !== 'undefined');
+        console.log('==========================================');
+
+        // Prueba de funciones (comentado para evitar errores)
+        // if (typeof verDetallesOP !== 'undefined') {
+        //     console.log('✅ Todas las funciones están disponibles globalmente');
+        // } else {
+        //     console.error('❌ Algunas funciones no están disponibles');
+        // }
     });
 </script>
 @endsection
