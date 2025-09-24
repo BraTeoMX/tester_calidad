@@ -29,6 +29,11 @@
         border-radius: 15px;
         font-size: 16px;
     }
+
+    .is-invalid {
+        border-color: #dc3545;
+        background-color: #ffe6e6;
+    }
 </style>
 
 <div class="content">
@@ -291,7 +296,157 @@
 
             // Cargar datos iniciales
             cargarDatos();
+        // Función para obtener el rango de la semana actual
+        function obtenerRangoSemanaActual() {
+            const hoy = new Date();
+            const diaSemana = hoy.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+
+            // Calcular el inicio de la semana (lunes)
+            const inicioSemana = new Date(hoy);
+            const diffInicio = hoy.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1); // Ajuste para que lunes sea el inicio
+            inicioSemana.setDate(diffInicio);
+
+            // El fin de la semana es 6 días después del inicio
+            const finSemana = new Date(inicioSemana);
+            finSemana.setDate(inicioSemana.getDate() + 6);
+
+            return {
+                desde: formatearFecha(inicioSemana),
+                hasta: formatearFecha(finSemana)
+            };
+        }
+
+        // Función para formatear fecha a YYYY-MM-DD
+        function formatearFecha(fecha) {
+            const year = fecha.getFullYear();
+            const month = String(fecha.getMonth() + 1).padStart(2, '0');
+            const day = String(fecha.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Función para obtener la fecha actual en formato YYYY-MM-DD
+        function obtenerFechaActual() {
+            return formatearFecha(new Date());
+        }
+
+        // Función para validar fechas
+        function validarFechas() {
+            const fechaDesde = document.getElementById('desde').value;
+            const fechaHasta = document.getElementById('hasta').value;
+            const op = document.getElementById('op').value;
+            const estatus = document.getElementById('estatus').value;
+            const fechaActual = obtenerFechaActual();
+
+            // Remover clases de error previas
+            document.getElementById('desde').classList.remove('is-invalid');
+            document.getElementById('hasta').classList.remove('is-invalid');
+
+            let esValido = true;
+            let mensajeError = '';
+
+            // Solo validar fechas si se están utilizando para filtrar
+            // Si solo se está filtrando por OP o estatus, permitir la búsqueda
+            if (fechaDesde || fechaHasta) {
+                // Si alguna fecha está llena, ambas deben estar llenas
+                if ((fechaDesde && !fechaHasta) || (!fechaDesde && fechaHasta)) {
+                    esValido = false;
+                    mensajeError = 'Ambas fechas deben estar completas o ambas vacías';
+                }
+
+                // Si ambas fechas están completas, validar lógica
+                if (fechaDesde && fechaHasta) {
+                    // Validar que fecha inicial no sea mayor a fecha final
+                    if (fechaDesde > fechaHasta) {
+                        esValido = false;
+                        mensajeError = 'La fecha inicial no puede ser mayor a la fecha final';
+                        document.getElementById('desde').classList.add('is-invalid');
+                        document.getElementById('hasta').classList.add('is-invalid');
+                    }
+
+                    // Validar que no haya fechas futuras
+                    if (fechaDesde > fechaActual) {
+                        esValido = false;
+                        mensajeError = 'La fecha inicial no puede ser futura';
+                        document.getElementById('desde').classList.add('is-invalid');
+                    }
+
+                    if (fechaHasta > fechaActual) {
+                        esValido = false;
+                        mensajeError = 'La fecha final no puede ser futura';
+                        document.getElementById('hasta').classList.add('is-invalid');
+                    }
+                }
+            }
+
+            // Mostrar mensaje de error si existe
+            if (!esValido) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Validación de Fechas',
+                    text: mensajeError,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            }
+
+            return esValido;
+        }
+
+        // Función para establecer valores por defecto
+        function establecerValoresPorDefecto() {
+            const rangoSemana = obtenerRangoSemanaActual();
+            const fechaDesde = document.getElementById('desde');
+            const fechaHasta = document.getElementById('hasta');
+
+            // Solo establecer valores por defecto si los campos están vacíos
+            if (!fechaDesde.value) {
+                fechaDesde.value = rangoSemana.desde;
+            }
+            if (!fechaHasta.value) {
+                fechaHasta.value = rangoSemana.hasta;
+            }
+        }
+
+        // Event listeners para validación en tiempo real (solo visual, sin alertas)
+        document.getElementById('desde').addEventListener('change', function() {
+            validarFechasVisual();
         });
+
+        document.getElementById('hasta').addEventListener('change', function() {
+            validarFechasVisual();
+        });
+
+        // Función para validación visual (sin alertas)
+        function validarFechasVisual() {
+            const fechaDesde = document.getElementById('desde').value;
+            const fechaHasta = document.getElementById('hasta').value;
+            const fechaActual = obtenerFechaActual();
+
+            // Remover clases de error previas
+            document.getElementById('desde').classList.remove('is-invalid');
+            document.getElementById('hasta').classList.remove('is-invalid');
+
+            // Solo validar visualmente si ambas fechas están completas
+            if (fechaDesde && fechaHasta) {
+                // Validar que fecha inicial no sea mayor a fecha final
+                if (fechaDesde > fechaHasta) {
+                    document.getElementById('desde').classList.add('is-invalid');
+                    document.getElementById('hasta').classList.add('is-invalid');
+                }
+
+                // Validar que no haya fechas futuras
+                if (fechaDesde > fechaActual) {
+                    document.getElementById('desde').classList.add('is-invalid');
+                }
+
+                if (fechaHasta > fechaActual) {
+                    document.getElementById('hasta').classList.add('is-invalid');
+                }
+            }
+        }
+
+        // Establecer valores por defecto cuando la página cargue
+        establecerValoresPorDefecto();
 
         // Función para cargar datos
         function cargarDatos() {
@@ -687,7 +842,22 @@
         // Evento para el formulario de filtros
         $('#filtrosForm').on('submit', function(e) {
             e.preventDefault();
-            cargarDatos();
+
+            const fechaDesde = document.getElementById('desde').value;
+            const fechaHasta = document.getElementById('hasta').value;
+            const op = document.getElementById('op').value;
+            const estatus = document.getElementById('estatus').value;
+
+            // Si se están usando fechas para filtrar, validarlas
+            if (fechaDesde || fechaHasta) {
+                if (validarFechas()) {
+                    cargarDatos();
+                }
+            } else {
+                // Si no se están usando fechas, permitir la búsqueda directamente
+                cargarDatos();
+            }
         });
+    });
 </script>
 @endsection
