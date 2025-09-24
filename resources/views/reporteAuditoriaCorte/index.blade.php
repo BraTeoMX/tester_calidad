@@ -58,8 +58,8 @@
             </div>
             <div class="col-12 text-end">
                 <button type="submit" class="btn btn-primary">Filtrar</button>
-                <button type="button" class="btn btn-warning" onclick="cargarDatosPrueba()">Datos de Prueba</button>
-                <button type="button" class="btn btn-success" onclick="exportarExcel()">Exportar Excel</button>
+                {{--<button type="button" class="btn btn-warning" onclick="cargarDatosPrueba()">Datos de Prueba</button>
+                <button type="button" class="btn btn-success" onclick="exportarExcel()">Exportar Excel</button>--}}
             </div>
         </form>
 
@@ -266,7 +266,7 @@
                     }
                 ],
                 dom: 'Bfrtip',
-                buttons: ['csv', 'excel', 'pdf'],
+                buttons: ['csv', 'excel'],
                 pageLength: 20,
                 language: {
                     "sProcessing": "Procesando...",

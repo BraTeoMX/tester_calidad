@@ -136,6 +136,10 @@ class ReporteAuditoriaCorteController extends Controller
             if ($fechaDesde && $fechaHasta) {
                 $fechaDesde = Carbon::createFromFormat('Y-m-d', $fechaDesde)->startOfDay();
                 $fechaHasta = Carbon::createFromFormat('Y-m-d', $fechaHasta)->endOfDay();
+            } else {
+                // Si NO recibes parámetros → tomar semana actual
+                $fechaDesde = Carbon::now()->startOfWeek()->startOfDay(); // lunes por default
+                $fechaHasta = Carbon::now()->endOfWeek()->endOfDay();     // domingo por default
             }
 
             // Consulta simplificada para debug - probar con datos de prueba
@@ -206,6 +210,9 @@ class ReporteAuditoriaCorteController extends Controller
                         break;
                 }
             }
+
+            // Ordenar por created_at descendente (más reciente primero)
+            $query->orderBy('auditoria_corte_encabezado.created_at', 'desc');
 
             $registros = $query->get();
 
@@ -347,10 +354,14 @@ class ReporteAuditoriaCorteController extends Controller
             $ordenId = $request->get('op');
             $estatus = $request->get('estatus');
 
-            // Validar fechas
+            // Validar fechas - si no se reciben fechas, usar la semana actual
             if ($fechaDesde && $fechaHasta) {
                 $fechaDesde = Carbon::createFromFormat('Y-m-d', $fechaDesde)->startOfDay();
                 $fechaHasta = Carbon::createFromFormat('Y-m-d', $fechaHasta)->endOfDay();
+            } else {
+                // Si no se reciben fechas, usar la semana actual (lunes a domingo)
+                $fechaDesde = Carbon::now()->startOfWeek()->startOfDay();
+                $fechaHasta = Carbon::now()->endOfWeek()->endOfDay();
             }
 
             // Consulta para exportación
