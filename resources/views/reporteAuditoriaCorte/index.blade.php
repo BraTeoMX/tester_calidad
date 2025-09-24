@@ -306,13 +306,12 @@
             const diffInicio = hoy.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1); // Ajuste para que lunes sea el inicio
             inicioSemana.setDate(diffInicio);
 
-            // El fin de la semana es 6 días después del inicio
-            const finSemana = new Date(inicioSemana);
-            finSemana.setDate(inicioSemana.getDate() + 6);
+            // El fin del rango es el día actual (no el fin de la semana)
+            const finRango = new Date(hoy);
 
             return {
                 desde: formatearFecha(inicioSemana),
-                hasta: formatearFecha(finSemana)
+                hasta: formatearFecha(finRango)
             };
         }
 
