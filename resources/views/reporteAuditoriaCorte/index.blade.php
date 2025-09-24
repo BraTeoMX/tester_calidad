@@ -161,8 +161,6 @@
                             <th>Cliente</th>
                             <th>Color</th>
                             <th>Estatus Actual</th>
-                            <th>Progreso</th>
-                            <th>Concentración</th>
                             <th>Defectos</th>
                             <th>Piezas</th>
                             <th>Yarda Orden</th>
@@ -281,18 +279,6 @@
                     { data: 'cliente_id' },
                     { data: 'color_id' },
                     { data: 'estatus_actual' },
-                    {
-                        data: 'progreso_etapa',
-                        render: function(data) {
-                            return data !== 'N/A' ? data + '%' : 'N/A';
-                        }
-                    },
-                    {
-                        data: 'concentracion',
-                        render: function(data) {
-                            return data !== 'N/A' ? data + '%' : 'N/A';
-                        }
-                    },
                     { data: 'defectos' },
                     { data: 'total_piezas' },
                     { data: 'yarda_orden' },
