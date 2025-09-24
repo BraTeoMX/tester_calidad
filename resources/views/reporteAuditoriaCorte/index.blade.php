@@ -78,6 +78,24 @@
             </div>
             <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
                 <div class="card p-3 text-center h-100">
+                    <h6>Total Eventos</h6>
+                    <h3 id="kpi-total-eventos">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                <div class="card p-3 text-center h-100">
+                    <h6>Eventos Completados</h6>
+                    <h3 id="kpi-eventos-completados">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                <div class="card p-3 text-center h-100">
+                    <h6>Progreso General</h6>
+                    <h3 id="kpi-progreso-general">0%</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                <div class="card p-3 text-center h-100">
                     <h6>Total Piezas</h6>
                     <h3 id="kpi-total-piezas">0</h3>
                 </div>
@@ -98,6 +116,18 @@
                 <div class="card p-3 text-center h-100">
                     <h6>Eficiencia General</h6>
                     <h3 id="kpi-eficiencia">0%</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                <div class="card p-3 text-center h-100">
+                    <h6>Eficiencia Marcada</h6>
+                    <h3 id="kpi-eficiencia-marcada">0%</h3>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                <div class="card p-3 text-center h-100">
+                    <h6>Eficiencia Lectra</h6>
+                    <h3 id="kpi-eficiencia-lectra">0%</h3>
                 </div>
             </div>
         </div>
@@ -131,13 +161,14 @@
                             <th>Cliente</th>
                             <th>Color</th>
                             <th>Estatus Actual</th>
-                            {{--<th>Estatus Avanzado</th>--}}
+                            <th>Estatus Avanzado</th>
+                            <th>Progreso</th>
                             <th>Concentración</th>
                             <th>Defectos</th>
                             <th>Piezas</th>
                             <th>Yarda Orden</th>
                             <th>Material</th>
-                            <th>Bultos</th>
+                            <th>Qtysched</th>
                             <th>Fecha Creación</th>
                             <th>Acciones</th>
                         </tr>
@@ -251,7 +282,13 @@
                     { data: 'cliente_id' },
                     { data: 'color_id' },
                     { data: 'estatus_actual' },
-                    //{ data: 'estatus_avanzado' },
+                    { data: 'estatus_avanzado' },
+                    {
+                        data: 'progreso_etapa',
+                        render: function(data) {
+                            return data !== 'N/A' ? data + '%' : 'N/A';
+                        }
+                    },
                     {
                         data: 'concentracion',
                         render: function(data) {
@@ -261,8 +298,8 @@
                     { data: 'defectos' },
                     { data: 'total_piezas' },
                     { data: 'yarda_orden' },
-                    { data: 'codigo_material' },
-                    { data: 'bultos' },
+                    { data: 'material' },
+                    { data: 'qtysched_id' },
                     { data: 'fecha_creacion' },
                     {
                         data: 'acciones',
@@ -583,10 +620,15 @@
         // Función para actualizar KPIs
         function actualizarKPIs(kpis) {
             $('#kpi-total-op').text(kpis.total_op);
+            $('#kpi-total-eventos').text(kpis.total_eventos);
+            $('#kpi-eventos-completados').text(kpis.eventos_completados);
+            $('#kpi-progreso-general').text(kpis.progreso_general + '%');
             $('#kpi-total-piezas').text(kpis.total_piezas);
             $('#kpi-concentracion').text(kpis.concentracion_promedio + '%');
             $('#kpi-defectos-criticos').text(kpis.defectos_criticos);
             $('#kpi-eficiencia').text(kpis.eficiencia_general + '%');
+            $('#kpi-eficiencia-marcada').text(kpis.eficiencia_marcada + '%');
+            $('#kpi-eficiencia-lectra').text(kpis.eficiencia_lectra + '%');
         }
 
         // Función para inicializar gráficos
@@ -674,7 +716,7 @@
 
             if (estatusChart) {
                 estatusChart.series[0].setData(
-                    graficos.distribucion_estatus.map(item => ({
+                    graficos.distribucion_estatus_avanzado.map(item => ({
                         name: item.nombre,
                         y: item.cantidad
                     }))
@@ -705,7 +747,8 @@
                         });
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
+                    console.error('Error al cargar detalles:', xhr, status, error);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
@@ -785,26 +828,32 @@
                 html += '<tr><td><strong>Yarda Marcada:</strong></td><td>' + detalle.yarda_marcada + '</td></tr>';
                 html += '</table></div>';
 
-                // Concentración y Bulto
+                // Concentración (Lectra)
                 html += '<div class="col-md-6">';
-                html += '<h6>Concentración y Bulto</h6>';
+                html += '<h6>Lectra (Concentración)</h6>';
                 html += '<table class="table table-sm table-dark">';
-                html += '<tr><td><strong>Concentración:</strong></td><td>' + detalle.concentracion + '</td></tr>';
+                html += '<tr><td><strong>Concentración:</strong></td><td>' + detalle.concentracion + '%</td></tr>';
                 html += '<tr><td><strong>Defectos:</strong></td><td>' + detalle.defectos + '</td></tr>';
                 html += '<tr><td><strong>Pieza Inspeccionada:</strong></td><td>' + detalle.pieza_inspeccionada + '</td></tr>';
                 html += '<tr><td><strong>Defecto:</strong></td><td>' + detalle.defecto + '</td></tr>';
+                html += '</table></div></div>';
+
+                // Auditoría Bulto
+                html += '<div class="row mt-2">';
+                html += '<div class="col-md-6">';
+                html += '<h6>Auditoría Bulto</h6>';
+                html += '<table class="table table-sm table-dark">';
                 html += '<tr><td><strong>Cantidad Bulto:</strong></td><td>' + detalle.cantidad_bulto + '</td></tr>';
                 html += '<tr><td><strong>Ingreso Ticket:</strong></td><td>' + detalle.ingreso_ticket_estatus + '</td></tr>';
                 html += '<tr><td><strong>Sellado Paquete:</strong></td><td>' + detalle.sellado_paquete_estatus + '</td></tr>';
-                html += '</table></div></div>';
+                html += '</table></div>';
 
                 // Estado final
-                html += '<div class="row mt-2">';
-                html += '<div class="col-12">';
+                html += '<div class="col-md-6">';
                 html += '<h6>Estado Final</h6>';
                 html += '<table class="table table-sm table-dark">';
                 html += '<tr><td><strong>Estatus Actual:</strong></td><td>' + detalle.estatus_actual + '</td></tr>';
-                //html += '<tr><td><strong>Estatus Avanzado:</strong></td><td>' + detalle.estatus_avanzado + '</td></tr>';
+                html += '<tr><td><strong>Estatus Avanzado:</strong></td><td>' + detalle.estatus_avanzado + '</td></tr>';
                 html += '<tr><td><strong>Aceptado/Rechazado:</strong></td><td>' + detalle.aceptado_rechazado + '</td></tr>';
                 html += '<tr><td><strong>Condición Aceptado:</strong></td><td>' + detalle.aceptado_condicion + '</td></tr>';
                 html += '<tr><td><strong>Fecha Creación:</strong></td><td>' + detalle.fecha_creacion + '</td></tr>';
