@@ -49,6 +49,7 @@ use App\Http\Controllers\DashboardPorSemanaV2Controller;
 use App\Http\Controllers\DashboardBusquedaOPController;
 use App\Http\Controllers\AuditoriaKanBanController;
 use App\Http\Controllers\BultosNoFinalizadosController;
+use App\Http\Controllers\ReporteAuditoriaCorteController;
 
 
 /*
@@ -622,4 +623,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/reportesScreen', [ReportesScreenController::class, 'index'])->name('reportesScreen.index');
     Route::get('/reportesScreen/datosPorDia', [ReportesScreenController::class, 'bultosPorDia'])->name('reportesScreen.datosPorDia');
     Route::get('/reportesScreen/obtenerDatos', [ReportesScreenController::class, 'obtenerDatos'])->name('reportesScreen.obtenerDatos');
+
+    // Rutas para reportes de auditoría de corte
+    Route::get('/reporte-auditoria-corte', [ReporteAuditoriaCorteController::class, 'index'])->name('reporte.auditoria.corte');
+    Route::get('/reporte-auditoria-corte/datos', [ReporteAuditoriaCorteController::class, 'consultarDatos'])->name('reporte.auditoria.corte.datos');
+    Route::get('/reporte-auditoria-corte/datos-prueba', [ReporteAuditoriaCorteController::class, 'datosPrueba'])->name('reporte.auditoria.corte.datos.prueba');
+    Route::get('/reporte-auditoria-corte/buscar-op', [ReporteAuditoriaCorteController::class, 'buscarPorOP'])->name('reporte.auditoria.corte.buscar.op');
+    Route::get('/reporte-auditoria-corte/exportar', [ReporteAuditoriaCorteController::class, 'exportarExcel'])->name('reporte.auditoria.corte.exportar');
 });
