@@ -217,11 +217,11 @@ class ReporteAuditoriaCorteController extends Controller
             $registros = $query->get();
 
             // Debug: Log de la consulta y resultados
-            Log::info('Reporte Auditoría Corte - Consulta ejecutada', [
+            /*Log::info('Reporte Auditoría Corte - Consulta ejecutada', [
                 'sql' => $query->toSql(),
                 'bindings' => $query->getBindings(),
                 'total_registros' => $registros->count()
-            ]);
+            ]);*/
 
             // Calcular KPIs
             $kpis = $this->calcularKPIs($registros);
@@ -233,10 +233,10 @@ class ReporteAuditoriaCorteController extends Controller
             $registrosFormateados = $this->formatearRegistrosParaTabla($registros);
 
             // Debug: Log de los datos formateados
-            Log::info('Reporte Auditoría Corte - Datos formateados', [
+            /*Log::info('Reporte Auditoría Corte - Datos formateados', [
                 'total_registros_formateados' => count($registrosFormateados),
                 'primer_registro' => $registrosFormateados[0] ?? null
-            ]);
+            ]); */
 
             $responseData = [
                 'success' => true,
@@ -248,12 +248,12 @@ class ReporteAuditoriaCorteController extends Controller
             ];
 
             // Debug: Log de la respuesta completa
-            Log::info('Reporte Auditoría Corte - Respuesta JSON', [
+            /*Log::info('Reporte Auditoría Corte - Respuesta JSON', [
                 'success' => $responseData['success'],
                 'total_registros' => $responseData['total_registros'],
                 'kpis' => $responseData['kpis'],
                 'primer_registro_keys' => $registrosFormateados ? array_keys($registrosFormateados[0] ?? []) : []
-            ]);
+            ]); */
 
             return response()->json($responseData);
         } catch (Exception $e) {
