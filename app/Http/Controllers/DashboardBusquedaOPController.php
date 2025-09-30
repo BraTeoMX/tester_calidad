@@ -186,7 +186,7 @@ class DashboardBusquedaOPController extends Controller
 
         // Rango de ±2 días
         $inicio = $fechaCreacion->copy()->subDays(2)->startOfDay();
-        $fin = $fechaCreacion->copy()->addDays(4)->endOfDay();
+        $fin = $fechaCreacion->copy()->addDays(21)->endOfDay();
         Log::info("Buscando procesos relacionados para estilo del dia {$fechaCreacion}: {$estilo}, modulo: {$modulo}, rango: {$inicio} a {$fin}");
         $resultados = AseguramientoCalidad::with('tpAseguramientoCalidad')
             ->where('estilo', $estilo)
