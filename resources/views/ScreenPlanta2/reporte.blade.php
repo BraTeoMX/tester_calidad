@@ -2,79 +2,97 @@
 
 @section('content')
 
-    <div class="content">
-        <div class="card">
-            <div class="card-header card-header-primary">
-                <div class="row">
-                    <div class="col-md-12">
-                        <h3 class="card-title" style="text-align: center; font-weight: bold;">Reporte Screen</h3>
-                    </div>
+<div class="content">
+    <div class="card">
+        <div class="card-header card-header-primary">
+            <div class="row">
+                <div class="col-md-12">
+                    <h3 class="card-title" style="text-align: center; font-weight: bold;">Reporte Screen</h3>
                 </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-5">
-                <div class="form-group">
-                    <label for="fecha_inicio" class="form-label">Fecha de Inicio</label>
-                    {{-- Cambiamos el id de fecha_reporte a fecha_inicio para mayor claridad --}}
-                    <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ now()->format('Y-m-d') }}" required>
-                </div>
-            </div>
-            <div class="col-md-5">
-                <div class="form-group">
-                    <label for="fecha_fin" class="form-label">Fecha de Fin</label>
-                    <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ now()->format('Y-m-d') }}" required>
-                </div>
-            </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <div class="form-group w-100">
-                    <button type="button" class="btn btn-secondary w-100" id="btnMostrarDatos">Mostrar Datos</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="card card-body">
-            {{-- Contenedor donde se insertarán las tablas dinámicamente --}}
-            <div id="contenedor-tablas-maquinas">
-                <div class="card card-body">
-                    <p class="text-center">Seleccione una fecha y presione "Mostrar Datos" para ver los reportes por máquina.</p>
-                </div>
-            </div>
-            {{-- Contenedor para la tabla de Resumen General --}}
-            <div id="contenedor-resumen-general" class="mt-4">
-                {{-- Aquí se insertará la tabla de resumen general --}}
             </div>
         </div>
     </div>
 
-    <style>
-        thead.thead-primary {
-            background-color: #59666e54; /* Azul claro */
-            color: #333;                 /* Color del texto */
-        }
-        .texto-blanco {
-            color: white !important;
-        }
-    </style>
+    <div class="row">
+        <div class="col-md-5">
+            <div class="form-group">
+                <label for="fecha_inicio" class="form-label">Fecha de Inicio</label>
+                {{-- Cambiamos el id de fecha_reporte a fecha_inicio para mayor claridad --}}
+                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio"
+                    value="{{ now()->format('Y-m-d') }}" required>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="form-group">
+                <label for="fecha_fin" class="form-label">Fecha de Fin</label>
+                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin"
+                    value="{{ now()->format('Y-m-d') }}" required>
+            </div>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <div class="form-group w-100">
+                <button type="button" class="btn btn-secondary w-100" id="btnMostrarDatos">Mostrar Datos</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- DataTables CSS desde carpeta local -->
-    <link rel="stylesheet" href="{{ asset('dataTable/css/dataTables.bootstrap5.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('dataTable/css/buttons.bootstrap5.min.css') }}">
+    <div class="card card-body">
+        {{-- Contenedor donde se insertarán las tablas dinámicamente --}}
+        <div id="contenedor-tablas-maquinas">
+            <div class="card card-body">
+                <p class="text-center">Seleccione una fecha y presione "Mostrar Datos" para ver los reportes por
+                    máquina.</p>
+            </div>
+        </div>
+        {{-- Contenedor para la tabla de Resumen General --}}
+        <div id="contenedor-resumen-general" class="mt-4">
+            {{-- Aquí se insertará la tabla de resumen general --}}
+        </div>
 
-    <!-- jQuery y DataTables desde local -->
-    <script src="{{ asset('dataTable/js/jquery-3.6.0.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/dataTables.bootstrap5.min.js') }}"></script>
+        {{-- Contenedor para las gráficas de Top 3 Defectos por Máquina --}}
+        <div id="contenedor-graficas-maquinas" class="mt-4">
+            {{-- Aquí se insertarán las gráficas de top 3 defectos por máquina --}}
+        </div>
+    </div>
+</div>
 
-    <!-- Botones para exportar -->
-    <script src="{{ asset('dataTable/js/dataTables.buttons.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/buttons.bootstrap5.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/jszip.min.js') }}"></script>
-    <script src="{{ asset('dataTable/js/buttons.html5.min.js') }}"></script>
+<style>
+    thead.thead-primary {
+        background-color: #59666e54;
+        /* Azul claro */
+        color: #333;
+        /* Color del texto */
+    }
 
-    <script>
-        $(document).ready(function() {
+    .texto-blanco {
+        color: white !important;
+    }
+</style>
+
+<!-- DataTables CSS desde carpeta local -->
+<link rel="stylesheet" href="{{ asset('dataTable/css/dataTables.bootstrap5.min.css') }}">
+<link rel="stylesheet" href="{{ asset('dataTable/css/buttons.bootstrap5.min.css') }}">
+
+<!-- jQuery y DataTables desde local -->
+<script src="{{ asset('dataTable/js/jquery-3.6.0.min.js') }}"></script>
+<script src="{{ asset('dataTable/js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('dataTable/js/dataTables.bootstrap5.min.js') }}"></script>
+
+<!-- Botones para exportar -->
+<script src="{{ asset('dataTable/js/dataTables.buttons.min.js') }}"></script>
+<script src="{{ asset('dataTable/js/buttons.bootstrap5.min.js') }}"></script>
+<script src="{{ asset('dataTable/js/jszip.min.js') }}"></script>
+<script src="{{ asset('dataTable/js/buttons.html5.min.js') }}"></script>
+
+<!-- Highcharts para gráficas -->
+<script src="{{ asset('js/highcharts/12/highcharts.js') }}"></script>
+<script src="{{ asset('js/highcharts/12/modules/exporting.js') }}"></script>
+<script src="{{ asset('js/highcharts/12/modules/offline-exporting.js') }}"></script>
+<script src="{{ asset('js/highcharts/12/modules/no-data-to-display.js') }}"></script>
+<script src="{{ asset('js/highcharts/12/modules/accessibility.js') }}"></script>
+
+<script>
+    $(document).ready(function() {
             const COLUMNAS_REGISTROS = 16;
             let dataTableInstances = []; // Para almacenar instancias de DataTables y poder destruirlas
         
@@ -319,12 +337,237 @@
                     }
                 });
             }
-        
+
+            // Función para cargar y renderizar gráficas de top 3 defectos por máquina
+            function cargarGraficasTopDefectos(fechaInicio, fechaFin) {
+                if (!fechaInicio || !fechaFin) {
+                    return;
+                }
+
+                const contenedorGraficas = $("#contenedor-graficas-maquinas");
+                contenedorGraficas.empty();
+
+                // Mostrar indicador de carga
+                contenedorGraficas.html(`
+                    <div class="card">
+                        <div class="card-header card-header-warning">
+                            <h4 class="card-title mb-0">Top 3 Defectos por Máquina</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center">
+                                <p>Cargando gráficas... <i class="fas fa-spinner fa-spin"></i></p>
+                            </div>
+                        </div>
+                    </div>
+                `);
+
+                $.ajax({
+                    url: '{{ route("reportesScreen.topDefectosPorMaquina") }}',
+                    method: 'GET',
+                    data: {
+                        fecha_inicio: fechaInicio,
+                        fecha_fin: fechaFin,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        contenedorGraficas.empty();
+
+                        if (Object.keys(data).length === 0) {
+                            contenedorGraficas.html(`
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="text-center">
+                                            <p>No hay datos de defectos para mostrar gráficas.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `);
+                            return;
+                        }
+
+                        // Crear gráficas para cada máquina
+                        Object.keys(data).forEach(function(nombreMaquina) {
+                            const maquinaData = data[nombreMaquina];
+                            const rangoFechasTexto = fechaInicio === fechaFin ? fechaInicio : `${fechaInicio} al ${fechaFin}`;
+
+                            // Crear contenedor para gráficas de esta máquina
+                            const maquinaContainerId = `graficas-maquina-${nombreMaquina.replace(/\s+/g, '-').toLowerCase()}`;
+                            const graficaScreenId = `grafica-screen-${nombreMaquina.replace(/\s+/g, '-').toLowerCase()}`;
+                            const graficaPlanchaId = `grafica-plancha-${nombreMaquina.replace(/\s+/g, '-').toLowerCase()}`;
+
+                            let maquinaHtml = `
+                                <div class="card mt-3">
+                                    <div class="card-header card-header-warning">
+                                        <h4 class="card-title mb-0">Máquina: ${$('<div>').text(nombreMaquina).html()}</h4>
+                                        <p class="card-category">Período: ${rangoFechasTexto}</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="card card-chart">
+                                                    <div class="card-header">
+                                                        <h5 class="card-title">Top 3 Defectos - SCREEN</h5>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div id="${graficaScreenId}" style="width: 100%; height: 300px;">
+                                                            <div class="text-center" style="padding-top: 100px;">
+                                                                <p>Cargando gráfica...</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="card card-chart">
+                                                    <div class="card-header">
+                                                        <h5 class="card-title">Top 3 Defectos - PLANCHA</h5>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div id="${graficaPlanchaId}" style="width: 100%; height: 300px;">
+                                                            <div class="text-center" style="padding-top: 100px;">
+                                                                <p>Cargando gráfica...</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+
+                            contenedorGraficas.append(maquinaHtml);
+
+                            // Crear gráfica para defectos Screen
+                            if (maquinaData.screen && maquinaData.screen.length > 0) {
+                                crearGraficaDefectos(graficaScreenId, `Top 3 Defectos Screen - ${nombreMaquina}`, maquinaData.screen);
+                            } else {
+                                $(`#${graficaScreenId}`).html(`
+                                    <div class="text-center" style="padding-top: 100px;">
+                                        <p>No hay datos de defectos Screen para esta máquina.</p>
+                                    </div>
+                                `);
+                            }
+
+                            // Crear gráfica para defectos Plancha
+                            if (maquinaData.plancha && maquinaData.plancha.length > 0) {
+                                crearGraficaDefectos(graficaPlanchaId, `Top 3 Defectos Plancha - ${nombreMaquina}`, maquinaData.plancha);
+                            } else {
+                                $(`#${graficaPlanchaId}`).html(`
+                                    <div class="text-center" style="padding-top: 100px;">
+                                        <p>No hay datos de defectos Plancha para esta máquina.</p>
+                                    </div>
+                                `);
+                            }
+                        });
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        contenedorGraficas.html(`
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="text-center text-danger">
+                                        <p>Error al cargar las gráficas de defectos.</p>
+                                        <small>${errorThrown}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                        console.error("Error al cargar gráficas:", textStatus, errorThrown);
+                    }
+                });
+            }
+
+            // Función para crear gráfica de defectos usando Highcharts
+            function crearGraficaDefectos(containerId, titulo, datos) {
+                const categorias = datos.map(d => d.defecto);
+                const valores = datos.map(d => parseInt(d.total));
+
+                // Paleta de colores para las barras
+                const colores = ['#f44336', '#ff9800', '#ffc107', '#4caf50', '#2196f3'];
+
+                Highcharts.chart(containerId, {
+                    chart: {
+                        type: 'column',
+                        backgroundColor: 'transparent',
+                        height: 300
+                    },
+                    title: {
+                        text: titulo,
+                        style: {
+                            fontSize: '14px',
+                            fontWeight: 'bold'
+                        }
+                    },
+                    xAxis: {
+                        categories: categorias,
+                        labels: {
+                            style: {
+                                fontSize: '11px'
+                            }
+                        },
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: {
+                            text: 'Cantidad de Defectos'
+                        },
+                        labels: {
+                            style: {
+                                fontSize: '10px'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.85)',
+                        style: {
+                            color: '#ffffff'
+                        },
+                        formatter: function() {
+                            return `<b>${this.key}</b><br/>Cantidad: <b>${this.y}</b>`;
+                        }
+                    },
+                    plotOptions: {
+                        column: {
+                            pointPadding: 0.2,
+                            borderWidth: 0,
+                            colorByPoint: true,
+                            colors: colores,
+                            dataLabels: {
+                                enabled: true,
+                                rotation: -45,
+                                color: '#FFFFFF',
+                                align: 'right',
+                                format: '{point.y}',
+                                y: 10,
+                                style: {
+                                    fontSize: '10px',
+                                    fontWeight: 'normal',
+                                    textOutline: 'none'
+                                }
+                            }
+                        }
+                    },
+                    legend: {
+                        enabled: false
+                    },
+                    credits: {
+                        enabled: false
+                    },
+                    series: [{
+                        name: 'Cantidad',
+                        data: valores
+                    }]
+                });
+            }
+
             $("#btnMostrarDatos").click(function() {
                 var fechaInicio = $("#fecha_inicio").val();
                 var fechaFin = $("#fecha_fin").val(); // <-- Obtener la fecha de fin
                 cargarReportePorDia(fechaInicio, fechaFin); // <-- Pasar ambos valores
+                cargarGraficasTopDefectos(fechaInicio, fechaFin); // <-- Cargar gráficas también
             });
         });
-    </script>
+</script>
 @endsection

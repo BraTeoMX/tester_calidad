@@ -32,7 +32,18 @@ class ReportesScreenController extends Controller
     {
 
         $mesesEnEspanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
         ];
 
         return view('ScreenPlanta2.reporte', compact('mesesEnEspanol'));
@@ -55,10 +66,10 @@ class ReportesScreenController extends Controller
             'screen.defectos', // Esta es la relación InspeccionHornoScreen y sus defectos
             'plancha.defectos' // Esta es la relación InspeccionHornoPlancha y sus defectos
         ])
-        ->whereBetween('created_at', [$inicioDia, $finDia])
-        ->orderBy('maquina')
-        ->orderBy('created_at', 'desc')
-        ->get();
+            ->whereBetween('created_at', [$inicioDia, $finDia])
+            ->orderBy('maquina')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $reportePorMaquina = [];
         $resumenGeneralDetalle = [];
@@ -109,7 +120,7 @@ class ReportesScreenController extends Controller
             $cantidadNumericaPlanchaDefectos = 0;
             if ($inspeccion->plancha && $inspeccion->plancha->defectos->isNotEmpty()) {
                 $planchaItems = $inspeccion->plancha->defectos->map(function ($defecto) {
-                     return '<li>' . e($defecto->nombre) . ' (' . e($defecto->cantidad) . ')</li>';
+                    return '<li>' . e($defecto->nombre) . ' (' . e($defecto->cantidad) . ')</li>';
                 })->unique();
                 $planchaDefectosHtml = '<ul>' . $planchaItems->implode('') . '</ul>';
                 // Sumamos las cantidades originales de los defectos de plancha
@@ -133,8 +144,8 @@ class ReportesScreenController extends Controller
                 'grafica'           => e($inspeccion->grafica) ?? 'N/A',
                 'tecnicasHtml'      => $tecnicasHtml,
                 'fibrasHtml'        => $fibrasHtml,
-                'screenDefectosHtml'=> $screenDefectosHtml,
-                'planchaDefectosHtml'=> $planchaDefectosHtml,
+                'screenDefectosHtml' => $screenDefectosHtml,
+                'planchaDefectosHtml' => $planchaDefectosHtml,
                 'cantidadNumericaScreenDefectos' => $cantidadNumericaScreenDefectos,
                 'cantidadNumericaPlanchaDefectos' => $cantidadNumericaPlanchaDefectos,
                 'tecnico_screen'    => $tecnicoScreen,
@@ -167,7 +178,7 @@ class ReportesScreenController extends Controller
 
             // Datos para la tabla individual de la máquina
             $reportePorMaquina[$keyMaquina] = [
-                'registros' => $registrosMaquina->map(function($reg){ // Quitamos 'maquina' de los registros individuales
+                'registros' => $registrosMaquina->map(function ($reg) { // Quitamos 'maquina' de los registros individuales
                     unset($reg['maquina']);
                     return $reg;
                 })->values()->all(), // values()->all() para reindexar array si es necesario
@@ -240,7 +251,18 @@ class ReportesScreenController extends Controller
     {
 
         $mesesEnEspanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
         ];
         // Obtener el inicio y fin del día
         $inicioDia = Carbon::now()->startOfDay(); // 00:00:00
@@ -262,11 +284,11 @@ class ReportesScreenController extends Controller
         $auditorDato = Auth::user()->name;
         // Obtener todos los registros con sus relaciones
         $inspecciones = InspeccionHorno::with(['screen.defectos', 'tecnicas', 'fibras'])
-                            ->whereHas('screen')
-                            ->orderBy('created_at', 'desc')
-                            ->where('auditor', $auditorDato)
-                            ->whereDate('created_at', Carbon::today())
-                            ->get();
+            ->whereHas('screen')
+            ->orderBy('created_at', 'desc')
+            ->where('auditor', $auditorDato)
+            ->whereDate('created_at', Carbon::today())
+            ->get();
 
         // Agrupar los registros por la columna "op"
         $grouped = $inspecciones->groupBy('op');
@@ -280,25 +302,35 @@ class ReportesScreenController extends Controller
             $totalCantidad = $group->sum('cantidad');
 
             // 🔹 Agrupar valores únicos en listas (sin cantidad)
-            $panelesTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('panel')->unique()->toArray())) . '</ul>';
+            $panelesTexto = '<ul>' . implode('', array_map(
+                fn($item) => "<li>{$item}</li>",
+                $group->pluck('panel')->unique()->toArray()
+            )) . '</ul>';
 
-            $maquinasTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('maquina')->unique()->toArray())) . '</ul>';
+            $maquinasTexto = '<ul>' . implode('', array_map(
+                fn($item) => "<li>{$item}</li>",
+                $group->pluck('maquina')->unique()->toArray()
+            )) . '</ul>';
 
-            $graficasTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('grafica')->unique()->toArray())) . '</ul>';
+            $graficasTexto = '<ul>' . implode('', array_map(
+                fn($item) => "<li>{$item}</li>",
+                $group->pluck('grafica')->unique()->toArray()
+            )) . '</ul>';
 
-            $clientesTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('cliente')->unique()->toArray())) . '</ul>';
+            $clientesTexto = '<ul>' . implode('', array_map(
+                fn($item) => "<li>{$item}</li>",
+                $group->pluck('cliente')->unique()->toArray()
+            )) . '</ul>';
 
-            $tecnicosTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('screen.nombre_tecnico')->unique()->toArray())) . '</ul>';
+            $tecnicosTexto = '<ul>' . implode('', array_map(
+                fn($item) => "<li>{$item}</li>",
+                $group->pluck('screen.nombre_tecnico')->unique()->toArray()
+            )) . '</ul>';
 
             // 🔹 Agrupar acciones correctivas y evitar listas vacías
             $accionesCorrectivasTexto = $group->pluck('screen.accion_correctiva')->unique()->filter()->toArray();
-            $accionesCorrectivasTexto = count($accionesCorrectivasTexto) 
-                ? '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", $accionesCorrectivasTexto)) . '</ul>' 
+            $accionesCorrectivasTexto = count($accionesCorrectivasTexto)
+                ? '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", $accionesCorrectivasTexto)) . '</ul>'
                 : 'N/A';
 
             // Agrupar y sumar la cantidad de defectos por nombre
@@ -316,9 +348,12 @@ class ReportesScreenController extends Controller
                     }
                 }
             }
-            $defectosTexto = count($defectosAggregados) 
-                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($defectosAggregados), array_values($defectosAggregados))) . '</ul>' 
+            $defectosTexto = count($defectosAggregados)
+                ? '<ul>' . implode('', array_map(
+                    fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>",
+                    array_keys($defectosAggregados),
+                    array_values($defectosAggregados)
+                )) . '</ul>'
                 : 'Sin defectos';
 
             //
@@ -336,9 +371,12 @@ class ReportesScreenController extends Controller
                     }
                 }
             }
-            $tecnicasTexto = count($tecnicasAggregadas) 
-                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($tecnicasAggregadas), array_values($tecnicasAggregadas))) . '</ul>'
+            $tecnicasTexto = count($tecnicasAggregadas)
+                ? '<ul>' . implode('', array_map(
+                    fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>",
+                    array_keys($tecnicasAggregadas),
+                    array_values($tecnicasAggregadas)
+                )) . '</ul>'
                 : 'Sin técnicas';
 
             // 🔹 Agrupar y contar fibras
@@ -355,9 +393,12 @@ class ReportesScreenController extends Controller
                     }
                 }
             }
-            $fibrasTexto = count($fibrasAggregadas) 
-                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($fibrasAggregadas), array_values($fibrasAggregadas))) . '</ul>'
+            $fibrasTexto = count($fibrasAggregadas)
+                ? '<ul>' . implode('', array_map(
+                    fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>",
+                    array_keys($fibrasAggregadas),
+                    array_values($fibrasAggregadas)
+                )) . '</ul>'
                 : 'Sin fibras';
 
             return [
@@ -384,9 +425,9 @@ class ReportesScreenController extends Controller
     {
         // Obtener las inspecciones que tengan la relación "screen" (y sus defectos)
         $inspecciones = InspeccionHorno::with(['screen.defectos'])
-                            ->whereHas('screen')
-                            ->whereDate('created_at', Carbon::today())
-                            ->get();
+            ->whereHas('screen')
+            ->whereDate('created_at', Carbon::today())
+            ->get();
 
         // Calcular la Cantidad total revisada (suma de la columna "cantidad" de InspeccionHorno)
         $cantidad_total_revisada = $inspecciones->sum('cantidad');
@@ -425,7 +466,18 @@ class ReportesScreenController extends Controller
     {
 
         $mesesEnEspanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
         ];
 
         return view('ScreenPlanta2.planchaV2', compact('mesesEnEspanol'));
@@ -436,11 +488,11 @@ class ReportesScreenController extends Controller
         $auditorDato = Auth::user()->name;
         // Obtener todos los registros con sus relaciones
         $inspecciones = InspeccionHorno::with(['plancha.defectos', 'tecnicas', 'fibras'])
-                            ->whereHas('plancha')
-                            ->whereDate('created_at', Carbon::today())
-                            ->orderBy('created_at', 'desc')
-                            ->where('auditor', $auditorDato)
-                            ->get();
+            ->whereHas('plancha')
+            ->whereDate('created_at', Carbon::today())
+            ->orderBy('created_at', 'desc')
+            ->where('auditor', $auditorDato)
+            ->get();
 
         // Agrupar los registros por la columna "op"
         $grouped = $inspecciones->groupBy('op');
@@ -454,25 +506,35 @@ class ReportesScreenController extends Controller
             $totalCantidad = $group->sum('plancha.piezas_auditadas');
 
             // 🔹 Agrupar valores únicos en listas (sin cantidad)
-            $panelesTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('panel')->unique()->toArray())) . '</ul>';
+            $panelesTexto = '<ul>' . implode('', array_map(
+                fn($item) => "<li>{$item}</li>",
+                $group->pluck('panel')->unique()->toArray()
+            )) . '</ul>';
 
-            $maquinasTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('maquina')->unique()->toArray())) . '</ul>';
+            $maquinasTexto = '<ul>' . implode('', array_map(
+                fn($item) => "<li>{$item}</li>",
+                $group->pluck('maquina')->unique()->toArray()
+            )) . '</ul>';
 
-            $graficasTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('grafica')->unique()->toArray())) . '</ul>';
+            $graficasTexto = '<ul>' . implode('', array_map(
+                fn($item) => "<li>{$item}</li>",
+                $group->pluck('grafica')->unique()->toArray()
+            )) . '</ul>';
 
-            $clientesTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('cliente')->unique()->toArray())) . '</ul>';
+            $clientesTexto = '<ul>' . implode('', array_map(
+                fn($item) => "<li>{$item}</li>",
+                $group->pluck('cliente')->unique()->toArray()
+            )) . '</ul>';
 
-            $tecnicosTexto = '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", 
-                $group->pluck('plancha.nombre_tecnico')->unique()->toArray())) . '</ul>';
+            $tecnicosTexto = '<ul>' . implode('', array_map(
+                fn($item) => "<li>{$item}</li>",
+                $group->pluck('plancha.nombre_tecnico')->unique()->toArray()
+            )) . '</ul>';
 
             // 🔹 Agrupar acciones correctivas y evitar listas vacías
             $accionesCorrectivasTexto = $group->pluck('plancha.accion_correctiva')->unique()->filter()->toArray();
-            $accionesCorrectivasTexto = count($accionesCorrectivasTexto) 
-                ? '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", $accionesCorrectivasTexto)) . '</ul>' 
+            $accionesCorrectivasTexto = count($accionesCorrectivasTexto)
+                ? '<ul>' . implode('', array_map(fn($item) => "<li>{$item}</li>", $accionesCorrectivasTexto)) . '</ul>'
                 : 'N/A';
 
             // Agrupar y sumar la cantidad de defectos por nombre
@@ -490,9 +552,12 @@ class ReportesScreenController extends Controller
                     }
                 }
             }
-            $defectosTexto = count($defectosAggregados) 
-                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($defectosAggregados), array_values($defectosAggregados))) . '</ul>' 
+            $defectosTexto = count($defectosAggregados)
+                ? '<ul>' . implode('', array_map(
+                    fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>",
+                    array_keys($defectosAggregados),
+                    array_values($defectosAggregados)
+                )) . '</ul>'
                 : 'Sin defectos';
 
             //
@@ -510,9 +575,12 @@ class ReportesScreenController extends Controller
                     }
                 }
             }
-            $tecnicasTexto = count($tecnicasAggregadas) 
-                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($tecnicasAggregadas), array_values($tecnicasAggregadas))) . '</ul>'
+            $tecnicasTexto = count($tecnicasAggregadas)
+                ? '<ul>' . implode('', array_map(
+                    fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>",
+                    array_keys($tecnicasAggregadas),
+                    array_values($tecnicasAggregadas)
+                )) . '</ul>'
                 : 'Sin técnicas';
 
             // 🔹 Agrupar y contar fibras
@@ -529,9 +597,12 @@ class ReportesScreenController extends Controller
                     }
                 }
             }
-            $fibrasTexto = count($fibrasAggregadas) 
-                ? '<ul>' . implode('', array_map(fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>", 
-                array_keys($fibrasAggregadas), array_values($fibrasAggregadas))) . '</ul>'
+            $fibrasTexto = count($fibrasAggregadas)
+                ? '<ul>' . implode('', array_map(
+                    fn($nombre, $cantidad) => "<li>{$nombre} ({$cantidad})</li>",
+                    array_keys($fibrasAggregadas),
+                    array_values($fibrasAggregadas)
+                )) . '</ul>'
                 : 'Sin fibras';
 
             return [
@@ -558,9 +629,9 @@ class ReportesScreenController extends Controller
     {
         // Obtener las inspecciones que tengan la relación "plancha" (y sus defectos)
         $inspecciones = InspeccionHorno::with(['plancha.defectos'])
-                            ->whereHas('plancha')
-                            ->whereDate('created_at', Carbon::today())
-                            ->get();
+            ->whereHas('plancha')
+            ->whereDate('created_at', Carbon::today())
+            ->get();
 
         // Calcular la Cantidad total revisada (suma de la columna "cantidad" de InspeccionHorno)
         $cantidad_total_revisada = $inspecciones->sum('plancha.piezas_auditadas');
@@ -595,9 +666,9 @@ class ReportesScreenController extends Controller
         ]);
     }
 
-    public function formControlHorno(Request $request) 
+    public function formControlHorno(Request $request)
     {
-        
+
         //dd($request->all());
         // Guardar el registro
         $registro = new Horno_Banda();
@@ -609,5 +680,96 @@ class ReportesScreenController extends Controller
         return redirect()->back()->with('success', 'Datos guardados correctamente.');
     }
 
+    public function getTopDefectosPorMaquina(Request $request)
+    {
+        $request->validate([
+            'fecha_inicio' => 'required|date_format:Y-m-d',
+            'fecha_fin'    => 'required|date_format:Y-m-d|after_or_equal:fecha_inicio',
+        ]);
 
+        $inicioDia = Carbon::parse($request->input('fecha_inicio'))->startOfDay();
+        $finDia    = Carbon::parse($request->input('fecha_fin'))->endOfDay();
+
+        $inspecciones = InspeccionHorno::with([
+            'screen.defectos',
+            'plancha.defectos'
+        ])
+            ->whereBetween('created_at', [$inicioDia, $finDia])
+            ->orderBy('maquina')
+            ->get();
+
+        $defectosPorMaquina = [];
+
+        foreach ($inspecciones as $inspeccion) {
+            $nombreMaquina = $inspeccion->maquina ?: 'Máquina no especificada';
+
+            // Inicializar arrays para esta máquina si no existen
+            if (!isset($defectosPorMaquina[$nombreMaquina])) {
+                $defectosPorMaquina[$nombreMaquina] = [
+                    'screen' => [],
+                    'plancha' => []
+                ];
+            }
+
+            // Procesar defectos Screen
+            if ($inspeccion->screen && $inspeccion->screen->defectos) {
+                foreach ($inspeccion->screen->defectos as $defecto) {
+                    $nombreDefecto = trim($defecto->nombre);
+                    $cantidad = (int) $defecto->cantidad;
+
+                    if (isset($defectosPorMaquina[$nombreMaquina]['screen'][$nombreDefecto])) {
+                        $defectosPorMaquina[$nombreMaquina]['screen'][$nombreDefecto] += $cantidad;
+                    } else {
+                        $defectosPorMaquina[$nombreMaquina]['screen'][$nombreDefecto] = $cantidad;
+                    }
+                }
+            }
+
+            // Procesar defectos Plancha
+            if ($inspeccion->plancha && $inspeccion->plancha->defectos) {
+                foreach ($inspeccion->plancha->defectos as $defecto) {
+                    $nombreDefecto = trim($defecto->nombre);
+                    $cantidad = (int) $defecto->cantidad;
+
+                    if (isset($defectosPorMaquina[$nombreMaquina]['plancha'][$nombreDefecto])) {
+                        $defectosPorMaquina[$nombreMaquina]['plancha'][$nombreDefecto] += $cantidad;
+                    } else {
+                        $defectosPorMaquina[$nombreMaquina]['plancha'][$nombreDefecto] = $cantidad;
+                    }
+                }
+            }
+        }
+
+        // Procesar datos para obtener top 3 por máquina y tipo
+        $topDefectosPorMaquina = [];
+
+        foreach ($defectosPorMaquina as $nombreMaquina => $tipos) {
+            $topDefectosPorMaquina[$nombreMaquina] = [
+                'screen' => $this->obtenerTop3Defectos($tipos['screen']),
+                'plancha' => $this->obtenerTop3Defectos($tipos['plancha'])
+            ];
+        }
+
+        return response()->json($topDefectosPorMaquina);
+    }
+
+    private function obtenerTop3Defectos($defectos)
+    {
+        // Convertir a array de objetos con defecto y total
+        $defectosArray = [];
+        foreach ($defectos as $nombre => $cantidad) {
+            $defectosArray[] = [
+                'defecto' => $nombre,
+                'total' => $cantidad
+            ];
+        }
+
+        // Ordenar por cantidad descendente
+        usort($defectosArray, function ($a, $b) {
+            return $b['total'] <=> $a['total'];
+        });
+
+        // Retornar solo los top 3
+        return array_slice($defectosArray, 0, 3);
+    }
 }
