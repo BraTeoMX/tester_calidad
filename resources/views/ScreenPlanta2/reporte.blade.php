@@ -67,6 +67,38 @@
     .texto-blanco {
         color: white !important;
     }
+
+    /* Estilos adicionales para controles de gráficas */
+    .btn-group-toggle .btn {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+
+    .btn-group-toggle .btn.active {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-chart .card-header {
+        padding: 10px 15px;
+        min-height: 50px;
+    }
+
+    .card-chart .card-title {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    /* Responsive para controles en móviles */
+    @media (max-width: 768px) {
+        .btn-group-toggle .btn span.d-none {
+            display: none !important;
+        }
+
+        .btn-group-toggle .btn {
+            padding: 6px 10px;
+            font-size: 10px;
+        }
+    }
 </style>
 
 <!-- DataTables CSS desde carpeta local -->
@@ -407,7 +439,11 @@
                                             <div class="col-md-6">
                                                 <div class="card card-chart">
                                                     <div class="card-header">
-                                                        <h5 class="card-title">Top 3 Defectos - SCREEN</h5>
+                                                        <div class="row">
+                                                            <div class="col-sm-6 text-left">
+                                                                <h5 class="card-title">Top 3 Defectos - SCREEN</h5>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <div class="card-body">
                                                         <div id="${graficaScreenId}" style="width: 100%; height: 300px;">
@@ -421,7 +457,11 @@
                                             <div class="col-md-6">
                                                 <div class="card card-chart">
                                                     <div class="card-header">
-                                                        <h5 class="card-title">Top 3 Defectos - PLANCHA</h5>
+                                                        <div class="row">
+                                                            <div class="col-sm-6 text-left">
+                                                                <h5 class="card-title">Top 3 Defectos - PLANCHA</h5>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <div class="card-body">
                                                         <div id="${graficaPlanchaId}" style="width: 100%; height: 300px;">
@@ -460,6 +500,9 @@
                                     </div>
                                 `);
                             }
+
+                            // Agregar funcionalidad a los controles de mostrar/ocultar
+                            configurarControlesGraficas(nombreMaquina);
                         });
                     },
                     error: function(jqXHR, textStatus, errorThrown) {
@@ -477,24 +520,59 @@
                     }
                 });
             }
-
-            // Función para crear gráfica de defectos usando Highcharts
+        
+            // Función para configurar controles de mostrar/ocultar gráficas
+            function configurarControlesGraficas(nombreMaquina) {
+                const nombreMaquinaFormateado = nombreMaquina.replace(/\s+/g, '-').toLowerCase();
+        
+                // Configurar controles para gráfica Screen
+                $(`input[name="options-${nombreMaquinaFormateado}-screen"]`).each(function() {
+                    $(this).off('change').on('change', function() {
+                        const chartId = $(this).closest('label').data('chart');
+                        const isShow = $(this).closest('label').text().trim() === 'Mostrar';
+        
+                        if (isShow) {
+                            $(`#${chartId}`).show();
+                        } else {
+                            $(`#${chartId}`).hide();
+                        }
+                    });
+                });
+        
+                // Configurar controles para gráfica Plancha
+                $(`input[name="options-${nombreMaquinaFormateado}-plancha"]`).each(function() {
+                    $(this).off('change').on('change', function() {
+                        const chartId = $(this).closest('label').data('chart');
+                        const isShow = $(this).closest('label').text().trim() === 'Mostrar';
+        
+                        if (isShow) {
+                            $(`#${chartId}`).show();
+                        } else {
+                            $(`#${chartId}`).hide();
+                        }
+                    });
+                });
+            }
+        
+            // Función para crear gráfica de defectos usando Highcharts (estilo dashboard)
             function crearGraficaDefectos(containerId, titulo, datos) {
+                // Obtener categorías y valores
                 const categorias = datos.map(d => d.defecto);
                 const valores = datos.map(d => parseInt(d.total));
 
-                // Paleta de colores para las barras
-                const colores = ['#f44336', '#ff9800', '#ffc107', '#4caf50', '#2196f3'];
+                // Paleta de colores igual al dashboard
+                const colores = ['#f44336', '#ff9800', '#ffc107', '#4caf50', '#00bcd4'];
 
-                Highcharts.chart(containerId, {
+                const chart = Highcharts.chart(containerId, {
                     chart: {
                         type: 'column',
-                        backgroundColor: 'transparent',
-                        height: 300
+                        height: 300,
+                        backgroundColor: 'transparent'
                     },
                     title: {
                         text: titulo,
                         style: {
+                            color: '#ffffff',
                             fontSize: '14px',
                             fontWeight: 'bold'
                         }
@@ -503,21 +581,28 @@
                         categories: categorias,
                         labels: {
                             style: {
+                                color: '#ffffff',
                                 fontSize: '11px'
                             }
                         },
+                        lineColor: '#ffffff',
                         crosshair: true
                     },
                     yAxis: {
                         min: 0,
                         title: {
-                            text: 'Cantidad de Defectos'
+                            text: 'Cantidad de Defectos',
+                            style: {
+                                color: '#ffffff'
+                            }
                         },
                         labels: {
                             style: {
+                                color: '#ffffff',
                                 fontSize: '10px'
                             }
-                        }
+                        },
+                        gridLineColor: 'rgba(255, 255, 255, 0.2)'
                     },
                     tooltip: {
                         backgroundColor: 'rgba(0,0,0,0.85)',
@@ -525,27 +610,24 @@
                             color: '#ffffff'
                         },
                         formatter: function() {
-                            return `<b>${this.key}</b><br/>Cantidad: <b>${this.y}</b>`;
+                            const pointData = datos[this.point.index];
+                            return `<b>Defecto: ${pointData.defecto}</b><br/>` +
+                                   `Cantidad total: <b>${pointData.total}</b>`;
                         }
                     },
                     plotOptions: {
-                        column: {
-                            pointPadding: 0.2,
-                            borderWidth: 0,
+                        series: {
                             colorByPoint: true,
                             colors: colores,
+                            borderWidth: 0,
                             dataLabels: {
                                 enabled: true,
-                                rotation: -45,
                                 color: '#FFFFFF',
-                                align: 'right',
-                                format: '{point.y}',
-                                y: 10,
                                 style: {
-                                    fontSize: '10px',
-                                    fontWeight: 'normal',
-                                    textOutline: 'none'
-                                }
+                                    textOutline: 'none',
+                                    fontSize: '10px'
+                                },
+                                format: '{point.y}'
                             }
                         }
                     },
@@ -556,10 +638,12 @@
                         enabled: false
                     },
                     series: [{
-                        name: 'Cantidad',
+                        name: 'Total de Defectos',
                         data: valores
                     }]
                 });
+
+                return chart;
             }
 
             $("#btnMostrarDatos").click(function() {
