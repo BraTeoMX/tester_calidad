@@ -242,7 +242,7 @@
                                             <td class="text-right font-weight-bold" colspan="2">Def. Plancha: ${Number(dataMaquina.resumen.totalPlanchaDefectos).toLocaleString()}</td>
                                             <td class="text-right font-weight-bold">
                                                 Total Def: ${Number(dataMaquina.resumen.totalDefectosCombinados).toLocaleString()}<br>
-                                                %: ${Number(dataMaquina.resumen.porcentajeDefectos).toFixed(2)}%
+                                                %: <span data-porcentaje="${Number(dataMaquina.resumen.porcentajeDefectos).toFixed(2)}">${Number(dataMaquina.resumen.porcentajeDefectos).toFixed(2)}%</span>
                                             </td>
                                         </tr>
                                     </tfoot>`;
@@ -261,11 +261,57 @@
                                             {
                                                 extend: 'excelHtml5',
                                                 text: 'Exportar a Excel',
-                                                title: `Reporte Máquina - ${nombreMaquina} - ${rangoFechasTexto}`, 
+                                                title: `Reporte Máquina - ${nombreMaquina} - ${rangoFechasTexto}`,
                                                 footer: true, // Esto asegura que el tfoot se incluya en la exportación
+                                                // Opción más simple: usar customizeData para limpiar datos antes de generar Excel
+                                                customizeData: function(data) {
+                                                    // Limpiar datos del body
+                                                    for (var i = 0; i < data.body.length; i++) {
+                                                        for (var j = 0; j < data.body[i].length; j++) {
+                                                            if (typeof data.body[i][j] === 'string' && data.body[i][j].indexOf('%') !== -1) {
+                                                                data.body[i][j] = data.body[i][j].replace('%', '');
+                                                            }
+                                                        }
+                                                    }
+        
+                                                    // Limpiar datos del footer
+                                                    if (data.footer) {
+                                                        for (var i = 0; i < data.footer.length; i++) {
+                                                            for (var j = 0; j < data.footer[i].length; j++) {
+                                                                if (typeof data.footer[i][j] === 'string' && data.footer[i][j].indexOf('%') !== -1) {
+                                                                    data.footer[i][j] = data.footer[i][j].replace('%', '');
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+        
+                                                    return data;
+                                                },
                                                 exportOptions: {
-                                                    // Aquí podrías especificar columnas si fuera necesario, pero con footer:true es usualmente suficiente.
-                                                    // columns: ':visible' // Exporta solo columnas visibles
+                                                    format: {
+                                                        body: function(data, row, column, node) {
+                                                            // Usar el atributo data-porcentaje si existe
+                                                            if (node && node.querySelector && node.querySelector('[data-porcentaje]')) {
+                                                                return node.querySelector('[data-porcentaje]').getAttribute('data-porcentaje');
+                                                            }
+                                                            // Función específica para formatear datos durante la exportación
+                                                            if (data && data.includes && data.includes('%')) {
+                                                                return data.replace('%', '');
+                                                            }
+                                                            return data;
+                                                        },
+                                                        footer: function(data, row, column, node) {
+                                                            // Usar el atributo data-porcentaje si existe
+                                                            if (node && node.querySelector && node.querySelector('[data-porcentaje]')) {
+                                                                return node.querySelector('[data-porcentaje]').getAttribute('data-porcentaje');
+                                                            }
+                                                            // Función específica para formatear el footer durante la exportación
+                                                            if (data && data.includes && data.includes('%')) {
+                                                                return data.replace('%', '');
+                                                            }
+                                                            return data;
+                                                        }
+                                                    }
                                                 }
                                             }
                                         ],
@@ -315,7 +361,7 @@
                                     <td class="text-right">${Number(detalle.cantidadScreenDefectos).toLocaleString()}</td>
                                     <td class="text-right">${Number(detalle.cantidadPlanchaDefectos).toLocaleString()}</td>
                                     <td class="text-right">${Number(detalle.cantidadDefectosCombinados).toLocaleString()}</td>
-                                    <td class="text-right">${Number(detalle.porcentajeDefectos).toFixed(2)}%</td>
+                                    <td class="text-right" data-porcentaje="${Number(detalle.porcentajeDefectos).toFixed(2)}">${Number(detalle.porcentajeDefectos).toFixed(2)}%</td>
                                 </tr>`;
                             });
                             resumenGeneralHtml += `</tbody>`;
@@ -326,7 +372,7 @@
                                     <td class="text-right">${Number(response.resumenGeneral.totalScreenDefectosGlobal).toLocaleString()}</td>
                                     <td class="text-right">${Number(response.resumenGeneral.totalPlanchaDefectosGlobal).toLocaleString()}</td>
                                     <td class="text-right">${Number(response.resumenGeneral.totalDefectosCombinadosGlobal).toLocaleString()}</td>
-                                    <td class="text-right">${Number(response.resumenGeneral.porcentajeDefectosGlobal).toFixed(2)}%</td>
+                                    <td class="text-right" data-porcentaje="${Number(response.resumenGeneral.porcentajeDefectosGlobal).toFixed(2)}">${Number(response.resumenGeneral.porcentajeDefectosGlobal).toFixed(2)}%</td>
                                 </tr>
                             </tfoot>`;
                             resumenGeneralHtml += `</table>
@@ -343,7 +389,57 @@
                                         extend: 'excelHtml5',
                                         text: 'Exportar Resumen a Excel',
                                         title: `Resumen General - ${rangoFechasTexto}`,
-                                        footer: true // Incluir tfoot
+                                        footer: true, // Incluir tfoot
+                                        // Opción más simple: usar customizeData para limpiar datos antes de generar Excel
+                                        customizeData: function(data) {
+                                            // Limpiar datos del body
+                                            for (var i = 0; i < data.body.length; i++) {
+                                                for (var j = 0; j < data.body[i].length; j++) {
+                                                    if (typeof data.body[i][j] === 'string' && data.body[i][j].indexOf('%') !== -1) {
+                                                        data.body[i][j] = data.body[i][j].replace('%', '');
+                                                    }
+                                                }
+                                            }
+
+                                            // Limpiar datos del footer
+                                            if (data.footer) {
+                                                for (var i = 0; i < data.footer.length; i++) {
+                                                    for (var j = 0; j < data.footer[i].length; j++) {
+                                                        if (typeof data.footer[i][j] === 'string' && data.footer[i][j].indexOf('%') !== -1) {
+                                                            data.footer[i][j] = data.footer[i][j].replace('%', '');
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            return data;
+                                        },
+                                        exportOptions: {
+                                            format: {
+                                                body: function(data, row, column, node) {
+                                                    // Usar el atributo data-porcentaje si existe
+                                                    if (node && node.querySelector && node.querySelector('[data-porcentaje]')) {
+                                                        return node.querySelector('[data-porcentaje]').getAttribute('data-porcentaje');
+                                                    }
+                                                    // Función específica para formatear datos durante la exportación
+                                                    if (data && data.includes && data.includes('%')) {
+                                                        return data.replace('%', '');
+                                                    }
+                                                    return data;
+                                                },
+                                                footer: function(data, row, column, node) {
+                                                    // Usar el atributo data-porcentaje si existe
+                                                    if (node && node.querySelector && node.querySelector('[data-porcentaje]')) {
+                                                        return node.querySelector('[data-porcentaje]').getAttribute('data-porcentaje');
+                                                    }
+                                                    // Función específica para formatear el footer durante la exportación
+                                                    if (data && data.includes && data.includes('%')) {
+                                                        return data.replace('%', '');
+                                                    }
+                                                    return data;
+                                                }
+                                            }
+                                        }
                                     }
                                 ],
                                 paging: false, // Generalmente no se pagina la tabla de resumen

@@ -415,32 +415,27 @@ class AuditoriaAQLV3Controller extends Controller
         ];
 
         $procesos = Cache::remember($cacheKey, $cacheDuration, function () use ($fechaActual, $tipoUsuario, $auditorDato, $columnsToSelect) {
-            // Subconsulta para encontrar el ID máximo (registro más próximo)
-            // para cada combinación de modulo y op que cumpla las condiciones.
-            $subQuery = AuditoriaAQL::select('modulo', 'op') // Columnas por las que se agrupa
-                ->selectRaw('MAX(id) as max_id') // Selecciona el ID máximo para cada grupo
+            // Consulta optimizada usando window function para ranking, evitando join explícito
+            // Selecciona columnas + ranking por grupo (modulo, op) ordenado por id DESC
+            $query = AuditoriaAQL::select(array_merge($columnsToSelect, [
+                DB::raw('ROW_NUMBER() OVER (PARTITION BY modulo, op ORDER BY id DESC) as rn') // Ranking: 1 para el registro más reciente por grupo
+            ]))
                 ->whereNull('estatus')
                 ->whereDate('created_at', $fechaActual);
 
-            // Aplicar filtro de auditor DENTRO de la subconsulta
-            // para que el MAX(id) se determine sobre los registros correctos.
+            // Aplicar filtro de auditor si no es Admin/Gerente
             if (!in_array($tipoUsuario, ['Administrador', 'Gerente de Calidad'])) {
-                $subQuery->where('auditor', $auditorDato);
+                $query->where('auditor', $auditorDato);
             }
 
-            $subQuery->groupBy('modulo', 'op');
+            // Ejecutar consulta y filtrar solo el registro con rn=1 (más reciente por grupo) usando subconsulta
+            $procesos = DB::table(DB::raw("({$query->toSql()}) as ranked"))
+                ->mergeBindings($query->getQuery()) // Mantiene bindings de parámetros para seguridad
+                ->where('rn', 1)
+                ->orderBy('modulo', 'asc')
+                ->get();
 
-            // Consulta principal que se une con la subconsulta
-            // para obtener todas las columnas del registro con el ID máximo.
-            $query = AuditoriaAQL::query() // Iniciar con query() para claridad
-                ->select($columnsToSelect)
-                // Unir con la subconsulta (latest_aql_records es un alias para la subconsulta)
-                ->joinSub($subQuery, 'latest_aql_records', function ($join) {
-                    $join->on('auditoria_aql.id', '=', 'latest_aql_records.max_id');
-                })
-                ->orderBy('auditoria_aql.modulo', 'asc'); // Ordenar el resultado final
-
-            return $query->get();
+            return $procesos;
         });
 
         return response()->json($procesos);
