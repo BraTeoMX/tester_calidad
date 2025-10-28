@@ -365,8 +365,8 @@
                 if (event.target.classList.contains('input-modulo')) {
                     const row = event.target.closest('tr');
                     const itemid = row.dataset.itemid;
-                    
-                    // Convertir el valor a mayúsculas
+
+                    // Convertir el valor a mayúsculas automáticamente
                     event.target.value = event.target.value.toUpperCase();
 
                     const moduloValue = event.target.value;
@@ -379,6 +379,32 @@
                 }
             });
 
+            // Función para validar el formato del módulo
+            function validarModulo(modulo) {
+                if (!modulo || modulo.trim() === '') {
+                    return { valido: false, mensaje: 'El campo módulo no puede estar vacío.' };
+                }
+
+                // Verificar que contenga al menos un número y una letra mayúscula
+                const tieneNumero = /\d/.test(modulo);
+                const tieneLetra = /[A-Z]/.test(modulo);
+
+                if (!tieneNumero) {
+                    return { valido: false, mensaje: 'El módulo debe contener al menos un número.' };
+                }
+
+                if (!tieneLetra) {
+                    return { valido: false, mensaje: 'El módulo debe contener al menos una letra mayúscula.' };
+                }
+
+                // Verificar que no contenga caracteres inválidos (solo números y letras mayúsculas)
+                if (!/^[A-Z0-9]+$/.test(modulo)) {
+                    return { valido: false, mensaje: 'El módulo solo puede contener números y letras mayúsculas.' };
+                }
+
+                return { valido: true };
+            }
+
             // Botón para guardar registros
             saveButton.addEventListener('click', function () {
                 if (selectedItems.length === 0) {
@@ -386,6 +412,30 @@
                         icon: 'warning',
                         title: 'Sin registros',
                         text: 'No hay registros para guardar.'
+                    });
+                    return;
+                }
+
+                // Validar todos los módulos antes de proceder
+                let erroresValidacion = [];
+                selectedItems.forEach((item, index) => {
+                    if (!item.modulo || item.modulo.trim() === '') {
+                        erroresValidacion.push(`Fila ${index + 1}: El campo módulo está vacío.`);
+                    } else {
+                        const validacion = validarModulo(item.modulo);
+                        if (!validacion.valido) {
+                            erroresValidacion.push(`Fila ${index + 1}: ${validacion.mensaje}`);
+                        }
+                    }
+                });
+
+                // Si hay errores de validación, mostrarlos
+                if (erroresValidacion.length > 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Errores de validación',
+                        html: erroresValidacion.join('<br>'),
+                        confirmButtonText: 'Entendido'
                     });
                     return;
                 }
