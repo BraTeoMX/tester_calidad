@@ -39,16 +39,87 @@ class GestionController extends Controller
             Log::info("Paso 1: Buscando '$searchTerm' en el modelo principal '$source'.");
             $results = JobAQLHistorial::where('prodid', $searchTerm)->get();
 
+            // Agregar mensaje informativo para búsqueda local
+            $message = 'Búsqueda realizada en la base de datos local.';
+
             // 💡 Paso 2: Si no se encontraron resultados, usar la fuente secundaria optimizada
             if ($results->isEmpty()) {
-                $source = 'SQLServer_Function_udf_BuscarAQLPorProdid'; // Nueva fuente para claridad
-                Log::info("Paso 2 (Fallback): No se encontró en el modelo. Buscando '$searchTerm' en la función optimizada '$source'.");
+                $source = 'SQLServer_View_OpBusqueda_3_View'; // Nueva fuente para claridad
+                Log::info("Paso 2 (Fallback): No se encontró en el modelo. Buscando '$searchTerm' en la vista '$source'.");
 
-                // Llamamos a la nueva función de SQL Server.
-                // Usamos DB::select para ejecutar una consulta cruda que llama a nuestra función.
-                // El '?' es un marcador de posición para el binding seguro de parámetros, previniendo inyección SQL.
-                $queryResults = DB::connection('sqlsrv_dev')
-                    ->select('SELECT * FROM dbo.udf_BuscarAQLPorProdid(?)', [$searchTerm]);
+                // Optimización: Usar consulta directa con WHERE aplicado en la tabla base para mejor rendimiento
+                // Aplicamos el filtro en p.PRODID (la tabla base) antes de hacer JOINs y procesamientos
+                $sql = "
+                    SELECT TOP (1000)
+                        inventdimid,
+                        oprname,
+                        payrolldate,
+                        prodpackticketid,
+                        prodticketid,
+                        qty,
+                        moduleid,
+                        prodid,
+                        itemid,
+                        colorname,
+                        CASE
+                            WHEN customername = 'SKG Consulting Group Corp' THEN 'BELLEFIT INC'
+                            WHEN customername = 'PDS' THEN 'Otro Cliente'
+                            WHEN itemid = '1360' AND (customername IS NULL OR customername = '')
+                                THEN 'Velrose Lingerie'
+                            ELSE customername
+                        END AS customername,
+                        inventcolorid,
+                        inventsizeid
+                    FROM (
+                        SELECT
+                            p.INVENTDIMID,
+                            p.OPRNAME,
+                            DATEADD(SECOND, p.SCANNEDTIME, CAST(p.SCANNEDDATE AS DATETIME)) AS payrolldate,
+                            p.PRODPACKTICKETID,
+                            p.PRODTICKETID,
+                            p.QTY,
+                            p.MODULEID,
+                            p.PRODID,
+                            t.ITEMID,
+                            b.COLORNAME,
+                            CASE
+                                WHEN b.CUSTOMERNAME = 'SKG Consulting Group Corp' THEN 'BELLEFIT INC'
+                                WHEN b.CUSTOMERNAME = 'PDS' THEN 'Otro Cliente'
+                                WHEN t.ITEMID = '1360'
+                                     AND (b.CUSTOMERNAME IS NULL OR b.CUSTOMERNAME = '')
+                                    THEN 'Velrose Lingerie'
+                                ELSE b.CUSTOMERNAME
+                            END AS CUSTOMERNAME,
+                            b.INVENTCOLORID,
+                            id.INVENTSIZEID,
+                            ROW_NUMBER()
+                                OVER (
+                                    PARTITION BY p.PRODPACKTICKETID
+                                    ORDER BY p.PAYROLLDATE DESC
+                                ) AS rn
+                        FROM
+                            [AX_SERVER_LIVE].[INTIMARKDBAXPRODLIVE].[dbo].[PRODTICKETSTABLE_AT] AS p
+                        INNER JOIN
+                            [AX_SERVER_LIVE].[INTIMARKDBAXPRODLIVE].[dbo].[INVENTDIM] AS id
+                            ON id.INVENTDIMID = p.INVENTDIMID
+                        INNER JOIN
+                            [AX_SERVER_LIVE].[INTIMARKDBAXPRODLIVE].[dbo].[PRODTABLE] AS t
+                            ON t.PRODID = p.PRODID
+                        INNER JOIN
+                            [AX_SERVER_LIVE].[INTIMARKDBAXPRODLIVE].[dbo].[BACKLOGTABLE_AT] AS b
+                            ON b.ITEMID        = t.ITEMID
+                           AND b.SALESID       = t.INVENTREFID
+                           AND b.INVENTCOLORID = id.INVENTCOLORID
+                        WHERE
+                            p.OPRID BETWEEN '200' AND '299'
+                            AND p.PRODID = ?
+                    ) AS subquery
+                    WHERE rn = 1
+                    ORDER BY PAYROLLDATE DESC;
+                ";
+
+                $queryResults = DB::connection('sqlsrv')
+                    ->select($sql, [$searchTerm]);
 
                 // DB::select devuelve un array estándar de PHP. Lo convertimos a una colección de Laravel
                 // para mantener la consistencia con los resultados de Eloquent (usar isNotEmpty, count, etc.).
@@ -71,11 +142,14 @@ class GestionController extends Controller
             }
 
             // 💡 Paso 4: Devolver el resultado de la búsqueda (que puede tener datos o estar vacío)
-            return response()->json([
+            $response = [
                 'status' => 'success',
                 'source' => $source,
                 'data' => $results,
-            ]);
+                'message' => $message,
+            ];
+
+            return response()->json($response);
         } catch (ValidationException $e) {
             Log::warning('Intento de búsqueda con datos inválidos: ' . json_encode($e->errors()));
             // Re-lanzar la excepción para que Laravel la maneje y devuelva una respuesta 422.
