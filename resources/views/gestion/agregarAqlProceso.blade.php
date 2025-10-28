@@ -222,30 +222,77 @@
                 });
 
                 if (ids.length === 0) {
-                    alert('No hay registros para guardar.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sin registros',
+                        text: 'No hay registros para guardar.'
+                    });
                     return;
                 }
 
-                // Realiza la petición AJAX para guardar los registros
-                fetch('/guardarAql', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
-                    body: JSON.stringify({ ids }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert(data.message); // Muestra el mensaje recibido del servidor
-                    } else {
-                        alert(data.message);
+                // Mostrar SweetAlert de confirmación
+                Swal.fire({
+                    title: '¿Guardar registros?',
+                    text: `¿Estás seguro de que deseas guardar ${ids.length} registro(s)?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, guardar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Mostrar SweetAlert de carga
+                        Swal.fire({
+                            title: 'Guardando...',
+                            text: 'Procesando los registros.',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            willOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        // Realiza la petición AJAX para guardar los registros
+                        fetch('/guardarAql', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            },
+                            body: JSON.stringify({ ids }),
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Cerrar SweetAlert de carga
+                            Swal.close();
+
+                            if (data.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Éxito!',
+                                    text: data.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: data.message
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.close(); // Cerrar cualquier SweetAlert abierto
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error de conexión',
+                                text: 'Hubo un problema al guardar los registros.'
+                            });
+                        });
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Hubo un problema al guardar los registros.');
                 });
             });
         });
@@ -335,32 +382,80 @@
             // Botón para guardar registros
             saveButton.addEventListener('click', function () {
                 if (selectedItems.length === 0) {
-                    alert('No hay registros para guardar.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sin registros',
+                        text: 'No hay registros para guardar.'
+                    });
                     return;
                 }
 
-                fetch('/guardarModuloEstilo', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
-                    body: JSON.stringify({ items: selectedItems }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert(data.message);
-                        // Limpiar tabla y array
-                        tableBody.innerHTML = '';
-                        selectedItems = [];
-                    } else {
-                        alert(data.message);
+                // Mostrar SweetAlert de confirmación
+                Swal.fire({
+                    title: '¿Guardar registros?',
+                    text: `¿Estás seguro de que deseas guardar ${selectedItems.length} registro(s) de módulo y estilo?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, guardar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Mostrar SweetAlert de carga
+                        Swal.fire({
+                            title: 'Guardando...',
+                            text: 'Procesando los registros de módulo y estilo.',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            willOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        fetch('/guardarModuloEstilo', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            },
+                            body: JSON.stringify({ items: selectedItems }),
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Cerrar SweetAlert de carga
+                            Swal.close();
+
+                            if (data.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Éxito!',
+                                    text: data.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    // Limpiar tabla y array después de que el usuario cierre el modal
+                                    tableBody.innerHTML = '';
+                                    selectedItems = [];
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: data.message
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.close(); // Cerrar cualquier SweetAlert abierto
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error de conexión',
+                                text: 'Hubo un problema al guardar los registros.'
+                            });
+                        });
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Hubo un problema al guardar los registros.');
                 });
             });
         });
