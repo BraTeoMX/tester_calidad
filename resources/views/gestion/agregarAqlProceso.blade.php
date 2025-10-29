@@ -169,14 +169,18 @@
                         if (data.data.length === 0) {
                             // Si no hay resultados
                             searchResults.innerHTML = '<tr><td colspan="5">No se encontraron resultados.</td></tr>';
+                            window.currentSearchResults = [];
                             return;
                         }
 
+                        // Guardar los datos completos para usarlos al guardar
+                        window.currentSearchResults = data.data;
+
                         // Genera el HTML para los nuevos resultados
-                        data.data.forEach(item => {
+                        data.data.forEach((item, index) => {
                             const row = `
                                 <tr>
-                                    <td>${item.id}</td>
+                                    <td>${index + 1}</td>
                                     <td>${item.prodpackticketid}</td>
                                     <td>${item.prodid}</td>
                                     <td>${item.itemid}</td>
@@ -214,14 +218,8 @@
             const newSaveButton = document.getElementById('save-button');
 
             newSaveButton.addEventListener('click', function () {
-                // Obtiene todos los IDs de los registros mostrados en la tabla
-                const ids = [];
-                searchResults.querySelectorAll('tr').forEach(row => {
-                    const id = row.cells[0].textContent; // Toma el ID de la primera celda
-                    ids.push(id);
-                });
-
-                if (ids.length === 0) {
+                // Usar los datos originales de la búsqueda que ya contienen toda la información necesaria
+                if (!window.currentSearchResults || window.currentSearchResults.length === 0) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Sin registros',
@@ -233,7 +231,7 @@
                 // Mostrar SweetAlert de confirmación
                 Swal.fire({
                     title: '¿Guardar registros?',
-                    text: `¿Estás seguro de que deseas guardar ${ids.length} registro(s)?`,
+                    text: `¿Estás seguro de que deseas guardar ${window.currentSearchResults.length} registro(s)?`,
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#28a745',
@@ -260,7 +258,7 @@
                                 'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                             },
-                            body: JSON.stringify({ ids }),
+                            body: JSON.stringify({ records: window.currentSearchResults }),
                         })
                         .then(response => response.json())
                         .then(data => {

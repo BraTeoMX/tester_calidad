@@ -8,7 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class JobAQLTemporal extends Model
 {
     use HasFactory;
+
+    protected $connection = 'mysql';
     protected $table = 'job_aql_temporal';
+    public $timestamps = true;
 
     protected $fillable = [
         'payrolldate',
@@ -23,4 +26,8 @@ class JobAQLTemporal extends Model
         'inventsizeid',
     ];
 
+    protected $casts = [
+        'payrolldate' => 'datetime', // O 'datetime' según tu necesidad
+        'qty' => 'integer',
+    ];
 }

@@ -123,15 +123,8 @@ class GestionController extends Controller
 
                 // DB::select devuelve un array estándar de PHP. Lo convertimos a una colección de Laravel
                 // para mantener la consistencia con los resultados de Eloquent (usar isNotEmpty, count, etc.).
-                // Transformamos la colección para añadir un ID secuencial a cada elemento
-                $results = collect($queryResults)->map(function ($item, $key) {
-                    // A cada item ($item), le añadimos una nueva propiedad 'id'.
-                    // El valor será la posición del item ($key, que empieza en 0) más 1.
-                    $item->id = $key + 1;
-
-                    // Devolvemos el item ya modificado
-                    return $item;
-                });
+                // Los registros ya contienen toda la información necesaria, no necesitamos IDs secuenciales
+                $results = collect($queryResults);
             }
 
             // 💡 Paso 3: Registrar el resultado final y devolver la respuesta
@@ -168,11 +161,11 @@ class GestionController extends Controller
         Log::info('=== INICIO guardarAql ===');
         Log::info('Request completo:', $request->all());
 
-        $ids = $request->input('ids');
-        Log::info('IDs recibidos:', ['ids' => $ids, 'tipo' => gettype($ids), 'count' => is_array($ids) ? count($ids) : 'no es array']);
+        $records = $request->input('records');
+        Log::info('Registros recibidos:', ['records' => $records, 'tipo' => gettype($records), 'count' => is_array($records) ? count($records) : 'no es array']);
 
-        if (empty($ids)) {
-            Log::warning('No se proporcionaron IDs para guardar');
+        if (empty($records)) {
+            Log::warning('No se proporcionaron registros para guardar');
             return response()->json([
                 'status' => 'error',
                 'message' => 'No se proporcionaron registros para guardar.',
@@ -185,74 +178,69 @@ class GestionController extends Controller
         $deletedCount = JobAQLTemporal::where('created_at', '<', $fechaLimite)->delete();
         Log::info('Registros eliminados:', ['count' => $deletedCount]);
 
-        // Obtiene los registros completos desde JobAQLHistorial
-        Log::info('Consultando JobAQLHistorial con IDs:', ['ids' => $ids]);
-        $records = JobAQLHistorial::whereIn('id', $ids)->get();
-        Log::info('Registros encontrados en JobAQLHistorial:', ['count' => $records->count(), 'records' => $records->toArray()]);
-
-        if ($records->isEmpty()) {
-            Log::warning('No se encontraron registros en JobAQLHistorial para los IDs proporcionados');
-            return response()->json([
-                'status' => 'error',
-                'message' => 'No se encontraron registros con los IDs proporcionados.',
-            ], 404);
-        }
-
-        // Procesa los registros y los guarda en JobAQLTemporal
+        // Procesa los registros directamente desde el request
         $procesados = 0;
-        $duplicados = 0;
         $errores = 0;
 
         Log::info('Iniciando procesamiento de registros para guardar en JobAQLTemporal');
+        DB::listen(function ($query) {
+            Log::info('SQL ejecutado:', [
+                'sql' => $query->sql,
+                'bindings' => $query->bindings,
+                'time' => $query->time,
+            ]);
+        });
         foreach ($records as $index => $record) {
             $numeroRegistro = $index + 1;
             Log::info("Procesando registro {$numeroRegistro}:", [
-                'id' => $record->id,
-                'prodpackticketid' => $record->prodpackticketid,
-                'prodid' => $record->prodid
+                'id' => $record['id'] ?? null,
+                'prodpackticketid' => $record['prodpackticketid'] ?? null,
+                'prodid' => $record['prodid'] ?? null,
+                'itemid' => $record['itemid'] ?? null,
+                'payrolldate' => $record['payrolldate'] ?? null
             ]);
 
             try {
-                // Verifica si el registro ya existe basado en `prodpackticketid`
-                $exists = JobAQLTemporal::where('prodpackticketid', $record->prodpackticketid)->exists();
-                Log::info("Verificación de existencia para prodpackticketid {$record->prodpackticketid}:", ['exists' => $exists]);
+                // Usar directamente los datos enviados desde la vista, que ya contienen toda la información necesaria
+                $nuevoRegistro = [
+                    'payrolldate' => now(),
+                    'prodpackticketid' => $record['prodpackticketid'] ?? null,
+                    'qty' => $record['qty'] ?? null,
+                    'moduleid' => $record['moduleid'] ?? null,
+                    'prodid' => $record['prodid'] ?? null,
+                    'itemid' => $record['itemid'] ?? null,
+                    'colorname' => $record['colorname'] ?? null,
+                    'customername' => $record['customername'] ?? null,
+                    'inventcolorid' => $record['inventcolorid'] ?? null,
+                    'inventsizeid' => $record['inventsizeid'] ?? null,
+                ];
 
-                if (!$exists) {
-                    $nuevoRegistro = [
-                        'payrolldate' => now(),
-                        'prodpackticketid' => $record->prodpackticketid,
-                        'qty' => $record->qty,
-                        'moduleid' => $record->moduleid,
-                        'prodid' => $record->prodid,
-                        'itemid' => $record->itemid,
-                        'colorname' => $record->colorname,
-                        'customername' => $record->customername,
-                        'inventcolorid' => $record->inventcolorid,
-                        'inventsizeid' => $record->inventsizeid,
-                    ];
+                Log::info('Creando registro en JobAQLTemporal:', $nuevoRegistro);
 
-                    Log::info('Creando nuevo registro en JobAQLTemporal:', $nuevoRegistro);
-                    JobAQLTemporal::create($nuevoRegistro);
-                    $procesados++;
-                    Log::info("Registro {$numeroRegistro} creado exitosamente");
-                } else {
-                    $duplicados++;
-                    Log::info("Registro {$numeroRegistro} ya existe, omitiendo");
-                }
+                // Usar new + save para permitir duplicados
+                $registro = new JobAQLTemporal($nuevoRegistro);
+                $registro->save();
+                Log::info('Último ID insertado:', ['id' => $registro->id]);
+
+                Log::info('Conexión usada por JobAQLTemporal:', [
+                    'connection' => (new JobAQLTemporal)->getConnectionName(),
+                    'database' => (new JobAQLTemporal)->getConnection()->getDatabaseName(),
+                ]);
+
+                $procesados++;
+                Log::info("Registro {$numeroRegistro} procesado exitosamente");
             } catch (\Exception $e) {
                 $errores++;
                 Log::error("Error al procesar registro {$numeroRegistro}:", [
                     'error' => $e->getMessage(),
-                    'record' => $record->toArray()
+                    'record' => $record
                 ]);
             }
         }
 
         Log::info('=== RESUMEN guardarAql ===', [
-            'total_ids_recibidos' => count($ids),
-            'registros_encontrados' => $records->count(),
+            'total_registros_recibidos' => count($records),
             'registros_procesados' => $procesados,
-            'registros_duplicados' => $duplicados,
             'errores' => $errores
         ]);
 
