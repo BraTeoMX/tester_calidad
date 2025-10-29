@@ -265,21 +265,60 @@
                             // Cerrar SweetAlert de carga
                             Swal.close();
 
-                            if (data.status === 'success') {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: '¡Éxito!',
-                                    text: data.message,
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: data.message
-                                });
+                            // Determinar el tipo de mensaje según result_type
+                            let icon = 'success';
+                            let title = '¡Éxito!';
+                            let timer = 2000;
+
+                            switch (data.result_type) {
+                                case 'all_new':
+                                    icon = 'success';
+                                    title = '¡Éxito!';
+                                    break;
+                                case 'all_existing':
+                                    icon = 'warning';
+                                    title = 'Advertencia';
+                                    timer = 3000;
+                                    break;
+                                case 'mixed':
+                                    icon = 'info';
+                                    title = 'Información';
+                                    timer = 3000;
+                                    break;
+                                case 'error':
+                                    icon = 'error';
+                                    title = 'Error';
+                                    timer = 0; // No auto-cerrar en errores
+                                    break;
+                                default:
+                                    icon = 'success';
+                                    title = '¡Éxito!';
                             }
+
+                            // Mostrar estadísticas detalladas si hay datos disponibles
+                            let text = data.message;
+                            if (data.data) {
+                                const stats = data.data;
+                                text += `\n\nEstadísticas:\n`;
+                                text += `• Total de registros: ${stats.total_registros}\n`;
+                                if (stats.registros_insertados > 0) {
+                                    text += `• Nuevos: ${stats.registros_insertados}\n`;
+                                }
+                                if (stats.registros_actualizados > 0) {
+                                    text += `• Actualizados: ${stats.registros_actualizados}\n`;
+                                }
+                                if (stats.errores > 0) {
+                                    text += `• Errores: ${stats.errores}`;
+                                }
+                            }
+
+                            Swal.fire({
+                                icon: icon,
+                                title: title,
+                                text: text,
+                                timer: timer,
+                                showConfirmButton: timer === 0 // Solo mostrar botón si no hay timer
+                            });
                         })
                         .catch(error => {
                             console.error('Error:', error);

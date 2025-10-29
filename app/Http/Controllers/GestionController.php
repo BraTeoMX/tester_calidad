@@ -217,9 +217,39 @@ class GestionController extends Controller
             }
         }
 
+        // Determinar el tipo de resultado para los mensajes personalizados
+        $resultType = 'mixed';
+        if ($errores > 0) {
+            $resultType = 'error';
+        } elseif ($procesados > 0 && $actualizados === 0) {
+            $resultType = 'all_new';
+        } elseif ($procesados === 0 && $actualizados > 0) {
+            $resultType = 'all_existing';
+        } elseif ($procesados > 0 && $actualizados > 0) {
+            $resultType = 'mixed';
+        }
+
+        // Determinar el mensaje según el tipo de resultado
+        $message = '';
+        switch ($resultType) {
+            case 'all_new':
+                $message = 'Registros procesados correctamente.';
+                break;
+            case 'all_existing':
+                $message = 'Todos los registros ya existen, pero se han actualizado.';
+                break;
+            case 'mixed':
+                $message = 'Algunos registros fueron agregados y otros actualizados.';
+                break;
+            case 'error':
+                $message = 'Algunos registros no pudieron procesarse.';
+                break;
+        }
+
         return response()->json([
-            'status' => 'success',
-            'message' => 'Registros procesados correctamente.',
+            'status' => $errores === 0 ? 'success' : 'warning',
+            'message' => $message,
+            'result_type' => $resultType,
             'data' => [
                 'total_registros' => count($records),
                 'registros_insertados' => $procesados,
