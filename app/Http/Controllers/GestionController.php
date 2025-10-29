@@ -158,14 +158,9 @@ class GestionController extends Controller
 
     public function guardarAql(Request $request)
     {
-        Log::info('=== INICIO guardarAql ===');
-        Log::info('Request completo:', $request->all());
-
         $records = $request->input('records');
-        Log::info('Registros recibidos:', ['records' => $records, 'tipo' => gettype($records), 'count' => is_array($records) ? count($records) : 'no es array']);
 
         if (empty($records)) {
-            Log::warning('No se proporcionaron registros para guardar');
             return response()->json([
                 'status' => 'error',
                 'message' => 'No se proporcionaron registros para guardar.',
@@ -174,37 +169,24 @@ class GestionController extends Controller
 
         // Elimina registros con más de 15 días basándose en `created_at`
         $fechaLimite = now()->subDays(15);
-        Log::info('Eliminando registros antiguos con fecha límite:', ['fecha_limite' => $fechaLimite]);
-        $deletedCount = JobAQLTemporal::where('created_at', '<', $fechaLimite)->delete();
-        Log::info('Registros eliminados:', ['count' => $deletedCount]);
+        JobAQLTemporal::where('created_at', '<', $fechaLimite)->delete();
 
-        // Procesa los registros directamente desde el request
+        // Procesa los registros usando upsert para evitar duplicados
         $procesados = 0;
+        $actualizados = 0;
         $errores = 0;
 
-        Log::info('Iniciando procesamiento de registros para guardar en JobAQLTemporal');
-        DB::listen(function ($query) {
-            Log::info('SQL ejecutado:', [
-                'sql' => $query->sql,
-                'bindings' => $query->bindings,
-                'time' => $query->time,
-            ]);
-        });
         foreach ($records as $index => $record) {
-            $numeroRegistro = $index + 1;
-            Log::info("Procesando registro {$numeroRegistro}:", [
-                'id' => $record['id'] ?? null,
-                'prodpackticketid' => $record['prodpackticketid'] ?? null,
-                'prodid' => $record['prodid'] ?? null,
-                'itemid' => $record['itemid'] ?? null,
-                'payrolldate' => $record['payrolldate'] ?? null
-            ]);
-
             try {
-                // Usar directamente los datos enviados desde la vista, que ya contienen toda la información necesaria
+                // Validar que prodpackticketid no sea null o vacío
+                if (empty($record['prodpackticketid'])) {
+                    $errores++;
+                    continue;
+                }
+
                 $nuevoRegistro = [
                     'payrolldate' => now(),
-                    'prodpackticketid' => $record['prodpackticketid'] ?? null,
+                    'prodpackticketid' => $record['prodpackticketid'],
                     'qty' => $record['qty'] ?? null,
                     'moduleid' => $record['moduleid'] ?? null,
                     'prodid' => $record['prodid'] ?? null,
@@ -215,38 +197,35 @@ class GestionController extends Controller
                     'inventsizeid' => $record['inventsizeid'] ?? null,
                 ];
 
-                Log::info('Creando registro en JobAQLTemporal:', $nuevoRegistro);
+                // Usar updateOrCreate para upsert: inserta si no existe, actualiza si existe
+                $registro = JobAQLTemporal::updateOrCreate(
+                    ['prodpackticketid' => $record['prodpackticketid']],
+                    $nuevoRegistro
+                );
 
-                // Usar new + save para permitir duplicados
-                $registro = new JobAQLTemporal($nuevoRegistro);
-                $registro->save();
-                Log::info('Último ID insertado:', ['id' => $registro->id]);
-
-                Log::info('Conexión usada por JobAQLTemporal:', [
-                    'connection' => (new JobAQLTemporal)->getConnectionName(),
-                    'database' => (new JobAQLTemporal)->getConnection()->getDatabaseName(),
-                ]);
-
-                $procesados++;
-                Log::info("Registro {$numeroRegistro} procesado exitosamente");
+                // Determinar si fue inserción o actualización
+                if ($registro->wasRecentlyCreated) {
+                    $procesados++;
+                } else {
+                    $actualizados++;
+                }
             } catch (\Exception $e) {
                 $errores++;
-                Log::error("Error al procesar registro {$numeroRegistro}:", [
-                    'error' => $e->getMessage(),
+                Log::error("Error al procesar registro: " . $e->getMessage(), [
                     'record' => $record
                 ]);
             }
         }
 
-        Log::info('=== RESUMEN guardarAql ===', [
-            'total_registros_recibidos' => count($records),
-            'registros_procesados' => $procesados,
-            'errores' => $errores
-        ]);
-
         return response()->json([
             'status' => 'success',
-            'message' => 'Registros guardados correctamente.',
+            'message' => 'Registros procesados correctamente.',
+            'data' => [
+                'total_registros' => count($records),
+                'registros_insertados' => $procesados,
+                'registros_actualizados' => $actualizados,
+                'errores' => $errores
+            ]
         ]);
     }
 
