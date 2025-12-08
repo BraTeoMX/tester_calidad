@@ -259,6 +259,223 @@ class GestionController extends Controller
         ]);
     }
 
+    public function bultosScreenNoEncontrados()
+    {
+        return view('gestion.bultosScreenNoEncontrados');
+    }
+
+    public function consultaOP(Request $request)
+    {
+        try {
+            $validatedData = $request->validate([
+                'searchTerm' => 'required|string|size:9'
+            ]);
+            $searchTerm = $validatedData['searchTerm'];
+
+            // 🚀 Búsqueda directa en SQL Server (sin verificar JobAQLHistorial primero)
+            $source = 'SQLServer_View_OpBusqueda_3_View';
+            Log::info("Consulta Directa: Buscando '$searchTerm' en la vista '$source'.");
+
+            $sql = "
+                SELECT TOP (1000)
+                    inventdimid,
+                    oprname,
+                    payrolldate,
+                    prodpackticketid,
+                    prodticketid,
+                    qty,
+                    moduleid,
+                    prodid,
+                    itemid,
+                    colorname,
+                    CASE
+                        WHEN customername = 'SKG Consulting Group Corp' THEN 'BELLEFIT INC'
+                        WHEN customername = 'PDS' THEN 'Otro Cliente'
+                        WHEN itemid = '1360' AND (customername IS NULL OR customername = '')
+                            THEN 'Velrose Lingerie'
+                        ELSE customername
+                    END AS customername,
+                    inventcolorid,
+                    inventsizeid
+                FROM (
+                    SELECT
+                        p.INVENTDIMID,
+                        p.OPRNAME,
+                        DATEADD(SECOND, p.SCANNEDTIME, CAST(p.SCANNEDDATE AS DATETIME)) AS payrolldate,
+                        p.PRODPACKTICKETID,
+                        p.PRODTICKETID,
+                        p.QTY,
+                        p.MODULEID,
+                        p.PRODID,
+                        t.ITEMID,
+                        b.COLORNAME,
+                        CASE
+                            WHEN b.CUSTOMERNAME = 'SKG Consulting Group Corp' THEN 'BELLEFIT INC'
+                            WHEN b.CUSTOMERNAME = 'PDS' THEN 'Otro Cliente'
+                            WHEN t.ITEMID = '1360'
+                                    AND (b.CUSTOMERNAME IS NULL OR b.CUSTOMERNAME = '')
+                                THEN 'Velrose Lingerie'
+                            ELSE b.CUSTOMERNAME
+                        END AS CUSTOMERNAME,
+                        b.INVENTCOLORID,
+                        id.INVENTSIZEID,
+                        ROW_NUMBER()
+                            OVER (
+                                PARTITION BY p.PRODPACKTICKETID
+                                ORDER BY p.PAYROLLDATE DESC
+                            ) AS rn
+                    FROM
+                        [AX_SERVER_LIVE].[INTIMARKDBAXPRODLIVE].[dbo].[PRODTICKETSTABLE_AT] AS p
+                    INNER JOIN
+                        [AX_SERVER_LIVE].[INTIMARKDBAXPRODLIVE].[dbo].[INVENTDIM] AS id
+                        ON id.INVENTDIMID = p.INVENTDIMID
+                    INNER JOIN
+                        [AX_SERVER_LIVE].[INTIMARKDBAXPRODLIVE].[dbo].[PRODTABLE] AS t
+                        ON t.PRODID = p.PRODID
+                    INNER JOIN
+                        [AX_SERVER_LIVE].[INTIMARKDBAXPRODLIVE].[dbo].[BACKLOGTABLE_AT] AS b
+                        ON b.ITEMID        = t.ITEMID
+                        AND b.SALESID       = t.INVENTREFID
+                        AND b.INVENTCOLORID = id.INVENTCOLORID
+                    WHERE
+                        p.OPRID BETWEEN '200' AND '299'
+                        AND p.PRODID = ?
+                ) AS subquery
+                WHERE rn = 1
+                ORDER BY PAYROLLDATE DESC;
+            ";
+
+            $queryResults = DB::connection('sqlsrv')
+                ->select($sql, [$searchTerm]);
+
+            $results = collect($queryResults);
+            $message = 'Búsqueda realizada directamente en SQL Server.';
+
+            if ($results->isNotEmpty()) {
+                Log::info("¡Éxito! Se encontraron " . $results->count() . " registros en SQL Server para '$searchTerm'.");
+            } else {
+                Log::info("Búsqueda finalizada. No se encontraron registros en SQL Server para '$searchTerm'.");
+            }
+
+            $response = [
+                'status' => 'success',
+                'source' => $source,
+                'data' => $results,
+                'message' => $message,
+            ];
+
+            return response()->json($response);
+        } catch (ValidationException $e) {
+            Log::warning('Intento de búsqueda con datos inválidos: ' . json_encode($e->errors()));
+            throw $e;
+        } catch (\Exception $e) {
+            Log::error('Error crítico en la consulta de OP: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Ocurrió un error inesperado en el servidor.',
+            ], 500);
+        }
+    }
+
+    public function guardarBultosScreen(Request $request)
+    {
+        $records = $request->input('records');
+
+        if (empty($records)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se proporcionaron registros para guardar.',
+            ], 400);
+        }
+
+        $procesados = 0;
+        $actualizados = 0;
+        $errores = 0;
+
+        foreach ($records as $index => $record) {
+            try {
+                if (empty($record['prodpackticketid'])) {
+                    $errores++;
+                    continue;
+                }
+
+                $nuevoRegistro = [
+                    'payrolldate' => $record['payrolldate'] ?? now(), // Aseguramos que haya fecha
+                    'prodpackticketid' => $record['prodpackticketid'],
+                    'qty' => $record['qty'] ?? null,
+                    'moduleid' => $record['moduleid'] ?? null,
+                    'prodid' => $record['prodid'] ?? null,
+                    'itemid' => $record['itemid'] ?? null,
+                    'colorname' => $record['colorname'] ?? null,
+                    'customername' => $record['customername'] ?? null,
+                    'inventcolorid' => $record['inventcolorid'] ?? null,
+                    'inventsizeid' => $record['inventsizeid'] ?? null,
+                ];
+
+                // Guardamos en JobAQLHistorial (job_aql_v2)
+                $registro = JobAQLHistorial::updateOrCreate(
+                    ['prodpackticketid' => $record['prodpackticketid']],
+                    $nuevoRegistro
+                );
+
+                if ($registro->wasRecentlyCreated) {
+                    $procesados++;
+                } else {
+                    $actualizados++;
+                }
+            } catch (\Exception $e) {
+                $errores++;
+                if (!isset($firstError)) {
+                    $firstError = $e->getMessage();
+                }
+                Log::error("Error al guardar en JobAQLHistorial: " . $e->getMessage(), [
+                    'record' => $record
+                ]);
+            }
+        }
+
+        $resultType = 'mixed';
+        if ($errores > 0) {
+            $resultType = 'error';
+        } elseif ($procesados > 0 && $actualizados === 0) {
+            $resultType = 'all_new';
+        } elseif ($procesados === 0 && $actualizados > 0) {
+            $resultType = 'all_existing';
+        } elseif ($procesados > 0 && $actualizados > 0) {
+            $resultType = 'mixed';
+        }
+
+        $message = '';
+        $debugMessage = $errores > 0 ? (isset($firstError) ? "Error: " . $firstError : "Errores desconocidos de SQL") : '';
+
+        switch ($resultType) {
+            case 'all_new':
+                $message = 'Registros guardados correctamente en Historial.';
+                break;
+            case 'all_existing':
+                $message = 'Todos los registros ya existían en Historial, pero se han actualizado.';
+                break;
+            case 'mixed':
+                $message = 'Algunos registros fueron agregados y otros actualizados en Historial.';
+                break;
+            case 'error':
+                $message = 'Algunos registros no pudieron procesarse. ' . $debugMessage;
+                break;
+        }
+
+        return response()->json([
+            'status' => $errores === 0 ? 'success' : 'warning',
+            'message' => $message,
+            'result_type' => $resultType,
+            'data' => [
+                'total_registros' => count($records),
+                'registros_insertados' => $procesados,
+                'registros_actualizados' => $actualizados,
+                'errores' => $errores
+            ]
+        ]);
+    }
+
     public function guardarModuloEstilo(Request $request)
     {
         $items = $request->input('items');

@@ -411,6 +411,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/buscarAql', [GestionController::class, 'buscarAql'])->name('gestion.buscarAql');
     Route::post('/guardarAql', [GestionController::class, 'guardarAql'])->name('gestion.guardarAql');
     Route::post('/guardarModuloEstilo', [GestionController::class, 'guardarModuloEstilo'])->name('guardarModuloEstilo');
+    Route::get('/bultosScreenNoEncontrados', [GestionController::class, 'bultosScreenNoEncontrados'])->name('gestion.bultosScreenNoEncontrados');
+    Route::get('/consultaOP', [GestionController::class, 'consultaOP'])->name('gestion.consultaOP');
+    Route::post('/guardarBultosScreen', [GestionController::class, 'guardarBultosScreen'])->name('gestion.guardarBultosScreen');
 
     //Inicio apartado para seccion Auditoria AQL V2
     Route::get('/auditoriaAQL_v2', [AuditoriaAQL_v2Controller::class, 'auditoriaAQL_v2'])->name('auditoriaAQL.auditoriaAQL_v2')->middleware('auth');
