@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageSlug' => 'GestionBusqueda', 'titlePage' => __('GestionBusqueda')])
+@extends('layouts.app', ['pageSlug' => 'GestionBusquedaScreen', 'titlePage' => __('GestionBusquedaScreen')])
 
 @section('content')
 
@@ -12,8 +12,8 @@
                 <!-- Formulario de búsqueda -->
                 <form id="search-form">
                     <div class="form-group">
-                        <label for="search-input">Buscar por OP (Consulta Directa SQL Server):</label>
-                        <input type="text" id="search-input" class="form-control" placeholder="Escribe un ID">
+                        <label for="search-input">Buscar por OP (escribe el OP completo):</label>
+                        <input type="text" id="search-input" class="form-control" placeholder="Escribe el OP completo">
                     </div>
                     <button type="button" id="search-button" class="btn btn-primary">Buscar</button>
                 </form>
@@ -27,7 +27,7 @@
                                 <th>Bulto</th>
                                 <th>OP</th>
                                 <th>Estilo</th>
-                                <th>Fecha Corte</th>
+                                <th>Fecha</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -66,11 +66,42 @@
             realizarBusqueda();
         });
 
+        // Convertir a mayúsculas automáticamente
+        searchInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+
         function realizarBusqueda() {
             const searchTerm = searchInput.value.trim(); // Elimina espacios en blanco
 
             if (!searchTerm) {
-                alert('Por favor, escribe un término de búsqueda.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campo Vacío',
+                    text: 'Por favor, escribe un ID de OP.'
+                });
+                return;
+            }
+
+            // Validación de formato: Debe empezar con "OP" y tener 9 caracteres en total
+            const opRegex = /^OP\d{7}$/;
+
+            if (searchTerm.length !== 9 || !searchTerm.startsWith('OP')) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Formato Incorrecto',
+                    text: 'Para buscar, debes escribir el OP completo. Ejemplo: "OP0012345" (9 caracteres, iniciando con OP).',
+                    footer: 'No omitas el prefijo "OP".'
+                });
+                return;
+            }
+
+            if (!opRegex.test(searchTerm)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Formato Inválido',
+                    text: 'El OP debe comenzar con "OP" seguido de 7 números.'
+                });
                 return;
             }
 

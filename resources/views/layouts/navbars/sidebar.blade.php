@@ -215,6 +215,12 @@
                                 <p>{{ __('Busqueda Bulto/Estilo') }}</p>
                             </a>
                         </li>
+                        <li class="nav-item{{ $pageSlug == 'GestionBusquedaScreen' ? ' active' : '' }}">
+                            <a class="nav-link" href="{{ route('gestion.bultosScreenNoEncontrados') }}">
+                                <i class="tim-icons icon-zoom-split"></i>
+                                <p>{{ __('Busqueda Bulto Screen') }}</p>
+                            </a>
+                        </li>
                         <li class="nav-item{{ $pageSlug == 'bnf' ? ' active' : '' }}">
                             <a class="nav-link" href="{{ route('bnf.index') }}">
                                 <i class="material-symbols-outlined">delete_history</i>
