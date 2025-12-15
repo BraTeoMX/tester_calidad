@@ -275,6 +275,11 @@ class DashboardPorDiaV2Controller extends Controller
                     ->unique()
                     ->count();
 
+                $OpUnicos = $items->pluck('op')
+                    ->filter()
+                    ->unique()
+                    ->implode(', ');
+
                 // Sumas y porcentaje de error AQL
                 $sumaAuditadaAQL  = $items->sum('cantidad_auditada');
                 $sumaRechazadaAQL = $items->sum('cantidad_rechazada');
@@ -358,6 +363,7 @@ class DashboardPorDiaV2Controller extends Controller
                 // 4) Armar el array tal cual para devolverlo
                 $dataModuloEstiloAQL[] = [
                     'modulo'                   => $modulo,
+                    'opUnicos'                 => $OpUnicos,
                     'estilo'                   => $estilo,
                     'auditoresUnicos'          => $auditoresUnicos,
                     'supervisoresUnicos'       => $supervisoresUnicos,

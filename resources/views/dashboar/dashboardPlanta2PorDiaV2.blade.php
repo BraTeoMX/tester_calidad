@@ -57,6 +57,7 @@
                             <tr>
                                 <th>Auditor</th>
                                 <th>Modulo (AQL)</th>
+                                <th>OP</th>
                                 <th>Supervisor</th>
                                 <th>Estilo</th>
                                 <th>Numero de Operarios</th>
@@ -163,6 +164,7 @@
                             <tr>
                                 <th>Auditor</th>
                                 <th>Modulo (AQL)</th>
+                                <th>Op</th>
                                 <th>Supervisor</th>
                                 <th>Estilo</th>
                                 <th>Numero de Operarios</th>
@@ -470,141 +472,143 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-            // ✅ Registrar tipo personalizado SOLO UNA VEZ al cargar la página
-            $.fn.dataTable.ext.type.order['custom-num'] = function(a, b) {
-                if (a === "N/A" || a === "") return -Infinity;
-                if (b === "N/A" || b === "") return -Infinity;
-                return parseFloat(a) - parseFloat(b);
-            };
-            // Variables para controlar si ya se cargaron las consultas para la fecha actual
-            let lastFecha = null;
-            let aqlLoaded = false;
-            let aqlteLoaded = false;
-            let procesoLoaded = false;
-            let procesoteLoaded = false;
-            
-            // Función para resetear las banderas (se llama cuando se cambia la fecha)
-            function resetFlags() {
-                aqlLoaded = false;
-                aqlteLoaded = false;
-                procesoLoaded = false;
-                procesoteLoaded = false;
-            }
-            
-            // Función para mostrar el contenedor de tabla correspondiente y ocultar los demás
-            function showTable(tableToShow) {
-                const tables = ["tablaAQL", "tablaAQLTE", "tablaProceso", "tablaProcesoTE"];
-                tables.forEach(function(tableId) {
-                    let elemento = document.getElementById(tableId);
-                    if (elemento) {
-                        elemento.style.display = (tableId === tableToShow) ? "block" : "none";
-                    }
-                });
-            }
-            
-            // Evento en el botón "Mostrar datos"
-            document.getElementById("btnMostrar").addEventListener("click", function () {
-                let fechaInicio = document.getElementById("fecha_inicio").value;
-                if (!fechaInicio) {
-                    alert("Por favor selecciona una fecha.");
-                    return;
-                }
-                // Si la fecha cambió, resetea las banderas
-                if (lastFecha !== fechaInicio) {
-                    resetFlags();
-                    lastFecha = fechaInicio;
-                }
-                // Al hacer clic en btnMostrar se carga SOLO la consulta AQL (si aún no se ha cargado)
-                if (!aqlLoaded) {
-                    cargarDatos("{{ route('dashboardPlanta2V2.buscarAQLP2') }}", "tablaAQLGeneralNuevoBody", "datosModuloEstiloAQL");
-                    aqlLoaded = true;
-                }
-                // Mostrar la tabla AQL por defecto
-                showTable("tablaAQL");
-            });
-            
-            // Evento para el botón "AQL"
-            document.getElementById("showAQL").addEventListener("click", function () {
-                let fechaInicio = document.getElementById("fecha_inicio").value;
-                if (!fechaInicio) {
-                    alert("Por favor selecciona una fecha.");
-                    return;
-                }
-                // Si no se ha cargado aún, se ejecuta la consulta AQL
-                if (!aqlLoaded) {
-                    cargarDatos("{{ route('dashboardPlanta2V2.buscarAQLP2') }}", "tablaAQLGeneralNuevoBody", "datosModuloEstiloAQL");
-                    aqlLoaded = true;
-                }
-                showTable("tablaAQL");
-            });
-            
-            // Evento para el botón "AQL TE"
-            document.getElementById("showAQLTE").addEventListener("click", function () {
-                let fechaInicio = document.getElementById("fecha_inicio").value;
-                if (!fechaInicio) {
-                    alert("Por favor selecciona una fecha.");
-                    return;
-                }
-                if (!aqlteLoaded) {
-                    cargarDatos("{{ route('dashboardPlanta2V2.buscarAQLTEP2') }}", "tablaAQLGeneralTENuevoBody", "datosModuloEstiloAQLTE");
-                    aqlteLoaded = true;
-                }
-                showTable("tablaAQLTE");
-            });
-            
-            // Evento para el botón "Proceso"
-            document.getElementById("showProceso").addEventListener("click", function () {
-                let fechaInicio = document.getElementById("fecha_inicio").value;
-                if (!fechaInicio) {
-                    alert("Por favor selecciona una fecha.");
-                    return;
-                }
-                if (!procesoLoaded) {
-                    cargarDatosProceso("{{ route('dashboardPlanta2V2.buscarProcesoP2') }}", "tablaProcesoGeneralNuevoBody", "datosModuloEstiloProceso");
-                    procesoLoaded = true;
-                }
-                showTable("tablaProceso");
-            });
-            
-            // Evento para el botón "Proceso TE"
-            document.getElementById("showProcesoTE").addEventListener("click", function () {
-                let fechaInicio = document.getElementById("fecha_inicio").value;
-                if (!fechaInicio) {
-                    alert("Por favor selecciona una fecha.");
-                    return;
-                }
-                if (!procesoteLoaded) {
-                    cargarDatosProceso("{{ route('dashboardPlanta2V2.buscarProcesoTEP2') }}", "tablaProcesoGeneralTENuevoBody", "datosModuloEstiloProcesoTE");
-                    procesoteLoaded = true;
-                }
-                showTable("tablaProcesoTE");
-            });
-            
-            // Cuando se cambia la fecha, se resetean las banderas para que las consultas se vuelvan a cargar si se hace clic
-            document.getElementById("fecha_inicio").addEventListener("change", function () {
-                let nuevaFecha = this.value;
-                if (nuevaFecha !== lastFecha) {
-                    resetFlags();
-                    lastFecha = nuevaFecha;
-                }
-            });
-            
-            // Función para cargar datos en tablas AQL y AQL TE (la estructura de la fila puede variar según el endpoint)
-            function cargarDatos(url, tablaBodyId, dataKey) {
-                let fechaInicio = document.getElementById("fecha_inicio").value;
+        // ✅ Registrar tipo personalizado SOLO UNA VEZ al cargar la página
+        $.fn.dataTable.ext.type.order['custom-num'] = function(a, b) {
+            if (a === "N/A" || a === "") return -Infinity;
+            if (b === "N/A" || b === "") return -Infinity;
+            return parseFloat(a) - parseFloat(b);
+        };
+        // Variables para controlar si ya se cargaron las consultas para la fecha actual
+        let lastFecha = null;
+        let aqlLoaded = false;
+        let aqlteLoaded = false;
+        let procesoLoaded = false;
+        let procesoteLoaded = false;
 
-                // Mostrar el spinner solo para AQL
-                if (tablaBodyId === "tablaAQLGeneralNuevoBody") {
-                    document.getElementById("spinnerAQL").style.display = "block";
-                }
-                // Mostrar el spinner solo para AQL TE
-                if (tablaBodyId === "tablaAQLGeneralTENuevoBody") {
-                    document.getElementById("spinnerAQLTE").style.display = "block";
-                }
+        // Función para resetear las banderas (se llama cuando se cambia la fecha)
+        function resetFlags() {
+            aqlLoaded = false;
+            aqlteLoaded = false;
+            procesoLoaded = false;
+            procesoteLoaded = false;
+        }
 
-                fetch(url + "?fecha_inicio=" + fechaInicio, {
+        // Función para mostrar el contenedor de tabla correspondiente y ocultar los demás
+        function showTable(tableToShow) {
+            const tables = ["tablaAQL", "tablaAQLTE", "tablaProceso", "tablaProcesoTE"];
+            tables.forEach(function(tableId) {
+                let elemento = document.getElementById(tableId);
+                if (elemento) {
+                    elemento.style.display = (tableId === tableToShow) ? "block" : "none";
+                }
+            });
+        }
+
+        // Evento en el botón "Mostrar datos"
+        document.getElementById("btnMostrar").addEventListener("click", function() {
+            let fechaInicio = document.getElementById("fecha_inicio").value;
+            if (!fechaInicio) {
+                alert("Por favor selecciona una fecha.");
+                return;
+            }
+            // Si la fecha cambió, resetea las banderas
+            if (lastFecha !== fechaInicio) {
+                resetFlags();
+                lastFecha = fechaInicio;
+            }
+            // Al hacer clic en btnMostrar se carga SOLO la consulta AQL (si aún no se ha cargado)
+            if (!aqlLoaded) {
+                cargarDatos("{{ route('dashboardPlanta2V2.buscarAQLP2') }}", "tablaAQLGeneralNuevoBody", "datosModuloEstiloAQL");
+                aqlLoaded = true;
+            }
+            // Mostrar la tabla AQL por defecto
+            showTable("tablaAQL");
+        });
+
+        // Evento para el botón "AQL"
+        document.getElementById("showAQL").addEventListener("click", function() {
+            let fechaInicio = document.getElementById("fecha_inicio").value;
+            if (!fechaInicio) {
+                alert("Por favor selecciona una fecha.");
+                return;
+            }
+            // Si no se ha cargado aún, se ejecuta la consulta AQL
+            if (!aqlLoaded) {
+                cargarDatos("{{ route('dashboardPlanta2V2.buscarAQLP2') }}", "tablaAQLGeneralNuevoBody", "datosModuloEstiloAQL");
+                aqlLoaded = true;
+            }
+            showTable("tablaAQL");
+        });
+
+        // Evento para el botón "AQL TE"
+        document.getElementById("showAQLTE").addEventListener("click", function() {
+            let fechaInicio = document.getElementById("fecha_inicio").value;
+            if (!fechaInicio) {
+                alert("Por favor selecciona una fecha.");
+                return;
+            }
+            if (!aqlteLoaded) {
+                cargarDatos("{{ route('dashboardPlanta2V2.buscarAQLTEP2') }}", "tablaAQLGeneralTENuevoBody", "datosModuloEstiloAQLTE");
+                aqlteLoaded = true;
+            }
+            showTable("tablaAQLTE");
+        });
+
+        // Evento para el botón "Proceso"
+        document.getElementById("showProceso").addEventListener("click", function() {
+            let fechaInicio = document.getElementById("fecha_inicio").value;
+            if (!fechaInicio) {
+                alert("Por favor selecciona una fecha.");
+                return;
+            }
+            if (!procesoLoaded) {
+                cargarDatosProceso("{{ route('dashboardPlanta2V2.buscarProcesoP2') }}", "tablaProcesoGeneralNuevoBody", "datosModuloEstiloProceso");
+                procesoLoaded = true;
+            }
+            showTable("tablaProceso");
+        });
+
+        // Evento para el botón "Proceso TE"
+        document.getElementById("showProcesoTE").addEventListener("click", function() {
+            let fechaInicio = document.getElementById("fecha_inicio").value;
+            if (!fechaInicio) {
+                alert("Por favor selecciona una fecha.");
+                return;
+            }
+            if (!procesoteLoaded) {
+                cargarDatosProceso("{{ route('dashboardPlanta2V2.buscarProcesoTEP2') }}", "tablaProcesoGeneralTENuevoBody", "datosModuloEstiloProcesoTE");
+                procesoteLoaded = true;
+            }
+            showTable("tablaProcesoTE");
+        });
+
+        // Cuando se cambia la fecha, se resetean las banderas para que las consultas se vuelvan a cargar si se hace clic
+        document.getElementById("fecha_inicio").addEventListener("change", function() {
+            let nuevaFecha = this.value;
+            if (nuevaFecha !== lastFecha) {
+                resetFlags();
+                lastFecha = nuevaFecha;
+            }
+        });
+
+        // Función para cargar datos en tablas AQL y AQL TE (la estructura de la fila puede variar según el endpoint)
+        function cargarDatos(url, tablaBodyId, dataKey) {
+            let fechaInicio = document.getElementById("fecha_inicio").value;
+
+            // Mostrar el spinner solo para AQL
+            if (tablaBodyId === "tablaAQLGeneralNuevoBody") {
+                document.getElementById("spinnerAQL").style.display = "block";
+            }
+            // Mostrar el spinner solo para AQL TE
+            if (tablaBodyId === "tablaAQLGeneralTENuevoBody") {
+                document.getElementById("spinnerAQLTE").style.display = "block";
+            }
+
+            fetch(url + "?fecha_inicio=" + fechaInicio, {
                     method: "GET",
-                    headers: { "X-Requested-With": "XMLHttpRequest" }
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -638,6 +642,7 @@
                                         ${item.modulo}
                                     </button>
                                 </td>
+                                <td>${item.opUnicos}</td>
                                 <td>${item.supervisoresUnicos}</td>
                                 <td>${item.estilosUnicos}</td>
                                 <td>${item.conteoOperario}</td>
@@ -681,23 +686,23 @@
                                 paging: false,
                                 autoWidth: false,
                                 dom: 'Bfrtip',
-                                order: [[1, 'asc']],
-                                buttons: [
-                                    {
-                                        extend: 'excelHtml5',
-                                        text: 'Exportar a Excel',
-                                        className: 'btn btn-success',
-                                        title: tituloTabla,
-                                        messageTop: `Fecha: ${fechaInicio}`,
-                                        exportOptions: {
-                                            format: {
-                                                header: function(data, columnIndex) {
-                                                    return data;
-                                                }
+                                order: [
+                                    [1, 'asc']
+                                ],
+                                buttons: [{
+                                    extend: 'excelHtml5',
+                                    text: 'Exportar a Excel',
+                                    className: 'btn btn-success',
+                                    title: tituloTabla,
+                                    messageTop: `Fecha: ${fechaInicio}`,
+                                    exportOptions: {
+                                        format: {
+                                            header: function(data, columnIndex) {
+                                                return data;
                                             }
                                         }
                                     }
-                                ],
+                                }],
                                 language: {
                                     "sProcessing": "Procesando...",
                                     "sLengthMenu": "Mostrar _MENU_ registros",
@@ -719,11 +724,10 @@
                                         $(tableId + '_wrapper').addClass('dark-mode');
                                     }
                                 },
-                                columnDefs: [
-                                    {
+                                columnDefs: [{
                                         targets: [0, 1, 2, 15, 16, 17],
                                         type: "string",
-                                        render: function (data) {
+                                        render: function(data) {
                                             return typeof data === "string" ? data.trim() : data;
                                         }
                                     },
@@ -755,22 +759,24 @@
                         document.getElementById("spinnerAQLTE").style.display = "none";
                     }
                 });
+        }
+
+        // Función para cargar datos en tablas de Proceso y Proceso TE
+        function cargarDatosProceso(url, tablaBodyId, dataKey) {
+            let fechaInicio = document.getElementById("fecha_inicio").value;
+            // Mostrar el spinner solo para PROCESO
+            if (tablaBodyId === "tablaProcesoGeneralNuevoBody") {
+                document.getElementById("spinnerPROCESO").style.display = "block";
             }
-            
-            // Función para cargar datos en tablas de Proceso y Proceso TE
-            function cargarDatosProceso(url, tablaBodyId, dataKey) {
-                let fechaInicio = document.getElementById("fecha_inicio").value;
-                // Mostrar el spinner solo para PROCESO
-                if (tablaBodyId === "tablaProcesoGeneralNuevoBody") {
-                    document.getElementById("spinnerPROCESO").style.display = "block";
-                }
-                // Mostrar el spinner solo para PROCESO TE
-                if (tablaBodyId === "tablaProcesoGeneralTENuevoBody") {
-                    document.getElementById("spinnerPROCESOTE").style.display = "block";
-                }
-                fetch(url + "?fecha_inicio=" + fechaInicio, {
+            // Mostrar el spinner solo para PROCESO TE
+            if (tablaBodyId === "tablaProcesoGeneralTENuevoBody") {
+                document.getElementById("spinnerPROCESOTE").style.display = "block";
+            }
+            fetch(url + "?fecha_inicio=" + fechaInicio, {
                     method: "GET",
-                    headers: { "X-Requested-With": "XMLHttpRequest" }
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -802,6 +808,7 @@
                                         ${item.modulo}
                                     </button>
                                 </td>
+                                <td>${item.opUnicos}</td>
                                 <td>${item.supervisoresUnicos}</td>
                                 <td>${item.estilo}</td>
                                 <td>${item.cantidadRecorridos}</td>
@@ -840,23 +847,23 @@
                                 paging: false,
                                 autoWidth: false,
                                 dom: 'Bfrtip',
-                                order: [[1, 'asc']],
-                                buttons: [
-                                    {
-                                        extend: 'excelHtml5',
-                                        text: 'Exportar a Excel',
-                                        className: 'btn btn-success',
-                                        title: tituloTabla,
-                                        messageTop: `Fecha: ${fechaInicio}`,
-                                        exportOptions: {
-                                            format: {
-                                                header: function(data, columnIndex) {
-                                                    return data;
-                                                }
+                                order: [
+                                    [1, 'asc']
+                                ],
+                                buttons: [{
+                                    extend: 'excelHtml5',
+                                    text: 'Exportar a Excel',
+                                    className: 'btn btn-success',
+                                    title: tituloTabla,
+                                    messageTop: `Fecha: ${fechaInicio}`,
+                                    exportOptions: {
+                                        format: {
+                                            header: function(data, columnIndex) {
+                                                return data;
                                             }
                                         }
                                     }
-                                ],
+                                }],
                                 language: {
                                     "sProcessing": "Procesando...",
                                     "sLengthMenu": "Mostrar _MENU_ registros",
@@ -878,11 +885,10 @@
                                         $(tableId + '_wrapper').addClass('dark-mode');
                                     }
                                 },
-                                columnDefs: [
-                                    {
-                                        targets: [0, 1, 2, 14, 15, 16], // ajusta según columnas de tu tabla Proceso
+                                columnDefs: [{
+                                        targets: [0, 1, 2, 3, 15, 16, 17], // ajusta según columnas de tu tabla Proceso
                                         type: "string",
-                                        render: function (data) {
+                                        render: function(data) {
                                             return typeof data === "string" ? data.trim() : data;
                                         }
                                     },
@@ -907,64 +913,64 @@
                 .finally(() => {
                     // Ocultar el spinner si era PROCESO
                     if (tablaBodyId === "tablaProcesoGeneralNuevoBody") {
-                            document.getElementById("spinnerPROCESO").style.display = "none";
-                        }
+                        document.getElementById("spinnerPROCESO").style.display = "none";
+                    }
                     // Ocultar el spinner si era PROCESO TE
                     if (tablaBodyId === "tablaProcesoGeneralTENuevoBody") {
                         document.getElementById("spinnerPROCESOTE").style.display = "none";
                     }
                 });
-            }
-        });
+        }
+    });
 </script>
 
 <script>
     let activeModalId = null;
 
-        function abrirModalAQL(modulo, estilo, tablaOrigenId) {
-            // Mostrar modal vacío
-            const modal = document.getElementById("modalAQL");
-            const tbody = document.getElementById("modalAQLBody");
-            const titulo = document.getElementById("modalAQLTitulo");
-            const tabla = $('#tablaModalAQL');
+    function abrirModalAQL(modulo, estilo, tablaOrigenId) {
+        // Mostrar modal vacío
+        const modal = document.getElementById("modalAQL");
+        const tbody = document.getElementById("modalAQLBody");
+        const titulo = document.getElementById("modalAQLTitulo");
+        const tabla = $('#tablaModalAQL');
 
-            // Destruir DataTable si ya existe ANTES de insertar nuevos datos
-            if ($.fn.DataTable.isDataTable(tabla)) {
-                tabla.DataTable().clear().destroy();
-            }
+        // Destruir DataTable si ya existe ANTES de insertar nuevos datos
+        if ($.fn.DataTable.isDataTable(tabla)) {
+            tabla.DataTable().clear().destroy();
+        }
 
-            // Mostrar mensaje de carga mientras se trae la info
-            tbody.innerHTML = `<tr><td colspan="11">Cargando...</td></tr>`;
+        // Mostrar mensaje de carga mientras se trae la info
+        tbody.innerHTML = `<tr><td colspan="11">Cargando...</td></tr>`;
 
-            // Abrir modal
-            modal.style.display = "block";
-            document.body.style.overflow = "hidden";
-            activeModalId = "modalAQL";
+        // Abrir modal
+        modal.style.display = "block";
+        document.body.style.overflow = "hidden";
+        activeModalId = "modalAQL";
 
-            // Asignar título dinámico
-            titulo.textContent = `Detalles de AQL para Módulo ${modulo}, Estilo: ${estilo}`;
+        // Asignar título dinámico
+        titulo.textContent = `Detalles de AQL para Módulo ${modulo}, Estilo: ${estilo}`;
 
-            // Determinar si es tiempo extra según la tabla origen
-            const tiempo_extra = (tablaOrigenId === "tablaAQLGeneralTENuevoBody") ? 1 : null;
-            const fecha = document.getElementById("fecha_inicio").value;
+        // Determinar si es tiempo extra según la tabla origen
+        const tiempo_extra = (tablaOrigenId === "tablaAQLGeneralTENuevoBody") ? 1 : null;
+        const fecha = document.getElementById("fecha_inicio").value;
 
-            // Hacer fetch a un endpoint que te pasaré después
-            fetch(`dashboardPlanta2V2P2/buscarAQL/detalles?modulo=${modulo}&estilo=${estilo}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) {
-                        tbody.innerHTML = `<tr><td colspan="11">${data.error}</td></tr>`;
-                        return;
-                    }
+        // Hacer fetch a un endpoint que te pasaré después
+        fetch(`dashboardPlanta2V2P2/buscarAQL/detalles?modulo=${modulo}&estilo=${estilo}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    tbody.innerHTML = `<tr><td colspan="11">${data.error}</td></tr>`;
+                    return;
+                }
 
-                    if (data.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="11">No hay registros.</td></tr>`;
-                        return;
-                    }
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="11">No hay registros.</td></tr>`;
+                    return;
+                }
 
-                    let rows = "";
-                    data.forEach(registro => {
-                        rows += `<tr>
+                let rows = "";
+                data.forEach(registro => {
+                    rows += `<tr>
                             <td>${registro.minutos_paro ?? 'N/A'}</td>
                             <td>${registro.cliente ?? 'N/A'}</td>
                             <td>${registro.op ?? 'N/A'}</td>
@@ -978,25 +984,144 @@
                             <td>${registro.defectos ?? 'N/A'}</td>
                             <td>${registro.hora ?? 'N/A'}</td>
                         </tr>`;
-                    });
+                });
 
-                    // Insertar filas en el DOM
-                    tbody.innerHTML = rows;
+                // Insertar filas en el DOM
+                tbody.innerHTML = rows;
 
-                    // Inicializar DataTable ya con los datos cargados
+                // Inicializar DataTable ya con los datos cargados
+                tabla.DataTable({
+                    lengthChange: false,
+                    searching: true,
+                    paging: true,
+                    pageLength: 15,
+                    dom: 'Bfrtip',
+                    buttons: [{
+                        extend: 'excelHtml5',
+                        text: 'Exportar a Excel',
+                        className: 'btn btn-success'
+                    }],
+                    language: {
+                        sProcessing: "Procesando...",
+                        sSearch: "Buscar:",
+                        sLengthMenu: "Mostrar _MENU_ registros",
+                        sZeroRecords: "No se encontraron resultados",
+                        sEmptyTable: "Ningún dato disponible en esta tabla",
+                        sInfo: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                        sInfoEmpty: "Mostrando 0 a 0 de 0 registros",
+                        sInfoFiltered: "(filtrado de _MAX_ registros)",
+                        oPaginate: {
+                            sFirst: "Primero",
+                            sLast: "Último",
+                            sNext: "Siguiente",
+                            sPrevious: "Anterior"
+                        }
+                    }
+                });
+            })
+            .catch(err => {
+                tbody.innerHTML = `<tr><td colspan="11">Error al cargar detalles.</td></tr>`;
+                console.error(err);
+            });
+    }
+
+    function cerrarModalAQL() {
+        document.getElementById("modalAQL").style.display = "none";
+        document.body.style.overflow = "auto";
+        activeModalId = null;
+    }
+
+    // Cerrar al hacer clic fuera del modal
+    window.onclick = function(event) {
+        if (event.target.id === "modalAQL") {
+            cerrarModalAQL();
+        }
+    };
+
+    // Cerrar con ESC
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape" && activeModalId === "modalAQL") {
+            cerrarModalAQL();
+        }
+    });
+</script>
+
+<script>
+    let activeModalIdProceso = null;
+
+    function abrirModalProceso(modulo, estilo, tablaOrigenId) {
+        // Mostrar modal vacío con mensaje "Cargando..."
+        const modal = document.getElementById("modalProceso");
+        const tbody = document.getElementById("modalProcesoBody");
+        const titulo = document.getElementById("modalProcesoTitulo");
+        const tabla = $('#tablaModalProceso');
+
+        // Destruir DataTable si ya existe ANTES de insertar nuevos datos
+        if ($.fn.DataTable.isDataTable(tabla)) {
+            tabla.DataTable().clear().destroy();
+        }
+
+        tbody.innerHTML = `<tr><td colspan="10">Cargando...</td></tr>`; // Spinner simple
+
+        // Abrir modal
+        modal.style.display = "block";
+        document.body.style.overflow = "hidden";
+        activeModalIdProceso = "modalProceso";
+
+        // Asignar título dinámico
+        titulo.textContent = `Detalles de Proceso para Módulo ${modulo}, Estilo: ${estilo}`;
+
+        // Determinar si es tiempo extra
+        const tiempo_extra = (tablaOrigenId.includes("TE")) ? 1 : null;
+        const fecha = document.getElementById("fecha_inicio").value;
+
+        // Fetch a endpoint (lo verás en el siguiente paso del backend)
+        fetch(`dashboardPlanta2V2P2/buscarProceso/detalles?modulo=${modulo}&estilo=${estilo}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    tbody.innerHTML = `<tr><td colspan="10">${data.error}</td></tr>`;
+                    return;
+                }
+
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="10">No hay registros.</td></tr>`;
+                    return;
+                }
+
+                let rows = "";
+                data.forEach(registro => {
+                    rows += `<tr>
+                            <td>${registro.minutos_paro ?? 'N/A'}</td>
+                            <td>${registro.cliente ?? 'N/A'}</td>
+                            <td>${registro.nombre ?? 'N/A'}</td>
+                            <td>${registro.operacion ?? 'N/A'}</td>
+                            <td>${registro.cantidad_auditada ?? 'N/A'}</td>
+                            <td>${registro.cantidad_rechazada ?? 'N/A'}</td>
+                            <td>${registro.tipo_problema ?? 'N/A'}</td>
+                            <td>${registro.ac ?? 'N/A'}</td>
+                            <td>${registro.pxp ?? 'N/A'}</td>
+                            <td>${registro.hora ?? 'N/A'}</td>
+                        </tr>`;
+                });
+
+                tbody.innerHTML = rows;
+                setTimeout(() => {
+                    const tabla = $('#tablaModalProceso');
+                    if ($.fn.DataTable.isDataTable(tabla)) {
+                        tabla.DataTable().clear().destroy();
+                    }
                     tabla.DataTable({
                         lengthChange: false,
                         searching: true,
                         paging: true,
                         pageLength: 15,
                         dom: 'Bfrtip',
-                        buttons: [
-                            {
-                                extend: 'excelHtml5',
-                                text: 'Exportar a Excel',
-                                className: 'btn btn-success'
-                            }
-                        ],
+                        buttons: [{
+                            extend: 'excelHtml5',
+                            text: 'Exportar a Excel',
+                            className: 'btn btn-success'
+                        }],
                         language: {
                             sProcessing: "Procesando...",
                             sSearch: "Buscar:",
@@ -1014,156 +1139,33 @@
                             }
                         }
                     });
-                })
-                .catch(err => {
-                    tbody.innerHTML = `<tr><td colspan="11">Error al cargar detalles.</td></tr>`;
-                    console.error(err);
-                });
+                }, 50);
+            })
+            .catch(err => {
+                tbody.innerHTML = `<tr><td colspan="10">Error al cargar detalles.</td></tr>`;
+                console.error(err);
+            });
+    }
+
+    function cerrarModalProceso() {
+        document.getElementById("modalProceso").style.display = "none";
+        document.body.style.overflow = "auto";
+        activeModalIdProceso = null;
+    }
+
+    // Cierre al dar clic fuera del modal
+    window.onclick = function(event) {
+        if (event.target.id === "modalProceso") {
+            cerrarModalProceso();
         }
+    };
 
-        function cerrarModalAQL() {
-            document.getElementById("modalAQL").style.display = "none";
-            document.body.style.overflow = "auto";
-            activeModalId = null;
+    // Cierre con tecla ESC
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape" && activeModalIdProceso === "modalProceso") {
+            cerrarModalProceso();
         }
-
-        // Cerrar al hacer clic fuera del modal
-        window.onclick = function(event) {
-            if (event.target.id === "modalAQL") {
-                cerrarModalAQL();
-            }
-        };
-
-        // Cerrar con ESC
-        document.addEventListener('keydown', function(event) {
-            if (event.key === "Escape" && activeModalId === "modalAQL") {
-                cerrarModalAQL();
-            }
-        });
-</script>
-
-<script>
-    let activeModalIdProceso = null;
-
-        function abrirModalProceso(modulo, estilo, tablaOrigenId) {
-            // Mostrar modal vacío con mensaje "Cargando..."
-            const modal = document.getElementById("modalProceso");
-            const tbody = document.getElementById("modalProcesoBody");
-            const titulo = document.getElementById("modalProcesoTitulo");
-            const tabla = $('#tablaModalProceso');
-
-            // Destruir DataTable si ya existe ANTES de insertar nuevos datos
-            if ($.fn.DataTable.isDataTable(tabla)) {
-                tabla.DataTable().clear().destroy();
-            }
-
-            tbody.innerHTML = `<tr><td colspan="10">Cargando...</td></tr>`; // Spinner simple
-
-            // Abrir modal
-            modal.style.display = "block";
-            document.body.style.overflow = "hidden";
-            activeModalIdProceso = "modalProceso";
-
-            // Asignar título dinámico
-            titulo.textContent = `Detalles de Proceso para Módulo ${modulo}, Estilo: ${estilo}`;
-
-            // Determinar si es tiempo extra
-            const tiempo_extra = (tablaOrigenId.includes("TE")) ? 1 : null;
-            const fecha = document.getElementById("fecha_inicio").value;
-
-            // Fetch a endpoint (lo verás en el siguiente paso del backend)
-            fetch(`dashboardPlanta2V2P2/buscarProceso/detalles?modulo=${modulo}&estilo=${estilo}&fecha=${fecha}&tiempo_extra=${tiempo_extra}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) {
-                        tbody.innerHTML = `<tr><td colspan="10">${data.error}</td></tr>`;
-                        return;
-                    }
-
-                    if (data.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="10">No hay registros.</td></tr>`;
-                        return;
-                    }
-
-                    let rows = "";
-                    data.forEach(registro => {
-                        rows += `<tr>
-                            <td>${registro.minutos_paro ?? 'N/A'}</td>
-                            <td>${registro.cliente ?? 'N/A'}</td>
-                            <td>${registro.nombre ?? 'N/A'}</td>
-                            <td>${registro.operacion ?? 'N/A'}</td>
-                            <td>${registro.cantidad_auditada ?? 'N/A'}</td>
-                            <td>${registro.cantidad_rechazada ?? 'N/A'}</td>
-                            <td>${registro.tipo_problema ?? 'N/A'}</td>
-                            <td>${registro.ac ?? 'N/A'}</td>
-                            <td>${registro.pxp ?? 'N/A'}</td>
-                            <td>${registro.hora ?? 'N/A'}</td>
-                        </tr>`;
-                    });
-
-                    tbody.innerHTML = rows;
-                    setTimeout(() => {
-                        const tabla = $('#tablaModalProceso');
-                        if ($.fn.DataTable.isDataTable(tabla)) {
-                            tabla.DataTable().clear().destroy();
-                        }
-                        tabla.DataTable({
-                            lengthChange: false,
-                            searching: true,
-                            paging: true,
-                            pageLength: 15,
-                            dom: 'Bfrtip',
-                            buttons: [
-                                {
-                                    extend: 'excelHtml5',
-                                    text: 'Exportar a Excel',
-                                    className: 'btn btn-success'
-                                }
-                            ],
-                            language: {
-                                sProcessing: "Procesando...",
-                                sSearch: "Buscar:",
-                                sLengthMenu: "Mostrar _MENU_ registros",
-                                sZeroRecords: "No se encontraron resultados",
-                                sEmptyTable: "Ningún dato disponible en esta tabla",
-                                sInfo: "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                                sInfoEmpty: "Mostrando 0 a 0 de 0 registros",
-                                sInfoFiltered: "(filtrado de _MAX_ registros)",
-                                oPaginate: {
-                                    sFirst: "Primero",
-                                    sLast: "Último",
-                                    sNext: "Siguiente",
-                                    sPrevious: "Anterior"
-                                }
-                            }
-                        });
-                    }, 50);
-                })
-                .catch(err => {
-                    tbody.innerHTML = `<tr><td colspan="10">Error al cargar detalles.</td></tr>`;
-                    console.error(err);
-                });
-        }
-
-        function cerrarModalProceso() {
-            document.getElementById("modalProceso").style.display = "none";
-            document.body.style.overflow = "auto";
-            activeModalIdProceso = null;
-        }
-
-        // Cierre al dar clic fuera del modal
-        window.onclick = function(event) {
-            if (event.target.id === "modalProceso") {
-                cerrarModalProceso();
-            }
-        };
-
-        // Cierre con tecla ESC
-        document.addEventListener('keydown', function(event) {
-            if (event.key === "Escape" && activeModalIdProceso === "modalProceso") {
-                cerrarModalProceso();
-            }
-        });
+    });
 </script>
 
 
