@@ -725,7 +725,7 @@
                                     }
                                 },
                                 columnDefs: [{
-                                        targets: [0, 1, 2, 15, 16, 17],
+                                        targets: [0, 1, 2, 3, 15, 16, 17],
                                         type: "string",
                                         render: function(data) {
                                             return typeof data === "string" ? data.trim() : data;
@@ -808,7 +808,6 @@
                                         ${item.modulo}
                                     </button>
                                 </td>
-                                <td>${item.opUnicos}</td>
                                 <td>${item.supervisoresUnicos}</td>
                                 <td>${item.estilo}</td>
                                 <td>${item.cantidadRecorridos}</td>
