@@ -64,6 +64,7 @@
                                             value="{{ $auditorDato }}" readonly /></td>
                                     <td>
                                         <select name="turno" id="turno" class="form-control" required style="background-color: #27293d !important; color: white !important;">
+                                            <option value="" selected disabled>Selecciona un turno</option>
                                             @foreach($turnos as $turno)
                                             <option value="{{ $turno->id }}">{{ $turno->nombre }}</option>
                                             @endforeach
