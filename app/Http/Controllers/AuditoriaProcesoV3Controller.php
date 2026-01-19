@@ -814,7 +814,7 @@ class AuditoriaProcesoV3Controller extends Controller
                 $horarioHoy = $turnoReglas->horario_semanal[$diaSemana];
 
                 // Si existe horario definido para hoy
-                if ($horarioHoy) {
+                if ($horarioHoy && !empty($horarioHoy['inicio']) && !empty($horarioHoy['fin'])) {
                     // Creamos instancias Carbon para comparar horas (usa fecha de hoy)
                     $horaInicio = \Carbon\Carbon::createFromTimeString($horarioHoy['inicio']);
                     $horaFin = \Carbon\Carbon::createFromTimeString($horarioHoy['fin']);
