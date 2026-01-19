@@ -52,11 +52,14 @@ class AuditoriaProcesoV3Controller extends Controller
         $fechaActualCarbon = Carbon::now();
         $fechaActualParaVista = $fechaActualCarbon->format('d ') . $mesesEnEspanol[$fechaActualCarbon->format('n') - 1] . $fechaActualCarbon->format(' Y');
 
+        $turnos = \App\Models\Turno::all();;
+
         return view('proceso.index', compact(
             'pageSlug',
             'auditorDato', // Necesario para el campo readonly en el formulario principal
             'tipoUsuario', // Podría ser necesario para lógica condicional en la vista
-            'fechaActualParaVista'
+            'fechaActualParaVista',
+            'turnos'
             // Los siguientes datos se cargarán por AJAX:
             // 'gerenteProduccion',
             // 'procesoActual',
@@ -343,6 +346,15 @@ class AuditoriaProcesoV3Controller extends Controller
             'gerente_produccion' => $request->gerente_produccion,
         ];
         //dd($data);
+
+        // GUARDAR ASIGNACIÓN DE TURNO PARA EL DÍA
+        // Esto asegura que el sistema sepa qué reglas aplicar para este módulo hoy.
+        if ($request->has('modulo') && $request->has('turno')) {
+            \App\Models\ModuloTurno::updateOrCreate(
+                ['modulo' => $request->modulo, 'fecha' => \Carbon\Carbon::now()->toDateString()],
+                ['turno_id' => $request->turno]
+            );
+        }
 
         return redirect()->route(
             'procesoV3.registro',
@@ -786,14 +798,36 @@ class AuditoriaProcesoV3Controller extends Controller
             $nuevoRegistro->ac = $datosFormulario['auditoria'][0]['accion_correctiva'];
             $nuevoRegistro->pxp = $datosFormulario['auditoria'][0]['pxp'];
 
-            // Determinar si aplica tiempo extra según la hora y el día
-            if ($diaSemana >= 1 && $diaSemana <= 4) { // Lunes a Jueves
-                $nuevoRegistro->tiempo_extra = ($fechaHoraActual->hour >= 19) ? 1 : null;
-            } elseif ($diaSemana == 5) { // Viernes
-                $nuevoRegistro->tiempo_extra = ($fechaHoraActual->hour >= 14) ? 1 : null;
-            } else { // Sábado y domingo
-                $nuevoRegistro->tiempo_extra = 1;
+            // LÓGICA DE HORARIOS FLEXIBLES
+            // 1. Buscamos si hay un turno asignado para este módulo hoy
+            $asignacion = \App\Models\ModuloTurno::where('modulo', $datosFormulario['modulo'])
+                ->where('fecha', now()->toDateString())
+                ->with('turno')
+                ->first();
+
+            // 2. Obtenemos el horario (si hay asignación usa ese, si no, usa el default ID 1)
+            $turnoReglas = $asignacion ? $asignacion->turno : \App\Models\Turno::find(1);
+
+            $esTiempoExtra = true; // Asumimos TE por defecto (fuera de horario o fin de semana)
+
+            if ($turnoReglas && isset($turnoReglas->horario_semanal[$diaSemana])) {
+                $horarioHoy = $turnoReglas->horario_semanal[$diaSemana];
+
+                // Si existe horario definido para hoy
+                if ($horarioHoy) {
+                    // Creamos instancias Carbon para comparar horas (usa fecha de hoy)
+                    $horaInicio = \Carbon\Carbon::createFromTimeString($horarioHoy['inicio']);
+                    $horaFin = \Carbon\Carbon::createFromTimeString($horarioHoy['fin']);
+
+                    // Verificar si la hora actual está DENTRO del rango (inclusive)
+                    if ($fechaHoraActual->between($horaInicio, $horaFin, true)) {
+                        $esTiempoExtra = false; // Está dentro del horario laboral = Turno Normal
+                    }
+                }
             }
+
+            // Asignar el valor (1 para TE, null para Normal)
+            $nuevoRegistro->tiempo_extra = $esTiempoExtra ? 1 : null;
 
             $nuevoRegistro->save();
 

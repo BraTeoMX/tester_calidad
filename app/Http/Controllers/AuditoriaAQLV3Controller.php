@@ -31,7 +31,9 @@ class AuditoriaAQLV3Controller extends Controller
         $pageSlug = '';
         $auditorDato = Auth::user()->name;
 
-        return view('AQL.index', compact('pageSlug', 'auditorDato'));
+        $turnos =  \App\Models\Turno::all();
+
+        return view('AQL.index', compact('pageSlug', 'auditorDato', 'turnos'));
     }
 
     public function initialData(Request $request)
@@ -280,6 +282,15 @@ class AuditoriaAQLV3Controller extends Controller
         if (!$datoUnicoOP) {
             // Si llegamos aquí, es que no existe en ninguna de las dos tablas.
             return redirect()->back()->with('error', 'La OP proporcionada no fue encontrada en ninguna fuente de datos.');
+        }
+
+        // GUARDAR ASIGNACIÓN DE TURNO PARA EL DÍA
+        // Esto asegura que el sistema sepa qué reglas aplicar para este módulo hoy.
+        if ($request->has('turno')) {
+            \App\Models\ModuloTurno::updateOrCreate(
+                ['modulo' => $request->modulo, 'fecha' => \Carbon\Carbon::now()->toDateString()],
+                ['turno_id' => $request->turno]
+            );
         }
 
         // Si se encontró en cualquiera de las dos tablas, el código continúa igual
@@ -731,22 +742,38 @@ class AuditoriaAQLV3Controller extends Controller
                 $nuevoRegistro->inicio_paro = Carbon::now();
             }
 
-            // Verificar la hora para determinar el valor de "tiempo_extra"
-            if ($diaSemana >= 1 && $diaSemana <= 4) { // De lunes a jueves
-                if ($fechaHoraActual->hour >= 19) { // Después de las 7:00 pm
-                    $nuevoRegistro->tiempo_extra = 1;
-                } else {
-                    $nuevoRegistro->tiempo_extra = null;
+            // LÓGICA DE HORARIOS FLEXIBLES
+            // 1. Buscamos si hay un turno asignado para este módulo hoy
+            $asignacion = \App\Models\ModuloTurno::where('modulo', $request->modulo)
+                ->where('fecha', $fechaActual)
+                ->with('turno')
+                ->first();
+
+            // 2. Obtenemos el horario (si hay asignación usa ese, si no, usa el default ID 1)
+            // Asumimos que el Seeder creó el ID 1 como "Turno 1 (Estandar)"
+            $turnoReglas = $asignacion ? $asignacion->turno : \App\Models\Turno::find(1);
+
+            $esTiempoExtra = true; // Asumimos TE por defecto (fuera de horario o fin de semana)
+
+            // Carbon dayOfWeek: 0 (Domingo) - 6 (Sábado)
+            if ($turnoReglas && isset($turnoReglas->horario_semanal[$diaSemana])) {
+                $horarioHoy = $turnoReglas->horario_semanal[$diaSemana];
+
+                // Si existe horario definido para hoy
+                if ($horarioHoy) {
+                    // Creamos instancias Carbon para comparar horas (usa fecha de hoy)
+                    $horaInicio = Carbon::createFromTimeString($horarioHoy['inicio']);
+                    $horaFin = Carbon::createFromTimeString($horarioHoy['fin']);
+
+                    // Verificar si la hora actual está DENTRO del rango (inclusive)
+                    if ($fechaHoraActual->between($horaInicio, $horaFin, true)) {
+                        $esTiempoExtra = false; // Está dentro del horario laboral = Turno Normal
+                    }
                 }
-            } elseif ($diaSemana == 5) { // Viernes
-                if ($fechaHoraActual->hour >= 14) { // Después de las 2:00 pm
-                    $nuevoRegistro->tiempo_extra = 1;
-                } else {
-                    $nuevoRegistro->tiempo_extra = null;
-                }
-            } else { // Sábado y domingo
-                $nuevoRegistro->tiempo_extra = 1;
             }
+
+            // Asignar el valor (1 para TE, null para Normal)
+            $nuevoRegistro->tiempo_extra = $esTiempoExtra ? 1 : null;
 
             if ((($conteoParos == 1) && ($request->cantidad_rechazada > 0)) || (($conteoParos == 3) && ($request->cantidad_rechazada > 0))) {
                 $nuevoRegistro->paro_modular = 1;
