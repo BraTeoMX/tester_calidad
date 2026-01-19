@@ -41,22 +41,21 @@ class TurnoController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'nombre' => 'required|string|max:255',
-            'horarios' => 'required|array', // Validar array de horarios Lunes-Domingo
+            'horarios' => 'required|array',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
 
         $turno = new \App\Models\Turno();
         $turno->nombre = $request->nombre;
-
-        // Convertir array de horarios a JSON para guardarlo
-        // Estructura esperada del request:
-        // horarios[1][inicio], horarios[1][fin], etc. (1=Lunes, 7=Domingo)
         $turno->horario_semanal = $request->horarios;
-
         $turno->save();
 
-        return redirect()->route('turnos.index')->with('success', 'Turno creado correctamente.');
+        return response()->json(['success' => true, 'message' => 'Turno creado correctamente.', 'data' => $turno]);
     }
 
     /**
@@ -67,7 +66,7 @@ class TurnoController extends Controller
      */
     public function show($id)
     {
-        //
+        return response()->json(\App\Models\Turno::findOrFail($id));
     }
 
     /**
@@ -79,7 +78,7 @@ class TurnoController extends Controller
     public function edit($id)
     {
         $turno = \App\Models\Turno::findOrFail($id);
-        return view('turnos.form', compact('turno'));
+        return response()->json($turno);
     }
 
     /**
@@ -91,21 +90,21 @@ class TurnoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'nombre' => 'required|string|max:255',
             'horarios' => 'required|array',
         ]);
 
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
         $turno = \App\Models\Turno::findOrFail($id);
         $turno->nombre = $request->nombre;
-        $turno->horario_semanal = $request->horarios; // Laravel cast to object handling? No, model has no casts. Eloquent generic JSON cast?
-        // Revisar si el modelo tiene $casts. Si no, hay que hacer json_encode.
-        // Asumiendo que el modelo tiene protected $casts = ['horario_semanal' => 'array'];
-        // Si no lo tiene, agregarlo es buena práctica.
-
+        $turno->horario_semanal = $request->horarios;
         $turno->save();
 
-        return redirect()->route('turnos.index')->with('success', 'Turno actualizado correctamente.');
+        return response()->json(['success' => true, 'message' => 'Turno actualizado correctamente.', 'data' => $turno]);
     }
 
     /**
@@ -118,6 +117,6 @@ class TurnoController extends Controller
     {
         $turno = \App\Models\Turno::findOrFail($id);
         $turno->delete();
-        return redirect()->route('turnos.index')->with('success', 'Turno eliminado correctamente.');
+        return response()->json(['success' => true, 'message' => 'Turno eliminado correctamente.']);
     }
 }
