@@ -634,4 +634,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/reporte-auditoria-corte/datos-prueba', [ReporteAuditoriaCorteController::class, 'datosPrueba'])->name('reporte.auditoria.corte.datos.prueba');
     Route::get('/reporte-auditoria-corte/buscar-op', [ReporteAuditoriaCorteController::class, 'buscarPorOP'])->name('reporte.auditoria.corte.buscar.op');
     Route::get('/reporte-auditoria-corte/exportar', [ReporteAuditoriaCorteController::class, 'exportarExcel'])->name('reporte.auditoria.corte.exportar');
+
+    // Gestión de Turnos
+    Route::resource('turnos', \App\Http\Controllers\TurnoController::class);
 });

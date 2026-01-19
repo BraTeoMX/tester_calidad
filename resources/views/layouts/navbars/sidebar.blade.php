@@ -209,6 +209,12 @@
                                 <p>{{ __('Gestión de Categorías') }}</p>
                             </a>
                         </li>
+                        <li class="nav-item{{ $pageSlug == 'turnos' ? ' active' : '' }}">
+                            <a class="nav-link" href="{{ route('turnos.index') }}">
+                                <i class="tim-icons icon-time-alarm"></i>
+                                <p>{{ __('Gestión de Turnos') }}</p>
+                            </a>
+                        </li>
                         <li class="nav-item{{ $pageSlug == 'GestionBusqueda' ? ' active' : '' }}">
                             <a class="nav-link" href="{{ route('gestion.agregarAqlProceso') }}">
                                 <i class="tim-icons icon-zoom-split"></i>
@@ -341,6 +347,12 @@
                             <a class="nav-link" href="{{ route('altaYbaja') }}">
                                 <i class="tim-icons icon-support-17"></i>
                                 <p>{{ __('Gestión de Categorías') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item{{ $pageSlug == 'turnos' ? ' active' : '' }}">
+                            <a class="nav-link" href="{{ route('turnos.index') }}">
+                                <i class="tim-icons icon-time-alarm"></i>
+                                <p>{{ __('Gestión de Turnos') }}</p>
                             </a>
                         </li>
                         <li class="nav-item{{ $pageSlug == 'GestionBusqueda' ? ' active' : '' }}">
