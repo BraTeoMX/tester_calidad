@@ -11,7 +11,7 @@
                             <h4 class="card-title">Gestión de Turnos</h4>
                         </div>
                         <div class="col-4 text-right">
-                            <button type="button" class="btn btn-sm btn-primary" onclick="openCreateModal()">
+                            <button type="button" class="btn btn-info" onclick="openCreateModal()">
                                 Nuevo Turno
                             </button>
                         </div>
@@ -38,7 +38,7 @@
                                         @if($turno->estatus == 1)
                                         <span class="badge badge-info">Activo</span>
                                         @else
-                                        <span class="badge badge-danger">Inactivo</span>
+                                        <span class="badge badge-dark">Inactivo</span>
                                         @endif
                                     </td>
                                     <td>
@@ -115,8 +115,8 @@
                 </div>
             </div>
             <div class="custom-modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Guardar</button>
+                <button type="button" class="btn btn-dark" onclick="closeModal()">Cancelar</button>
+                <button type="submit" class="btn btn-info">Guardar</button>
             </div>
         </form>
     </div>
