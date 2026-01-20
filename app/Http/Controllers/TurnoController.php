@@ -44,6 +44,7 @@ class TurnoController extends Controller
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'nombre' => 'required|string|max:255',
             'horarios' => 'required|array',
+            'planta' => 'required|integer|in:0,1,2',
         ]);
 
         if ($validator->fails()) {
@@ -52,6 +53,8 @@ class TurnoController extends Controller
 
         $turno = new \App\Models\Turno();
         $turno->nombre = $request->nombre;
+        $turno->planta = $request->planta;
+        $turno->estatus = 1; // Default active on create
         $turno->horario_semanal = $request->horarios;
         $turno->save();
 
@@ -93,6 +96,7 @@ class TurnoController extends Controller
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'nombre' => 'required|string|max:255',
             'horarios' => 'required|array',
+            'planta' => 'required|integer|in:0,1,2',
         ]);
 
         if ($validator->fails()) {
@@ -101,6 +105,7 @@ class TurnoController extends Controller
 
         $turno = \App\Models\Turno::findOrFail($id);
         $turno->nombre = $request->nombre;
+        $turno->planta = $request->planta;
         $turno->horario_semanal = $request->horarios;
         $turno->save();
 
@@ -118,5 +123,20 @@ class TurnoController extends Controller
         $turno = \App\Models\Turno::findOrFail($id);
         $turno->delete();
         return response()->json(['success' => true, 'message' => 'Turno eliminado correctamente.']);
+    }
+
+    public function toggleStatus($id)
+    {
+        $turno = \App\Models\Turno::findOrFail($id);
+        $turno->estatus = !$turno->estatus;
+        $turno->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Estatus actualizado correctamente.',
+            'nuevo_estatus' => $turno->estatus,
+            'label' => $turno->estatus_label,
+            'badge_class' => $turno->estatus_badge_class
+        ]);
     }
 }

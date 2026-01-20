@@ -636,5 +636,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/reporte-auditoria-corte/exportar', [ReporteAuditoriaCorteController::class, 'exportarExcel'])->name('reporte.auditoria.corte.exportar');
 
     // Gestión de Turnos
+    Route::patch('turnos/{id}/toggle-status', [\App\Http\Controllers\TurnoController::class, 'toggleStatus'])->name('turnos.toggleStatus');
     Route::resource('turnos', \App\Http\Controllers\TurnoController::class);
 });

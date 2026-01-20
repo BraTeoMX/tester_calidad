@@ -35,20 +35,12 @@
                                     <td>{{ $turno->id }}</td>
                                     <td>{{ $turno->nombre }}</td>
                                     <td>
-                                        @if($turno->estatus == 1)
-                                        <span class="badge badge-info">Activo</span>
-                                        @else
-                                        <span class="badge badge-dark">Inactivo</span>
-                                        @endif
+                                        <button type="button" class="btn btn-sm {{ $turno->estatus_badge_class }}" onclick="toggleStatus('{{ $turno->id }}')" title="Cambiar Estatus">
+                                            {{ $turno->estatus_label }}
+                                        </button>
                                     </td>
                                     <td>
-                                        @if($turno->planta == 1)
-                                        <span class="badge badge-brown">Ixtlahauaca</span>
-                                        @elseif($turno->planta == 2)
-                                        <span class="badge badge-brown">San Bartolo</span>
-                                        @elseif($turno->planta == 0)
-                                        <span class="badge badge-brown">Ambos</span>
-                                        @endif
+                                        <span class="badge {{ $turno->planta_badge }}">{{ $turno->planta_label }}</span>
                                     </td>
                                     <td class="text-right">
                                         <button type="button" class="btn btn-icon btn-sm btn-info" onclick="editTurno('{{ $turno->id }}')">
@@ -83,6 +75,16 @@
                 <div class="form-group">
                     <label>Nombre del Turno</label>
                     <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Nombre del turno" required style="color: black;">
+                </div>
+
+                <div class="form-group">
+                    <label>Planta</label>
+                    <select class="form-control" id="planta" name="planta" required style="color: black;">
+                        <option value="" disabled selected>Seleccione una planta</option>
+                        <option value="1">Ixtlahuaca</option>
+                        <option value="2">San Bartolo</option>
+                        <option value="0">Ambos</option>
+                    </select>
                 </div>
 
                 <h4 class="mt-4">Horario Semanal</h4>
@@ -191,6 +193,17 @@
     .swal2-container {
         z-index: 10000 !important;
     }
+
+    /* Fix for select in dark mode if needed, assuming similar to inputs */
+    .custom-modal-content select.form-control {
+        color: white !important;
+        border-color: #2b3553;
+    }
+
+    .custom-modal-content select.form-control option {
+        color: black;
+        /* Options usually need black text on white bg context or browser default */
+    }
 </style>
 
 <script>
@@ -259,6 +272,7 @@
     function openCreateModal() {
         $('#turnoForm')[0].reset();
         $('#turno_id').val('');
+        $('#planta').val(''); // Reset select
         $('#turnoModalLabel').text('Crear Nuevo Turno');
 
         // Resetear todos los campos 'fin' a disabled
@@ -280,6 +294,7 @@
             $('#turnoForm')[0].reset();
             $('#turno_id').val(data.id);
             $('#nombre').val(data.nombre);
+            $('#planta').val(data.planta); // Set Planta
             $('#turnoModalLabel').text('Editar Turno: ' + data.nombre);
 
             // Resetear primero todos a disabled
@@ -423,6 +438,48 @@
                     },
                     error: function() {
                         Swal.fire('Error', 'No se pudo eliminar el turno', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    function toggleStatus(id) {
+        Swal.fire({
+            title: '¿Cambiar Estatus?',
+            text: "¿Deseas cambiar el estatus de este turno? Esto afectará la visibilidad en el sistema.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, cambiar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/turnos/' + id + '/toggle-status',
+                    type: 'PATCH',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Actualizado',
+                                text: response.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+
+                            // Actualizar botón en la vista sin recargar
+                            let btn = $('#row-' + id).find('button[onclick^="toggleStatus"]');
+                            btn.removeClass('badge-info badge-dark').addClass(response.badge_class);
+                            btn.text(response.label);
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'No se pudo actualizar el estatus', 'error');
                     }
                 });
             }
