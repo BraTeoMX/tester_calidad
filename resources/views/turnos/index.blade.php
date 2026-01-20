@@ -24,6 +24,8 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Nombre</th>
+                                    <th>Estatus</th>
+                                    <th>Planta</th>
                                     <th class="text-right">Acciones</th>
                                 </tr>
                             </thead>
@@ -32,8 +34,24 @@
                                 <tr id="row-{{ $turno->id }}">
                                     <td>{{ $turno->id }}</td>
                                     <td>{{ $turno->nombre }}</td>
+                                    <td>
+                                        @if($turno->estatus == 1)
+                                        <span class="badge badge-info">Activo</span>
+                                        @else
+                                        <span class="badge badge-danger">Inactivo</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($turno->planta == 1)
+                                        <span class="badge badge-brown">Ixtlahauaca</span>
+                                        @elseif($turno->planta == 2)
+                                        <span class="badge badge-brown">San Bartolo</span>
+                                        @elseif($turno->planta == 0)
+                                        <span class="badge badge-brown">Ambos</span>
+                                        @endif
+                                    </td>
                                     <td class="text-right">
-                                        <button type="button" class="btn btn-icon btn-sm btn-primary" onclick="editTurno('{{ $turno->id }}')">
+                                        <button type="button" class="btn btn-icon btn-sm btn-info" onclick="editTurno('{{ $turno->id }}')">
                                             <i class="tim-icons icon-pencil"></i>
                                         </button>
                                         <button type="button" class="btn btn-icon btn-sm btn-danger" onclick="deleteTurno('{{ $turno->id }}')">
@@ -128,7 +146,7 @@
         max-height: 90vh;
         overflow-y: auto;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-        border: 1px solid #e14eca;
+        border: 1px solid #155ee6ff;
         /* Color de borde acorde al tema (magenta/purple) */
     }
 
