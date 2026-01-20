@@ -14,6 +14,10 @@ class GestionController extends Controller
 {
     public function agregarAqlProceso()
     {
+        // Elimanar registros de ModuloEstiloTemporal con más de 15 días
+        $fechaLimite = now()->subDays(15);
+        ModuloEstiloTemporal::where('created_at', '<', $fechaLimite)->delete();
+
         $pageSlug = '';
         // Obtener estilos y clientes únicos
         $estilos = JobAQLHistorial::select('itemid', 'customername')
