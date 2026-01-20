@@ -31,7 +31,18 @@ class AuditoriaAQLV3Controller extends Controller
         $pageSlug = '';
         $auditorDato = Auth::user()->name;
 
-        $turnos =  \App\Models\Turno::all();
+        // 1. Mapeamos el string del usuario al ID numérico
+        $plantaUsuarioId = match (Auth::user()->Planta) {
+            'Planta1' => 1,
+            'Planta2' => 2,
+            default   => null, // O maneja un valor por defecto si es necesario
+        };
+
+        // 2. Ejecutamos la consulta usando whereIn
+        // Esto dice: "Trae donde estatus sea 1 Y la planta sea (ID del usuario O 0)"
+        $turnos = \App\Models\Turno::where('estatus', 1)
+            ->whereIn('planta', [$plantaUsuarioId, 0])
+            ->get();
 
         return view('AQL.index', compact('pageSlug', 'auditorDato', 'turnos'));
     }

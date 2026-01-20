@@ -25,19 +25,27 @@
                             <thead class="thead-primary">
                                 <tr>
                                     <th>AREA</th>
+                                    <th>TURNO</th>
                                     <th>MODULO</th>
                                     <th>ESTILO</th>
                                     <th>CLIENTE</th>
                                     <th>SUPERVISOR</th>
                                     <th>GERENTE DE PRODUCCION</th>
                                     <th>AUDITOR</th>
-                                    <th>TURNO</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td><input type="text" class="form-control me-2 texto-blanco" name="area" id="area"
                                             value="AUDITORIA EN PROCESO" readonly />
+                                    </td>
+                                    <td>
+                                        <select name="turno" id="turno" class="form-control" required style="background-color: #27293d !important; color: white !important;">
+                                            <option value="" selected disabled>Selecciona un turno</option>
+                                            @foreach($turnos as $turno)
+                                            <option value="{{ $turno->id }}">{{ $turno->nombre }}</option>
+                                            @endforeach
+                                        </select>
                                     </td>
                                     <td>
                                         <select name="modulo" id="modulo_proceso" class="form-control" required>
@@ -61,14 +69,7 @@
                                         </select>
                                     </td>
                                     <td><input type="text" class="form-control me-2 texto-blanco" name="auditor" id="auditor"
-                                            value="{{ $auditorDato }}" readonly /></td>
-                                    <td>
-                                        <select name="turno" id="turno" class="form-control" required style="background-color: #27293d !important; color: white !important;">
-                                            <option value="" selected disabled>Selecciona un turno</option>
-                                            @foreach($turnos as $turno)
-                                            <option value="{{ $turno->id }}">{{ $turno->nombre }}</option>
-                                            @endforeach
-                                        </select>
+                                            value="{{ $auditorDato }}" readonly />
                                     </td>
                                 </tr>
                             </tbody>
@@ -239,32 +240,37 @@
     }
 
     .table10 th:nth-child(2) {
-        min-width: 150px;
+        min-width: 180px;
         /* Ajusta el ancho mínimo según tu necesidad */
     }
 
     .table10 th:nth-child(3) {
-        min-width: 200px;
-        /* Ajusta el ancho mínimo según tu necesidad */
-    }
-
-    .table10 th:nth-child(4) {
-        min-width: 220px;
-        /* Ajusta el ancho mínimo según tu necesidad */
-    }
-
-    .table10 th:nth-child(5) {
-        min-width: 200px;
-        /* Ajusta el ancho mínimo según tu necesidad */
-    }
-
-    .table10 th:nth-child(6) {
         min-width: 150px;
         /* Ajusta el ancho mínimo según tu necesidad */
     }
 
+    .table10 th:nth-child(4) {
+        min-width: 200px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
+
+    .table10 th:nth-child(5) {
+        min-width: 220px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
+
+    .table10 th:nth-child(6) {
+        min-width: 200px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
+
     .table10 th:nth-child(7) {
-        min-width: 50px;
+        min-width: 150px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
+
+    .table10 th:nth-child(8) {
+        min-width: 120px;
         /* Ajusta el ancho mínimo según tu necesidad */
     }
 </style>
