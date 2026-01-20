@@ -33,10 +33,10 @@
                                     <td>{{ $turno->id }}</td>
                                     <td>{{ $turno->nombre }}</td>
                                     <td class="text-right">
-                                        <button type="button" class="btn btn-icon btn-sm btn-primary" onclick="editTurno({{ $turno->id }})">
+                                        <button type="button" class="btn btn-icon btn-sm btn-primary" onclick="editTurno('{{ $turno->id }}')">
                                             <i class="tim-icons icon-pencil"></i>
                                         </button>
-                                        <button type="button" class="btn btn-icon btn-sm btn-danger" onclick="deleteTurno({{ $turno->id }})">
+                                        <button type="button" class="btn btn-icon btn-sm btn-danger" onclick="deleteTurno('{{ $turno->id }}')">
                                             <i class="tim-icons icon-trash-simple"></i>
                                         </button>
                                     </td>
