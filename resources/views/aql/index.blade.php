@@ -24,7 +24,7 @@
                             <thead class="thead-primary">
                                 <tr>
                                     <th>AREA</th>
-                                    <th>TURNO</th>
+                                    <th>HORARIO</th>
                                     <th>MODULO</th>
                                     <th>OP</th>
                                     <th>SUPERVISOR</th>

@@ -25,7 +25,7 @@
                             <thead class="thead-primary">
                                 <tr>
                                     <th>AREA</th>
-                                    <th>TURNO</th>
+                                    <th>HORARIO</th>
                                     <th>MODULO</th>
                                     <th>ESTILO</th>
                                     <th>CLIENTE</th>
@@ -270,7 +270,7 @@
     }
 
     .table10 th:nth-child(8) {
-        min-width: 120px;
+        min-width: 150px;
         /* Ajusta el ancho mínimo según tu necesidad */
     }
 </style>
