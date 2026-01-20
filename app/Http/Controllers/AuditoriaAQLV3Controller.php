@@ -632,23 +632,18 @@ class AuditoriaAQLV3Controller extends Controller
 
                 $query = AuditoriaProceso::query()
                     ->select('name', 'personnelnumber')
-                    ->distinct();
+                    ->groupBy('name', 'personnelnumber');
 
                 // Aplicamos el ordenamiento que prioriza el módulo actual.
-                // Asegúrate que 'moduleid' sea el nombre correcto de la columna en tu tabla.
-                // Si $modulo es null, la comparación `moduleid = NULL` en SQL es especial (debería ser `moduleid IS NULL`).
-                // Si $modulo siempre va a tener un valor, esto está bien.
-                // Si $modulo puede ser nulo y quieres manejarlo, podrías hacer:
+                // Usamos MAX() para determinar si el operario tiene asignado el módulo (1) o no (0)
+                // Esto permite ordenar correctamente sin violar reglas de SQL al usar GROUP BY
                 if (!empty($modulo)) {
-                    $query->orderByRaw("CASE WHEN moduleid = ? THEN 0 ELSE 1 END", [$modulo])
-                        ->orderBy('name'); // Orden secundario para consistencia dentro de los grupos
+                    $query->orderByRaw("MAX(CASE WHEN moduleid = ? THEN 1 ELSE 0 END) DESC", [$modulo])
+                        ->orderBy('name'); // Orden secundario A-Z
                 } else {
-                    // Si no hay módulo, un ordenamiento general
+                    // Si no hay módulo, un ordenamiento general A-Z
                     $query->orderBy('name');
                 }
-
-                // IMPORTANTE: No se incluye la lógica `if ($search)` aquí.
-                // Esta función ahora devuelve el conjunto completo de datos para la búsqueda del lado del cliente.
 
                 return $query->get();
             });
