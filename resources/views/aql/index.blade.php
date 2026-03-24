@@ -24,26 +24,18 @@
                             <thead class="thead-primary">
                                 <tr>
                                     <th>AREA</th>
-                                    <th>HORARIO</th>
                                     <th>MODULO</th>
                                     <th>OP</th>
                                     <th>SUPERVISOR</th>
                                     <th>GERENTE DE PRODUCCION</th>
                                     <th>AUDITOR</th>
+                                    <th>HORARIO</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td>
                                         <input type="text" class="form-control texto-blanco" name="area" value="AUDITORIA AQL" readonly>
-                                    </td>
-                                    <td>
-                                        <select name="turno" id="turno" class="form-control" required style="background-color: #27293d !important; color: white !important;">
-                                            <option value="" selected disabled>Selecciona un turno</option>
-                                            @foreach($turnos as $turno)
-                                            <option value="{{ $turno->id }}">{{ $turno->nombre }}</option>
-                                            @endforeach
-                                        </select>
                                     </td>
                                     <td>
                                         <select name="modulo" id="modulo" class="form-control" required
@@ -68,6 +60,13 @@
                                     </td>
                                     <td><input type="text" class="form-control texto-blanco" name="auditor" id="auditor"
                                             value="{{ $auditorDato }}" readonly required />
+                                    </td>
+                                    <td>
+                                        <select name="turno" id="turno" class="form-control" required style="background-color: #27293d !important; color: white !important;">
+                                            @foreach($turnos as $turno)
+                                            <option value="{{ $turno->id }}">{{ $turno->nombre }}</option>
+                                            @endforeach
+                                        </select>
                                     </td>
                                 </tr>
                             </tbody>
@@ -232,27 +231,27 @@
     }
 
     .table-200 th:nth-child(2) {
-        min-width: 150px;
-        /* Ajusta el ancho mínimo según tu necesidad */
-    }
-
-    .table-200 th:nth-child(3) {
         min-width: 130px;
         /* Ajusta el ancho mínimo según tu necesidad */
     }
 
-    .table-200 th:nth-child(4) {
+    .table-200 th:nth-child(3) {
         min-width: 180px;
         /* Ajusta el ancho mínimo según tu necesidad */
     }
 
-    .table-200 th:nth-child(5) {
+    .table-200 th:nth-child(4) {
         min-width: 150px;
         /* Ajusta el ancho mínimo según tu necesidad */
     }
 
-    .table-200 th:nth-child(6) {
+    .table-200 th:nth-child(5) {
         min-width: 180px;
+        /* Ajusta el ancho mínimo según tu necesidad */
+    }
+
+    .table-200 th:nth-child(6) {
+        min-width: 120px;
         /* Ajusta el ancho mínimo según tu necesidad */
     }
 
