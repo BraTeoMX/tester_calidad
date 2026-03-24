@@ -533,14 +533,14 @@
                         data: 'fecha_liberacion',
                         render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
                     },
-                    {
-                        data: 'fecha_parcial',
-                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
-                    },
-                    {
-                        data: 'fecha_rechazo',
-                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
-                    },
+{
+                            data: 'fecha_parcial_efectiva',
+                            render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                        },
+{
+                            data: 'fecha_rechazo_efectiva',
+                            render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                        },
                     {
                         data: 'fecha_online',
                         render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
@@ -1014,18 +1014,18 @@
     </script>
 
     <script>
-        function dibujarGraficoLineaRango(json) {
-            const registros = json.registros;
-            const fases = ['fecha_corte', 'fecha_liberacion', 'fecha_parcial', 'fecha_rechazo', 'fecha_online', 'fecha_offline', 'fecha_approved'];
-            const etiquetas = {
-                'fecha_corte': 'Sellado',
-                'fecha_liberacion': 'Aceptado',
-                'fecha_parcial': 'Parcial',
-                'fecha_rechazo': 'Rechazo',
-                'fecha_online': 'Producción',
-                'fecha_offline': 'Offline',
-                'fecha_approved': 'Approved'
-            };
+function dibujarGraficoLineaRango(json) {
+             const registros = json.registros;
+             const fases = ['fecha_corte', 'fecha_liberacion', 'fecha_parcial_efectiva', 'fecha_rechazo_efectiva', 'fecha_online', 'fecha_offline', 'fecha_approved'];
+             const etiquetas = {
+                 'fecha_corte': 'Sellado',
+                 'fecha_liberacion': 'Aceptado',
+                 'fecha_parcial_efectiva': 'Parcial',
+                 'fecha_rechazo_efectiva': 'Rechazo',
+                 'fecha_online': 'Producción',
+                 'fecha_offline': 'Offline',
+                 'fecha_approved': 'Approved'
+             };
 
             function construirControles() {
                 const html = `

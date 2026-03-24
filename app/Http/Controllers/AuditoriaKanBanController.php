@@ -118,9 +118,48 @@ class AuditoriaKanBanController extends Controller
                     ? 'N/A'
                     : $registro->cantidades_parciales->pluck('cantidad')->implode(', ');
 
+                // Calcular fechas efectivas para parciales y rechazados según regla de negocio
+                // Para PARCIALES: si ambas columnas tienen valor, tomar la más reciente; si solo una, tomar esa
+                $fechaParcial = $registro->fecha_parcial;
+                $fechaParcialCalidad = $registro->fecha_parcial_calidad;
+                
+                if ($fechaParcial && $fechaParcialCalidad) {
+                    // Ambas existen, tomar la más reciente
+                    $fechaParcialEfectiva = max($fechaParcial, $fechaParcialCalidad);
+                } elseif ($fechaParcial) {
+                    // Solo fecha_parcial existe
+                    $fechaParcialEfectiva = $fechaParcial;
+                } elseif ($fechaParcialCalidad) {
+                    // Solo fecha_parcial_calidad existe
+                    $fechaParcialEfectiva = $fechaParcialCalidad;
+                } else {
+                    // Ninguna existe
+                    $fechaParcialEfectiva = null;
+                }
+
+                // Para RECHAZADOS: aplicar exactamente la misma lógica
+                $fechaRechazo = $registro->fecha_rechazo;
+                $fechaRechazoCalidad = $registro->fecha_rechazo_calidad;
+                
+                if ($fechaRechazo && $fechaRechazoCalidad) {
+                    // Ambas existen, tomar la más reciente
+                    $fechaRechazoEfectiva = max($fechaRechazo, $fechaRechazoCalidad);
+                } elseif ($fechaRechazo) {
+                    // Solo fecha_rechazo existe
+                    $fechaRechazoEfectiva = $fechaRechazo;
+                } elseif ($fechaRechazoCalidad) {
+                    // Solo fecha_rechazo_calidad existe
+                    $fechaRechazoEfectiva = $fechaRechazoCalidad;
+                } else {
+                    // Ninguna existe
+                    $fechaRechazoEfectiva = null;
+                }
+
                 // Agregar estos datos al registro
                 $registro->comentarios_lista = $comentarios;
                 $registro->cantidades_parciales_lista = $cantidades_parciales;
+                $registro->fecha_parcial_efectiva = $fechaParcialEfectiva;
+                $registro->fecha_rechazo_efectiva = $fechaRechazoEfectiva;
 
                 return $registro;
             });
@@ -129,13 +168,21 @@ class AuditoriaKanBanController extends Controller
             $offline = $registros->whereNotNull('fecha_offline')->count();
             $approved = $registros->whereNotNull('fecha_approved')->count();
 
-            // KPIs después de procesar
+            // KPIs después de procesar - usando la nueva lógica consistente
             $kpis = [
                 'total_op'     => $registros->count(),
                 'total_piezas' => $registros->sum('piezas'),
                 'aceptados'    => $registros->where('estatus', 1)->count(),
-                'parciales'   => $registros->where('estatus', 2)->count(),
-                'rechazados'  => $registros->where('estatus', 3)->count(),
+                
+                // Parciales: contar registros donde al menos una de las dos fechas de parcial tiene valor
+                'parciales'    => $registros->filter(function ($item) {
+                    return !is_null($item->fecha_parcial) || !is_null($item->fecha_parcial_calidad);
+                })->count(),
+
+                // Rechazados: contar registros donde al menos una de las dos fechas de rechazo tiene valor
+                'rechazados'   => $registros->filter(function ($item) {
+                    return !is_null($item->fecha_rechazo) || !is_null($item->fecha_rechazo_calidad);
+                })->count(),
             ];
 
             return response()->json([
@@ -258,9 +305,9 @@ class AuditoriaKanBanController extends Controller
 
         // Actualizar campos del registro principal
         $kanban->estatus = $request->input('accion');
-        $kanban->fecha_liberacion = null;
-        $kanban->fecha_parcial   = null;
-        $kanban->fecha_rechazo   = null;
+        //$kanban->fecha_liberacion = null;
+        //$kanban->fecha_parcial   = null;
+        //$kanban->fecha_rechazo   = null;
 
         if ($kanban->estatus == '1') {
             $kanban->fecha_liberacion = now();
@@ -388,9 +435,9 @@ class AuditoriaKanBanController extends Controller
                 if ($tipoAcceso === '4') {
 
                     // Reiniciar solo las fechas de calidad relevantes ANTES de asignar la nueva
-                    $kanban->fecha_liberacion_calidad = null;
-                    $kanban->fecha_parcial_calidad    = null;
-                    $kanban->fecha_rechazo_calidad    = null;
+                    //$kanban->fecha_liberacion_calidad = null;
+                    //$kanban->fecha_parcial_calidad    = null;
+                    //$kanban->fecha_rechazo_calidad    = null;
 
                     if ($nuevoEstatus === '1') { // Aceptado
                         $kanban->fecha_liberacion_calidad = Carbon::now();
@@ -404,9 +451,9 @@ class AuditoriaKanBanController extends Controller
                     // Reiniciar fechas antes de asignar la nueva basada en el estatus
                     // Esta parte es crucial: si el estatus cambia, la fecha anterior se borra
                     // y se establece la nueva. Si el estatus es el mismo pero la fecha estaba null, se establece.
-                    $kanban->fecha_liberacion = null;
-                    $kanban->fecha_parcial    = null;
-                    $kanban->fecha_rechazo    = null;
+                    //$kanban->fecha_liberacion = null;
+                    //$kanban->fecha_parcial    = null;
+                    //$kanban->fecha_rechazo    = null;
 
                     $kanban->estatus = $nuevoEstatus;
                     if ($nuevoEstatus === '1') { // Aceptado
@@ -585,9 +632,55 @@ class AuditoriaKanBanController extends Controller
 
     public function obtenerParciales(Request $request)
     {
-        $parciales = ReporteKanban::where('estatus', 2)
-            ->whereNull('fecha_liberacion')
-            ->get(['id', 'op', 'cliente', 'estilo', 'piezas']);
+        $parciales = ReporteKanban::where(function($query) {
+            $query->whereNotNull('fecha_parcial')
+                  ->orWhereNotNull('fecha_parcial_calidad');
+        })
+        ->get()->map(function ($registro) {
+            Log::info("Procesando registro ID {$registro->id} para cálculo de fechas efectivas.");
+            // Calcular fechas efectivas para parciales y rechazados según regla de negocio
+            // Para PARCIALES: si ambas columnas tienen valor, tomar la más reciente; si solo una, tomar esa
+            $fechaParcial = $registro->fecha_parcial;
+            $fechaParcialCalidad = $registro->fecha_parcial_calidad;
+            
+            if ($fechaParcial && $fechaParcialCalidad) {
+                // Ambas existen, tomar la más reciente
+                $fechaParcialEfectiva = max($fechaParcial, $fechaParcialCalidad);
+            } elseif ($fechaParcial) {
+                // Solo fecha_parcial existe
+                $fechaParcialEfectiva = $fechaParcial;
+            } elseif ($fechaParcialCalidad) {
+                // Solo fecha_parcial_calidad existe
+                $fechaParcialEfectiva = $fechaParcialCalidad;
+            } else {
+                // Ninguna existe
+                $fechaParcialEfectiva = null;
+            }
+
+            // Para RECHAZADOS: aplicar exactamente la misma lógica (aunque no es necesario para esta función)
+            $fechaRechazo = $registro->fecha_rechazo;
+            $fechaRechazoCalidad = $registro->fecha_rechazo_calidad;
+            
+            if ($fechaRechazo && $fechaRechazoCalidad) {
+                // Ambas existen, tomar la más reciente
+                $fechaRechazoEfectiva = max($fechaRechazo, $fechaRechazoCalidad);
+            } elseif ($fechaRechazo) {
+                // Solo fecha_rechazo existe
+                $fechaRechazoEfectiva = $fechaRechazo;
+            } elseif ($fechaRechazoCalidad) {
+                // Solo fecha_rechazo_calidad existe
+                $fechaRechazoEfectiva = $fechaRechazoCalidad;
+            } else {
+                // Ninguna existe
+                $fechaRechazoEfectiva = null;
+            }
+
+            // Agregar estos datos al registro
+            $registro->fecha_parcial_efectiva = $fechaParcialEfectiva;
+            $registro->fecha_rechazo_efectiva = $fechaRechazoEfectiva;
+
+            return $registro;
+        });
 
         return response()->json($parciales);
     }
@@ -680,15 +773,81 @@ class AuditoriaKanBanController extends Controller
                 $datosRegistro['estatus'] = $registro->estatus_calidad ?? '';
                 // No se añade la clave 'comentarios'
                 // Se usan las fechas de calidad y se renombran a las claves originales para simplificar la vista
-                $datosRegistro['fecha_parcial']      = $registro->fecha_parcial_calidad ? Carbon::parse($registro->fecha_parcial_calidad)->format('Y-m-d H:i') : 'N/A';
+                // Calcular fechas efectivas para parciales y rechazados
+                $fechaParcial = $registro->fecha_parcial;
+                $fechaParcialCalidad = $registro->fecha_parcial_calidad;
+                if ($fechaParcial && $fechaParcialCalidad) {
+                    // Ambas existen, tomar la más reciente
+                    $fechaParcialEfectiva = max($fechaParcial, $fechaParcialCalidad);
+                } elseif ($fechaParcial) {
+                    // Solo fecha_parcial existe
+                    $fechaParcialEfectiva = $fechaParcial;
+                } elseif ($fechaParcialCalidad) {
+                    // Solo fecha_parcial_calidad existe
+                    $fechaParcialEfectiva = $fechaParcialCalidad;
+                } else {
+                    // Ninguna existe
+                    $fechaParcialEfectiva = null;
+                }
+
+                $fechaRechazo = $registro->fecha_rechazo;
+                $fechaRechazoCalidad = $registro->fecha_rechazo_calidad;
+                if ($fechaRechazo && $fechaRechazoCalidad) {
+                    // Ambas existen, tomar la más reciente
+                    $fechaRechazoEfectiva = max($fechaRechazo, $fechaRechazoCalidad);
+                } elseif ($fechaRechazo) {
+                    // Solo fecha_rechazo existe
+                    $fechaRechazoEfectiva = $fechaRechazo;
+                } elseif ($fechaRechazoCalidad) {
+                    // Solo fecha_rechazo_calidad existe
+                    $fechaRechazoEfectiva = $fechaRechazoCalidad;
+                } else {
+                    // Ninguna existe
+                    $fechaRechazoEfectiva = null;
+                }
+
+                $datosRegistro['fecha_parcial']      = $fechaParcialEfectiva ? Carbon::parse($fechaParcialEfectiva)->format('Y-m-d H:i') : 'N/A';
                 $datosRegistro['fecha_liberacion']   = $registro->fecha_liberacion_calidad ? Carbon::parse($registro->fecha_liberacion_calidad)->format('Y-m-d H:i') : 'N/A';
-                $datosRegistro['fecha_rechazo']      = $registro->fecha_rechazo_calidad ? Carbon::parse($registro->fecha_rechazo_calidad)->format('Y-m-d H:i') : 'N/A';
+                $datosRegistro['fecha_rechazo']      = $fechaRechazoEfectiva ? Carbon::parse($fechaRechazoEfectiva)->format('Y-m-d H:i') : 'N/A';
             } else {
                 // Lógica para el resto de los usuarios (la general)
                 $datosRegistro['estatus']          = $registro->estatus ?? '';
-                $datosRegistro['fecha_parcial']    = $registro->fecha_parcial ? Carbon::parse($registro->fecha_parcial)->format('Y-m-d H:i') : 'N/A';
+                // Calcular fechas efectivas para parciales y rechazados
+                $fechaParcial = $registro->fecha_parcial;
+                $fechaParcialCalidad = $registro->fecha_parcial_calidad;
+                if ($fechaParcial && $fechaParcialCalidad) {
+                    // Ambas existen, tomar la más reciente
+                    $fechaParcialEfectiva = max($fechaParcial, $fechaParcialCalidad);
+                } elseif ($fechaParcial) {
+                    // Solo fecha_parcial existe
+                    $fechaParcialEfectiva = $fechaParcial;
+                } elseif ($fechaParcialCalidad) {
+                    // Solo fecha_parcial_calidad existe
+                    $fechaParcialEfectiva = $fechaParcialCalidad;
+                } else {
+                    // Ninguna existe
+                    $fechaParcialEfectiva = null;
+                }
+
+                $fechaRechazo = $registro->fecha_rechazo;
+                $fechaRechazoCalidad = $registro->fecha_rechazo_calidad;
+                if ($fechaRechazo && $fechaRechazoCalidad) {
+                    // Ambas existen, tomar la más reciente
+                    $fechaRechazoEfectiva = max($fechaRechazo, $fechaRechazoCalidad);
+                } elseif ($fechaRechazo) {
+                    // Solo fecha_rechazo existe
+                    $fechaRechazoEfectiva = $fechaRechazo;
+                } elseif ($fechaRechazoCalidad) {
+                    // Solo fecha_rechazo_calidad existe
+                    $fechaRechazoEfectiva = $fechaRechazoCalidad;
+                } else {
+                    // Ninguna existe
+                    $fechaRechazoEfectiva = null;
+                }
+
+                $datosRegistro['fecha_parcial']    = $fechaParcialEfectiva ? Carbon::parse($fechaParcialEfectiva)->format('Y-m-d H:i') : 'N/A';
                 $datosRegistro['fecha_liberacion'] = $registro->fecha_liberacion ? Carbon::parse($registro->fecha_liberacion)->format('Y-m-d H:i') : 'N/A';
-                $datosRegistro['fecha_rechazo']    = $registro->fecha_rechazo ? Carbon::parse($registro->fecha_rechazo)->format('Y-m-d H:i') : 'N/A';
+                $datosRegistro['fecha_rechazo']    = $fechaRechazoEfectiva ? Carbon::parse($fechaRechazoEfectiva)->format('Y-m-d H:i') : 'N/A';
             }
 
             return $datosRegistro;
