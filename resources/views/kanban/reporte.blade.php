@@ -69,11 +69,11 @@
             <form id="filtrosForm" class="row g-3 mb-4">
                 <div class="col-md-3">
                     <label for="desde" class="form-label">Fecha Corte Sellado Desde</label>
-                    <input type="date" id="desde" name="desde" class="form-control">
+                    <input type="date" id="desde" name="desde" class="form-control" max="">
                 </div>
                 <div class="col-md-3">
                     <label for="hasta" class="form-label">Fecha Corte Sellado Hasta</label>
-                    <input type="date" id="hasta" name="hasta" class="form-control">
+                    <input type="date" id="hasta" name="hasta" class="form-control" max="">
                 </div>
                 {{-- <div class="col-md-2">
                     <label for="op" class="form-label">OP</label>
@@ -360,7 +360,22 @@
 
     <script>
         $(function() {
-            // 1) Pie
+            // 1. Establecer rango por defecto de 90 días
+            const today = new Date();
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(today.getDate() - 90);
+
+            const formatDate = (d) => d.toISOString().split('T')[0];
+            
+            // Asignar valores por defecto a los inputs
+            $('#desde').val(formatDate(ninetyDaysAgo));
+            $('#hasta').val(formatDate(today));
+
+            // Establecer atributo max (no permitir fechas futuras)
+            $('#desde').attr('max', formatDate(today));
+            $('#hasta').attr('max', formatDate(today));
+
+            // 2) Pie
             const pie = Highcharts.chart('estatusChart', {
                 chart: {
                     type: 'pie',
@@ -677,6 +692,28 @@
             // Bind y carga inicial
             $('#filtrosForm').on('submit', e => {
                 e.preventDefault();
+                
+                const desde = $('#desde').val();
+                const hasta = $('#hasta').val();
+                const fechaActual = new Date().toISOString().split('T')[0];
+
+                // Validar que "desde" no sea mayor que "hasta"
+                if (desde && hasta && desde > hasta) {
+                    alert('La fecha "Desde" no puede ser mayor que la fecha "Hasta".');
+                    return;
+                }
+
+                // Validar que no se seleccionen fechas futuras
+                if (desde > fechaActual) {
+                    alert('La fecha "Desde" no puede ser futura.');
+                    return;
+                }
+
+                if (hasta > fechaActual) {
+                    alert('La fecha "Hasta" no puede ser futura.');
+                    return;
+                }
+
                 fetchData();
             });
             fetchData();
