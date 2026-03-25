@@ -95,34 +95,46 @@
 
             <!-- 2. KPI CARDS -->
             <div class="row mb-4 d-flex flex-wrap">
-                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                <div class="col-6 col-sm-4 col-md-2 col-lg-2 mb-3">
                     <div class="card p-3 text-center h-100">
                         <h6>Total OP</h6>
                         <h3 id="kpi-total-op">0</h3>
                     </div>
                 </div>
-                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                <div class="col-6 col-sm-4 col-md-2 col-lg-2 mb-3">
                     <div class="card p-3 text-center h-100">
                         <h6>Total Piezas</h6>
                         <h3 id="kpi-total-piezas">0</h3>
                     </div>
                 </div>
-                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                <div class="col-6 col-sm-4 col-md-2 col-lg-2 mb-3">
                     <div class="card p-3 text-center h-100">
                         <h6>Aceptados</h6>
                         <h3 id="kpi-aceptados">0</h3>
                     </div>
                 </div>
-                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
-                    <div class="card p-3 text-center h-100">
-                        <h6>Parciales</h6>
+                <div class="col-6 col-sm-4 col-md-2 col-lg-2 mb-3">
+                    <div class="card p-3 text-center h-100 clickable-kpi" data-tipo="parciales" style="cursor:pointer;">
+                        <h6>Parciales Generales</h6>
                         <h3 id="kpi-parciales">0</h3>
                     </div>
                 </div>
-                <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
-                    <div class="card p-3 text-center h-100">
-                        <h6>Rechazados</h6>
+                <div class="col-6 col-sm-4 col-md-2 col-lg-2 mb-3">
+                    <div class="card p-3 text-center h-100 clickable-kpi" data-tipo="parciales_activos" style="cursor:pointer;">
+                        <h6>Parciales Activos</h6>
+                        <h3 id="kpi-parciales-activos">0</h3>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2 col-lg-2 mb-3">
+                    <div class="card p-3 text-center h-100 clickable-kpi" data-tipo="rechazados" style="cursor:pointer;">
+                        <h6>Rechazados Generales</h6>
                         <h3 id="kpi-rechazados">0</h3>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2 col-lg-2 mb-3">
+                    <div class="card p-3 text-center h-100 clickable-kpi" data-tipo="rechazados_activos" style="cursor:pointer;">
+                        <h6>Rechazados Activos</h6>
+                        <h3 id="kpi-rechazados-activos">0</h3>
                     </div>
                 </div>
             </div>
@@ -226,6 +238,42 @@
             <span class="cerrar-modal" onclick="cerrarModalDetalleOP()">&times;</span>
             <div id="contenidoModalDetalleOP">
                 <!-- Aquí se inyectará todo lo que ya generas con JS -->
+            </div>
+        </div>
+    </div>
+
+    <div id="modalKpi" class="mi-modal">
+        <div class="mi-modal-contenido" style="max-width: 1200px;">
+            <span class="cerrar-modal" onclick="cerrarModalKpi()">&times;</span>
+            <h5 id="tituloModalKpi" style="color:#fff; margin-bottom: 15px;"></h5>
+            <div class="table-responsive">
+                <table id="tabla-kpi" class="table table-striped" style="width:100%">
+                    <thead class="thead-primary">
+                        <tr>
+                            <th>OP</th>
+                            <th>Cliente</th>
+                            <th>Estilo</th>
+                            <th>Piezas</th>
+                            <th>Piezas Parcial</th>
+                            <th>Estatus</th>
+                            <th>Motivo</th>
+                            <th>Fecha Sellado</th>
+                            <th>Fecha Aceptado</th>
+                            <th>Fecha Parcial</th>
+                            <th>Fecha Rechazo</th>
+                            <th>Fecha Online</th>
+                            <th>Fecha Offline</th>
+                            <th>Fecha Approved</th>
+                            <th>Tiempo Almacén - Calidad</th>
+                            <th>Tiempo Calidad - Producción</th>
+                            <th>Tiempo Sellado - Producción</th>
+                            <th>Tiempo Producción - Offline</th>
+                            <th>Tiempo Offline - Approved</th>
+                            <th>Tiempo Sellado - Approved</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -644,7 +692,15 @@
                         $('#kpi-total-piezas').text(json.kpis.total_piezas);
                         $('#kpi-aceptados').text(json.kpis.aceptados);
                         $('#kpi-parciales').text(json.kpis.parciales);
+                        $('#kpi-parciales-activos').text(json.kpis.parciales_activos);
                         $('#kpi-rechazados').text(json.kpis.rechazados);
+                        $('#kpi-rechazados-activos').text(json.kpis.rechazados_activos);
+
+                        // Guardar datos para modal
+                        window.datosParcialesActivos = json.parciales_activos_data || [];
+                        window.datosRechazadosActivos = json.rechazados_activos_data || [];
+                        window.datosKpiParciales = json.parciales_generales_data || [];
+                        window.datosKpiRechazados = json.rechazados_generales_data || [];
 
                         // 2. Actualizar pie chart
                         pie.series[0].setData([{
@@ -1218,5 +1274,159 @@ function dibujarGraficoLineaRango(json) {
             construirControles();
             recalcularYdibujar();
         }
+
+        // DataTable para modal de KPIs
+        let tablaKpi = null;
+
+        function cerrarModalKpi() {
+            document.getElementById('modalKpi').style.display = 'none';
+        }
+
+        function abrirModalKpi(tipo, titulo) {
+            let datos = [];
+            
+            switch(tipo) {
+                case 'parciales':
+                    datos = window.datosKpiParciales || [];
+                    break;
+                case 'parciales_activos':
+                    datos = window.datosParcialesActivos || [];
+                    break;
+                case 'rechazados':
+                    datos = window.datosKpiRechazados || [];
+                    break;
+                case 'rechazados_activos':
+                    datos = window.datosRechazadosActivos || [];
+                    break;
+            }
+
+            document.getElementById('tituloModalKpi').textContent = titulo;
+            
+            if (tablaKpi) {
+                tablaKpi.destroy();
+            }
+
+            tablaKpi = $('#tabla-kpi').DataTable({
+                data: datos,
+                columns: [
+                    { data: 'op' },
+                    { data: 'cliente' },
+                    { data: 'estilo' },
+                    { data: 'piezas' },
+                    { data: 'cantidades_parciales_lista' },
+                    { 
+                        data: 'estatus_calidad',
+                        render: e => e == 1 ? 'Aceptado' : e == 2 ? 'Parcial' : 'Rechazado'
+                    },
+                    { data: 'comentarios_lista' },
+                    { 
+                        data: 'fecha_corte',
+                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                    },
+                    { 
+                        data: 'fecha_liberacion',
+                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                    },
+                    { 
+                        data: 'fecha_parcial_efectiva',
+                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                    },
+                    { 
+                        data: 'fecha_rechazo_efectiva',
+                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                    },
+                    { 
+                        data: 'fecha_online',
+                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                    },
+                    { 
+                        data: 'fecha_offline',
+                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                    },
+                    { 
+                        data: 'fecha_approved',
+                        render: d => d ? moment(d).format('DD/MM/YYYY HH:mm') : 'N/A'
+                    },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+                            if (!row.fecha_almacen || !row.fecha_liberacion) return 'N/A';
+                            const diff = moment.duration(moment(row.fecha_liberacion).diff(moment(row.fecha_almacen)));
+                            return `${diff.days()}d ${diff.hours()}h ${diff.minutes()}m`;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+                            if (!row.fecha_liberacion || !row.fecha_online) return 'N/A';
+                            const diff = moment.duration(moment(row.fecha_online).diff(moment(row.fecha_liberacion)));
+                            return `${diff.days()}d ${diff.hours()}h ${diff.minutes()}m`;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+                            if (!row.fecha_corte || !row.fecha_online) return 'N/A';
+                            const diff = moment.duration(moment(row.fecha_online).diff(moment(row.fecha_corte)));
+                            return `${diff.days()}d ${diff.hours()}h ${diff.minutes()}m`;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+                            if (!row.fecha_online || !row.fecha_offline) return 'N/A';
+                            const diff = moment.duration(moment(row.fecha_offline).diff(moment(row.fecha_online)));
+                            return `${Math.floor(diff.asDays())}d ${diff.hours()}h ${diff.minutes()}m`;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+                            if (!row.fecha_offline || !row.fecha_approved) return 'N/A';
+                            const diff = moment.duration(moment(row.fecha_approved).diff(moment(row.fecha_offline)));
+                            return `${Math.floor(diff.asDays())}d ${diff.hours()}h ${diff.minutes()}m`;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+                            if (!row.fecha_corte || !row.fecha_approved) return 'N/A';
+                            const diff = moment.duration(moment(row.fecha_approved).diff(moment(row.fecha_corte)));
+                            return `${Math.floor(diff.asDays())}d ${diff.hours()}h ${diff.minutes()}m`;
+                        }
+                    }
+                ],
+                dom: 'Bfrtip',
+                buttons: ['csv', 'excel'],
+                pageLength: 20,
+                retrieve: true
+            });
+
+            document.getElementById('modalKpi').style.display = 'block';
+        }
+
+        // Event click para KPIs clickeables
+        $(document).on('click', '.clickable-kpi', function() {
+            const tipo = $(this).data('tipo');
+            const valor = parseInt($(this).find('h3').text()) || 0;
+            
+            if (valor > 0) {
+                const titulos = {
+                    'parciales': 'Parciales Generales',
+                    'parciales_activos': 'Parciales Activos (Estatus = 2)',
+                    'rechazados': 'Rechazados Generales',
+                    'rechazados_activos': 'Rechazados Activos (Estatus = 3)'
+                };
+                abrirModalKpi(tipo, titulos[tipo]);
+            }
+        });
+
+        // Cerrar modal al hacer click fuera
+        window.onclick = function(event) {
+            const modalKpi = document.getElementById('modalKpi');
+            if (event.target == modalKpi) {
+                cerrarModalKpi();
+            }
+        };
     </script>
 @endsection

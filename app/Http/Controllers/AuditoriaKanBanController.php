@@ -172,18 +172,34 @@ class AuditoriaKanBanController extends Controller
             $kpis = [
                 'total_op'     => $registros->count(),
                 'total_piezas' => $registros->sum('piezas'),
-                'aceptados'    => $registros->where('estatus', 1)->count(),
+                'aceptados'    => $registros->where('estatus_calidad', 1)->count(),
                 
-                // Parciales: contar registros donde al menos una de las dos fechas de parcial tiene valor
+                // Parciales Generales: contar registros donde al menos una de las dos fechas de parcial tiene valor
                 'parciales'    => $registros->filter(function ($item) {
                     return !is_null($item->fecha_parcial) || !is_null($item->fecha_parcial_calidad);
                 })->count(),
 
-                // Rechazados: contar registros donde al menos una de las dos fechas de rechazo tiene valor
+                // Parciales Activos: registros con estatus exactamente 2
+                'parciales_activos' => $registros->where('estatus_calidad', 2)->count(),
+
+                // Rechazados Generales: contar registros donde al menos una de las dos fechas de rechazo tiene valor
                 'rechazados'   => $registros->filter(function ($item) {
                     return !is_null($item->fecha_rechazo) || !is_null($item->fecha_rechazo_calidad);
                 })->count(),
+
+                // Rechazados Activos: registros con estatus exactamente 3
+                'rechazados_activos' => $registros->where('estatus_calidad', 3)->count(),
             ];
+
+            // Datos para modales
+            $parcialesActivosData = $registros->where('estatus_calidad', 2)->values();
+            $rechazadosActivosData = $registros->where('estatus_calidad', 3)->values();
+            $parcialesGeneralesData = $registros->filter(function ($item) {
+                return !is_null($item->fecha_parcial) || !is_null($item->fecha_parcial_calidad);
+            })->values();
+            $rechazadosGeneralesData = $registros->filter(function ($item) {
+                return !is_null($item->fecha_rechazo) || !is_null($item->fecha_rechazo_calidad);
+            })->values();
 
             return response()->json([
                 'kpis'       => $kpis,
@@ -191,6 +207,10 @@ class AuditoriaKanBanController extends Controller
                 'produccion' => $online,
                 'offline'    => $offline,
                 'approved'   => $approved,
+                'parciales_activos_data' => $parcialesActivosData,
+                'rechazados_activos_data' => $rechazadosActivosData,
+                'parciales_generales_data' => $parcialesGeneralesData,
+                'rechazados_generales_data' => $rechazadosGeneralesData,
             ]);
         }
 
