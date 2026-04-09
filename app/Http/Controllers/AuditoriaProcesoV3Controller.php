@@ -538,15 +538,15 @@ class AuditoriaProcesoV3Controller extends Controller
             // Por simplicidad, si está en caché, se devuelve. El truco está en no ponerlo si está vacío.
         } else {
             // Base de la consulta
-            $query = AuditoriaProceso::where('prodpoolid', $detectarPlanta)
-                ->whereNotIn('name', [
-                    '831A-EMPAQUE P2 T1',
-                    '830A-EMPAQUE P1 T1',
-                    'VIRTUAL P2T1 02',
-                    'VIRTUAL P2T1 01'
-                ])
-                ->where('name', 'not like', '1%')
-                ->where('name', 'not like', '2%');
+            $query = AuditoriaProceso::where('prodpoolid', $detectarPlanta);
+                //->whereNotIn('name', [
+                //    '831A-EMPAQUE P2 T1',
+                //    '830A-EMPAQUE P1 T1',
+                //    'VIRTUAL P2T1 02',
+                //    'VIRTUAL P2T1 01'
+                //])
+                //->where('name', 'not like', '1%')
+                //->where('name', 'not like', '2%')
 
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
