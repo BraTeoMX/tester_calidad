@@ -75,22 +75,17 @@ class AuditoriaAQLV3Controller extends Controller
     // Método para obtener la lista de módulos
     public function listaModulos(Request $request)
     {
-        $auditorPlanta = Auth::user()->Planta;
-        $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
-
-        $cacheKey = 'listaModulos_' . $datoPlanta;
+        $cacheKey = 'listaModulos_todas';
         $minutes = 5;
 
         // Intentar obtener de la caché
         $listaModulos = Cache::get($cacheKey);
 
         if (is_null($listaModulos)) { // Si no está en caché o es null
-            $datosCategoriaSupervisor = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
-                ->whereBetween('moduleid', ['100A', '299A'])
+            $datosCategoriaSupervisor = CategoriaSupervisor::whereBetween('moduleid', ['100A', '299A'])
                 ->get(['moduleid']);
 
-            $datosModuloEstiloTemporal = ModuloEstiloTemporal::where('prodpoolid', $datoPlanta)
-                ->whereBetween('moduleid', ['100A', '999A'])
+            $datosModuloEstiloTemporal = ModuloEstiloTemporal::whereBetween('moduleid', ['100A', '999A'])
                 ->distinct('moduleid')
                 ->get(['moduleid']);
 

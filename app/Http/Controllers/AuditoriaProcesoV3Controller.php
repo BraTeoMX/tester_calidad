@@ -90,29 +90,23 @@ class AuditoriaProcesoV3Controller extends Controller
             return response()->json(['error' => 'Usuario no autenticado.'], 401);
         }
 
-        $auditorPlanta = $usuario->Planta;
-        $datoPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
-
-        // Clave de caché única para la planta especificada.
-        // He añadido _v2 por si existiera una caché antigua con una clave similar.
-        $claveCache = "modulos_planta_{$datoPlanta}_v2";
+        // Clave de caché única. He añadido _v2 para nueva clave sin filtro de planta.
+        $claveCache = "modulos_todas_v2";
 
         // Tiempo de caché en segundos (60 segundos = 1 minuto)
         $tiempoCache = 30;
         // Alternativamente, usando Carbon para una definición más explícita del tiempo:
         // $tiempoCache = Carbon::now()->addMinutes(1);
 
-        $listaModulos = Cache::remember($claveCache, $tiempoCache, function () use ($datoPlanta) {
+        $listaModulos = Cache::remember($claveCache, $tiempoCache, function () {
             // Consulta para CategoriaSupervisor
             // Seleccionamos solo 'moduleid' para la operación UNION
-            $queryCategoriaSupervisor = CategoriaSupervisor::where('prodpoolid', $datoPlanta)
-                ->whereBetween('moduleid', ['100A', '299A'])
+            $queryCategoriaSupervisor = CategoriaSupervisor::whereBetween('moduleid', ['100A', '299A'])
                 ->select('moduleid');
 
             // Consulta para ModuloEstiloTemporal
             // Seleccionamos solo 'moduleid' para la operación UNION
-            $queryModuloEstiloTemporal = ModuloEstiloTemporal::where('prodpoolid', $datoPlanta)
-                ->whereBetween('moduleid', ['100A', '999A'])
+            $queryModuloEstiloTemporal = ModuloEstiloTemporal::whereBetween('moduleid', ['100A', '999A'])
                 ->select('moduleid');
 
             // Usamos UNION para combinar los resultados.
@@ -516,37 +510,18 @@ class AuditoriaProcesoV3Controller extends Controller
         ]);
     }
 
-    public function obtenerNombresGenerales(Request $request)
+public function obtenerNombresGenerales(Request $request)
     {
         $modulo = $request->input('modulo');
         $search = $request->input('search');
-        $auditorPlanta = auth()->user()->Planta ?? 'Planta1'; // Ajustar según sea necesario
-        $detectarPlanta = ($auditorPlanta == "Planta1") ? "Intimark1" : "Intimark2";
 
-        // Crear una clave única para el caché basada en los parámetros que afectan la consulta
-        // Es importante incluir todos los parámetros que cambian el resultado de la consulta.
-        $cacheKey = "nombresGenerales_{$detectarPlanta}_modulo_{$modulo}_search_" . md5((string)$search);
+        $cacheKey = "nombresGenerales_todas_modulo_" . md5((string)$modulo . (string)$search);
         $minutesToCache = 5;
 
-        // Intentar obtener los datos desde el caché primero
         if (Cache::has($cacheKey)) {
             $nombresGenerales = Cache::get($cacheKey);
-            // Si lo que está cacheado es una marca indicando "sin resultados",
-            // podríamos querer re-evaluar. Pero para el caso de "no cachear si está vacío",
-            // simplemente devolvemos lo que sea que esté en caché (que no debería ser un "vacío" si se implementa correctamente).
-            // O, si el caché pudiera contener un marcador explícito de "no resultados", aquí se manejaría.
-            // Por simplicidad, si está en caché, se devuelve. El truco está en no ponerlo si está vacío.
         } else {
-            // Base de la consulta
-            $query = AuditoriaProceso::where('prodpoolid', $detectarPlanta);
-                //->whereNotIn('name', [
-                //    '831A-EMPAQUE P2 T1',
-                //    '830A-EMPAQUE P1 T1',
-                //    'VIRTUAL P2T1 02',
-                //    'VIRTUAL P2T1 01'
-                //])
-                //->where('name', 'not like', '1%')
-                //->where('name', 'not like', '2%')
+            $query = AuditoriaProceso::query();
 
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
@@ -561,12 +536,9 @@ class AuditoriaProcesoV3Controller extends Controller
                 ->orderByRaw("CASE WHEN moduleid = ? THEN 0 ELSE 1 END, name ASC", [$modulo])
                 ->get();
 
-            // Solo guardar en caché si la consulta devolvió resultados
             if ($nombresGenerales->isNotEmpty()) {
                 Cache::put($cacheKey, $nombresGenerales, now()->addMinutes($minutesToCache));
             }
-            // Si $nombresGenerales está vacío, no se guarda nada en caché.
-            // La próxima vez que se llame con los mismos parámetros, se volverá a consultar la BD.
         }
 
         return response()->json([
