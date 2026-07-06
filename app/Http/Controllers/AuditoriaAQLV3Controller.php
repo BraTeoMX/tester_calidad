@@ -680,7 +680,7 @@ class AuditoriaAQLV3Controller extends Controller
 
             $plantaBusqueda = match ($primerCaracter) {
                 '1' => 'Intimark1',
-                '2' => 'Intimark2',
+                '2' => 'Intimark1',
                 default => 'Intimark1',
             };
 

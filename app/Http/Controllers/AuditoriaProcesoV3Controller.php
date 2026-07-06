@@ -698,7 +698,7 @@ public function obtenerNombresGenerales(Request $request)
 
             $plantaBusqueda = match ($primerCaracter) {
                 '1' => 'Intimark1',
-                '2' => 'Intimark2',
+                '2' => 'Intimark1',
                 default => 'Intimark1', // O el valor por defecto que necesites
             };
 
@@ -708,7 +708,6 @@ public function obtenerNombresGenerales(Request $request)
 
             // Definimos una clave única para el cache basada en el estilo
             $cacheKey = 'cliente_por_estilo_' . $obtenerEstilo;
-
             // Usamos Cache::remember para obtener o almacenar el cliente
             $obtenerCliente = Cache::remember($cacheKey, now()->addHours(15), function () use ($obtenerEstilo, $obtenerClienteInicial) {
 
