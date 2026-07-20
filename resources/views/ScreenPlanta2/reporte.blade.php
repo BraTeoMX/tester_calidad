@@ -124,6 +124,38 @@
 <script src="{{ asset('js/highcharts/12/modules/accessibility.js') }}"></script>
 
 <script>
+    // Función para limpiar HTML, atributos porcentaje y caracteres especiales en la exportación a Excel
+    function limpiarDatoExportacion(data, node) {
+        if (node && node.querySelector && node.querySelector('[data-porcentaje]')) {
+            return node.querySelector('[data-porcentaje]').getAttribute('data-porcentaje');
+        }
+        
+        if (typeof data === 'string') {
+            if (data.indexOf('<') !== -1) {
+                var tempDiv = document.createElement("div");
+                tempDiv.innerHTML = data;
+                var items = tempDiv.querySelectorAll('li');
+                if (items.length > 0) {
+                    var textos = [];
+                    for (var i = 0; i < items.length; i++) {
+                        var txt = items[i].textContent || items[i].innerText || '';
+                        txt = txt.trim();
+                        if (txt) textos.push(txt);
+                    }
+                    return textos.join(', ');
+                }
+                data = tempDiv.textContent || tempDiv.innerText || '';
+                data = data.trim();
+            }
+            
+            if (data.indexOf('%') !== -1) {
+                data = data.replace(/%/g, '').trim();
+            }
+        }
+        
+        return data;
+    }
+
     $(document).ready(function() {
             const COLUMNAS_REGISTROS = 16;
             let dataTableInstances = []; // Para almacenar instancias de DataTables y poder destruirlas
@@ -290,26 +322,10 @@
                                                 exportOptions: {
                                                     format: {
                                                         body: function(data, row, column, node) {
-                                                            // Usar el atributo data-porcentaje si existe
-                                                            if (node && node.querySelector && node.querySelector('[data-porcentaje]')) {
-                                                                return node.querySelector('[data-porcentaje]').getAttribute('data-porcentaje');
-                                                            }
-                                                            // Función específica para formatear datos durante la exportación
-                                                            if (data && data.includes && data.includes('%')) {
-                                                                return data.replace('%', '');
-                                                            }
-                                                            return data;
+                                                            return limpiarDatoExportacion(data, node);
                                                         },
                                                         footer: function(data, row, column, node) {
-                                                            // Usar el atributo data-porcentaje si existe
-                                                            if (node && node.querySelector && node.querySelector('[data-porcentaje]')) {
-                                                                return node.querySelector('[data-porcentaje]').getAttribute('data-porcentaje');
-                                                            }
-                                                            // Función específica para formatear el footer durante la exportación
-                                                            if (data && data.includes && data.includes('%')) {
-                                                                return data.replace('%', '');
-                                                            }
-                                                            return data;
+                                                            return limpiarDatoExportacion(data, node);
                                                         }
                                                     }
                                                 }
@@ -417,26 +433,10 @@
                                         exportOptions: {
                                             format: {
                                                 body: function(data, row, column, node) {
-                                                    // Usar el atributo data-porcentaje si existe
-                                                    if (node && node.querySelector && node.querySelector('[data-porcentaje]')) {
-                                                        return node.querySelector('[data-porcentaje]').getAttribute('data-porcentaje');
-                                                    }
-                                                    // Función específica para formatear datos durante la exportación
-                                                    if (data && data.includes && data.includes('%')) {
-                                                        return data.replace('%', '');
-                                                    }
-                                                    return data;
+                                                    return limpiarDatoExportacion(data, node);
                                                 },
                                                 footer: function(data, row, column, node) {
-                                                    // Usar el atributo data-porcentaje si existe
-                                                    if (node && node.querySelector && node.querySelector('[data-porcentaje]')) {
-                                                        return node.querySelector('[data-porcentaje]').getAttribute('data-porcentaje');
-                                                    }
-                                                    // Función específica para formatear el footer durante la exportación
-                                                    if (data && data.includes && data.includes('%')) {
-                                                        return data.replace('%', '');
-                                                    }
-                                                    return data;
+                                                    return limpiarDatoExportacion(data, node);
                                                 }
                                             }
                                         }
