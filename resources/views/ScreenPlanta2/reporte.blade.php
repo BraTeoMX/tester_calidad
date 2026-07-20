@@ -14,7 +14,7 @@
     </div>
 
     <div class="row">
-        <div class="col-md-5">
+        <div class="col-md-4">
             <div class="form-group">
                 <label for="fecha_inicio" class="form-label">Fecha de Inicio</label>
                 {{-- Cambiamos el id de fecha_reporte a fecha_inicio para mayor claridad --}}
@@ -22,7 +22,7 @@
                     value="{{ now()->format('Y-m-d') }}" required>
             </div>
         </div>
-        <div class="col-md-5">
+        <div class="col-md-4">
             <div class="form-group">
                 <label for="fecha_fin" class="form-label">Fecha de Fin</label>
                 <input type="date" class="form-control" id="fecha_fin" name="fecha_fin"
@@ -32,6 +32,13 @@
         <div class="col-md-2 d-flex align-items-end">
             <div class="form-group w-100">
                 <button type="button" class="btn btn-secondary w-100" id="btnMostrarDatos">Mostrar Datos</button>
+            </div>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <div class="form-group w-100">
+                <button type="button" class="btn btn-success w-100" id="btnExportarTodoExcel" title="Exportar todas las tablas en un único archivo Excel con pestañas por máquina">
+                    <i class="fas fa-file-excel"></i> Exportar Todo
+                </button>
             </div>
         </div>
     </div>
@@ -747,6 +754,17 @@
                 var fechaFin = $("#fecha_fin").val(); // <-- Obtener la fecha de fin
                 cargarReportePorDia(fechaInicio, fechaFin); // <-- Pasar ambos valores
                 cargarGraficasTopDefectos(fechaInicio, fechaFin); // <-- Cargar gráficas también
+            });
+
+            $("#btnExportarTodoExcel").click(function() {
+                var fechaInicio = $("#fecha_inicio").val();
+                var fechaFin = $("#fecha_fin").val();
+                if (!fechaInicio || !fechaFin) {
+                    alert("Por favor, seleccione una fecha de inicio y de fin.");
+                    return;
+                }
+                var url = '{{ route("reportesScreen.exportarExcelCompleto") }}' + '?fecha_inicio=' + encodeURIComponent(fechaInicio) + '&fecha_fin=' + encodeURIComponent(fechaFin);
+                window.location.href = url;
             });
         });
 </script>

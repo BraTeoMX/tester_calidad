@@ -25,6 +25,8 @@ use App\Models\Tecnicos;
 use App\Models\Tipo_Fibra;
 use App\Models\Tipo_Tecnica;
 use App\Models\Horno_Banda;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ReporteScreenMultiSheetExport;
 
 class ReportesScreenController extends Controller
 {
@@ -222,6 +224,165 @@ class ReportesScreenController extends Controller
         // ksort($respuestaJson['reportePorMaquina']); // Si quieres ordenar las máquinas alfabéticamente por clave
 
         return response()->json($respuestaJson);
+    }
+
+    public function exportarExcelCompleto(Request $request)
+    {
+        $request->validate([
+            'fecha_inicio' => 'required|date_format:Y-m-d',
+            'fecha_fin'    => 'required|date_format:Y-m-d|after_or_equal:fecha_inicio',
+        ]);
+
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin    = $request->input('fecha_fin');
+        $rangoFechasTexto = $fechaInicio === $fechaFin ? $fechaInicio : "{$fechaInicio} al {$fechaFin}";
+
+        $inicioDia = Carbon::parse($fechaInicio)->startOfDay();
+        $finDia    = Carbon::parse($fechaFin)->endOfDay();
+
+        $inspecciones = InspeccionHorno::with([
+            'tecnicas',
+            'fibras',
+            'screen.defectos',
+            'plancha.defectos'
+        ])
+            ->whereBetween('created_at', [$inicioDia, $finDia])
+            ->orderBy('maquina')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $reportePorMaquina = [];
+        $resumenGeneralDetalle = [];
+
+        $totalCantidadAuditadaGlobal = 0;
+        $totalScreenDefectosGlobal = 0;
+        $totalPlanchaDefectosGlobal = 0;
+        $totalDefectosCombinadosGlobal = 0;
+
+        $inspeccionesProcesadas = $inspecciones->map(function ($inspeccion) {
+            $tecnicasTexto = 'N/A';
+            if ($inspeccion->tecnicas->isNotEmpty()) {
+                $tecnicasTexto = $inspeccion->tecnicas->pluck('nombre')->unique()->implode(', ');
+            }
+
+            $fibrasTexto = 'N/A';
+            if ($inspeccion->fibras->isNotEmpty()) {
+                $fibrasTexto = $inspeccion->fibras->map(function ($fibra) {
+                    return $fibra->nombre . ' (' . $fibra->cantidad . ')';
+                })->unique()->implode(', ');
+            }
+
+            $screenDefectosTexto = 'N/A';
+            $cantidadNumericaScreenDefectos = 0;
+            if ($inspeccion->screen && $inspeccion->screen->defectos->isNotEmpty()) {
+                $screenDefectosTexto = $inspeccion->screen->defectos->map(function ($defecto) {
+                    return $defecto->nombre . ' (' . $defecto->cantidad . ')';
+                })->unique()->implode(', ');
+                $cantidadNumericaScreenDefectos = $inspeccion->screen->defectos->sum('cantidad');
+            }
+
+            $planchaDefectosTexto = 'N/A';
+            $cantidadNumericaPlanchaDefectos = 0;
+            if ($inspeccion->plancha && $inspeccion->plancha->defectos->isNotEmpty()) {
+                $planchaDefectosTexto = $inspeccion->plancha->defectos->map(function ($defecto) {
+                    return $defecto->nombre . ' (' . $defecto->cantidad . ')';
+                })->unique()->implode(', ');
+                $cantidadNumericaPlanchaDefectos = $inspeccion->plancha->defectos->sum('cantidad');
+            }
+
+            $tecnicoScreen  = $inspeccion->screen ? $inspeccion->screen->nombre_tecnico : 'N/A';
+            $tecnicoPlancha = $inspeccion->plancha ? $inspeccion->plancha->nombre_tecnico : 'N/A';
+
+            return [
+                'auditor'           => $inspeccion->auditor ?? 'N/A',
+                'bulto'             => $inspeccion->bulto ?? 'N/A',
+                'op'                => $inspeccion->op ?? 'N/A',
+                'cliente'           => $inspeccion->cliente ?? 'N/A',
+                'estilo'            => $inspeccion->estilo ?? 'N/A',
+                'color'             => $inspeccion->color ?? 'N/A',
+                'cantidad'          => (int) ($inspeccion->cantidad ?? 0),
+                'panel'             => $inspeccion->panel ?? 'N/A',
+                'maquina'           => $inspeccion->maquina,
+                'grafica'           => $inspeccion->grafica ?? 'N/A',
+                'tecnicasTexto'     => $tecnicasTexto,
+                'fibrasTexto'       => $fibrasTexto,
+                'screenDefectosTexto' => $screenDefectosTexto,
+                'planchaDefectosTexto' => $planchaDefectosTexto,
+                'cantidadNumericaScreenDefectos' => $cantidadNumericaScreenDefectos,
+                'cantidadNumericaPlanchaDefectos' => $cantidadNumericaPlanchaDefectos,
+                'tecnico_screen'    => $tecnicoScreen,
+                'tecnico_plancha'   => $tecnicoPlancha,
+                'fecha' => $inspeccion->created_at ? $inspeccion->created_at->format('d/m/Y - H:i:s') : 'N/A'
+            ];
+        });
+
+        $inspeccionesAgrupadas = $inspeccionesProcesadas->groupBy('maquina');
+
+        foreach ($inspeccionesAgrupadas as $nombreMaquina => $registrosMaquina) {
+            $totalCantidadAuditadaMaquina = $registrosMaquina->sum('cantidad');
+            $totalScreenDefectosMaquina = $registrosMaquina->sum('cantidadNumericaScreenDefectos');
+            $totalPlanchaDefectosMaquina = $registrosMaquina->sum('cantidadNumericaPlanchaDefectos');
+            $totalDefectosCombinadosMaquina = $totalScreenDefectosMaquina + $totalPlanchaDefectosMaquina;
+
+            $porcentajeDefectosMaquina = 0;
+            if ($totalCantidadAuditadaMaquina > 0) {
+                $porcentajeDefectosMaquina = round(($totalDefectosCombinadosMaquina / $totalCantidadAuditadaMaquina) * 100, 2);
+            }
+
+            $keyMaquina = !empty($nombreMaquina) ? $nombreMaquina : 'Máquina no especificada';
+
+            $totalCantidadAuditadaGlobal += $totalCantidadAuditadaMaquina;
+            $totalScreenDefectosGlobal += $totalScreenDefectosMaquina;
+            $totalPlanchaDefectosGlobal += $totalPlanchaDefectosMaquina;
+            $totalDefectosCombinadosGlobal += $totalDefectosCombinadosMaquina;
+
+            $reportePorMaquina[$keyMaquina] = [
+                'registros' => $registrosMaquina->map(function ($reg) {
+                    unset($reg['maquina']);
+                    return $reg;
+                })->values()->all(),
+                'resumen' => [
+                    'totalCantidadAuditada' => $totalCantidadAuditadaMaquina,
+                    'totalScreenDefectos'   => $totalScreenDefectosMaquina,
+                    'totalPlanchaDefectos'  => $totalPlanchaDefectosMaquina,
+                    'totalDefectosCombinados' => $totalDefectosCombinadosMaquina,
+                    'porcentajeDefectos'    => $porcentajeDefectosMaquina,
+                ]
+            ];
+
+            $resumenGeneralDetalle[] = [
+                'nombreMaquina' => $keyMaquina,
+                'cantidadAuditada' => $totalCantidadAuditadaMaquina,
+                'cantidadScreenDefectos' => $totalScreenDefectosMaquina,
+                'cantidadPlanchaDefectos' => $totalPlanchaDefectosMaquina,
+                'cantidadDefectosCombinados' => $totalDefectosCombinadosMaquina,
+                'porcentajeDefectos' => $porcentajeDefectosMaquina,
+            ];
+        }
+
+        $porcentajeDefectosGlobal = 0;
+        if ($totalCantidadAuditadaGlobal > 0) {
+            $porcentajeDefectosGlobal = round(($totalDefectosCombinadosGlobal / $totalCantidadAuditadaGlobal) * 100, 2);
+        }
+
+        $datosReporte = [
+            'reportePorMaquina' => $reportePorMaquina,
+            'resumenGeneral' => [
+                'totalCantidadAuditadaGlobal' => $totalCantidadAuditadaGlobal,
+                'totalScreenDefectosGlobal' => $totalScreenDefectosGlobal,
+                'totalPlanchaDefectosGlobal' => $totalPlanchaDefectosGlobal,
+                'totalDefectosCombinadosGlobal' => $totalDefectosCombinadosGlobal,
+                'porcentajeDefectosGlobal' => $porcentajeDefectosGlobal,
+                'detallePorMaquina' => $resumenGeneralDetalle,
+            ]
+        ];
+
+        $nombreArchivo = 'Reporte_Screen_' . $fechaInicio . '_al_' . $fechaFin . '.xlsx';
+
+        return Excel::download(
+            new ReporteScreenMultiSheetExport($datosReporte, $rangoFechasTexto),
+            $nombreArchivo
+        );
     }
 
     private function calcularCantidadNumericaDefectos($defectosHtml)
