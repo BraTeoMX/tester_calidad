@@ -59,6 +59,7 @@
                                 <th>Modulo (AQL)</th>
                                 <th>Supervisor</th>
                                 <th>Estilo</th>
+                                <th>OP</th>
                                 <th>Numero de Operarios</th>
                                 <th>Cantidad Paro</th>
                                 <th>Minutos Paro</th>
@@ -165,6 +166,7 @@
                                 <th>Modulo (AQL)</th>
                                 <th>Supervisor</th>
                                 <th>Estilo</th>
+                                <th>OP</th>
                                 <th>Numero de Operarios</th>
                                 <th>Cantidad Paro</th>
                                 <th>Minutos Paro</th>
@@ -638,6 +640,7 @@
                                 </td>
                                 <td>${item.supervisoresUnicos}</td>
                                 <td>${item.estilosUnicos}</td>
+                                <td>${item.opUnicos || 'N/A'}</td>
                                 <td>${item.conteoOperario}</td>
                                 <td>${item.conteoMinutos}</td>
                                 <td>${item.sumaMinutos}</td>
@@ -711,7 +714,7 @@
                                 },
                                 columnDefs: [
                                     {
-                                        targets: [0, 1, 2, 15, 16, 17],
+                                        targets: [0, 1, 2, 3, 4, 16, 17, 18, 19],
                                         type: "string",
                                         render: function (data) {
                                             return typeof data === "string" ? data.trim() : data;
@@ -729,7 +732,7 @@
                         }, 50); // pequeño delay por si el DOM tarda en pintar
 
                     } else {
-                        tablaBody.innerHTML = `<tr><td colspan='9'>No hay datos disponibles para ${dataKey}.</td></tr>`;
+                        tablaBody.innerHTML = `<tr><td colspan='22'>No hay datos disponibles para ${dataKey}.</td></tr>`;
                     }
                 })
                 .catch(error => {
